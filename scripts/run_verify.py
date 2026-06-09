@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import shutil
@@ -24,17 +25,29 @@ class CommandSpec:
     description: str
 
 
-def uv_command() -> list[str]:
+def uv_command() -> list[str] | None:
     if explicit := os.environ.get("UV_BIN"):
         return [explicit]
     if shutil.which("uv"):
         return ["uv"]
     base_python = getattr(sys, "_base_executable", sys.executable)
-    return [base_python, "-m", "uv"]
+    if importlib.util.find_spec("uv") is not None:
+        return [base_python, "-m", "uv"]
+    return None
 
 
 def uv_python_command() -> list[str]:
-    return uv_command() + ["run", "python"]
+    uv = uv_command()
+    if uv is not None:
+        return uv + ["run", "python"]
+    return [sys.executable]
+
+
+def ruff_command() -> list[str]:
+    uv = uv_command()
+    if uv is not None:
+        return uv + ["run", "ruff", "check", "."]
+    return [sys.executable, "-m", "ruff", "check", "."]
 
 
 COMMANDS = {
@@ -87,12 +100,20 @@ COMMANDS = {
         uv_python_command() + ["-m", "pytest", "tests/test_poker_core.py"],
         "Run Phase 01 poker-core tests",
     ),
+    "pytest_hand_history": CommandSpec(
+        uv_python_command() + ["-m", "pytest", "tests/test_hand_history.py"],
+        "Run Phase 02 hand-history tests",
+    ),
     "generate_phase_01_replay_report": CommandSpec(
         uv_python_command() + ["scripts/generate_phase_01_replay_report.py"],
         "Generate Phase 01 golden-hand replay report",
     ),
+    "generate_replay_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_replay_report.py"],
+        "Generate Phase 02 normalized hand-history replay report",
+    ),
     "ruff_check": CommandSpec(
-        uv_command() + ["run", "ruff", "check", "."],
+        ruff_command(),
         "Run ruff",
     ),
     "uv_import_smoke": CommandSpec(
@@ -131,6 +152,25 @@ PHASE_01_GATE = [
     "import_smoke",
     "uv_import_smoke",
     "pytest_poker_core",
+    "pytest",
+    "ruff_check",
+]
+
+PHASE_02_GATE = [
+    "generate_status",
+    "generate_phase_ledger",
+    "generate_backlog",
+    "generate_replay_report",
+    "check_generated_status",
+    "check_generated_phase_ledger",
+    "check_generated_backlog",
+    "check_contracts",
+    "check_scope",
+    "check_file_sizes",
+    "import_smoke",
+    "uv_import_smoke",
+    "pytest_poker_core",
+    "pytest_hand_history",
     "pytest",
     "ruff_check",
 ]
@@ -188,7 +228,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--commands", nargs="*", help="Explicit command IDs to run")
     args = parser.parse_args()
-    command_ids = args.commands or PHASE_01_GATE
+    command_ids = args.commands or PHASE_02_GATE
     unknown = [command_id for command_id in command_ids if command_id not in COMMANDS]
     if unknown:
         print(f"Unknown command IDs: {unknown}", file=sys.stderr)

@@ -16,7 +16,7 @@ phases:
     completed_local_commit: null
   - phase_id: "02"
     title: "Normalized Hand-History Schema And Deterministic Replay"
-    status: future
+    status: completed
     contract: docs/phase_contracts/PHASE_02_HAND_HISTORY.md
     audit_packet: reports/phase_audits/PHASE_02_HAND_HISTORY.md
     completed_local_commit: null

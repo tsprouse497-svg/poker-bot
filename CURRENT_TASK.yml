@@ -1,5 +1,5 @@
-task_id: PHASE-01-CORE-ENGINE
-active_phase: "01"
+task_id: PHASE-02-HAND-HISTORY
+active_phase: "02"
 task_mode: implementation
 approved_scope:
   - AGENTS.md
@@ -33,10 +33,13 @@ required_task_commands:
   - check_file_sizes
   - import_smoke
   - pytest_poker_core
-  - generate_phase_01_replay_report
+  - pytest_hand_history
+  - generate_replay_report
   - ruff_check
 scope_change_log:
   - date: 2026-06-08
     reason: Phase 00 scaffold requires root metadata, CI config, uv lockfile, and tiny sample fixtures.
   - date: 2026-06-08
     reason: Phase 01 requires deterministic poker core source, golden-hand fixtures, tests, reports, and audit evidence.
+  - date: 2026-06-08
+    reason: Phase 02 requires normalized hand-history schema, deterministic replay, fixtures, tests, reports, and audit evidence.

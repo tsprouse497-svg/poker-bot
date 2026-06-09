@@ -1,9 +1,9 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `PHASE-01-CORE-ENGINE`
-Active phase: `01`
-Completed phases: `2`
+Current task: `PHASE-02-HAND-HISTORY`
+Active phase: `02`
+Completed phases: `3`
 
 ## Phase Snapshot
 
@@ -11,7 +11,7 @@ Completed phases: `2`
 | --- | --- | --- | --- |
 | 00 | completed | `docs/phase_contracts/PHASE_00_SCAFFOLD.md` | `reports/phase_audits/PHASE_00_SCAFFOLD.md` |
 | 01 | completed | `docs/phase_contracts/PHASE_01_CORE_ENGINE.md` | `reports/phase_audits/PHASE_01_CORE_ENGINE.md` |
-| 02 | future | `docs/phase_contracts/PHASE_02_HAND_HISTORY.md` | `reports/phase_audits/PHASE_02_HAND_HISTORY.md` |
+| 02 | completed | `docs/phase_contracts/PHASE_02_HAND_HISTORY.md` | `reports/phase_audits/PHASE_02_HAND_HISTORY.md` |
 | 03 | future | `docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md` | `reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md` |
 | 04 | future | `docs/phase_contracts/PHASE_04_PREFLOP_ARTIFACTS.md` | `reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md` |
 | 05 | future | `docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md` | `reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md` |
