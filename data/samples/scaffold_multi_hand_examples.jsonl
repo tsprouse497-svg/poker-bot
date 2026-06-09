@@ -1,0 +1,2 @@
+{"schema_version":1,"hand_id":"scaffold-example-002","table":{"table_id":"scaffold","max_seats":6},"players":[],"button_seat":1,"blinds":{"small_blind":5,"big_blind":10},"streets":[],"showdown":[],"result":{"winner_seats":[],"pot":0}}
+{"schema_version":1,"hand_id":"scaffold-example-003","table":{"table_id":"scaffold","max_seats":9},"players":[],"button_seat":1,"blinds":{"small_blind":5,"big_blind":10},"streets":[],"showdown":[],"result":{"winner_seats":[],"pot":0}}

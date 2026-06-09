@@ -1,0 +1,38 @@
+task_id: PHASE-00-SCAFFOLD
+active_phase: "00"
+task_mode: implementation
+approved_scope:
+  - AGENTS.md
+  - README.md
+  - CURRENT_TASK.yml
+  - phase_status.yml
+  - backlog.yml
+  - STATUS.md
+  - pyproject.toml
+  - uv.lock
+  - .gitignore
+  - .gitattributes
+  - .python-version
+  - .github/**
+  - docs/**
+  - scripts/**
+  - src/**
+  - tests/**
+  - reports/**
+  - data/**
+  - data/samples/**
+forbidden_scope:
+  - data/raw/**
+  - data/processed/**
+required_task_commands:
+  - check_scope
+  - check_contracts
+  - check_generated_status
+  - check_file_sizes
+  - import_smoke
+  - pytest
+  - ruff_check
+scope_change_log:
+  - date: 2026-06-08
+    reason: Phase 00 scaffold requires root metadata, CI config, uv lockfile, and tiny sample fixtures.
+

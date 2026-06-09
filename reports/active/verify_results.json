@@ -1,0 +1,188 @@
+{
+  "all_passed": true,
+  "generated_at_epoch": 1780977534,
+  "results": [
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "scripts/generate_status.py"
+      ],
+      "command_id": "generate_status",
+      "description": "Regenerate STATUS.md",
+      "duration_seconds": 0.905,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "scripts/generate_phase_ledger.py"
+      ],
+      "command_id": "generate_phase_ledger",
+      "description": "Regenerate phase ledger",
+      "duration_seconds": 0.923,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "scripts/generate_backlog.py"
+      ],
+      "command_id": "generate_backlog",
+      "description": "Regenerate backlog docs",
+      "duration_seconds": 0.878,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "scripts/generate_status.py",
+        "--check"
+      ],
+      "command_id": "check_generated_status",
+      "description": "Check generated STATUS.md freshness",
+      "duration_seconds": 0.815,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "scripts/generate_phase_ledger.py",
+        "--check"
+      ],
+      "command_id": "check_generated_phase_ledger",
+      "description": "Check generated phase ledger freshness",
+      "duration_seconds": 0.795,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "scripts/generate_backlog.py",
+        "--check"
+      ],
+      "command_id": "check_generated_backlog",
+      "description": "Check generated backlog freshness",
+      "duration_seconds": 0.816,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "scripts/check_contracts.py"
+      ],
+      "command_id": "check_contracts",
+      "description": "Validate phase contracts",
+      "duration_seconds": 0.826,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "scripts/check_scope.py"
+      ],
+      "command_id": "check_scope",
+      "description": "Validate task scope",
+      "duration_seconds": 1.91,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "scripts/check_file_sizes.py"
+      ],
+      "command_id": "check_file_sizes",
+      "description": "Validate file-size limits",
+      "duration_seconds": 0.707,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "-c",
+        "import poker_training_bot; print(poker_training_bot.__version__)"
+      ],
+      "command_id": "import_smoke",
+      "description": "Import package smoke test",
+      "duration_seconds": 0.189,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "0.0.0\n"
+    },
+    {
+      "command": [
+        "/home/taylorsprouse/.local/bin/uv",
+        "run",
+        "python",
+        "-c",
+        "import poker_training_bot; print('uv import ok')"
+      ],
+      "command_id": "uv_import_smoke",
+      "description": "Prove uv environment can import the package",
+      "duration_seconds": 0.639,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "uv import ok\n"
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "-m",
+        "pytest",
+        "tests"
+      ],
+      "command_id": "pytest",
+      "description": "Run tests",
+      "duration_seconds": 4.285,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.13.13, pytest-9.0.3, pluggy-1.6.0\nrootdir: /mnt/c/OperationNow/poker-training-bot\nconfigfile: pyproject.toml\ncollected 2 items\n\ntests/test_command_registry.py .                                         [ 50%]\ntests/test_import_smoke.py .                                             [100%]\n\n============================== 2 passed in 0.26s ===============================\n"
+    },
+    {
+      "command": [
+        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "-m",
+        "ruff",
+        "check",
+        "."
+      ],
+      "command_id": "ruff_check",
+      "description": "Run ruff",
+      "duration_seconds": 0.651,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "All checks passed!\n"
+    }
+  ],
+  "schema_version": 1
+}

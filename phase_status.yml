@@ -1,0 +1,64 @@
+schema_version: 1
+project: poker-training-bot
+updated_by: Phase 00 scaffold verifier
+phases:
+  - phase_id: "00"
+    title: "Scaffold, Contracts, Tooling, Verifier, Reports, Coordinator Workflow"
+    status: completed
+    contract: docs/phase_contracts/PHASE_00_SCAFFOLD.md
+    audit_packet: reports/phase_audits/PHASE_00_SCAFFOLD.md
+    completed_local_commit: null
+  - phase_id: "01"
+    title: "2-9 Player NLHE Core Engine"
+    status: future
+    contract: docs/phase_contracts/PHASE_01_CORE_ENGINE.md
+    audit_packet: reports/phase_audits/PHASE_01_CORE_ENGINE.md
+    completed_local_commit: null
+  - phase_id: "02"
+    title: "Normalized Hand-History Schema And Deterministic Replay"
+    status: future
+    contract: docs/phase_contracts/PHASE_02_HAND_HISTORY.md
+    audit_packet: reports/phase_audits/PHASE_02_HAND_HISTORY.md
+    completed_local_commit: null
+  - phase_id: "03"
+    title: "Strategy Contract And Deterministic Decision Audit Shape"
+    status: future
+    contract: docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
+    audit_packet: reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md
+    completed_local_commit: null
+  - phase_id: "04"
+    title: "Preflop Artifact/Chart Contract, Importer, And Fail-Closed Lookup"
+    status: future
+    contract: docs/phase_contracts/PHASE_04_PREFLOP_ARTIFACTS.md
+    audit_packet: reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md
+    completed_local_commit: null
+  - phase_id: "05"
+    title: "Full-Table Preflop Strategy From Committed Artifacts/Charts"
+    status: future
+    contract: docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md
+    audit_packet: reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md
+    completed_local_commit: null
+  - phase_id: "06"
+    title: "Conservative Postflop Fallback For Simulation Continuity"
+    status: future
+    contract: docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md
+    audit_packet: reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md
+    completed_local_commit: null
+  - phase_id: "07"
+    title: "Offline Simulator And Bot/Profile Comparison Reports"
+    status: future
+    contract: docs/phase_contracts/PHASE_07_SIMULATOR_REPORTS.md
+    audit_packet: reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md
+    completed_local_commit: null
+  - phase_id: "08"
+    title: "Tiny Normalized Sample Ingestion And Player Tendency Comparison"
+    status: future
+    contract: docs/phase_contracts/PHASE_08_SAMPLE_COMPARISON.md
+    audit_packet: reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
+    completed_local_commit: null
+  - phase_id: "09"
+    title: "Quality, Drift, Backlog, And Phase-Gate Hardening"
+    status: future
+    contract: docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md
+    audit_packet: reports/phase_audits/PHASE_09_QUALITY_HARDENING.md
+    completed_local_commit: null

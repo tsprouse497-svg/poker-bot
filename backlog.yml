@@ -1,0 +1,17 @@
+schema_version: 1
+items:
+  - id: V2-POKERNOW-AUTOMATION
+    status: deferred
+    phase: v2
+    title: PokerNow automation and browser observation
+    reason: Explicit v1 non-goal.
+  - id: V2-TRAINING-UI
+    status: deferred
+    phase: v2
+    title: Training UI package
+    reason: V1 is CLI and report driven.
+  - id: V2-LARGE-DATASET-COMPARISON
+    status: deferred
+    phase: v2
+    title: Large hand-history corpus comparison
+    reason: V1 allows only tiny normalized sample comparison.
