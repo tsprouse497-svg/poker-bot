@@ -51,6 +51,13 @@ The committed replay report covers:
 - Nine-player all-in settlement with main and side pots.
 - Three-player split pot on a board straight.
 
+## Review
+
+Independent agent review was unavailable for this local Phase 01 gate.
+Self-review checked the phase contract, forbidden scope, ExecPlan, deterministic
+core-engine behavior, synthetic golden-hand report, generated status docs, and
+full verifier output.
+
 ## Known Limitations
 
 - Phase 01 does not implement strategy decisions, preflop charts, solver calls,
