@@ -3,7 +3,7 @@
 | Phase | Title | Status | Contract | Audit Packet |
 | --- | --- | --- | --- | --- |
 | 00 | Scaffold, Contracts, Tooling, Verifier, Reports, Coordinator Workflow | completed | `docs/phase_contracts/PHASE_00_SCAFFOLD.md` | `reports/phase_audits/PHASE_00_SCAFFOLD.md` |
-| 01 | 2-9 Player NLHE Core Engine | future | `docs/phase_contracts/PHASE_01_CORE_ENGINE.md` | `reports/phase_audits/PHASE_01_CORE_ENGINE.md` |
+| 01 | 2-9 Player NLHE Core Engine | completed | `docs/phase_contracts/PHASE_01_CORE_ENGINE.md` | `reports/phase_audits/PHASE_01_CORE_ENGINE.md` |
 | 02 | Normalized Hand-History Schema And Deterministic Replay | future | `docs/phase_contracts/PHASE_02_HAND_HISTORY.md` | `reports/phase_audits/PHASE_02_HAND_HISTORY.md` |
 | 03 | Strategy Contract And Deterministic Decision Audit Shape | future | `docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md` | `reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md` |
 | 04 | Preflop Artifact/Chart Contract, Importer, And Fail-Closed Lookup | future | `docs/phase_contracts/PHASE_04_PREFLOP_ARTIFACTS.md` | `reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md` |

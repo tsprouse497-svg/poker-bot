@@ -17,3 +17,13 @@ def test_phase_00_registry_contains_required_commands() -> None:
 
     assert required.issubset(run_verify.COMMANDS)
     assert required.issubset(run_verify.PHASE_00_GATE)
+
+
+def test_phase_01_registry_contains_required_commands() -> None:
+    required = {
+        "pytest_poker_core",
+        "generate_phase_01_replay_report",
+    }
+
+    assert required.issubset(run_verify.COMMANDS)
+    assert required.issubset(run_verify.PHASE_01_GATE)

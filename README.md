@@ -2,9 +2,9 @@
 
 Offline-first deterministic NLHE training bot.
 
-This repository is in Phase 00. The committed baseline contains only scaffold,
-contracts, verification tooling, reports, coordinator workflow, and audit
-packet evidence. Poker logic starts in Phase 01.
+This repository has completed Phase 01. The committed baseline contains the
+scaffold, contracts, verification tooling, reports, coordinator workflow, audit
+packet evidence, and a deterministic 2-9 player NLHE core engine.
 
 ## Verify
 

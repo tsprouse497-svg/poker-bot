@@ -1,15 +1,19 @@
 {
   "all_passed": true,
-  "generated_at_epoch": 1780977534,
+  "generated_at_epoch": 1780978229,
   "results": [
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "scripts/generate_status.py"
       ],
       "command_id": "generate_status",
       "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.905,
+      "duration_seconds": 0.325,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -17,12 +21,16 @@
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "scripts/generate_phase_ledger.py"
       ],
       "command_id": "generate_phase_ledger",
       "description": "Regenerate phase ledger",
-      "duration_seconds": 0.923,
+      "duration_seconds": 0.336,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -30,12 +38,16 @@
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "scripts/generate_backlog.py"
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.878,
+      "duration_seconds": 0.313,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -43,13 +55,34 @@
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_phase_01_replay_report.py"
+      ],
+      "command_id": "generate_phase_01_replay_report",
+      "description": "Generate Phase 01 golden-hand replay report",
+      "duration_seconds": 0.362,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports\\active\\latest_replay_report.txt\n"
+    },
+    {
+      "command": [
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "scripts/generate_status.py",
         "--check"
       ],
       "command_id": "check_generated_status",
       "description": "Check generated STATUS.md freshness",
-      "duration_seconds": 0.815,
+      "duration_seconds": 0.387,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -57,13 +90,17 @@
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "scripts/generate_phase_ledger.py",
         "--check"
       ],
       "command_id": "check_generated_phase_ledger",
       "description": "Check generated phase ledger freshness",
-      "duration_seconds": 0.795,
+      "duration_seconds": 0.333,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -71,13 +108,17 @@
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "scripts/generate_backlog.py",
         "--check"
       ],
       "command_id": "check_generated_backlog",
       "description": "Check generated backlog freshness",
-      "duration_seconds": 0.816,
+      "duration_seconds": 0.316,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -85,12 +126,16 @@
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "scripts/check_contracts.py"
       ],
       "command_id": "check_contracts",
       "description": "Validate phase contracts",
-      "duration_seconds": 0.826,
+      "duration_seconds": 0.346,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -98,12 +143,16 @@
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "scripts/check_scope.py"
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 1.91,
+      "duration_seconds": 0.472,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -111,12 +160,16 @@
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "scripts/check_file_sizes.py"
       ],
       "command_id": "check_file_sizes",
       "description": "Validate file-size limits",
-      "duration_seconds": 0.707,
+      "duration_seconds": 0.283,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -124,13 +177,17 @@
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "-c",
         "import poker_training_bot; print(poker_training_bot.__version__)"
       ],
       "command_id": "import_smoke",
       "description": "Import package smoke test",
-      "duration_seconds": 0.189,
+      "duration_seconds": 0.224,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -138,7 +195,9 @@
     },
     {
       "command": [
-        "/home/taylorsprouse/.local/bin/uv",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
         "run",
         "python",
         "-c",
@@ -146,7 +205,7 @@
       ],
       "command_id": "uv_import_smoke",
       "description": "Prove uv environment can import the package",
-      "duration_seconds": 0.639,
+      "duration_seconds": 0.219,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -154,30 +213,55 @@
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_poker_core.py"
+      ],
+      "command_id": "pytest_poker_core",
+      "description": "Run Phase 01 poker-core tests",
+      "duration_seconds": 0.989,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 7 items\n\ntests\\test_poker_core.py .......                                         [100%]\n\n============================== 7 passed in 0.07s ==============================\n"
+    },
+    {
+      "command": [
+        "C:\\Python313\\python.exe",
+        "-m",
+        "uv",
+        "run",
+        "python",
         "-m",
         "pytest",
         "tests"
       ],
       "command_id": "pytest",
       "description": "Run tests",
-      "duration_seconds": 4.285,
+      "duration_seconds": 1.257,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.13.13, pytest-9.0.3, pluggy-1.6.0\nrootdir: /mnt/c/OperationNow/poker-training-bot\nconfigfile: pyproject.toml\ncollected 2 items\n\ntests/test_command_registry.py .                                         [ 50%]\ntests/test_import_smoke.py .                                             [100%]\n\n============================== 2 passed in 0.26s ===============================\n"
+      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 10 items\n\ntests\\test_command_registry.py ..                                        [ 20%]\ntests\\test_import_smoke.py .                                             [ 30%]\ntests\\test_poker_core.py .......                                         [100%]\n\n============================= 10 passed in 0.36s ==============================\n"
     },
     {
       "command": [
-        "/mnt/c/OperationNow/poker-training-bot/.venv-wsl/bin/python3",
+        "C:\\Python313\\python.exe",
         "-m",
+        "uv",
+        "run",
         "ruff",
         "check",
         "."
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.651,
+      "duration_seconds": 0.199,
       "passed": true,
       "returncode": 0,
       "stderr": "",

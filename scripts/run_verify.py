@@ -33,61 +33,70 @@ def uv_command() -> list[str]:
     return [base_python, "-m", "uv"]
 
 
+def uv_python_command() -> list[str]:
+    return uv_command() + ["run", "python"]
+
+
 COMMANDS = {
     "generate_status": CommandSpec(
-        [sys.executable, "scripts/generate_status.py"],
+        uv_python_command() + ["scripts/generate_status.py"],
         "Regenerate STATUS.md",
     ),
     "generate_phase_ledger": CommandSpec(
-        [sys.executable, "scripts/generate_phase_ledger.py"],
+        uv_python_command() + ["scripts/generate_phase_ledger.py"],
         "Regenerate phase ledger",
     ),
     "generate_backlog": CommandSpec(
-        [sys.executable, "scripts/generate_backlog.py"],
+        uv_python_command() + ["scripts/generate_backlog.py"],
         "Regenerate backlog docs",
     ),
     "check_generated_status": CommandSpec(
-        [sys.executable, "scripts/generate_status.py", "--check"],
+        uv_python_command() + ["scripts/generate_status.py", "--check"],
         "Check generated STATUS.md freshness",
     ),
     "check_generated_phase_ledger": CommandSpec(
-        [sys.executable, "scripts/generate_phase_ledger.py", "--check"],
+        uv_python_command() + ["scripts/generate_phase_ledger.py", "--check"],
         "Check generated phase ledger freshness",
     ),
     "check_generated_backlog": CommandSpec(
-        [sys.executable, "scripts/generate_backlog.py", "--check"],
+        uv_python_command() + ["scripts/generate_backlog.py", "--check"],
         "Check generated backlog freshness",
     ),
     "check_contracts": CommandSpec(
-        [sys.executable, "scripts/check_contracts.py"],
+        uv_python_command() + ["scripts/check_contracts.py"],
         "Validate phase contracts",
     ),
     "check_scope": CommandSpec(
-        [sys.executable, "scripts/check_scope.py"],
+        uv_python_command() + ["scripts/check_scope.py"],
         "Validate task scope",
     ),
     "check_file_sizes": CommandSpec(
-        [sys.executable, "scripts/check_file_sizes.py"],
+        uv_python_command() + ["scripts/check_file_sizes.py"],
         "Validate file-size limits",
     ),
     "import_smoke": CommandSpec(
-        [
-            sys.executable,
-            "-c",
-            "import poker_training_bot; print(poker_training_bot.__version__)",
-        ],
+        uv_python_command()
+        + ["-c", "import poker_training_bot; print(poker_training_bot.__version__)"],
         "Import package smoke test",
     ),
     "pytest": CommandSpec(
-        [sys.executable, "-m", "pytest", "tests"],
+        uv_python_command() + ["-m", "pytest", "tests"],
         "Run tests",
     ),
+    "pytest_poker_core": CommandSpec(
+        uv_python_command() + ["-m", "pytest", "tests/test_poker_core.py"],
+        "Run Phase 01 poker-core tests",
+    ),
+    "generate_phase_01_replay_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_phase_01_replay_report.py"],
+        "Generate Phase 01 golden-hand replay report",
+    ),
     "ruff_check": CommandSpec(
-        [sys.executable, "-m", "ruff", "check", "."],
+        uv_command() + ["run", "ruff", "check", "."],
         "Run ruff",
     ),
     "uv_import_smoke": CommandSpec(
-        uv_command() + ["run", "python", "-c", "import poker_training_bot; print('uv import ok')"],
+        uv_python_command() + ["-c", "import poker_training_bot; print('uv import ok')"],
         "Prove uv environment can import the package",
     ),
 }
@@ -104,6 +113,24 @@ PHASE_00_GATE = [
     "check_file_sizes",
     "import_smoke",
     "uv_import_smoke",
+    "pytest",
+    "ruff_check",
+]
+
+PHASE_01_GATE = [
+    "generate_status",
+    "generate_phase_ledger",
+    "generate_backlog",
+    "generate_phase_01_replay_report",
+    "check_generated_status",
+    "check_generated_phase_ledger",
+    "check_generated_backlog",
+    "check_contracts",
+    "check_scope",
+    "check_file_sizes",
+    "import_smoke",
+    "uv_import_smoke",
+    "pytest_poker_core",
     "pytest",
     "ruff_check",
 ]
@@ -161,7 +188,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--commands", nargs="*", help="Explicit command IDs to run")
     args = parser.parse_args()
-    command_ids = args.commands or PHASE_00_GATE
+    command_ids = args.commands or PHASE_01_GATE
     unknown = [command_id for command_id in command_ids if command_id not in COMMANDS]
     if unknown:
         print(f"Unknown command IDs: {unknown}", file=sys.stderr)

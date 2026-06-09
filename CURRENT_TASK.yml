@@ -1,5 +1,5 @@
-task_id: PHASE-00-SCAFFOLD
-active_phase: "00"
+task_id: PHASE-01-CORE-ENGINE
+active_phase: "01"
 task_mode: implementation
 approved_scope:
   - AGENTS.md
@@ -28,11 +28,15 @@ required_task_commands:
   - check_scope
   - check_contracts
   - check_generated_status
+  - check_generated_phase_ledger
+  - check_generated_backlog
   - check_file_sizes
   - import_smoke
-  - pytest
+  - pytest_poker_core
+  - generate_phase_01_replay_report
   - ruff_check
 scope_change_log:
   - date: 2026-06-08
     reason: Phase 00 scaffold requires root metadata, CI config, uv lockfile, and tiny sample fixtures.
-
+  - date: 2026-06-08
+    reason: Phase 01 requires deterministic poker core source, golden-hand fixtures, tests, reports, and audit evidence.

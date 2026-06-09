@@ -6,6 +6,7 @@ All passed: True
 - PASS generate_status: Regenerate STATUS.md
 - PASS generate_phase_ledger: Regenerate phase ledger
 - PASS generate_backlog: Regenerate backlog docs
+- PASS generate_phase_01_replay_report: Generate Phase 01 golden-hand replay report
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness
@@ -14,6 +15,7 @@ All passed: True
 - PASS check_file_sizes: Validate file-size limits
 - PASS import_smoke: Import package smoke test
 - PASS uv_import_smoke: Prove uv environment can import the package
+- PASS pytest_poker_core: Run Phase 01 poker-core tests
 - PASS pytest: Run tests
 - PASS ruff_check: Run ruff
 

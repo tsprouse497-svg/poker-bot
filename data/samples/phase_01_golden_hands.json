@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "description": "Synthetic Phase 01 NLHE core-engine golden hands.",
+  "hands": [
+    {
+      "hand_id": "phase01-heads-up-royal-vs-full-house",
+      "description": "Heads-up showdown where seat 0 wins with a royal flush over a full house.",
+      "board": ["As", "Ks", "Qs", "Js", "2d"],
+      "players": [
+        {
+          "seat": 0,
+          "name": "Button",
+          "hole_cards": ["Ts", "9c"],
+          "committed_total": 100
+        },
+        {
+          "seat": 1,
+          "name": "Big Blind",
+          "hole_cards": ["Ah", "Ad"],
+          "committed_total": 100
+        }
+      ]
+    },
+    {
+      "hand_id": "phase01-nine-player-side-pot",
+      "description": "Nine-player all-in settlement with main and side pots.",
+      "board": ["2h", "3h", "4h", "8c", "Kd"],
+      "players": [
+        {
+          "seat": 0,
+          "name": "Seat 0",
+          "hole_cards": ["Ah", "Kh"],
+          "committed_total": 50
+        },
+        {
+          "seat": 1,
+          "name": "Seat 1",
+          "hole_cards": ["8s", "8d"],
+          "committed_total": 100
+        },
+        {
+          "seat": 2,
+          "name": "Seat 2",
+          "hole_cards": ["Ac", "5d"],
+          "committed_total": 100
+        },
+        {
+          "seat": 3,
+          "name": "Seat 3",
+          "hole_cards": ["7c", "7d"],
+          "committed_total": 200
+        },
+        {
+          "seat": 4,
+          "name": "Seat 4",
+          "hole_cards": ["Kc", "Qs"],
+          "committed_total": 200
+        },
+        {
+          "seat": 5,
+          "name": "Seat 5",
+          "hole_cards": ["Qh", "Jh"],
+          "committed_total": 300
+        },
+        {
+          "seat": 6,
+          "name": "Seat 6",
+          "hole_cards": ["9s", "9d"],
+          "committed_total": 300
+        },
+        {
+          "seat": 7,
+          "name": "Seat 7",
+          "hole_cards": ["6c", "5c"],
+          "committed_total": 300
+        },
+        {
+          "seat": 8,
+          "name": "Seat 8",
+          "hole_cards": ["Ad", "Qc"],
+          "committed_total": 300
+        }
+      ]
+    },
+    {
+      "hand_id": "phase01-split-pot-board-straight",
+      "description": "Three-way equal showdown where the board straight splits the pot.",
+      "board": ["9c", "8d", "7s", "6h", "5c"],
+      "players": [
+        {
+          "seat": 0,
+          "name": "Cutoff",
+          "hole_cards": ["Ah", "2d"],
+          "committed_total": 75
+        },
+        {
+          "seat": 1,
+          "name": "Button",
+          "hole_cards": ["Kc", "3s"],
+          "committed_total": 75
+        },
+        {
+          "seat": 2,
+          "name": "Small Blind",
+          "hole_cards": ["Qd", "4h"],
+          "committed_total": 75
+        }
+      ]
+    }
+  ]
+}
