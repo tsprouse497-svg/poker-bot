@@ -29,7 +29,11 @@ When asked to start a phase or package, enter coordinator mode:
 4. Delegate to subagents where available.
 5. Update the ExecPlan after meaningful slices.
 6. Run verification and required reports.
-7. Stop only for a blocker, prohibited scope, or completed gate.
+7. Before completing the gate, spawn a read-only independent review subagent
+   when subagents are available.
+8. Record the independent review findings in the audit packet. If no subagent
+   can be spawned, record the concrete reason and perform self-review.
+9. Stop only for a blocker, prohibited scope, or completed gate.
 
 ## Testing Ladder
 

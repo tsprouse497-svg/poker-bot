@@ -8,12 +8,12 @@ Hands replayed: 3
 
 Heads-up showdown where seat 0 wins with a royal flush over a full house.
 
-Board: As Ks Qs Js 2d
+Board: As Ks Qs Js Kd
 Total pot: 200
 
 Players:
 - seat 0 Button: hole Ts 9c, committed 100, payout 200, Straight flush (A) with Ts As Ks Qs Js
-- seat 1 Big Blind: hole Ah Ad, committed 100, payout 0, Three of a kind (A K Q) with Ah Ad As Ks Qs
+- seat 1 Big Blind: hole Ah Ad, committed 100, payout 0, Full house (A K) with Ah Ad As Ks Kd
 
 Pots:
 - pot 1: amount 200, eligible 0, 1, winners 0, Straight flush (A) with Ts As Ks Qs Js

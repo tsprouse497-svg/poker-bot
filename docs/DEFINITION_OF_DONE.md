@@ -12,4 +12,6 @@ Every completed phase or package must satisfy:
 - Active ExecPlan outcome or retrospective filled in.
 - No forbidden scope changes.
 - Backlog updated for deferred work.
-- Independent review completed where available, or self-review called out.
+- Independent read-only subagent review completed where available.
+- Phase audit packet records review findings, or the concrete reason a subagent
+  review could not run plus self-review notes.

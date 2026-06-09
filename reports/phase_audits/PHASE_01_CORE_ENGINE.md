@@ -53,10 +53,21 @@ The committed replay report covers:
 
 ## Review
 
-Independent agent review was unavailable for this local Phase 01 gate.
-Self-review checked the phase contract, forbidden scope, ExecPlan, deterministic
-core-engine behavior, synthetic golden-hand report, generated status docs, and
-full verifier output.
+Independent read-only subagent review completed after initial Phase 01 closeout.
+
+- Finding: The heads-up golden hand was described as royal flush over full house
+  but originally produced royal flush over three of a kind.
+- Resolution: Updated the synthetic board so the losing hand is aces full of
+  kings while seat 0 still has the royal flush.
+- Finding: The audit packet originally recorded self-review because the
+  independent reviewer had not been spawned.
+- Resolution: Replaced that fallback with this independent review summary.
+- No forbidden scope, PokerNow automation, browser/platform observation,
+  runtime solver call, LLM-backed decision, UI, strategy implementation,
+  preflop chart behavior, or broad hand-history ingestion was found.
+- Residual risk: Betting-round primitives validate individual actions but do
+  not model full turn order or complete hand-history replay; that remains
+  outside Phase 01 and belongs to later phases.
 
 ## Known Limitations
 
