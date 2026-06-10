@@ -12,6 +12,7 @@ All passed: True
 - PASS check_generated_backlog: Check generated backlog freshness
 - PASS check_contracts: Validate phase contracts
 - PASS check_scope: Validate task scope
+- PASS check_execplan_delegation: Validate active ExecPlan delegation plan
 - PASS check_file_sizes: Validate file-size limits
 - PASS import_smoke: Import package smoke test
 - PASS uv_import_smoke: Prove uv environment can import the package

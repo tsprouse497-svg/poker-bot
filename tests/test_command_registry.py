@@ -7,6 +7,7 @@ def test_phase_00_registry_contains_required_commands() -> None:
     required = {
         "check_scope",
         "check_contracts",
+        "check_execplan_delegation",
         "check_generated_status",
         "check_file_sizes",
         "import_smoke",
@@ -21,6 +22,7 @@ def test_phase_00_registry_contains_required_commands() -> None:
 
 def test_phase_01_registry_contains_required_commands() -> None:
     required = {
+        "check_execplan_delegation",
         "pytest_poker_core",
         "generate_phase_01_replay_report",
     }
@@ -31,6 +33,7 @@ def test_phase_01_registry_contains_required_commands() -> None:
 
 def test_phase_02_registry_contains_required_commands() -> None:
     required = {
+        "check_execplan_delegation",
         "pytest_hand_history",
         "generate_replay_report",
     }

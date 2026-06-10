@@ -10,6 +10,12 @@ workflow, and Phase 00 audit packet without implementing poker logic.
 Approved scope is defined in `CURRENT_TASK.yml`. Forbidden scope is
 `data/raw/**` and `data/processed/**`.
 
+## Delegation Plan
+
+- No-delegation exception: Phase 00 was completed before the mandatory early
+  delegation checkpoint existed; future active ExecPlans must document worker
+  lanes or a concrete exception before implementation starts.
+
 ## Slices
 
 - [x] Create package and documentation scaffold.

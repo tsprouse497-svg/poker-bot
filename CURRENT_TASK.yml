@@ -27,6 +27,7 @@ forbidden_scope:
 required_task_commands:
   - check_scope
   - check_contracts
+  - check_execplan_delegation
   - check_generated_status
   - check_generated_phase_ledger
   - check_generated_backlog

@@ -15,6 +15,13 @@ Forbidden scope remains `data/raw/**` and `data/processed/**`. This plan also
 excludes PokerNow automation, browser/platform observation, UI, runtime solver
 calls, strategy logic, preflop charts, and broad hand-history ingestion.
 
+## Delegation Plan
+
+- No-delegation exception: Phase 01 implementation was completed before the
+  mandatory early delegation checkpoint existed; its late independent review
+  drove the rule that future active ExecPlans must document worker lanes or a
+  concrete exception before implementation starts.
+
 ## Slices
 
 - [x] Activate Phase 01 task metadata and coordinator ExecPlan.

@@ -19,6 +19,12 @@ Forbidden scope:
 - PokerNow automation, browser/platform observation, runtime solver calls,
   LLM-backed poker decisions, and training UI surfaces
 
+## Delegation Plan
+
+- No-delegation exception: Phase 02 implementation was completed before the
+  mandatory early delegation checkpoint existed; future active ExecPlans must
+  document worker lanes or a concrete exception before implementation starts.
+
 ## Slices
 
 - [x] Activate Phase 02 task metadata and create this ExecPlan.

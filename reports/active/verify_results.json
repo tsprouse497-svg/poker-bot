@@ -1,6 +1,6 @@
 {
   "all_passed": true,
-  "generated_at_epoch": 1780980902,
+  "generated_at_epoch": 1781057397,
   "results": [
     {
       "command": [
@@ -9,7 +9,7 @@
       ],
       "command_id": "generate_status",
       "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.197,
+      "duration_seconds": 0.188,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -35,7 +35,7 @@
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.171,
+      "duration_seconds": 0.178,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -48,7 +48,7 @@
       ],
       "command_id": "generate_replay_report",
       "description": "Generate Phase 02 normalized hand-history replay report",
-      "duration_seconds": 0.183,
+      "duration_seconds": 0.189,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -62,7 +62,7 @@
       ],
       "command_id": "check_generated_status",
       "description": "Check generated STATUS.md freshness",
-      "duration_seconds": 0.2,
+      "duration_seconds": 0.192,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -76,7 +76,7 @@
       ],
       "command_id": "check_generated_phase_ledger",
       "description": "Check generated phase ledger freshness",
-      "duration_seconds": 0.178,
+      "duration_seconds": 0.189,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -90,7 +90,7 @@
       ],
       "command_id": "check_generated_backlog",
       "description": "Check generated backlog freshness",
-      "duration_seconds": 0.211,
+      "duration_seconds": 0.18,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -103,7 +103,7 @@
       ],
       "command_id": "check_contracts",
       "description": "Validate phase contracts",
-      "duration_seconds": 0.214,
+      "duration_seconds": 0.185,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -116,7 +116,20 @@
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.3,
+      "duration_seconds": 0.288,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "scripts/check_execplan_delegation.py"
+      ],
+      "command_id": "check_execplan_delegation",
+      "description": "Validate active ExecPlan delegation plan",
+      "duration_seconds": 0.115,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -129,7 +142,7 @@
       ],
       "command_id": "check_file_sizes",
       "description": "Validate file-size limits",
-      "duration_seconds": 0.152,
+      "duration_seconds": 0.135,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -143,7 +156,7 @@
       ],
       "command_id": "import_smoke",
       "description": "Import package smoke test",
-      "duration_seconds": 0.094,
+      "duration_seconds": 0.084,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -157,7 +170,7 @@
       ],
       "command_id": "uv_import_smoke",
       "description": "Prove uv environment can import the package",
-      "duration_seconds": 0.091,
+      "duration_seconds": 0.08,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -172,11 +185,11 @@
       ],
       "command_id": "pytest_poker_core",
       "description": "Run Phase 01 poker-core tests",
-      "duration_seconds": 0.903,
+      "duration_seconds": 0.841,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 7 items\n\ntests\\test_poker_core.py .......                                         [100%]\n\n============================== 7 passed in 0.09s ==============================\n"
+      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 7 items\n\ntests\\test_poker_core.py .......                                         [100%]\n\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\OperationNow\\poker-training-bot\\.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path C:\\OperationNow\\poker-training-bot\\.pytest_cache\\v\\cache\\nodeids: [WinError 5] Access is denied: 'C:\\\\OperationNow\\\\poker-training-bot\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 7 passed, 1 warning in 0.08s =========================\n"
     },
     {
       "command": [
@@ -187,11 +200,11 @@
       ],
       "command_id": "pytest_hand_history",
       "description": "Run Phase 02 hand-history tests",
-      "duration_seconds": 0.984,
+      "duration_seconds": 0.779,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 7 items\n\ntests\\test_hand_history.py .......                                       [100%]\n\n============================== 7 passed in 0.08s ==============================\n"
+      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 7 items\n\ntests\\test_hand_history.py .......                                       [100%]\n\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\OperationNow\\poker-training-bot\\.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path C:\\OperationNow\\poker-training-bot\\.pytest_cache\\v\\cache\\nodeids: [WinError 5] Access is denied: 'C:\\\\OperationNow\\\\poker-training-bot\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 7 passed, 1 warning in 0.08s =========================\n"
     },
     {
       "command": [
@@ -202,11 +215,11 @@
       ],
       "command_id": "pytest",
       "description": "Run tests",
-      "duration_seconds": 1.181,
+      "duration_seconds": 1.077,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 18 items\n\ntests\\test_command_registry.py ...                                       [ 16%]\ntests\\test_hand_history.py .......                                       [ 55%]\ntests\\test_import_smoke.py .                                             [ 61%]\ntests\\test_poker_core.py .......                                         [100%]\n\n============================= 18 passed in 0.41s ==============================\n"
+      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 24 items\n\ntests\\test_command_registry.py ...                                       [ 12%]\ntests\\test_execplan_delegation.py ......                                 [ 37%]\ntests\\test_hand_history.py .......                                       [ 66%]\ntests\\test_import_smoke.py .                                             [ 70%]\ntests\\test_poker_core.py .......                                         [100%]\n\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\OperationNow\\poker-training-bot\\.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path C:\\OperationNow\\poker-training-bot\\.pytest_cache\\v\\cache\\nodeids: [WinError 5] Access is denied: 'C:\\\\OperationNow\\\\poker-training-bot\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 24 passed, 1 warning in 0.38s ========================\n"
     },
     {
       "command": [
@@ -218,7 +231,7 @@
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.165,
+      "duration_seconds": 0.149,
       "passed": true,
       "returncode": 0,
       "stderr": "",

@@ -9,6 +9,10 @@ Every completed phase or package must satisfy:
 - Gate logs committed where required.
 - `phase_status.yml` updated.
 - Generated `STATUS.md`, `docs/PHASE_LEDGER.md`, and `docs/BACKLOG.md` current.
+- Active ExecPlan includes a pre-implementation `Delegation Plan` with lanes,
+  owners, expected outputs, and status, or a concrete no-delegation exception.
+- Worker subagents handled implementation by default where available, with any
+  coordinator implementation exception recorded in the ExecPlan.
 - Active ExecPlan outcome or retrospective filled in.
 - No forbidden scope changes.
 - Backlog updated for deferred work.
