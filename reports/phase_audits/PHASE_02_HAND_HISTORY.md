@@ -33,6 +33,81 @@ Implemented evidence:
 | Forbidden V1 scope avoided | PASS | No PokerNow automation, browser observation, runtime solver calls, LLM poker decisions, or UI surfaces added |
 | Independent read-only review completed | PASS | Review findings recorded below |
 
+## Human Spot-Check Guide
+
+You can review Phase 02 without reading Python source by comparing the committed
+sample hands to the generated replay report.
+
+Open these files:
+
+- Input sample: `data/samples/phase_02_normalized_hands.json`
+- Generated report: `reports/active/latest_replay_report.txt`
+- Full verification summary: `reports/active/latest_verify.txt`
+
+Spot-check 1: heads-up showdown
+
+- In the sample, hand `phase02-heads-up-showdown` has two players.
+- Seat 0 posts 5 and calls 5, so seat 0 commits 10 chips.
+- Seat 1 posts 10 and checks, so seat 1 commits 10 chips.
+- The total pot should therefore be 20.
+- The board is `As Ks Qs Js 2d`, and seat 0 has `Ts 9c`.
+- Seat 0 makes an ace-high spade straight flush using `Ts As Ks Qs Js`.
+- The report should say total pot 20, seat 0 payout 20, seat 1 payout 0,
+  and `Expected result matched: True`.
+
+Spot-check 2: three-way side pot
+
+- In the sample, hand `phase02-three-way-side-pot` has three players with
+  starting stacks of 50, 100, and 200.
+- Seat 2 raises to 200. Seat 0 can call only 45 more after posting 5, and
+  seat 1 can call only 90 more after posting 10.
+- The committed chips should be seat 0: 50, seat 1: 100, seat 2: 200.
+- The total pot should therefore be 350.
+- The side pots should split into 150, 100, and 100.
+- The report should show seat 0 winning the main pot with a flush, seat 1
+  winning the first side pot with three of a kind, and seat 2 winning the
+  final side pot with a pair.
+- The report should say payouts are seat 0: 150, seat 1: 100, seat 2: 100,
+  and `Expected result matched: True`.
+
+What this does prove:
+
+- The project can read the normalized hand-history format.
+- The project can replay the committed examples deterministically.
+- The replay output agrees with the expected pot and payout results.
+- The Phase 02 gate caught and fixed review issues for illegal action order and
+  unknown fields before the phase was closed.
+
+What this does not prove yet:
+
+- It does not prove raw PokerNow import.
+- It does not prove large hand-history ingestion.
+- It does not prove real strategy quality.
+- It does not prove UI behavior or live-play automation.
+
+Reviewer verdict guidance:
+
+- Accept Phase 02 if the sample inputs and generated report match the checks
+  above, and `reports/active/latest_verify.txt` says `All passed: True`.
+- Reject or question Phase 02 if the report is missing, stale, says expected
+  results did not match, or claims work outside the Phase 02 scope.
+
+## Human Review Sign-Off
+
+Reviewer: Taylor
+
+Review date: 2026-06-10
+
+Verdict: SIGNED OFF
+
+Basis:
+
+- Reviewed the Phase 02 human spot-check packet.
+- Accepted the phase as on track for the current offline deterministic training
+  bot plan.
+- Requested future phase packets remain concretely human-verifiable without
+  requiring source-code review.
+
 ## Command Summary
 
 Full gate command:

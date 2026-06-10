@@ -15,3 +15,5 @@ Every completed phase or package must satisfy:
 - Independent read-only subagent review completed where available.
 - Phase audit packet records review findings, or the concrete reason a subagent
   review could not run plus self-review notes.
+- If Taylor performs human review, the phase audit packet records the human
+  sign-off verdict and keeps a source-code-free spot-check path where practical.
