@@ -1,15 +1,17 @@
 {
   "all_passed": true,
-  "generated_at_epoch": 1781057527,
+  "generated_at_epoch": 1786203063,
   "results": [
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/generate_status.py"
       ],
       "command_id": "generate_status",
       "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.181,
+      "duration_seconds": 0.194,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -17,12 +19,14 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/generate_phase_ledger.py"
       ],
       "command_id": "generate_phase_ledger",
       "description": "Regenerate phase ledger",
-      "duration_seconds": 0.168,
+      "duration_seconds": 0.036,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -30,12 +34,14 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/generate_backlog.py"
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.16,
+      "duration_seconds": 0.032,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -43,26 +49,30 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/generate_replay_report.py"
       ],
       "command_id": "generate_replay_report",
       "description": "Generate Phase 02 normalized hand-history replay report",
-      "duration_seconds": 0.177,
+      "duration_seconds": 0.033,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "wrote reports\\active\\latest_replay_report.txt\n"
+      "stdout": "wrote reports/active/latest_replay_report.txt\n"
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/generate_status.py",
         "--check"
       ],
       "command_id": "check_generated_status",
       "description": "Check generated STATUS.md freshness",
-      "duration_seconds": 0.174,
+      "duration_seconds": 0.031,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -70,13 +80,15 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/generate_phase_ledger.py",
         "--check"
       ],
       "command_id": "check_generated_phase_ledger",
       "description": "Check generated phase ledger freshness",
-      "duration_seconds": 0.164,
+      "duration_seconds": 0.031,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -84,13 +96,15 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/generate_backlog.py",
         "--check"
       ],
       "command_id": "check_generated_backlog",
       "description": "Check generated backlog freshness",
-      "duration_seconds": 0.161,
+      "duration_seconds": 0.03,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -98,12 +112,14 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/check_contracts.py"
       ],
       "command_id": "check_contracts",
       "description": "Validate phase contracts",
-      "duration_seconds": 0.156,
+      "duration_seconds": 0.03,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -111,12 +127,14 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/check_scope.py"
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.33,
+      "duration_seconds": 0.061,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -124,12 +142,14 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/check_execplan_delegation.py"
       ],
       "command_id": "check_execplan_delegation",
       "description": "Validate active ExecPlan delegation plan",
-      "duration_seconds": 0.101,
+      "duration_seconds": 0.039,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -137,12 +157,14 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "scripts/check_file_sizes.py"
       ],
       "command_id": "check_file_sizes",
       "description": "Validate file-size limits",
-      "duration_seconds": 0.121,
+      "duration_seconds": 0.024,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -150,13 +172,15 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "-c",
         "import poker_training_bot; print(poker_training_bot.__version__)"
       ],
       "command_id": "import_smoke",
       "description": "Import package smoke test",
-      "duration_seconds": 0.073,
+      "duration_seconds": 0.019,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -164,13 +188,15 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "-c",
         "import poker_training_bot; print('uv import ok')"
       ],
       "command_id": "uv_import_smoke",
       "description": "Prove uv environment can import the package",
-      "duration_seconds": 0.076,
+      "duration_seconds": 0.018,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -178,60 +204,66 @@
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "-m",
         "pytest",
         "tests/test_poker_core.py"
       ],
       "command_id": "pytest_poker_core",
       "description": "Run Phase 01 poker-core tests",
-      "duration_seconds": 0.829,
+      "duration_seconds": 0.226,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 7 items\n\ntests\\test_poker_core.py .......                                         [100%]\n\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\OperationNow\\poker-training-bot\\.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path C:\\OperationNow\\poker-training-bot\\.pytest_cache\\v\\cache\\nodeids: [WinError 5] Access is denied: 'C:\\\\OperationNow\\\\poker-training-bot\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 7 passed, 1 warning in 0.07s =========================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 8 items\n\ntests/test_poker_core.py ........                                        [100%]\n\n============================== 8 passed in 0.01s ===============================\n"
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "-m",
         "pytest",
         "tests/test_hand_history.py"
       ],
       "command_id": "pytest_hand_history",
       "description": "Run Phase 02 hand-history tests",
-      "duration_seconds": 0.776,
+      "duration_seconds": 0.092,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 7 items\n\ntests\\test_hand_history.py .......                                       [100%]\n\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\OperationNow\\poker-training-bot\\.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path C:\\OperationNow\\poker-training-bot\\.pytest_cache\\v\\cache\\nodeids: [WinError 5] Access is denied: 'C:\\\\OperationNow\\\\poker-training-bot\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 7 passed, 1 warning in 0.07s =========================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 7 items\n\ntests/test_hand_history.py .......                                       [100%]\n\n============================== 7 passed in 0.01s ===============================\n"
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
+        "python",
         "-m",
         "pytest",
         "tests"
       ],
       "command_id": "pytest",
       "description": "Run tests",
-      "duration_seconds": 1.176,
+      "duration_seconds": 0.1,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts =============================\nplatform win32 -- Python 3.13.7, pytest-9.0.3, pluggy-1.6.0\nrootdir: C:\\OperationNow\\poker-training-bot\nconfigfile: pyproject.toml\ncollected 24 items\n\ntests\\test_command_registry.py ...                                       [ 12%]\ntests\\test_execplan_delegation.py ......                                 [ 37%]\ntests\\test_hand_history.py .......                                       [ 66%]\ntests\\test_import_smoke.py .                                             [ 70%]\ntests\\test_poker_core.py .......                                         [100%]\n\n============================== warnings summary ===============================\n.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475\n  C:\\OperationNow\\poker-training-bot\\.venv\\Lib\\site-packages\\_pytest\\cacheprovider.py:475: PytestCacheWarning: could not create cache path C:\\OperationNow\\poker-training-bot\\.pytest_cache\\v\\cache\\nodeids: [WinError 5] Access is denied: 'C:\\\\OperationNow\\\\poker-training-bot\\\\.pytest_cache\\\\v\\\\cache'\n    config.cache.set(\"cache/nodeids\", sorted(self.cached_nodeids))\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 24 passed, 1 warning in 0.48s ========================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 25 items\n\ntests/test_command_registry.py ...                                       [ 12%]\ntests/test_execplan_delegation.py ......                                 [ 36%]\ntests/test_hand_history.py .......                                       [ 64%]\ntests/test_import_smoke.py .                                             [ 68%]\ntests/test_poker_core.py ........                                        [100%]\n\n============================== 25 passed in 0.02s ==============================\n"
     },
     {
       "command": [
-        "C:\\OperationNow\\poker-training-bot\\.venv\\Scripts\\python.exe",
-        "-m",
+        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "run",
         "ruff",
         "check",
         "."
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.161,
+      "duration_seconds": 0.302,
       "passed": true,
       "returncode": 0,
       "stderr": "",

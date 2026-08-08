@@ -61,6 +61,22 @@ def test_betting_round_applies_call_and_all_in_raise() -> None:
     assert raised.current_bet == 20
 
 
+def test_big_blind_option_offers_raise_and_applies_it() -> None:
+    players = (
+        PlayerState(0, "Small Blind", 90, parse_cards(["As", "Ad"]), street_bet=10),
+        PlayerState(1, "Big Blind", 90, parse_cards(["Ks", "Kd"]), street_bet=10),
+    )
+    state = BettingRoundState(players=players, current_bet=10, min_raise=10)
+
+    assert state.legal_actions(1) == (ActionKind.CHECK, ActionKind.RAISE)
+    raised = state.apply(Action(1, ActionKind.RAISE, amount=30))
+    assert raised.current_bet == 30
+    assert raised.player(1).street_bet == 30
+    assert raised.player(1).stack == 70
+    with pytest.raises(ValueError, match="bet is not legal"):
+        state.apply(Action(1, ActionKind.BET, amount=30))
+
+
 def test_showdown_settlement_splits_side_pots_by_eligibility() -> None:
     board = parse_cards(["2h", "3h", "4h", "8c", "Kd"])
     players = (

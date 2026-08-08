@@ -1,7 +1,7 @@
 Phase 02 Replay Report
 ======================
 
-Fixture: `data\samples\phase_02_normalized_hands.json`
+Fixture: `data/samples/phase_02_normalized_hands.json`
 Hands replayed: 2
 
 ## phase02-heads-up-showdown

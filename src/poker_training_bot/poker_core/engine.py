@@ -71,7 +71,7 @@ class BettingRoundState:
         if to_call <= 0:
             actions = [ActionKind.CHECK]
             if player.stack > 0:
-                actions.append(ActionKind.BET)
+                actions.append(ActionKind.BET if self.current_bet == 0 else ActionKind.RAISE)
             return tuple(actions)
         actions = [ActionKind.FOLD, ActionKind.CALL]
         if player.stack > to_call:
