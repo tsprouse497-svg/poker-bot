@@ -1,8 +1,9 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE-04-CONTRACT-UPDATE
+active_phase: "04"
+task_mode: contract-update
+base_commit: a53ba35fff8a09d80b9cbbad9522bca1c0e3b2ba
+approved_scope:
+  - docs/phase_contracts/PHASE_04_PREFLOP_ARTIFACTS.md
 standing_scope:
   - CURRENT_TASK.yml
   - backlog.yml
