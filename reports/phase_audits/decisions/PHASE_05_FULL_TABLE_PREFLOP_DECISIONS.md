@@ -73,14 +73,36 @@ Reversibility: runtime-reversible
 A spot can say raise 74% / call 25% / fold 1% for one hand.
 The bot has to do one thing.
 
-Default: take the highest-weight legal action, and refuse on an exact tie rather
-than picking.
-If wrong: the bot is unbalanced and exploitable, but never illegal and never
-silently arbitrary.
-Changing this later invalidates every Phase 07 comparison baseline.
+Default at the time: take the highest-weight legal action, and refuse on an exact
+tie rather than picking.
+The cost was recorded as "unbalanced and exploitable, but never illegal", which was
+true and useless: nobody had measured it, including whoever wrote this list.
+Changing it later invalidates every Phase 07 comparison baseline, which is why it
+was settled before any baseline existed.
 
 Options: highest | random-per-hand-by-weight | refuse-on-any-mix
-Answer: [highest]
+Answer: [random-per-hand-by-weight, seeded]
+
+Re-ruled on 2026-08-11 after the independent domain review measured the cost of
+`highest`, which was accepted on a qualitative description that turned out to
+understate it badly.
+
+Folding is one bucket while continuing splits across calling and raising, so the
+plurality rule folds hands the chart continues with more than half the time, and
+only ever in that direction. Sixteen hand classes across the committed spots fold
+where the chart's fold weight is below 0.50, and none go the other way. It folds 77
+on the button to a 21.7% hijack open.
+
+The aggregate was the real problem. Over the range the bot opens, fold-to-three-bet
+measured 72.8% where the solution is 59.8%. An 8bb three-bet over a 2.5x open risks
+8 to win 4, so it auto-profits as a pure bluff above 66.7%: the solution sits
+deliberately below that line and the bot sat well above it, handing any opponent a
+free profitable bluff with any two cards.
+
+Taylor's ruling: sample by weight, and seed the draw so it stays reproducible. The
+seed comes from the hand identifier, hero's seat, the spot key, and the hand class.
+Seeding on the hand is what makes it a mix rather than a hash-chosen pure strategy,
+and excluding the raw cards is what keeps two suit-relabelled queries in agreement.
 
 ## 4. Raise sizing
 

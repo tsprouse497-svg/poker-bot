@@ -1,21 +1,10 @@
-task_id: PHASE-05-IMPLEMENTATION
+task_id: PHASE-05-COLLAPSE-RERULING
 active_phase: "05"
-task_mode: implementation
-base_commit: 92f1716c3cb3adbdcef95b38d2b988f81ac6691b
+task_mode: contract-update
+base_commit: e2763cc7af0060c33e84caf39f99da71275a4aeb
 approved_scope:
-  - data/artifacts/preflop/**
-  - docs/PREFLOP_ARTIFACT_CONTRACT.md
-  - reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md
-  - reports/phase_audits/reviews/**
-  - scripts/build_preflop_chart_artifact.py
-  - scripts/convert_preflop_export.py
-  - scripts/generate_preflop_strategy_report.py
-  - scripts/run_verify.py
-  - src/poker_training_bot/solver_artifacts/lookup.py
-  - src/poker_training_bot/strategy/preflop_chart.py
-  - src/poker_training_bot/strategy/preflop_sizing.py
-  - tests/test_preflop_committed_charts.py
-  - verification/freeze.lock
+  - docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md
+  - reports/phase_audits/decisions/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -76,3 +65,5 @@ scope_change_log:
     reason: Retiring the hand-authored chart takes its builder script and the Phase 04 tests that describe it, and the phase tests need read-only accessors on PreflopChartLibrary, so lookup.py is approved for additive accessors only with no validation loosened. tests/test_full_table_preflop.py stays out of scope, because that is the file measuring this phase's own work.
   - date: 2026-08-11
     reason: Loop stage 5 narrows scope mid-task, so the diff has to be measured from the freeze commit rather than from the start of the phase; otherwise work that was legitimately in scope at stage 4 reads as out of scope afterwards.
+  - date: 2026-08-11
+    reason: Independent review measured the cost of the highest-weight collapse and it is a first-order exploit, so judgment call 3 is re-ruled to seeded weighted sampling and the contract criterion it came from must change first.
