@@ -428,6 +428,22 @@ def write_state(state: dict) -> None:
     STATE_PATH.write_text(yaml.safe_dump(state, sort_keys=True), encoding="utf-8")
 
 
+def resumed(state: dict) -> dict:
+    """Return a halted loop to running at the stage it stopped on.
+
+    A halt is meant to be recoverable, and restarting is not recovery: `--start`
+    rewinds to stage 0, which re-runs finished stages and demands the transient
+    task mode each one expected. Resuming keeps the pointer where the halt left it,
+    so the work already committed stays done.
+    """
+    if state.get("loop") != "halted":
+        raise ValueError(f"loop is {state.get('loop')!r}, not halted; nothing to resume")
+    resumed_state = dict(state)
+    resumed_state["loop"] = "running"
+    resumed_state.pop("halt_reason", None)
+    return resumed_state
+
+
 def policy_for(phase_id: str) -> dict:
     return (load_yaml(POLICY_PATH).get("phases") or {}).get(phase_id) or {}
 
@@ -457,6 +473,9 @@ def main() -> int:
     parser.add_argument("--start", metavar="PHASE_ID", help="begin the loop for a phase")
     parser.add_argument("--advance", action="store_true", help="verify and move to the next stage")
     parser.add_argument("--halt", metavar="REASON", help="record a halt and stop")
+    parser.add_argument(
+        "--resume", action="store_true", help="return a halted loop to running at its stage"
+    )
     args = parser.parse_args()
 
     state = read_state()
@@ -477,6 +496,17 @@ def main() -> int:
             }
         )
         print(f"loop started for phase {args.start} at stage 0")
+        return 0
+
+    if args.resume:
+        try:
+            state = resumed(state)
+        except ValueError as error:
+            print(str(error), file=sys.stderr)
+            return 1
+        write_state(state)
+        stage = stage_by_number(int(state["stage"]))
+        print(f"resumed phase {state['phase_id']} at stage {stage.number} ({stage.name})")
         return 0
 
     if args.halt:

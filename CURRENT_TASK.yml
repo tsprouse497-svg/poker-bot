@@ -1,8 +1,12 @@
-task_id: null
+task_id: MAINT-05-LOOP-RESUME
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 7d7fc1f7de397513a403898e5c008ad84f8cd0bd
+approved_scope:
+  - docs/LOOP.md
+  - scripts/loop_stage.py
+  - tests/test_loop_machinery.py
+  - verification/freeze.lock
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -53,3 +57,5 @@ scope_change_log:
     reason: Phase 05 halted because StrategyQuery carries no preflop action history, so a chart-backed strategy cannot derive its spot key; Phase 03's contract must first require the query to carry that history.
   - date: 2026-08-11
     reason: Implementing the Phase 03 contract addition needs StrategyQuery itself, its tests, and the test freeze lock those tests are recorded in.
+  - date: 2026-08-11
+    reason: A halt is meant to be resumable, but the driver shipped no way back, so restarting re-ran completed stages and demanded their transient task modes; MAINT-05 adds --resume.

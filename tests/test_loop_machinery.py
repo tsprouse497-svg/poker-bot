@@ -333,3 +333,21 @@ def test_a_missing_implementation_module_is_a_legitimate_stage_four_red() -> Non
 def test_a_broken_test_file_is_not_a_legitimate_red() -> None:
     assert not loop_stage.red_for_the_right_reason("SyntaxError: invalid syntax")
     assert not loop_stage.red_for_the_right_reason("ModuleNotFoundError: No module named 'reqests'")
+
+
+def test_resume_returns_a_halted_loop_to_its_stage() -> None:
+    """A halt must be recoverable; --start rewinds and re-runs finished stages."""
+    halted = {"loop": "halted", "phase_id": "05", "stage": 4, "halt_reason": "blocked"}
+
+    state = loop_stage.resumed(halted)
+
+    assert state["loop"] == "running"
+    assert state["stage"] == 4
+    assert "halt_reason" not in state
+
+
+def test_resume_refuses_a_loop_that_is_not_halted() -> None:
+    import pytest
+
+    with pytest.raises(ValueError, match="not halted"):
+        loop_stage.resumed({"loop": "running", "stage": 4})

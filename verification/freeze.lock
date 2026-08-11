@@ -18,8 +18,8 @@ files:
     sha256: 13c10f0f4c58cbaa9a83a8c49507d021e804846395473bdfcd900f01415fe46e
     test_functions: 1
   tests/test_loop_machinery.py:
-    sha256: 52e988a55c4649152d766898960e06f89ad011cafbeb7a438111cebaa240a9e4
-    test_functions: 31
+    sha256: aee254b6e988598b7699de6f7cf7ae6ecacc1819f0212b8d05fd8d80def70e1b
+    test_functions: 33
   tests/test_poker_core.py:
     sha256: b8355f633b0943b2caeb41fc40906248a2412ba2ebd093395f998917e886dd57
     test_functions: 9
@@ -39,4 +39,4 @@ files:
     sha256: 3185f342b82b5aef88e05f6188ad27847ea38d20a16927637213ba4c19f80558
     test_functions: 52
 schema_version: 1
-test_function_floor: 259
+test_function_floor: 261

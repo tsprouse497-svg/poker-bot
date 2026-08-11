@@ -18,6 +18,7 @@ uv run python scripts/loop_stage.py --start 06   # begin a phase
 uv run python scripts/loop_stage.py              # what stage am I on, what do I do
 uv run python scripts/loop_stage.py --advance    # verify this stage and move on
 uv run python scripts/loop_stage.py --halt "..." # record a halt and stop
+uv run python scripts/loop_stage.py --resume    # return a halted loop to its stage
 ```
 
 The loop body is always the same: read the driver, perform the one stage it names, call it again.
