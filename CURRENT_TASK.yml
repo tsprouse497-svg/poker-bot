@@ -1,8 +1,10 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE-05-CONTRACT-UPDATE
+active_phase: "05"
+task_mode: contract-update
+base_commit: e0ba4773ec7e73a679ba4540ce4adab4a2cf52ee
+approved_scope:
+  - docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md
+  - reports/phase_audits/decisions/**
 standing_scope:
   - CURRENT_TASK.yml
   - backlog.yml
@@ -32,3 +34,5 @@ scope_change_log:
     reason: The committed chart artifact needs a reproducible, auditable origin, so scripts/build_preflop_chart_artifact.py is approved to expand the reviewable range spec and stamp the artifact checksum.
   - date: 2026-08-11
     reason: Independent review found the committed artifact was never exercised by tests and could drift from its builder, so tests/test_preflop_committed_charts.py is approved.
+  - date: 2026-08-11
+    reason: Phase 05 contract-update needs the phase contract itself plus a pre-implementation judgment-call record under reports/phase_audits/decisions/ so the domain choices a chart cannot settle are ruled on by a human before any code is written.
