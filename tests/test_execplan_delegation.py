@@ -105,3 +105,30 @@ def test_idle_mode_passes_with_empty_active_dir(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(delegation, "ACTIVE_EXECPLAN_DIR", active)
 
     assert delegation.main() == 0
+
+
+def test_idle_mode_accepts_an_active_plan_that_declares_a_pause(tmp_path, monkeypatch) -> None:
+    """The loop halts at its human gate with no task open and the phase unfinished."""
+    (tmp_path / "CURRENT_TASK.yml").write_text("task_mode: idle\n", encoding="utf-8")
+    active = tmp_path / "docs" / "exec_plans" / "active"
+    active.mkdir(parents=True)
+    (active / "PAUSED_PLAN.md").write_text(
+        "# Plan\n\n## Delegation Plan\n\n- No-delegation exception: coordinator owns it.\n"
+        "- Paused: awaiting a ruling on the frozen-into-data judgment calls.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(delegation, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(delegation, "ACTIVE_EXECPLAN_DIR", active)
+
+    assert delegation.main() == 0
+
+
+def test_a_pause_must_say_what_it_waits_on(tmp_path, monkeypatch) -> None:
+    (tmp_path / "CURRENT_TASK.yml").write_text("task_mode: idle\n", encoding="utf-8")
+    active = tmp_path / "docs" / "exec_plans" / "active"
+    active.mkdir(parents=True)
+    (active / "PAUSED_PLAN.md").write_text("# Plan\n\n- Paused:\n", encoding="utf-8")
+    monkeypatch.setattr(delegation, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(delegation, "ACTIVE_EXECPLAN_DIR", active)
+
+    assert delegation.main() == 1

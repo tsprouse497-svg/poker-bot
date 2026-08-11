@@ -1,10 +1,24 @@
-task_id: PHASE-05-CONTRACT-UPDATE
-active_phase: "05"
-task_mode: contract-update
-base_commit: e0ba4773ec7e73a679ba4540ce4adab4a2cf52ee
+task_id: MAINT-02-LOOP-MACHINERY
+active_phase: null
+task_mode: maintenance
+base_commit: 63fe12bc0510d14b72f73479c356a8254457578a
 approved_scope:
-  - docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md
-  - reports/phase_audits/decisions/**
+  - AGENTS.md
+  - docs/LOOP.md
+  - scripts/check_contracts.py
+  - scripts/check_execplan_delegation.py
+  - scripts/check_gate_bite.py
+  - scripts/check_repo_consistency.py
+  - scripts/check_scope.py
+  - scripts/check_test_freeze.py
+  - scripts/freeze_tests.py
+  - scripts/loop_stage.py
+  - scripts/run_verify.py
+  - tests/test_check_scope.py
+  - tests/test_execplan_delegation.py
+  - tests/test_command_registry.py
+  - tests/test_loop_machinery.py
+  - verification/**
 standing_scope:
   - CURRENT_TASK.yml
   - backlog.yml
@@ -36,3 +50,7 @@ scope_change_log:
     reason: Independent review found the committed artifact was never exercised by tests and could drift from its builder, so tests/test_preflop_committed_charts.py is approved.
   - date: 2026-08-11
     reason: Phase 05 contract-update needs the phase contract itself plus a pre-implementation judgment-call record under reports/phase_audits/decisions/ so the domain choices a chart cannot settle are ruled on by a human before any code is written.
+  - date: 2026-08-11
+    reason: MAINT-02 builds the autonomous loop machinery, so it needs the scope and contract checkers it hardens, the new test-freeze, gate-bite, and consistency checkers, the loop stage driver, verification state under verification/, their tests, the command registry, and the loop process docs.
+  - date: 2026-08-11
+    reason: The loop halts at its human gate with an active ExecPlan and no active task, which check_execplan_delegation.py treated as an error, so MAINT-02 also needs that checker and its tests to model a declared pause.

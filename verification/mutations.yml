@@ -1,0 +1,60 @@
+schema_version: 1
+
+# Each entry is a small, deliberate defect and the gate command that must notice
+# it. A mutation that survives means the gate is decorative for that behavior:
+# either no test covers it, or a test covers it too weakly to fail. Surviving
+# mutations are a gate failure, not a suggestion.
+#
+# `find` must occur exactly once in `file`. The runner asserts that, so a mutation
+# cannot silently stop applying when the code around it is refactored.
+
+mutations:
+  - id: positions-late-labels-swapped
+    description: >-
+      The cutoff and hijack labels swap places, so every chart spot and report
+      names the wrong seat while staying internally consistent.
+    file: src/poker_training_bot/poker_core/positions.py
+    find: '_LATE_LABELS_BUTTON_FIRST: tuple[str, ...] = ("BTN", "CO", "HJ", "LJ")'
+    replace: '_LATE_LABELS_BUTTON_FIRST: tuple[str, ...] = ("BTN", "HJ", "CO", "LJ")'
+    must_fail:
+      - pytest_preflop_artifacts
+
+  - id: lookup-tie-picks-an-action
+    description: >-
+      A mixed or tied hand class quietly returns its first positive action instead
+      of refusing to choose, which is the exact heuristic guessing v1 forbids.
+    file: src/poker_training_bot/solver_artifacts/lookup.py
+    find: "if len(positive) == 1:"
+    replace: "if len(positive) >= 1:"
+    must_fail:
+      - pytest_preflop_artifacts
+
+  - id: importer-checksum-not-enforced
+    description: >-
+      The artifact weights checksum is computed and then ignored, so an edited
+      chart imports cleanly with a stale audit trail.
+    file: src/poker_training_bot/solver_artifacts/importer.py
+    find: "if checksum != derived_checksum:"
+    replace: "if False and checksum != derived_checksum:"
+    must_fail:
+      - pytest_preflop_artifacts
+
+  - id: decision-audit-skips-legality
+    description: >-
+      The decision audit record stops rejecting an action outside legal_actions,
+      which is the check the strategy layers rely on to prove legality.
+    file: src/poker_training_bot/strategy/contract.py
+    find: "if self.outcome.action not in self.query.legal_actions:"
+    replace: "if False and self.outcome.action not in self.query.legal_actions:"
+    must_fail:
+      - pytest_strategy_contract
+
+  - id: engine-min-raise-not-updated-after-bet
+    description: >-
+      Reintroduces the min-raise bug an independent review caught in Phase 03: a
+      postflop bet no longer raises the minimum for the next raiser.
+    file: src/poker_training_bot/poker_core/engine.py
+    find: "new_min_raise = self.min_raise if amount < self.min_raise else amount"
+    replace: "new_min_raise = self.min_raise"
+    must_fail:
+      - pytest_poker_core

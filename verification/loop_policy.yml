@@ -1,0 +1,51 @@
+schema_version: 1
+
+# Which phases the loop may advance into without stopping for a human.
+#
+# The rule is mechanical rather than a judgement made fresh each time: a phase may
+# run unattended when it writes no new committed data. Data is where a wrong
+# assumption becomes permanent, because every later phase is then measured against
+# it. Behaviour and tooling can be corrected with an edit; a checksummed artifact
+# or a golden fixture cannot, once things downstream depend on it.
+#
+# `needs_human_data` means the phase cannot even start until Taylor supplies
+# something the repo does not have. The driver halts before stage 1 in that case
+# rather than letting a session invent the input.
+
+phases:
+  "05":
+    auto_advance: false
+    needs_human_data: false
+    reason: >-
+      Commits a preflop chart artifact and its frequency expectations. Ranges and
+      sizings become the reference every later phase is measured against, and
+      source.kind is a human provenance claim the checksum cannot verify.
+  "06":
+    auto_advance: true
+    needs_human_data: false
+    reason: >-
+      A conservative postflop fallback is a behavioural spec with a reference
+      implementation already in the repo. It writes no data, and its oracle is
+      exhaustive enumeration over engine-legal states.
+  "07":
+    auto_advance: true
+    needs_human_data: false
+    reason: >-
+      Simulator mechanics are checked against the frozen replayer, chip
+      conservation, and seed determinism. Outputs are generated reports, not
+      committed fixtures. Absolute strategy-quality claims are out of scope until
+      real hands exist, which is Phase 08.
+  "08":
+    auto_advance: false
+    needs_human_data: true
+    reason: >-
+      Needs roughly fifty real hands exported from Taylor's own game plus the
+      site-reported final stacks. Without them there is no oracle and the phase
+      would produce a confident report about invented data. data/raw/** is also
+      forbidden scope today, so the input has nowhere to live yet.
+  "09":
+    auto_advance: true
+    needs_human_data: false
+    reason: >-
+      Every hardening claim is testable by breaking the thing deliberately and
+      requiring the gate to go red, which is what check_gate_bite already does.

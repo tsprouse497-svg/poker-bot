@@ -66,6 +66,15 @@ When asked to start a phase or package, enter coordinator mode:
 10. Record the independent review findings in the audit packet. If no subagent can be spawned, record the concrete reason and perform self-review.
 11. Stop only for a blocker, prohibited scope, or completed gate.
 
+## Autonomous Loop
+
+`scripts/loop_stage.py` is the phase state machine and the only source of truth for which stage comes next. `docs/LOOP.md` explains the stages.
+When driving a phase through the loop, do the one stage the driver names, then run `--advance`; never skip ahead because a stage looks done.
+Tests are authored before any implementation and frozen by `scripts/freeze_tests.py`. An implementer may read `tests/**` and must never write to it; stage 5 removes it from `approved_scope` so `check_scope.py` enforces that.
+A green gate is not sufficient on its own: `check_gate_bite` must also prove the committed mutations make the gate fail.
+Every judgment call in a decision list declares `frozen-into-data` or `runtime-reversible`. Only the first kind blocks on a human; the second proceeds on its recorded default and is reported afterwards.
+`verification/loop_policy.yml` decides which phases may advance unattended. A phase that writes new committed data, or that needs input the repo does not have, always stops.
+
 ## Verification Gate
 
 `scripts/run_verify.py` derives the full gate: a fixed base gate plus `required_gate_commands` from every contract whose phase is active or completed in `phase_status.yml`.

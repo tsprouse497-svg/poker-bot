@@ -45,6 +45,11 @@ items:
     phase: charts
     title: Antes and straddles in the artifact format
     reason: The artifact declares no blind structure, so a straddled or anted pot reads as an ordinary one even though both materially change correct preflop ranges. Common in the home-game context this bot targets.
+  - id: CONTRACT-CRITERIA-BACKFILL
+    status: deferred
+    phase: contract-update
+    title: Backfill phase-specific acceptance criteria for phases 00, 01, and 02
+    reason: check_contracts now requires an active or completed phase to carry at least three acceptance criteria that are not gate boilerplate. Phases 00 through 02 were closed with only the four boilerplate criteria, so their gates asserted little beyond the gate passing. They are explicitly exempted in CRITERIA_BACKFILL_EXEMPT because backfilling is a semantic contract change that needs contract-update mode, which the maintenance task that added the check may not do.
   - id: CHART-COVERAGE-EXPANSION
     status: deferred
     phase: charts

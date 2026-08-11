@@ -91,6 +91,22 @@ COMMANDS = {
         uv_python_command() + ["scripts/check_execplan_delegation.py"],
         "Validate active ExecPlan delegation plan",
     ),
+    "check_repo_consistency": CommandSpec(
+        uv_python_command() + ["scripts/check_repo_consistency.py"],
+        "Cross-check phase status, ExecPlan location, and gate commands",
+    ),
+    "freeze_tests": CommandSpec(
+        uv_python_command() + ["scripts/freeze_tests.py"],
+        "Rewrite the test freeze lock",
+    ),
+    "check_test_freeze": CommandSpec(
+        uv_python_command() + ["scripts/freeze_tests.py", "--check"],
+        "Check tests match verification/freeze.lock",
+    ),
+    "check_gate_bite": CommandSpec(
+        uv_python_command() + ["scripts/check_gate_bite.py"],
+        "Prove committed mutations make the gate fail",
+    ),
     "check_file_sizes": CommandSpec(
         uv_python_command() + ["scripts/check_file_sizes.py"],
         "Validate file-size limits",
@@ -168,10 +184,15 @@ BASE_GATE_CHECKS = [
     "check_contracts",
     "check_scope",
     "check_execplan_delegation",
+    "check_repo_consistency",
+    "check_test_freeze",
     "check_file_sizes",
     "import_smoke",
     "uv_import_smoke",
     "pytest",
+    # After pytest: this one mutates files in place and restores them, so it must
+    # not overlap another command reading the same tree.
+    "check_gate_bite",
     "ruff_check",
 ]
 

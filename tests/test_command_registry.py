@@ -49,3 +49,25 @@ def test_gate_has_no_duplicate_commands() -> None:
     gate = run_verify.derive_gate()
 
     assert len(gate) == len(set(gate))
+
+
+def test_gate_includes_the_loop_machinery_checks() -> None:
+    gate = run_verify.derive_gate()
+
+    assert "check_repo_consistency" in gate
+    assert "check_test_freeze" in gate
+    assert "check_gate_bite" in gate
+
+
+def test_the_freeze_writer_is_not_in_the_gate() -> None:
+    """A gate that rewrites the lock every run is not a freeze."""
+    gate = run_verify.derive_gate()
+
+    assert "freeze_tests" in run_verify.COMMANDS
+    assert "freeze_tests" not in gate
+
+
+def test_mutation_check_runs_after_the_suite_it_mutates() -> None:
+    gate = run_verify.derive_gate()
+
+    assert gate.index("pytest") < gate.index("check_gate_bite")

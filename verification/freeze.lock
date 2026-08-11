@@ -1,0 +1,42 @@
+files:
+  tests/test_action_order.py:
+    sha256: d4a24387414152a5679d8a040f712e34dc01d879ecd20e693b2f6b8a5034ff0f
+    test_functions: 21
+  tests/test_check_scope.py:
+    sha256: 13d96d1dea8f0c76bccc8ac143a18b69f1a0bebd35b3732ff616e552c623af33
+    test_functions: 13
+  tests/test_command_registry.py:
+    sha256: 8c65b24ff3c00beb2e87abfa0d53caf5741c3fbf20be5ad215227a6847cf5e0a
+    test_functions: 9
+  tests/test_execplan_delegation.py:
+    sha256: a37a70f01787f099ece26466747fb9ba575eb01fcddfe0fd65b3985472cb7ed0
+    test_functions: 10
+  tests/test_hand_history.py:
+    sha256: 9d431bf4ffbaedeb940f907fd5fe0929b3d0d6cdf2f3f11fc2e0eb0d5459497c
+    test_functions: 18
+  tests/test_import_smoke.py:
+    sha256: 13c10f0f4c58cbaa9a83a8c49507d021e804846395473bdfcd900f01415fe46e
+    test_functions: 1
+  tests/test_loop_machinery.py:
+    sha256: 5bc778553b3698efcdc2fc0449c20c154a6791ec6dd61f74825e7649f268b9b5
+    test_functions: 28
+  tests/test_poker_core.py:
+    sha256: b8355f633b0943b2caeb41fc40906248a2412ba2ebd093395f998917e886dd57
+    test_functions: 9
+  tests/test_preflop_artifacts.py:
+    sha256: d865b9e2e10de5d72f88f8962925be9e1dfe42c97b5f4fdb7ac09b538c2bf1ca
+    test_functions: 35
+  tests/test_preflop_committed_charts.py:
+    sha256: c1c33ca84d99ac38391910100d120ae5036c3ad61b40c7bb5c7544d5c630ff71
+    test_functions: 9
+  tests/test_preflop_lookup.py:
+    sha256: 4e8ea82e0de42fe6d8684b3577637f3a24e3fe42aca6d3fbbbb958f83d80f20f
+    test_functions: 23
+  tests/test_preflop_positions.py:
+    sha256: cb051eb9e8e2f707f306ae182ad38bc038870661dde5ba002b60989c0c2c1c87
+    test_functions: 28
+  tests/test_strategy_contract.py:
+    sha256: 3cbb49bb05eac988a5df53151115fe5412dce492cc921bc4aa847ee7424eb472
+    test_functions: 40
+schema_version: 1
+test_function_floor: 244

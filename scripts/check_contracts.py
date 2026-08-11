@@ -37,6 +37,58 @@ def parse_frontmatter(text: str, path) -> dict:
 
 VALID_PHASE_STATUSES = {"future", "active", "completed"}
 
+# The skeleton criteria every contract starts with. They are true of any phase, so
+# a contract made only of these says nothing about what this phase must do: the
+# gate would be asserting that the gate passed.
+BOILERPLATE_CRITERIA = {
+    "Required command IDs pass through `scripts/run_verify.py`.",
+    "Required reports exist and are fresh for this phase.",
+    "The phase audit packet includes plain-language pass/fail evidence.",
+    "Any deferred work is recorded in `backlog.yml`.",
+}
+MIN_SPECIFIC_CRITERIA = 3
+
+# Phases 00 through 02 were closed before this check existed, against contracts
+# that carry only the boilerplate above. That is a real gap, not a false positive:
+# those gates asserted little more than that the gate passed. Backfilling their
+# criteria is a semantic contract change and so needs `contract-update` mode, which
+# a maintenance task may not do. The exemption is explicit and tracked as
+# CONTRACT-CRITERIA-BACKFILL in `backlog.yml`, and no new phase can join it.
+CRITERIA_BACKFILL_EXEMPT = {"00", "01", "02"}
+
+
+def section_bullets(text: str, heading: str) -> list[str]:
+    pattern = re.compile(rf"^## {re.escape(heading)}\s*$([\s\S]*?)(?=^## |\Z)", re.MULTILINE)
+    match = pattern.search(text)
+    if match is None:
+        return []
+    bullets: list[str] = []
+    for line in match.group(1).splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- "):
+            bullets.append(stripped[2:].strip())
+        elif bullets and stripped and not stripped.startswith("#"):
+            bullets[-1] = f"{bullets[-1]} {stripped}"
+    return bullets
+
+
+def check_criteria_are_specific(text: str, label: str, errors: list[str]) -> None:
+    """An activated phase must say something a generic phase would not.
+
+    Only enforced once a phase is active or completed. A future phase is allowed
+    to still be a skeleton; that is what the contract-update stage is for.
+    """
+    specific = [
+        bullet for bullet in section_bullets(text, "Acceptance criteria")
+        if bullet not in BOILERPLATE_CRITERIA
+    ]
+    if len(specific) < MIN_SPECIFIC_CRITERIA:
+        errors.append(
+            f"{label} has only {len(specific)} phase-specific acceptance criteria;"
+            f" an active or completed phase needs at least {MIN_SPECIFIC_CRITERIA}."
+            " Criteria that merely restate the gate cannot fail."
+        )
+
 
 def check_phase_status(errors: list[str]) -> dict[str, str]:
     phase_status = yaml.safe_load((REPO_ROOT / "phase_status.yml").read_text(encoding="utf-8"))
@@ -81,6 +133,11 @@ def main() -> int:
         for section in REQUIRED_SECTIONS:
             if f"## {section}" not in text:
                 errors.append(f"{path.relative_to(REPO_ROOT)} missing section {section!r}")
+        if (
+            statuses.get(phase_id) in {"active", "completed"}
+            and phase_id not in CRITERIA_BACKFILL_EXEMPT
+        ):
+            check_criteria_are_specific(text, str(path.relative_to(REPO_ROOT)), errors)
         if statuses.get(phase_id) == "completed":
             audit = REPO_ROOT / meta.get("required_phase_audit", "")
             if not audit.exists():

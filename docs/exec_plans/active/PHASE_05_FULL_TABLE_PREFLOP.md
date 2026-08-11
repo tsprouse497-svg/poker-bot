@@ -77,6 +77,9 @@ loosening a check, and any contract edit during Stage 2.
   Lane A, then Lane B against the frozen tests, then Lane D, then the coordinator
   retires the hand-authored chart and runs the full gate, then Lane E reviews,
   then the audit packet and closeout.
+- Paused: Stage 1 is finished and all eight judgment calls are answered. Waiting to
+  be driven through `scripts/loop_stage.py --start 05`; the phase writes committed
+  chart data, so `verification/loop_policy.yml` marks it `auto_advance: false`.
 - Review handoff: Lane E inspects whether the artifact's frequencies match the
   source expectation table, whether any raise size or range value in the repo
   came from somewhere other than the committed export, whether an uncovered spot

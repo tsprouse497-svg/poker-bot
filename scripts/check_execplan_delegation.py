@@ -61,6 +61,22 @@ def incomplete_required_fields(body: str) -> list[str]:
     return missing
 
 
+def pause_declaration(text: str) -> str | None:
+    """The reason an active ExecPlan is legitimately idle, if it declares one.
+
+    The loop halts at its human gate: the phase is genuinely unfinished, its plan
+    genuinely belongs in `active/`, and no task is open. That state has to be
+    expressible, or the only way to pass the gate is to lie about the phase being
+    done. Declaring it is the price: a plan resting at idle must say what it waits
+    on.
+    """
+    match = re.search(r"(?im)^-\s*Paused:\s*(.+)$", text)
+    if not match:
+        return None
+    reason = match.group(1).strip()
+    return reason if reason and not is_placeholder_value(reason) else None
+
+
 def validate_execplan_text(text: str, label: str) -> list[str]:
     body = section_body(text, "Delegation Plan")
     if body is None:
@@ -98,9 +114,12 @@ def main() -> int:
     errors: list[str] = []
     if task_mode() == "idle":
         for path in paths:
+            if pause_declaration(path.read_text(encoding="utf-8")):
+                continue
             errors.append(
                 f"{path.relative_to(REPO_ROOT)} is still active while task_mode is idle; "
-                "move completed ExecPlans to docs/exec_plans/completed/"
+                "move completed ExecPlans to docs/exec_plans/completed/, or declare "
+                "'- Paused: <what it waits on>' if the phase is genuinely unfinished"
             )
     elif not paths:
         errors.append("no active ExecPlan markdown files found")
