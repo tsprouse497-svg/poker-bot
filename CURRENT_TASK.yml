@@ -1,8 +1,9 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE-03-CONTRACT-UPDATE
+active_phase: "03"
+task_mode: contract-update
+base_commit: 5ea8a1f69fb5ab33e4a520c21c91aa80b957a841
+approved_scope:
+  - docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
 standing_scope:
   - CURRENT_TASK.yml
   - backlog.yml
