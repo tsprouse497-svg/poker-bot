@@ -114,35 +114,71 @@ def probes() -> list[tuple[str, StrategyQuery]]:
     ]
 
 
+DRAWS_PER_HAND = 40
+
+
+def combos_of(hand: str) -> int:
+    if len(hand) == 2:
+        return 6
+    return 4 if hand.endswith("s") else 12
+
+
+def realised_pct(strategy: PreflopChartStrategy, spot: str, action: str) -> float:
+    """What the strategy itself does at a spot, over a deterministic sample.
+
+    The chart's frequency and the bot's are not the same number, and the gap is
+    exactly what a collapse rule can hide. An earlier version of this phase took the
+    highest-weight action and over-folded to three-bets by 13 points while this
+    table, showing only the chart, said everything was fine.
+    """
+    taken = 0.0
+    total = 0.0
+    for hand in strategy.library.hand_classes_for(spot):
+        weight = combos_of(hand)
+        total += weight
+        for index in range(DRAWS_PER_HAND):
+            outcome = strategy.decide_spot(spot, hand, seed_suffix=str(index))
+            if isinstance(outcome, StrategyDecision) and outcome.action == action:
+                taken += weight / DRAWS_PER_HAND
+    return 0.0 if total == 0.0 else 100.0 * taken / total
+
+
 def frequency_lines(strategy: PreflopChartStrategy) -> list[str]:
     expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
     lines = [
         "## Frequencies against the source solution",
         "",
-        "The expected column is what GTO Wizard displayed for the same spot. It is the",
-        "only column here this repo did not compute, so a range that is uniformly wrong",
-        "shows up as a gap rather than as agreement.",
+        "The source column is what GTO Wizard displayed for the same spot. The chart",
+        "column is what the committed artifact holds. The bot column is what the",
+        "strategy actually does once its mixed cells are drawn, which is a different",
+        "number and the one that matters: a collapse rule that distorts the chart shows",
+        "up only here.",
         "",
-        f"{'Spot':<34}{'this chart':>12}{'source':>10}{'delta':>8}",
+        f"{'Spot':<30}{'chart':>9}{'source':>9}{'bot':>9}{'bot-chart':>11}",
     ]
     for position, expected in sorted(expectations["open_frequency_pct"].items()):
         spot = f"t6/d100/{position}/rfi"
         actual = strategy.library.action_frequency_pct(spot, "raise")
+        bot = realised_pct(strategy, spot, "raise")
         lines.append(
-            f"{position + ' opens':<34}{actual:>11.2f}%{expected:>9.2f}%{actual - expected:>+8.2f}"
+            f"{position + ' opens':<30}{actual:>8.2f}%{expected:>8.2f}%{bot:>8.2f}%"
+            f"{bot - actual:>+11.2f}"
         )
     for position, expected in sorted(expectations["big_blind_defence_pct"].items()):
         spot = f"t6/d100/BB/{position}:raise"
         actual = 100.0 - strategy.library.action_frequency_pct(spot, "fold")
+        bot = 100.0 - realised_pct(strategy, spot, "fold")
         lines.append(
-            f"{'BB defends vs ' + position:<34}{actual:>11.2f}%{expected:>9.2f}%"
-            f"{actual - expected:>+8.2f}"
+            f"{'BB defends vs ' + position:<30}{actual:>8.2f}%{expected:>8.2f}%{bot:>8.2f}%"
+            f"{bot - actual:>+11.2f}"
         )
     for position, expected in sorted(expectations.get("limp_frequency_pct", {}).items()):
         spot = f"t6/d100/{position}/rfi"
         actual = strategy.library.action_frequency_pct(spot, "call")
+        bot = realised_pct(strategy, spot, "call")
         lines.append(
-            f"{position + ' limps':<34}{actual:>11.2f}%{expected:>9.2f}%{actual - expected:>+8.2f}"
+            f"{position + ' limps':<30}{actual:>8.2f}%{expected:>8.2f}%{bot:>8.2f}%"
+            f"{bot - actual:>+11.2f}"
         )
     return lines
 
@@ -164,6 +200,9 @@ def coverage_lines(strategy: PreflopChartStrategy) -> list[str]:
 
 def sample_lines(strategy: PreflopChartStrategy) -> list[str]:
     lines = ["## What it does with a few named hands", ""]
+    lines.append("A mixed cell is drawn from its weights, so a hand can appear more than")
+    lines.append("one way across different hands. The draw below is seeded on the spot.")
+    lines.append("")
     for spot in SAMPLE_SPOTS:
         lines.append(f"  {spot}")
         for hand in SAMPLE_HANDS:

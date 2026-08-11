@@ -19,6 +19,7 @@ from __future__ import annotations
 import itertools
 import json
 import subprocess
+from collections import Counter
 
 import pytest
 
@@ -101,6 +102,13 @@ def query(
     }
     fields.update(overrides)
     return StrategyQuery(**fields)
+
+
+def combos_of(hand: str) -> int:
+    """How many of the 1326 starting hands a 169-class name stands for."""
+    if len(hand) == 2:
+        return 6
+    return 4 if hand.endswith("s") else 12
 
 
 def raised(position: str) -> SeatAction:
@@ -285,6 +293,7 @@ class TestDecisions:
         outcome = decision(strategy.decide(query("LJ", hole_cards=("As", "Ah"))))
 
         assert "raise" in outcome.code
+        assert "weighted-draw" in outcome.code
 
 
 class TestRefusals:
@@ -410,16 +419,49 @@ class TestLegalityAndDeterminism:
 
         assert len(lines) == 1
 
-    def test_a_tie_refuses_rather_than_picking(self, strategy) -> None:
-        outcome = strategy.collapse((("call", 0.5), ("raise", 0.5)))
+    def test_a_pure_cell_needs_no_draw(self, strategy) -> None:
+        assert strategy.collapse((("fold", 0.0), ("raise", 1.0)), "any") == "raise"
 
-        assert outcome is None
+    def test_the_same_seed_draws_the_same_action(self, strategy) -> None:
+        mix = (("call", 0.5), ("raise", 0.5))
 
-    def test_the_highest_weight_action_wins_a_mix(self, strategy) -> None:
-        assert strategy.collapse((("call", 0.25), ("raise", 0.75))) == "raise"
+        assert strategy.collapse(mix, "h1|0|spot|AJo") == strategy.collapse(mix, "h1|0|spot|AJo")
 
-    def test_zero_weight_actions_are_ignored(self, strategy) -> None:
-        assert strategy.collapse((("fold", 0.0), ("raise", 1.0))) == "raise"
+    def test_the_draw_reproduces_the_charts_frequencies(self, strategy) -> None:
+        """The whole point: a plurality rule would return one action every time."""
+        mix = (("fold", 0.4), ("call", 0.35), ("raise", 0.25))
+        counts = Counter(strategy.collapse(mix, f"hand-{index}") for index in range(4000))
+
+        assert counts["fold"] / 4000 == pytest.approx(0.4, abs=0.03)
+        assert counts["call"] / 4000 == pytest.approx(0.35, abs=0.03)
+        assert counts["raise"] / 4000 == pytest.approx(0.25, abs=0.03)
+
+    def test_a_tie_is_drawn_rather_than_refused(self, strategy) -> None:
+        mix = (("call", 0.5), ("raise", 0.5))
+        drawn = {strategy.collapse(mix, f"hand-{index}") for index in range(200)}
+
+        assert drawn == {"call", "raise"}
+
+    def test_the_strategy_does_not_over_fold_against_three_bets(self, strategy) -> None:
+        """The blocker that halted this phase, pinned as a test.
+
+        A plurality rule folded 72.8% here where the chart folds 59.8%, which is past
+        the 66.7% at which an 8bb three-bet over a 2.5x open auto-profits as a pure
+        bluff.
+        """
+        spot = "t6/d100/LJ/LJ:raise,CO:raise"
+        charted = strategy.library.action_frequency_pct(spot, "fold")
+        folds = 0
+        total = 0
+        for hand in strategy.library.hand_classes_for(spot):
+            weight = combos_of(hand)
+            total += weight
+            for index in range(20):
+                outcome = strategy.decide_spot(spot, hand, seed_suffix=str(index))
+                if isinstance(outcome, StrategyDecision) and outcome.action == "fold":
+                    folds += weight / 20
+
+        assert 100.0 * folds / total == pytest.approx(charted, abs=2.0)
 
 
 def test_no_two_covered_spots_share_a_hand_class_ordering(library) -> None:

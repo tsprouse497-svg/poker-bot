@@ -12,8 +12,8 @@ files:
     sha256: a37a70f01787f099ece26466747fb9ba575eb01fcddfe0fd65b3985472cb7ed0
     test_functions: 10
   tests/test_full_table_preflop.py:
-    sha256: 6caf616512645e2daa76d8ad60b17b14ede7a00f2c5beee1c9656b93aef50c51
-    test_functions: 43
+    sha256: 7b4fc4212991c2f3f0c7984f808dd5c574151518a66b9e3fa77773adc60063b8
+    test_functions: 45
   tests/test_hand_history.py:
     sha256: 9d431bf4ffbaedeb940f907fd5fe0929b3d0d6cdf2f3f11fc2e0eb0d5459497c
     test_functions: 18
@@ -42,4 +42,4 @@ files:
     sha256: 3185f342b82b5aef88e05f6188ad27847ea38d20a16927637213ba4c19f80558
     test_functions: 52
 schema_version: 1
-test_function_floor: 306
+test_function_floor: 308

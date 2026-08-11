@@ -12,22 +12,24 @@ than a rake-free chart would have it fold.
 
 ## Frequencies against the source solution
 
-The expected column is what GTO Wizard displayed for the same spot. It is the
-only column here this repo did not compute, so a range that is uniformly wrong
-shows up as a gap rather than as agreement.
+The source column is what GTO Wizard displayed for the same spot. The chart
+column is what the committed artifact holds. The bot column is what the
+strategy actually does once its mixed cells are drawn, which is a different
+number and the one that matters: a collapse rule that distorts the chart shows
+up only here.
 
-Spot                                this chart    source   delta
-BTN opens                               40.56%    40.56%   +0.00
-CO opens                                27.89%    27.89%   +0.00
-HJ opens                                21.65%    21.65%   +0.00
-LJ opens                                17.49%    17.49%   -0.00
-SB opens                                34.41%    34.41%   +0.00
-BB defends vs BTN                       39.43%    39.43%   +0.00
-BB defends vs CO                        31.48%    31.48%   -0.00
-BB defends vs HJ                        26.20%    26.20%   +0.00
-BB defends vs LJ                        22.63%    22.63%   +0.00
-BB defends vs SB                        42.88%    42.88%   -0.00
-SB limps                                13.73%    13.73%   -0.00
+Spot                              chart   source      bot  bot-chart
+BTN opens                        40.56%   40.56%   40.46%      -0.10
+CO opens                         27.89%   27.89%   27.81%      -0.08
+HJ opens                         21.65%   21.65%   21.76%      +0.11
+LJ opens                         17.49%   17.49%   17.59%      +0.10
+SB opens                         34.41%   34.41%   34.28%      -0.13
+BB defends vs BTN                39.43%   39.43%   39.31%      -0.13
+BB defends vs CO                 31.48%   31.48%   31.42%      -0.06
+BB defends vs HJ                 26.20%   26.20%   26.22%      +0.02
+BB defends vs LJ                 22.63%   22.63%   22.79%      +0.16
+BB defends vs SB                 42.88%   42.88%   43.16%      +0.28
+SB limps                         13.73%   13.73%   13.77%      +0.04
 
 ## Coverage
 
@@ -72,6 +74,9 @@ every situation being charted, and the spots below are the ones that are.
   t6/d100/SB/rfi                           169 hand classes
 
 ## What it does with a few named hands
+
+A mixed cell is drawn from its weights, so a hand can appear more than
+one way across different hands. The draw below is seeded on the spot.
 
   t6/d100/LJ/rfi
     AA    raise to 2.5bb

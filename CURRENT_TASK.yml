@@ -1,10 +1,14 @@
-task_id: PHASE-05-COLLAPSE-RERULING
+task_id: PHASE-05-IMPLEMENTATION
 active_phase: "05"
-task_mode: contract-update
-base_commit: e2763cc7af0060c33e84caf39f99da71275a4aeb
+task_mode: implementation
+base_commit: cd3eec4b51410bf9d3a1fe243df38e44dc43c16b
 approved_scope:
-  - docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md
-  - reports/phase_audits/decisions/**
+  - reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md
+  - reports/phase_audits/reviews/**
+  - scripts/generate_preflop_strategy_report.py
+  - src/poker_training_bot/strategy/preflop_chart.py
+  - tests/test_full_table_preflop.py
+  - verification/freeze.lock
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -67,3 +71,5 @@ scope_change_log:
     reason: Loop stage 5 narrows scope mid-task, so the diff has to be measured from the freeze commit rather than from the start of the phase; otherwise work that was legitimately in scope at stage 4 reads as out of scope afterwards.
   - date: 2026-08-11
     reason: Independent review measured the cost of the highest-weight collapse and it is a first-order exploit, so judgment call 3 is re-ruled to seeded weighted sampling and the contract criterion it came from must change first.
+  - date: 2026-08-11
+    reason: Implementing the re-ruled collapse changes the strategy, the tests that pinned the plurality rule, the freeze lock recording them, and the report that must now show the strategy's own frequencies.
