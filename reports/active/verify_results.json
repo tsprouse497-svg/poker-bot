@@ -1,17 +1,17 @@
 {
   "all_passed": true,
-  "generated_at_epoch": 1786416946,
+  "generated_at_epoch": 1786417887,
   "results": [
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
         "run",
         "python",
         "scripts/generate_status.py"
       ],
       "command_id": "generate_status",
       "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.039,
+      "duration_seconds": 0.035,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -19,7 +19,7 @@
     },
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
         "run",
         "python",
         "scripts/generate_phase_ledger.py"
@@ -34,14 +34,14 @@
     },
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
         "run",
         "python",
         "scripts/generate_backlog.py"
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.03,
+      "duration_seconds": 0.036,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -49,22 +49,71 @@
     },
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
         "run",
         "python",
-        "scripts/generate_replay_report.py"
+        "-m",
+        "pytest",
+        "tests/test_poker_core.py"
       ],
-      "command_id": "generate_replay_report",
-      "description": "Generate Phase 02 normalized hand-history replay report",
-      "duration_seconds": 0.04,
+      "command_id": "pytest_poker_core",
+      "description": "Run poker-core tests",
+      "duration_seconds": 0.121,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "wrote reports/active/latest_replay_report.txt\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 8 items\n\ntests/test_poker_core.py ........                                        [100%]\n\n============================== 8 passed in 0.01s ===============================\n"
     },
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_golden_hand_report.py"
+      ],
+      "command_id": "generate_golden_hand_report",
+      "description": "Generate golden-hand replay report",
+      "duration_seconds": 0.036,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_golden_hand_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_hand_history.py"
+      ],
+      "command_id": "pytest_hand_history",
+      "description": "Run hand-history tests",
+      "duration_seconds": 0.104,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 15 items\n\ntests/test_hand_history.py ...............                               [100%]\n\n============================== 15 passed in 0.02s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_hand_history_replay_report.py"
+      ],
+      "command_id": "generate_hand_history_replay_report",
+      "description": "Generate normalized hand-history replay report",
+      "duration_seconds": 0.036,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_hand_history_replay_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
         "run",
         "python",
         "scripts/generate_status.py",
@@ -72,6 +121,22 @@
       ],
       "command_id": "check_generated_status",
       "description": "Check generated STATUS.md freshness",
+      "duration_seconds": 0.033,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_phase_ledger.py",
+        "--check"
+      ],
+      "command_id": "check_generated_phase_ledger",
+      "description": "Check generated phase ledger freshness",
       "duration_seconds": 0.032,
       "passed": true,
       "returncode": 0,
@@ -80,14 +145,59 @@
     },
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
         "run",
         "python",
-        "scripts/generate_phase_ledger.py",
+        "scripts/generate_backlog.py",
         "--check"
       ],
-      "command_id": "check_generated_phase_ledger",
-      "description": "Check generated phase ledger freshness",
+      "command_id": "check_generated_backlog",
+      "description": "Check generated backlog freshness",
+      "duration_seconds": 0.032,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/check_contracts.py"
+      ],
+      "command_id": "check_contracts",
+      "description": "Validate phase contracts",
+      "duration_seconds": 0.035,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/check_scope.py"
+      ],
+      "command_id": "check_scope",
+      "description": "Validate task scope",
+      "duration_seconds": 0.091,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/check_execplan_delegation.py"
+      ],
+      "command_id": "check_execplan_delegation",
+      "description": "Validate active ExecPlan delegation plan",
       "duration_seconds": 0.03,
       "passed": true,
       "returncode": 0,
@@ -96,68 +206,7 @@
     },
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
-        "run",
-        "python",
-        "scripts/generate_backlog.py",
-        "--check"
-      ],
-      "command_id": "check_generated_backlog",
-      "description": "Check generated backlog freshness",
-      "duration_seconds": 0.031,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
-        "run",
-        "python",
-        "scripts/check_contracts.py"
-      ],
-      "command_id": "check_contracts",
-      "description": "Validate phase contracts",
-      "duration_seconds": 0.031,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
-        "run",
-        "python",
-        "scripts/check_scope.py"
-      ],
-      "command_id": "check_scope",
-      "description": "Validate task scope",
-      "duration_seconds": 0.053,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
-        "run",
-        "python",
-        "scripts/check_execplan_delegation.py"
-      ],
-      "command_id": "check_execplan_delegation",
-      "description": "Validate active ExecPlan delegation plan",
-      "duration_seconds": 0.022,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
         "run",
         "python",
         "scripts/check_file_sizes.py"
@@ -172,7 +221,7 @@
     },
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
         "run",
         "python",
         "-c",
@@ -188,7 +237,7 @@
     },
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
         "run",
         "python",
         "-c",
@@ -196,7 +245,7 @@
       ],
       "command_id": "uv_import_smoke",
       "description": "Prove uv environment can import the package",
-      "duration_seconds": 0.019,
+      "duration_seconds": 0.02,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -204,41 +253,7 @@
     },
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_poker_core.py"
-      ],
-      "command_id": "pytest_poker_core",
-      "description": "Run Phase 01 poker-core tests",
-      "duration_seconds": 0.113,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 8 items\n\ntests/test_poker_core.py ........                                        [100%]\n\n============================== 8 passed in 0.01s ===============================\n"
-    },
-    {
-      "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_hand_history.py"
-      ],
-      "command_id": "pytest_hand_history",
-      "description": "Run Phase 02 hand-history tests",
-      "duration_seconds": 0.103,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 15 items\n\ntests/test_hand_history.py ...............                               [100%]\n\n============================== 15 passed in 0.02s ==============================\n"
-    },
-    {
-      "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
         "run",
         "python",
         "-m",
@@ -247,15 +262,15 @@
       ],
       "command_id": "pytest",
       "description": "Run tests",
-      "duration_seconds": 0.106,
+      "duration_seconds": 0.66,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 33 items\n\ntests/test_command_registry.py ...                                       [  9%]\ntests/test_execplan_delegation.py ......                                 [ 27%]\ntests/test_hand_history.py ...............                               [ 72%]\ntests/test_import_smoke.py .                                             [ 75%]\ntests/test_poker_core.py ........                                        [100%]\n\n============================== 33 passed in 0.02s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 45 items\n\ntests/test_check_scope.py ........                                       [ 17%]\ntests/test_command_registry.py .....                                     [ 28%]\ntests/test_execplan_delegation.py ........                               [ 46%]\ntests/test_hand_history.py ...............                               [ 80%]\ntests/test_import_smoke.py .                                             [ 82%]\ntests/test_poker_core.py ........                                        [100%]\n\n============================== 45 passed in 0.55s ==============================\n"
     },
     {
       "command": [
-        "/private/tmp/claude-501/-Users-taylorsprouse-projects-poker-bot/cb1bd7dc-0b37-41aa-a75e-61c422103829/scratchpad/venv/bin/uv",
+        "uv",
         "run",
         "ruff",
         "check",
@@ -263,7 +278,7 @@
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.054,
+      "duration_seconds": 0.045,
       "passed": true,
       "returncode": 0,
       "stderr": "",

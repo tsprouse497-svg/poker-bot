@@ -16,7 +16,7 @@ items:
     title: Large hand-history corpus comparison
     reason: V1 allows only tiny normalized sample comparison.
   - id: CONTRACT-REPORT-PATHS
-    status: deferred
+    status: done
     phase: contract-update
     title: Point Phase 01/07/08 contract report paths at distinct report files
-    reason: Phases 01 and 02 shared reports/active/latest_replay_report.txt so each gate run overwrote the golden-hand report; the generator now writes latest_golden_hand_report.txt but Phase 01/07/08 contract texts still name the shared path and need a contract-update task.
+    reason: Resolved by MAINT-01-AGENT-STRUCTURE; every contract now names a distinct report file and the shared latest_replay_report.txt path is gone.

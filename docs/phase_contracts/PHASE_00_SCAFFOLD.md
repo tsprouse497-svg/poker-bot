@@ -1,7 +1,6 @@
 ---
 phase_id: "00"
 title: "Scaffold, Contracts, Tooling, Verifier, Reports, Coordinator Workflow"
-status: completed
 depends_on: []
 required_gate_commands:
   - check_scope

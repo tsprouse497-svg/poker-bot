@@ -1,7 +1,6 @@
 ---
 phase_id: "06"
 title: "Conservative Postflop Fallback For Simulation Continuity"
-status: future
 depends_on:
   - "05"
 required_gate_commands:

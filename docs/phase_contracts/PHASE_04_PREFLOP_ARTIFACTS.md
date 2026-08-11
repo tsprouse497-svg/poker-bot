@@ -1,7 +1,6 @@
 ---
 phase_id: "04"
 title: "Preflop Artifact/Chart Contract, Importer, And Fail-Closed Lookup"
-status: future
 depends_on:
   - "03"
 required_gate_commands:

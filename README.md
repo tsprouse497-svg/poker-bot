@@ -2,9 +2,8 @@
 
 Offline-first deterministic NLHE training bot.
 
-This repository has completed Phase 01. The committed baseline contains the
-scaffold, contracts, verification tooling, reports, coordinator workflow, audit
-packet evidence, and a deterministic 2-9 player NLHE core engine.
+Agent behavior rules live in `AGENTS.md` (loaded by Claude Code via `CLAUDE.md`).
+Phase progress lives in `phase_status.yml` and the generated `STATUS.md`.
 
 ## Verify
 

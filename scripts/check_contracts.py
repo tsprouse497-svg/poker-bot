@@ -9,7 +9,6 @@ from repo_paths import REPO_ROOT
 REQUIRED_FRONTMATTER = {
     "phase_id",
     "title",
-    "status",
     "depends_on",
     "required_gate_commands",
     "required_reports",
@@ -36,8 +35,28 @@ def parse_frontmatter(text: str, path) -> dict:
     return yaml.safe_load(parts[1])
 
 
+VALID_PHASE_STATUSES = {"future", "active", "completed"}
+
+
+def check_phase_status(errors: list[str]) -> dict[str, str]:
+    phase_status = yaml.safe_load((REPO_ROOT / "phase_status.yml").read_text(encoding="utf-8"))
+    statuses: dict[str, str] = {}
+    for phase in phase_status["phases"]:
+        status = phase.get("status")
+        if status not in VALID_PHASE_STATUSES:
+            errors.append(
+                f"phase_status.yml phase {phase.get('phase_id')!r} has invalid status "
+                f"{status!r}; valid statuses are {sorted(VALID_PHASE_STATUSES)}"
+            )
+        statuses[str(phase.get("phase_id"))] = status
+        if not (REPO_ROOT / str(phase.get("contract"))).exists():
+            errors.append(f"phase_status.yml names missing contract {phase.get('contract')!r}")
+    return statuses
+
+
 def main() -> int:
     errors: list[str] = []
+    statuses = check_phase_status(errors)
     contract_dir = REPO_ROOT / "docs" / "phase_contracts"
     paths = sorted(contract_dir.glob("PHASE_*.md"))
     if len(paths) != 10:
@@ -62,9 +81,13 @@ def main() -> int:
         for section in REQUIRED_SECTIONS:
             if f"## {section}" not in text:
                 errors.append(f"{path.relative_to(REPO_ROOT)} missing section {section!r}")
-        audit = REPO_ROOT / meta.get("required_phase_audit", "")
-        if phase_id == "00" and not audit.exists():
-            errors.append("Phase 00 audit packet is missing")
+        if statuses.get(phase_id) == "completed":
+            audit = REPO_ROOT / meta.get("required_phase_audit", "")
+            if not audit.exists():
+                errors.append(f"phase {phase_id} audit packet is missing")
+            for report in meta.get("required_reports") or []:
+                if not (REPO_ROOT / report).exists():
+                    errors.append(f"phase {phase_id} required report {report!r} is missing")
     if seen_ids != {f"{idx:02d}" for idx in range(10)}:
         errors.append(f"phase contract IDs are incomplete: {sorted(seen_ids)}")
     if errors:

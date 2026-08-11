@@ -1,9 +1,11 @@
 # Definition Of Done
 
+Behavior rules live in `AGENTS.md`; this file is only the closeout checklist.
+
 Every completed phase or package must satisfy:
 
 - Phase contract acceptance criteria met.
-- Required gate command IDs passed.
+- Full derived gate passed via `scripts/run_verify.py`.
 - Required active reports fresh.
 - Phase audit packet committed.
 - Gate logs committed where required.
@@ -21,3 +23,6 @@ Every completed phase or package must satisfy:
   review could not run plus self-review notes.
 - If Taylor performs human review, the phase audit packet records the human
   sign-off verdict and keeps a source-code-free spot-check path where practical.
+- ExecPlan moved from `docs/exec_plans/active/` to `docs/exec_plans/completed/`.
+- `CURRENT_TASK.yml` reset to `task_mode: idle` and the closeout committed.
+- The gate commit tagged `phase-NN-complete` for phase gates.

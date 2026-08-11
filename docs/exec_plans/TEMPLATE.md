@@ -1,5 +1,8 @@
 # ExecPlan Template
 
+Replace every placeholder below with concrete content before committing.
+`scripts/check_execplan_delegation.py` rejects plans whose Delegation Plan still contains this template's placeholder text.
+
 ## Objective
 
 State the phase or package gate.

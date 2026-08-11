@@ -1,7 +1,6 @@
 ---
 phase_id: "09"
 title: "Quality, Drift, Backlog, And Phase-Gate Hardening"
-status: future
 depends_on:
   - "08"
 required_gate_commands:

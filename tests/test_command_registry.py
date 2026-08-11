@@ -3,40 +3,40 @@ from __future__ import annotations
 import scripts.run_verify as run_verify
 
 
-def test_phase_00_registry_contains_required_commands() -> None:
-    required = {
-        "check_scope",
-        "check_contracts",
-        "check_execplan_delegation",
-        "check_generated_status",
-        "check_file_sizes",
-        "import_smoke",
-        "pytest",
-        "ruff_check",
-        "uv_import_smoke",
-    }
+def test_base_gate_commands_are_registered() -> None:
+    base = run_verify.BASE_GATE_GENERATORS + run_verify.BASE_GATE_CHECKS
 
-    assert required.issubset(run_verify.COMMANDS)
-    assert required.issubset(run_verify.PHASE_00_GATE)
+    assert set(base).issubset(run_verify.COMMANDS)
 
 
-def test_phase_01_registry_contains_required_commands() -> None:
-    required = {
-        "check_execplan_delegation",
-        "pytest_poker_core",
-        "generate_phase_01_replay_report",
-    }
+def test_gate_includes_contract_commands_for_completed_phases() -> None:
+    gate = run_verify.derive_gate()
 
-    assert required.issubset(run_verify.COMMANDS)
-    assert required.issubset(run_verify.PHASE_01_GATE)
+    assert "generate_golden_hand_report" in gate
+    assert "generate_hand_history_replay_report" in gate
+    assert "pytest_poker_core" in gate
+    assert "pytest_hand_history" in gate
 
 
-def test_phase_02_registry_contains_required_commands() -> None:
-    required = {
-        "check_execplan_delegation",
-        "pytest_hand_history",
-        "generate_replay_report",
-    }
+def test_completed_phase_contract_commands_are_registered() -> None:
+    unknown = [
+        command_id
+        for command_id in run_verify.contract_gate_commands()
+        if command_id not in run_verify.COMMANDS
+    ]
 
-    assert required.issubset(run_verify.COMMANDS)
-    assert required.issubset(run_verify.PHASE_02_GATE)
+    assert unknown == []
+
+
+def test_gate_generates_reports_before_freshness_checks() -> None:
+    gate = run_verify.derive_gate()
+
+    assert gate.index("generate_status") < gate.index("check_generated_status")
+    assert gate.index("generate_phase_ledger") < gate.index("check_generated_phase_ledger")
+    assert gate.index("generate_backlog") < gate.index("check_generated_backlog")
+
+
+def test_gate_has_no_duplicate_commands() -> None:
+    gate = run_verify.derive_gate()
+
+    assert len(gate) == len(set(gate))

@@ -7,8 +7,8 @@ import pytest
 from poker_training_bot.hand_history import load_hand_history_file, parse_hand_history, replay_hand
 from scripts.repo_paths import REPO_ROOT
 
-FIXTURE = REPO_ROOT / "data" / "samples" / "phase_02_normalized_hands.json"
-JSONL_FIXTURE = REPO_ROOT / "data" / "samples" / "phase_02_normalized_hands.jsonl"
+FIXTURE = REPO_ROOT / "data" / "samples" / "normalized_hands.json"
+JSONL_FIXTURE = REPO_ROOT / "data" / "samples" / "normalized_hands.jsonl"
 
 
 def test_loads_and_replays_normalized_hand_history_fixture() -> None:

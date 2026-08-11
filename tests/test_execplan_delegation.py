@@ -84,3 +84,24 @@ def test_execplan_delegation_plan_rejects_template_exception_placeholder() -> No
     errors = delegation.validate_execplan_text(text, "PLAN.md")
 
     assert "Worker lanes" in errors[0]
+
+
+def test_idle_mode_rejects_lingering_active_execplans(tmp_path, monkeypatch) -> None:
+    (tmp_path / "CURRENT_TASK.yml").write_text("task_mode: idle\n", encoding="utf-8")
+    active = tmp_path / "docs" / "exec_plans" / "active"
+    active.mkdir(parents=True)
+    (active / "STALE_PLAN.md").write_text("# Plan\n", encoding="utf-8")
+    monkeypatch.setattr(delegation, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(delegation, "ACTIVE_EXECPLAN_DIR", active)
+
+    assert delegation.main() == 1
+
+
+def test_idle_mode_passes_with_empty_active_dir(tmp_path, monkeypatch) -> None:
+    (tmp_path / "CURRENT_TASK.yml").write_text("task_mode: idle\n", encoding="utf-8")
+    active = tmp_path / "docs" / "exec_plans" / "active"
+    active.mkdir(parents=True)
+    monkeypatch.setattr(delegation, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(delegation, "ACTIVE_EXECPLAN_DIR", active)
+
+    assert delegation.main() == 0

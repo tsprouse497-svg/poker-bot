@@ -1,7 +1,6 @@
 ---
 phase_id: "05"
 title: "Full-Table Preflop Strategy From Committed Artifacts/Charts"
-status: future
 depends_on:
   - "04"
 required_gate_commands:

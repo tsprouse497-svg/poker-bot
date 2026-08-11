@@ -1,14 +1,13 @@
 ---
 phase_id: "02"
 title: "Normalized Hand-History Schema And Deterministic Replay"
-status: future
 depends_on:
   - "01"
 required_gate_commands:
   - pytest_hand_history
-  - generate_replay_report
+  - generate_hand_history_replay_report
 required_reports:
-  - reports/active/latest_replay_report.txt
+  - reports/active/latest_hand_history_replay_report.txt
 required_phase_audit: reports/phase_audits/PHASE_02_HAND_HISTORY.md
 ---
 
@@ -31,11 +30,11 @@ Phase 02 is limited to the work named by this contract and the active ExecPlan.
 - Any deferred work is recorded in `backlog.yml`.
 
 ## Required reports
-- `reports/active/latest_replay_report.txt`
+- `reports/active/latest_hand_history_replay_report.txt`
 
 ## Required command IDs
 - `pytest_hand_history`
-- `generate_replay_report`
+- `generate_hand_history_replay_report`
 
 ## Human vetting packet requirements
 - Plain-language summary of what changed.

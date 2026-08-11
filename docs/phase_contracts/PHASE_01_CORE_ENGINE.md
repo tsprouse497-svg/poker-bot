@@ -1,14 +1,13 @@
 ---
 phase_id: "01"
 title: "2-9 Player NLHE Core Engine"
-status: future
 depends_on:
   - "00"
 required_gate_commands:
   - pytest_poker_core
-  - generate_phase_01_replay_report
+  - generate_golden_hand_report
 required_reports:
-  - reports/active/latest_replay_report.txt
+  - reports/active/latest_golden_hand_report.txt
 required_phase_audit: reports/phase_audits/PHASE_01_CORE_ENGINE.md
 ---
 
@@ -31,11 +30,11 @@ Phase 01 is limited to the work named by this contract and the active ExecPlan.
 - Any deferred work is recorded in `backlog.yml`.
 
 ## Required reports
-- `reports/active/latest_replay_report.txt`
+- `reports/active/latest_golden_hand_report.txt`
 
 ## Required command IDs
 - `pytest_poker_core`
-- `generate_phase_01_replay_report`
+- `generate_golden_hand_report`
 
 ## Human vetting packet requirements
 - Plain-language summary of what changed.

@@ -10,7 +10,7 @@ LINE_LIMITS = [
     ("STATUS.md", 120),
     ("docs/*.md", 500),
     ("docs/phase_contracts/*.md", 300),
-    ("docs/exec_plans/active/*.md", 800),
+    ("docs/exec_plans/**/*.md", 800),
     ("src/**/*.py", 500),
     ("tests/**/*.py", 700),
     ("reports/phase_audits/*.md", 500),

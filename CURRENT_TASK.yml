@@ -1,42 +1,29 @@
-task_id: PHASE-02-HAND-HISTORY
-active_phase: "02"
-task_mode: implementation
+task_id: MAINT-01-AGENT-STRUCTURE
+active_phase: null
+task_mode: maintenance
+base_commit: 3396d40b6fb9d09ee543e2834a394c8b4ff6f0e2
 approved_scope:
+  - CLAUDE.md
   - AGENTS.md
   - README.md
-  - CURRENT_TASK.yml
-  - phase_status.yml
-  - backlog.yml
-  - STATUS.md
-  - pyproject.toml
-  - uv.lock
-  - .gitignore
-  - .gitattributes
-  - .python-version
   - .github/**
   - docs/**
   - scripts/**
   - src/**
   - tests/**
-  - reports/**
-  - data/**
   - data/samples/**
+standing_scope:
+  - CURRENT_TASK.yml
+  - backlog.yml
+  - phase_status.yml
+  - STATUS.md
+  - docs/PHASE_LEDGER.md
+  - docs/BACKLOG.md
+  - docs/exec_plans/**
+  - reports/active/**
 forbidden_scope:
   - data/raw/**
   - data/processed/**
-required_task_commands:
-  - check_scope
-  - check_contracts
-  - check_execplan_delegation
-  - check_generated_status
-  - check_generated_phase_ledger
-  - check_generated_backlog
-  - check_file_sizes
-  - import_smoke
-  - pytest_poker_core
-  - pytest_hand_history
-  - generate_replay_report
-  - ruff_check
 scope_change_log:
   - date: 2026-06-08
     reason: Phase 00 scaffold requires root metadata, CI config, uv lockfile, and tiny sample fixtures.
@@ -44,3 +31,5 @@ scope_change_log:
     reason: Phase 01 requires deterministic poker core source, golden-hand fixtures, tests, reports, and audit evidence.
   - date: 2026-06-08
     reason: Phase 02 requires normalized hand-history schema, deterministic replay, fixtures, tests, reports, and audit evidence.
+  - date: 2026-08-10
+    reason: Structure maintenance requires derived verify gates, function-based naming, consolidated agent rules, idle task mode, and diff-based scope checks.

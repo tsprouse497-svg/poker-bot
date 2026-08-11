@@ -1,8 +1,9 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `PHASE-02-HAND-HISTORY`
-Active phase: `02`
+Current task: `MAINT-01-AGENT-STRUCTURE`
+Task mode: `maintenance`
+Active phase: `none`
 Completed phases: `3`
 
 ## Phase Snapshot

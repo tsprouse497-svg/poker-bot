@@ -59,5 +59,5 @@ Each hand record must include:
 - Core settlement payouts must match `result.payouts` exactly.
 
 Committed Phase 02 examples live in
-`data/samples/phase_02_normalized_hands.json` and
-`data/samples/phase_02_normalized_hands.jsonl`.
+`data/samples/normalized_hands.json` and
+`data/samples/normalized_hands.jsonl`.

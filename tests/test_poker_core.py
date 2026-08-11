@@ -93,7 +93,7 @@ def test_showdown_settlement_splits_side_pots_by_eligibility() -> None:
 
 
 def test_golden_hands_replay_expected_winners_and_totals() -> None:
-    results = replay_golden_hands(REPO_ROOT / "data" / "samples" / "phase_01_golden_hands.json")
+    results = replay_golden_hands(REPO_ROOT / "data" / "samples" / "golden_hands.json")
     by_id = {hand.hand_id: settlement for hand, settlement in results}
 
     assert by_id["phase01-heads-up-royal-vs-full-house"].payouts == {0: 200, 1: 0}

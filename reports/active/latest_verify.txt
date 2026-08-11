@@ -6,7 +6,10 @@ All passed: True
 - PASS generate_status: Regenerate STATUS.md
 - PASS generate_phase_ledger: Regenerate phase ledger
 - PASS generate_backlog: Regenerate backlog docs
-- PASS generate_replay_report: Generate Phase 02 normalized hand-history replay report
+- PASS pytest_poker_core: Run poker-core tests
+- PASS generate_golden_hand_report: Generate golden-hand replay report
+- PASS pytest_hand_history: Run hand-history tests
+- PASS generate_hand_history_replay_report: Generate normalized hand-history replay report
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness
@@ -16,8 +19,6 @@ All passed: True
 - PASS check_file_sizes: Validate file-size limits
 - PASS import_smoke: Import package smoke test
 - PASS uv_import_smoke: Prove uv environment can import the package
-- PASS pytest_poker_core: Run Phase 01 poker-core tests
-- PASS pytest_hand_history: Run Phase 02 hand-history tests
 - PASS pytest: Run tests
 - PASS ruff_check: Run ruff
 

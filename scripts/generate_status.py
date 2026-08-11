@@ -12,12 +12,14 @@ def render() -> str:
     phase_status = yaml.safe_load((REPO_ROOT / "phase_status.yml").read_text(encoding="utf-8"))
     current_task = yaml.safe_load((REPO_ROOT / "CURRENT_TASK.yml").read_text(encoding="utf-8"))
     completed = [p for p in phase_status["phases"] if p["status"] == "completed"]
-    active = current_task["active_phase"]
+    task_id = current_task["task_id"] or "none (idle)"
+    active = current_task["active_phase"] or "none"
     lines = [
         "# Status",
         "",
         f"Project: `{phase_status['project']}`",
-        f"Current task: `{current_task['task_id']}`",
+        f"Current task: `{task_id}`",
+        f"Task mode: `{current_task.get('task_mode') or 'idle'}`",
         f"Active phase: `{active}`",
         f"Completed phases: `{len(completed)}`",
         "",

@@ -1,14 +1,13 @@
 ---
 phase_id: "08"
 title: "Tiny Normalized Sample Ingestion And Player Tendency Comparison"
-status: future
 depends_on:
   - "07"
 required_gate_commands:
   - pytest_sample_comparison
   - generate_sample_comparison_report
 required_reports:
-  - reports/active/latest_replay_report.txt
+  - reports/active/latest_sample_comparison_report.txt
 required_phase_audit: reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
 ---
 
@@ -31,7 +30,7 @@ Phase 08 is limited to the work named by this contract and the active ExecPlan.
 - Any deferred work is recorded in `backlog.yml`.
 
 ## Required reports
-- `reports/active/latest_replay_report.txt`
+- `reports/active/latest_sample_comparison_report.txt`
 
 ## Required command IDs
 - `pytest_sample_comparison`

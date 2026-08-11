@@ -1,14 +1,13 @@
 ---
 phase_id: "07"
 title: "Offline Simulator And Bot/Profile Comparison Reports"
-status: future
 depends_on:
   - "06"
 required_gate_commands:
   - pytest_simulator
   - generate_profile_comparison_report
 required_reports:
-  - reports/active/latest_replay_report.txt
+  - reports/active/latest_profile_comparison_report.txt
 required_phase_audit: reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md
 ---
 
@@ -31,7 +30,7 @@ Phase 07 is limited to the work named by this contract and the active ExecPlan.
 - Any deferred work is recorded in `backlog.yml`.
 
 ## Required reports
-- `reports/active/latest_replay_report.txt`
+- `reports/active/latest_profile_comparison_report.txt`
 
 ## Required command IDs
 - `pytest_simulator`

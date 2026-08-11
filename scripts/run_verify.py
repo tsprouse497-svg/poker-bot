@@ -10,6 +10,8 @@ import sys
 import time
 from dataclasses import dataclass
 
+import yaml
+
 try:
     from repo_paths import REPO_ROOT
 except ModuleNotFoundError:
@@ -17,6 +19,8 @@ except ModuleNotFoundError:
 
 
 REPORT_DIR = REPO_ROOT / "reports" / "active"
+PHASE_STATUS = REPO_ROOT / "phase_status.yml"
+GATE_PHASE_STATUSES = {"active", "completed"}
 
 
 @dataclass(frozen=True)
@@ -102,19 +106,19 @@ COMMANDS = {
     ),
     "pytest_poker_core": CommandSpec(
         uv_python_command() + ["-m", "pytest", "tests/test_poker_core.py"],
-        "Run Phase 01 poker-core tests",
+        "Run poker-core tests",
     ),
     "pytest_hand_history": CommandSpec(
         uv_python_command() + ["-m", "pytest", "tests/test_hand_history.py"],
-        "Run Phase 02 hand-history tests",
+        "Run hand-history tests",
     ),
-    "generate_phase_01_replay_report": CommandSpec(
-        uv_python_command() + ["scripts/generate_phase_01_replay_report.py"],
-        "Generate Phase 01 golden-hand replay report",
+    "generate_golden_hand_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_golden_hand_report.py"],
+        "Generate golden-hand replay report",
     ),
-    "generate_replay_report": CommandSpec(
-        uv_python_command() + ["scripts/generate_replay_report.py"],
-        "Generate Phase 02 normalized hand-history replay report",
+    "generate_hand_history_replay_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_hand_history_replay_report.py"],
+        "Generate normalized hand-history replay report",
     ),
     "ruff_check": CommandSpec(
         ruff_command(),
@@ -126,10 +130,13 @@ COMMANDS = {
     ),
 }
 
-PHASE_00_GATE = [
+BASE_GATE_GENERATORS = [
     "generate_status",
     "generate_phase_ledger",
     "generate_backlog",
+]
+
+BASE_GATE_CHECKS = [
     "check_generated_status",
     "check_generated_phase_ledger",
     "check_generated_backlog",
@@ -143,44 +150,37 @@ PHASE_00_GATE = [
     "ruff_check",
 ]
 
-PHASE_01_GATE = [
-    "generate_status",
-    "generate_phase_ledger",
-    "generate_backlog",
-    "generate_phase_01_replay_report",
-    "check_generated_status",
-    "check_generated_phase_ledger",
-    "check_generated_backlog",
-    "check_contracts",
-    "check_scope",
-    "check_execplan_delegation",
-    "check_file_sizes",
-    "import_smoke",
-    "uv_import_smoke",
-    "pytest_poker_core",
-    "pytest",
-    "ruff_check",
-]
 
-PHASE_02_GATE = [
-    "generate_status",
-    "generate_phase_ledger",
-    "generate_backlog",
-    "generate_replay_report",
-    "check_generated_status",
-    "check_generated_phase_ledger",
-    "check_generated_backlog",
-    "check_contracts",
-    "check_scope",
-    "check_execplan_delegation",
-    "check_file_sizes",
-    "import_smoke",
-    "uv_import_smoke",
-    "pytest_poker_core",
-    "pytest_hand_history",
-    "pytest",
-    "ruff_check",
-]
+def parse_frontmatter(text: str, path) -> dict:
+    if not text.startswith("---\n"):
+        raise ValueError(f"{path} is missing YAML frontmatter")
+    parts = text.split("---\n", 2)
+    if len(parts) < 3:
+        raise ValueError(f"{path} has malformed YAML frontmatter")
+    return yaml.safe_load(parts[1])
+
+
+def contract_gate_commands() -> list[str]:
+    phase_status = yaml.safe_load(PHASE_STATUS.read_text(encoding="utf-8"))
+    commands: list[str] = []
+    for phase in phase_status["phases"]:
+        if phase["status"] not in GATE_PHASE_STATUSES:
+            continue
+        contract_path = REPO_ROOT / phase["contract"]
+        meta = parse_frontmatter(contract_path.read_text(encoding="utf-8"), phase["contract"])
+        for command_id in meta["required_gate_commands"]:
+            if command_id not in commands:
+                commands.append(command_id)
+    return commands
+
+
+def derive_gate() -> list[str]:
+    gate = list(BASE_GATE_GENERATORS)
+    for command_id in contract_gate_commands():
+        if command_id not in gate and command_id not in BASE_GATE_CHECKS:
+            gate.append(command_id)
+    gate.extend(BASE_GATE_CHECKS)
+    return gate
 
 
 def run_command(command_id: str) -> dict:
@@ -231,14 +231,38 @@ def write_reports(results: list[dict]) -> None:
     (REPORT_DIR / "latest_verify.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _setup_failure(command_id: str, message: str) -> dict:
+    return {
+        "command_id": command_id,
+        "description": "Gate setup failure",
+        "command": [],
+        "returncode": 2,
+        "duration_seconds": 0.0,
+        "stdout": "",
+        "stderr": message,
+        "passed": False,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--commands", nargs="*", help="Explicit command IDs to run")
     args = parser.parse_args()
-    command_ids = args.commands or PHASE_02_GATE
+    try:
+        command_ids = args.commands or derive_gate()
+    except Exception as exc:
+        message = f"gate derivation failed: {exc}"
+        write_reports([_setup_failure("derive_gate", message)])
+        print(message, file=sys.stderr)
+        return 2
     unknown = [command_id for command_id in command_ids if command_id not in COMMANDS]
     if unknown:
-        print(f"Unknown command IDs: {unknown}", file=sys.stderr)
+        message = (
+            f"Unknown command IDs: {unknown}. "
+            "Register new gate commands in COMMANDS in scripts/run_verify.py."
+        )
+        write_reports([_setup_failure("unknown_command_ids", message)])
+        print(message, file=sys.stderr)
         return 2
     results = [run_command(command_id) for command_id in command_ids]
     write_reports(results)

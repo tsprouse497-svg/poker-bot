@@ -4,6 +4,8 @@ import re
 import sys
 from pathlib import Path
 
+import yaml
+
 try:
     from repo_paths import REPO_ROOT
 except ModuleNotFoundError:
@@ -80,10 +82,27 @@ def validate_execplan(path: Path) -> list[str]:
     return validate_execplan_text(text, str(relative))
 
 
+VALID_TASK_MODES = {"idle", "implementation", "contract-update", "maintenance"}
+
+
+def task_mode() -> str:
+    task = yaml.safe_load((REPO_ROOT / "CURRENT_TASK.yml").read_text(encoding="utf-8"))
+    mode = task.get("task_mode")
+    if mode not in VALID_TASK_MODES:
+        raise ValueError(f"task_mode {mode!r} is not one of {sorted(VALID_TASK_MODES)}")
+    return mode
+
+
 def main() -> int:
     paths = sorted(ACTIVE_EXECPLAN_DIR.glob("*.md"))
     errors: list[str] = []
-    if not paths:
+    if task_mode() == "idle":
+        for path in paths:
+            errors.append(
+                f"{path.relative_to(REPO_ROOT)} is still active while task_mode is idle; "
+                "move completed ExecPlans to docs/exec_plans/completed/"
+            )
+    elif not paths:
         errors.append("no active ExecPlan markdown files found")
     for path in paths:
         errors.extend(validate_execplan(path))

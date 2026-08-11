@@ -1,7 +1,6 @@
 ---
 phase_id: "03"
 title: "Strategy Contract And Deterministic Decision Audit Shape"
-status: future
 depends_on:
   - "02"
 required_gate_commands:

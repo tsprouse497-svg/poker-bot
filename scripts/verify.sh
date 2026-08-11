@@ -20,5 +20,6 @@ if [ -n "$UV_BIN" ]; then
   export UV_LINK_MODE=copy
   "$UV_BIN" run "$PYTHON_BIN" scripts/run_verify.py "$@"
 else
-  "$PYTHON_BIN" -m uv run "$PYTHON_BIN" scripts/run_verify.py "$@"
+  # run_verify.py resolves uv itself and falls back to the current interpreter.
+  "$PYTHON_BIN" scripts/run_verify.py "$@"
 fi
