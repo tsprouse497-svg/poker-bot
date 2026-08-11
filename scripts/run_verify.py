@@ -161,6 +161,14 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_preflop_chart_report.py"],
         "Generate preflop chart coverage report",
     ),
+    "pytest_full_table_preflop": CommandSpec(
+        uv_python_command() + ["-m", "pytest", "tests/test_full_table_preflop.py"],
+        "Run full-table preflop strategy tests",
+    ),
+    "generate_preflop_strategy_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_preflop_strategy_report.py"],
+        "Generate preflop strategy coverage and frequency report",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",
