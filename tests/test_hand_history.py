@@ -128,6 +128,31 @@ def test_blind_post_must_match_blind_unless_all_in() -> None:
         replay_hand(parse_hand_history(raw))
 
 
+def test_replay_rejects_out_of_turn_action() -> None:
+    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))["hands"][0]
+    raw["streets"][1]["actions"] = [{"seat": 0, "kind": "check"}, {"seat": 1, "kind": "check"}]
+
+    with pytest.raises(ValueError, match="cannot act out of turn"):
+        replay_hand(parse_hand_history(raw))
+
+
+def test_replay_rejects_street_with_open_betting_round() -> None:
+    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))["hands"][0]
+    raw["streets"][1]["actions"] = [{"seat": 1, "kind": "check"}]
+
+    with pytest.raises(ValueError, match="ends with an open betting round"):
+        replay_hand(parse_hand_history(raw))
+
+
+def test_replay_rejects_action_on_all_in_runout_street() -> None:
+    raw = json.loads(FIXTURE.read_text(encoding="utf-8"))["hands"][1]
+    assert raw["hand_id"] == "phase02-three-way-side-pot"
+    raw["streets"][1]["actions"] = [{"seat": 2, "kind": "check"}]
+
+    with pytest.raises(ValueError, match="betting round is complete"):
+        replay_hand(parse_hand_history(raw))
+
+
 def test_replay_fails_closed_when_expected_result_does_not_match() -> None:
     hand = load_hand_history_file(FIXTURE)[0]
     raw = {

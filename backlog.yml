@@ -20,3 +20,13 @@ items:
     phase: contract-update
     title: Point Phase 01/07/08 contract report paths at distinct report files
     reason: Resolved by MAINT-01-AGENT-STRUCTURE; every contract now names a distinct report file and the shared latest_replay_report.txt path is gone.
+  - id: UNDER-RAISE-ACCUMULATION
+    status: deferred
+    phase: engine
+    title: Reopen betting when consecutive short all-ins reach a full raise
+    reason: V1 keeps seats barred once an under-raise all-in occurs even if later short all-ins cumulatively amount to a full raise; real NLHE reopens raising there. Fail-closed but stricter than the live rule.
+  - id: FOLD-WHEN-FREE
+    status: deferred
+    phase: engine
+    title: Accept recorded folds when checking is free
+    reason: The engine treats fold as illegal when to_call is zero, so real histories containing open folds (timeouts, surrendered rivers) fail replay; the strategy contract inherits the same invariant.

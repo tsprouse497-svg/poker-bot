@@ -21,9 +21,21 @@
             {"seat": 1, "kind": "check"}
           ]
         },
-        {"name": "flop", "board": ["As", "Ks", "Qs"], "actions": []},
-        {"name": "turn", "board": ["Js"], "actions": []},
-        {"name": "river", "board": ["2d"], "actions": []}
+        {
+          "name": "flop",
+          "board": ["As", "Ks", "Qs"],
+          "actions": [{"seat": 1, "kind": "check"}, {"seat": 0, "kind": "check"}]
+        },
+        {
+          "name": "turn",
+          "board": ["Js"],
+          "actions": [{"seat": 1, "kind": "check"}, {"seat": 0, "kind": "check"}]
+        },
+        {
+          "name": "river",
+          "board": ["2d"],
+          "actions": [{"seat": 1, "kind": "check"}, {"seat": 0, "kind": "check"}]
+        }
       ],
       "showdown": [
         {"seat": 0, "hole_cards": ["Ts", "9c"]},

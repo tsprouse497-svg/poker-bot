@@ -120,6 +120,15 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_hand_history_replay_report.py"],
         "Generate normalized hand-history replay report",
     ),
+    "pytest_strategy_contract": CommandSpec(
+        uv_python_command()
+        + ["-m", "pytest", "tests/test_strategy_contract.py", "tests/test_action_order.py"],
+        "Run strategy-contract and turn-order tests",
+    ),
+    "generate_strategy_query_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_strategy_query_report.py"],
+        "Generate strategy query report and decision audit",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",

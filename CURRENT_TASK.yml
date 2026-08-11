@@ -1,9 +1,25 @@
-task_id: PHASE-03-CONTRACT-UPDATE
+task_id: PHASE-03-STRATEGY-CONTRACT
 active_phase: "03"
-task_mode: contract-update
-base_commit: 5ea8a1f69fb5ab33e4a520c21c91aa80b957a841
+task_mode: implementation
+base_commit: c15d8453f7736af42be530ef8d41914ea52fb9b3
 approved_scope:
-  - docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
+  - src/poker_training_bot/poker_core/order.py
+  - src/poker_training_bot/poker_core/engine.py
+  - src/poker_training_bot/poker_core/__init__.py
+  - tests/test_poker_core.py
+  - src/poker_training_bot/strategy/**
+  - src/poker_training_bot/hand_history/replay.py
+  - tests/test_action_order.py
+  - tests/test_strategy_contract.py
+  - tests/test_hand_history.py
+  - tests/test_command_registry.py
+  - scripts/run_verify.py
+  - scripts/generate_strategy_query_report.py
+  - data/samples/normalized_hands.json
+  - data/samples/normalized_hands.jsonl
+  - docs/HAND_HISTORY_SCHEMA.md
+  - docs/ARCHITECTURE.md
+  - reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md
 standing_scope:
   - CURRENT_TASK.yml
   - backlog.yml
@@ -25,3 +41,5 @@ scope_change_log:
     reason: Phase 02 requires normalized hand-history schema, deterministic replay, fixtures, tests, reports, and audit evidence.
   - date: 2026-08-10
     reason: Structure maintenance requires derived verify gates, function-based naming, consolidated agent rules, idle task mode, and diff-based scope checks.
+  - date: 2026-08-10
+    reason: Phase 03 independent review found a pre-existing engine bug (min-raise not updated after a postflop bet); fixing it requires poker_core/engine.py and tests/test_poker_core.py.

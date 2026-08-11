@@ -101,7 +101,8 @@ class BettingRoundState:
                 raise ValueError("bet is only legal before a bet exists")
             if amount < self.min_raise and amount < player.stack:
                 raise ValueError("bet must meet the minimum bet unless all-in")
-            return self._commit(player, amount, amount, self.min_raise)
+            new_min_raise = self.min_raise if amount < self.min_raise else amount
+            return self._commit(player, amount, amount, new_min_raise)
         if action.kind == ActionKind.RAISE:
             target = _required_amount(action)
             to_call = self.current_bet - player.street_bet

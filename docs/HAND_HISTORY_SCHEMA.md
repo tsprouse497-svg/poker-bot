@@ -41,12 +41,20 @@ Each hand record must include:
 - A `post_blind` amount must match the blind that seat owes, unless the player
   posts their entire remaining stack all-in below the owed blind. A short
   all-in blind does not lower the price to call or the minimum raise, which
-  stay anchored to the configured blinds.
+  stay anchored to the configured blinds; callers match the full blind level
+  even heads-up against a short all-in blind, and the uncallable excess is
+  refunded at settlement.
 - `raise` amount is the target total street bet, matching the Phase 01 engine.
 - Non-committing actions are `check` and `fold`; these must not include an
   `amount`.
-- Betting actions are replayed through the Phase 01 betting state and illegal
+- Betting actions are replayed through the core betting state and illegal
   actions fail closed.
+- Replay enforces turn order through `poker_core.order`: the first two preflop
+  actions are the blind posts, action then starts left of the big blind
+  (left of the button postflop), every recorded action must come from the
+  seat to act, the big blind keeps its preflop option, an all-in raise below
+  the minimum does not reopen raising for seats that already acted, and a
+  street with live players cannot end while its betting round is open.
 - A hand where all but one player folds settles uncontested: the remaining
   player wins the whole pot, including any uncalled final bet, `showdown` must
   be empty, and no further actions or streets may follow the deciding fold.

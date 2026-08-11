@@ -16,6 +16,8 @@ def test_gate_includes_contract_commands_for_completed_phases() -> None:
     assert "generate_hand_history_replay_report" in gate
     assert "pytest_poker_core" in gate
     assert "pytest_hand_history" in gate
+    assert "pytest_strategy_contract" in gate
+    assert "generate_strategy_query_report" in gate
 
 
 def test_completed_phase_contract_commands_are_registered() -> None:

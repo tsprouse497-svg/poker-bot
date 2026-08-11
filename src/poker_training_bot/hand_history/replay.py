@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 
 from poker_training_bot.hand_history.schema import (
@@ -18,6 +19,7 @@ from poker_training_bot.poker_core.engine import (
     settle_showdown,
     settle_uncontested,
 )
+from poker_training_bot.poker_core.order import TurnState, blind_seats
 
 
 @dataclass(frozen=True)
@@ -39,22 +41,44 @@ class HandReplay:
         )
 
 
-def replay_hand(hand: NormalizedHandHistory) -> HandReplay:
+@dataclass(frozen=True)
+class DecisionPoint:
+    hand: NormalizedHandHistory
+    street: StreetName
+    board: tuple[Card, ...]
+    action: HistoryAction
+    turn: TurnState
+    pot: int
+
+    @property
+    def seat(self) -> int:
+        return self.action.seat
+
+    @property
+    def legal_actions(self) -> tuple[ActionKind, ...]:
+        return self.turn.legal_actions(self.action.seat)
+
+
+def replay_hand(
+    hand: NormalizedHandHistory,
+    on_decision: Callable[[DecisionPoint], None] | None = None,
+) -> HandReplay:
     committed = {player.seat: 0 for player in hand.players}
     folded: set[int] = set()
     all_in: set[int] = set()
-    sb_seat, bb_seat = _blind_seats(hand)
+    sb_seat, bb_seat = blind_seats(sorted(committed), hand.button_seat)
     if not hand.streets or len(hand.streets[0].actions) < 2:
         raise ValueError("preflop must open with small and big blind posts")
+    board: tuple[Card, ...] = ()
     for street in hand.streets:
         if len(set(committed) - folded) <= 1:
             raise ValueError(f"{street.name.value} street follows an uncontested hand")
+        board = board + street.board
         state = _street_state(hand, committed, folded, all_in)
-        for position, action in enumerate(street.actions):
-            if len(set(committed) - folded) <= 1:
-                raise ValueError(f"seat {action.seat} acts after the hand is decided")
-            is_blind_slot = street.name == StreetName.PREFLOP and position < 2
-            if is_blind_slot:
+        actions = street.actions
+        if street.name == StreetName.PREFLOP:
+            for position in range(2):
+                action = actions[position]
                 expected_seat, owed = (
                     (sb_seat, hand.blinds.small_blind)
                     if position == 0
@@ -67,13 +91,32 @@ def replay_hand(hand: NormalizedHandHistory) -> HandReplay:
                         f"seat {action.seat} posted a blind owed by seat {expected_seat}"
                     )
                 state = _apply_post_blind(state, action.seat, action.committed_amount, owed)
-            elif action.kind == HistoryActionKind.POST_BLIND:
+            actions = actions[2:]
+            turn = TurnState.start_preflop(state, hand.button_seat)
+        else:
+            turn = TurnState.start_postflop(state, hand.button_seat)
+        committed, folded, all_in = _snapshot(state)
+        for action in actions:
+            if len(set(committed) - folded) <= 1:
+                raise ValueError(f"seat {action.seat} acts after the hand is decided")
+            if action.kind == HistoryActionKind.POST_BLIND:
                 raise ValueError("post_blind is only allowed as the first two preflop actions")
-            else:
-                state = _apply_betting_action(state, action)
-            committed = {player.seat: player.committed_total for player in state.players}
-            folded = {player.seat for player in state.players if player.folded}
-            all_in = {player.seat for player in state.players if player.all_in}
+            engine_action = _engine_action(turn.round, action)
+            if on_decision is not None:
+                on_decision(
+                    DecisionPoint(
+                        hand=hand,
+                        street=street.name,
+                        board=board,
+                        action=action,
+                        turn=turn,
+                        pot=sum(committed.values()),
+                    )
+                )
+            turn = turn.apply(engine_action)
+            committed, folded, all_in = _snapshot(turn.round)
+        if len(set(committed) - folded) > 1 and not turn.round_complete:
+            raise ValueError(f"{street.name.value} street ends with an open betting round")
 
     if sum(committed.values()) != hand.result.pot:
         raise ValueError("committed chips do not match result pot")
@@ -158,17 +201,12 @@ def _street_state(
     )
 
 
-def _blind_seats(hand: NormalizedHandHistory) -> tuple[int, int]:
-    seats = sorted(player.seat for player in hand.players)
-    sb_seat = hand.button_seat if len(seats) == 2 else _next_seat(seats, hand.button_seat)
-    return sb_seat, _next_seat(seats, sb_seat)
-
-
-def _next_seat(seats: list[int], seat: int) -> int:
-    for candidate in seats:
-        if candidate > seat:
-            return candidate
-    return seats[0]
+def _snapshot(state: BettingRoundState) -> tuple[dict[int, int], set[int], set[int]]:
+    return (
+        {player.seat: player.committed_total for player in state.players},
+        {player.seat for player in state.players if player.folded},
+        {player.seat for player in state.players if player.all_in},
+    )
 
 
 def _apply_post_blind(
@@ -205,19 +243,19 @@ def _apply_post_blind(
     )
 
 
-def _apply_betting_action(state: BettingRoundState, action: HistoryAction) -> BettingRoundState:
-    player = state.player(action.seat)
+def _engine_action(state: BettingRoundState, action: HistoryAction) -> Action:
     if action.kind == HistoryActionKind.CALL:
+        player = state.player(action.seat)
         expected = min(player.stack, state.current_bet - player.street_bet)
         if action.committed_amount != expected:
             raise ValueError(f"call amount does not match legal call for seat {action.seat}")
-        return state.apply(Action(action.seat, ActionKind.CALL))
+        return Action(action.seat, ActionKind.CALL)
     if action.kind == HistoryActionKind.BET:
-        return state.apply(Action(action.seat, ActionKind.BET, action.committed_amount))
+        return Action(action.seat, ActionKind.BET, action.committed_amount)
     if action.kind == HistoryActionKind.RAISE:
-        return state.apply(Action(action.seat, ActionKind.RAISE, action.committed_amount))
+        return Action(action.seat, ActionKind.RAISE, action.committed_amount)
     if action.kind == HistoryActionKind.CHECK:
-        return state.apply(Action(action.seat, ActionKind.CHECK))
+        return Action(action.seat, ActionKind.CHECK)
     if action.kind == HistoryActionKind.FOLD:
-        return state.apply(Action(action.seat, ActionKind.FOLD))
+        return Action(action.seat, ActionKind.FOLD)
     raise ValueError(f"unsupported betting action: {action.kind.value}")

@@ -77,6 +77,21 @@ def test_big_blind_option_offers_raise_and_applies_it() -> None:
         state.apply(Action(1, ActionKind.BET, amount=30))
 
 
+def test_bet_raises_the_minimum_raise_to_the_bet_size() -> None:
+    players = (
+        PlayerState(0, "Button", 500, parse_cards(["As", "Ad"]), street_bet=0),
+        PlayerState(1, "Big Blind", 500, parse_cards(["Ks", "Kd"]), street_bet=0),
+    )
+    state = BettingRoundState(players=players, current_bet=0, min_raise=10)
+
+    bet = state.apply(Action(1, ActionKind.BET, amount=200))
+    assert bet.min_raise == 200
+    with pytest.raises(ValueError, match="minimum raise"):
+        bet.apply(Action(0, ActionKind.RAISE, amount=210))
+    raised = bet.apply(Action(0, ActionKind.RAISE, amount=400))
+    assert raised.current_bet == 400
+
+
 def test_showdown_settlement_splits_side_pots_by_eligibility() -> None:
     board = parse_cards(["2h", "3h", "4h", "8c", "Kd"])
     players = (

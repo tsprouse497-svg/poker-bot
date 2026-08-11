@@ -1,7 +1,7 @@
 Latest Verify Report
 ====================
 
-All passed: False
+All passed: True
 
 - PASS generate_status: Regenerate STATUS.md
 - PASS generate_phase_ledger: Regenerate phase ledger
@@ -10,12 +10,14 @@ All passed: False
 - PASS generate_golden_hand_report: Generate golden-hand replay report
 - PASS pytest_hand_history: Run hand-history tests
 - PASS generate_hand_history_replay_report: Generate normalized hand-history replay report
+- PASS pytest_strategy_contract: Run strategy-contract and turn-order tests
+- PASS generate_strategy_query_report: Generate strategy query report and decision audit
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness
 - PASS check_contracts: Validate phase contracts
 - PASS check_scope: Validate task scope
-- FAIL check_execplan_delegation: Validate active ExecPlan delegation plan
+- PASS check_execplan_delegation: Validate active ExecPlan delegation plan
 - PASS check_file_sizes: Validate file-size limits
 - PASS import_smoke: Import package smoke test
 - PASS uv_import_smoke: Prove uv environment can import the package
