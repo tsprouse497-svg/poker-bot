@@ -1,25 +1,8 @@
-task_id: PHASE-03-STRATEGY-CONTRACT
-active_phase: "03"
-task_mode: implementation
-base_commit: c15d8453f7736af42be530ef8d41914ea52fb9b3
-approved_scope:
-  - src/poker_training_bot/poker_core/order.py
-  - src/poker_training_bot/poker_core/engine.py
-  - src/poker_training_bot/poker_core/__init__.py
-  - tests/test_poker_core.py
-  - src/poker_training_bot/strategy/**
-  - src/poker_training_bot/hand_history/replay.py
-  - tests/test_action_order.py
-  - tests/test_strategy_contract.py
-  - tests/test_hand_history.py
-  - tests/test_command_registry.py
-  - scripts/run_verify.py
-  - scripts/generate_strategy_query_report.py
-  - data/samples/normalized_hands.json
-  - data/samples/normalized_hands.jsonl
-  - docs/HAND_HISTORY_SCHEMA.md
-  - docs/ARCHITECTURE.md
-  - reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - backlog.yml

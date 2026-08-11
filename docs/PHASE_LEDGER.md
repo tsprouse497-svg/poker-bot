@@ -5,7 +5,7 @@
 | 00 | Scaffold, Contracts, Tooling, Verifier, Reports, Coordinator Workflow | completed | `docs/phase_contracts/PHASE_00_SCAFFOLD.md` | `reports/phase_audits/PHASE_00_SCAFFOLD.md` |
 | 01 | 2-9 Player NLHE Core Engine | completed | `docs/phase_contracts/PHASE_01_CORE_ENGINE.md` | `reports/phase_audits/PHASE_01_CORE_ENGINE.md` |
 | 02 | Normalized Hand-History Schema And Deterministic Replay | completed | `docs/phase_contracts/PHASE_02_HAND_HISTORY.md` | `reports/phase_audits/PHASE_02_HAND_HISTORY.md` |
-| 03 | Strategy Contract And Deterministic Decision Audit Shape | active | `docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md` | `reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md` |
+| 03 | Strategy Contract And Deterministic Decision Audit Shape | completed | `docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md` | `reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md` |
 | 04 | Preflop Artifact/Chart Contract, Importer, And Fail-Closed Lookup | future | `docs/phase_contracts/PHASE_04_PREFLOP_ARTIFACTS.md` | `reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md` |
 | 05 | Full-Table Preflop Strategy From Committed Artifacts/Charts | future | `docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md` | `reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md` |
 | 06 | Conservative Postflop Fallback For Simulation Continuity | future | `docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md` | `reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md` |
