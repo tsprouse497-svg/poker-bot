@@ -3,8 +3,7 @@
 Loop stage 8. Read-only reviewers, no write access to the tree.
 
 - Poker domain review: complete. One blocker, four non-blockers.
-- Mechanical review: not run. The domain blocker halts the phase before stage 9,
-  so it is deferred rather than skipped, and stage 8 is not finished.
+- Mechanical review: complete. Three blockers, all fixed and pinned with tests.
 
 ## BLOCKER: the collapse rule over-folds, and by a measurable amount
 
@@ -112,3 +111,64 @@ reading that report cannot see any of the above.
   characteristic blocker construction), SB flats 2.3% versus BTN while BB flats
   26.5%, suited wheel aces are 100% in every opening range.
 - **The artifact reproduces byte for byte** from its committed source.
+
+## Mechanical review
+
+Three blockers, each reproduced by the reviewer against the running code, each now
+fixed and covered by a test that fails without the fix.
+
+### BLOCKER: stack depth was read from the deepest seat, not from hero
+
+`_table_depth_bb` took `max(stack)` and divided by the big blind. It never looked at
+hero. A hero with 12bb opened a 100bb range at 2.5x, and the decision audit accepted
+it, as long as one untouched seat sat behind. Judgment call 5 was ruled `exact-only`
+and the contract forbids any tolerance band; this was an unbounded one on every seat
+except the deepest. The existing test only passed because it set all six stacks to
+40bb, the single configuration `max()` gets right.
+
+Fixed by measuring hero's own starting stack, which is the one depth in the query
+that can be derived rather than guessed: what hero owes plus what hero has left is
+what hero started with. A seat holding more than that refuses under its own code,
+because "your table is not flat" and "your depth is ragged" are different problems.
+
+### BLOCKER: the blind-structure guard stopped looking after any action
+
+The straddle test only ran while nothing had raised, and the ante test only ran
+while the history was empty. Since folds are recorded, an anted pot refused for the
+first seat to act and was chart-backed for the other five. A straddled pot was
+accepted from the moment anyone raised, which in a straddled game is always.
+
+Replaced with an arithmetic bound that works at every seat: the largest pot the
+blinds and the recorded voluntary actions could possibly have built is the two
+blinds plus one full bet each, and anything larger is money the format cannot name.
+
+Residual gap, recorded as `PER-SEAT-CONTRIBUTIONS-IN-QUERY`: the bound is generous,
+so a straddled pot with several callers can still slip through. Exact detection
+needs each seat's committed chips on the query, which is the same shape of fix as
+adding the action history was, and it would also close
+`ASYMMETRIC-EFFECTIVE-STACKS`.
+
+### BLOCKER: the seed was untested, and the forbidden seed passed the whole suite
+
+The contract names the failure by hand: a seed of spot and hand class alone would
+freeze every mixed cell to one action forever. The reviewer substituted exactly that
+and all 68 tests passed, because every frequency assertion routed through
+`decide_spot`, which builds its own seed and never touches `_seed`. Fold-to-three-bet
+drifted to 65.4% against a chart figure of 59.8% with nothing failing.
+
+Fixed by testing the seed directly and by measuring frequencies through `decide`.
+
+### Non-blockers now covered
+
+Tests were added for the refusal paths the reviewer mutated freely: an action the
+chart names that is not legal here, a raise with no committed size, a committed size
+below the minimum raise, a ragged depth, and an uneven table. All five refusal codes
+previously appeared in no test at all.
+
+Remaining non-blockers recorded but not fixed: `hero_range` in the converter reads
+only the first raise label where `build_weights` sums all of them (no effect on the
+committed export, since no hand is opened only by shoving); the converter has no
+spot-key collision guard of its own and relies on import validation; `action_weights`
+key order follows the source's JSON order rather than being sorted; two tests spawn a
+bare `python` rather than `sys.executable`; and
+`test_no_two_covered_spots_share_a_hand_class_ordering` is tautological.

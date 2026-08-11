@@ -1,9 +1,5 @@
 auto_advance: false
-halt_reason: 'Stage 8 blocker: the highest-weight collapse over-folds. 16 hand classes
-  fold where the chart continues more than half the time, zero in the reverse direction,
-  and fold-to-3bet runs 13-15 points above the solution, crossing the auto-profit
-  line for a bluff 3bet. Judgment call 3 needs re-ruling with the cost measured.'
-loop: halted
+loop: running
 phase_id: '05'
 schema_version: 1
 stage: 8

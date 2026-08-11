@@ -104,6 +104,25 @@ def query(
     return StrategyQuery(**fields)
 
 
+def cards_for(hand: str) -> tuple[str, str] | None:
+    """Two concrete cards for a 169-class name, so a class can be driven through decide.
+
+    None for a string that is not a class name, which is how the table below filters
+    the generated candidates without a second list of the 169.
+    """
+    ranks = "23456789TJQKA"
+    if len(hand) == 2:
+        if hand[0] != hand[1] or hand[0] not in ranks:
+            return None
+        return (hand[0] + "s", hand[1] + "h")
+    if len(hand) != 3 or hand[2] not in "so":
+        return None
+    high, low = hand[0], hand[1]
+    if high not in ranks or low not in ranks or ranks.index(high) <= ranks.index(low):
+        return None
+    return (high + "s", low + ("s" if hand[2] == "s" else "h"))
+
+
 def combos_of(hand: str) -> int:
     """How many of the 1326 starting hands a 169-class name stands for."""
     if len(hand) == 2:
@@ -117,6 +136,21 @@ def raised(position: str) -> SeatAction:
 
 def folded(position: str) -> SeatAction:
     return SeatAction(seat_of(position), "fold")
+
+
+def _hand_cards() -> dict[str, tuple[str, str]]:
+    table = {}
+    for high in "23456789TJQKA":
+        for low in "23456789TJQKA":
+            for kind in ("s", "o", ""):
+                name = f"{high}{low}{kind}"
+                cards = cards_for(name)
+                if cards is not None and hand_class(cards) == name:
+                    table[name] = cards
+    return table
+
+
+HAND_CARDS: dict[str, tuple[str, str]] = _hand_cards()
 
 
 @pytest.fixture(scope="module")
@@ -328,6 +362,77 @@ class TestRefusals:
 
         assert "preflop" in refusal(outcome).code
 
+    def test_a_short_hero_refuses_even_behind_a_full_stack(self, strategy) -> None:
+        """Depth is hero's, not the table's deepest seat.
+
+        Reading the deepest stack meant a twelve-big-blind hero opened a hundred
+        big-blind range whenever one untouched seat sat behind, which is an
+        unbounded tolerance band on a decision ruled exact-only.
+        """
+        hero = seat_of("LJ")
+        short = tuple(
+            (seat, 12 * BIG_BLIND if seat == hero else stack)
+            for seat, stack in stacks()
+        )
+
+        outcome = refusal(strategy.decide(query("LJ", stacks=short)))
+
+        assert outcome.code.endswith("table-is-not-one-flat-stack-depth")
+
+    def test_a_ragged_depth_refuses_with_its_own_code(self, strategy) -> None:
+        odd = tuple((seat, 100 * BIG_BLIND + 37) for seat, _ in stacks())
+
+        outcome = refusal(strategy.decide(query("LJ", stacks=odd)))
+
+        assert outcome.code.endswith("stack-depth-not-a-whole-big-blind")
+
+    def test_an_anted_pot_refuses_at_every_seat_not_just_the_first(self, strategy) -> None:
+        """Folds are recorded, so checking only an empty history covered one seat."""
+        outcome = strategy.decide(
+            query("HJ", history=(folded("LJ"),), pot=SMALL_BLIND + BIG_BLIND + 60)
+        )
+
+        assert "blind-structure" in refusal(outcome).code
+
+    def test_a_straddled_pot_refuses_after_someone_raises(self, strategy) -> None:
+        """The guard used to stop looking the moment anything raised."""
+        outcome = strategy.decide(
+            query(
+                "BB",
+                history=(raised("LJ"),),
+                street_bet=6 * BIG_BLIND,
+                to_call=5 * BIG_BLIND,
+                min_raise_target=11 * BIG_BLIND,
+                pot=SMALL_BLIND + BIG_BLIND + 2 * BIG_BLIND + 6 * BIG_BLIND,
+            )
+        )
+
+        assert "blind-structure" in refusal(outcome).code
+
+    def test_a_charted_action_that_is_not_legal_here_refuses(self, strategy) -> None:
+        outcome = strategy.decide(
+            query("LJ", hole_cards=("As", "Ah"), legal_actions=("fold", "call"))
+        )
+
+        assert "not-legal-here" in refusal(outcome).code
+
+    def test_a_raise_with_no_committed_size_refuses(self, strategy) -> None:
+        bare = PreflopChartStrategy(library=strategy.library, sizing=PreflopSizingTable(
+            source_name="empty", source_kind="solver-export", raise_to_bb={}
+        ))
+
+        outcome = bare.decide(query("LJ", hole_cards=("As", "Ah")))
+
+        assert "no-committed-raise-size" in refusal(outcome).code
+
+    def test_a_committed_size_below_the_minimum_raise_refuses(self, strategy) -> None:
+        """A 2.5bb open cannot answer a pot already raised to 6bb."""
+        outcome = strategy.decide(
+            query("LJ", hole_cards=("As", "Ah"), min_raise_target=12 * BIG_BLIND)
+        )
+
+        assert "below-minimum-raise" in refusal(outcome).code
+
     def test_every_refusal_names_the_coverage_that_was_missing(self, strategy) -> None:
         shallow = tuple((seat, 40 * BIG_BLIND) for seat in SEATS)
         outcome = refusal(strategy.decide(query("LJ", stacks=shallow, pot=SMALL_BLIND + BIG_BLIND)))
@@ -418,6 +523,54 @@ class TestLegalityAndDeterminism:
             )
 
         assert len(lines) == 1
+
+    def test_the_draw_depends_on_the_hand_not_only_the_spot(self, strategy) -> None:
+        """A seed of spot and hand class alone is the plurality rule wearing a hash.
+
+        It would freeze every mixed cell to one action forever while every frequency
+        test that routes through decide_spot kept passing.
+        """
+        spot = "t6/d100/LJ/LJ:raise,CO:raise"
+        mixed = next(
+            hand
+            for hand in strategy.library.hand_classes_for(spot)
+            if len(strategy.library.artifacts[0].weights_for(spot, hand)) > 1
+        )
+        seeds = {
+            strategy._seed(query("LJ", hole_cards=("As", "Ah"), hand_id=f"h{index}"), spot, mixed)
+            for index in range(5)
+        }
+
+        assert len(seeds) == 5
+
+    def test_the_draw_ignores_suits_and_card_order(self, strategy) -> None:
+        spot = "t6/d100/BTN/rfi"
+        first = strategy._seed(query("BTN", hole_cards=("As", "Kd")), spot, "AKo")
+        second = strategy._seed(query("BTN", hole_cards=("Kh", "Ac")), spot, "AKo")
+
+        assert first == second
+
+    def test_decide_reproduces_the_charts_frequencies_over_many_hands(self, strategy) -> None:
+        """Measured through decide, not decide_spot, so the seed is under test too."""
+        spot = "t6/d100/LJ/LJ:raise,CO:raise"
+        charted = strategy.library.action_frequency_pct(spot, "fold")
+        history = (raised("LJ"), raised("CO"))
+        folds = 0.0
+        total = 0.0
+        for hand in strategy.library.hand_classes_for(spot):
+            cards = HAND_CARDS.get(hand)
+            if cards is None:
+                continue
+            weight = combos_of(hand)
+            total += weight
+            for index in range(30):
+                outcome = strategy.decide(
+                    query("LJ", history=history, hole_cards=cards, hand_id=f"h{index}")
+                )
+                if isinstance(outcome, StrategyDecision) and outcome.action == "fold":
+                    folds += weight / 30
+
+        assert 100.0 * folds / total == pytest.approx(charted, abs=3.0)
 
     def test_a_pure_cell_needs_no_draw(self, strategy) -> None:
         assert strategy.collapse((("fold", 0.0), ("raise", 1.0)), "any") == "raise"

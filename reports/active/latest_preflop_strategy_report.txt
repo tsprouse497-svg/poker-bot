@@ -112,7 +112,7 @@ one way across different hands. The draw below is seeded on the spot.
 What the bot does where its chart is silent.
 
   covered: lojack opens                               decides: raise
-  covered: big blind faces a cutoff open              decides: raise
+  covered: big blind faces a cutoff open              refuses: preflop-chart:table-is-not-one-flat-stack-depth
   uncovered: forty big blinds deep                    refuses: preflop-chart:lookup:no-artifact-for-stack-depth
   uncovered: straddled pot                            refuses: preflop-chart:blind-structure-not-representable
   uncovered: anted pot                                refuses: preflop-chart:blind-structure-not-representable
@@ -126,6 +126,7 @@ Refusal codes seen:
   preflop-chart:lookup:spot-not-covered                     1
   preflop-chart:lookup:unrepresentable-spot                 1
   preflop-chart:not-preflop                                 1
+  preflop-chart:table-is-not-one-flat-stack-depth           1
 
 ## Check one number by hand
 

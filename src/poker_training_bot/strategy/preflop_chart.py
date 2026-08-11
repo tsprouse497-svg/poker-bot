@@ -44,6 +44,7 @@ CODE_PREFIX = "preflop-chart"
 REFUSE_NOT_PREFLOP = f"{CODE_PREFIX}:not-preflop"
 REFUSE_BLIND_STRUCTURE = f"{CODE_PREFIX}:blind-structure-not-representable"
 REFUSE_RAGGED_DEPTH = f"{CODE_PREFIX}:stack-depth-not-a-whole-big-blind"
+REFUSE_UNEVEN_TABLE = f"{CODE_PREFIX}:table-is-not-one-flat-stack-depth"
 REFUSE_ILLEGAL = f"{CODE_PREFIX}:charted-action-not-legal-here"
 REFUSE_NO_SIZING = f"{CODE_PREFIX}:no-committed-raise-size"
 REFUSE_SIZE_BELOW_MINIMUM = f"{CODE_PREFIX}:committed-size-below-minimum-raise"
@@ -127,32 +128,57 @@ class PreflopChartStrategy:
     def _blind_structure_is_representable(self, query: StrategyQuery) -> bool:
         """Reject a pot the artifact format cannot describe.
 
-        The format declares blinds and nothing else, so a straddle or an ante would
-        read as an ordinary pot while changing the correct ranges. Both are visible
-        at hero's first decision: an unraised pot whose bet is bigger than the big
-        blind is straddled, and one holding more than the two blinds is anted.
+        The format declares two blinds and nothing else, so a straddle or an ante
+        reads as an ordinary pot while changing the correct ranges. The test is
+        arithmetic rather than positional: work out the largest pot the blinds and
+        the recorded voluntary actions could possibly have built, and refuse
+        anything bigger, because the excess is money the format cannot name.
+
+        Nobody can have put in more than the current bet, so the bound is the two
+        blinds plus one full bet for each voluntary action. It is deliberately
+        generous, which makes a false refusal unlikely and leaves the check working
+        at every seat rather than only at the first one to act. An earlier version
+        only looked at hero's first decision and so accepted a straddled pot from
+        the moment anyone raised, which in a straddled game is always.
         """
         small_blind, big_blind = query.blinds
         raised = any(entry.action == "raise" for entry in query.preflop_actions)
         if not raised and query.street_bet != big_blind:
             return False
-        if not query.preflop_actions and query.pot != small_blind + big_blind:
-            return False
-        return True
+        voluntary = sum(
+            1 for entry in query.preflop_actions if entry.action in _SPOT_ACTIONS
+        )
+        largest_explainable = small_blind + big_blind + voluntary * query.street_bet
+        return query.pot <= largest_explainable
 
-    def _table_depth_bb(self, query: StrategyQuery) -> int | None:
-        """Starting depth in big blinds, or None when it is not a whole number.
+    def _table_depth_bb(self, query: StrategyQuery) -> tuple[int | None, str | None]:
+        """Hero's starting depth in big blinds, or None when it is not usable.
 
-        Taken from the largest current stack, which is a seat that has put nothing
-        in. `stack_depth_bb` is one table-wide number by design
-        (`ASYMMETRIC-EFFECTIVE-STACKS`), so this asks what everyone started with
-        rather than what hero has now.
+        Measured from hero, not from the deepest seat. Hero's own contribution is
+        exact - what hero owes plus what hero has left is what hero started with -
+        so this is the one depth in the query that can be derived rather than
+        guessed. An earlier version took the largest stack at the table, which meant
+        a twelve-big-blind hero opened a hundred-big-blind range as long as one
+        untouched seat sat behind, an unbounded tolerance band on a decision ruled
+        exact-only.
+
+        A seat holding more than hero started with cannot happen if everyone bought
+        in the same, so it means the table is not the flat structure the artifact
+        describes and the answer is a refusal with its own code, because "your table
+        is not flat" and "your depth is ragged" are different problems.
+
+        A seat holding *less* than hero is invisible here: a short villain and a
+        villain who has already put money in look identical from a query that
+        carries no per-seat contributions. That gap is `ASYMMETRIC-EFFECTIVE-STACKS`.
         """
         _, big_blind = query.blinds
-        deepest = max(stack for _, stack in query.stacks)
-        if deepest % big_blind:
-            return None
-        return deepest // big_blind
+        stacks = dict(query.stacks)
+        hero_start = stacks[query.seat] + (query.street_bet - query.to_call)
+        if hero_start <= 0 or hero_start % big_blind:
+            return None, REFUSE_RAGGED_DEPTH
+        if any(stack > hero_start for stack in stacks.values()):
+            return None, REFUSE_UNEVEN_TABLE
+        return hero_start // big_blind, None
 
     def _action_sequence(self, query: StrategyQuery) -> tuple[PreflopAction, ...]:
         seats = tuple(seat for seat, _ in query.stacks)
@@ -198,9 +224,9 @@ class PreflopChartStrategy:
             return StrategyRefusal(REFUSE_NOT_PREFLOP)
         if not self._blind_structure_is_representable(query):
             return StrategyRefusal(REFUSE_BLIND_STRUCTURE)
-        depth_bb = self._table_depth_bb(query)
+        depth_bb, depth_refusal = self._table_depth_bb(query)
         if depth_bb is None:
-            return StrategyRefusal(REFUSE_RAGGED_DEPTH)
+            return StrategyRefusal(depth_refusal or REFUSE_RAGGED_DEPTH)
 
         chart_query = self._chart_query(query, depth_bb)
         found = self.library.lookup(chart_query)
