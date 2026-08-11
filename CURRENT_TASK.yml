@@ -73,3 +73,5 @@ scope_change_log:
     reason: Independent review measured the cost of the highest-weight collapse and it is a first-order exploit, so judgment call 3 is re-ruled to seeded weighted sampling and the contract criterion it came from must change first.
   - date: 2026-08-11
     reason: Implementing the re-ruled collapse changes the strategy, the tests that pinned the plurality rule, the freeze lock recording them, and the report that must now show the strategy's own frequencies.
+  - date: 2026-08-11
+    reason: The loop policy test demanded an exact match against incomplete phases, which fails the moment a phase in the policy completes, so MAINT-06 relaxes it to a coverage check and keeps completed entries as the record of why they could not auto-advance.
