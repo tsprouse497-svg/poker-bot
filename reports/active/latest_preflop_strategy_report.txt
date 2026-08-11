@@ -1,0 +1,134 @@
+Preflop Strategy Report
+=======================
+
+Artifact: data/artifacts/preflop/six_max_nl25_100bb.json
+Source: GTO Wizard 6-max 100bb NL25 rake (solver-export)
+Table: 6-handed, 100bb, positions LJ, HJ, CO, BTN, SB, BB
+Spots: 36
+
+These ranges were solved with NL25 rake. Raked ranges are tighter than
+rake-free ones, most visibly in the blinds, so the big blind folds more here
+than a rake-free chart would have it fold.
+
+## Frequencies against the source solution
+
+The expected column is what GTO Wizard displayed for the same spot. It is the
+only column here this repo did not compute, so a range that is uniformly wrong
+shows up as a gap rather than as agreement.
+
+Spot                                this chart    source   delta
+BTN opens                               40.56%    40.56%   +0.00
+CO opens                                27.89%    27.89%   +0.00
+HJ opens                                21.65%    21.65%   +0.00
+LJ opens                                17.49%    17.49%   -0.00
+SB opens                                34.41%    34.41%   +0.00
+BB defends vs BTN                       39.43%    39.43%   +0.00
+BB defends vs CO                        31.48%    31.48%   -0.00
+BB defends vs HJ                        26.20%    26.20%   +0.00
+BB defends vs LJ                        22.63%    22.63%   +0.00
+BB defends vs SB                        42.88%    42.88%   -0.00
+SB limps                                13.73%    13.73%   -0.00
+
+## Coverage
+
+Every seat at a six-handed 100bb table can be asked. That is not the same as
+every situation being charted, and the spots below are the ones that are.
+
+  t6/d100/BB/BTN:raise                     169 hand classes
+  t6/d100/BB/CO:raise                      169 hand classes
+  t6/d100/BB/HJ:raise                      169 hand classes
+  t6/d100/BB/LJ:raise                      169 hand classes
+  t6/d100/BB/SB:call                       169 hand classes
+  t6/d100/BB/SB:raise                      169 hand classes
+  t6/d100/BTN/BTN:raise,BB:raise            88 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise,SB:raise            88 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/CO:raise                     169 hand classes
+  t6/d100/BTN/HJ:raise                     169 hand classes
+  t6/d100/BTN/LJ:raise                     169 hand classes
+  t6/d100/BTN/rfi                          169 hand classes
+  t6/d100/CO/CO:raise,BB:raise              67 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise,BTN:raise             67 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise,SB:raise              67 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise                      169 hand classes
+  t6/d100/CO/LJ:raise                      169 hand classes
+  t6/d100/CO/rfi                           169 hand classes
+  t6/d100/HJ/HJ:raise,BB:raise              58 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise,BTN:raise             58 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise,CO:raise              58 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise,SB:raise              58 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise                      169 hand classes
+  t6/d100/HJ/rfi                           169 hand classes
+  t6/d100/LJ/LJ:raise,BB:raise              52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise,BTN:raise             52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise,CO:raise              52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise,HJ:raise              52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise,SB:raise              52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/rfi                           169 hand classes
+  t6/d100/SB/BTN:raise                     169 hand classes
+  t6/d100/SB/CO:raise                      169 hand classes
+  t6/d100/SB/HJ:raise                      169 hand classes
+  t6/d100/SB/LJ:raise                      169 hand classes
+  t6/d100/SB/SB:raise,BB:raise             103 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/rfi                           169 hand classes
+
+## What it does with a few named hands
+
+  t6/d100/LJ/rfi
+    AA    raise to 2.5bb
+    AKs   raise to 2.5bb
+    AJo   raise to 2.5bb
+    76s   fold
+    72o   fold
+
+  t6/d100/BTN/rfi
+    AA    raise to 2.5bb
+    AKs   raise to 2.5bb
+    AJo   raise to 2.5bb
+    76s   raise to 2.5bb
+    72o   fold
+
+  t6/d100/BB/CO:raise
+    AA    raise to 13.5bb
+    AKs   raise to 13.5bb
+    AJo   call
+    76s   call
+    72o   fold
+
+  t6/d100/LJ/LJ:raise,CO:raise
+    AA    raise to 21.5bb
+    AKs   raise to 21.5bb
+    AJo   fold
+    76s   call
+    72o   refuses (preflop-chart:hand-class-not-covered)
+
+
+## Refusals
+
+What the bot does where its chart is silent.
+
+  covered: lojack opens                               decides: raise
+  covered: big blind faces a cutoff open              decides: raise
+  uncovered: forty big blinds deep                    refuses: preflop-chart:lookup:no-artifact-for-stack-depth
+  uncovered: straddled pot                            refuses: preflop-chart:blind-structure-not-representable
+  uncovered: anted pot                                refuses: preflop-chart:blind-structure-not-representable
+  uncovered: squeeze after an open and a cold call    refuses: preflop-chart:lookup:spot-not-covered
+  uncovered: facing a four-bet                        refuses: preflop-chart:lookup:unrepresentable-spot
+  uncovered: postflop                                 refuses: preflop-chart:not-preflop
+
+Refusal codes seen:
+  preflop-chart:blind-structure-not-representable           2
+  preflop-chart:lookup:no-artifact-for-stack-depth          1
+  preflop-chart:lookup:spot-not-covered                     1
+  preflop-chart:lookup:unrepresentable-spot                 1
+  preflop-chart:not-preflop                                 1
+
+## Check one number by hand
+
+Open data/artifacts/preflop/six_max_nl25_100bb.json, find action_weights ->
+"t6/d100/BTN/rfi" -> "A2o". It reads: fold 0.9128, raise 0.0872.
+
+So the button folds ace-deuce offsuit most of the time. That is a real property
+of a raked solution and it disagrees with the hand-authored chart this replaced,
+which opened it always. Nothing in this repo computed that number.
+
+Generated by `scripts/generate_preflop_strategy_report.py`.

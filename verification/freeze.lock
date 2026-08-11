@@ -30,8 +30,8 @@ files:
     sha256: d865b9e2e10de5d72f88f8962925be9e1dfe42c97b5f4fdb7ac09b538c2bf1ca
     test_functions: 35
   tests/test_preflop_committed_charts.py:
-    sha256: c1c33ca84d99ac38391910100d120ae5036c3ad61b40c7bb5c7544d5c630ff71
-    test_functions: 9
+    sha256: 09bf77d31d5e57783ecf8b15a6579e04cad45774faa5b369e55de3115daa77a4
+    test_functions: 11
   tests/test_preflop_lookup.py:
     sha256: 4e8ea82e0de42fe6d8684b3577637f3a24e3fe42aca6d3fbbbb958f83d80f20f
     test_functions: 23
@@ -42,4 +42,4 @@ files:
     sha256: 3185f342b82b5aef88e05f6188ad27847ea38d20a16927637213ba4c19f80558
     test_functions: 52
 schema_version: 1
-test_function_floor: 304
+test_function_floor: 306
