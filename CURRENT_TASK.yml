@@ -12,9 +12,6 @@ approved_scope:
   - scripts/run_verify.py
   - src/poker_training_bot/strategy/preflop_chart.py
   - src/poker_training_bot/strategy/preflop_sizing.py
-  - tests/test_full_table_preflop.py
-  - tests/test_preflop_committed_charts.py
-  - verification/freeze.lock
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -69,3 +66,5 @@ scope_change_log:
     reason: A halt is meant to be resumable, but the driver shipped no way back, so restarting re-ran completed stages and demanded their transient task modes; MAINT-05 adds --resume.
   - date: 2026-08-11
     reason: Phase 05 implementation needs the committed solver export and derived artifact, the converter that reproduces them, the chart-backed strategy and its solver-sourced sizing table, the strategy report generator and command registration, the phase tests, the committed-chart tests that follow retiring the hand-authored artifact, and the audit evidence.
+  - date: 2026-08-11
+    reason: Loop stage 5 narrows scope so the builder cannot reach the tests it is measured by; tests/ and verification/ leave approved_scope and check_scope.py enforces that mechanically for the rest of the phase.
