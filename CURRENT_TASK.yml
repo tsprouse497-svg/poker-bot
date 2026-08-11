@@ -1,9 +1,11 @@
-task_id: PHASE-03-QUERY-HISTORY-CONTRACT
+task_id: PHASE-03-QUERY-HISTORY
 active_phase: "03"
-task_mode: contract-update
-base_commit: e636c53eaaf091f306464b4f5c752a91e7620b3b
+task_mode: implementation
+base_commit: de8467aa2b31c9d4d84660eed79a58e53e5b9451
 approved_scope:
-  - docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
+  - src/poker_training_bot/strategy/contract.py
+  - tests/test_strategy_contract.py
+  - verification/freeze.lock
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -52,3 +54,5 @@ scope_change_log:
     reason: Phase 05 implementation needs the committed solver export and derived artifact, the converter that reproduces it, the chart-backed strategy and its solver-sourced sizing table, the strategy report generator and command registration, the phase tests, the committed-chart tests that must follow the retirement of the hand-authored artifact, and the audit evidence.
   - date: 2026-08-11
     reason: Phase 05 halted because StrategyQuery carries no preflop action history, so a chart-backed strategy cannot derive its spot key; Phase 03's contract must first require the query to carry that history.
+  - date: 2026-08-11
+    reason: Implementing the Phase 03 contract addition needs StrategyQuery itself, its tests, and the test freeze lock those tests are recorded in.

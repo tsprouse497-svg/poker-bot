@@ -8,6 +8,7 @@ import pytest
 from poker_training_bot.strategy.contract import (
     DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
+    SeatAction,
     StrategyDecision,
     StrategyProtocol,
     StrategyQuery,
@@ -208,6 +209,7 @@ class TestDecisionAuditRecord:
             '"query":{"blinds":[5,10],"board":["2c","7h","Ts"],"button_seat":0,'
             '"hand_id":"h1","hole_cards":["As","Kd"],'
             '"legal_actions":["fold","call","raise"],"min_raise_target":40,"pot":60,'
+            '"preflop_actions":[],'
             '"seat":1,"stacks":{"0":980,"1":940},"street":"flop","street_bet":20,'
             '"to_call":20},'
             '"schema_version":1,"strategy_id":"reference-check-fold",'
@@ -266,3 +268,74 @@ class TestCheckFoldStrategy:
         assert isinstance(strategy, StrategyProtocol)
         assert strategy.strategy_id == "reference-check-fold"
         assert strategy.strategy_version == 1
+
+
+class TestPreflopActionHistory:
+    """The history `to_call` and `stacks` cannot express.
+
+    Several different sequences produce identical prices, so without this a
+    chart-backed strategy cannot tell an open from a three-bet from a limp.
+    """
+
+    def test_defaults_to_empty_so_existing_callers_are_unaffected(self) -> None:
+        assert make_query().preflop_actions == ()
+
+    def test_accepts_an_ordered_history_of_seat_actions(self) -> None:
+        history = (SeatAction(0, "raise"), SeatAction(1, "call"))
+
+        query = make_query(preflop_actions=history)
+
+        assert query.preflop_actions == history
+
+    def test_records_folds_as_well_as_voluntary_actions(self) -> None:
+        """This is game state, not an already-canonicalized chart key."""
+        query = make_query(preflop_actions=(SeatAction(0, "fold"), SeatAction(1, "raise")))
+
+        assert [entry.action for entry in query.preflop_actions] == ["fold", "raise"]
+
+    def test_hero_may_appear_in_its_own_history(self) -> None:
+        """The original raiser facing a three-bet is a real spot."""
+        query = make_query(preflop_actions=(SeatAction(1, "raise"), SeatAction(0, "raise")))
+
+        assert query.preflop_actions[0].seat == 1
+
+    def test_rejects_a_seat_that_is_not_at_the_table(self) -> None:
+        with pytest.raises(ValueError, match="not at the table"):
+            make_query(preflop_actions=(SeatAction(7, "raise"),))
+
+    def test_rejects_an_unknown_action(self) -> None:
+        with pytest.raises(ValueError, match="unknown history action"):
+            SeatAction(0, "shove")
+
+    def test_rejects_a_bet_because_preflop_has_no_bet(self) -> None:
+        with pytest.raises(ValueError, match="unknown history action"):
+            SeatAction(0, "bet")
+
+    def test_rejects_a_negative_seat(self) -> None:
+        with pytest.raises(ValueError, match="non-negative integer"):
+            SeatAction(-1, "raise")
+
+    def test_rejects_entries_that_are_not_seat_actions(self) -> None:
+        with pytest.raises(ValueError, match="must be SeatAction"):
+            make_query(preflop_actions=((0, "raise"),))
+
+    def test_history_reaches_the_decision_audit(self) -> None:
+        query = make_query(preflop_actions=(SeatAction(0, "raise"),))
+
+        payload = query.to_payload()
+
+        assert payload["preflop_actions"] == [{"seat": 0, "action": "raise"}]
+
+    def test_audit_line_stays_byte_deterministic_with_history(self) -> None:
+        history = (SeatAction(0, "raise"), SeatAction(1, "call"))
+        first = make_record(query=make_query(preflop_actions=history))
+        second = make_record(query=make_query(preflop_actions=history))
+
+        assert first.to_json_line() == second.to_json_line()
+
+    def test_different_histories_serialize_differently(self) -> None:
+        """Two spots that share a price must not share an audit line."""
+        opened = make_record(query=make_query(preflop_actions=(SeatAction(0, "raise"),)))
+        limped = make_record(query=make_query(preflop_actions=(SeatAction(0, "call"),)))
+
+        assert opened.to_json_line() != limped.to_json_line()

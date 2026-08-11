@@ -26,11 +26,45 @@ def _validate_card_text(card: str, context: str) -> None:
         raise ValueError(f"{context} contains invalid card text: {card!r}")
 
 
+_PREFLOP_HISTORY_ACTIONS = ("fold", "check", "call", "raise")
+
+
+@dataclass(frozen=True)
+class SeatAction:
+    """One completed action by one seat, as game state rather than as a chart key.
+
+    Seat-based on purpose. Positions are derived from the button, so recording a
+    position here would bake a derivation into the raw decision context and give
+    two places to disagree about what `CO` means.
+    """
+
+    seat: int
+    action: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.seat, int) or isinstance(self.seat, bool) or self.seat < 0:
+            raise ValueError(f"seat must be a non-negative integer, got {self.seat!r}")
+        if self.action not in _PREFLOP_HISTORY_ACTIONS:
+            raise ValueError(
+                f"unknown history action {self.action!r};"
+                f" expected one of {list(_PREFLOP_HISTORY_ACTIONS)}"
+            )
+
+    def to_payload(self) -> dict[str, Any]:
+        return {"seat": self.seat, "action": self.action}
+
+
 @dataclass(frozen=True)
 class StrategyQuery:
     """Plain-data decision context handed to a strategy.
 
     Cards are text strings such as "As" so the query serializes cleanly.
+
+    `preflop_actions` is the history the price to call cannot express. A strategy
+    reading a committed chart has to know whether it faces an open, a three-bet, or
+    a limp, and `to_call` plus `stacks` cannot distinguish those: several different
+    histories produce identical numbers. Defaults to empty, which means the action
+    folded to hero.
     """
 
     hand_id: str
@@ -46,6 +80,7 @@ class StrategyQuery:
     pot: int
     stacks: tuple[tuple[int, int], ...]
     blinds: tuple[int, int]
+    preflop_actions: tuple[SeatAction, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.hand_id:
@@ -106,6 +141,19 @@ class StrategyQuery:
             raise ValueError("small blind must be positive")
         if small_blind > big_blind:
             raise ValueError("small blind cannot exceed big blind")
+        if not isinstance(self.preflop_actions, tuple):
+            raise ValueError(
+                "preflop_actions must be a tuple, got"
+                f" {type(self.preflop_actions).__name__}"
+            )
+        seated = {stack_seat for stack_seat, _ in self.stacks}
+        for entry in self.preflop_actions:
+            if not isinstance(entry, SeatAction):
+                raise ValueError(f"preflop_actions entries must be SeatAction, got {entry!r}")
+            if entry.seat not in seated:
+                raise ValueError(
+                    f"preflop_actions names seat {entry.seat}, which is not at the table"
+                )
 
     def to_payload(self) -> dict[str, Any]:
         return {
@@ -122,6 +170,7 @@ class StrategyQuery:
             "pot": self.pot,
             "stacks": {str(seat): stack for seat, stack in self.stacks},
             "blinds": list(self.blinds),
+            "preflop_actions": [entry.to_payload() for entry in self.preflop_actions],
         }
 
 
