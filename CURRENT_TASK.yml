@@ -1,13 +1,9 @@
-task_id: PHASE-05-IMPLEMENTATION
-active_phase: "05"
-task_mode: implementation
-base_commit: cd3eec4b51410bf9d3a1fe243df38e44dc43c16b
+task_id: MAINT-06-POLICY-COVERAGE-TEST
+active_phase: null
+task_mode: maintenance
+base_commit: 03f045e2ebd55e85c0ee8ec41520463d31a18abe
 approved_scope:
-  - reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md
-  - reports/phase_audits/reviews/**
-  - scripts/generate_preflop_strategy_report.py
-  - src/poker_training_bot/strategy/preflop_chart.py
-  - tests/test_full_table_preflop.py
+  - tests/test_loop_machinery.py
   - verification/freeze.lock
 standing_scope:
   - CURRENT_TASK.yml
@@ -75,3 +71,7 @@ scope_change_log:
     reason: Implementing the re-ruled collapse changes the strategy, the tests that pinned the plurality rule, the freeze lock recording them, and the report that must now show the strategy's own frequencies.
   - date: 2026-08-11
     reason: The loop policy test demanded an exact match against incomplete phases, which fails the moment a phase in the policy completes, so MAINT-06 relaxes it to a coverage check and keeps completed entries as the record of why they could not auto-advance.
+  - date: 2026-08-11
+    reason: The loop policy test demanded an exact match against incomplete phases, which fails the moment a phase in the policy completes, so MAINT-06 relaxes it to a coverage check and keeps completed entries as the record of why they could not auto-advance.
+  - date: 2026-08-11
+    reason: MAINT-06 is split out of the Phase 05 closeout because the policy test only fails once phase 05 is marked completed, so the fix has to land in its own maintenance task before the closeout commit can be green.

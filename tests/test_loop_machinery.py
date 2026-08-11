@@ -293,13 +293,20 @@ def test_every_stage_has_a_runner_and_an_instruction() -> None:
 
 
 def test_policy_covers_every_incomplete_phase() -> None:
+    """Every phase the loop could still run must declare whether it may auto-advance.
+
+    A completed phase may stay in the policy. Its entry is the record of why it could
+    not advance unattended, which is worth more than a tidy file.
+    """
     phase_status = yaml.safe_load((REPO_ROOT / "phase_status.yml").read_text(encoding="utf-8"))
     policy = yaml.safe_load(loop_stage.POLICY_PATH.read_text(encoding="utf-8"))["phases"]
-    incomplete = [
+    incomplete = {
         str(phase["phase_id"]) for phase in phase_status["phases"] if phase["status"] != "completed"
-    ]
+    }
+    known = {str(phase["phase_id"]) for phase in phase_status["phases"]}
 
-    assert sorted(policy) == sorted(incomplete)
+    assert incomplete <= set(policy)
+    assert set(policy) <= known
 
 
 def test_policy_entries_declare_a_reason() -> None:

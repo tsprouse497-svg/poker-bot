@@ -1,9 +1,9 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `PHASE-05-IMPLEMENTATION`
-Task mode: `implementation`
-Active phase: `05`
+Current task: `MAINT-06-POLICY-COVERAGE-TEST`
+Task mode: `maintenance`
+Active phase: `none`
 Completed phases: `5`
 
 ## Phase Snapshot
