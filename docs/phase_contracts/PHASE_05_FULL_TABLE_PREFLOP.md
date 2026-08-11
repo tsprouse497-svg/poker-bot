@@ -136,7 +136,7 @@ It is limited to the work named by this contract and the active ExecPlan.
 - Required command IDs pass through `scripts/run_verify.py`.
 - Required reports exist and are fresh for this phase.
 - The phase audit packet includes plain-language pass/fail evidence.
-- The judgment calls recorded in `reports/phase_audits/decisions/PHASE_05_DECISIONS.md`
+- The judgment calls recorded in `reports/phase_audits/decisions/PHASE_05_FULL_TABLE_PREFLOP_DECISIONS.md`
   are answered before implementation begins, and the audit packet records the
   outcome of each one.
 - Any deferred work is recorded in `backlog.yml`.

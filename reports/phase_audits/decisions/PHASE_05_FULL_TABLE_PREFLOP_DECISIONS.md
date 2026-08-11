@@ -8,6 +8,14 @@ Every item carries a default.
 Defaults stand unless changed, so answering nothing is a valid answer.
 Answer by replacing the bracketed value on the `Answer:` line.
 
+Every item carries a reversibility class, which is what the loop driver reads at
+stage 2 to decide whether it must stop for a human.
+
+- `runtime-reversible`: the choice only changes behavior at query time, so a later
+  edit changes it. The loop takes the default, proceeds, and reports what it chose.
+- `frozen-into-data`: the choice is written into a committed artifact or fixture
+  that later phases are then measured against. The loop halts until a human answers.
+
 Status: answered by Taylor on 2026-08-11.
 All eight defaults stand.
 Items 5, 6, and 7 are accepted as deliberate deferrals rather than as final
@@ -20,6 +28,8 @@ allowed, 2.5x opens.
 opener faces a three-bet, and the big blind facing a small-blind limp.
 
 ## 1. Retiring the hand-authored chart
+
+Reversibility: frozen-into-data
 
 The committed `six_max_100bb_core.json` is hand-authored and covers 3 spots.
 The new export covers 36 spots at the same table size and stack depth, and the
@@ -42,6 +52,8 @@ Answer: [retire-hand-authored]
 
 ## 2. Rake structure
 
+Reversibility: frozen-into-data
+
 The solution is solved with NL25 rake.
 Raked ranges are tighter than rake-free ones, most visibly in the blinds, so the
 bot will fold more from the big blind than a rake-free chart would.
@@ -56,6 +68,8 @@ Answer: [accept-NL25-rake]
 
 ## 3. Mixed frequencies
 
+Reversibility: runtime-reversible
+
 A spot can say raise 74% / call 25% / fold 1% for one hand.
 The bot has to do one thing.
 
@@ -69,6 +83,8 @@ Options: highest | random-per-hand-by-weight | refuse-on-any-mix
 Answer: [highest]
 
 ## 4. Raise sizing
+
+Reversibility: frozen-into-data
 
 Spot keys carry no raise size, so the artifact cannot hold one.
 But the strategy has to raise some amount, and the export does record what the
@@ -88,6 +104,8 @@ Answer: [source-sizings]
 
 ## 5. Stacks that are not exactly 100bb
 
+Reversibility: runtime-reversible
+
 The chart is 100bb only.
 Real stacks are 87bb, 143bb, whatever.
 Rounding to the nearest depth is a guess, which the repo bans.
@@ -104,6 +122,8 @@ rounding between them, once the bot is off the ground.
 
 ## 6. Straddles and antes
 
+Reversibility: runtime-reversible
+
 Your home game straddles.
 The artifact format has no blind-structure field, so a straddled pot would read as
 an ordinary one even though the correct ranges differ.
@@ -117,6 +137,8 @@ Answer: [refuse]
 Taylor: same approach as item 5, revisit once there is data for it.
 
 ## 7. What "full table" claims
+
+Reversibility: runtime-reversible
 
 Default: every seat at a six-handed 100bb table can be asked and gets either a
 chart-backed decision or an explicit refusal, and the report shows which.
@@ -134,6 +156,8 @@ Answer: [askable]
 Taylor: can supply more spots later; same approach as item 5.
 
 ## 8. Where the raw export lives
+
+Reversibility: frozen-into-data
 
 `data/raw/**` is forbidden scope, so the GTO Wizard export cannot be committed
 there.

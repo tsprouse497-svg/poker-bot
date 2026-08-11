@@ -3,9 +3,11 @@ active_phase: "05"
 task_mode: contract-update
 base_commit: 409413fd533a1da093b6c5a8b6f4eec97d2ed84d
 approved_scope:
+  - docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md
   - reports/phase_audits/decisions/**
 standing_scope:
   - CURRENT_TASK.yml
+  - verification/loop_state.yml
   - backlog.yml
   - phase_status.yml
   - STATUS.md
@@ -41,3 +43,5 @@ scope_change_log:
     reason: The loop halts at its human gate with an active ExecPlan and no active task, which check_execplan_delegation.py treated as an error, so MAINT-02 also needs that checker and its tests to model a declared pause.
   - date: 2026-08-11
     reason: Driving Phase 05 through the loop needs its decision record annotated with the reversibility class each judgment call carries, which the loop driver reads to decide whether a human must rule before implementation.
+  - date: 2026-08-11
+    reason: The loop driver derives the decision record's filename from the phase contract, matching how audit packets are already named, so the record is renamed and the contract reference updated to match.
