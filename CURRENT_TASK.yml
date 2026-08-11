@@ -1,8 +1,9 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE-05-IMPLEMENTATION
+active_phase: "05"
+task_mode: contract-update
+base_commit: 409413fd533a1da093b6c5a8b6f4eec97d2ed84d
+approved_scope:
+  - reports/phase_audits/decisions/**
 standing_scope:
   - CURRENT_TASK.yml
   - backlog.yml
@@ -38,3 +39,5 @@ scope_change_log:
     reason: MAINT-02 builds the autonomous loop machinery, so it needs the scope and contract checkers it hardens, the new test-freeze, gate-bite, and consistency checkers, the loop stage driver, verification state under verification/, their tests, the command registry, and the loop process docs.
   - date: 2026-08-11
     reason: The loop halts at its human gate with an active ExecPlan and no active task, which check_execplan_delegation.py treated as an error, so MAINT-02 also needs that checker and its tests to model a declared pause.
+  - date: 2026-08-11
+    reason: Driving Phase 05 through the loop needs its decision record annotated with the reversibility class each judgment call carries, which the loop driver reads to decide whether a human must rule before implementation.
