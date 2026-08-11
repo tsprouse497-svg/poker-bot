@@ -25,6 +25,31 @@ items:
     phase: engine
     title: Reopen betting when consecutive short all-ins reach a full raise
     reason: V1 keeps seats barred once an under-raise all-in occurs even if later short all-ins cumulatively amount to a full raise; real NLHE reopens raising there. Fail-closed but stricter than the live rule.
+  - id: SECOND-ORBIT-PREFLOP-SPOTS
+    status: deferred
+    phase: charts
+    title: Chart spots needing a position to act twice
+    reason: V1 spot keys allow one entry per position, so any spot where a position acts twice (hero facing a 4bet or later) has no representable key; lookup misses those fail closed instead of guessing.
+  - id: STACK-DEPTH-BUCKETS
+    status: deferred
+    phase: charts
+    title: Stack-depth bucketing for chart lookup
+    reason: V1 lookup requires an exact stack_depth_bb match. Nearest-depth or bucketed matching would be a heuristic, so an uncovered depth fails closed.
+  - id: ASYMMETRIC-EFFECTIVE-STACKS
+    status: deferred
+    phase: charts
+    title: Per-seat effective stack depth in chart spots
+    reason: stack_depth_bb is one table-wide number, so hero at 100bb facing a 35bb opener cannot be expressed or queried; a caller must pick one number and silently answers a different question.
+  - id: BLIND-STRUCTURE-VARIANTS
+    status: deferred
+    phase: charts
+    title: Antes and straddles in the artifact format
+    reason: The artifact declares no blind structure, so a straddled or anted pot reads as an ordinary one even though both materially change correct preflop ranges. Common in the home-game context this bot targets.
+  - id: RAISE-SIZE-IN-SPOT-KEY
+    status: deferred
+    phase: charts
+    title: Record raise sizes in preflop spot keys
+    reason: V1 spot keys record action names without sizes, so a 2.5bb open and a 4bb open share one spot. Sizing-aware spots need a size vocabulary the artifact format does not yet declare.
   - id: FOLD-WHEN-FREE
     status: deferred
     phase: engine

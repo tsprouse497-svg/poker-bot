@@ -129,6 +129,22 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_strategy_query_report.py"],
         "Generate strategy query report and decision audit",
     ),
+    "pytest_preflop_artifacts": CommandSpec(
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_preflop_positions.py",
+            "tests/test_preflop_artifacts.py",
+            "tests/test_preflop_lookup.py",
+            "tests/test_preflop_committed_charts.py",
+        ],
+        "Run preflop position, artifact, and chart-lookup tests",
+    ),
+    "generate_preflop_chart_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_preflop_chart_report.py"],
+        "Generate preflop chart coverage report",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",

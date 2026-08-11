@@ -12,6 +12,8 @@ All passed: True
 - PASS generate_hand_history_replay_report: Generate normalized hand-history replay report
 - PASS pytest_strategy_contract: Run strategy-contract and turn-order tests
 - PASS generate_strategy_query_report: Generate strategy query report and decision audit
+- PASS pytest_preflop_artifacts: Run preflop position, artifact, and chart-lookup tests
+- PASS generate_preflop_chart_report: Generate preflop chart coverage report
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness

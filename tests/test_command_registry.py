@@ -20,6 +20,13 @@ def test_gate_includes_contract_commands_for_completed_phases() -> None:
     assert "generate_strategy_query_report" in gate
 
 
+def test_gate_includes_contract_commands_for_the_active_phase() -> None:
+    gate = run_verify.derive_gate()
+
+    assert "pytest_preflop_artifacts" in gate
+    assert "generate_preflop_chart_report" in gate
+
+
 def test_completed_phase_contract_commands_are_registered() -> None:
     unknown = [
         command_id

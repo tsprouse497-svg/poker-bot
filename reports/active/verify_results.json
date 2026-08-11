@@ -1,6 +1,6 @@
 {
   "all_passed": true,
-  "generated_at_epoch": 1786455225,
+  "generated_at_epoch": 1786457463,
   "results": [
     {
       "command": [
@@ -11,7 +11,7 @@
       ],
       "command_id": "generate_status",
       "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.037,
+      "duration_seconds": 0.035,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -26,7 +26,7 @@
       ],
       "command_id": "generate_phase_ledger",
       "description": "Regenerate phase ledger",
-      "duration_seconds": 0.036,
+      "duration_seconds": 0.031,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -41,7 +41,7 @@
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.033,
+      "duration_seconds": 0.034,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -58,11 +58,11 @@
       ],
       "command_id": "pytest_poker_core",
       "description": "Run poker-core tests",
-      "duration_seconds": 0.136,
+      "duration_seconds": 0.099,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 9 items\n\ntests/test_poker_core.py .........                                       [100%]\n\n============================== 9 passed in 0.02s ===============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 9 items\n\ntests/test_poker_core.py .........                                       [100%]\n\n============================== 9 passed in 0.01s ===============================\n"
     },
     {
       "command": [
@@ -90,7 +90,7 @@
       ],
       "command_id": "pytest_hand_history",
       "description": "Run hand-history tests",
-      "duration_seconds": 0.104,
+      "duration_seconds": 0.106,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -105,7 +105,7 @@
       ],
       "command_id": "generate_hand_history_replay_report",
       "description": "Generate normalized hand-history replay report",
-      "duration_seconds": 0.036,
+      "duration_seconds": 0.035,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -123,7 +123,7 @@
       ],
       "command_id": "pytest_strategy_contract",
       "description": "Run strategy-contract and turn-order tests",
-      "duration_seconds": 0.105,
+      "duration_seconds": 0.112,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -138,11 +138,46 @@
       ],
       "command_id": "generate_strategy_query_report",
       "description": "Generate strategy query report and decision audit",
-      "duration_seconds": 0.037,
+      "duration_seconds": 0.04,
       "passed": true,
       "returncode": 0,
       "stderr": "",
       "stdout": "wrote reports/active/latest_strategy_query_report.txt\nwrote reports/active/latest_decision_audit.jsonl\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_preflop_positions.py",
+        "tests/test_preflop_artifacts.py",
+        "tests/test_preflop_lookup.py",
+        "tests/test_preflop_committed_charts.py"
+      ],
+      "command_id": "pytest_preflop_artifacts",
+      "description": "Run preflop position, artifact, and chart-lookup tests",
+      "duration_seconds": 0.197,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 238 items\n\ntests/test_preflop_positions.py ........................................ [ 16%]\n............................................................             [ 42%]\ntests/test_preflop_artifacts.py ........................................ [ 58%]\n...........................................                              [ 76%]\ntests/test_preflop_lookup.py ..............................              [ 89%]\ntests/test_preflop_committed_charts.py .........................         [100%]\n\n============================= 238 passed in 0.10s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_preflop_chart_report.py"
+      ],
+      "command_id": "generate_preflop_chart_report",
+      "description": "Generate preflop chart coverage report",
+      "duration_seconds": 0.039,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_preflop_chart_report.txt\n"
     },
     {
       "command": [
@@ -154,7 +189,7 @@
       ],
       "command_id": "check_generated_status",
       "description": "Check generated STATUS.md freshness",
-      "duration_seconds": 0.032,
+      "duration_seconds": 0.033,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -186,7 +221,7 @@
       ],
       "command_id": "check_generated_backlog",
       "description": "Check generated backlog freshness",
-      "duration_seconds": 0.031,
+      "duration_seconds": 0.032,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -201,7 +236,7 @@
       ],
       "command_id": "check_contracts",
       "description": "Validate phase contracts",
-      "duration_seconds": 0.034,
+      "duration_seconds": 0.036,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -216,7 +251,7 @@
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.084,
+      "duration_seconds": 0.09,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -231,7 +266,7 @@
       ],
       "command_id": "check_execplan_delegation",
       "description": "Validate active ExecPlan delegation plan",
-      "duration_seconds": 0.03,
+      "duration_seconds": 0.031,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -278,7 +313,7 @@
       ],
       "command_id": "uv_import_smoke",
       "description": "Prove uv environment can import the package",
-      "duration_seconds": 0.019,
+      "duration_seconds": 0.021,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -295,11 +330,11 @@
       ],
       "command_id": "pytest",
       "description": "Run tests",
-      "duration_seconds": 0.662,
+      "duration_seconds": 0.787,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 110 items\n\ntests/test_action_order.py .....................                         [ 19%]\ntests/test_check_scope.py ........                                       [ 26%]\ntests/test_command_registry.py .....                                     [ 30%]\ntests/test_execplan_delegation.py ........                               [ 38%]\ntests/test_hand_history.py ..................                            [ 54%]\ntests/test_import_smoke.py .                                             [ 55%]\ntests/test_poker_core.py .........                                       [ 63%]\ntests/test_strategy_contract.py ........................................ [100%]\n\n============================= 110 passed in 0.55s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot\nconfigfile: pyproject.toml\ncollected 349 items\n\ntests/test_action_order.py .....................                         [  6%]\ntests/test_check_scope.py ........                                       [  8%]\ntests/test_command_registry.py ......                                    [ 10%]\ntests/test_execplan_delegation.py ........                               [ 12%]\ntests/test_hand_history.py ..................                            [ 17%]\ntests/test_import_smoke.py .                                             [ 17%]\ntests/test_poker_core.py .........                                       [ 20%]\ntests/test_preflop_artifacts.py ........................................ [ 31%]\n...........................................                              [ 44%]\ntests/test_preflop_committed_charts.py .........................         [ 51%]\ntests/test_preflop_lookup.py ..............................              [ 59%]\ntests/test_preflop_positions.py ........................................ [ 71%]\n............................................................             [ 88%]\ntests/test_strategy_contract.py ........................................ [100%]\n\n============================= 349 passed in 0.66s ==============================\n"
     },
     {
       "command": [
@@ -311,7 +346,7 @@
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.044,
+      "duration_seconds": 0.018,
       "passed": true,
       "returncode": 0,
       "stderr": "",
