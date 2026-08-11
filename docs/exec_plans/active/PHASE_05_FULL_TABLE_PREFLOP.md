@@ -20,7 +20,7 @@ Run in two stages, the same shape Phase 04 used.
 Stage 1 approved files:
 
 - `docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md`
-- `reports/phase_audits/decisions/PHASE_05_DECISIONS.md`
+- `reports/phase_audits/decisions/PHASE_05_FULL_TABLE_PREFLOP_DECISIONS.md`
 - Standing scope only for `CURRENT_TASK.yml`, `docs/exec_plans/**`,
   `reports/active/**`, and the generated human docs.
 
@@ -77,8 +77,9 @@ loosening a check, and any contract edit during Stage 2.
   Lane A, then Lane B against the frozen tests, then Lane D, then the coordinator
   retires the hand-authored chart and runs the full gate, then Lane E reviews,
   then the audit packet and closeout.
-- Paused: Halted at loop stage 4 on the blocker recorded below. The contract and
-  the judgment calls are done; no implementation exists yet, deliberately.
+- Paused: The stage 4 blocker below is resolved, and the loop is ready to resume
+  from `--start 05`. The contract and judgment calls are done; no implementation
+  exists yet, deliberately.
 - Review handoff: Lane E inspects whether the artifact's frequencies match the
   source expectation table, whether any raise size or range value in the repo
   came from somewhere other than the committed export, whether an uncovered spot
@@ -124,9 +125,16 @@ Three ways out, needing a decision before any code:
 
 Recommended: option 1.
 
-Until this is settled, `phase_status.yml` keeps phase 05 at `future` and the two
-new command IDs stay unregistered, so the gate is green and the repo rests
-honestly rather than carrying a red gate.
+Resolved on 2026-08-11 by option 1. `StrategyQuery` now carries `preflop_actions`,
+an ordered tuple of `SeatAction`, defaulted to empty. Phase 03's contract requires
+it (`de8467a`) and the field ships with twelve tests (`3e78007`). The strategy at
+stage 6 derives hero's position from the button and maps the seat-based history onto
+chart positions, dropping folds when it builds the spot key.
+
+While it was unsettled, `phase_status.yml` kept phase 05 at `future` and the two
+new command IDs stayed unregistered, so the repo rested at idle with a green gate
+rather than carrying a red one. Both are re-applied when the loop resumes at
+stage 4.
 
 ## Slices
 

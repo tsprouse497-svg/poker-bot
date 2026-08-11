@@ -1,11 +1,8 @@
-task_id: PHASE-03-QUERY-HISTORY
-active_phase: "03"
-task_mode: implementation
-base_commit: de8467aa2b31c9d4d84660eed79a58e53e5b9451
-approved_scope:
-  - src/poker_training_bot/strategy/contract.py
-  - tests/test_strategy_contract.py
-  - verification/freeze.lock
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
