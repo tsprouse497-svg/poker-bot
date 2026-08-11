@@ -1,5 +1,8 @@
 auto_advance: false
-loop: running
+halt_reason: 'Stage 4 blocker: StrategyQuery carries no preflop action history, so
+  a chart strategy cannot derive its spot key from game state. Needs a decision before
+  any code exists.'
+loop: halted
 phase_id: '05'
 schema_version: 1
 stage: 4
