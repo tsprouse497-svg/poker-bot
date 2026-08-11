@@ -1,24 +1,8 @@
-task_id: MAINT-02-LOOP-MACHINERY
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 63fe12bc0510d14b72f73479c356a8254457578a
-approved_scope:
-  - AGENTS.md
-  - docs/LOOP.md
-  - scripts/check_contracts.py
-  - scripts/check_execplan_delegation.py
-  - scripts/check_gate_bite.py
-  - scripts/check_repo_consistency.py
-  - scripts/check_scope.py
-  - scripts/check_test_freeze.py
-  - scripts/freeze_tests.py
-  - scripts/loop_stage.py
-  - scripts/run_verify.py
-  - tests/test_check_scope.py
-  - tests/test_execplan_delegation.py
-  - tests/test_command_registry.py
-  - tests/test_loop_machinery.py
-  - verification/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - backlog.yml
