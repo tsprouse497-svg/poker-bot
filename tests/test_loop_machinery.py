@@ -293,13 +293,20 @@ def test_every_stage_has_a_runner_and_an_instruction() -> None:
 
 
 def test_policy_covers_every_incomplete_phase() -> None:
+    """Every phase the loop could still run must declare whether it may auto-advance.
+
+    A completed phase may stay in the policy. Its entry is the record of why it could
+    not advance unattended, which is worth more than a tidy file.
+    """
     phase_status = yaml.safe_load((REPO_ROOT / "phase_status.yml").read_text(encoding="utf-8"))
     policy = yaml.safe_load(loop_stage.POLICY_PATH.read_text(encoding="utf-8"))["phases"]
-    incomplete = [
+    incomplete = {
         str(phase["phase_id"]) for phase in phase_status["phases"] if phase["status"] != "completed"
-    ]
+    }
+    known = {str(phase["phase_id"]) for phase in phase_status["phases"]}
 
-    assert sorted(policy) == sorted(incomplete)
+    assert incomplete <= set(policy)
+    assert set(policy) <= known
 
 
 def test_policy_entries_declare_a_reason() -> None:
@@ -317,3 +324,37 @@ def test_phases_that_need_human_data_never_auto_advance() -> None:
     for phase_id, entry in policy.items():
         if entry["needs_human_data"]:
             assert entry["auto_advance"] is False, phase_id
+
+
+def test_an_assertion_failure_is_a_legitimate_stage_four_red() -> None:
+    assert loop_stage.red_for_the_right_reason("E       AssertionError: nope")
+
+
+def test_a_missing_implementation_module_is_a_legitimate_stage_four_red() -> None:
+    """Tests are authored before any implementation, so this import must fail."""
+    output = "ModuleNotFoundError: No module named 'poker_training_bot.strategy.preflop_chart'"
+
+    assert loop_stage.red_for_the_right_reason(output)
+
+
+def test_a_broken_test_file_is_not_a_legitimate_red() -> None:
+    assert not loop_stage.red_for_the_right_reason("SyntaxError: invalid syntax")
+    assert not loop_stage.red_for_the_right_reason("ModuleNotFoundError: No module named 'reqests'")
+
+
+def test_resume_returns_a_halted_loop_to_its_stage() -> None:
+    """A halt must be recoverable; --start rewinds and re-runs finished stages."""
+    halted = {"loop": "halted", "phase_id": "05", "stage": 4, "halt_reason": "blocked"}
+
+    state = loop_stage.resumed(halted)
+
+    assert state["loop"] == "running"
+    assert state["stage"] == 4
+    assert "halt_reason" not in state
+
+
+def test_resume_refuses_a_loop_that_is_not_halted() -> None:
+    import pytest
+
+    with pytest.raises(ValueError, match="not halted"):
+        loop_stage.resumed({"loop": "running", "stage": 4})

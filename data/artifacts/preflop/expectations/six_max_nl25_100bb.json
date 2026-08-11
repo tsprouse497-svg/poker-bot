@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "source": "GTO Wizard 6-max 100bb NL25 rake",
+  "notes": "Aggregate frequencies as the source itself displayed them, in poker terms a reviewer can check without reading code. These are the only numbers in this phase that this repo did not produce, so they are what catches a range that is uniformly wrong rather than merely self-consistent.",
+  "open_frequency_pct": {
+    "BTN": 40.56,
+    "CO": 27.89,
+    "HJ": 21.65,
+    "LJ": 17.49,
+    "SB": 34.41
+  },
+  "limp_frequency_pct": {
+    "SB": 13.73
+  },
+  "big_blind_defence_pct": {
+    "BTN": 39.43,
+    "CO": 31.48,
+    "HJ": 26.2,
+    "LJ": 22.63,
+    "SB": 42.88
+  }
+}

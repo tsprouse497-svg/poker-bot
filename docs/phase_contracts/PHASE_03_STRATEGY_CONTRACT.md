@@ -44,6 +44,16 @@ limited to the work named by this contract and the active ExecPlan.
   legal actions, price to call, minimum raise target, pot, stacks, blinds,
   button); `StrategyDecision` must name a legal action; a first-class refusal
   outcome lets a strategy decline rather than guess.
+- `StrategyQuery` carries the preflop action history as an ordered sequence of
+  seat and action pairs, because price to call and stack sizes cannot tell a
+  strategy who raised. Without it an artifact-backed strategy cannot name the
+  spot it is in, and reconstructing the sequence from committed amounts would be
+  the heuristic guessing this repo forbids. The field is seat-based, not
+  position-based: positions are derived from the button, and the query stays the
+  raw decision context. It records folds as well as voluntary actions, so it is
+  game state rather than an already-canonicalized chart key. It defaults to empty
+  so existing callers are unaffected, and an empty history means the action folded
+  to hero.
 - Decision audit records serialize query, outcome, and strategy identity to
   deterministic JSONL: identical inputs produce identical bytes.
 - A deterministic reference strategy (check when free, otherwise fold)

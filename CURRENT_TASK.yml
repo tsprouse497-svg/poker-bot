@@ -5,6 +5,7 @@ base_commit: null
 approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
+  - verification/loop_state.yml
   - backlog.yml
   - phase_status.yml
   - STATUS.md
@@ -38,3 +39,37 @@ scope_change_log:
     reason: MAINT-02 builds the autonomous loop machinery, so it needs the scope and contract checkers it hardens, the new test-freeze, gate-bite, and consistency checkers, the loop stage driver, verification state under verification/, their tests, the command registry, and the loop process docs.
   - date: 2026-08-11
     reason: The loop halts at its human gate with an active ExecPlan and no active task, which check_execplan_delegation.py treated as an error, so MAINT-02 also needs that checker and its tests to model a declared pause.
+  - date: 2026-08-11
+    reason: Driving Phase 05 through the loop needs its decision record annotated with the reversibility class each judgment call carries, which the loop driver reads to decide whether a human must rule before implementation.
+  - date: 2026-08-11
+    reason: The loop driver derives the decision record's filename from the phase contract, matching how audit packets are already named, so the record is renamed and the contract reference updated to match.
+  - date: 2026-08-11
+    reason: The loop's first real run blocked at stage 4 because the check rejected a red that comes from the implementation module not existing yet, which is the expected state when tests are authored before any code, so MAINT-04 fixes the driver check and its test.
+  - date: 2026-08-11
+    reason: A task that legitimately changes tests must also re-freeze them, so verification/freeze.lock belongs in that task's approved_scope rather than in standing_scope, where a builder could touch it.
+  - date: 2026-08-11
+    reason: Phase 05 implementation needs the committed solver export and derived artifact, the converter that reproduces it, the chart-backed strategy and its solver-sourced sizing table, the strategy report generator and command registration, the phase tests, the committed-chart tests that must follow the retirement of the hand-authored artifact, and the audit evidence.
+  - date: 2026-08-11
+    reason: Phase 05 halted because StrategyQuery carries no preflop action history, so a chart-backed strategy cannot derive its spot key; Phase 03's contract must first require the query to carry that history.
+  - date: 2026-08-11
+    reason: Implementing the Phase 03 contract addition needs StrategyQuery itself, its tests, and the test freeze lock those tests are recorded in.
+  - date: 2026-08-11
+    reason: A halt is meant to be resumable, but the driver shipped no way back, so restarting re-ran completed stages and demanded their transient task modes; MAINT-05 adds --resume.
+  - date: 2026-08-11
+    reason: Phase 05 implementation needs the committed solver export and derived artifact, the converter that reproduces them, the chart-backed strategy and its solver-sourced sizing table, the strategy report generator and command registration, the phase tests, the committed-chart tests that follow retiring the hand-authored artifact, and the audit evidence.
+  - date: 2026-08-11
+    reason: Loop stage 5 narrows scope so the builder cannot reach the tests it is measured by; tests/ and verification/ leave approved_scope and check_scope.py enforces that mechanically for the rest of the phase.
+  - date: 2026-08-11
+    reason: Retiring the hand-authored chart takes its builder script and the Phase 04 tests that describe it, and the phase tests need read-only accessors on PreflopChartLibrary, so lookup.py is approved for additive accessors only with no validation loosened. tests/test_full_table_preflop.py stays out of scope, because that is the file measuring this phase's own work.
+  - date: 2026-08-11
+    reason: Loop stage 5 narrows scope mid-task, so the diff has to be measured from the freeze commit rather than from the start of the phase; otherwise work that was legitimately in scope at stage 4 reads as out of scope afterwards.
+  - date: 2026-08-11
+    reason: Independent review measured the cost of the highest-weight collapse and it is a first-order exploit, so judgment call 3 is re-ruled to seeded weighted sampling and the contract criterion it came from must change first.
+  - date: 2026-08-11
+    reason: Implementing the re-ruled collapse changes the strategy, the tests that pinned the plurality rule, the freeze lock recording them, and the report that must now show the strategy's own frequencies.
+  - date: 2026-08-11
+    reason: The loop policy test demanded an exact match against incomplete phases, which fails the moment a phase in the policy completes, so MAINT-06 relaxes it to a coverage check and keeps completed entries as the record of why they could not auto-advance.
+  - date: 2026-08-11
+    reason: The loop policy test demanded an exact match against incomplete phases, which fails the moment a phase in the policy completes, so MAINT-06 relaxes it to a coverage check and keeps completed entries as the record of why they could not auto-advance.
+  - date: 2026-08-11
+    reason: MAINT-06 is split out of the Phase 05 closeout because the policy test only fails once phase 05 is marked completed, so the fix has to land in its own maintenance task before the closeout commit can be green.

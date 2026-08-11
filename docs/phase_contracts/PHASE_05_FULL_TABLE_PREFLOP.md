@@ -91,10 +91,21 @@ It is limited to the work named by this contract and the active ExecPlan.
   ships: table size, stack depth, hero position, and the ordered preflop action
   sequence in front of hero.
   It does not spell a spot key by hand.
-- Mixed frequencies collapse to one action deterministically: the highest-weight
-  legal action wins, and an exact tie refuses rather than picking.
-  The rule is named in the decision rationale, and the full weight vector the
-  decision came from is recorded in the decision audit.
+- Mixed frequencies resolve by weighted sampling, not by plurality, so the
+  strategy reproduces the chart's own frequencies across a session.
+  Taking the highest-weight action is forbidden: folding is one bucket while
+  continuing splits across calling and raising, so a plurality rule folds hands
+  the chart continues with more than half the time, and only ever in that
+  direction.
+- The draw is deterministic and replayable. Its seed comes from the hand
+  identifier, hero's seat, the spot key, and the hand class, so the same hand
+  decides identically on every run, and two queries that canonicalize to the same
+  hand class draw the same action regardless of suits or card order.
+  The seed must not include raw cards, and must not be limited to the spot and
+  hand class alone: a seed that ignores the hand would freeze every mixed cell to
+  one action forever, which is the plurality rule wearing a hash.
+- The decision rationale names the rule and records the full weight vector the
+  decision was drawn from, so a mixed decision can be checked against the chart.
 - Raise amounts come from a committed sizing table sourced from the same solution
   as the ranges, with its own recorded provenance.
   A raise the sizing table does not cover refuses; the strategy never invents a
@@ -131,12 +142,17 @@ It is limited to the work named by this contract and the active ExecPlan.
   spots, the decision the strategy takes for a named sample of hands per spot,
   the refusal codes and their counts over the enumeration, and the aggregate
   frequencies next to their expected values from the source.
+- The report also shows what the strategy itself does at that aggregate level,
+  next to what the chart says, over a deterministic sample of hands. A report
+  carrying only the chart's frequencies cannot show a collapse rule distorting
+  them, which is how the first version of this phase shipped an over-folding bot
+  through a green gate.
 - At least one number in the report is recomputable by hand from a committed file
   without reading code, and the audit packet says which number and how.
 - Required command IDs pass through `scripts/run_verify.py`.
 - Required reports exist and are fresh for this phase.
 - The phase audit packet includes plain-language pass/fail evidence.
-- The judgment calls recorded in `reports/phase_audits/decisions/PHASE_05_DECISIONS.md`
+- The judgment calls recorded in `reports/phase_audits/decisions/PHASE_05_FULL_TABLE_PREFLOP_DECISIONS.md`
   are answered before implementation begins, and the audit packet records the
   outcome of each one.
 - Any deferred work is recorded in `backlog.yml`.

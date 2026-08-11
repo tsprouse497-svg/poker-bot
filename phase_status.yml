@@ -29,7 +29,7 @@ phases:
     audit_packet: reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md
   - phase_id: "05"
     title: "Full-Table Preflop Strategy From Committed Artifacts/Charts"
-    status: future
+    status: completed
     contract: docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md
     audit_packet: reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md
   - phase_id: "06"

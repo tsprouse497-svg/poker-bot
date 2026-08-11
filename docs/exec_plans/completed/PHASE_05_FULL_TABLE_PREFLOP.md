@@ -20,7 +20,7 @@ Run in two stages, the same shape Phase 04 used.
 Stage 1 approved files:
 
 - `docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md`
-- `reports/phase_audits/decisions/PHASE_05_DECISIONS.md`
+- `reports/phase_audits/decisions/PHASE_05_FULL_TABLE_PREFLOP_DECISIONS.md`
 - Standing scope only for `CURRENT_TASK.yml`, `docs/exec_plans/**`,
   `reports/active/**`, and the generated human docs.
 
@@ -71,20 +71,67 @@ loosening a check, and any contract edit during Stage 2.
   tie refusal, and the source-frequency expectations. Lane D a report a
   non-coding reviewer can read plus a registered command ID. Lane E written
   findings classified blocker or non-blocker.
-- Status: Stage 1 coordinator lane completed, awaiting Taylor's answers on the
-  judgment-call list. Lanes A through E planned, not yet assigned.
+- Status: all lanes completed. Lanes A through D were coordinator-owned; lane E ran
+  as two read-only review subagents.
 - Integration order: Lane C first so the tests predate the implementation, then
   Lane A, then Lane B against the frozen tests, then Lane D, then the coordinator
   retires the hand-authored chart and runs the full gate, then Lane E reviews,
   then the audit packet and closeout.
-- Paused: Stage 1 is finished and all eight judgment calls are answered. Waiting to
-  be driven through `scripts/loop_stage.py --start 05`; the phase writes committed
-  chart data, so `verification/loop_policy.yml` marks it `auto_advance: false`.
 - Review handoff: Lane E inspects whether the artifact's frequencies match the
   source expectation table, whether any raise size or range value in the repo
   came from somewhere other than the committed export, whether an uncovered spot
   anywhere resolves to an action instead of a refusal, and whether the tie rule
   and depth rule are actually exercised rather than merely present.
+
+## Blocker: the strategy cannot see the action sequence
+
+Found at loop stage 4, while writing the tests and before any implementation
+existed. That is what stage 4 is for.
+
+This contract requires the strategy to build its chart query "from game state
+through the same derivation Phase 04 ships: table size, stack depth, hero position,
+and the ordered preflop action sequence in front of hero."
+
+The first three are derivable from a `StrategyQuery`. The fourth is not.
+`StrategyQuery` carries `seat`, `button_seat`, `stacks`, `blinds`, `to_call`,
+`street_bet`, `min_raise_target`, and `pot`, and no action history at all. The
+Phase 03 protocol is `decide(query)` and nothing else. Every existing `ChartQuery`
+in the repo has its action sequence hand-written by a report script.
+
+So a chart-backed strategy has no way to know whether it is facing a cutoff open, a
+three-bet, or a limp. Without a spot key there is no lookup, and the whole phase
+reduces to refusing every query.
+
+Three ways out, needing a decision before any code:
+
+1. Give the strategy the history. Add an optional preflop action sequence to
+   `StrategyQuery`. Architecturally right: a strategy that needs history should be
+   handed history, and Phase 07's simulator has it natively, so passing it costs
+   nothing. Cost: a `contract-update` on Phase 03, which is a completed phase. The
+   field is additive and defaulted, so no existing caller breaks.
+2. Infer it from committed amounts. Per-seat commitment is visible in `stacks`
+   against a known starting depth, so who put in what is recoverable. Order within
+   the first orbit follows position order. But two different sequences can produce
+   the same commitments, and resolving that is exactly the heuristic guessing
+   `AGENTS.md` forbids. Viable only if every ambiguous reconstruction refuses,
+   which needs its own proof.
+3. Keep it outside the protocol. A separate entry point takes the sequence
+   explicitly and `decide(query)` always refuses. Honest and fail-closed, but it
+   means the phase ships a strategy the Phase 03 protocol cannot actually drive,
+   and Phase 07 has to special-case it.
+
+Recommended: option 1.
+
+Resolved on 2026-08-11 by option 1. `StrategyQuery` now carries `preflop_actions`,
+an ordered tuple of `SeatAction`, defaulted to empty. Phase 03's contract requires
+it (`de8467a`) and the field ships with twelve tests (`3e78007`). The strategy at
+stage 6 derives hero's position from the button and maps the seat-based history onto
+chart positions, dropping folds when it builds the spot key.
+
+While it was unsettled, `phase_status.yml` kept phase 05 at `future` and the two
+new command IDs stayed unregistered, so the repo rested at idle with a green gate
+rather than carrying a red one. Both are re-applied when the loop resumes at
+stage 4.
 
 ## Slices
 
@@ -121,11 +168,44 @@ Stage 2 reports:
 
 ## Outcome
 
-Not filled in; the phase gate is not complete.
+Gate green and tagged `phase-05-complete`. Thirty-six spots committed, 55 phase
+tests, 318 test functions frozen across the suite.
+
+The phase was driven through `scripts/loop_stage.py` and halted twice, both times
+for reasons the gate could not have found.
+
+**Halt one, stage 4.** Writing the tests before any implementation exposed that
+`StrategyQuery` carried no action history, so a chart-backed strategy could not name
+the spot it was in. Resolved by a Phase 03 contract-update adding `preflop_actions`.
+Had the implementation been written first, it would have reconstructed the sequence
+from committed amounts, which is the heuristic guessing this repo forbids, and it
+would have passed a green gate.
+
+**Halt two, stage 8.** Independent review found four blockers, none visible to the
+gate. The domain reviewer measured the cost of the ruled collapse rule: taking the
+highest-weight action folded hands the chart continues with more than half the time,
+because folding is one bucket while continuing splits across calling and raising.
+Fold-to-three-bet ran 72.8% against the solution's 59.8%, past the point where an
+opponent's three-bet auto-profits as a pure bluff. Judgment call 3 was re-ruled to a
+seeded weighted draw. The mechanical reviewer then found that stack depth was read
+from the deepest seat rather than hero (a 12bb hero opened a 100bb range), that the
+straddle and ante guard stopped looking after any action (an anted pot was
+chart-backed for five of six seats), and that the seed was untested to the point
+where the seed the contract forbids by name passed the whole suite.
+
+Three of the four blockers were introduced by the coordinator. All four survived a
+green gate including mutation checks. That is the case for keeping stage 8.
+
+Deferred and recorded: `PER-SEAT-CONTRIBUTIONS-IN-QUERY` (exact straddle, ante, and
+asymmetric-stack detection needs each seat's committed chips on the query),
+`CHART-COVERAGE-EXPANSION`, and four non-blocking review findings listed in the
+audit packet.
 
 ## Next Agent Bootstrap
 
-State: Stage 1 contract-update work is written but not yet committed.
+State: complete. Superseded by the audit packet.
+
+Historical note, kept because it is what the plan said mid-flight:
 `CURRENT_TASK.yml` is `task_mode: contract-update`, `active_phase: "05"`,
 `base_commit: e0ba4773ec7e73a679ba4540ce4adab4a2cf52ee`, with
 `docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md` and

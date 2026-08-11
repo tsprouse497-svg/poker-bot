@@ -189,6 +189,13 @@ class ChartMiss:
             raise ValueError("miss detail is required")
 
 
+def _combinations(hand_class_text: str) -> int:
+    """How many of the 1326 starting hands a 169-class name stands for."""
+    if len(hand_class_text) == 2:
+        return 6
+    return 4 if hand_class_text.endswith("s") else 12
+
+
 def _artifact_sort_key(artifact: PreflopArtifact) -> tuple[str, str, str]:
     """Content-derived order, so library order never depends on input order.
 
@@ -254,6 +261,48 @@ class PreflopChartLibrary:
     def spot_keys(self) -> tuple[str, ...]:
         """Every covered spot key, sorted, independent of artifact input order."""
         return tuple(sorted(self._owner_by_spot))
+
+    def hand_classes_for(self, spot_key_text: str) -> tuple[str, ...]:
+        """Hand classes a spot covers, in the artifact's own fixed order.
+
+        Empty for an uncovered spot rather than an error: callers here are
+        enumerating coverage, and absence is the answer they are asking about.
+        """
+        artifact = self._owner_by_spot.get(spot_key_text)
+        if artifact is None:
+            return ()
+        for spot_id, hand_classes in artifact.action_weights:
+            if spot_id == spot_key_text:
+                return tuple(hand_class_text for hand_class_text, _ in hand_classes)
+        return ()
+
+    def action_frequency_pct(self, spot_key_text: str, action: str) -> float:
+        """Combo-weighted percentage of hero's range taking `action` at a spot.
+
+        Weighted by combinations, not by hand classes, because 169 classes are not
+        equally likely: a pair is six combinations, a suited hand four, an offsuit
+        hand twelve. Counting classes would overweight suited hands by three to one
+        and put every published frequency out by several points.
+
+        The percentage is of the spot's covered classes. For a spot where hero has
+        already acted, the artifact covers only hero's own range, so this is a
+        frequency within that range rather than within all 1326 combinations.
+        """
+        artifact = self._owner_by_spot.get(spot_key_text)
+        if artifact is None:
+            return 0.0
+        total = 0.0
+        chosen = 0.0
+        for spot_id, hand_classes in artifact.action_weights:
+            if spot_id != spot_key_text:
+                continue
+            for hand_class_text, weights in hand_classes:
+                combos = _combinations(hand_class_text)
+                total += combos
+                for name, weight in weights:
+                    if name == action:
+                        chosen += weight * combos
+        return 0.0 if total == 0.0 else 100.0 * chosen / total
 
     def lookup(self, query: ChartQuery) -> ChartHit | ChartMiss:
         """Answer `query` with the artifact's weights or an explicit miss.

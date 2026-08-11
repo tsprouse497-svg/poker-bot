@@ -18,6 +18,7 @@ uv run python scripts/loop_stage.py --start 06   # begin a phase
 uv run python scripts/loop_stage.py              # what stage am I on, what do I do
 uv run python scripts/loop_stage.py --advance    # verify this stage and move on
 uv run python scripts/loop_stage.py --halt "..." # record a halt and stop
+uv run python scripts/loop_stage.py --resume    # return a halted loop to its stage
 ```
 
 The loop body is always the same: read the driver, perform the one stage it names, call it again.
@@ -31,7 +32,7 @@ The loop body is always the same: read the driver, perform the one stage it name
 | 1 | contract | model | `contract-update` mode, contract carries real criteria, ExecPlan active |
 | 2 | decisions | model | every judgment call declares a reversibility class |
 | 3 | human gate | human | no unanswered `frozen-into-data` item remains |
-| 4 | tests | model | the phase's `pytest_*` command fails, and fails on an assertion |
+| 4 | tests | model | the phase's `pytest_*` command fails, on an assertion or on a missing `poker_training_bot` module |
 | 5 | freeze | script | `check_test_freeze` green, `tests/` and `verification/` out of scope |
 | 6 | build | model | every command the contract declares is green |
 | 7 | gate | script | full `run_verify.py` green, `check_gate_bite` green |

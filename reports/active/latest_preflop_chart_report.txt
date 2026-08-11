@@ -4,24 +4,57 @@ Preflop Chart Report
 Artifact directory: `data/artifacts/preflop`
 Artifacts imported: 1
 
-## t6/d100/reference-6-max-100bb-core
+## t6/d100/gto-wizard-6-max-100bb-nl25-rake
 
-Source: Reference 6-max 100bb core
-Source kind: hand-authored
-Source reference: scripts/build_preflop_chart_artifact.py
+Source: GTO Wizard 6-max 100bb NL25 rake
+Source kind: solver-export
+Source reference: data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json
 Generated at: 2026-08-11T00:00:00Z
 Table size: 6
 Stack depth: 100 bb
 Import: accepted
-Weights checksum (recomputed and matched at import): 6644b0350ce23a2cedb89f6ae694052f64d04b30ad26970d03be9c1dbfd0ed93
-Spots: 3
-Hero positions covered: BB, BTN, CO
+Weights checksum (recomputed and matched at import): eaf2c6ccbf3917c7fd924cc144435244fffb1a678e97685bafe36d52150482f7
+Spots: 36
+Hero positions covered: BB, BTN, CO, HJ, LJ, SB
 Distinct hand classes covered: 169 of 169
 
 Spot keys:
-- `t6/d100/CO/rfi`
-- `t6/d100/BTN/rfi`
+- `t6/d100/BB/BTN:raise`
 - `t6/d100/BB/CO:raise`
+- `t6/d100/BB/HJ:raise`
+- `t6/d100/BB/LJ:raise`
+- `t6/d100/BB/SB:call`
+- `t6/d100/BB/SB:raise`
+- `t6/d100/BTN/BTN:raise,BB:raise`
+- `t6/d100/BTN/BTN:raise,SB:raise`
+- `t6/d100/BTN/CO:raise`
+- `t6/d100/BTN/HJ:raise`
+- `t6/d100/BTN/LJ:raise`
+- `t6/d100/BTN/rfi`
+- `t6/d100/CO/CO:raise,BB:raise`
+- `t6/d100/CO/CO:raise,BTN:raise`
+- `t6/d100/CO/CO:raise,SB:raise`
+- `t6/d100/CO/HJ:raise`
+- `t6/d100/CO/LJ:raise`
+- `t6/d100/CO/rfi`
+- `t6/d100/HJ/HJ:raise,BB:raise`
+- `t6/d100/HJ/HJ:raise,BTN:raise`
+- `t6/d100/HJ/HJ:raise,CO:raise`
+- `t6/d100/HJ/HJ:raise,SB:raise`
+- `t6/d100/HJ/LJ:raise`
+- `t6/d100/HJ/rfi`
+- `t6/d100/LJ/LJ:raise,BB:raise`
+- `t6/d100/LJ/LJ:raise,BTN:raise`
+- `t6/d100/LJ/LJ:raise,CO:raise`
+- `t6/d100/LJ/LJ:raise,HJ:raise`
+- `t6/d100/LJ/LJ:raise,SB:raise`
+- `t6/d100/LJ/rfi`
+- `t6/d100/SB/BTN:raise`
+- `t6/d100/SB/CO:raise`
+- `t6/d100/SB/HJ:raise`
+- `t6/d100/SB/LJ:raise`
+- `t6/d100/SB/SB:raise,BB:raise`
+- `t6/d100/SB/rfi`
 
 ## Lookup probes
 
@@ -31,7 +64,7 @@ Spot keys:
 - uncovered table size: miss -> lookup:no-artifact-for-table-size
 - uncovered stack depth: miss -> lookup:no-artifact-for-stack-depth
 - position that does not exist at a six-handed table: miss -> lookup:position-not-at-table
-- uncovered spot: cutoff facing a lojack open: miss -> lookup:spot-not-covered
+- uncovered spot: cutoff facing a lojack open: hit -> raise 1.0
 - spot v1 cannot represent: big blind facing a four-bet: miss -> lookup:unrepresentable-spot
 
 A miss is the correct answer for an uncovered spot. Phase 04 never fills a gap
