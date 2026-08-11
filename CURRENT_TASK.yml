@@ -1,10 +1,8 @@
-task_id: MAINT-06-POLICY-COVERAGE-TEST
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 03f045e2ebd55e85c0ee8ec41520463d31a18abe
-approved_scope:
-  - tests/test_loop_machinery.py
-  - verification/freeze.lock
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
