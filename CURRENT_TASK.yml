@@ -1,17 +1,8 @@
-task_id: MAINT-01-AGENT-STRUCTURE
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 3396d40b6fb9d09ee543e2834a394c8b4ff6f0e2
-approved_scope:
-  - CLAUDE.md
-  - AGENTS.md
-  - README.md
-  - .github/**
-  - docs/**
-  - scripts/**
-  - src/**
-  - tests/**
-  - data/samples/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - backlog.yml
