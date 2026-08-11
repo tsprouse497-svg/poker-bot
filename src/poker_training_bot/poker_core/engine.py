@@ -160,7 +160,7 @@ class PotResult:
     amount: int
     eligible_seats: tuple[int, ...]
     winner_seats: tuple[int, ...]
-    hand_rank: HandRank
+    hand_rank: HandRank | None
 
 
 @dataclass(frozen=True)
@@ -180,6 +180,28 @@ def validate_player_count(players: tuple[PlayerState, ...] | list[PlayerState]) 
     seats = [player.seat for player in players]
     if len(seats) != len(set(seats)):
         raise ValueError("duplicate player seats are not allowed")
+
+
+def settle_uncontested(players: tuple[PlayerState, ...]) -> Settlement:
+    validate_player_count(players)
+    contenders = [player for player in players if not player.folded]
+    if len(contenders) != 1:
+        raise ValueError("uncontested settlement requires exactly one non-folded player")
+    total = sum(player.committed_total for player in players)
+    if total <= 0:
+        raise ValueError("cannot settle a hand with no committed chips")
+    winner = contenders[0]
+    if winner.committed_total != max(player.committed_total for player in players):
+        raise ValueError("uncontested winner must be the largest committer")
+    payouts = {player.seat: 0 for player in players}
+    payouts[winner.seat] = total
+    pot = PotResult(
+        amount=total,
+        eligible_seats=(winner.seat,),
+        winner_seats=(winner.seat,),
+        hand_rank=None,
+    )
+    return Settlement(pots=(pot,), payouts=payouts, showdown_ranks={})
 
 
 def settle_showdown(players: tuple[PlayerState, ...], board: tuple[Card, ...]) -> Settlement:

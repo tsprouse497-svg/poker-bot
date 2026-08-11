@@ -17,6 +17,14 @@ class StreetName(StrEnum):
     RIVER = "river"
 
 
+STREET_BOARD_CARDS = {
+    StreetName.PREFLOP: 0,
+    StreetName.FLOP: 3,
+    StreetName.TURN: 1,
+    StreetName.RIVER: 1,
+}
+
+
 class HistoryActionKind(StrEnum):
     POST_BLIND = "post_blind"
     FOLD = "fold"
@@ -37,8 +45,8 @@ class HistoryPlayer:
             raise ValueError("player seat must be non-negative")
         if not self.player_id:
             raise ValueError("player_id is required")
-        if self.starting_stack < 0:
-            raise ValueError("starting_stack cannot be negative")
+        if self.starting_stack <= 0:
+            raise ValueError("starting_stack must be positive")
 
 
 @dataclass(frozen=True)
@@ -160,13 +168,15 @@ class NormalizedHandHistory:
             raise ValueError("duplicate player_id values are not allowed")
         if not self.streets:
             raise ValueError("at least one street is required")
-        if [street.name for street in self.streets] != sorted(
-            (street.name for street in self.streets),
-            key=_street_order,
-        ):
-            raise ValueError("streets must be ordered preflop, flop, turn, river")
-        if len({street.name for street in self.streets}) != len(self.streets):
-            raise ValueError("duplicate streets are not allowed")
+        expected_names = list(StreetName)[: len(self.streets)]
+        if [street.name for street in self.streets] != expected_names:
+            raise ValueError("streets must run preflop, flop, turn, river without gaps")
+        for street in self.streets:
+            expected_cards = STREET_BOARD_CARDS[street.name]
+            if len(street.board) != expected_cards:
+                raise ValueError(
+                    f"{street.name.value} street must deal exactly {expected_cards} board cards"
+                )
         action_seats = {action.seat for street in self.streets for action in street.actions}
         unknown_action_seats = action_seats - seats
         if unknown_action_seats:
@@ -362,13 +372,3 @@ def _optional_int(payload: dict[str, Any], key: str) -> int | None:
     if key not in payload:
         return None
     return _require_int(payload, key)
-
-
-def _street_order(street: StreetName) -> int:
-    order = {
-        StreetName.PREFLOP: 0,
-        StreetName.FLOP: 1,
-        StreetName.TURN: 2,
-        StreetName.RIVER: 3,
-    }
-    return order[street]

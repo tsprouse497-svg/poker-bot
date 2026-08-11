@@ -79,6 +79,88 @@
           {"seat": 2, "amount": 100}
         ]
       }
+    },
+    {
+      "schema_version": 1,
+      "hand_id": "phase02-preflop-fold-out",
+      "table": {"table_id": "phase02", "max_seats": 3},
+      "players": [
+        {"seat": 0, "player_id": "small_blind", "starting_stack": 100},
+        {"seat": 1, "player_id": "big_blind", "starting_stack": 100},
+        {"seat": 2, "player_id": "button", "starting_stack": 100}
+      ],
+      "button_seat": 2,
+      "blinds": {"small_blind": 5, "big_blind": 10},
+      "streets": [
+        {
+          "name": "preflop",
+          "board": [],
+          "actions": [
+            {"seat": 0, "kind": "post_blind", "amount": 5},
+            {"seat": 1, "kind": "post_blind", "amount": 10},
+            {"seat": 2, "kind": "fold"},
+            {"seat": 0, "kind": "fold"}
+          ]
+        }
+      ],
+      "showdown": [],
+      "result": {
+        "winner_seats": [1],
+        "pot": 15,
+        "payouts": [
+          {"seat": 0, "amount": 0},
+          {"seat": 1, "amount": 15},
+          {"seat": 2, "amount": 0}
+        ]
+      }
+    },
+    {
+      "schema_version": 1,
+      "hand_id": "phase02-turn-fold-out",
+      "table": {"table_id": "phase02", "max_seats": 2},
+      "players": [
+        {"seat": 0, "player_id": "button", "starting_stack": 500},
+        {"seat": 1, "player_id": "big_blind", "starting_stack": 500}
+      ],
+      "button_seat": 0,
+      "blinds": {"small_blind": 5, "big_blind": 10},
+      "streets": [
+        {
+          "name": "preflop",
+          "board": [],
+          "actions": [
+            {"seat": 0, "kind": "post_blind", "amount": 5},
+            {"seat": 1, "kind": "post_blind", "amount": 10},
+            {"seat": 0, "kind": "call", "amount": 5},
+            {"seat": 1, "kind": "check"}
+          ]
+        },
+        {
+          "name": "flop",
+          "board": ["7h", "8d", "2c"],
+          "actions": [
+            {"seat": 1, "kind": "bet", "amount": 20},
+            {"seat": 0, "kind": "call", "amount": 20}
+          ]
+        },
+        {
+          "name": "turn",
+          "board": ["Qs"],
+          "actions": [
+            {"seat": 1, "kind": "bet", "amount": 60},
+            {"seat": 0, "kind": "fold"}
+          ]
+        }
+      ],
+      "showdown": [],
+      "result": {
+        "winner_seats": [1],
+        "pot": 120,
+        "payouts": [
+          {"seat": 0, "amount": 0},
+          {"seat": 1, "amount": 120}
+        ]
+      }
     }
   ]
 }

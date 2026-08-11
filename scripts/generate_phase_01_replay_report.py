@@ -10,7 +10,7 @@ from poker_training_bot.poker_core.cards import card_texts
 from poker_training_bot.poker_core.golden import replay_golden_hands
 
 FIXTURE = REPO_ROOT / "data" / "samples" / "phase_01_golden_hands.json"
-OUTPUT = REPO_ROOT / "reports" / "active" / "latest_replay_report.txt"
+OUTPUT = REPO_ROOT / "reports" / "active" / "latest_golden_hand_report.txt"
 
 
 def render_report() -> str:

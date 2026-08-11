@@ -19,7 +19,9 @@ strategy logic, preflop charts, or broad hand-history ingestion was added.
 - Pass: Showdown settlement handles two-player, nine-player side-pot, and split
   pot synthetic hands.
 - Pass: The required replay report is generated at
-  `reports/active/latest_replay_report.txt`.
+  `reports/active/latest_golden_hand_report.txt` (previously
+  `reports/active/latest_replay_report.txt`, which Phase 02 overwrote on every
+  gate run; the golden-hand report now has its own file).
 - Pass: Required Phase 01 command IDs pass through `scripts/run_verify.py`.
 - Pass: Generated status docs are current.
 - Pass: Scope, file-size, import, full test, and ruff checks pass.
@@ -30,7 +32,7 @@ Latest generated command results are committed at:
 
 - `reports/active/verify_results.json`
 - `reports/active/latest_verify.txt`
-- `reports/active/latest_replay_report.txt`
+- `reports/active/latest_golden_hand_report.txt`
 
 The final full verifier command was:
 

@@ -54,7 +54,7 @@ def render_report() -> str:
                     amount=pot.amount,
                     eligible=", ".join(str(seat) for seat in pot.eligible_seats),
                     winners=", ".join(str(seat) for seat in pot.winner_seats),
-                    rank=pot.hand_rank.describe(),
+                    rank=pot.hand_rank.describe() if pot.hand_rank else "uncontested",
                 )
             )
         lines.append("")

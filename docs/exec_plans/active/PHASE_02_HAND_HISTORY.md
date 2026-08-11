@@ -24,6 +24,11 @@ Forbidden scope:
 - No-delegation exception: Phase 02 implementation was completed before the
   mandatory early delegation checkpoint existed; future active ExecPlans must
   document worker lanes or a concrete exception before implementation starts.
+- Addendum (2026-08-10): the uncontested-replay addendum below is
+  coordinator-implemented because the schema, replay, and settlement changes
+  are one tightly coupled slice smaller than the delegation overhead.
+  Independent read-only review is delegated to a review subagent and its
+  findings are recorded in the Phase 02 audit packet addendum.
 
 ## Slices
 
@@ -35,6 +40,21 @@ Forbidden scope:
 - [x] Generate the Phase 02 replay report and generated status docs.
 - [x] Run full verifier/report gate and independent read-only review.
 - [x] Write the Phase 02 audit packet and commit the passing gate.
+
+## Addendum Slices (2026-08-10): Uncontested Hands
+
+- [x] Settle uncontested (fold-out) hands through `settle_uncontested`; the
+  remaining player wins the whole pot and `showdown` must be empty.
+- [x] Validate street contiguity and exact per-street board-card counts.
+- [x] Allow short-stack all-in blind posts below the configured blind.
+- [x] Give the Phase 01 golden-hand report its own output file so the Phase 02
+  report no longer overwrites it; contract path cleanup recorded in
+  `backlog.yml` as `CONTRACT-REPORT-PATHS`.
+- [x] Add fold-out fixtures, tests, and schema-doc updates.
+- [x] Validate blind posting against button-derived blind seats; a short
+  all-in blind no longer lowers the call price or minimum raise.
+- [x] Run full verifier gate, independent review, and audit packet addendum;
+  review found three real bugs, fixed and recorded in the audit packet.
 
 ## Verification
 

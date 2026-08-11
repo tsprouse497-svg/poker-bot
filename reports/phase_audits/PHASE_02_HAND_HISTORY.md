@@ -181,3 +181,59 @@ No Phase 02 contract work is deferred. Existing V2 deferrals remain in
 
 PASS. Phase 02 satisfies the contract after the independent review fixes and
 full verifier gate.
+
+## Addendum (2026-08-10): Uncontested Hands And Replay Hardening
+
+Plain-language summary: hands that end when all but one player folds can now
+be recorded and replayed. Previously only hands reaching a five-card showdown
+were representable, which excluded the most common way real poker hands end.
+
+What changed:
+
+- A hand with exactly one non-folded player settles uncontested: that player
+  wins the whole pot (including any uncalled final bet), no hand ranking is
+  evaluated, `showdown` must be empty, and no streets may follow the deciding
+  street (`settle_uncontested` in `src/poker_training_bot/poker_core/engine.py`,
+  uncontested path in `src/poker_training_bot/hand_history/replay.py`).
+- Streets must now run preflop, flop, turn, river without gaps, and each street
+  must deal its exact board-card count (`schema.py`).
+- A player may post a blind for their whole remaining stack when it is below
+  the big blind (short-stack all-in blind).
+- The Phase 01 golden-hand report now writes
+  `reports/active/latest_golden_hand_report.txt`; it previously shared
+  `reports/active/latest_replay_report.txt` with the Phase 02 report, which
+  overwrote it on every gate run. Contract text cleanup is deferred as backlog
+  item `CONTRACT-REPORT-PATHS`.
+
+Spot-check for a non-coding reviewer: in
+`data/samples/phase_02_normalized_hands.json`, hand `phase02-preflop-fold-out`
+posts blinds of 5 and 10, then both other players fold. The report
+`reports/active/latest_replay_report.txt` should show total pot 15, payout 15
+to seat 1 with zero to the others, the pot marked "uncontested", and
+`Expected result matched: True`.
+
+Verification: full Phase 02 gate passed on 2026-08-10 (see
+`reports/active/latest_verify.txt`); 31 tests pass including seven new
+fold-out, street-shape, and short-blind tests.
+
+Independent review: a read-only review subagent audited the addendum diff and
+confirmed three real bugs, all fixed before commit:
+
+1. A blind post equal to the player's stack was accepted even when the stack
+   covered the owed blind. Fixed by deriving blind seats from `button_seat`
+   and requiring each post to match the owed blind or be a genuine short
+   all-in below it.
+2. A short all-in blind lowered `current_bet`, letting later players call or
+   min-raise below the legal price. Fixed by anchoring `current_bet` to the
+   owed blind rather than the posted amount.
+3. Actions recorded after the deciding fold within the same street were still
+   replayed. Fixed by failing on any action after the hand is decided.
+
+The review also prompted defense-in-depth hardening: preflop must open with
+both blind posts by the correct seats, `post_blind` is rejected anywhere else,
+`settle_uncontested` asserts the winner is the largest committer, and
+`starting_stack` must be positive. Two regression tests pin the blind-pricing
+and post-fold-action exploits. Remaining review notes were accepted as
+documented limitations: the uncontested pot is reported as a single pot
+including any uncalled bet, and stale contract report paths stay deferred as
+backlog item `CONTRACT-REPORT-PATHS`.
