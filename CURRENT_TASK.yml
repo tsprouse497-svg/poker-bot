@@ -1,8 +1,9 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE-03-QUERY-HISTORY-CONTRACT
+active_phase: "03"
+task_mode: contract-update
+base_commit: e636c53eaaf091f306464b4f5c752a91e7620b3b
+approved_scope:
+  - docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -49,3 +50,5 @@ scope_change_log:
     reason: A task that legitimately changes tests must also re-freeze them, so verification/freeze.lock belongs in that task's approved_scope rather than in standing_scope, where a builder could touch it.
   - date: 2026-08-11
     reason: Phase 05 implementation needs the committed solver export and derived artifact, the converter that reproduces it, the chart-backed strategy and its solver-sourced sizing table, the strategy report generator and command registration, the phase tests, the committed-chart tests that must follow the retirement of the hand-authored artifact, and the audit evidence.
+  - date: 2026-08-11
+    reason: Phase 05 halted because StrategyQuery carries no preflop action history, so a chart-backed strategy cannot derive its spot key; Phase 03's contract must first require the query to carry that history.

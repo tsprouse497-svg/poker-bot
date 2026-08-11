@@ -1,9 +1,9 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `none (idle)`
-Task mode: `idle`
-Active phase: `none`
+Current task: `PHASE-03-QUERY-HISTORY-CONTRACT`
+Task mode: `contract-update`
+Active phase: `03`
 Completed phases: `5`
 
 ## Phase Snapshot
