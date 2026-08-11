@@ -1,25 +1,8 @@
-task_id: PHASE-04-PREFLOP-ARTIFACTS
-active_phase: "04"
-task_mode: implementation
-base_commit: 5d12eb0baf8e1ae10a602a7e9ee286e1dd45f8e3
-approved_scope:
-  - src/poker_training_bot/solver_artifacts/**
-  - src/poker_training_bot/poker_core/positions.py
-  - src/poker_training_bot/poker_core/__init__.py
-  - data/artifacts/**
-  - tests/test_preflop_positions.py
-  - tests/test_preflop_artifacts.py
-  - tests/test_preflop_lookup.py
-  - tests/test_preflop_committed_charts.py
-  - tests/test_command_registry.py
-  - tests/test_import_smoke.py
-  - scripts/build_preflop_chart_artifact.py
-  - scripts/generate_preflop_chart_report.py
-  - scripts/run_verify.py
-  - docs/PREFLOP_ARTIFACT_CONTRACT.md
-  - docs/ARCHITECTURE.md
-  - reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md
-  - reports/phase_audits/logs/**
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - backlog.yml

@@ -1,10 +1,10 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `PHASE-04-PREFLOP-ARTIFACTS`
-Task mode: `implementation`
-Active phase: `04`
-Completed phases: `4`
+Current task: `none (idle)`
+Task mode: `idle`
+Active phase: `none`
+Completed phases: `5`
 
 ## Phase Snapshot
 
@@ -14,7 +14,7 @@ Completed phases: `4`
 | 01 | completed | `docs/phase_contracts/PHASE_01_CORE_ENGINE.md` | `reports/phase_audits/PHASE_01_CORE_ENGINE.md` |
 | 02 | completed | `docs/phase_contracts/PHASE_02_HAND_HISTORY.md` | `reports/phase_audits/PHASE_02_HAND_HISTORY.md` |
 | 03 | completed | `docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md` | `reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md` |
-| 04 | active | `docs/phase_contracts/PHASE_04_PREFLOP_ARTIFACTS.md` | `reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md` |
+| 04 | completed | `docs/phase_contracts/PHASE_04_PREFLOP_ARTIFACTS.md` | `reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md` |
 | 05 | future | `docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md` | `reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md` |
 | 06 | future | `docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md` | `reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md` |
 | 07 | future | `docs/phase_contracts/PHASE_07_SIMULATOR_REPORTS.md` | `reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md` |
