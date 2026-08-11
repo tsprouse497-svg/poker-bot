@@ -1,10 +1,12 @@
-task_id: PHASE-05-IMPLEMENTATION
-active_phase: "05"
-task_mode: contract-update
-base_commit: 409413fd533a1da093b6c5a8b6f4eec97d2ed84d
+task_id: MAINT-04-STAGE-FOUR-CHECK
+active_phase: null
+task_mode: maintenance
+base_commit: 09bd86a9b2b0e9346eab844f72bcd592ea6b8e75
 approved_scope:
-  - docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md
-  - reports/phase_audits/decisions/**
+  - docs/LOOP.md
+  - scripts/loop_stage.py
+  - tests/test_loop_machinery.py
+  - verification/freeze.lock
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -45,3 +47,7 @@ scope_change_log:
     reason: Driving Phase 05 through the loop needs its decision record annotated with the reversibility class each judgment call carries, which the loop driver reads to decide whether a human must rule before implementation.
   - date: 2026-08-11
     reason: The loop driver derives the decision record's filename from the phase contract, matching how audit packets are already named, so the record is renamed and the contract reference updated to match.
+  - date: 2026-08-11
+    reason: The loop's first real run blocked at stage 4 because the check rejected a red that comes from the implementation module not existing yet, which is the expected state when tests are authored before any code, so MAINT-04 fixes the driver check and its test.
+  - date: 2026-08-11
+    reason: A task that legitimately changes tests must also re-freeze them, so verification/freeze.lock belongs in that task's approved_scope rather than in standing_scope, where a builder could touch it.

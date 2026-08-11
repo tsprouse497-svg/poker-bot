@@ -193,6 +193,23 @@ def check_human_gate(ctx: Context) -> list[str]:
     return [f"awaiting a human answer on: {heading}" for heading in unanswered_frozen(text)]
 
 
+def red_for_the_right_reason(output: str) -> bool:
+    """Is this red about missing behavior, or about a broken test file?
+
+    Two reds are legitimate at this stage. An assertion failure is the obvious one.
+    The other is a module the phase has not written yet: tests are authored before
+    any implementation exists, so importing it is *supposed* to fail, and the first
+    version of this check wrongly rejected exactly the state it was built to
+    require.
+
+    Anything else, a syntax error or a typo in a fixture, means the test file is
+    broken rather than describing behavior, and that red proves nothing.
+    """
+    if "AssertionError" in output or "assert" in output:
+        return True
+    return "ModuleNotFoundError" in output and "poker_training_bot" in output
+
+
 def check_tests_authored(ctx: Context) -> list[str]:
     reasons = []
     if ctx.task.get("task_mode") != "implementation":
@@ -209,10 +226,11 @@ def check_tests_authored(ctx: Context) -> list[str]:
             reasons.append(
                 f"{command_id} already passes, so the tests do not yet describe missing behavior"
             )
-        elif "AssertionError" not in output and "assert" not in output:
+        elif not red_for_the_right_reason(output):
             reasons.append(
-                f"{command_id} fails without an assertion failure, which usually means it"
-                " errors on import rather than testing behavior"
+                f"{command_id} fails for neither an assertion nor a missing"
+                " poker_training_bot module, so the test file is probably broken"
+                " rather than describing behavior"
             )
     return reasons
 
