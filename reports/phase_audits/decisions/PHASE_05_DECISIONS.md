@@ -8,6 +8,11 @@ Every item carries a default.
 Defaults stand unless changed, so answering nothing is a valid answer.
 Answer by replacing the bracketed value on the `Answer:` line.
 
+Status: answered by Taylor on 2026-08-11.
+All eight defaults stand.
+Items 5, 6, and 7 are accepted as deliberate deferrals rather than as final
+behavior; see "Deferral cost" below for why waiting is safe.
+
 Source of the chart under discussion: GTO Wizard preflop solutions, solution
 `Cash6mGeneral_6mNL25R25`, six-max cash, 100bb effective, NL25 rake, cold calls
 allowed, 2.5x opens.
@@ -94,6 +99,8 @@ more chart depths later, not a tolerance band now.
 
 Options: exact-only | round-to-nearest | you set a tolerance band
 Answer: [exact-only]
+Taylor: assume everyone is at 100bb for now; add more solver depths, and some
+rounding between them, once the bot is off the ground.
 
 ## 6. Straddles and antes
 
@@ -107,6 +114,7 @@ being loudly unusable.
 
 Options: refuse | treat-as-normal
 Answer: [refuse]
+Taylor: same approach as item 5, revisit once there is data for it.
 
 ## 7. What "full table" claims
 
@@ -123,6 +131,7 @@ proves.
 
 Options: askable | fully-covered
 Answer: [askable]
+Taylor: can supply more spots later; same approach as item 5.
 
 ## 8. Where the raw export lives
 
@@ -139,18 +148,67 @@ Options: commit-under-artifacts-sources | widen forbidden scope to allow data/ra
 | artifact only, no committed input
 Answer: [commit-under-artifacts-sources]
 
-## Provenance attestation needed
+## Deferral cost of items 5, 6, and 7
+
+Taylor asked whether the deferred capabilities are cheap to add later or whether
+waiting builds a wall.
+Answered against the code as it stands, they fall into three groups.
+
+Purely additive, no code or schema change at all:
+
+- More stack depths. `PreflopChartLibrary` already indexes artifacts by table size
+  and stack depth together, and already has a distinct miss code for a depth it
+  has no artifact for. A 40bb chart is a new file in `data/artifacts/preflop/`
+  and nothing else.
+- More spot classes at an existing depth. Squeeze spots and cold four-bet spots
+  are already representable in the current spot-key format, so they are more data
+  rather than more format.
+
+Localized change, needs a contract-update but not a rewrite:
+
+- Rounding or bucketing between depths. This one is not additive, because it
+  changes the fail-closed guarantee itself rather than extending coverage, so it
+  needs the contract to change alongside the lookup. It stays confined to the
+  lookup, and `STACK-DEPTH-BUCKETS` already records it. Building it now would
+  mean shipping the guessing behavior the repo bans before there is any data to
+  calibrate the buckets against.
+
+Schema change, cheap only because of how artifacts are built:
+
+- Straddles and antes need a blind-structure field the artifact format does not
+  have, and probably need that field inside the spot key, which would change every
+  committed key. That would be an expensive retrofit if artifacts were
+  hand-maintained files. It is cheap here because this phase requires the artifact
+  to be reproducible from a committed source export by a committed converter, and
+  requires `spot_id` to be derived and re-verified rather than hand-written. So a
+  format change is a converter change plus one regeneration, not a hand edit of
+  thousands of keys.
+- Facing a four-bet is the one genuinely structural gap. V1 spot keys allow each
+  position at most one entry, so no key exists for it at any depth, and adding it
+  means a schema version bump. Already recorded as `SECOND-ORBIT-PREFLOP-SPOTS`.
+
+Conclusion: wait. Nothing on that list gets harder by being deferred, and the two
+that need format changes would be guesswork today because there is no straddle or
+short-stack chart to define the vocabulary against. The reproducible-artifact
+requirement in this phase's contract is what keeps the door open.
+
+## Provenance attestation
 
 Not a choice, but a signature.
 The importer's checksum covers weights only, so it cannot verify where a chart
 came from.
 `source.kind: solver-export` is therefore a human claim.
 
-Confirm this line for the audit packet, or correct it:
+Attested line:
 
 > The ranges in this artifact were exported from GTO Wizard's preflop solutions
 > for solution `Cash6mGeneral_6mNL25R25` at 100bb, from Taylor's own logged-in
 > account, on 2026-08-11, and reconciled against the frequencies the site
 > displayed for each spot.
 
-Attested by: [ ]
+Attested by: Taylor Sprouse, 2026-08-11, confirmed in the working session that
+supplied the solution URL and requested the extraction.
+
+A reviewer should treat this as a human claim, because it is one.
+The importer's `weights_sha256` proves the weights have not been edited since the
+artifact was stamped; it proves nothing about where they came from.
