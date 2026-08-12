@@ -20,7 +20,11 @@ Status: every item below is `runtime-reversible`. This phase writes reports, not
 fixtures, and `verification/loop_policy.yml` marks Phase 07 `auto_advance: true` for
 that reason.
 
-**But the list is going to Taylor anyway, before stage 4.** Phase 06 is the argument.
+**Taylor read items 1 and 2 at the stage 3 human gate on 2026-08-12 and confirmed both
+defaults.** All seven therefore stand as written, and the audit packet records their
+outcomes at closeout.
+
+**The list went to Taylor anyway, before stage 4.** Phase 06 is the argument.
 Two of its calls were reversible, the loop proceeded on their defaults, the gate went
 green, and by the time the stage 8 domain review reached them the wrong rule had three
 frozen tests pinning it and a mutation canary defending it. Reversible means cheap to
