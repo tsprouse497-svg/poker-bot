@@ -1,10 +1,10 @@
-task_id: PHASE-08-TEST-LINT-REPAIR
+task_id: PHASE-08-IMPLEMENTATION
 active_phase: "08"
 task_mode: implementation
-base_commit: 596903a06762f41ce0909df398784fe145ea0452
+base_commit: 2c58a1b2ed41445feff38bd3f3637b552c1b58e7
 approved_scope:
-  - tests/test_sample_comparison.py
-  - verification/freeze.lock
+  - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
+  - reports/phase_audits/logs/**
   - scripts/generate_sample_comparison_report.py
   - src/poker_training_bot/data_pipeline/**
   - src/poker_training_bot/strategy/preflop_chart.py
