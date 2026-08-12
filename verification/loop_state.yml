@@ -1,9 +1,5 @@
 auto_advance: false
-halt_reason: A frozen test names replay.contributions, but HandReplay exposes committed_by_seat.
-  That is an authoring error in the test rather than missing behavior, and stage 5
-  correctly put tests/ out of the builder's reach, so it needs a task that may legitimately
-  change tests and re-freeze them.
-loop: halted
+loop: running
 phase_id: 08
 schema_version: 1
 stage: 6

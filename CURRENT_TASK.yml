@@ -1,10 +1,9 @@
-task_id: PHASE-08-TEST-REPAIR
+task_id: PHASE-08-IMPLEMENTATION
 active_phase: "08"
 task_mode: implementation
-base_commit: 89eebfee13a913287b0474c091ce8297b89fc281
+base_commit: 1764cb8193dd7ac8e301017e3fb9e78de668ec88
 approved_scope:
-  - tests/test_sample_comparison.py
-  - verification/freeze.lock
+  - scripts/build_sample_corpus.py
   - scripts/generate_sample_comparison_report.py
   - src/poker_training_bot/data_pipeline/**
   - src/poker_training_bot/strategy/preflop_chart.py
