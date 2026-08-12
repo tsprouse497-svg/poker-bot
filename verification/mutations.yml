@@ -115,3 +115,53 @@ mutations:
     replace: "return POSTFLOP_COMPONENT"
     must_fail:
       - pytest_postflop_fallback
+
+  - id: simulator-seeds-from-global-random
+    description: >-
+      The simulator's per-hand shuffle picks up the random module's global state, so a
+      report's numbers stop being regenerable and the seed printed beside them stops
+      meaning anything. A non-deterministic simulation still produces a perfectly
+      plausible report, which is why this needs a canary at all. The first version of
+      this entry shifted the seed by len(str(hand_seed)) % 2 and survived, because a
+      deterministic shift is still deterministic - a canary aimed at reproducibility
+      that was itself reproducible.
+    file: src/poker_training_bot/simulator/run.py
+    find: "    return Random(hand_seed)"
+    replace: "    return Random(hand_seed + __import__('random').randrange(3))"
+    must_fail:
+      - pytest_simulator
+
+  - id: simulator-forgets-what-players-put-in
+    description: >-
+      A hand's books count what each seat was paid and forget what it put in, so chips
+      appear out of nowhere and every per-hand figure in the report is inflated by the
+      pot. The first version of this entry disabled the conservation raise instead, and
+      survived: switching off an assertion that never fires while the books balance
+      changes nothing observable. A canary has to break a behaviour, not a guard.
+    file: src/poker_training_bot/simulator/run.py
+    find: "    deltas = {seat: settlement.payouts[seat] - played.committed[seat] for seat in config.seats}"
+    replace: "    deltas = {seat: settlement.payouts[seat] for seat in config.seats}"
+    must_fail:
+      - pytest_simulator
+
+  - id: simulator-carries-stacks-between-hands
+    description: >-
+      Stacks stop resetting to the committed chart's depth between hands, so from the
+      second hand onward the chart refuses a table that is no longer one flat stack
+      depth and the run measures the refusal path instead of the strategy.
+    file: src/poker_training_bot/simulator/run.py
+    find: "STACKS_RESET_EVERY_HAND = True"
+    replace: "STACKS_RESET_EVERY_HAND = False"
+    must_fail:
+      - pytest_simulator
+
+  - id: simulator-converts-a-refusal-into-a-fold
+    description: >-
+      A StrategyRefusal becomes a fold rather than ending the hand as a counted
+      outcome, which erases the coverage signal Phases 04 through 06 exist to produce
+      and quietly moves chips on a hand nobody decided.
+    file: src/poker_training_bot/simulator/run.py
+    find: "REFUSAL_VOIDS_THE_HAND = True"
+    replace: "REFUSAL_VOIDS_THE_HAND = False"
+    must_fail:
+      - pytest_simulator

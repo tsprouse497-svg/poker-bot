@@ -18,6 +18,8 @@ All passed: True
 - PASS generate_preflop_strategy_report: Generate preflop strategy coverage and frequency report
 - PASS pytest_postflop_fallback: Run postflop fallback and composite strategy tests
 - PASS generate_postflop_fallback_report: Generate postflop fallback enumeration report and decision audit
+- PASS pytest_simulator: Run offline simulator and profile tests
+- PASS generate_profile_comparison_report: Generate the bot/profile comparison report
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness

@@ -1,0 +1,149 @@
+Profile Comparison Report
+=========================
+
+Seed: 20260812    Hands per run: 600    Table: 6-handed at 100bb    Blinds: 50/100
+
+## What these numbers measure, and what they do not
+
+Read this before any figure below. The postflop half of this bot is a continuity
+fallback that never bets and never raises, so when it plays against another copy of
+itself every postflop street checks through. A hand is decided preflop by the committed
+solver charts and then settled at showdown.
+
+So every number in this file is a preflop number with showdown resolution. None of them
+says anything about postflop play, because there is no postflop play here to measure. A
+figure that looks like a river statistic is still a preflop statistic that happened to
+be resolved on a river.
+
+Stacks reset to exactly 100bb before every hand, so each hand is an independent sample
+of the same spot and the figures are chips per hand rather than a running stack. Nothing
+here models a session, a bankroll, or short-stack play, and no hand can show the bot
+busting or doubling through. That is not a simplification for convenience: the committed
+chart answers one flat depth and refuses any other, so a run that carried stacks would
+put every hand after the first into the refusal path.
+
+Every hand is reproducible on its own. The run is a pure function of its seed, its
+seating and its profiles, and each hand carries the seed that produced it, so any figure
+a reader disputes can be regenerated rather than argued about.
+
+## The self-play run: what it proves rather than what it measures
+
+6 copies of the same strategy at one table. They have zero expectation against each
+other, so this run measures no strategy quality at all. It is here because symmetry
+gives a known expected answer to check the machinery against, which a run between
+different profiles cannot do.
+
+  net chips across the table                   0   (must be exactly 0)
+  hands reaching a showdown                 121
+  hands won uncontested                     351
+  hands refused                             128
+  hands re-derived by the replayer          472
+
+The last line is the cross-check that matters most. Every dealt hand is written out in
+the Phase 02 normalized schema as it is played, then handed back to the Phase 02
+replayer, which re-derives the whole hand from that record and compares its own
+settlement against the recorded result. Without it the simulator and the replayer would
+be two independent stories about the same rules, with nothing forcing them to agree.
+
+Chips are also checked per hand rather than over the run. An aggregate that nets to zero
+can hide two errors that cancel each other out, so the books have to balance for every
+single hand, and a hand whose books do not balance stops the run rather than being
+averaged away.
+
+### Coverage: six copies of the chart bot
+
+  hands dealt                               600
+  hands measured                            472
+  hands refused                             128    21.3%
+
+A refused hand is one where the committed chart had no answer for the spot it reached.
+The hand is voided rather than guessed at: stacks are restored, no chips move, and it is
+excluded from the chips-per-hand figures below and counted here instead. That is the
+coverage signal, and it is the most actionable number in this file - it is a list of
+spots the charts do not yet hold.
+
+  refusals by reason:
+    preflop-chart:lookup:spot-not-covered                  122
+    preflop-chart:lookup:unrepresentable-spot                6
+
+So this run measured the strategy over 472 of 600 hands. Whatever the figures below say,
+they say it about that subset.
+
+### Chips per hand: six copies of the chart bot
+
+profile                                        seats     total  per hand   std err
+composite-preflop-chart-postflop-fallback          6         0      0.00      0.00
+
+A profile's figure sums every seat it occupies, because a comparison is between
+strategies rather than between chairs. `std err` is the run's own variation in that
+figure, so a reader can see whether a difference is a difference.
+
+Nothing here clears its own noise, so this run names no winner. That is the correct
+answer for a table of identical strategies: they have zero expectation against each
+other by symmetry, and a run that reported a winner would be reporting variance.
+
+## The floor run: one directional number, and its limits
+
+The chart bot in one seat against five copies of the reference check-fold strategy,
+which folds to any bet and checks whenever it can. That is a floor that is deliberately
+bad and already trusted, so the number below is a floor check: the chart-driven bot must
+beat a bot that folds everything, and if it does not, something is broken.
+
+What it is not: a ranking against a real opponent, or a measurement of how good the
+chart's ranges are. Against opponents who fold every hand preflop, the chart bot mostly
+collects blinds, so this figure is closer to how often the chart opens than to how well
+it opens. Producing the other kind of number needs an opponent with a strategy, and this
+repo does not have one yet.
+
+### Coverage: chart bot against five check-fold seats
+
+  hands dealt                               600
+  hands measured                            600
+  hands refused                               0     0.0%
+
+No hand was refused, so every hand dealt was measured. That is not the chart being more
+complete than it is: an opponent that folds to everything keeps the betting tree
+shallow, so the deeper spots the chart does not cover are never reached.
+
+### Chips per hand: chart bot against five check-fold seats
+
+profile                                        seats     total  per hand   std err
+composite-preflop-chart-postflop-fallback          1     23200     38.67      2.59
+reference-check-fold                               5    -23200    -38.67      2.59
+
+A profile's figure sums every seat it occupies, because a comparison is between
+strategies rather than between chairs. `std err` is the run's own variation in that
+figure, so a reader can see whether a difference is a difference.
+
+Clears its own noise by more than two standard errors, best first:
+composite-preflop-chart-postflop-fallback, reference-check-fold.
+
+## Position coverage, and the number to check by hand
+
+The button advances one seat per hand and the profiles stay in their seats, so over any
+multiple of the table size every seat has played every position an equal number of
+times. That is what makes a chips-per-hand figure a property of a strategy rather than
+of where it happened to be sitting.
+
+seat        LJ    HJ    CO   BTN    SB    BB
+0          100   100   100   100   100   100
+1          100   100   100   100   100   100
+2          100   100   100   100   100   100
+3          100   100   100   100   100   100
+4          100   100   100   100   100   100
+5          100   100   100   100   100   100
+
+### Check this number by hand
+
+The run deals 600 hands at a 6-handed table and the button moves one seat every hand. So
+each seat should hold each position exactly 600 / 6 = 100 times, and every cell in the
+table above should read that number. Divide the hand count in this report's own header
+by six and compare. No code required, and if any cell disagrees the rotation is broken
+and every per-profile figure in this file is contaminated by seat position.
+
+A second check, on the normalization rather than the rotation: in the floor table above,
+multiply a profile's per-hand figure by the measured hand count and it reproduces that
+profile's total, and the two profiles' totals sum to zero. Chips do not appear or vanish
+at this table; they only change seats.
+
+Generated by `scripts/generate_profile_comparison_report.py`.
