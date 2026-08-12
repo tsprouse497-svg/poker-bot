@@ -23,6 +23,10 @@ Items with a `frozen-into-data` class carry `Answer: []`, which is what blocks. 
 recommendation for each is stated in its own paragraph, so answering "the
 recommendation" is a complete answer.
 
+**Taylor ruled on all four frozen items at the stage 3 human gate on 2026-08-12 and
+took the recommendation on each.** The three runtime-reversible items proceed on their
+recorded defaults. The audit packet records the outcome of all seven at closeout.
+
 ## 1. Which hands the committed sample holds
 
 Reversibility: frozen-into-data
@@ -50,7 +54,7 @@ sampling error, and 7 all-in hands is thin coverage of the all-in settlement pat
 report prints denominators next to every rate so this is visible rather than implied.
 
 Options: every-20th-by-path-500 | first-500-by-path | a different stride or count
-Answer: []
+Answer: [every-20th-by-path-500]
 
 ## 2. Whether the corpus's own text is committed alongside the conversion
 
@@ -72,7 +76,7 @@ If wrong: nothing breaks, the repo just carries 271 KB it did not need, and the
 conversion becomes an assertion rather than something a reader can verify.
 
 Options: commit-the-selected-source-text | commit-checksums-only | commit-nothing-raw
-Answer: []
+Answer: [commit-the-selected-source-text]
 
 ## 3. Where the corpus's hole cards and finishing stacks live
 
@@ -94,7 +98,7 @@ and the corpus's finishing stacks. The normalized hands stay exactly what Phase 
 a normalized hand is.
 
 Options: separate-sidecar | widen-the-phase-02-schema | derive-what-is-missing
-Answer: []
+Answer: [separate-sidecar]
 
 ## 4. What happens to a hand the converter cannot express
 
@@ -117,7 +121,7 @@ the failure mode; an exclusion in a committed file that a reviewer reads is not.
 
 Options: no-silent-filter-plus-named-exclusions | fail-the-gate-on-any-exclusion |
 exclude-and-report-a-count
-Answer: []
+Answer: [no-silent-filter-plus-named-exclusions]
 
 ## 5. What counts as agreement with a mixed strategy
 
