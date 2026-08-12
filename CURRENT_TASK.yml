@@ -1,15 +1,8 @@
-task_id: PHASE-06-IMPLEMENTATION
-active_phase: "06"
-task_mode: implementation
-base_commit: 07e886ddebcf764646a18d3aebfd90d20ab46c9c
-approved_scope:
-  - reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md
-  - reports/phase_audits/reviews/**
-  - scripts/generate_postflop_fallback_report.py
-  - src/poker_training_bot/strategy/postflop_fallback.py
-  - tests/test_postflop_fallback.py
-  - verification/freeze.lock
-  - verification/mutations.yml
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml

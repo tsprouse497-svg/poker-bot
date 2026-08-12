@@ -34,7 +34,7 @@ phases:
     audit_packet: reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md
   - phase_id: "06"
     title: "Conservative Postflop Fallback For Simulation Continuity"
-    status: active
+    status: completed
     contract: docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md
     audit_packet: reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md
   - phase_id: "07"

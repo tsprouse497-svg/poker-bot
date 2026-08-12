@@ -131,22 +131,33 @@ Reports: `reports/active/latest_postflop_fallback_report.txt`,
 
 ## Outcome
 
-Not yet complete. Halted at stage 8 on a domain blocker.
+Complete. The bot can play a hand from the first preflop decision to showdown.
 
-The fallback, the composite, the report generator and the decision audit are built
-and the full gate is green, including `check_gate_bite`. What stops the phase is a
-review finding rather than a failure: judgment call 2 ruled the river unbeatable test
-`strict-no-ties`, on the recorded ground that calling a guaranteed chop "depends on
-the price". It does not. A chopped pot returns the villain's bet and a share of the
-dead money, so calling a hand no holding can beat gains at least `(pot - to_call) / 2`
-and can never lose. In the state the committed report enumerates that is +50 chips
-folded away.
+Preflop comes from the committed solver charts, flop through river from a continuity
+fallback that checks when checking is free, folds to a bet, and invests on exactly one
+path: a board where no holding a villain could have beats hero, whatever card is still
+to come. The composite routes the two and adds no poker of its own, so Phase 07 hands
+a hand to one object and a preflop chart refusal still arrives as a refusal.
 
-The strictness is an acceptance criterion and a named forbidden shortcut in the
-contract, so reversing it needs a `contract-update` task ahead of the code, the
-frozen tests, and the `fallback-calls-guaranteed-chops` mutation. That is the Phase 05
-shape: review measures the cost of a ruling, the ruling changes, the contract changes
-first. Taylor rules on it; the loop does not.
+The phase reached a green gate twice. The first time it was wrong in a way no
+mechanical check could see, and that is the part worth keeping:
+
+- Judgment call 2 ruled the unbeatable test `strict-no-ties`, on the ground that
+  calling a guaranteed chop depends on a price the repo cannot source. It does not. A
+  chopped pot returns the villain's bet along with the dead money, so calling a hand
+  nothing can beat gains at least `(pot - to_call) / 2` and can never lose - 50 chips
+  in the state the committed report enumerates. Three frozen tests pinned the wrong
+  rule and a mutation canary defended it.
+- Judgment call 3 declined the turn on the flop's arithmetic, and the recorded flop
+  figures were a card off. Measured: 990 evaluations on the river, 45,540 on the turn,
+  1,070,190 on the flop. The turn was affordable all along.
+
+Taylor re-ruled both at stage 8. The contract changed first, then the code, the frozen
+tests, and the canaries. The gate went from 5 seconds to about 65, which is the price
+of the turn sweep and was accepted with the ruling.
+
+Filed rather than fixed: `FALLBACK-FAIL-CLOSED-CAN-CALL`, and the duplication between
+the frozen tests and the report generator.
 
 ## Next Agent Bootstrap
 
