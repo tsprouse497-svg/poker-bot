@@ -1,5 +1,19 @@
 auto_advance: true
-loop: running
+halt_reason: 'Stage 7: three of the four Phase 07 mutation canaries survive pytest_simulator,
+  so the gate is decorative for those behaviours. Two are authoring errors in the
+  canaries themselves rather than test gaps: simulator-seeds-from-the-clock replaces
+  the per-hand seed with a deterministic shift (len(str(hand_seed)) % 2), so it introduces
+  no non-determinism for any test to catch, and simulator-checks-chips-in-aggregate
+  disables a defensive raise that never fires while the implementation is correct,
+  so nothing observable changes. The third is a real gap in the frozen tests: simulator-converts-a-refusal-into-a-fold
+  leaves no hand with outcome ''refused'', so every refusal assertion iterates an
+  empty collection and passes vacuously, and judgment call 4 ends up unpinned. Fixing
+  any of them needs verification/mutations.yml, and the third needs tests/test_simulator.py
+  as well; stage 5 removed both from approved_scope on purpose, so this cannot be
+  repaired inside this task without reaching around the freeze. Everything else is
+  green: 30 commands pass, pytest_simulator passes all 37 cases, and the comparison
+  report is written.'
+loop: halted
 phase_id: '07'
 schema_version: 1
-stage: 6
+stage: 7
