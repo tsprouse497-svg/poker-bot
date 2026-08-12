@@ -1,17 +1,8 @@
-task_id: REFUSAL-INVENTORY-IMPLEMENTATION
-active_phase: "07"
-task_mode: implementation
-base_commit: 3338b41f5483d1af2dda21c2e555d484af191e4e
-approved_scope:
-  - reports/phase_audits/reviews/REFUSAL_INVENTORY.md
-  - scripts/generate_profile_comparison_report.py
-  - src/poker_training_bot/simulator/**
-  - src/poker_training_bot/strategy/contract.py
-  - src/poker_training_bot/strategy/preflop_chart.py
-  - tests/test_simulator.py
-  - tests/test_strategy_contract.py
-  - verification/freeze.lock
-  - verification/mutations.yml
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml

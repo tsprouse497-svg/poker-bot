@@ -58,7 +58,10 @@ Not in scope: committing a decision audit file
 - Ownership: Lane C owns `strategy/contract.py` and `strategy/preflop_chart.py`. Lane S
   owns `simulator/**`. Lane I owns the report generator. The coordinator owns the two
   contracts, the mutation entries, the freeze lock, `CURRENT_TASK.yml`, and every commit.
-- Status: Lane C planned. Lane S planned. Lane I planned. Lane R planned.
+- Status: Lane C, Lane S and Lane I all landed in the implementation commit, in that
+  order. Lane R was a coordinator review pass, because subagent delegation is disabled
+  in this session; its findings are the ones already recorded in the Phase 07 stage 8
+  review that this task exists to resolve, plus the inventory keying decision below.
 - Delegation availability: subagent delegation is disabled in this session, so the
   coordinator implements each lane in order and performs the review pass itself, with the
   reason recorded here and in the review notes. `AGENTS.md` step 10 permits that. Phases
@@ -81,15 +84,15 @@ Not in scope: committing a decision audit file
   missing, with the code left as a groupable vocabulary. Phase 07 requires a refused hand
   to keep its action, to stop claiming to be a completed history, and requires the
   inventory as a report of its own whose diff is the record of coverage improving.
-- [ ] Lane C: `StrategyRefusal.detail`, serialized with the record; chart misses report
+- [x] Lane C: `StrategyRefusal.detail`, serialized with the record; chart misses report
   spot key and hand class.
-- [ ] Lane S: `_play` files the partial street before returning on a refusal;
+- [x] Lane S: `_play` files the partial street before returning on a refusal;
   `HandResult` carries `streets` always and a completed `normalized` only when settled.
-- [ ] Lane I: `reports/active/latest_refusal_inventory.txt`, ordered by hands reached,
+- [x] Lane I: `reports/active/latest_refusal_inventory.txt`, ordered by hands reached,
   stating that it is a lower bound on the gap rather than a census.
-- [ ] Canaries: one per half of the fix - a refusal that forgets its detail, and a
+- [x] Canaries: one per half of the fix - a refusal that forgets its detail, and a
   refused hand that loses its partial street - each proven to make the gate fail.
-- [ ] Review, then closeout to idle with the gate green.
+- [x] Review, then closeout to idle with the gate green.
 
 ## Verification
 
@@ -109,7 +112,23 @@ somewhere, which is the whole defect this task exists to fix, wearing a differen
 
 ## Outcome
 
-Not yet complete. Contract landed; implementation next.
+Complete. The gate is green across 31 commands with 16 mutations all caught.
+
+`reports/active/latest_refusal_inventory.txt` names 22 spots the committed charts cannot
+answer, ordered by hands reached, and the shape of the answer is the useful part: every one
+is a squeeze or cold-four-bet spot. Somebody opened, somebody else three-bet, and a third
+player has to act. That is one coherent missing branch of the tree rather than 22 unrelated
+holes, and it is a far better thing to hand a chart phase than a percentage.
+
+One decision worth recording, because the first version was worse. The inventory was
+originally keyed by spot and hand class together, which produced 125 rows of mostly ones and
+buried a spot reached seventeen times under seventeen separate lines. A spot is the unit of
+chart work - committing it covers every hand class in it at once - so the key is the spot and
+the hand classes are counts underneath. That also matches what the contract asked for and the
+first version did not: "every distinct spot".
+
+The number to watch came out right: the inventory accounts for all 128 refused hands in the
+committed self-play run, so no detail is being dropped between the strategy and the file.
 
 ## Next Agent Bootstrap
 

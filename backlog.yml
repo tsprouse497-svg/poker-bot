@@ -173,7 +173,7 @@ items:
       exists is a Phase 07 and Phase 08 question. Superseded rather than extended by
       V2-POSTFLOP-STRATEGY, which computes equity against a modelled range.
   - id: SIMULATOR-VOIDED-HAND-RECORD
-    status: deferred
+    status: done
     phase: simulator
     title: A voided hand's record discards the actions that identify the refused spot
     reason: >-
