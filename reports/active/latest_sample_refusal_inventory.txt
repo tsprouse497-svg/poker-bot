@@ -1,0 +1,95 @@
+Real-Hand Refusal Inventory
+===========================
+
+Every spot below is one the committed charts could not answer while replaying
+real hands. Each row names a spot key taken from the refusal's own detail, the
+number of decision points that reached it, and whether the self-play run had
+already found it. Most-reached first.
+
+A spot marked new is one only real hands reached, which is a different priority
+from one the simulator already surfaces on every run.
+
+This is a lower bound on the gap, not a census of the charts: it reports only the
+spots this committed sample actually reached.
+
+  distinct spots  78
+
+   points  spot key                                      also in self-play
+      19  (no expressible spot)                         NEW
+      14  t6/d100/BTN/HJ:raise,CO:raise                 yes
+      13  t6/d100/BB/HJ:raise,CO:raise                  NEW
+      13  t6/d100/SB/HJ:raise,CO:raise                  NEW
+      11  t6/d100/BB/BTN:raise,SB:raise                 yes
+       9  t6/d100/SB/LJ:raise,BTN:call                  yes
+       9  t6/d100/SB/SB:call,BB:raise                   yes
+       8  t6/d100/BB/CO:raise,BTN:raise                 NEW
+       8  t6/d100/BB/LJ:raise,BTN:call                  NEW
+       8  t6/d100/SB/CO:raise,BTN:raise                 yes
+       7  t6/d100/BB/BTN:raise,SB:call                  yes
+       7  t6/d100/BB/CO:raise,SB:raise                  yes
+       7  t6/d100/BTN/LJ:raise,CO:call                  yes
+       7  t6/d100/BTN/LJ:raise,HJ:call                  NEW
+       7  t6/d100/CO/LJ:raise,HJ:call                   yes
+       7  t6/d100/SB/LJ:raise,CO:call                   NEW
+       7  t6/d100/SB/LJ:raise,HJ:call                   NEW
+       6  t6/d100/BB/HJ:raise,SB:raise                  yes
+       6  t6/d100/BB/LJ:raise,HJ:call                   NEW
+       5  t6/d100/BB/HJ:raise,BTN:call                  NEW
+       5  t6/d100/BB/LJ:raise,CO:call                   NEW
+       5  t6/d100/SB/HJ:raise,BTN:call                  yes
+       4  t6/d100/BB/CO:raise,BTN:call                  NEW
+       4  t6/d100/BB/HJ:raise,SB:call                   yes
+       4  t6/d100/BB/LJ:raise,HJ:raise                  NEW
+       4  t6/d100/BB/LJ:raise,SB:call                   yes
+       4  t6/d100/BB/LJ:raise,SB:raise                  yes
+       4  t6/d100/BTN/LJ:raise,HJ:raise                 NEW
+       4  t6/d100/CO/LJ:raise,HJ:raise                  yes
+       4  t6/d100/SB/CO:raise,BTN:call                  yes
+       4  t6/d100/SB/LJ:raise,HJ:raise                  NEW
+       3  t6/d100/BB/CO:raise,SB:call                   yes
+       3  t6/d100/BB/HJ:raise,CO:call                   NEW
+       3  t6/d100/BB/LJ:raise,CO:raise                  NEW
+       3  t6/d100/BTN/HJ:raise,CO:call                  yes
+       3  t6/d100/BTN/LJ:raise,CO:raise                 yes
+       3  t6/d100/SB/HJ:raise,CO:call                   NEW
+       3  t6/d100/SB/LJ:raise,CO:raise                  NEW
+       2  t6/d100/BB/LJ:raise,BTN:raise                 NEW
+       2  t6/d100/BTN/BTN:raise,SB:call,BB:raise        NEW
+       2  t6/d100/HJ/LJ:call                            NEW
+       2  t6/d100/SB/BTN:raise,SB:call,BB:raise         NEW
+       2  t6/d100/SB/LJ:raise,BTN:raise                 yes
+       1  t6/d100/BB/HJ:raise,BTN:raise                 NEW
+       1  t6/d100/BB/HJ:raise,CO:raise,BTN:raise        NEW
+       1  t6/d100/BB/LJ:call,CO:raise,SB:call           NEW
+       1  t6/d100/BB/LJ:call,HJ:raise                   NEW
+       1  t6/d100/BB/LJ:raise,BTN:call,SB:call          NEW
+       1  t6/d100/BB/LJ:raise,CO:call,SB:call           NEW
+       1  t6/d100/BB/LJ:raise,CO:call,SB:raise          NEW
+       1  t6/d100/BB/LJ:raise,HJ:call,SB:call           NEW
+       1  t6/d100/BTN/BTN:raise,BB:raise                NEW
+       1  t6/d100/BTN/CO:raise,BTN:call,BB:raise        NEW
+       1  t6/d100/BTN/LJ:call,CO:raise                  NEW
+       1  t6/d100/BTN/LJ:call,HJ:raise                  NEW
+       1  t6/d100/CO/CO:raise,BTN:call,BB:raise         NEW
+       1  t6/d100/CO/CO:raise,BTN:raise                 NEW
+       1  t6/d100/CO/HJ:raise,CO:raise,BTN:raise        NEW
+       1  t6/d100/CO/LJ:call                            NEW
+       1  t6/d100/CO/LJ:call,HJ:raise                   NEW
+       1  t6/d100/CO/LJ:raise,CO:call,BB:raise          NEW
+       1  t6/d100/CO/LJ:raise,CO:call,SB:raise,BB:raise  NEW
+       1  t6/d100/HJ/HJ:raise,CO:raise,BTN:raise        NEW
+       1  t6/d100/HJ/HJ:raise,SB:raise                  NEW
+       1  t6/d100/HJ/HJ:raise,SB:raise,BB:call          NEW
+       1  t6/d100/LJ/LJ:call,CO:raise,SB:call           NEW
+       1  t6/d100/LJ/LJ:call,HJ:raise                   NEW
+       1  t6/d100/LJ/LJ:raise,BB:raise                  NEW
+       1  t6/d100/LJ/LJ:raise,CO:call,BB:raise          NEW
+       1  t6/d100/LJ/LJ:raise,CO:call,SB:raise,BB:raise  NEW
+       1  t6/d100/LJ/LJ:raise,HJ:raise                  NEW
+       1  t6/d100/LJ/LJ:raise,SB:raise                  NEW
+       1  t6/d100/SB/HJ:raise,BTN:raise                 yes
+       1  t6/d100/SB/HJ:raise,CO:raise,BTN:raise        NEW
+       1  t6/d100/SB/LJ:call,CO:raise                   NEW
+       1  t6/d100/SB/LJ:call,HJ:raise                   NEW
+       1  t6/d100/SB/LJ:raise,CO:call,SB:raise,BB:raise  NEW
+       1  t6/d100/SB/SB:raise,BB:raise                  NEW

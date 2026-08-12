@@ -1,8 +1,8 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `PHASE-08-CONTRACT`
-Task mode: `contract-update`
+Current task: `PHASE-08-IMPLEMENTATION`
+Task mode: `implementation`
 Active phase: `08`
 Completed phases: `8`
 

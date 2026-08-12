@@ -3,6 +3,7 @@ active_phase: "08"
 task_mode: implementation
 base_commit: 1764cb8193dd7ac8e301017e3fb9e78de668ec88
 approved_scope:
+  - verification/mutations.yml
   - scripts/build_sample_corpus.py
   - scripts/generate_sample_comparison_report.py
   - src/poker_training_bot/data_pipeline/**
@@ -111,5 +112,7 @@ scope_change_log:
     reason: Phase 08 implementation needs the phase tests, the command registry entries for its two new command IDs, the mutation canaries that must make the new pytest command fail, the corpus package under data_pipeline, the builder that applies the selection rule against a local corpus clone, the report generator, the committed sample and its source card, and the audit evidence. It also needs an additive read-only accessor on the Phase 05 preflop chart strategy, because agreement is defined as the observed action carrying nonzero weight and the chart's weights are reachable today only through a rationale string, so the comparison would otherwise have to parse a private format or re-derive the spot key in a second place. Additive only, with no validation loosened, on the Phase 04 precedent.
   - date: 2026-08-12
     reason: Loop stage 5 narrows scope so the builder cannot reach the tests it is measured by. tests/, verification/, and the command registry all leave approved_scope, and base_commit moves to the freeze commit so the diff is measured from there rather than from the start of the phase, which is what keeps work that was legitimately in scope at stage 4 from reading as out of scope afterwards.
+  - date: 2026-08-12
+    reason: The Phase 08 canaries were never authored at stage 4, so without them check_gate_bite would pass while proving nothing about this phase, which is the definition of a decorative gate. verification/mutations.yml comes back into approved_scope for canaries only. The freeze lock is untouched because no test changes, and the builder still cannot reach tests/.
   - date: 2026-08-12
     reason: Stage 6 halted because a frozen test names replay.contributions while HandReplay exposes committed_by_seat. That is an authoring error in the test rather than missing behavior, and the alternative to repairing it is adding an alias to the Phase 02 replayer, which the contract forbids. The repair is one attribute name and nothing else, so the freeze can be rewritten, and it lands in its own task because the builder must not be able to reshape the tests it is measured by.

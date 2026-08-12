@@ -1,0 +1,68 @@
+Real-Hand Comparison Report
+===========================
+
+Read this before any number below.
+
+This compares the bot's preflop decisions against what real players did in the same
+spots, using a committed slice of a public hand corpus that nobody in this repo wrote.
+It is a preflop comparison and nothing else. The postflop half of this bot is a
+continuity fallback that never bets and never raises, so comparing it against real
+postflop play would measure the fallback's known shape rather than these hands.
+
+A disagreement means this chart and this player did different things in this spot. It
+does not establish that either is wrong. Real players are not an oracle for strategy
+quality, and one of the seats here is a near-equilibrium machine while the others are
+people, which is why they are never averaged together.
+
+Agreement means the action the player took carries nonzero weight in the chart's own
+distribution, not that it matched the single action the chart happens to draw. A chart
+that folds a hand seven times in ten does not disagree with a fold.
+
+A spot the chart could not answer is a refusal. Refusals are reported on their own and
+are never counted as disagreements, because a missing chart cell and a wrong chart cell
+need different fixes.
+
+
+## Coverage
+
+  hands compared                       499
+  hands excluded, named below            1
+  preflop decision points             3048
+
+## Agreement, by population
+
+  Every rate carries the count it was computed over. Refusals are not in
+  the denominator; they are reported beside it.
+
+  Pluribus
+    agreed 439 of 456 scored decisions  (96.3%)
+    refused 46 of 502 decision points
+
+  humans
+    agreed 2155 of 2302 scored decisions  (93.6%)
+    refused 244 of 2546 decision points
+
+## What a disagreement looked like
+
+  pluribus/100/0  seat 0  MrBlue  TcQc  played call  chart [fold=0.8503,raise=0.1497]
+  pluribus/100b/129  seat 4  MrBlonde  Td9d  played raise  chart [fold=1]
+  pluribus/100b/169  seat 3  MrOrange  8hKh  played fold  chart [raise=1]
+  pluribus/100b/169  seat 0  MrBlonde  5sJs  played fold  chart [call=0.4859,raise=0.5141]
+  pluribus/103/64  seat 5  MrPink  8hQh  played raise  chart [fold=1]
+  pluribus/103b/174  seat 4  MrOrange  Kh4h  played fold  chart [raise=1]
+  pluribus/104/20  seat 3  Pluribus  JsTc  played raise  chart [fold=1]
+  pluribus/104/20  seat 0  MrWhite  8s9s  played raise  chart [fold=1]
+  pluribus/106/204  seat 4  MrPink  Ac5s  played fold  chart [raise=1]
+  pluribus/106/222  seat 3  MrOrange  Kd7d  played fold  chart [raise=1]
+  pluribus/106/32  seat 0  MrBlue  6d8h  played call  chart [fold=1]
+  pluribus/106/50  seat 0  MrBlue  JhTd  played call  chart [fold=1]
+  pluribus/106/69  seat 4  MrBlonde  As5d  played fold  chart [raise=1]
+  pluribus/106/69  seat 1  MrPink  6d3d  played call  chart [fold=1]
+  pluribus/107/50  seat 5  MrBlonde  KsJc  played raise  chart [fold=1]
+  pluribus/108/123  seat 4  MrBlonde  5dAc  played fold  chart [raise=1]
+  pluribus/108/123  seat 1  MrPink  8h7c  played call  chart [fold=1]
+  pluribus/108/141  seat 4  MrBlonde  9dTs  played call  chart [fold=1]
+  pluribus/108/16  seat 0  MrPink  9h7h  played call  chart [fold=1]
+  pluribus/108/178  seat 2  MrWhite  Td8d  played raise  chart [fold=1]
+  ... and 144 more
+

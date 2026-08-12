@@ -272,6 +272,36 @@ class PreflopChartStrategy:
             return StrategyRefusal(refusal_code or REFUSE_NO_SIZING)
         return StrategyDecision("raise", amount, self._rationale("raise", found.action_weights))
 
+    def weights_for(
+        self, query: StrategyQuery
+    ) -> tuple[tuple[str, float], ...] | StrategyRefusal:
+        """The chart's own action weights for a query, before any collapse.
+
+        Read-only and additive. It exists because "did this player's action agree
+        with the chart" is a question about the distribution, not about the single
+        action `decide` draws from it: a chart that raises three times in ten does
+        not disagree with a fold, and scoring a mixed cell action-for-action makes a
+        correct chart look wrong in proportion to how mixed it is.
+
+        The alternative was parsing the weight vector back out of the rationale
+        string `decide` returns, or rebuilding the chart query somewhere else. The
+        first couples a caller to a private format; the second gives the repo two
+        derivations of "what spot is this" that can drift apart invisibly. Sharing
+        `_chart_query` keeps exactly one.
+        """
+        if query.street != "preflop":
+            return StrategyRefusal(REFUSE_NOT_PREFLOP)
+        if not self._blind_structure_is_representable(query):
+            return StrategyRefusal(REFUSE_BLIND_STRUCTURE)
+        depth_bb, depth_refusal = self._table_depth_bb(query)
+        if depth_bb is None:
+            return StrategyRefusal(depth_refusal or REFUSE_RAGGED_DEPTH)
+        chart_query = self._chart_query(query, depth_bb)
+        found = self.library.lookup(chart_query)
+        if not isinstance(found, ChartHit):
+            return StrategyRefusal(f"{CODE_PREFIX}:{found.code}", self._miss_detail(chart_query))
+        return found.action_weights
+
     def decide_spot(
         self, spot_key_text: str, hand_class_text: str, seed_suffix: str = ""
     ) -> StrategyDecision | StrategyRefusal:
