@@ -1,10 +1,17 @@
 task_id: PHASE-06-IMPLEMENTATION
 active_phase: "06"
-task_mode: contract-update
+task_mode: implementation
 base_commit: cd612b728ea648cfe74ccf8af3ef9c772309b210
 approved_scope:
   - docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md
-  - reports/phase_audits/decisions/**
+  - tests/test_postflop_fallback.py
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - scripts/run_verify.py
+  - scripts/generate_postflop_fallback_report.py
+  - src/poker_training_bot/strategy/postflop_fallback.py
+  - src/poker_training_bot/strategy/composite.py
+  - reports/phase_audits/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -77,3 +84,5 @@ scope_change_log:
     reason: MAINT-06 is split out of the Phase 05 closeout because the policy test only fails once phase 05 is marked completed, so the fix has to land in its own maintenance task before the closeout commit can be green.
   - date: 2026-08-12
     reason: Phase 06 contract-update needs the phase contract itself, whose skeleton claims a generate_decision_audit command and Phase 03's own latest_decision_audit.jsonl report, plus a pre-implementation judgment-call record under reports/phase_audits/decisions/ so the postflop choices no chart can settle are recorded with a reversibility class before any code is written.
+  - date: 2026-08-12
+    reason: Phase 06 implementation needs the phase tests, the command registry entries for its two new command IDs, the mutation canaries that must make the new pytest command fail, the postflop fallback strategy and the composite that routes preflop to the chart and postflop to it, the fallback report generator, and the audit evidence. The contract stays listed only because it already changed earlier in this task and the diff is measured from base_commit; implementation mode is what forbids editing it further.
