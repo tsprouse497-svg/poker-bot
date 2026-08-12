@@ -116,26 +116,31 @@ mutations:
     must_fail:
       - pytest_postflop_fallback
 
-  - id: simulator-seeds-from-the-clock
+  - id: simulator-seeds-from-global-random
     description: >-
-      The simulator seeds its shuffle from something a rerun cannot reproduce, so a
+      The simulator's per-hand shuffle picks up the random module's global state, so a
       report's numbers stop being regenerable and the seed printed beside them stops
-      meaning anything. This is the mutation a green gate cannot otherwise notice,
-      because a non-deterministic simulation still produces a plausible report.
+      meaning anything. A non-deterministic simulation still produces a perfectly
+      plausible report, which is why this needs a canary at all. The first version of
+      this entry shifted the seed by len(str(hand_seed)) % 2 and survived, because a
+      deterministic shift is still deterministic - a canary aimed at reproducibility
+      that was itself reproducible.
     file: src/poker_training_bot/simulator/run.py
     find: "    return Random(hand_seed)"
-    replace: "    return Random(hand_seed + len(str(hand_seed)) % 2)"
+    replace: "    return Random(hand_seed + __import__('random').randrange(3))"
     must_fail:
       - pytest_simulator
 
-  - id: simulator-checks-chips-in-aggregate
+  - id: simulator-forgets-what-players-put-in
     description: >-
-      Chip conservation is checked over the whole run instead of per hand, so two
-      errors that cancel each other out pass. The per-hand books are the only version
-      of this check that is worth anything.
+      A hand's books count what each seat was paid and forget what it put in, so chips
+      appear out of nowhere and every per-hand figure in the report is inflated by the
+      pot. The first version of this entry disabled the conservation raise instead, and
+      survived: switching off an assertion that never fires while the books balance
+      changes nothing observable. A canary has to break a behaviour, not a guard.
     file: src/poker_training_bot/simulator/run.py
-    find: "    if sum(deltas.values()) != 0:"
-    replace: "    if False and sum(deltas.values()) != 0:"
+    find: "    deltas = {seat: settlement.payouts[seat] - played.committed[seat] for seat in config.seats}"
+    replace: "    deltas = {seat: settlement.payouts[seat] for seat in config.seats}"
     must_fail:
       - pytest_simulator
 

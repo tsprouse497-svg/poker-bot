@@ -42,10 +42,10 @@ files:
     sha256: cb051eb9e8e2f707f306ae182ad38bc038870661dde5ba002b60989c0c2c1c87
     test_functions: 28
   tests/test_simulator.py:
-    sha256: 8ccf9d4e8fbcbd054e0e7e88da4d783dd464ae40fabffc2a1acb316adef4d54a
-    test_functions: 37
+    sha256: 39f3e799b60b330a9185f141b57d201545374c0ec617e30db0055e833c921d9d
+    test_functions: 38
   tests/test_strategy_contract.py:
     sha256: 3185f342b82b5aef88e05f6188ad27847ea38d20a16927637213ba4c19f80558
     test_functions: 52
 schema_version: 1
-test_function_floor: 392
+test_function_floor: 393

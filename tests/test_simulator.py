@@ -104,6 +104,27 @@ class TestEveryHandReachesATerminalState:
             else:
                 assert hand.refusal_code is None, hand.hand_id
 
+    # Judgment call 4, pinned so that it is pinned. Every other refusal assertion in this
+    # file is written as "for each refused hand, ...", which passes perfectly when no hand
+    # is refused - so converting a refusal into a fold was invisible to all of them, and a
+    # mutation canary proved it. This is the anti-vacuity guard: the seeded self-play run
+    # must actually reach spots the committed charts do not cover, and must report them as
+    # refusals rather than as folds.
+    #
+    # It is deliberately coupled to the chart's coverage. If a future artifact covers every
+    # spot this run reaches, this test starts failing, and that failure is the correct
+    # signal: it means the refusal path is no longer exercised here and the canary needs a
+    # new home, not that the assertion was wrong.
+    def test_the_run_actually_reaches_refusals_rather_than_folding_through_them(
+        self, self_play
+    ) -> None:
+        refused = [hand for hand in self_play.hands if hand.outcome == "refused"]
+
+        assert refused, "no hand was refused, so every refusal assertion here is vacuous"
+        assert all(hand.refusal_code for hand in refused)
+        assert all(set(hand.stack_deltas.values()) == {0} for hand in refused)
+        assert sum(self_play.refusal_counts().values()) == len(refused)
+
 
 class TestChipConservation:
     # Asserted per hand, because an aggregate that nets to zero can hide two errors
