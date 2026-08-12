@@ -8,6 +8,7 @@ required_gate_commands:
   - generate_profile_comparison_report
 required_reports:
   - reports/active/latest_profile_comparison_report.txt
+  - reports/active/latest_refusal_inventory.txt
 required_phase_audit: reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md
 ---
 
@@ -59,6 +60,20 @@ a report that happens to print river numbers.
   skipped seat.
   A refused hand is a coverage measurement, so it is counted and reported and never
   silently dropped from a total.
+- A refused hand carries the action that led to the refusal.
+  Every action taken before the refusal, on the street the refusal happened on,
+  survives on the hand - including when the refusal aborts a betting round part way
+  through, which is the usual case and was where the first version of this phase
+  lost it.
+  Without that, the spot that was refused cannot be identified from the hand, and a
+  coverage measurement that cannot name what it is missing is a count rather than a
+  finding.
+- A refused hand does not claim to be a completed hand history.
+  It stops inside a betting round, so it is not a hand the Phase 02 replayer can
+  re-derive and it must not be presented as one; a hand carries a completed
+  normalized record only when it reached a terminal settlement.
+  The replay cross-check therefore covers every settled hand and says how many hands
+  it covered, rather than implying it covered all of them.
 - Chips are conserved: for every hand, the sum of stack changes across all seats is
   zero, and the pot awarded equals the pot collected.
   This is asserted per hand over the whole simulation rather than in aggregate,
@@ -71,11 +86,14 @@ a report that happens to print river numbers.
 - Shuffling is seeded and reproducible without the `random` module's global state,
   and the seed that produced a hand is recorded with it, so any single hand can be
   replayed on its own.
-- Every hand the simulator deals is expressible in the Phase 02 normalized
-  hand-history schema, and a dealt hand fed back through the Phase 02 replayer
+- Every hand the simulator settles is expressible in the Phase 02 normalized
+  hand-history schema, and a settled hand fed back through the Phase 02 replayer
   reproduces the same decision points.
   That is the cross-check that the simulator and the replayer agree about what a hand
   is; without it they are two independent stories about the same rules.
+  A refused hand is deliberately outside this, per the criterion above: it never
+  reached a settlement, so there is no completed hand for the replayer to re-derive,
+  and the report states the covered count rather than implying it is all of them.
 - The seed appears in the report, so a number a reader disputes can be regenerated.
 
 ### Profiles name what is being compared
@@ -100,6 +118,20 @@ a report that happens to print river numbers.
 - Refusal coverage is a headline number, not a footnote.
   A profile that refuses most hands has not been measured, and the report must make
   that impossible to miss.
+- The refusals are inventoried, not just counted.
+  A committed report lists every distinct spot the strategies could not answer, taken
+  from the refusal detail rather than re-derived, with the number of hands that
+  reached each one, ordered so the most frequent comes first.
+  Frequency is the point: a spot reached seventeen times in six hundred hands is
+  worth committing before one reached once, and that ordering is the phase's most
+  actionable output.
+- The inventory is a file of its own, so its diff between runs is the record of
+  coverage improving.
+  A gap that closes disappears from it and a gap that opens appears, which is a
+  signal no aggregate percentage can carry.
+- The inventory says what it cannot see.
+  It reports only the spots this run's seating and seed actually reached, so it is a
+  lower bound on the gap rather than a census of the charts, and it says so.
 - Any result the simulation cannot separate from noise is reported as such.
   A chip difference smaller than the run's own variation is not a finding, and the
   report does not print it as one.
@@ -130,6 +162,7 @@ a report that happens to print river numbers.
 
 ## Required reports
 - `reports/active/latest_profile_comparison_report.txt`
+- `reports/active/latest_refusal_inventory.txt`
 
 ## Required command IDs
 - `pytest_simulator`
@@ -141,7 +174,10 @@ a report that happens to print river numbers.
 - Command summary with links to committed reports.
 - A plain statement of what the comparison measures and what it does not, carried
   forward from Phase 06 rather than restated loosely.
-- The chip-conservation and replay cross-check evidence.
+- The chip-conservation and replay cross-check evidence, including how many hands the
+  cross-check covered and why the rest are not in it.
+- The refusal inventory, and a plain statement that it is a lower bound on the coverage
+  gap rather than a census of the charts.
 - The recorded judgment calls and what each one changed.
 - Known limitations and deferred items.
 

@@ -54,6 +54,21 @@ limited to the work named by this contract and the active ExecPlan.
   game state rather than an already-canonicalized chart key. It defaults to empty
   so existing callers are unaffected, and an empty history means the action folded
   to hero.
+- A refusal names what was missing, not only that something was.
+  `StrategyRefusal` carries a code and, alongside it, structured detail: an
+  ordered sequence of name and value pairs describing the thing the strategy
+  could not find. The code stays a stable, groupable vocabulary so refusals can
+  be counted by kind; the detail carries the specifics so they can be acted on.
+  A chart miss therefore reports the spot key and the hand class it looked for,
+  which is enough to name a chart cell somebody can fill.
+  Detail defaults to empty, so a refusal with nothing useful to add stays as
+  simple as it was, and existing callers are unaffected.
+  This exists because a count of refusals is not a work list. A phase that
+  measures coverage can only report which kinds of spot are missing, and closing
+  a gap needs to know which spots.
+- Refusal detail is ordered and serialized with the record, so two runs producing
+  the same refusal produce the same bytes, and a reader of the committed audit can
+  recover the specifics without rerunning anything.
 - Decision audit records serialize query, outcome, and strategy identity to
   deterministic JSONL: identical inputs produce identical bytes.
 - A deterministic reference strategy (check when free, otherwise fold)
