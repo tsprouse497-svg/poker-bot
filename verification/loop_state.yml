@@ -1,5 +1,13 @@
 auto_advance: true
-loop: running
+halt_reason: 'Stage 8 domain blocker: the river unbeatable test counts a tie against
+  calling, so it folds a hand no holding can beat. A chopped pot returns the villain''s
+  bet plus a share of the dead money, so calling gains at least (pot - to_call) /
+  2 and can never lose; in the enumerated state that is 50 chips folded away. Judgment
+  call 2 needs re-ruling to allow guaranteed chops. Taylor also ruled to fold in judgment
+  call 3: the turn extension was declined on the flop''s arithmetic, and the turn
+  costs 45,540 evaluations (3.6s) against the flop''s 1,070,190 (83s), so the exception
+  extends to the turn and stays off the flop.'
+loop: halted
 phase_id: '06'
 schema_version: 1
 stage: 8
