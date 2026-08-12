@@ -107,12 +107,17 @@ and `preflop_sizing.py` are read-only for this phase.
   `check_gate_bite` green. Evidence: commit `068fda0`, re-confirmed green at stage 8.
 - [x] Stage 8, review: findings recorded in
   `reports/phase_audits/reviews/PHASE_06_POSTFLOP_FALLBACK.md`. One domain blocker,
-  seven non-blockers, no mechanical blocker. The blocker is a re-ruling of judgment
-  call 2, so the phase halts here rather than advancing.
-- [ ] Stage 9, audit: audit packet with summary, non-coding checklist, review
-  findings, decision outcomes, and one hand-recomputable number. Blocked until the
-  judgment call 2 ruling lands, because the packet would otherwise document a rule
-  that is about to change.
+  seven non-blockers, no mechanical blocker. The loop halted on the blocker
+  (`9519145`), Taylor re-ruled judgment calls 2 and 3, the contract changed first in
+  a `contract-update` task (`07e886d`), the implementation followed (`2aa0ca5`), and
+  the loop resumed at this stage with the gate green. Two review findings are filed
+  rather than fixed: `FALLBACK-FAIL-CLOSED-CAN-CALL`, and the duplication between the
+  frozen tests and the report generator.
+- [x] Stage 9, audit: audit packet at
+  `reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md`, with the summary, the
+  non-coding checklist, the worked turn and river examples, the review findings, the
+  outcome of every judgment call including the two overruled ones, and the
+  recomputable number (10 postflop decision points in the committed sample hands).
 - [ ] Stage 10, closeout: plan filed as completed, phase completed, tag, idle, gate
   again, merge.
 
