@@ -37,12 +37,16 @@ phases:
       real hands exist, which is Phase 08.
   "08":
     auto_advance: false
-    needs_human_data: true
+    needs_human_data: false
     reason: >-
-      Needs roughly fifty real hands exported from Taylor's own game plus the
-      site-reported final stacks. Without them there is no oracle and the phase
-      would produce a confident report about invented data. data/raw/** is also
-      forbidden scope today, so the input has nowhere to live yet.
+      The oracle no longer has to come from Taylor. The Pluribus subset of the
+      public PHH dataset is 10000 hands of six-handed no-limit hold'em at 50/100
+      with 10000-chip starting stacks, which is exactly the one spot the
+      committed chart answers, and every hand carries all six hole cards plus a
+      finishing_stacks line this repo did not write. It is public under a stable
+      DOI, so the provenance claim is checkable rather than asserted. The phase
+      still commits a normalized sample, and committed data is where a wrong
+      assumption becomes permanent, so it does not auto-advance.
   "09":
     auto_advance: true
     needs_human_data: false

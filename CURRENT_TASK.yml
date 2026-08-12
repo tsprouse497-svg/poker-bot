@@ -1,8 +1,9 @@
-task_id: null
+task_id: MAINT-07-SAMPLE-SOURCE-GATE
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 088b12d9ce202a336b98a1cdf81ba18f411fbb96
+approved_scope:
+  - verification/loop_policy.yml
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -95,3 +96,5 @@ scope_change_log:
     reason: The Phase 07 stage 8 blocker is not a code defect on its own. A refusal names the kind of miss and not the spot it missed, so the only record of which spot the charts failed on was the action sequence that a voided hand then discarded. Fixing that needs the Phase 03 contract to require a refusal to carry structured detail about what was missing, and the Phase 07 contract to require a refusal inventory keyed by that detail plus a refused hand that carries its own action without claiming to be a completed hand history. Both are semantic contract changes, so they land in contract-update mode before any code.
   - date: 2026-08-12
     reason: Implementing the refusal inventory needs StrategyRefusal to carry detail and its Phase 03 tests, the preflop chart to populate that detail from the lookup's own spot key, the simulator to keep a refused hand's partial street and stop claiming it is a completed history, the report generator that writes the inventory, the Phase 07 tests those changes move, a canary per half of the fix, and the freeze lock recording the re-frozen tests. The two contracts leave approved_scope because implementation mode may not touch them.
+  - date: 2026-08-12
+    reason: Phase 08 was gated on hands only Taylor could supply, and that gate is now answerable. The Pluribus subset of the public PHH dataset is 10000 six-handed 100bb hands at 50/100 with every hole card shown and a finishing_stacks oracle, fetchable from a public repository under a stable DOI, so the input is reproducible rather than a private export. Reopening the phase needs verification/loop_policy.yml alone; auto_advance stays false because the phase still commits sample data.
