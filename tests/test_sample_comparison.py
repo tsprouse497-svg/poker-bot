@@ -260,7 +260,7 @@ def test_a_hand_the_converter_cannot_express_raises_with_a_named_reason() -> Non
 def _settled_stacks(hand_zero_like, normalized) -> tuple[int, ...]:
     replay = replay_hand(normalized)
     by_seat = {player.seat: player.starting_stack for player in normalized.players}
-    for seat, amount in replay.contributions.items():
+    for seat, amount in replay.committed_by_seat.items():
         by_seat[seat] -= amount
     for seat, amount in normalized.result.payouts.items():
         by_seat[seat] += amount
