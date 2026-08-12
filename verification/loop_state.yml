@@ -1,5 +1,9 @@
 auto_advance: false
-loop: running
+halt_reason: The full gate fails ruff_check on a frozen test line that is 101 characters,
+  an authoring defect in tests/test_sample_comparison.py that stage 4 never surfaced
+  because its check runs pytest rather than the gate. Repairing it needs a task that
+  may change tests and re-freeze.
+loop: halted
 phase_id: 08
 schema_version: 1
 stage: 6

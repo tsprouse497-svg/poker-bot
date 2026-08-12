@@ -294,7 +294,11 @@ def test_every_committed_hand_settles_to_the_corpus_oracle(sample) -> None:
 
 
 def test_the_selection_rule_is_a_stride_over_a_stable_sort() -> None:
-    paths = [f"pluribus/{group:03d}/{index}.phh" for group in range(100, 140) for index in range(30)]
+    paths = [
+        f"pluribus/{group:03d}/{index}.phh"
+        for group in range(100, 140)
+        for index in range(30)
+    ]
 
     selected = select_source_paths(paths)
 
