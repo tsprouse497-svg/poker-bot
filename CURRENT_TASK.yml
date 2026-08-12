@@ -1,13 +1,8 @@
 task_id: PHASE-06-IMPLEMENTATION
 active_phase: "06"
 task_mode: implementation
-base_commit: cd612b728ea648cfe74ccf8af3ef9c772309b210
+base_commit: d48625f82f59764d48335ed6471c87b7610a5c9d
 approved_scope:
-  - docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md
-  - tests/test_postflop_fallback.py
-  - verification/mutations.yml
-  - verification/freeze.lock
-  - scripts/run_verify.py
   - scripts/generate_postflop_fallback_report.py
   - src/poker_training_bot/strategy/postflop_fallback.py
   - src/poker_training_bot/strategy/composite.py
@@ -86,3 +81,5 @@ scope_change_log:
     reason: Phase 06 contract-update needs the phase contract itself, whose skeleton claims a generate_decision_audit command and Phase 03's own latest_decision_audit.jsonl report, plus a pre-implementation judgment-call record under reports/phase_audits/decisions/ so the postflop choices no chart can settle are recorded with a reversibility class before any code is written.
   - date: 2026-08-12
     reason: Phase 06 implementation needs the phase tests, the command registry entries for its two new command IDs, the mutation canaries that must make the new pytest command fail, the postflop fallback strategy and the composite that routes preflop to the chart and postflop to it, the fallback report generator, and the audit evidence. The contract stays listed only because it already changed earlier in this task and the diff is measured from base_commit; implementation mode is what forbids editing it further.
+  - date: 2026-08-12
+    reason: Loop stage 5 narrows scope so the builders cannot reach the tests they are measured by. tests/, verification/, the command registry, and the contract all leave approved_scope, and base_commit moves to the freeze commit so the diff is measured from there rather than from the start of the phase, which is what keeps work that was legitimately in scope at stage 4 from reading as out of scope afterwards.
