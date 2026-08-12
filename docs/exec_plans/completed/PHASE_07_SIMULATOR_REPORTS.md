@@ -64,8 +64,11 @@ simulator consumes them unchanged rather than loosening one to make a hand fit.
   the two seated profiles. Lane C returns a generator plus the report it wrote. Lane R
   returns findings classified blocker or not, written to
   `reports/phase_audits/reviews/PHASE_07_SIMULATOR_REPORTS.md`.
-- Status: Lane T planned. Lane A planned. Lane B planned. Lane C planned. Lane R
-  planned.
+- Status: Lane T landed at stage 4 and was frozen at stage 5. Lanes A, B and C landed
+  together in the stage 6 build commit, in that order. Lane R ran at stage 8 as two
+  coordinator review passes rather than as delegated read-only subagents, because subagent
+  delegation is disabled for this session; `AGENTS.md` step 10 allows that with the reason
+  recorded, and it is stated at the top of the review notes.
 - Delegation availability: subagent delegation is disabled in this session, so unless
   that changes the coordinator implements each lane in the lane order below and the
   stage 8 reviewers are coordinator passes with the reason recorded, which `AGENTS.md`
@@ -88,27 +91,27 @@ simulator consumes them unchanged rather than loosening one to make a hand fit.
 
 ## Slices
 
-- [ ] Stage 1, contract: real acceptance criteria and this plan. Evidence:
+- [x] Stage 1, contract: real acceptance criteria and this plan. Evidence:
   `loop_stage.py --advance` past stage 1.
-- [ ] Stage 2, decisions: judgment-call record with a reversibility class per item.
+- [x] Stage 2, decisions: judgment-call record with a reversibility class per item.
   Evidence: `--advance` past stage 2.
-- [ ] Stage 3, human gate: no unanswered `frozen-into-data` item. This phase writes
+- [x] Stage 3, human gate: no unanswered `frozen-into-data` item. This phase writes
   reports rather than fixtures, so every call is expected to be `runtime-reversible`.
   Phase 06 is the argument for putting the list to Taylor anyway: two reversible calls
   there proceeded on their defaults, went green, and cost a re-ruling at stage 8.
-- [ ] Stage 4, tests: Lane T authors `tests/test_simulator.py`; coordinator registers
+- [x] Stage 4, tests: Lane T authors `tests/test_simulator.py`; coordinator registers
   `pytest_simulator` and `generate_profile_comparison_report`, and adds the mutations
   that must make the new command fail. Evidence: the command is red on assertions or a
   missing module.
-- [ ] Stage 5, freeze: `freeze_tests.py`, then `tests/` and `verification/` leave
+- [x] Stage 5, freeze: `freeze_tests.py`, then `tests/` and `verification/` leave
   `approved_scope`. Evidence: `check_test_freeze` green.
-- [ ] Stage 6, build: Lane A, then Lane B, then Lane C. Evidence: both contract
+- [x] Stage 6, build: Lane A, then Lane B, then Lane C. Evidence: both contract
   commands green.
-- [ ] Stage 7, gate: full `run_verify.py` green and `check_gate_bite` green.
-- [ ] Stage 8, review: Lane R, two reviewers, findings recorded.
-- [ ] Stage 9, audit: audit packet with summary, non-coding checklist, review
+- [x] Stage 7, gate: full `run_verify.py` green and `check_gate_bite` green.
+- [x] Stage 8, review: Lane R, two reviewers, findings recorded.
+- [x] Stage 9, audit: audit packet with summary, non-coding checklist, review
   findings, decision outcomes, and one hand-recomputable number.
-- [ ] Stage 10, closeout: plan filed as completed, phase completed, tag, idle, gate
+- [x] Stage 10, closeout: plan filed as completed, phase completed, tag, idle, gate
   again, merge.
 
 ## Verification
@@ -126,7 +129,33 @@ number to quietly shrink.
 
 ## Outcome
 
-Not yet complete.
+Complete, with one finding recorded rather than fixed.
+
+The bot can now be dealt to. The simulator borrows every poker rule from Phase 01 and
+decides only when to ask; the profiles name what is being compared; the report leads with
+what it cannot claim. Self-play nets exactly zero over 600 hands, every measured hand was
+re-derived by the frozen Phase 02 replayer, and the floor run puts the chart bot 14.9
+standard errors above a bot that folds everything.
+
+Two things went wrong on the way and both are worth keeping.
+
+Three of four mutation canaries survived their first run. Two were errors in the canaries
+themselves - a seed shift that was deterministic, and a disabled assertion that never
+fires - and the third was correct and exposed that every refusal assertion in the frozen
+tests passed vacuously when no hand was refused. Repairing them needed the test file and
+the mutation list back in scope, so it landed as its own task rather than as a reach
+around the freeze.
+
+Stage 8 then found the phase's real defect: a voided hand's record keeps only the blind
+posts, because a street is filed only once its betting round finishes and a refusal aborts
+the round. So 565 real actions across 128 hands are discarded, and the report's headline
+21.3% refusal figure is a count where it claims to be a list of uncovered spots. Taylor
+chose to close the phase with that recorded and address it next, together with teaching a
+refusal to name the spot it missed. `SIMULATOR-VOIDED-HAND-RECORD`.
+
+The phase's most valuable output is the one nothing in the contract asked for: the charts
+have no answer for 21.3% of self-play hands, concentrated in three-bet and four-bet trees.
+That is the first countable measurement of this repo's own preflop coverage gap.
 
 ## Next Agent Bootstrap
 

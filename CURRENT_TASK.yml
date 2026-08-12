@@ -1,13 +1,8 @@
-task_id: PHASE-07-CANARY-REPAIR
-active_phase: "07"
-task_mode: implementation
-base_commit: 55ca3521ac001c551e19f9cd7f3d8415a4cbdaa8
-approved_scope:
-  - reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md
-  - reports/phase_audits/reviews/**
-  - tests/test_simulator.py
-  - verification/freeze.lock
-  - verification/mutations.yml
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
