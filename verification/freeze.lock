@@ -41,6 +41,9 @@ files:
   tests/test_preflop_positions.py:
     sha256: cb051eb9e8e2f707f306ae182ad38bc038870661dde5ba002b60989c0c2c1c87
     test_functions: 28
+  tests/test_sample_comparison.py:
+    sha256: 5a00d7633b213f4df9456a82e800a03267a59b6f91d1d76092d24c752505a6ea
+    test_functions: 40
   tests/test_simulator.py:
     sha256: 9ece5d18fdd281df226aac1b5a1a6c7cf8d44853ce9dc30f0b08fd97108d39b2
     test_functions: 44
@@ -48,4 +51,4 @@ files:
     sha256: 9db283ccfceaef42a58d09c97ed5773dd5b170f685c9d588abfa05a168fd2d34
     test_functions: 59
 schema_version: 1
-test_function_floor: 406
+test_function_floor: 446
