@@ -1,8 +1,10 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE-08-CONTRACT
+active_phase: "08"
+task_mode: contract-update
+base_commit: 40886711c257c5bbfba64fe74d45a6a7cbb1c74b
+approved_scope:
+  - docs/phase_contracts/PHASE_08_SAMPLE_COMPARISON.md
+  - reports/phase_audits/decisions/PHASE_08_SAMPLE_COMPARISON_DECISIONS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -97,3 +99,5 @@ scope_change_log:
     reason: Implementing the refusal inventory needs StrategyRefusal to carry detail and its Phase 03 tests, the preflop chart to populate that detail from the lookup's own spot key, the simulator to keep a refused hand's partial street and stop claiming it is a completed history, the report generator that writes the inventory, the Phase 07 tests those changes move, a canary per half of the fix, and the freeze lock recording the re-frozen tests. The two contracts leave approved_scope because implementation mode may not touch them.
   - date: 2026-08-12
     reason: Phase 08 was gated on hands only Taylor could supply, and that gate is now answerable. The Pluribus subset of the public PHH dataset is 10000 six-handed 100bb hands at 50/100 with every hole card shown and a finishing_stacks oracle, fetchable from a public repository under a stable DOI, so the input is reproducible rather than a private export. Reopening the phase needs verification/loop_policy.yml alone; auto_advance stays false because the phase still commits sample data.
+  - date: 2026-08-12
+    reason: Phase 08 contract-update needs the phase contract itself, whose skeleton carries only gate boilerplate, plus a pre-implementation judgment-call record under reports/phase_audits/decisions/ so the ingestion choices that get written into a committed sample are ruled on by a human before any code exists.
