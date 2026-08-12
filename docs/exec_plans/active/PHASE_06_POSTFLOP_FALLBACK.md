@@ -62,8 +62,13 @@ and `preflop_sizing.py` are read-only for this phase.
   `pytest_postflop_fallback` result they last observed. Lane C returns a generator
   plus the two report files it wrote. Lane R returns findings classified blocker or
   not, written to `reports/phase_audits/reviews/PHASE_06_POSTFLOP_FALLBACK.md`.
-- Status: Lane T planned. Lane A planned. Lane B planned. Lane C planned. Lane R
-  planned.
+- Status: Lane T landed at stage 4 and was frozen at stage 5. Lane A, Lane B and
+  Lane C landed together in the stage 6 build commit, in that order, against the
+  frozen tests. Lane R ran at stage 8 as two coordinator review passes rather than
+  as delegated read-only subagents, because subagent delegation is disabled for the
+  session that reached stage 8; `AGENTS.md` step 10 allows that with the reason
+  recorded, and the reason plus its cost is stated at the top of
+  `reports/phase_audits/reviews/PHASE_06_POSTFLOP_FALLBACK.md`.
 - Integration order: Lane T lands and is frozen before any builder starts. Lane A
   lands first because Lane B consumes its interface, Lane B second, Lane C last
   because it reports on both. The coordinator runs the phase command after each
@@ -80,25 +85,34 @@ and `preflop_sizing.py` are read-only for this phase.
 
 ## Slices
 
-- [ ] Stage 1, contract: real acceptance criteria and this plan. Evidence:
-  `loop_stage.py --advance` past stage 1.
-- [ ] Stage 2, decisions: judgment-call record with a reversibility class per item.
-  Evidence: `--advance` past stage 2.
-- [ ] Stage 3, human gate: no unanswered `frozen-into-data` item. This phase writes
-  no committed data, so every call is expected to be `runtime-reversible` and
-  reported afterwards rather than blocking.
-- [ ] Stage 4, tests: Lane T authors `tests/test_postflop_fallback.py`;
-  coordinator registers `pytest_postflop_fallback` and
-  `generate_postflop_fallback_report`, and adds the mutations that must make the
-  new command fail. Evidence: the command is red on assertions or a missing module.
-- [ ] Stage 5, freeze: `freeze_tests.py`, then `tests/` and `verification/` leave
-  `approved_scope`. Evidence: `check_test_freeze` green.
-- [ ] Stage 6, build: Lane A, then Lane B, then Lane C. Evidence: both contract
-  commands green.
-- [ ] Stage 7, gate: full `run_verify.py` green and `check_gate_bite` green.
-- [ ] Stage 8, review: Lane R, two reviewers, findings recorded.
+- [x] Stage 1, contract: real acceptance criteria and this plan. Evidence:
+  `loop_stage.py --advance` past stage 1, commit `37cd4b6`.
+- [x] Stage 2, decisions: judgment-call record with a reversibility class per item.
+  Evidence: `--advance` past stage 2, commit `3058a86`.
+- [x] Stage 3, human gate: no unanswered `frozen-into-data` item. Every one of the
+  seven calls is `runtime-reversible`, so the loop proceeded on the defaults and
+  reports them at closeout. Judgment call 2 has since come back at stage 8, which is
+  the cost of deferring a domain ruling rather than blocking on it.
+- [x] Stage 4, tests: Lane T authored `tests/test_postflop_fallback.py`; the
+  coordinator registered `pytest_postflop_fallback` and
+  `generate_postflop_fallback_report` and added three mutations. Evidence: the
+  command was red on a missing `poker_training_bot` module, commit `e081795`.
+- [x] Stage 5, freeze: `freeze_tests.py`, then `tests/`, `verification/`, the
+  command registry and the contract left `approved_scope` and `base_commit` moved to
+  the freeze commit. Evidence: `check_test_freeze` green, commits `d48625f`,
+  `44bcddc`.
+- [x] Stage 6, build: Lane A, then Lane B, then Lane C. Evidence: both contract
+  commands green, commit `64ef430`.
+- [x] Stage 7, gate: full `run_verify.py` green across 29 commands and
+  `check_gate_bite` green. Evidence: commit `068fda0`, re-confirmed green at stage 8.
+- [x] Stage 8, review: findings recorded in
+  `reports/phase_audits/reviews/PHASE_06_POSTFLOP_FALLBACK.md`. One domain blocker,
+  seven non-blockers, no mechanical blocker. The blocker is a re-ruling of judgment
+  call 2, so the phase halts here rather than advancing.
 - [ ] Stage 9, audit: audit packet with summary, non-coding checklist, review
-  findings, decision outcomes, and one hand-recomputable number.
+  findings, decision outcomes, and one hand-recomputable number. Blocked until the
+  judgment call 2 ruling lands, because the packet would otherwise document a rule
+  that is about to change.
 - [ ] Stage 10, closeout: plan filed as completed, phase completed, tag, idle, gate
   again, merge.
 
@@ -112,7 +126,22 @@ Reports: `reports/active/latest_postflop_fallback_report.txt`,
 
 ## Outcome
 
-Not yet complete.
+Not yet complete. Halted at stage 8 on a domain blocker.
+
+The fallback, the composite, the report generator and the decision audit are built
+and the full gate is green, including `check_gate_bite`. What stops the phase is a
+review finding rather than a failure: judgment call 2 ruled the river unbeatable test
+`strict-no-ties`, on the recorded ground that calling a guaranteed chop "depends on
+the price". It does not. A chopped pot returns the villain's bet and a share of the
+dead money, so calling a hand no holding can beat gains at least `(pot - to_call) / 2`
+and can never lose. In the state the committed report enumerates that is +50 chips
+folded away.
+
+The strictness is an acceptance criterion and a named forbidden shortcut in the
+contract, so reversing it needs a `contract-update` task ahead of the code, the
+frozen tests, and the `fallback-calls-guaranteed-chops` mutation. That is the Phase 05
+shape: review measures the cost of a ruling, the ruling changes, the contract changes
+first. Taylor rules on it; the loop does not.
 
 ## Next Agent Bootstrap
 
