@@ -1,9 +1,8 @@
-task_id: MAINT-07-SAMPLE-SOURCE-GATE
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 088b12d9ce202a336b98a1cdf81ba18f411fbb96
-approved_scope:
-  - verification/loop_policy.yml
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
