@@ -154,7 +154,11 @@ def convert_hand(hand: CorpusHand) -> NormalizedHandHistory:
 
     pot = sum(total_committed.values())
     payouts = {
-        seat: hand.finishing_stacks[seat] - hand.starting_stacks[seat] + total_committed.get(seat, 0)
+        seat: (
+            hand.finishing_stacks[seat]
+            - hand.starting_stacks[seat]
+            + total_committed.get(seat, 0)
+        )
         for seat in range(seat_count)
     }
     if any(amount < 0 for amount in payouts.values()):
