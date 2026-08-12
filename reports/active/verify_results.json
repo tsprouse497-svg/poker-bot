@@ -1,16 +1,52 @@
 {
   "all_passed": false,
-  "generated_at_epoch": 1786551561,
+  "generated_at_epoch": 1786552374,
   "results": [
     {
-      "command": [],
-      "command_id": "unknown_command_ids",
-      "description": "Gate setup failure",
-      "duration_seconds": 0.0,
-      "passed": false,
-      "returncode": 2,
-      "stderr": "Unknown command IDs: ['pytest_simulator', 'generate_profile_comparison_report']. Register new gate commands in COMMANDS in scripts/run_verify.py.",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/check_repo_consistency.py"
+      ],
+      "command_id": "check_repo_consistency",
+      "description": "Cross-check phase status, ExecPlan location, and gate commands",
+      "duration_seconds": 0.087,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "repo consistency checks passed\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/check_scope.py"
+      ],
+      "command_id": "check_scope",
+      "description": "Validate task scope",
+      "duration_seconds": 0.15,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
       "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "ruff",
+        "check",
+        "."
+      ],
+      "command_id": "ruff_check",
+      "description": "Run ruff",
+      "duration_seconds": 0.06,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "",
+      "stdout": "E501 Line too long (102 > 100)\n   --> tests/test_simulator.py:253:101\n    |\n251 |             points: list = []\n252 |             replay_hand(hand.normalized, on_decision=points.append)\n253 |             replayed = [(point.street.value, point.seat, point.action.kind.value) for point in points]\n    |                                                                                                     ^^\n254 |             asked = [\n255 |                 (record.query.street, record.query.seat, record.outcome.action)\n    |\n\nE501 Line too long (109 > 100)\n   --> tests/test_simulator.py:299:101\n    |\n297 |     def test_two_profiles_differing_only_in_name_play_identically(self) -> None:\n298 |         renamed = tuple(\n299 |             replace(profile, name=f\"{profile.name}-renamed\") for profile in seat_profiles(\"self-play\", SEATS)\n    |                                                                                                     ^^^^^^^^^\n300 |         )\n301 |         original = run_simulation(config())\n    |\n\nFound 2 errors.\n"
     }
   ],
   "schema_version": 1

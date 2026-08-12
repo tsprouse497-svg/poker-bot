@@ -177,6 +177,14 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_postflop_fallback_report.py"],
         "Generate postflop fallback enumeration report and decision audit",
     ),
+    "pytest_simulator": CommandSpec(
+        uv_python_command() + ["-m", "pytest", "tests/test_simulator.py"],
+        "Run offline simulator and profile tests",
+    ),
+    "generate_profile_comparison_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_profile_comparison_report.py"],
+        "Generate the bot/profile comparison report",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",

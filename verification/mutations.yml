@@ -115,3 +115,48 @@ mutations:
     replace: "return POSTFLOP_COMPONENT"
     must_fail:
       - pytest_postflop_fallback
+
+  - id: simulator-seeds-from-the-clock
+    description: >-
+      The simulator seeds its shuffle from something a rerun cannot reproduce, so a
+      report's numbers stop being regenerable and the seed printed beside them stops
+      meaning anything. This is the mutation a green gate cannot otherwise notice,
+      because a non-deterministic simulation still produces a plausible report.
+    file: src/poker_training_bot/simulator/run.py
+    find: "    return Random(hand_seed)"
+    replace: "    return Random(hand_seed + len(str(hand_seed)) % 2)"
+    must_fail:
+      - pytest_simulator
+
+  - id: simulator-checks-chips-in-aggregate
+    description: >-
+      Chip conservation is checked over the whole run instead of per hand, so two
+      errors that cancel each other out pass. The per-hand books are the only version
+      of this check that is worth anything.
+    file: src/poker_training_bot/simulator/run.py
+    find: "    if sum(deltas.values()) != 0:"
+    replace: "    if False and sum(deltas.values()) != 0:"
+    must_fail:
+      - pytest_simulator
+
+  - id: simulator-carries-stacks-between-hands
+    description: >-
+      Stacks stop resetting to the committed chart's depth between hands, so from the
+      second hand onward the chart refuses a table that is no longer one flat stack
+      depth and the run measures the refusal path instead of the strategy.
+    file: src/poker_training_bot/simulator/run.py
+    find: "STACKS_RESET_EVERY_HAND = True"
+    replace: "STACKS_RESET_EVERY_HAND = False"
+    must_fail:
+      - pytest_simulator
+
+  - id: simulator-converts-a-refusal-into-a-fold
+    description: >-
+      A StrategyRefusal becomes a fold rather than ending the hand as a counted
+      outcome, which erases the coverage signal Phases 04 through 06 exist to produce
+      and quietly moves chips on a hand nobody decided.
+    file: src/poker_training_bot/simulator/run.py
+    find: "REFUSAL_VOIDS_THE_HAND = True"
+    replace: "REFUSAL_VOIDS_THE_HAND = False"
+    must_fail:
+      - pytest_simulator
