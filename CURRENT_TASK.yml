@@ -1,10 +1,17 @@
-task_id: REFUSAL-INVENTORY-CONTRACT
+task_id: REFUSAL-INVENTORY-IMPLEMENTATION
 active_phase: "07"
-task_mode: contract-update
-base_commit: 8fc335309764113b80b6a1414592d8a42ffbd4d5
+task_mode: implementation
+base_commit: 3338b41f5483d1af2dda21c2e555d484af191e4e
 approved_scope:
-  - docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
-  - docs/phase_contracts/PHASE_07_SIMULATOR_REPORTS.md
+  - reports/phase_audits/reviews/REFUSAL_INVENTORY.md
+  - scripts/generate_profile_comparison_report.py
+  - src/poker_training_bot/simulator/**
+  - src/poker_training_bot/strategy/contract.py
+  - src/poker_training_bot/strategy/preflop_chart.py
+  - tests/test_simulator.py
+  - tests/test_strategy_contract.py
+  - verification/freeze.lock
+  - verification/mutations.yml
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -95,3 +102,5 @@ scope_change_log:
     reason: Stage 7 halted because three Phase 07 canaries survive. Two are authoring errors in the canaries themselves and one is a genuine gap in the frozen tests, so repairing them needs verification/mutations.yml, the test file that has to pin judgment call 4, and the freeze lock recording it. The simulator and the report generator leave approved_scope, because this task must not be able to reshape the implementation to suit a canary - the point is the reverse.
   - date: 2026-08-12
     reason: The Phase 07 stage 8 blocker is not a code defect on its own. A refusal names the kind of miss and not the spot it missed, so the only record of which spot the charts failed on was the action sequence that a voided hand then discarded. Fixing that needs the Phase 03 contract to require a refusal to carry structured detail about what was missing, and the Phase 07 contract to require a refusal inventory keyed by that detail plus a refused hand that carries its own action without claiming to be a completed hand history. Both are semantic contract changes, so they land in contract-update mode before any code.
+  - date: 2026-08-12
+    reason: Implementing the refusal inventory needs StrategyRefusal to carry detail and its Phase 03 tests, the preflop chart to populate that detail from the lookup's own spot key, the simulator to keep a refused hand's partial street and stop claiming it is a completed history, the report generator that writes the inventory, the Phase 07 tests those changes move, a canary per half of the fix, and the freeze lock recording the re-frozen tests. The two contracts leave approved_scope because implementation mode may not touch them.

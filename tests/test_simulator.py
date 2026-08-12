@@ -258,21 +258,34 @@ class TestDeterminism:
 
 
 class TestReplayAgreement:
-    # Every dealt hand is expressible in the Phase 02 schema, and feeding it back
-    # through the frozen Phase 02 replayer reproduces the same decision points. This
-    # is what stops the simulator and the replayer being two independent stories.
-    def test_every_dealt_hand_is_a_valid_normalized_hand(self, self_play) -> None:
-        for hand in self_play.hands:
+    # Every hand that reached a settlement is expressible in the Phase 02 schema, and
+    # feeding it back through the frozen Phase 02 replayer reproduces the same decision
+    # points. This is what stops the simulator and the replayer being two independent
+    # stories about the same rules.
+    def test_every_settled_hand_is_a_valid_normalized_hand(self, self_play) -> None:
+        settled = self_play.settled_hands()
+
+        assert settled, "no hand settled, so this whole class is vacuous"
+        for hand in settled:
             assert isinstance(hand.normalized, NormalizedHandHistory), hand.hand_id
             assert hand.normalized.max_seats == SEATS
             assert len(hand.normalized.players) == SEATS
 
+    # A refused hand stops inside a betting round, so it is not a completed hand history
+    # and must not claim to be one. Presenting one would be a category error, and the
+    # replayer agrees: it rejects such a record for ending with an open betting round.
+    def test_a_refused_hand_carries_no_completed_hand_history(self, self_play) -> None:
+        refused = [hand for hand in self_play.hands if hand.outcome == "refused"]
+
+        assert refused, "no hand was refused, so this assertion is vacuous"
+        assert all(hand.normalized is None for hand in refused)
+        settled_ids = {hand.hand_id for hand in self_play.settled_hands()}
+        assert settled_ids.isdisjoint({hand.hand_id for hand in refused})
+
     def test_the_replayer_finds_the_same_decision_points_the_simulator_asked_about(
         self, self_play
     ) -> None:
-        for hand in self_play.hands:
-            if hand.outcome == "refused":
-                continue
+        for hand in self_play.settled_hands():
             points: list = []
             replay_hand(hand.normalized, on_decision=points.append)
             replayed = [
@@ -285,9 +298,9 @@ class TestReplayAgreement:
 
             assert replayed == asked, hand.hand_id
 
-    def test_a_dealt_hand_replays_without_the_simulator_present(self, self_play) -> None:
+    def test_a_settled_hand_replays_without_the_simulator_present(self, self_play) -> None:
         """The normalized hand stands on its own, which is what makes it evidence."""
-        for hand in self_play.hands[:4]:
+        for hand in self_play.settled_hands()[:4]:
             assert replay_hand(hand.normalized) is not None, hand.hand_id
 
 
@@ -401,3 +414,58 @@ class TestWhatTheComparisonMayClaim:
     def test_the_seed_and_the_hand_count_are_carried_on_the_result(self, self_play) -> None:
         assert self_play.seed == SEED
         assert self_play.hands_dealt() == RUN_HANDS
+
+
+class TestRefusalsAreActionable:
+    """The half of this phase that turns a coverage count into a work list.
+
+    The first version of the simulator reported that the charts were silent 128 times and
+    could not say where, because a refused hand's record was built from whole streets and a
+    refusal never completes one. Every assertion here is written to fail loudly if that
+    regresses, and each one guards against vacuity first: a class of tests that only checks
+    refused hands is worth nothing on a run with no refusals, which is exactly how the
+    earlier gap survived.
+    """
+
+    def test_a_refused_hand_keeps_every_action_taken_before_the_refusal(self, self_play) -> None:
+        refused = [hand for hand in self_play.hands if hand.outcome == "refused"]
+
+        assert refused, "no hand was refused, so this assertion is vacuous"
+        assert any(hand.decisions for hand in refused), "no refusal followed a real action"
+        for hand in refused:
+            recorded = sum(len(street.actions) for street in hand.streets)
+
+            # Two blind posts, which are forced rather than chosen, plus one recorded action
+            # per decision the simulator actually applied before the refusal.
+            assert recorded == len(hand.decisions) + 2, hand.hand_id
+
+    def test_a_refusal_names_the_spot_the_chart_could_not_answer(self, self_play) -> None:
+        refused = [hand for hand in self_play.hands if hand.outcome == "refused"]
+
+        assert refused, "no hand was refused, so this assertion is vacuous"
+        for hand in refused:
+            assert hand.refusal_detail, hand.hand_id
+            named = dict(hand.refusal_detail)
+            assert named.get("hand_class"), hand.hand_id
+            assert named.get("table_size") == str(SEATS), hand.hand_id
+
+    def test_the_inventory_accounts_for_every_refused_hand(self, self_play) -> None:
+        inventory = self_play.refusal_inventory()
+        refused = sum(1 for hand in self_play.hands if hand.outcome == "refused")
+
+        assert refused > 0
+        assert sum(spot.hands for spot in inventory) == refused
+
+    def test_the_inventory_is_ordered_by_how_many_hands_reached_each_spot(
+        self, self_play
+    ) -> None:
+        counts = [spot.hands for spot in self_play.refusal_inventory()]
+
+        assert counts == sorted(counts, reverse=True)
+
+    def test_the_inventory_is_stable_across_runs(self) -> None:
+        """Byte-stability is what makes its diff a record of coverage improving."""
+        first = run_simulation(config()).refusal_inventory()
+        second = run_simulation(config()).refusal_inventory()
+
+        assert first == second

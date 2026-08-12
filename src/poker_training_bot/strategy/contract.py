@@ -194,13 +194,53 @@ class StrategyDecision:
 
 @dataclass(frozen=True)
 class StrategyRefusal:
-    """Fail-closed outcome: a strategy refuses rather than guesses."""
+    """Fail-closed outcome: a strategy refuses rather than guesses.
+
+    Two fields, doing two different jobs. `code` is a stable vocabulary naming the *kind*
+    of miss, so refusals group and count. `detail` names the specific thing that could not
+    be found, so they can be acted on.
+
+    The split exists because a count of refusals is not a work list. A phase that measures
+    coverage can report that a chart was silent forty times; closing the gap needs to know
+    which forty spots. Before this field the only trace of that was the action sequence
+    that led to the refusal, which put the burden on every caller to preserve it - and the
+    Phase 07 simulator did not, which is how 565 actions across 128 hands went missing.
+
+    Ordered pairs rather than a mapping, because the record has to serialize to identical
+    bytes on every run and an ordering that is explicit cannot drift. Empty by default, so
+    a refusal with nothing useful to add stays exactly as simple as it was.
+    """
 
     code: str
+    detail: tuple[tuple[str, str], ...] = ()
 
     def __post_init__(self) -> None:
         if not self.code:
             raise ValueError("refusal code is required")
+        if not isinstance(self.detail, tuple):
+            raise ValueError(f"refusal detail must be a tuple, got {type(self.detail).__name__}")
+        for entry in self.detail:
+            if not isinstance(entry, tuple) or len(entry) != 2:
+                raise ValueError(f"refusal detail entries must be name/value pairs, got {entry!r}")
+            name, value = entry
+            if not isinstance(name, str) or not name:
+                raise ValueError(f"refusal detail names must be non-empty strings, got {name!r}")
+            if not isinstance(value, str):
+                raise ValueError(f"refusal detail values must be strings, got {value!r}")
+        names = [name for name, _ in self.detail]
+        if len(set(names)) != len(names):
+            raise ValueError(f"refusal detail names must be unique, got {names}")
+
+    def named(self, name: str) -> str | None:
+        """One detail value by name, or None.
+
+        A reader wanting the spot key should not have to know where in the sequence it
+        sits, and a producer should be free to add a field without moving another one.
+        """
+        for entry_name, value in self.detail:
+            if entry_name == name:
+                return value
+        return None
 
 
 @runtime_checkable
@@ -220,7 +260,12 @@ def _outcome_payload(outcome: StrategyDecision | StrategyRefusal) -> dict[str, A
             "code": outcome.code,
         }
     if isinstance(outcome, StrategyRefusal):
-        return {"kind": "refusal", "code": outcome.code}
+        payload: dict[str, Any] = {"kind": "refusal", "code": outcome.code}
+        if outcome.detail:
+            # Only when there is something to say, so every audit line written before this
+            # field existed still serializes to the bytes it did before.
+            payload["detail"] = [list(entry) for entry in outcome.detail]
+        return payload
     raise ValueError(f"unsupported outcome type: {type(outcome).__name__}")
 
 

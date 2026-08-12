@@ -1,8 +1,8 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `REFUSAL-INVENTORY-CONTRACT`
-Task mode: `contract-update`
+Current task: `REFUSAL-INVENTORY-IMPLEMENTATION`
+Task mode: `implementation`
 Active phase: `07`
 Completed phases: `8`
 

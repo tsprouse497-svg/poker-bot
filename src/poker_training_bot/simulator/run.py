@@ -124,6 +124,23 @@ def _hand_random(hand_seed: int) -> Random:
     return Random(hand_seed)
 
 
+def _filed_through(
+    filed: list[HistoryStreet],
+    street: StreetName,
+    board: tuple[Card, ...],
+    actions: list[HistoryAction],
+) -> tuple[HistoryStreet, ...]:
+    """The streets already filed, plus the one a refusal stopped in the middle of.
+
+    A street is normally filed once its betting round completes, and a refusal returns before
+    that, so without this the partial street is lost - and with it every action taken before
+    the refusal, which is the only thing that identifies the spot that was refused. An earlier
+    version of this module returned the filed streets alone, and threw away 565 actions across
+    128 hands without a single test objecting.
+    """
+    return (*filed, HistoryStreet(name=street, board=board, actions=tuple(actions)))
+
+
 @dataclass(frozen=True)
 class _Played:
     """Everything one hand produced before the pot was awarded."""
@@ -180,8 +197,13 @@ def _play(
             outcome = config.profiles[seat].strategy.decide(query)
             if isinstance(outcome, StrategyRefusal):
                 if REFUSAL_VOIDS_THE_HAND:
+                    # File the street as far as it got. A refusal aborts the betting round,
+                    # so the loop below never reaches the append at the bottom - and an
+                    # earlier version returned here without this line, which threw away
+                    # every action taken before the refusal and with it the only trace of
+                    # which spot was refused.
                     return _Played(
-                        streets=tuple(streets),
+                        streets=_filed_through(streets, street, street_board, actions),
                         decisions=tuple(decisions),
                         committed=committed,
                         folded=folded,
@@ -226,16 +248,16 @@ def _voided(
     starting: dict[int, int],
     played: _Played,
 ) -> HandResult:
-    """A refused hand: counted, named, and moving nothing.
+    """A refused hand: counted, named, carrying its action, and moving nothing.
 
-    Judgment call 4. Chip conservation then holds trivially rather than by an accounting fix,
-    and the refusal reaches the report with its own reason code, which is the coverage signal
-    Phases 04 through 06 exist to produce.
+    Judgment call 4. Chip conservation holds trivially rather than by an accounting fix, and
+    the refusal reaches the report with its own reason code and the detail naming what the
+    strategy could not find - which is what lets the inventory key an entry to a chart cell.
 
-    The hand still carries a normalized record of what it dealt, because a reviewer asking
-    which spot the chart refused needs the cards and the action in front of it. The record
-    reports a zero pot and no winner, which is what a voided hand is: everybody's money goes
-    back where it came from.
+    No completed normalized record, deliberately. The hand stops inside a betting round, so
+    it is not a hand the Phase 02 replayer can re-derive, and handing one over would be a
+    category error dressed as convenience. What it carries instead is the transcript as far
+    as it got, which is where the refused spot is legible.
     """
     refusal = played.refusal
     assert refusal is not None
@@ -246,21 +268,14 @@ def _voided(
         outcome=REFUSED,
         refusal_code=refusal.code,
         refusing_seat=played.refusing_seat,
+        refusal_detail=refusal.detail,
         starting_stacks=dict(starting),
         stack_deltas={seat: 0 for seat in config.seats},
         pot_collected=0,
         pot_awarded=0,
         decisions=played.decisions,
-        normalized=normalized_hand(
-            config,
-            hand_id,
-            button_seat,
-            starting,
-            played.streets or blinds_only(config, button_seat),
-            (),
-            {seat: 0 for seat in config.seats},
-            0,
-        ),
+        streets=played.streets or blinds_only(config, button_seat),
+        normalized=None,
     )
 
 
@@ -315,11 +330,13 @@ def _settle(
         outcome=outcome,
         refusal_code=None,
         refusing_seat=None,
+        refusal_detail=(),
         starting_stacks=dict(starting),
         stack_deltas=deltas,
         pot_collected=pot_collected,
         pot_awarded=settlement.total_pot,
         decisions=played.decisions,
+        streets=played.streets,
         normalized=normalized_hand(
             config,
             hand_id,

@@ -58,6 +58,7 @@ Not in scope: committing a decision audit file
 - Ownership: Lane C owns `strategy/contract.py` and `strategy/preflop_chart.py`. Lane S
   owns `simulator/**`. Lane I owns the report generator. The coordinator owns the two
   contracts, the mutation entries, the freeze lock, `CURRENT_TASK.yml`, and every commit.
+- Status: Lane C planned. Lane S planned. Lane I planned. Lane R planned.
 - Delegation availability: subagent delegation is disabled in this session, so the
   coordinator implements each lane in order and performs the review pass itself, with the
   reason recorded here and in the review notes. `AGENTS.md` step 10 permits that. Phases

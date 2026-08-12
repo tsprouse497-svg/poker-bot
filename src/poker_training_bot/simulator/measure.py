@@ -17,14 +17,48 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import dataclass
 
-from poker_training_bot.hand_history.schema import NormalizedHandHistory
+from poker_training_bot.hand_history.schema import HistoryStreet, NormalizedHandHistory
 from poker_training_bot.simulator.outcomes import REFUSED
 from poker_training_bot.strategy.contract import DecisionAuditRecord
 
 
 @dataclass(frozen=True)
+class RefusedSpot:
+    """One spot the charts could not answer, and how much of it this run reached.
+
+    `hands` is what orders the work list. `hand_classes` says which holdings actually turned
+    up there, which is how a reader can tell a spot that came up once with one hand from a
+    spot that came up sixty times across forty hands - the second is a real hole and the
+    first might be noise.
+    """
+
+    detail: tuple[tuple[str, str], ...]
+    code: str
+    hands: int
+    hand_classes: tuple[tuple[str, int], ...]
+
+    @property
+    def spot_key(self) -> str:
+        return dict(self.detail).get("spot_key", "(no expressible spot)")
+
+
+@dataclass(frozen=True)
 class HandResult:
-    """One dealt hand, its books, and the record that lets anyone re-derive it."""
+    """One dealt hand, its books, and the record that lets anyone re-derive it.
+
+    `streets` is always the transcript as far as the hand actually got, including the
+    partial street a refusal stopped in the middle of. `normalized` is a completed Phase 02
+    hand history and exists only when the hand reached a settlement - a refused hand stops
+    inside a betting round, so there is no completed hand for the replayer to re-derive and
+    presenting one would be a category error rather than a convenience.
+
+    The first version of this phase collapsed the two, which is how the actions identifying
+    a refused spot were lost: the record was built from whole streets, and a refusal never
+    completes one.
+
+    `refusal_detail` carries what the strategy could not find, straight off the
+    `StrategyRefusal`, which is what makes an inventory of refusals keyable to a chart cell.
+    """
 
     hand_id: str
     seed: int
@@ -32,12 +66,14 @@ class HandResult:
     outcome: str
     refusal_code: str | None
     refusing_seat: int | None
+    refusal_detail: tuple[tuple[str, str], ...]
     starting_stacks: dict[int, int]
     stack_deltas: dict[int, int]
     pot_collected: int
     pot_awarded: int
     decisions: tuple[DecisionAuditRecord, ...]
-    normalized: NormalizedHandHistory
+    streets: tuple[HistoryStreet, ...]
+    normalized: NormalizedHandHistory | None
 
 
 @dataclass(frozen=True)
@@ -58,6 +94,47 @@ class SimulationResult:
 
     def hands_dealt(self) -> int:
         return len(self.hands)
+
+    def settled_hands(self) -> tuple[HandResult, ...]:
+        """The hands that reached a settlement, and therefore carry a replayable record."""
+        return tuple(hand for hand in self.hands if hand.normalized is not None)
+
+    def refusal_inventory(self) -> tuple[RefusedSpot, ...]:
+        """Every distinct spot a strategy could not answer, most-reached first.
+
+        Keyed by the spot rather than by the spot-and-hand pair, because a spot is the unit
+        of chart work: committing `t6/d100/BB/BTN:raise,SB:raise` covers every hand class in
+        it at once, and a list fragmented by hand class buries a spot reached sixty times
+        under sixty rows of one. The hand classes are kept as counts underneath, since they
+        say how much of the spot this run actually exercised.
+
+        The key comes off the refusal's own detail with the hand class lifted out, so an
+        entry still names the cell the lookup asked about rather than anything re-derived
+        here. Ordered by hands reached, ties breaking on the code and then on the key, so
+        the file is byte-stable between runs and its diff is a record of coverage improving.
+        """
+        hands: Counter = Counter()
+        classes: dict[tuple[tuple[tuple[str, str], ...], str], Counter] = {}
+        for hand in self.hands:
+            if hand.refusal_code is None:
+                continue
+            named = dict(hand.refusal_detail)
+            hand_class = named.pop("hand_class", None)
+            key = (tuple(sorted(named.items())), hand.refusal_code)
+            hands[key] += 1
+            if hand_class is not None:
+                classes.setdefault(key, Counter())[hand_class] += 1
+        return tuple(
+            RefusedSpot(
+                detail=key[0],
+                code=key[1],
+                hands=count,
+                hand_classes=tuple(sorted(classes.get(key, Counter()).items())),
+            )
+            for key, count in sorted(
+                hands.items(), key=lambda item: (-item[1], item[0][1], item[0][0])
+            )
+        )
 
     def hands_counted(self) -> int:
         """Hands that moved chips. A refused hand is voided, so it is not in here."""

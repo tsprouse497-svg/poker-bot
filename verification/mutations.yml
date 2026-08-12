@@ -165,3 +165,28 @@ mutations:
     replace: "REFUSAL_VOIDS_THE_HAND = False"
     must_fail:
       - pytest_simulator
+
+  - id: chart-refusal-forgets-what-it-looked-for
+    description: >-
+      A chart miss stops naming the spot it could not find, so the refusal is a count of
+      the kind of miss and nothing more. That is the state Phase 07 shipped in, where the
+      report announced that 21.3% of hands were refused and could not say where, and the
+      only trace of the spot was an action sequence the simulator then discarded.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "        return tuple(detail)"
+    replace: "        return ()"
+    must_fail:
+      - pytest_strategy_contract
+      - pytest_simulator
+
+  - id: simulator-drops-the-refused-street
+    description: >-
+      A refused hand goes back to filing only the streets that finished, which on a preflop
+      refusal is none of them, so every action taken before the refusal is thrown away and
+      the refused spot becomes unidentifiable from the hand. This is the Phase 07 stage 8
+      blocker itself, reinstalled as a canary.
+    file: src/poker_training_bot/simulator/run.py
+    find: "    return (*filed, HistoryStreet(name=street, board=board, actions=tuple(actions)))"
+    replace: "    return tuple(filed)"
+    must_fail:
+      - pytest_simulator

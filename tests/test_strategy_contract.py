@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from typing import Any
 
@@ -15,6 +16,7 @@ from poker_training_bot.strategy.contract import (
     StrategyRefusal,
     records_to_jsonl,
 )
+from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 from poker_training_bot.strategy.reference import CheckFoldStrategy
 
 
@@ -36,6 +38,49 @@ def make_query(**overrides: Any) -> StrategyQuery:
     }
     fields.update(overrides)
     return StrategyQuery(**fields)
+
+
+def _audit_line_for(outcome: StrategyDecision | StrategyRefusal) -> str:
+    return DecisionAuditRecord(
+        schema_version=DECISION_AUDIT_SCHEMA_VERSION,
+        strategy_id="test",
+        strategy_version=1,
+        query=make_query(),
+        outcome=outcome,
+    ).to_json_line()
+
+
+def _uncovered_spot_query() -> StrategyQuery:
+    """A six-handed 100bb four-bet spot, which the committed charts do not hold.
+
+    Phase 05 committed opens, responses to a single open, an opener facing a three-bet, and
+    the big blind against a small-blind limp. A third raise is past all of those, so the
+    lookup misses and the refusal has a spot key to name.
+    """
+    seats = (0, 1, 2, 3, 4, 5)
+    big_blind = 100
+    full = 100 * big_blind
+    return StrategyQuery(
+        hand_id="four-bet",
+        street="preflop",
+        seat=1,
+        button_seat=3,
+        hole_cards=("As", "Ah"),
+        board=(),
+        legal_actions=("fold", "call", "raise"),
+        to_call=2200,
+        street_bet=2200,
+        min_raise_target=4400,
+        pot=3000,
+        stacks=tuple((seat, full - (2200 if seat == 2 else 0)) for seat in seats),
+        blinds=(50, big_blind),
+        preflop_actions=(
+            SeatAction(1, "raise"),
+            SeatAction(2, "raise"),
+            SeatAction(1, "raise"),
+            SeatAction(2, "raise"),
+        ),
+    )
 
 
 def make_free_query(**overrides: Any) -> StrategyQuery:
@@ -339,3 +384,71 @@ class TestPreflopActionHistory:
         limped = make_record(query=make_query(preflop_actions=(SeatAction(0, "call"),)))
 
         assert opened.to_json_line() != limped.to_json_line()
+
+
+class TestRefusalDetail:
+    """A refusal names what was missing, not only that something was.
+
+    The code is a groupable vocabulary and the detail is what makes a refusal actionable.
+    The split exists because a count of refusals is not a work list: a phase measuring
+    coverage can say a chart was silent 128 times, and closing the gap needs the 128 spots.
+    """
+
+    def test_a_refusal_needs_no_detail(self) -> None:
+        """Empty by default, so a refusal with nothing to add stays as simple as it was."""
+        refusal = StrategyRefusal("some:code")
+
+        assert refusal.detail == ()
+        assert refusal.named("spot_key") is None
+
+    def test_detail_is_readable_by_name_rather_than_by_position(self) -> None:
+        refusal = StrategyRefusal(
+            "some:code", (("spot_key", "t6/d100/BTN/rfi"), ("hand_class", "A2o"))
+        )
+
+        assert refusal.named("spot_key") == "t6/d100/BTN/rfi"
+        assert refusal.named("hand_class") == "A2o"
+        assert refusal.named("absent") is None
+
+    def test_detail_reaches_the_audit_line(self) -> None:
+        refusal = StrategyRefusal("some:code", (("spot_key", "t6/d100/BTN/rfi"),))
+        payload = json.loads(_audit_line_for(refusal))
+
+        assert payload["outcome"]["code"] == "some:code"
+        assert payload["outcome"]["detail"] == [["spot_key", "t6/d100/BTN/rfi"]]
+
+    def test_a_refusal_without_detail_serializes_as_it_always_did(self) -> None:
+        """No key at all, so audit lines written before this field existed are unchanged."""
+        payload = json.loads(_audit_line_for(StrategyRefusal("some:code")))
+
+        assert "detail" not in payload["outcome"]
+
+    def test_the_same_refusal_serializes_to_the_same_bytes(self) -> None:
+        detail = (("spot_key", "t6/d100/BTN/rfi"), ("hand_class", "A2o"))
+        lines = {_audit_line_for(StrategyRefusal("some:code", detail)) for _ in range(3)}
+
+        assert len(lines) == 1
+
+    def test_malformed_detail_is_rejected(self) -> None:
+        for bad in (
+            [("spot_key", "x")],
+            (("spot_key",),),
+            (("", "x"),),
+            (("spot_key", 3),),
+            (("spot_key", "x"), ("spot_key", "y")),
+        ):
+            with pytest.raises(ValueError):
+                StrategyRefusal("some:code", bad)
+
+
+class TestChartRefusalsNameTheirSpot:
+    # The spot key comes from the lookup's own derivation, so a refusal names a cell the
+    # lookup actually asked about rather than one this layer guessed at.
+    def test_an_uncovered_spot_reports_the_key_it_looked_for(self) -> None:
+        strategy = PreflopChartStrategy.from_repo()
+        outcome = strategy.decide(_uncovered_spot_query())
+
+        assert isinstance(outcome, StrategyRefusal), outcome
+        assert outcome.named("hand_class")
+        assert outcome.named("table_size") == "6"
+        assert outcome.named("stack_depth_bb") == "100"

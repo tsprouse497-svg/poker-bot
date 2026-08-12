@@ -217,6 +217,31 @@ class PreflopChartStrategy:
             return None, REFUSE_SIZE_BELOW_MINIMUM
         return amount, None
 
+    @staticmethod
+    def _miss_detail(chart_query: ChartQuery) -> tuple[tuple[str, str], ...]:
+        """What the chart was asked for, so a refusal names a cell somebody can fill.
+
+        The spot key comes from `ChartQuery.spot_key`, which is the derivation Phase 04
+        already shares between the importer and the lookup. Deriving it a second time here
+        would give the repo two answers to "what spot is this" that could drift, and the
+        drift would be invisible: the refusal would name a spot the lookup never asked
+        about.
+
+        `spot_key` is None when the position and action sequence do not describe a spot the
+        vocabulary can express at all - a different miss from a spot that is expressible
+        and uncovered - so it is reported only when it exists, and its absence is itself the
+        information.
+        """
+        detail: list[tuple[str, str]] = [
+            ("table_size", str(chart_query.table_size)),
+            ("stack_depth_bb", str(chart_query.stack_depth_bb)),
+            ("hand_class", chart_query.hand_class),
+        ]
+        spot_key = chart_query.spot_key
+        if spot_key is not None:
+            detail.insert(0, ("spot_key", spot_key))
+        return tuple(detail)
+
     # -- entry points ------------------------------------------------------ #
 
     def decide(self, query: StrategyQuery) -> StrategyDecision | StrategyRefusal:
@@ -231,7 +256,7 @@ class PreflopChartStrategy:
         chart_query = self._chart_query(query, depth_bb)
         found = self.library.lookup(chart_query)
         if not isinstance(found, ChartHit):
-            return StrategyRefusal(f"{CODE_PREFIX}:{found.code}")
+            return StrategyRefusal(f"{CODE_PREFIX}:{found.code}", self._miss_detail(chart_query))
 
         seed = self._seed(query, found.spot_key, found.hand_class)
         action = self.collapse(found.action_weights, seed)
