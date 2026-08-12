@@ -73,8 +73,37 @@ items:
   - id: POSTFLOP-UNBEATABLE-EARLIER-STREETS
     status: deferred
     phase: strategy
-    title: Extend the unbeatable call from the river to the flop and the turn
-    reason: The postflop fallback calls a bet only when hero's hand beats every possible villain holding, and only on the river, where a complete board makes the claim a 990-combination enumeration. The same claim on the turn means unbeatable after every one of 44 runouts, and on the flop after every one of 903, which is 894 thousand hand evaluations for one decision and too slow inside an exhaustive test sweep. A sampled version would turn the fact back into a guess, so the fallback folds those spots meanwhile. Almost nothing qualifies on the flop anyway, so the cost is small and the fix is a faster evaluator rather than a new rule.
+    title: Extend the unbeatable call from the turn back to the flop
+    reason: >-
+      The postflop fallback calls a bet only when no possible villain holding beats hero,
+      and only on the turn and the river. On the river a complete board makes that a
+      990-holding enumeration. On the turn it means safe after every one of 46 river
+      cards, which decomposes into 46 river checks - 45,540 evaluations, a few seconds,
+      and affordable inside the exhaustive sweep, which is why the turn is now covered.
+      The flop is not: two cards are still to come, so the claim runs over C(47,2) = 1,081
+      holdings against C(45,2) = 990 runouts, 1,070,190 evaluations and roughly 83 seconds
+      for one decision. A sampled version would turn the fact back into a guess, so the
+      fallback folds flop bets meanwhile. Almost nothing qualifies on the flop anyway, so
+      the cost is small and the fix is a faster evaluator rather than a new rule. The
+      earlier version of this entry gave the flop as 903 runouts against 990 holdings and
+      lumped the turn in with it; both figures were the river's own, shifted by a card,
+      which is what kept the turn deferred for a phase longer than it needed to be.
+  - id: FALLBACK-FAIL-CLOSED-CAN-CALL
+    status: deferred
+    phase: strategy
+    title: The fallback's fail-closed branch can invest, and can refuse postflop
+    reason: >-
+      PostflopFallbackStrategy._fail_closed runs when the action the rules chose is not on
+      offer, and takes the most passive legal action from ("fold", "call"). Where fold is
+      absent that is a call, so a hand that can lose invests - which the phase contract
+      forbids everywhere - and where neither is legal it returns a postflop refusal, which
+      the contract says never happens. Neither branch is reachable from a legal-action set
+      the engine's own legal_actions produces, and the phase enumeration confirms zero
+      postflop refusals, but both are reachable from a contract-valid StrategyQuery:
+      legal_actions ("call", "raise") calls, and ("raise",) refuses. The conservative
+      fail-closed is fold-or-refuse and never call, and both codes want a direct unit
+      test. Found by the Phase 06 stage 8 mechanical review, which could not fix it
+      because tests/ was out of scope for that phase after the freeze.
   - id: V2-POSTFLOP-STRATEGY
     status: deferred
     phase: v2

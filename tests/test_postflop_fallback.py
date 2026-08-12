@@ -3,28 +3,23 @@
 What this file pins is the one thing a continuity device has to be: total, legal, and
 never inventing an investment. Three properties carry most of the weight.
 
-`TestTotalityAndLegality` proves coverage by enumeration rather than by sampling, and
-the shapes it enumerates are read out of the engine's own `legal_actions` rather than
-listed here, so the sweep follows the engine if the engine changes. Legality is not
-asserted by eye: every decision is routed through the Phase 03 `DecisionAuditRecord`,
-which is the thing that rejects an action outside `legal_actions`, an amount above
-all-in, and an amount below the minimum raise target.
+`TestTotalityAndLegality` proves coverage by enumeration rather than by sampling, and the
+shapes it enumerates are read out of the engine's own `legal_actions` rather than listed
+here, so the sweep follows the engine if the engine changes. Legality is not asserted by
+eye: every decision goes through the Phase 03 `DecisionAuditRecord`, which rejects an
+action outside `legal_actions`, an amount above all-in, and one below the minimum raise.
 
-`TestRiverUnbeatableFunction` is the only place this bot puts money in postflop, so
-its examples are written as named cards with the reason spelled out, checkable by hand
-against the board without running anything.
+`TestUnbeatableFunction` covers the only place this bot puts money in postflop, as named
+cards a reviewer can check by hand. Two bars are pinned there: a tie is not a loss, so a
+hand every holding chops calls; and the turn claim has to survive every river card rather
+than only the board as it stands.
 
-`TestComposite` pins that the composite adds no decision of its own: for every query
-in the enumeration its outcome is the outcome its component returns when asked
-directly, and a preflop chart refusal comes back as a refusal carrying its original
-code rather than as a passive action.
+`TestComposite` pins that the composite adds no decision of its own: for every query in
+the enumeration its outcome is the outcome its component returns when asked directly, and
+a preflop chart refusal comes back as a refusal carrying its original code.
 """
 
-# `composite` and `postflop_fallback` do not exist yet, because these tests were
-# authored before the implementation. Until those two modules land, import sorting
-# reads them as third-party and asks for a grouping that becomes wrong the moment they
-# do land, so the block keeps its first-party order and silences that one rule.
-from __future__ import annotations  # noqa: I001
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
@@ -46,11 +41,11 @@ from poker_training_bot.strategy.contract import (
 from poker_training_bot.strategy.postflop_fallback import (
     CODE_CALL_UNBEATABLE,
     CODE_CHECK,
-    CODE_FOLD_BEFORE_RIVER,
-    CODE_FOLD_RIVER_CAN_LOSE,
+    CODE_FOLD_CAN_LOSE,
+    CODE_FOLD_ON_THE_FLOP,
     REFUSE_NOT_POSTFLOP,
     PostflopFallbackStrategy,
-    river_hand_cannot_lose,
+    hand_cannot_lose,
 )
 
 POSTFLOP_STREETS = ("flop", "turn", "river")
@@ -167,15 +162,24 @@ NUTS = Scenario("royal-flush-in-hand", ("Ac", "Kc"), ("Qc", "Jc", "Tc", "2d", "3
 # Nut flush, beaten by exactly one villain holding: 6d5d makes 2d3d4d5d6d.
 BEATABLE = Scenario("nut-flush-one-combo-behind", ("Ad", "Kd"), ("2d", "3d", "4d", "5h", "Kc"))
 
-# Quad nines with the ace kicker already on the board: no holding beats hero and
-# every holding ties hero, which is the strict-no-ties case.
+# Quad nines with the ace kicker already on the board: no holding beats hero and every
+# holding ties hero. A chop is not a loss, so this calls.
 CHOP_ONLY = Scenario("quads-and-kicker-on-board", ("Kd", "Qh"), ("9c", "9d", "9h", "9s", "Ac"))
 
-# The nuts is the board itself, a royal flush hero cannot possibly hold as two cards.
+# The nuts is the board itself, a royal flush hero cannot possibly hold as two cards,
+# and neither can anybody else, so the whole table chops and hero calls.
 BOARD_NUTS = Scenario("royal-flush-on-board", ("2d", "7h"), ("Ac", "Kc", "Qc", "Jc", "Tc"))
 
 # Quad aces holding the fourth ace, so no villain can make the same quads.
 QUAD_ACES = Scenario("quad-aces-fourth-ace-in-hand", ("Ac", "2c"), ("As", "Ah", "Ad", "Kc", "Kd"))
+
+# The pair that separates the turn from the river. Hero holds the jack-high straight. On
+# the turn - 9c 8c 7h 6d - nothing beats it yet, but two clubs are showing, so a club river
+# would hand any two clubs a flush, and the turn claim has to survive every river card. The
+# river came 2h instead, so the same cards call. Opposite answers, one card apart.
+TURN_BREAKS = Scenario(
+    "straight-a-club-river-would-break", ("Th", "Jd"), ("9c", "8c", "7h", "6d", "2h")
+)
 
 ENUMERATED = (WEAK, NUTS)
 
@@ -311,8 +315,8 @@ class TestOutcomeCodes:
             REFUSE_NOT_POSTFLOP,
             CODE_CHECK,
             CODE_CALL_UNBEATABLE,
-            CODE_FOLD_BEFORE_RIVER,
-            CODE_FOLD_RIVER_CAN_LOSE,
+            CODE_FOLD_ON_THE_FLOP,
+            CODE_FOLD_CAN_LOSE,
         )
 
         assert all(code.startswith(FALLBACK_PREFIX) for code in codes)
@@ -387,27 +391,25 @@ class TestNeverAggresses:
 
 
 class TestFacingABet:
-    # Facing a bet it folds, with exactly one exception on the river.
-    def test_it_folds_facing_a_bet_before_the_river(self, fallback) -> None:
+    # Facing a bet it folds, with exactly one exception on the turn and the river.
+    def test_it_folds_facing_a_bet_on_the_flop(self, fallback) -> None:
         for shape in FACING_SHAPES:
-            for street in ("flop", "turn"):
-                outcome = decision(fallback.decide(query(shape, street, WEAK)))
+            outcome = decision(fallback.decide(query(shape, "flop", WEAK)))
 
-                assert outcome.action == "fold", (shape.actions, street)
-                assert outcome.code == CODE_FOLD_BEFORE_RIVER
+            assert outcome.action == "fold", shape.actions
+            assert outcome.code == CODE_FOLD_ON_THE_FLOP
 
-    # Decision item 3: the exception is river-only, so a hand that cannot lose on the
-    # current board still folds on the flop and the turn, because a card yet to come
-    # can beat it and enumerating every runout is out of scope for this phase.
-    def test_it_folds_before_the_river_even_holding_a_hand_that_cannot_lose(
-        self, fallback
-    ) -> None:
-        for shape in FACING_SHAPES:
-            for street in ("flop", "turn"):
-                outcome = decision(fallback.decide(query(shape, street, NUTS)))
+    # Decision item 3: the flop is out of reach, so however strong the hand, the fold
+    # there is unconditional rather than the enumeration returning False. The honest
+    # claim needs both remaining cards enumerated, over a million evaluations for one
+    # decision, and a sampled version would turn the fact back into a guess.
+    def test_no_hand_calls_on_the_flop(self, fallback) -> None:
+        for scenario in (WEAK, NUTS, BEATABLE, CHOP_ONLY, BOARD_NUTS, QUAD_ACES, TURN_BREAKS):
+            for shape in FACING_SHAPES:
+                outcome = decision(fallback.decide(query(shape, "flop", scenario)))
 
-                assert outcome.action == "fold", (shape.actions, street)
-                assert outcome.code == CODE_FOLD_BEFORE_RIVER
+                assert outcome.action == "fold", (scenario.name, shape.actions)
+                assert outcome.code == CODE_FOLD_ON_THE_FLOP
 
     # The single exception, proved by example: a royal flush in hand on a complete
     # board beats every holding a villain could have, so it calls.
@@ -425,17 +427,65 @@ class TestFacingABet:
             outcome = decision(fallback.decide(query(shape, "river", BEATABLE)))
 
             assert outcome.action == "fold", shape.actions
-            assert outcome.code == CODE_FOLD_RIVER_CAN_LOSE
+            assert outcome.code == CODE_FOLD_CAN_LOSE
 
-    # Decision item 2: strict-no-ties. Quad nines with the ace kicker on the board
-    # cannot be beaten and cannot be improved on, so every villain chops. A full call
-    # to win half a pot needs a price oracle this phase does not have, so it folds.
-    def test_it_folds_on_the_river_when_the_best_villain_hand_is_a_chop(self, fallback) -> None:
+    # Decision item 2, re-ruled at stage 8. Quad nines with the ace kicker on the board
+    # cannot be beaten and cannot be improved on, and a royal flush on the board is the
+    # same situation with the whole table playing it: nothing beats hero and everything
+    # chops. A chop is not a loss - the pot returns the villain's bet along with a share
+    # of the money already in the middle, so calling gains at least (pot - to_call) / 2
+    # whatever the price. Folding these was a certain loss dressed as caution.
+    def test_it_calls_on_the_river_when_the_best_villain_hand_is_a_chop(self, fallback) -> None:
+        for scenario in (CHOP_ONLY, BOARD_NUTS):
+            for shape in FACING_SHAPES:
+                outcome = decision(fallback.decide(query(shape, "river", scenario)))
+
+                assert outcome.action == "call", (scenario.name, shape.actions)
+                assert outcome.code == CODE_CALL_UNBEATABLE
+
+    # Regression test for the stage 8 blocker itself, stated as the arithmetic rather
+    # than as an expected action. Folding a hand no holding can beat gives up half of
+    # what is already in the middle, and the enumerated pot makes that a real number.
+    def test_folding_a_guaranteed_chop_would_give_up_half_the_dead_money(
+        self, fallback
+    ) -> None:
+        shape = shape_with("fold", "call", "raise")
+        request = query(shape, "river", CHOP_ONLY)
+
+        assert hand_cannot_lose(request.hole_cards, request.board) is True
+        assert request.pot > request.to_call
+        forgone = (request.pot - request.to_call) / 2
+
+        assert forgone == 50
+        assert decision(fallback.decide(request)).action == "call"
+
+    # Decision item 3, re-ruled at stage 8: the exception reaches the turn, where the
+    # claim is stronger because it has to hold after every river card.
+    def test_it_calls_on_the_turn_when_no_river_card_can_break_the_hand(self, fallback) -> None:
         for shape in FACING_SHAPES:
-            outcome = decision(fallback.decide(query(shape, "river", CHOP_ONLY)))
+            outcome = decision(fallback.decide(query(shape, "turn", NUTS)))
+
+            assert outcome.action == "call", shape.actions
+            assert outcome.code == CODE_CALL_UNBEATABLE
+
+    # The other direction on the turn, and the reason the turn claim is not the river
+    # claim: nothing beats hero on the board as it stands, and a club river would.
+    def test_it_folds_on_the_turn_when_one_river_card_would_break_the_hand(
+        self, fallback
+    ) -> None:
+        for shape in FACING_SHAPES:
+            outcome = decision(fallback.decide(query(shape, "turn", TURN_BREAKS)))
 
             assert outcome.action == "fold", shape.actions
-            assert outcome.code == CODE_FOLD_RIVER_CAN_LOSE
+            assert outcome.code == CODE_FOLD_CAN_LOSE
+
+    # Same cards, opposite answers, one card apart. This is the pair that proves the
+    # turn test is not just the river test run early.
+    def test_the_same_hand_folds_the_turn_and_calls_the_river(self, fallback) -> None:
+        shape = shape_with("fold", "call", "raise")
+
+        assert decision(fallback.decide(query(shape, "turn", TURN_BREAKS))).action == "fold"
+        assert decision(fallback.decide(query(shape, "river", TURN_BREAKS))).action == "call"
 
     # The enumeration must include a hero whose whole remaining stack is less than
     # the price to call, and that hero still gets a legal decision.
@@ -448,6 +498,7 @@ class TestFacingABet:
 
         for street, scenario, expected in (
             ("flop", WEAK, "fold"),
+            ("turn", NUTS, "call"),
             ("river", NUTS, "call"),
         ):
             request = query(shape, street, scenario)
@@ -457,56 +508,45 @@ class TestFacingABet:
             audit(fallback, request, outcome)
 
 
-class TestRiverUnbeatableFunction:
+# The worked examples, each with the one-line reason for its verdict. Table-driven so the
+# reason travels with the cards and is also the assertion message, and so adding a street
+# or a hand is a row rather than a copied test. The full argument for each, spelled out at
+# length for a non-coding reviewer, is in the committed fallback report.
+UNBEATABLE_EXAMPLES = (
+    (NUTS, "river", True, "royal flush in clubs; a tie needs Ac Kc and hero holds both"),
+    (QUAD_ACES, "river", True, "quad aces holding the fourth ace; the board makes no flush"),
+    (CHOP_ONLY, "river", True, "quad nines and the ace kicker all on board: everyone chops"),
+    (BOARD_NUTS, "river", True, "the board is a royal flush, so the whole table chops"),
+    (BEATABLE, "river", False, "nut flush, and 6d 5d makes 2d 3d 4d 5d 6d: one combo is enough"),
+    (NUTS, "turn", True, "royal flush already made, so no river card can beat or tie it"),
+    (TURN_BREAKS, "turn", False, "nothing beats the straight yet, but a club river makes a flush"),
+    (TURN_BREAKS, "river", True, "the club missed, so nothing beats the straight any more"),
+)
+
+
+class TestUnbeatableFunction:
     """Worked examples, written so a reviewer can check them against the cards."""
 
-    # Hero holds Ac Kc on Qc Jc Tc 2d 3h: a royal flush in clubs. Nothing beats a
-    # royal flush, and the only hand that ties it needs Ac and Kc, which hero holds.
-    def test_a_royal_flush_in_hand_cannot_lose(self) -> None:
-        assert river_hand_cannot_lose(("Ac", "Kc"), ("Qc", "Jc", "Tc", "2d", "3h")) is True
+    @pytest.mark.parametrize(("scenario", "street", "expected", "why"), UNBEATABLE_EXAMPLES)
+    def test_a_worked_example_decides_the_way_its_reason_says(
+        self, scenario, street, expected, why
+    ) -> None:
+        cards = f"{' '.join(scenario.hole_cards)} on {' '.join(scenario.board_for(street))}"
 
-    # Hero holds Ac 2c on As Ah Ad Kc Kd: four aces with a king. Only a straight
-    # flush could beat quad aces, and the board has no three cards of one suit, so
-    # no flush exists. A tie needs the fourth ace, which hero holds.
-    def test_quad_aces_holding_the_fourth_ace_cannot_lose(self) -> None:
-        assert river_hand_cannot_lose(("Ac", "2c"), ("As", "Ah", "Ad", "Kc", "Kd")) is True
+        assert hand_cannot_lose(scenario.hole_cards, scenario.board_for(street)) is expected, (
+            f"{street}, {cards}: {why}"
+        )
 
-    # Hero holds Ad Kd on 2d 3d 4d 5h Kc: the ace-high flush, and no villain flush
-    # can match it because hero has Ad. Exactly one holding beats it: 6d 5d, which
-    # makes 2d 3d 4d 5d 6d, a six-high straight flush. One combination is enough.
-    def test_a_nut_flush_that_one_straight_flush_beats_can_lose(self) -> None:
-        assert river_hand_cannot_lose(("Ad", "Kd"), ("2d", "3d", "4d", "5h", "Kc")) is False
-
-    # Hero holds Kd Qh on 9c 9d 9h 9s Ac: four nines with an ace kicker, and so does
-    # everybody else, because all five cards are on the board. No holding beats hero
-    # and every holding ties hero. Strict-no-ties means this folds.
-    def test_a_hand_that_can_only_be_chopped_can_lose(self) -> None:
-        assert river_hand_cannot_lose(("Kd", "Qh"), ("9c", "9d", "9h", "9s", "Ac")) is False
-
-    # Hero holds 2d 7h on Ac Kc Qc Jc Tc: the nuts is the board itself, a royal
-    # flush, and hero's two cards are irrelevant. Hero cannot hold the nuts as a
-    # two-card holding, and neither can any villain, so the whole table chops.
-    def test_a_royal_flush_on_the_board_can_lose(self) -> None:
-        assert river_hand_cannot_lose(BOARD_NUTS.hole_cards, BOARD_NUTS.board) is False
-
-    def test_the_named_examples_agree_with_the_scenarios_the_decisions_use(self) -> None:
-        """The worked examples and the river decision tests are the same cards."""
-        assert river_hand_cannot_lose(NUTS.hole_cards, NUTS.board) is True
-        assert river_hand_cannot_lose(QUAD_ACES.hole_cards, QUAD_ACES.board) is True
-        assert river_hand_cannot_lose(BEATABLE.hole_cards, BEATABLE.board) is False
-        assert river_hand_cannot_lose(CHOP_ONLY.hole_cards, CHOP_ONLY.board) is False
-
-    # The claim is only decidable against a complete board, so an incomplete or
-    # over-long board is an error rather than a guess.
-    def test_a_board_that_is_not_five_cards_raises(self) -> None:
+    # The claim is decidable on a turn or a river board and nowhere else, so a flop
+    # board or a malformed one is an error rather than a guess.
+    def test_a_board_that_is_not_a_turn_or_a_river_raises(self) -> None:
         for board in (
             (),
             ("Qc", "Jc", "Tc"),
-            ("Qc", "Jc", "Tc", "2d"),
             ("Qc", "Jc", "Tc", "2d", "3h", "4h"),
         ):
             with pytest.raises(ValueError):
-                river_hand_cannot_lose(("Ad", "Kd"), board)
+                hand_cannot_lose(("Ad", "Kd"), board)
 
 
 class TestTotalityAndLegality:
@@ -552,25 +592,32 @@ class TestTotalityAndLegality:
 
 class TestInvarianceAndDeterminism:
     # Two queries that differ only by a consistent suit permutation decide the same.
+    # The turn case uses the hand a club river breaks, because relabelling moves which
+    # suit that is and the answer still has to come back the same.
     def test_a_consistent_suit_relabelling_does_not_change_the_decision(self, fallback) -> None:
         for shape in (shape_with("fold", "call", "raise"), shape_with("check", "bet")):
-            for street in ("flop", "river"):
-                original = decision(fallback.decide(query(shape, street, NUTS)))
-                swapped = decision(fallback.decide(query(shape, street, relabelled(NUTS))))
+            for street, scenario in (("flop", NUTS), ("turn", TURN_BREAKS), ("river", NUTS)):
+                original = decision(fallback.decide(query(shape, street, scenario)))
+                swapped = decision(fallback.decide(query(shape, street, relabelled(scenario))))
 
                 assert (original.action, original.code) == (swapped.action, swapped.code)
 
     # Two queries that differ only by the order of the hole cards decide the same.
     def test_hole_card_order_does_not_change_the_decision(self, fallback) -> None:
         shape = shape_with("fold", "call", "raise")
-        for scenario in (NUTS, BEATABLE):
+        for street, scenario in (
+            ("river", NUTS),
+            ("river", BEATABLE),
+            ("river", CHOP_ONLY),
+            ("turn", TURN_BREAKS),
+        ):
             reversed_scenario = Scenario(
                 f"{scenario.name}-reversed",
                 tuple(reversed(scenario.hole_cards)),
                 scenario.board,
             )
-            forwards = decision(fallback.decide(query(shape, "river", scenario)))
-            backwards = decision(fallback.decide(query(shape, "river", reversed_scenario)))
+            forwards = decision(fallback.decide(query(shape, street, scenario)))
+            backwards = decision(fallback.decide(query(shape, street, reversed_scenario)))
 
             assert (forwards.action, forwards.code) == (backwards.action, backwards.code)
 

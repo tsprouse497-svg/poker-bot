@@ -7,7 +7,11 @@ engine's own `legal_actions` rather than from a list written here, so a change t
 engine widens the sweep instead of escaping it. The second is the one place money goes
 in postflop, which is shown as named cards with the villain count beside them, because
 "exactly one holding out of 990 beats this" is an argument a reviewer can check and
-"the code says so" is not.
+"the code says so" is not. The turn examples carry a second column for the same reason:
+a turn fold is a claim about cards that have not come, so the report prints how many of
+the possible river cards break the hand, and the pair of rows for the same hand on the
+turn and then on the river is the clearest way to show that the two streets are not one
+rule with a different board length.
 
 The distinct decision codes are counted from the outcomes actually observed rather than
 from the module's list of codes. Two of the codes it defines are unreachable from the
@@ -58,9 +62,12 @@ from poker_training_bot.strategy.contract import (
     records_to_jsonl,
 )
 from poker_training_bot.strategy.postflop_fallback import (
+    DECIDABLE_STREETS,
+    POSSIBLE_RIVER_CARDS,
     POSTFLOP_STREETS,
+    UNSEEN_HOLDINGS_ON_A_COMPLETE_BOARD,
     PostflopFallbackStrategy,
-    river_hand_cannot_lose,
+    hand_cannot_lose,
 )
 
 FIXTURE = REPO_ROOT / "data" / "samples" / "normalized_hands.json"
@@ -79,8 +86,12 @@ HERO_SEAT = 1
 VILLAIN_SEAT = 0
 VILLAIN_STACK = 500
 
-# Forty-five cards hero cannot see on a complete board, taken two at a time.
-UNSEEN_HOLDINGS = 990
+# Forty-five cards hero cannot see on a complete board, taken two at a time, and the
+# forty-six cards that can complete a turn board. Both come from the strategy module so
+# the report cannot quote a denominator the enumeration does not use.
+UNSEEN_HOLDINGS = UNSEEN_HOLDINGS_ON_A_COMPLETE_BOARD
+UNSEEN_RIVERS = POSSIBLE_RIVER_CARDS
+TURN_PAIRS = UNSEEN_RIVERS * UNSEEN_HOLDINGS
 
 # Prose is wrapped rather than left to the terminal, so the committed file reads the same
 # in a diff, in an editor, and in a browser.
@@ -225,7 +236,9 @@ QUAD_NINES_CHOP = Scenario(
     ("Kd", "Qh"),
     ("9c", "9d", "9h", "9s", "Ac"),
     "hero's best five cards are the four nines and the ace, all of them on the board, so"
-    " every villain holds the same hand: nothing beats hero and every holding chops",
+    " every villain holds the same hand: nothing beats hero and every holding chops, and a"
+    " chop is not a loss - the pot hands back the villain's bet along with a share of the"
+    " money already in the middle",
 )
 ROYAL_ON_BOARD = Scenario(
     "royal flush on the board",
@@ -233,19 +246,80 @@ ROYAL_ON_BOARD = Scenario(
     ("Ac", "Kc", "Qc", "Jc", "Tc"),
     "the nuts is the board itself, a royal flush, and hero's two cards are irrelevant; hero"
     " cannot hold that hand as a two-card holding and neither can any villain, so the whole"
-    " table chops",
+    " table chops and hero's share of the pot is guaranteed",
+)
+STRAIGHT_A_CLUB_BREAKS = Scenario(
+    "straight a club river would break",
+    ("Th", "Jd"),
+    ("9c", "8c", "7h", "6d", "2h"),
+    "hero holds the jack-high straight and nothing beats it on the board as it stands, but"
+    " two clubs are showing, so a club river would give any two clubs a flush; the turn"
+    " claim has to survive every river card and this one does not",
 )
 
-# The five the phase contract names by hand, plus the ordinary case, in the order a
-# reviewer reads them: the two that call first, then the three that fold.
-WORKED_EXAMPLES = (
+
+@dataclass(frozen=True)
+class WorkedExample:
+    """One named hand, on one street, with the sentence that argues its verdict.
+
+    Street-bearing because the same cards decide differently on the turn and the river,
+    and that pair is the clearest thing this report can show a reviewer about why the two
+    streets are not one rule.
+    """
+
+    scenario: Scenario
+    street: str
+    reason: str
+
+    @property
+    def board(self) -> tuple[str, ...]:
+        return self.scenario.board_for(self.street)
+
+    @property
+    def board_text(self) -> str:
+        return " ".join(self.board)
+
+
+# The river examples the phase contract names by hand, in the order a reviewer reads
+# them: the ones that call first, then the one that folds.
+RIVER_EXAMPLES = tuple(
+    WorkedExample(scenario, "river", scenario.reason)
+    for scenario in (
+        ROYAL_IN_HAND,
+        QUAD_ACES,
+        QUAD_NINES_CHOP,
+        ROYAL_ON_BOARD,
+        NUT_FLUSH_BEATABLE,
+    )
+)
+
+# The turn examples, and the pair that makes the difference between the streets visible.
+TURN_EXAMPLES = (
+    WorkedExample(
+        ROYAL_IN_HAND,
+        "turn",
+        "hero already holds a royal flush in clubs, so no river card can beat it and none"
+        " can tie it, because a tie needs Ac and Kc and hero holds both",
+    ),
+    WorkedExample(STRAIGHT_A_CLUB_BREAKS, "turn", STRAIGHT_A_CLUB_BREAKS.reason),
+    WorkedExample(
+        STRAIGHT_A_CLUB_BREAKS,
+        "river",
+        "the river came 2h rather than a club, so no flush is ever possible now, nothing"
+        " beats the jack-high straight, and the hand that folded a turn bet calls a river"
+        " one - the same cards, one card later, and the card that would have broken it"
+        " missed",
+    ),
+)
+
+ENUMERATED = (
+    ACE_HIGH,
     ROYAL_IN_HAND,
     QUAD_ACES,
     NUT_FLUSH_BEATABLE,
     QUAD_NINES_CHOP,
     ROYAL_ON_BOARD,
 )
-ENUMERATED = (ACE_HIGH, *WORKED_EXAMPLES)
 
 
 def enumeration_query(shape: Shape, street: str, scenario: Scenario) -> StrategyQuery:
@@ -278,41 +352,73 @@ def enumeration_queries(shapes: tuple[Shape, ...]) -> tuple[StrategyQuery, ...]:
 
 @dataclass(frozen=True)
 class Census:
-    """How many of the unseen holdings beat hero, how many tie, and what hero holds."""
+    """What a reviewer needs beside a worked example in order to check its verdict.
+
+    `beats` and `ties` are counted on the board the fallback is actually looking at, so on
+    a turn example they show that nothing beats hero yet. `unsafe_rivers` is the column
+    that explains a turn fold: how many of the river cards leave some holding beating
+    hero. It is None on a river example, where there is no card left to come.
+    """
 
     beats: int
     ties: int
     hero_hand: str
     cannot_lose: bool
+    unsafe_rivers: int | None = None
 
 
-@cache
-def villain_census(scenario: Scenario) -> Census:
-    """Count the holdings that beat or tie hero, and ask the fallback for its verdict.
+def unseen_cards(hole_cards: tuple[str, ...], board: tuple[str, ...]) -> tuple[Card, ...]:
+    seen = frozenset(parse_cards(hole_cards) + parse_cards(board))
+    return tuple(card for card in standard_deck() if card not in seen)
 
-    Recounted here rather than read off the fallback's boolean, because the boolean
-    short-circuits on the first holding that beats or ties and the report needs the
-    total. It is one pass over 990 combinations per worked example, which is the whole
-    argument for the call rule and cheap enough to spend. The verdict itself still comes
-    from `river_hand_cannot_lose`, so the report cannot disagree with the strategy.
+
+def holding_counts(
+    hole_cards: tuple[str, ...], board: tuple[str, ...]
+) -> tuple[int, int, str]:
+    """Holdings that beat hero, holdings that tie hero, and hero's own category.
+
+    Counted rather than read off the fallback's boolean, because the boolean
+    short-circuits on the first holding that beats hero and the report needs the total.
+    One pass over the unseen deck per example, which is the whole argument for the call
+    rule and cheap enough to spend.
     """
-    hero = parse_cards(scenario.hole_cards)
-    board = parse_cards(scenario.board)
-    hero_rank = evaluate_best(hero + board)
-    seen = frozenset(hero + board)
-    unseen = tuple(card for card in standard_deck() if card not in seen)
+    hero = parse_cards(hole_cards)
+    board_cards = parse_cards(board)
+    hero_rank = evaluate_best(hero + board_cards)
     beats = ties = 0
-    for villain in combinations(unseen, 2):
-        villain_rank = evaluate_best(villain + board)
+    for villain in combinations(unseen_cards(hole_cards, board), 2):
+        villain_rank = evaluate_best(villain + board_cards)
         if villain_rank.beats(hero_rank):
             beats += 1
         elif villain_rank.ties(hero_rank):
             ties += 1
+    return beats, ties, hero_rank.label.lower()
+
+
+@cache
+def villain_census(example: WorkedExample) -> Census:
+    """Count what a reviewer would count, and take the verdict from the strategy itself.
+
+    The verdict comes from `hand_cannot_lose` rather than from the counts, so the report
+    cannot disagree with the module it reports on. The unsafe-river count is built out of
+    the same river test the strategy calls on each completed board, so it reuses that
+    memo rather than paying for a second sweep of its own.
+    """
+    hole_cards = example.scenario.hole_cards
+    board = example.board
+    beats, ties, hero_hand = holding_counts(hole_cards, board)
+    unsafe_rivers = None
+    if example.street == "turn":
+        unsafe_rivers = sum(
+            0 if hand_cannot_lose(hole_cards, board + (str(river),)) else 1
+            for river in unseen_cards(hole_cards, board)
+        )
     return Census(
         beats=beats,
         ties=ties,
-        hero_hand=hero_rank.label.lower(),
-        cannot_lose=river_hand_cannot_lose(scenario.hole_cards, scenario.board),
+        hero_hand=hero_hand,
+        cannot_lose=hand_cannot_lose(hole_cards, board),
+        unsafe_rivers=unsafe_rivers,
     )
 
 
@@ -344,8 +450,15 @@ def header_lines(fallback: PostflopFallbackStrategy, composite: CompositeStrateg
             "This is a continuity device, not a postflop strategy. There is no postflop chart in"
             " this repo and there will not be one in v1, so a simulated hand that reaches a flop"
             " would otherwise have nothing to ask; this fallback checks whenever checking is"
-            " free, folds to a bet, and puts money in on exactly one path - a complete board on"
-            " which no holding a villain could possibly have beats or ties hero."
+            " free, folds to a bet, and puts money in on exactly one path - a board on which no"
+            " holding a villain could possibly have beats hero, whatever card is still to come."
+        ),
+        "",
+        *wrapped(
+            "That path is open on the"
+            f" {' and the '.join(DECIDABLE_STREETS)} and closed on the flop, where the honest"
+            " enumeration costs over a million hand evaluations for one decision. So a flop bet"
+            " always takes the pot from this bot."
         ),
         "",
         *wrapped(
@@ -425,56 +538,114 @@ def enumeration_lines(
     return lines
 
 
-def worked_example_lines() -> list[str]:
+def example_table_lines(examples: tuple[WorkedExample, ...]) -> list[str]:
     lines = [
-        "## Where money goes in: the worked river examples",
-        "",
-        *wrapped(
-            "The river call is the only path in this module that invests, so it is written out"
-            " as cards. Hero can see seven of the 52 cards - two in hand and five on a"
-            f" complete board - which leaves 45 unseen and {UNSEEN_HOLDINGS} possible two-card"
-            " villain holdings. Every one of them is ranked with the same evaluator that ranks"
-            " hero's own hand. No hand categories, no table of nut hands, no sampled subset."
-        ),
-        "",
-        *wrapped(
-            "The bar is strict: hero calls only when no holding beats hero and no holding ties"
-            " hero. A guaranteed chop pays a full call to win half a pot, and the price at"
-            " which that is correct is a number this repo cannot source."
-        ),
-        "",
-        *wrapped(
-            "The `hero holds` column is the evaluator's own category name. It has no separate"
-            " royal-flush category, so a royal flush reads there as a straight flush."
-        ),
-        "",
-        f"{'hero':<8}{'board':<20}{'hero holds':<18}{'beat':>6}{'tie':>6}   verdict",
+        f"{'hero':<8}{'board':<20}{'hero holds':<18}{'beat':>6}{'tie':>6}"
+        f"{'bad rivers':>12}   verdict"
     ]
-    for scenario in WORKED_EXAMPLES:
-        census = villain_census(scenario)
+    for example in examples:
+        census = villain_census(example)
+        rivers = "-" if census.unsafe_rivers is None else str(census.unsafe_rivers)
         lines.append(
-            f"{scenario.cards_text:<8}{scenario.board_text:<20}{census.hero_hand:<18}"
-            f"{census.beats:>6}{census.ties:>6}   {'calls' if census.cannot_lose else 'folds'}"
+            f"{example.scenario.cards_text:<8}{example.board_text:<20}{census.hero_hand:<18}"
+            f"{census.beats:>6}{census.ties:>6}{rivers:>12}"
+            f"   {'calls' if census.cannot_lose else 'folds'}"
         )
-    lines.append("")
-    for scenario in WORKED_EXAMPLES:
-        census = villain_census(scenario)
+    return lines
+
+
+def example_prose_lines(examples: tuple[WorkedExample, ...]) -> list[str]:
+    lines: list[str] = []
+    for example in examples:
+        census = villain_census(example)
+        counted = (
+            f" Of {UNSEEN_HOLDINGS} possible villain holdings on that board,"
+            f" {census.beats} beat hero and {census.ties} tie hero."
+        )
+        if census.unsafe_rivers is not None:
+            counted += (
+                f" Of the {UNSEEN_RIVERS} cards that can complete the board,"
+                f" {census.unsafe_rivers} leave some holding beating hero."
+            )
         lines += [
-            f"{scenario.name}: {scenario.cards_text} on {scenario.board_text}",
+            f"{example.street}, {example.scenario.name}:"
+            f" {example.scenario.cards_text} on {example.board_text}",
             *wrapped(
-                f"{'Calls' if census.cannot_lose else 'Folds'}, because {scenario.reason}."
-                f" Of {UNSEEN_HOLDINGS} possible villain holdings, {census.beats} beat hero"
-                f" and {census.ties} tie hero.",
+                f"{'Calls' if census.cannot_lose else 'Folds'}, because {example.reason}."
+                f"{counted}",
                 indent="  ",
             ),
             "",
         ]
-    lines += wrapped(
-        "The exception is the river only. On the flop and the turn the same claim would have"
-        " to mean 'nothing beats me after any runout', which is a far larger enumeration, so a"
-        " flop or turn bet always takes the pot from this bot. That gap is recorded in"
-        " `backlog.yml` rather than approximated."
-    )
+    return lines
+
+
+def worked_example_lines() -> list[str]:
+    lines = [
+        "## Where money goes in: the worked call examples",
+        "",
+        *wrapped(
+            "The unbeatable call is the only path in this module that invests, so it is written"
+            " out as cards. On a complete board hero can see seven of the 52 - two in hand and"
+            f" five on the board - which leaves 45 unseen and {UNSEEN_HOLDINGS} possible"
+            " two-card villain holdings. Every one of them is ranked with the same evaluator"
+            " that ranks hero's own hand. No hand categories, no table of nut hands, no sampled"
+            " subset."
+        ),
+        "",
+        *wrapped(
+            "The bar is that no holding beats hero. A tie does not count against calling,"
+            " because a chop is not a loss: the pot that gets chopped holds the villain's bet"
+            " and the money already in the middle, so facing a bet of B into a pot of P that"
+            " already contains B, a hand nothing can beat returns at least half of P + B for a"
+            " payment of B and the call gains at least (P - B) / 2. P always exceeds B, because"
+            " a postflop pot holds the preflop money too. There is no price in that and no"
+            " equity estimate, which is the whole reason this one path is allowed to invest."
+        ),
+        "",
+        *wrapped(
+            "The `hero holds` column is the evaluator's own category name. It has no separate"
+            " royal-flush category, so a royal flush reads there as a straight flush. The `bad"
+            " rivers` column applies to turn rows only, and is the number of river cards after"
+            " which some holding beats hero; one is enough to fold."
+        ),
+        "",
+        "### On the river, where the board is complete",
+        "",
+        *example_table_lines(RIVER_EXAMPLES),
+        "",
+        *example_prose_lines(RIVER_EXAMPLES),
+        "### On the turn, where a card is still to come",
+        "",
+        *wrapped(
+            "The turn claim is the stronger one: not 'no holding beats me now' but 'no holding"
+            f" beats me after any river card'. It decomposes into {UNSEEN_RIVERS} river checks,"
+            " one per card that can complete the board, so hero calls the turn only when every"
+            f" one of them comes back safe. That is {UNSEEN_RIVERS} x {UNSEEN_HOLDINGS} ="
+            f" {TURN_PAIRS:,} (river, holding) pairs for a single decision."
+        ),
+        "",
+        *example_table_lines(TURN_EXAMPLES),
+        "",
+        *example_prose_lines(TURN_EXAMPLES),
+        "### Why the flop is not on this list",
+        "",
+        *wrapped(
+            "On the flop two cards are still to come, so the same claim runs over C(47,2) ="
+            " 1,081 villain holdings against C(45,2) = 990 runouts: 1,070,190 evaluations for a"
+            f" single decision, against {TURN_PAIRS:,} on the turn and {UNSEEN_HOLDINGS} on the"
+            " river. That is roughly a thousand river checks where the turn is roughly"
+            " forty-six, which is the whole difference between the two, and it is why the turn"
+            " is here and the flop is not."
+        ),
+        "",
+        *wrapped(
+            "So a flop bet always takes the pot from this bot. That gap is recorded in"
+            " `backlog.yml` as POSTFLOP-UNBEATABLE-EARLIER-STREETS rather than approximated,"
+            " because a sampled version would turn the one fact this module rests on back into"
+            " a guess."
+        ),
+    ]
     return lines
 
 

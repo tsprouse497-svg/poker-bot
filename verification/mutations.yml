@@ -70,14 +70,38 @@ mutations:
     must_fail:
       - pytest_postflop_fallback
 
-  - id: fallback-calls-guaranteed-chops
+  - id: fallback-folds-guaranteed-chops
     description: >-
-      The river unbeatable test stops counting a chop as a reason not to call, so
-      the bot pays a full call to win half a pot on boards where the best holding a
-      villain can have ties it.
+      The unbeatable test counts a chop against calling again, so the bot folds hands
+      no holding can beat and gives up half of the money already in the middle. This
+      is the stage 8 blocker itself, reinstalled as a canary: it shipped through a
+      green gate once, because the tests of the day pinned it.
     file: src/poker_training_bot/strategy/postflop_fallback.py
-    find: "return villain_rank.beats(hero_rank) or villain_rank.ties(hero_rank)"
-    replace: "return villain_rank.beats(hero_rank)"
+    find: "return villain_rank.beats(hero_rank)"
+    replace: "return villain_rank.beats(hero_rank) or villain_rank.ties(hero_rank)"
+    must_fail:
+      - pytest_postflop_fallback
+
+  - id: fallback-abandons-the-turn
+    description: >-
+      The unbeatable call reverts to the river only, so a turn hand that no river card
+      can break folds to a bet and the extension ruled at stage 8 disappears without
+      any test of the river rule noticing.
+    file: src/poker_training_bot/strategy/postflop_fallback.py
+    find: 'DECIDABLE_STREETS: tuple[str, ...] = ("turn", "river")'
+    replace: 'DECIDABLE_STREETS: tuple[str, ...] = ("river",)'
+    must_fail:
+      - pytest_postflop_fallback
+
+  - id: fallback-turn-needs-only-one-safe-river
+    description: >-
+      The turn claim becomes existential instead of universal: hero calls if any river
+      card leaves the hand safe rather than if every one does. That is the difference
+      between a fact and a hope, and it is invisible to any hand that is safe on the
+      whole runout.
+    file: src/poker_training_bot/strategy/postflop_fallback.py
+    find: "    return all("
+    replace: "    return any("
     must_fail:
       - pytest_postflop_fallback
 

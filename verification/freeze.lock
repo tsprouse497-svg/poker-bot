@@ -27,8 +27,8 @@ files:
     sha256: b8355f633b0943b2caeb41fc40906248a2412ba2ebd093395f998917e886dd57
     test_functions: 9
   tests/test_postflop_fallback.py:
-    sha256: 3233b5d068acc14cb7a465515c3a13eeee777fcf17427fa6b2ea385de95dd819
-    test_functions: 38
+    sha256: 53e3e3777dd4a0e6b0119783b156078d092630e9a46b693a42798bcefce9c3ec
+    test_functions: 37
   tests/test_preflop_artifacts.py:
     sha256: d865b9e2e10de5d72f88f8962925be9e1dfe42c97b5f4fdb7ac09b538c2bf1ca
     test_functions: 35
@@ -45,4 +45,4 @@ files:
     sha256: 3185f342b82b5aef88e05f6188ad27847ea38d20a16927637213ba4c19f80558
     test_functions: 52
 schema_version: 1
-test_function_floor: 356
+test_function_floor: 355

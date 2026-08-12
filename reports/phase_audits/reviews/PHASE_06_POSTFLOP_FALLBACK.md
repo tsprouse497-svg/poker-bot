@@ -7,6 +7,18 @@ Two review passes over the frozen tests, the two strategy modules, the report ge
 - Mechanical review: complete. No blockers, five non-blockers.
 - Gate at time of review: `run_verify.py` green across all 29 commands, including `check_gate_bite` and `ruff_check`.
 
+## Resolution
+
+The blocker and the turn non-blocker were both ruled on by Taylor on 2026-08-12 and are fixed.
+The loop halted at stage 8, judgment calls 2 and 3 were re-ruled in a `contract-update` task, and the implementation followed in its own task.
+
+- Judgment call 2 is now `allow-guaranteed-chops`. `_villain_beats` counts only an outright loss, the contract forbids the strict bar by name, and the `fallback-calls-guaranteed-chops` mutation is replaced by `fallback-folds-guaranteed-chops`, which reinstalls the blocker as a canary.
+- Judgment call 3 is now `extend-to-turn`. `hand_cannot_lose` answers on the turn as 46 memoised river checks, and two new canaries cover it: `fallback-abandons-the-turn` reverts to river-only, and `fallback-turn-needs-only-one-safe-river` turns the universal claim into an existential one.
+- `POSTFLOP-UNBEATABLE-EARLIER-STREETS` now names the flop alone and carries the corrected arithmetic.
+- The fail-closed finding below is filed as `FALLBACK-FAIL-CLOSED-CAN-CALL` rather than fixed, because the conservative version needs a test and this task's own scope is the two re-rulings.
+- The gate is green after the fix, and it now runs in about 65 seconds rather than 5. Nearly all of that is `check_gate_bite` re-running the phase tests once per mutation, each paying for one full turn sweep. That is the measured price of the turn extension and it was accepted with the ruling.
+- Collected test cases in `tests/test_postflop_fallback.py` went from 38 to 44. The freeze lock's `test_functions` count fell from 38 to 36 because eight worked-example tests became one parametrised table; the number of assertions rose and the number of `def`s fell, so the drop in that field is not a drop in coverage.
+
 ## Reviewer independence
 
 The reviewers were not delegated to read-only subagents this round.
@@ -104,7 +116,7 @@ legal_actions=("raise",),        to_call=20   ->  refusal postflop-fallback:no-p
 
 Neither line is covered by a test or by a mutation.
 The conservative fail-closed is fold-or-refuse, never call, and both codes want a direct unit test.
-`tests/` is out of `approved_scope` for the rest of this phase, so this is a backlog item rather than an edit.
+Filed as `FALLBACK-FAIL-CLOSED-CAN-CALL` in `backlog.yml` rather than fixed: the re-ruling task that reopened `tests/` was scoped to the chop bar and the turn extension, and widening it to carry an unrelated behavior change is how a task stops being reviewable.
 
 ### The report generator and the frozen tests are the same hundred lines twice
 
