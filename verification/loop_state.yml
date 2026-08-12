@@ -1,5 +1,21 @@
 auto_advance: true
-loop: running
+halt_reason: 'Stage 8 blocker: a voided hand''s normalized record discards every action
+  taken on the street where the refusal happened, because _voided falls back to blinds_only
+  whenever played.streets is empty, which on a preflop refusal is always. Measured
+  over the committed run: 128 refused hands took 2 to 7 decisions each, 565 actions
+  in total, and every record keeps only the two blind posts. The refusal codes name
+  the kind of miss and not the spot, so the action sequence was the only place the
+  spot survived - which makes the report''s headline coverage number unusable for
+  the purpose it claims, ''a list of spots the charts do not yet hold''. Connected:
+  such a record cannot be replayed at all (ValueError: preflop street ends with an
+  open betting round), correctly, because the hand never finished - so a voided hand
+  is not a completed hand history and calling it a NormalizedHandHistory is a category
+  error. Fixing it needs the frozen test_every_dealt_hand_is_a_valid_normalized_hand,
+  which asserts isinstance for every hand including refused ones, so this is a test-and-contract
+  question rather than a patch. Also recorded: the noise threshold behind judgment
+  call 3 is never exercised anywhere between identically-zero and 14.9 standard errors,
+  so that rule is unpinned the same way judgment call 4 was.'
+loop: halted
 phase_id: '07'
 schema_version: 1
 stage: 8
