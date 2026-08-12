@@ -1,5 +1,5 @@
 auto_advance: true
 loop: running
-phase_id: '06'
+phase_id: '07'
 schema_version: 1
-stage: 11
+stage: 0
