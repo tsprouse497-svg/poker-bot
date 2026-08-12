@@ -1,12 +1,10 @@
-task_id: PHASE-06-IMPLEMENTATION
+task_id: PHASE-06-CHOP-AND-TURN-RERULING
 active_phase: "06"
-task_mode: implementation
-base_commit: d48625f82f59764d48335ed6471c87b7610a5c9d
+task_mode: contract-update
+base_commit: 9519145a34d124025a91296843d22703f0e17a94
 approved_scope:
-  - scripts/generate_postflop_fallback_report.py
-  - src/poker_training_bot/strategy/postflop_fallback.py
-  - src/poker_training_bot/strategy/composite.py
-  - reports/phase_audits/**
+  - docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md
+  - reports/phase_audits/decisions/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -83,3 +81,5 @@ scope_change_log:
     reason: Phase 06 implementation needs the phase tests, the command registry entries for its two new command IDs, the mutation canaries that must make the new pytest command fail, the postflop fallback strategy and the composite that routes preflop to the chart and postflop to it, the fallback report generator, and the audit evidence. The contract stays listed only because it already changed earlier in this task and the diff is measured from base_commit; implementation mode is what forbids editing it further.
   - date: 2026-08-12
     reason: Loop stage 5 narrows scope so the builders cannot reach the tests they are measured by. tests/, verification/, the command registry, and the contract all leave approved_scope, and base_commit moves to the freeze commit so the diff is measured from there rather than from the start of the phase, which is what keeps work that was legitimately in scope at stage 4 from reading as out of scope afterwards.
+  - date: 2026-08-12
+    reason: The stage 8 domain review showed that folding a hand no holding can beat is a certain loss rather than caution, and that the turn extension was declined on the flop's arithmetic. Judgment calls 2 and 3 are re-ruled to allow-guaranteed-chops and extend-to-turn, and both are acceptance criteria plus a named forbidden shortcut in the contract, so the contract and the decision record change first in contract-update mode.

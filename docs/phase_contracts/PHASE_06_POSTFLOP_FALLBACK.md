@@ -62,19 +62,30 @@ It is limited to the work named by this contract and the active ExecPlan.
   Aggression needs a sizing source, the repo has none postflop, and a fallback
   that invented one would be a strategy nobody solved.
 - It checks whenever checking is legal.
-- Facing a bet it folds, with exactly one exception: on the river, when hero's
-  hand beats every holding a villain could possibly have, it calls.
-  That is a fact rather than a read.
-  The board is complete, so the claim is decidable by enumerating the unseen deck.
-- The exception is strict.
-  A hand that some possible holding ties folds, because a guaranteed chop pays a
-  full call to win half a pot and this phase has no oracle for the price at which
-  that is correct.
-- The exception is river-only, and deliberately so.
-  On the flop and the turn the same claim needs every runout enumerated as well,
-  and a hand that cannot lose now can be beaten by a card that has not come.
-  The gap is recorded in `backlog.yml`, and until it is closed a flop or turn bet
-  always takes the pot from this bot.
+- Facing a bet it folds, with exactly one exception: when no holding a villain could
+  possibly have beats hero, whatever cards are still to come, it calls.
+  That is a fact rather than a read, decidable by enumerating the unseen deck.
+- The bar is "no holding beats hero", not "no holding beats or ties hero".
+  A hand that can only be chopped calls, because a chop is not a loss.
+  Facing a bet of B into a pot of P that already contains B, a hand no holding can
+  beat returns at least half of P + B for a payment of B, so the call gains at least
+  (P - B) / 2, and P is always greater than B because a postflop pot holds the
+  preflop money as well.
+  The gain does not depend on a price, an equity estimate, or a read, which is why
+  this stays inside the one claim the repo can make.
+- The strict bar is forbidden rather than merely replaced.
+  Counting a tie against calling folds a hand that cannot lose, which is the one
+  thing a fallback built around "never invest unless the investment cannot lose"
+  must not do.
+- The exception covers the turn and the river, and not the flop.
+  On the river the board is complete and the claim is 990 villain holdings.
+  On the turn one card is still to come, so the claim is stronger - no holding beats
+  hero after any river card - and costs 46 rivers against 990 holdings, 45,540 hand
+  evaluations, which an exhaustive sweep can afford.
+  On the flop two cards are still to come: 1,081 holdings against 990 runouts,
+  1,070,190 evaluations for a single decision, which it cannot.
+  The flop gap is recorded in `backlog.yml`, and until it is closed a flop bet always
+  takes the pot from this bot.
 - There is no pot-odds rule, no hand-strength threshold, and no equity estimate
   against an assumed range.
   Each of those needs a number this repo cannot source, and a fallback carrying
@@ -92,11 +103,17 @@ It is limited to the work named by this contract and the active ExecPlan.
   decision through the Phase 03 `DecisionAuditRecord`, which rejects an action
   outside `legal_actions`, an amount above all-in, and an amount below the
   minimum raise target.
-- The river call rule is proved in both directions and by example, not only in
-  aggregate: a named board and holding that cannot lose calls, a named board and
-  holding that a single villain combination beats folds, and a named board and
-  holding that can only be tied folds.
+- The call rule is proved in both directions and by example, not only in aggregate.
+  On the river: a named board and holding that no holding beats calls, a named board
+  and holding that a single villain combination beats folds, and a named board and
+  holding that every holding chops calls, because a chop is not a loss.
+  On the turn: a named board and holding that no holding beats after any river card
+  calls, and a named board and holding that one river card lets a holding beat folds,
+  so the difference between the two streets is visible rather than asserted.
   Each example is written so a reviewer can check it against the cards by hand.
+- The turn claim enumerates every river card and, for each one, every villain holding.
+  Neither the rivers nor the holdings may be sampled, and a hand that survives one
+  river card and not another folds.
 - Decisions are invariant under suit relabelling and hole-card order: two queries
   that differ only by a consistent suit permutation or by the order of the hole
   cards return the same decision.
@@ -125,7 +142,9 @@ It is limited to the work named by this contract and the active ExecPlan.
 - The postflop fallback report shows, for a non-coding reviewer: how many states
   the enumeration covered, how many chose each action, every distinct decision
   code with its count, the count of postflop refusals which must be zero, and the
-  worked river examples with their cards spelled out.
+  worked call examples for both the turn and the river with their cards spelled out.
+- The report states the price of the turn claim as a number, so the reason the flop
+  is excluded and the turn is not can be checked rather than taken on trust.
 - The report also shows what the composite does over the committed sample hands,
   broken out by which component answered, so the preflop-and-then-showdown shape
   of a hand is visible rather than asserted.
@@ -154,8 +173,8 @@ It is limited to the work named by this contract and the active ExecPlan.
 - Plain-language summary of what changed.
 - Pass/fail checklist for a non-coding reviewer.
 - Command summary with links to committed reports.
-- The worked river examples, with cards, so the one place this bot puts money in
-  postflop can be checked by hand.
+- The worked call examples for the turn and the river, with cards, so the one place
+  this bot puts money in postflop can be checked by hand.
 - A plain statement of what a hand played by this bot looks like, and therefore
   what Phase 07 may and may not claim from it.
 - The recorded judgment calls and what each one changed.
@@ -167,11 +186,15 @@ It is limited to the work named by this contract and the active ExecPlan.
   make one possible.
 - Do not let the fallback answer a preflop query, and do not let the composite
   convert a preflop chart refusal into an action.
-- Do not approximate the river unbeatable test.
-  A hand-category shortcut, a nut-hand lookup table, or a sampled subset of the
-  unseen deck all turn a fact back into a guess.
-- Do not relax the strictness of that test to include hands that can be tied in
-  order to make the bot call more often.
+- Do not approximate the unbeatable test on either street.
+  A hand-category shortcut, a nut-hand lookup table, a sampled subset of the unseen
+  deck, or a sampled subset of the river cards all turn a fact back into a guess.
+- Do not count a tie against calling.
+  A hand no holding can beat cannot lose, and folding it gives up a guaranteed share
+  of a pot that already holds the villain's bet.
+- Do not extend the test to the flop in this phase.
+  The honest version costs 1,070,190 evaluations for one decision, and the only way
+  to make it cheap here would be to sample it, which is the shortcut above.
 - Do not weaken Phase 03 decision validation, Phase 04 import validation, or
   Phase 05 chart refusals to admit a fallback decision.
 - Do not describe the fallback as a postflop strategy in code, documentation, or
