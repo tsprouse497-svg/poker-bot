@@ -1,8 +1,10 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE-07-CONTRACT
+active_phase: "07"
+task_mode: contract-update
+base_commit: 0dc1eb713c02a24eee8508e63e52d4119af52819
+approved_scope:
+  - docs/phase_contracts/PHASE_07_SIMULATOR_REPORTS.md
+  - reports/phase_audits/decisions/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -83,3 +85,5 @@ scope_change_log:
     reason: The stage 8 domain review showed that folding a hand no holding can beat is a certain loss rather than caution, and that the turn extension was declined on the flop's arithmetic. Judgment calls 2 and 3 are re-ruled to allow-guaranteed-chops and extend-to-turn, and both are acceptance criteria plus a named forbidden shortcut in the contract, so the contract and the decision record change first in contract-update mode.
   - date: 2026-08-12
     reason: Implementing the two re-rulings changes the fallback strategy, the frozen tests that pinned the strict bar and the river-only exception, the freeze lock recording them, the mutation canary that defended the strict bar and a new one for the turn rule, the report that must now show turn examples and the price of the turn claim, and the stage 8 review notes that record the resolution. tests/ and verification/ come back into scope because this task legitimately changes tests and must re-freeze them; the contract and the decision record leave scope again because implementation mode may not touch them.
+  - date: 2026-08-12
+    reason: Phase 07 contract-update needs the phase contract itself, whose skeleton carries only gate boilerplate, plus a pre-implementation judgment-call record under reports/phase_audits/decisions/ so the simulation choices no chart can settle are recorded with a reversibility class before any code is written.
