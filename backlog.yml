@@ -80,3 +80,46 @@ items:
     phase: v2
     title: A postflop strategy that can bet and raise
     reason: V1 ships a fallback that never invests unless the investment cannot lose, so it never bets or raises. A bet needs a size, a size needs a source, and the only sizing source in the repo is the preflop solver export. Until a postflop solution is committed, an invented sizing scheme would produce postflop play that looks deliberate and is not.
+  - id: STREET-BET-MEANING-AMBIGUOUS
+    status: deferred
+    phase: strategy
+    title: Two readings of StrategyQuery.street_bet, and one consumer uses the wrong one
+    reason: >-
+      StrategyQuery.street_bet carries no docstring and two consumers read it
+      differently. preflop_chart._table_depth_bb derives hero's starting stack as
+      stacks[seat] + (street_bet - to_call), which is only meaningful if street_bet is
+      the street's current bet level, and _blind_structure_is_representable compares it
+      to the big blind on the same reading. The Phase 05 tests and the Phase 06 tests
+      both use that reading. But scripts/generate_strategy_query_report.py passes
+      player.street_bet, hero's own contribution, so replayed hands reach the chart with
+      a mis-derived depth: the small blind in phase02-heads-up-showdown refuses with
+      blind-structure-not-representable where the true miss is the table size. Found by
+      the Phase 06 report lane. The fix is to name the meaning on the field and correct
+      the one caller, which is Phase 03 scope and needs its own task.
+  - id: DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE
+    status: deferred
+    phase: strategy
+    title: The decision audit's all-in ceiling is too high by the price to call
+    reason: >-
+      DecisionAuditRecord computes max_target as street_bet + stack for the acting seat.
+      Under the canonical reading of street_bet as the street's current bet level, hero
+      has already committed street_bet - to_call, so the true all-in raise target is
+      (street_bet - to_call) + stack and the recorded ceiling is too loose by exactly
+      to_call. With street_bet 20, to_call 20 and a stack of 100 the record accepts a
+      raise to 120 and only rejects 121. No shipped strategy is affected today, because
+      the only strategy that returns an amount is the preflop chart and it caps its own
+      raise at street_bet + stack, but the legality proof several phase contracts lean on
+      is weaker than those contracts say. Found by the Phase 06 report lane. Fixing it
+      touches Phase 03's contract module and its frozen tests, so it needs its own task.
+  - id: SAMPLE-HAND-THE-CHARTS-COVER
+    status: deferred
+    phase: samples
+    title: No committed sample hand is a preflop spot the charts cover
+    reason: >-
+      The four hands in data/samples/normalized_hands.json were written to exercise the
+      replayer and are two-handed and three-handed, so the six-max artifact refuses every
+      preflop point in them. The Phase 06 report can therefore only show a hand as
+      refuse-preflop-then-check-through rather than decide-preflop-then-check-through,
+      which is the shape Phase 07 will want to measure. A six-handed 100bb normalized
+      hand added to data/samples/ would close it, and committing sample data is a
+      frozen-into-data decision that needs a human, so it is not a Phase 06 change.

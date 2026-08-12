@@ -2,7 +2,7 @@
 
 Project: `poker-training-bot`
 Current task: `PHASE-06-IMPLEMENTATION`
-Task mode: `contract-update`
+Task mode: `implementation`
 Active phase: `06`
 Completed phases: `6`
 
