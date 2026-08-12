@@ -1,0 +1,271 @@
+Postflop Fallback Report
+========================
+
+Fallback: postflop-fallback v1
+Composite: composite-preflop-chart-postflop-fallback v1
+
+## What this is, and what it is not
+
+This is a continuity device, not a postflop strategy. There is no postflop chart in this
+repo and there will not be one in v1, so a simulated hand that reaches a flop would
+otherwise have nothing to ask; this fallback checks whenever checking is free, folds to
+a bet, and puts money in on exactly one path - a board on which no holding a villain
+could possibly have beats hero, whatever card is still to come.
+
+That path is open on the turn and the river and closed on the flop, where the honest
+enumeration costs over a million hand evaluations for one decision. So a flop bet always
+takes the pot from this bot.
+
+What that makes a hand: against another copy of itself every postflop street checks
+through, so a hand is decided preflop by the committed charts and then settled at
+showdown. Nothing downstream may read postflop quality into it, because there is no
+postflop play here to have quality.
+
+## The enumeration over engine-legal postflop states
+
+Coverage is proved by enumeration, not by sampling. The legal-action sets below were not
+written down: each one is what the engine's own `legal_actions` returned for a postflop
+seat, swept over every combination of current bet, hero's street bet, and hero's
+remaining stack that the engine can be put in. If the engine ever produces a new action
+set, this sweep widens on its own rather than missing it.
+
+Legal-action sets the engine produced: 4
+  check/bet               to call    0
+  check/raise             to call    0
+  fold/call               to call   20  (hero's whole stack is short of the price to call)
+  fold/call/raise         to call   20
+
+Streets: 3 (flop, turn, river)
+Hands enumerated at each: 6
+States covered: 72 = 4 x 3 x 6
+
+Every state returned a decision. Not one of them was a bet or a raise, at any street,
+because aggression needs a size and this repo has no postflop sizing.
+
+Action chosen:
+  call                        12
+  check                       36
+  fold                        24
+
+Decision codes seen. These are counted from the outcomes actually observed, so a code
+the current engine cannot reach does not appear here as a row of zero and read as
+coverage of a state that does not exist.
+
+  postflop-fallback:call-hand-cannot-lose                 12
+  postflop-fallback:check-when-free                       36
+  postflop-fallback:fold-facing-bet-on-the-flop           12
+  postflop-fallback:fold-hand-can-lose                    12
+
+Postflop refusals: 0
+
+That number must be zero. A refusal postflop would be a hand the simulator cannot
+finish, which is the whole gap this phase exists to close.
+
+## Where money goes in: the worked call examples
+
+The unbeatable call is the only path in this module that invests, so it is written out
+as cards. On a complete board hero can see seven of the 52 - two in hand and five on the
+board - which leaves 45 unseen and 990 possible two-card villain holdings. Every one of
+them is ranked with the same evaluator that ranks hero's own hand. No hand categories,
+no table of nut hands, no sampled subset.
+
+The bar is that no holding beats hero. A tie does not count against calling, because a
+chop is not a loss: the pot that gets chopped holds the villain's bet and the money
+already in the middle, so facing a bet of B into a pot of P that already contains B, a
+hand nothing can beat returns at least half of P + B for a payment of B and the call
+gains at least (P - B) / 2. P always exceeds B, because a postflop pot holds the preflop
+money too. There is no price in that and no equity estimate, which is the whole reason
+this one path is allowed to invest.
+
+The `hero holds` column is the evaluator's own category name. It has no separate
+royal-flush category, so a royal flush reads there as a straight flush. The `bad rivers`
+column applies to turn rows only, and is the number of river cards after which some
+holding beats hero; one is enough to fold.
+
+### On the river, where the board is complete
+
+hero    board               hero holds          beat   tie  bad rivers   verdict
+Ac Kc   Qc Jc Tc 2d 3h      straight flush         0     0           -   calls
+Ac 2c   As Ah Ad Kc Kd      four of a kind         0     0           -   calls
+Kd Qh   9c 9d 9h 9s Ac      four of a kind         0   990           -   calls
+2d 7h   Ac Kc Qc Jc Tc      straight flush         0   990           -   calls
+Ad Kd   2d 3d 4d 5h Kc      flush                  1     0           -   folds
+
+river, royal flush in hand: Ac Kc on Qc Jc Tc 2d 3h
+  Calls, because hero holds a royal flush in clubs; nothing beats a royal flush, and the
+  only hand that ties it needs Ac and Kc, both of which hero holds. Of 990 possible
+  villain holdings on that board, 0 beat hero and 0 tie hero.
+
+river, quad aces holding the fourth ace: Ac 2c on As Ah Ad Kc Kd
+  Calls, because hero holds four aces with a king; only a straight flush beats quad aces
+  and no three board cards share a suit, so no flush exists, and a tie needs the fourth
+  ace, which hero holds. Of 990 possible villain holdings on that board, 0 beat hero and
+  0 tie hero.
+
+river, quad nines with the kicker on the board: Kd Qh on 9c 9d 9h 9s Ac
+  Calls, because hero's best five cards are the four nines and the ace, all of them on
+  the board, so every villain holds the same hand: nothing beats hero and every holding
+  chops, and a chop is not a loss - the pot hands back the villain's bet along with a
+  share of the money already in the middle. Of 990 possible villain holdings on that
+  board, 0 beat hero and 990 tie hero.
+
+river, royal flush on the board: 2d 7h on Ac Kc Qc Jc Tc
+  Calls, because the nuts is the board itself, a royal flush, and hero's two cards are
+  irrelevant; hero cannot hold that hand as a two-card holding and neither can any
+  villain, so the whole table chops and hero's share of the pot is guaranteed. Of 990
+  possible villain holdings on that board, 0 beat hero and 990 tie hero.
+
+river, nut flush that one straight flush beats: Ad Kd on 2d 3d 4d 5h Kc
+  Folds, because hero holds the ace-high flush and no villain flush can match it, but 6d
+  5d makes 2d 3d 4d 5d 6d, a six-high straight flush; one holding out of 990 is enough
+  to fold. Of 990 possible villain holdings on that board, 1 beat hero and 0 tie hero.
+
+### On the turn, where a card is still to come
+
+The turn claim is the stronger one: not 'no holding beats me now' but 'no holding beats
+me after any river card'. It decomposes into 46 river checks, one per card that can
+complete the board, so hero calls the turn only when every one of them comes back safe.
+That is 46 x 990 = 45,540 (river, holding) pairs for a single decision.
+
+hero    board               hero holds          beat   tie  bad rivers   verdict
+Ac Kc   Qc Jc Tc 2d         straight flush         0     0           0   calls
+Th Jd   9c 8c 7h 6d         straight               0     9          25   folds
+Th Jd   9c 8c 7h 6d 2h      straight               0     9           -   calls
+
+turn, royal flush in hand: Ac Kc on Qc Jc Tc 2d
+  Calls, because hero already holds a royal flush in clubs, so no river card can beat it
+  and none can tie it, because a tie needs Ac and Kc and hero holds both. Of 990
+  possible villain holdings on that board, 0 beat hero and 0 tie hero. Of the 46 cards
+  that can complete the board, 0 leave some holding beating hero.
+
+turn, straight a club river would break: Th Jd on 9c 8c 7h 6d
+  Folds, because hero holds the jack-high straight and nothing beats it on the board as
+  it stands, but two clubs are showing, so a club river would give any two clubs a
+  flush; the turn claim has to survive every river card and this one does not. Of 990
+  possible villain holdings on that board, 0 beat hero and 9 tie hero. Of the 46 cards
+  that can complete the board, 25 leave some holding beating hero.
+
+river, straight a club river would break: Th Jd on 9c 8c 7h 6d 2h
+  Calls, because the river came 2h rather than a club, so no flush is ever possible now,
+  nothing beats the jack-high straight, and the hand that folded a turn bet calls a
+  river one - the same cards, one card later, and the card that would have broken it
+  missed. Of 990 possible villain holdings on that board, 0 beat hero and 9 tie hero.
+
+### Why the flop is not on this list
+
+On the flop two cards are still to come, so the same claim runs over C(47,2) = 1,081
+villain holdings against C(45,2) = 990 runouts: 1,070,190 evaluations for a single
+decision, against 45,540 on the turn and 990 on the river. That is roughly a thousand
+river checks where the turn is roughly forty-six, which is the whole difference between
+the two, and it is why the turn is here and the flop is not.
+
+So a flop bet always takes the pot from this bot. That gap is recorded in `backlog.yml`
+as POSTFLOP-UNBEATABLE-EARLIER-STREETS rather than approximated, because a sampled
+version would turn the one fact this module rests on back into a guess.
+
+## What the composite does over the committed sample hands
+
+Fixture: `data/samples/normalized_hands.json`
+
+One strategy object plays the whole hand: preflop from the committed charts, flop
+through river from the fallback. Every recorded action in a hand is a decision point. A
+point can only be asked when the hand history records that seat's hole cards, which it
+does only for seats that reached showdown, so points belonging to a seat that folded
+earlier are skipped rather than guessed at.
+
+These four hands were recorded to exercise the replayer, not to be preflop spots the
+six-handed 100bb charts cover, so the chart refuses every one of them. That is the
+behavior to want: a refusal carries its own reason code out to the caller instead of
+being quietly converted into a check.
+
+  phase02-heads-up-showdown
+    preflop seat 0   refused  (preflop-chart:lookup:no-artifact-for-table-size)
+    preflop seat 1   refused  (preflop-chart:lookup:no-artifact-for-table-size)
+    flop    seat 1   check  (postflop-fallback:check-when-free)
+    flop    seat 0   check  (postflop-fallback:check-when-free)
+    turn    seat 1   check  (postflop-fallback:check-when-free)
+    turn    seat 0   check  (postflop-fallback:check-when-free)
+    river   seat 1   check  (postflop-fallback:check-when-free)
+    river   seat 0   check  (postflop-fallback:check-when-free)
+
+  phase02-three-way-side-pot
+    preflop seat 2   refused  (preflop-chart:lookup:no-artifact-for-table-size)
+    preflop seat 0   refused  (preflop-chart:lookup:no-artifact-for-table-size)
+    preflop seat 1   refused  (preflop-chart:lookup:no-artifact-for-table-size)
+
+  phase02-preflop-fold-out
+    preflop seat 2   not asked (this seat's hole cards are not recorded)
+    preflop seat 0   not asked (this seat's hole cards are not recorded)
+
+  phase02-turn-fold-out
+    preflop seat 0   not asked (this seat's hole cards are not recorded)
+    preflop seat 1   not asked (this seat's hole cards are not recorded)
+    flop    seat 1   not asked (this seat's hole cards are not recorded)
+    flop    seat 0   not asked (this seat's hole cards are not recorded)
+    turn    seat 1   not asked (this seat's hole cards are not recorded)
+    turn    seat 0   not asked (this seat's hole cards are not recorded)
+
+Broken out by which component answered. Preflop is the chart, flop through river is the
+fallback, and no query reaches both.
+
+                                               preflop              postflop
+                                         preflop-chart     postflop-fallback
+
+decision points                                      9                    10
+asked (hole cards recorded)                          5                     6
+decisions                                            0                     6
+refusals                                             5                     0
+skipped (hole cards unknown)                         4                     4
+
+Refusal codes, all of them from the chart and none from the fallback:
+
+  preflop-chart:lookup:no-artifact-for-table-size          5
+
+Read the per-hand listing above as the shape of a hand played by this bot: the chart
+speaks preflop or declines to, every postflop street checks through, and the hand is
+settled at showdown. Nothing bets and nothing raises after the flop.
+
+## Check one number by hand
+
+Postflop decision points across the committed sample hands: 10.
+
+Open `data/samples/normalized_hands.json`. For each hand, go to `streets` and find the
+entries named `flop`, `turn` and `river`, ignoring `preflop`. Count the entries in each
+one's `actions` list and add them up. The replayer visits exactly one decision point per
+recorded action, so that tally is the number above.
+
+  phase02-heads-up-showdown       flop 2, turn 2, river 2                    6
+  phase02-three-way-side-pot      flop 0, turn 0, river 0                    0
+  phase02-preflop-fold-out        no postflop streets                        0
+  phase02-turn-fold-out           flop 2, turn 2                             4
+  total                                                                     10
+
+Counting the file by hand gives 10. Driving the same file through the replayer and the
+composite reached 10 postflop decision points. The two agree, and the first of them
+needed no code at all.
+
+The two `post_blind` entries that open every preflop street are deliberately not in this
+count. They are forced posts rather than decisions, and the replayer never offers them
+to a strategy.
+
+## The committed decision audit
+
+`reports/active/latest_postflop_decision_audit.jsonl` holds one line per decision in the
+Phase 03 record shape, written with the same serializer as the preflop audit, so the
+reader that already checks preflop decisions checks these unchanged.
+
+  from the enumeration                                  72
+  from the sample hands (postflop only)                  6
+  total lines                                           78
+
+Refusals are counted in this report and are deliberately not written to that file. The
+record shape does accept a refusal, but a decision audit whose lines are not all
+decisions is a file every future reader has to filter before trusting a count, and the
+preflop refusals worth auditing are already Phase 05's own evidence.
+
+Every line was constructed through `DecisionAuditRecord`, which is what proves legality:
+it rejects an action outside `legal_actions`, an amount above all-in, and an amount
+below the minimum raise target. A decision that was not legal could not have been
+written to the file.
+
+Generated by `scripts/generate_postflop_fallback_report.py`.

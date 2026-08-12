@@ -169,6 +169,14 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_preflop_strategy_report.py"],
         "Generate preflop strategy coverage and frequency report",
     ),
+    "pytest_postflop_fallback": CommandSpec(
+        uv_python_command() + ["-m", "pytest", "tests/test_postflop_fallback.py"],
+        "Run postflop fallback and composite strategy tests",
+    ),
+    "generate_postflop_fallback_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_postflop_fallback_report.py"],
+        "Generate postflop fallback enumeration report and decision audit",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",

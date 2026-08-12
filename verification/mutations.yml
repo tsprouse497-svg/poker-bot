@@ -58,3 +58,60 @@ mutations:
     replace: "new_min_raise = self.min_raise"
     must_fail:
       - pytest_poker_core
+
+  - id: fallback-answers-preflop
+    description: >-
+      The postflop fallback accepts a preflop query, so a spot the committed charts
+      do not cover quietly gets a passive action instead of the refusal that is the
+      whole coverage signal.
+    file: src/poker_training_bot/strategy/postflop_fallback.py
+    find: 'POSTFLOP_STREETS: tuple[str, ...] = ("flop", "turn", "river")'
+    replace: 'POSTFLOP_STREETS: tuple[str, ...] = ("flop", "turn", "river", "preflop")'
+    must_fail:
+      - pytest_postflop_fallback
+
+  - id: fallback-folds-guaranteed-chops
+    description: >-
+      The unbeatable test counts a chop against calling again, so the bot folds hands
+      no holding can beat and gives up half of the money already in the middle. This
+      is the stage 8 blocker itself, reinstalled as a canary: it shipped through a
+      green gate once, because the tests of the day pinned it.
+    file: src/poker_training_bot/strategy/postflop_fallback.py
+    find: "return villain_rank.beats(hero_rank)"
+    replace: "return villain_rank.beats(hero_rank) or villain_rank.ties(hero_rank)"
+    must_fail:
+      - pytest_postflop_fallback
+
+  - id: fallback-abandons-the-turn
+    description: >-
+      The unbeatable call reverts to the river only, so a turn hand that no river card
+      can break folds to a bet and the extension ruled at stage 8 disappears without
+      any test of the river rule noticing.
+    file: src/poker_training_bot/strategy/postflop_fallback.py
+    find: 'DECIDABLE_STREETS: tuple[str, ...] = ("turn", "river")'
+    replace: 'DECIDABLE_STREETS: tuple[str, ...] = ("river",)'
+    must_fail:
+      - pytest_postflop_fallback
+
+  - id: fallback-turn-needs-only-one-safe-river
+    description: >-
+      The turn claim becomes existential instead of universal: hero calls if any river
+      card leaves the hand safe rather than if every one does. That is the difference
+      between a fact and a hope, and it is invisible to any hand that is safe on the
+      whole runout.
+    file: src/poker_training_bot/strategy/postflop_fallback.py
+    find: "    return all("
+    replace: "    return any("
+    must_fail:
+      - pytest_postflop_fallback
+
+  - id: composite-routes-preflop-to-the-fallback
+    description: >-
+      The composite sends every street to the fallback, so the committed preflop
+      charts stop being consulted at all and every preflop decision becomes a check
+      or a fold that looks deliberate.
+    file: src/poker_training_bot/strategy/composite.py
+    find: "return PREFLOP_COMPONENT if street == \"preflop\" else POSTFLOP_COMPONENT"
+    replace: "return POSTFLOP_COMPONENT"
+    must_fail:
+      - pytest_postflop_fallback
