@@ -3,7 +3,9 @@ active_phase: "08"
 task_mode: implementation
 base_commit: 2c58a1b2ed41445feff38bd3f3637b552c1b58e7
 approved_scope:
+  - src/poker_training_bot/data_pipeline/comparison.py
   - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
+  - reports/phase_audits/reviews/PHASE_08_SAMPLE_COMPARISON.md
   - reports/phase_audits/logs/**
   - scripts/generate_sample_comparison_report.py
   - src/poker_training_bot/data_pipeline/**
@@ -112,6 +114,8 @@ scope_change_log:
     reason: Phase 08 implementation needs the phase tests, the command registry entries for its two new command IDs, the mutation canaries that must make the new pytest command fail, the corpus package under data_pipeline, the builder that applies the selection rule against a local corpus clone, the report generator, the committed sample and its source card, and the audit evidence. It also needs an additive read-only accessor on the Phase 05 preflop chart strategy, because agreement is defined as the observed action carrying nonzero weight and the chart's weights are reachable today only through a rationale string, so the comparison would otherwise have to parse a private format or re-derive the spot key in a second place. Additive only, with no validation loosened, on the Phase 04 precedent.
   - date: 2026-08-12
     reason: Loop stage 5 narrows scope so the builder cannot reach the tests it is measured by. tests/, verification/, and the command registry all leave approved_scope, and base_commit moves to the freeze commit so the diff is measured from there rather than from the start of the phase, which is what keeps work that was legitimately in scope at stage 4 from reading as out of scope afterwards.
+  - date: 2026-08-12
+    reason: The stage 8 domain review found that 72 percent of scored decisions are folds and that folds agree 98.6 percent of the time, so a single headline agreement rate mostly measures how easy it is to fold trash. Splitting it by the action the player took shows raises agree 93.4 percent and calls only 60.6 percent, which is the phase's actual finding and the current report buries it. The fix is a report section, so comparison.py comes back into scope; no rule, test, or measurement changes.
   - date: 2026-08-12
     reason: The gate fails ruff on a 101-character line in a frozen Phase 08 test. Stage 4 never surfaced it because its check runs the phase's pytest command rather than the gate, so the defect stayed latent until stage 7. Reflowing one list comprehension changes no assertion, but it changes the file, so the freeze lock is rewritten with it and both land in their own task.
   - date: 2026-08-12

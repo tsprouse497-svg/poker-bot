@@ -105,6 +105,21 @@ class ComparisonResult:
             1 for row in self.rows if row.population == population and row.verdict == REFUSED
         )
 
+    def agreement_by_observed_action(self, action: str) -> Rate:
+        """Agreement restricted to decisions where the player took one named action.
+
+        This is the split the stage 8 domain review insisted on. Roughly seven in ten
+        preflop decisions are folds, and folding a bad hand is the easiest agreement in
+        poker, so a single pooled rate mostly measures how often both sides threw away
+        junk. The interesting number is what happens when somebody puts money in.
+        """
+        scored = [
+            row
+            for row in self.rows
+            if row.observed_action == action and row.verdict in {AGREE, DISAGREE}
+        ]
+        return Rate(sum(1 for row in scored if row.verdict == AGREE), len(scored))
+
 
 def classify_observed_action(
     observed: str, weights: tuple[tuple[str, float], ...]
@@ -303,6 +318,29 @@ def render_comparison_report(result: ComparisonResult) -> str:
         )
         lines.append(f"    refused {refused} of {total} decision points")
         lines.append("")
+    lines.append("## The number that matters more than the one above")
+    lines.append("")
+    lines.append("  Read this before quoting any figure from the previous section.")
+    lines.append("")
+    lines.append("  Roughly seven in ten preflop decisions in any six-handed sample are folds,")
+    lines.append("  and folding a bad hand is the easiest agreement in poker. A single pooled")
+    lines.append("  agreement rate is therefore mostly a measurement of how often both sides")
+    lines.append("  threw away junk, and it will look high no matter what the chart does with")
+    lines.append("  the hands people actually play. Split by what the player did:")
+    lines.append("")
+    for action in ("fold", "check", "call", "raise"):
+        rate = result.agreement_by_observed_action(action)
+        if not rate.denominator:
+            continue
+        lines.append(
+            f"    player {action:6s} agreed {rate.numerator:5d} of {rate.denominator:5d}"
+            f"  ({rate.percent:.1f}%)"
+        )
+    lines.append("")
+    lines.append("  Where those diverge, the low one is the finding. A chart that matches on")
+    lines.append("  folds and misses on calls is not 'mostly right'; it is right about the")
+    lines.append("  decisions that cost nothing and unproven about the ones that cost chips.")
+    lines.append("")
     lines.append("## What a disagreement looked like")
     lines.append("")
     disagreements = [row for row in result.rows if row.verdict == DISAGREE]

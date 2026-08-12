@@ -1,0 +1,102 @@
+# Phase 08 Review Notes
+
+**No independent reviewer was available.** Subagent delegation is disabled in this
+operator's sessions, which overrides the coordinator default in `AGENTS.md`. Step 10
+of that file permits self-review when the concrete reason is recorded, so this is a
+self-review and its weakness should be read as real: the same mind wrote the contract,
+the tests, and the implementation, and a shared misunderstanding is invisible to all
+three at once.
+
+The compensating control is two passes with different questions. The mechanical pass
+asks whether the thing works. The domain pass ignores the contract entirely and asks
+whether the poker is right, which is the only question a green gate cannot answer.
+
+## Mechanical pass
+
+- Full gate green across 33 commands. 20 mutations applied and all 20 caught, including
+  the four authored for this phase.
+- The four Phase 08 canaries were checked individually rather than trusted in
+  aggregate: the call-amount conversion, the button derivation, the nonzero-weight
+  agreement rule, and refusals staying out of the disagreement count all make
+  `pytest_sample_comparison` fail when broken and pass when restored.
+- 499 of 500 selected hands convert and settle to the corpus's published finishing
+  stacks, every seat, no tolerance. The one exclusion is committed with its reason.
+- The settlement check is not circular. `result` is built from the corpus's published
+  numbers, and `replay_hand` raises when the settlement it computes from the engine
+  disagrees with `result`. The engine never sees the finishing stacks.
+- The reports regenerate byte-identically. No clock, no network, no seed of their own.
+- Two frozen tests needed repair mid-phase, both authoring defects rather than
+  behavior: an attribute name and a line length. Each was repaired in its own task with
+  the tests re-frozen, and neither weakened an assertion. Recorded here because the
+  freeze is meant to make exactly that visible.
+
+## Domain pass
+
+This pass ignored the contract and looked only at the poker.
+
+### Blocker found and fixed: the headline number was measuring the wrong thing
+
+The report led with 96.3% agreement against Pluribus and 93.6% against the human
+professionals. Both figures are arithmetically correct and both are close to
+meaningless as stated.
+
+1,975 of the 2,758 scored decisions - 72% - are folds, and folds agree 98.6% of the
+time. Folding a bad hand from early position is the easiest agreement in poker. Any
+chart that is not actively broken will score in the nineties on a pooled rate, because
+the pool is mostly junk being thrown away by both sides.
+
+Split by what the player actually did, the picture changes:
+
+| player's action | agreed | of | rate |
+|---|---|---|---|
+| fold | 1948 | 1975 | 98.6% |
+| check | 21 | 21 | 100.0% |
+| raise | 465 | 498 | 93.4% |
+| call | 160 | 264 | **60.6%** |
+
+**The chart and real players disagree about calling four times in ten.** That is this
+phase's actual finding, and the first version of the report buried it under a number
+that looked reassuring. The report now prints the split above the disagreement listing
+and says in plain language that the low figure is the finding.
+
+This is consistent with what the repo already knows about itself. Phase 05's original
+plurality collapse over-folded by 13 points against three-bets before it was re-ruled,
+and Phase 06's fallback over-folds postflop by construction. A 60.6% agreement rate on
+calls is the same bias showing up against real opponents rather than against the
+simulator.
+
+### Second finding: the largest single refusal bucket has no spot key
+
+19 refusals carry `(no expressible spot)` - the position and action sequence do not
+describe a spot the chart vocabulary can express at all, which is a different miss from
+a spot that is expressible and uncovered. It is the biggest single entry in the
+inventory and the one entry nobody can act on, because there is no cell to fill. Filed
+as `CORPUS-INEXPRESSIBLE-SPOTS` rather than fixed here: diagnosing it means changing the
+Phase 04 spot vocabulary, which is outside this phase.
+
+### Third finding: real hands find three times the coverage gap the simulator does
+
+78 distinct refused spots against real play, versus 22 from self-play, and most of the
+78 are marked NEW. The self-play run only reaches the spots its own strategy creates, so
+it is blind to the lines real players take. This is the single most useful output of the
+phase and it argues that the refusal inventory against real hands, not the self-play
+one, should drive whatever chart work comes next.
+
+### What this phase does not establish
+
+A disagreement with a human is not evidence the chart is wrong; these are strong players
+but they are not solvers, and the corpus records them playing an opponent pool of one
+superhuman bot, which is not the pool the chart was solved for. Agreement with Pluribus
+is the closer thing to a correctness signal, and even there 456 scored decisions is a
+sample, not a proof.
+
+The 500 hands are a slice. Rates on them carry real sampling error that the report
+states denominators for but does not compute intervals around.
+
+## Blocker status
+
+One blocker was found in the domain pass and fixed inside this phase: the headline
+agreement rate was dominated by folds and is now split by the player's action. No rule,
+test, or measurement changed - only what the report puts in front of the reader.
+
+No blocker remains open. The two backlog items above are recorded work, not gates.

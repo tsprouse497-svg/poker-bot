@@ -231,3 +231,41 @@ items:
       latest_postflop_decision_audit.jsonl for exactly this reason. Not a criterion
       violation, an inconsistency between two adjacent phases' evidence - and the file the
       refusal inventory would naturally live beside.
+  - id: CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT
+    status: deferred
+    phase: sample-comparison
+    title: The chart and real players disagree about calling four times in ten
+    reason: >-
+      Measured over 499 real hands: folds agree 98.6% of the time, raises 93.4%, and calls
+      only 60.6% on 264 decisions. The pooled 96.3% figure against Pluribus is dominated by
+      the 72% of decisions that are folds, which is the easiest agreement in poker and says
+      almost nothing. The calling gap is the same over-folding bias the repo has already
+      found twice - Phase 05's plurality collapse cost 13 points against three-bets before
+      it was re-ruled, and Phase 06's fallback over-folds by construction - now visible
+      against real opponents rather than against the simulator. This phase may not change
+      the chart it measures, so the work is recorded rather than done: establish whether
+      the gap is the chart's calling ranges being too tight, the sizing table mispricing a
+      call, or real players simply calling too wide, which the corpus alone cannot settle.
+  - id: CORPUS-INEXPRESSIBLE-SPOTS
+    status: deferred
+    phase: sample-comparison
+    title: The largest refusal bucket against real hands names no spot at all
+    reason: >-
+      19 refusals across the committed sample carry no spot key, because the position and
+      action sequence do not describe a spot the Phase 04 vocabulary can express - a
+      different miss from a spot that is expressible and uncovered. It is the biggest
+      single entry in the real-hand inventory and the only one nobody can act on, since
+      there is no chart cell to fill. Diagnosing it means examining the Phase 04 spot
+      vocabulary against the lines real players actually take, which is outside a phase
+      that consumes the lookup unchanged.
+  - id: CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK
+    status: deferred
+    phase: sample-comparison
+    title: Real hands find three times the coverage gap that self-play finds
+    reason: >-
+      78 distinct refused spots against real play versus 22 from self-play, and most of the
+      78 are new. Self-play only reaches the spots its own strategy creates, so it is blind
+      by construction to the lines real opponents take, and the self-play inventory has
+      been standing in as the work list since Phase 07. Whatever chart phase comes next
+      should be ordered by the real-hand inventory instead, with the self-play one kept as
+      the cheaper signal that regenerates on every gate run.

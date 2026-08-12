@@ -42,6 +42,25 @@ need different fixes.
     agreed 2155 of 2302 scored decisions  (93.6%)
     refused 244 of 2546 decision points
 
+## The number that matters more than the one above
+
+  Read this before quoting any figure from the previous section.
+
+  Roughly seven in ten preflop decisions in any six-handed sample are folds,
+  and folding a bad hand is the easiest agreement in poker. A single pooled
+  agreement rate is therefore mostly a measurement of how often both sides
+  threw away junk, and it will look high no matter what the chart does with
+  the hands people actually play. Split by what the player did:
+
+    player fold   agreed  1948 of  1975  (98.6%)
+    player check  agreed    21 of    21  (100.0%)
+    player call   agreed   160 of   264  (60.6%)
+    player raise  agreed   465 of   498  (93.4%)
+
+  Where those diverge, the low one is the finding. A chart that matches on
+  folds and misses on calls is not 'mostly right'; it is right about the
+  decisions that cost nothing and unproven about the ones that cost chips.
+
 ## What a disagreement looked like
 
   pluribus/100/0  seat 0  MrBlue  TcQc  played call  chart [fold=0.8503,raise=0.1497]
