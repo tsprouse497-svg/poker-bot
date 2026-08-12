@@ -1,9 +1,9 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `none (idle)`
-Task mode: `idle`
-Active phase: `none`
+Current task: `PHASE-06-IMPLEMENTATION`
+Task mode: `contract-update`
+Active phase: `06`
 Completed phases: `6`
 
 ## Phase Snapshot
@@ -16,7 +16,7 @@ Completed phases: `6`
 | 03 | completed | `docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md` | `reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md` |
 | 04 | completed | `docs/phase_contracts/PHASE_04_PREFLOP_ARTIFACTS.md` | `reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md` |
 | 05 | completed | `docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md` | `reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md` |
-| 06 | future | `docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md` | `reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md` |
+| 06 | active | `docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md` | `reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md` |
 | 07 | future | `docs/phase_contracts/PHASE_07_SIMULATOR_REPORTS.md` | `reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md` |
 | 08 | future | `docs/phase_contracts/PHASE_08_SAMPLE_COMPARISON.md` | `reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md` |
 | 09 | future | `docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md` | `reports/phase_audits/PHASE_09_QUALITY_HARDENING.md` |

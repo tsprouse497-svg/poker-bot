@@ -8,7 +8,7 @@
 | 03 | Strategy Contract And Deterministic Decision Audit Shape | completed | `docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md` | `reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md` |
 | 04 | Preflop Artifact/Chart Contract, Importer, And Fail-Closed Lookup | completed | `docs/phase_contracts/PHASE_04_PREFLOP_ARTIFACTS.md` | `reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md` |
 | 05 | Full-Table Preflop Strategy From Committed Artifacts/Charts | completed | `docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md` | `reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md` |
-| 06 | Conservative Postflop Fallback For Simulation Continuity | future | `docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md` | `reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md` |
+| 06 | Conservative Postflop Fallback For Simulation Continuity | active | `docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md` | `reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md` |
 | 07 | Offline Simulator And Bot/Profile Comparison Reports | future | `docs/phase_contracts/PHASE_07_SIMULATOR_REPORTS.md` | `reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md` |
 | 08 | Tiny Normalized Sample Ingestion And Player Tendency Comparison | future | `docs/phase_contracts/PHASE_08_SAMPLE_COMPARISON.md` | `reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md` |
 | 09 | Quality, Drift, Backlog, And Phase-Gate Hardening | future | `docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md` | `reports/phase_audits/PHASE_09_QUALITY_HARDENING.md` |
