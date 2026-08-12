@@ -70,3 +70,13 @@ items:
     phase: engine
     title: Accept recorded folds when checking is free
     reason: The engine treats fold as illegal when to_call is zero, so real histories containing open folds (timeouts, surrendered rivers) fail replay; the strategy contract inherits the same invariant.
+  - id: POSTFLOP-UNBEATABLE-EARLIER-STREETS
+    status: deferred
+    phase: strategy
+    title: Extend the unbeatable call from the river to the flop and the turn
+    reason: The postflop fallback calls a bet only when hero's hand beats every possible villain holding, and only on the river, where a complete board makes the claim a 990-combination enumeration. The same claim on the turn means unbeatable after every one of 44 runouts, and on the flop after every one of 903, which is 894 thousand hand evaluations for one decision and too slow inside an exhaustive test sweep. A sampled version would turn the fact back into a guess, so the fallback folds those spots meanwhile. Almost nothing qualifies on the flop anyway, so the cost is small and the fix is a faster evaluator rather than a new rule.
+  - id: V2-POSTFLOP-STRATEGY
+    status: deferred
+    phase: v2
+    title: A postflop strategy that can bet and raise
+    reason: V1 ships a fallback that never invests unless the investment cannot lose, so it never bets or raises. A bet needs a size, a size needs a source, and the only sizing source in the repo is the preflop solver export. Until a postflop solution is committed, an invented sizing scheme would produce postflop play that looks deliberate and is not.
