@@ -1,0 +1,6 @@
+[
+ {
+  "hand_id": "pluribus/41b/204",
+  "reason": "finishing_stacks must hold whole chips; 10162.5 is not an integer. Fractional-currency corpora are a different ingestion problem"
+ }
+]

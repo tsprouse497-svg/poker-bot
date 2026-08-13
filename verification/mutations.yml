@@ -190,3 +190,50 @@ mutations:
     replace: "    return tuple(filed)"
     must_fail:
       - pytest_simulator
+
+  - id: corpus-call-copies-the-target-total
+    description: >-
+      A call converted from the corpus records the street's bet level rather than the
+      chips the caller actually added, so a small blind calling a raise to 210 is
+      recorded as putting in 210 instead of 160. The hand still replays cleanly and
+      settles to the wrong stacks, which is the exact class of defect an outside
+      settlement oracle exists to catch and no internal check ever would.
+    file: src/poker_training_bot/data_pipeline/convert.py
+    find: "                actions.append(HistoryAction(seat, HistoryActionKind.CALL, owed))"
+    replace: "                actions.append(HistoryAction(seat, HistoryActionKind.CALL, street_bet))"
+    must_fail:
+      - pytest_sample_comparison
+
+  - id: corpus-button-off-by-one
+    description: >-
+      The button moves one seat from where the corpus's blind placement puts it. Nothing
+      raises: every hand still converts and still replays, but every decision is compared
+      against the chart cell for the wrong position, and no aggregate number in the report
+      would look wrong.
+    file: src/poker_training_bot/data_pipeline/convert.py
+    find: "    return next_seat(seats, seats[-2])"
+    replace: "    return next_seat(seats, seats[-3])"
+    must_fail:
+      - pytest_sample_comparison
+
+  - id: agreement-demands-the-drawn-action
+    description: >-
+      Agreement narrows to the single action the chart's seeded draw produced, so a
+      correctly mixed cell reads as a disagreement in proportion to how mixed it is.
+      This is the rule ruled out before implementation, reinstalled as a canary.
+    file: src/poker_training_bot/data_pipeline/comparison.py
+    find: "            return AGREE if weight > 0.0 else DISAGREE"
+    replace: "            return AGREE if weight >= 0.5 else DISAGREE"
+    must_fail:
+      - pytest_sample_comparison
+
+  - id: corpus-refusal-counted-as-disagreement
+    description: >-
+      A spot the chart cannot answer is scored against the chart instead of being
+      reported as missing coverage, which makes an absent chart cell indistinguishable
+      from a wrong one and sends the reader to fix the wrong thing.
+    file: src/poker_training_bot/data_pipeline/comparison.py
+    find: "                        verdict=REFUSED,"
+    replace: "                        verdict=DISAGREE,"
+    must_fail:
+      - pytest_sample_comparison

@@ -44,7 +44,7 @@ phases:
     audit_packet: reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md
   - phase_id: "08"
     title: "Tiny Normalized Sample Ingestion And Player Tendency Comparison"
-    status: future
+    status: completed
     contract: docs/phase_contracts/PHASE_08_SAMPLE_COMPARISON.md
     audit_packet: reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
   - phase_id: "09"

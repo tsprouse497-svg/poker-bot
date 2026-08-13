@@ -185,6 +185,14 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_profile_comparison_report.py"],
         "Generate the bot/profile comparison report",
     ),
+    "pytest_sample_comparison": CommandSpec(
+        uv_python_command() + ["-m", "pytest", "tests/test_sample_comparison.py"],
+        "Run public-corpus ingestion and player comparison tests",
+    ),
+    "generate_sample_comparison_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_sample_comparison_report.py"],
+        "Generate the real-hand comparison report and its refusal inventory",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",
