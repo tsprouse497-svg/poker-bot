@@ -1,0 +1,24 @@
+Quality And Drift Report
+========================
+
+Four checks, each with what it covers and what it does not. The second half of
+each entry matters as much as the result: a check that passed is not a promise
+about everything it did not look at, and this repo has already shipped three
+wrong numbers and a decorative gate command past a green run.
+
+PASS  mutation coverage
+      covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.
+      does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.
+
+PASS  fact drift
+      covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.
+      does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.
+
+PASS  backlog integrity
+      covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.
+      does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.
+
+PASS  phase record agreement
+      covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.
+      does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.
+

@@ -22,6 +22,8 @@ All passed: True
 - PASS generate_profile_comparison_report: Generate the bot/profile comparison report
 - PASS pytest_sample_comparison: Run public-corpus ingestion and player comparison tests
 - PASS generate_sample_comparison_report: Generate the real-hand comparison report and its refusal inventory
+- PASS pytest_quality_hardening: Run quality, drift, and phase-gate hardening tests
+- PASS run_full_quality_gate: Run the quality checks and write the quality report
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness

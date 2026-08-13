@@ -231,6 +231,24 @@ items:
       latest_postflop_decision_audit.jsonl for exactly this reason. Not a criterion
       violation, an inconsistency between two adjacent phases' evidence - and the file the
       refusal inventory would naturally live beside.
+  - id: MUTATION-SENTINEL-IS-COMMITTABLE
+    status: deferred
+    phase: contract-update
+    title: The gate-bite sentinel and a mutated source file can be committed
+    reason: >-
+      check_gate_bite writes verification/.mutation_in_progress before it edits a source
+      file and removes it in a finally block, so an interrupted run leaves a marker that
+      refuses the next run. That protects the next run and nothing else: while a run is in
+      flight the tree genuinely holds a deliberate defect, and a `git add -A` during that
+      window commits both the defect and the sentinel announcing it. That happened on the
+      Phase 09 branch: a commit captured the cutoff and hijack labels swapped, and the
+      sentinel that said so, and the gate went red on the next scope check rather than on
+      the swap. Two cheap fixes and they are not exclusive: gitignore the sentinel so it
+      can never be committed, and have the sentinel's presence fail check_scope or a
+      pre-commit path so a commit during a mutation run is refused rather than recorded.
+      Filed rather than fixed inside Phase 09 because .gitignore and check_scope.py are
+      outside this phase's approved scope, and because the phase must not edit the checks
+      it is measuring itself against.
   - id: CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT
     status: deferred
     phase: sample-comparison

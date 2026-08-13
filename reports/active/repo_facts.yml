@@ -1,0 +1,27 @@
+descriptions:
+  chart_solved_open_bb: the opening size the committed chart was solved against
+  corpus_all_in_hands: committed hands where a seat commits its whole stack
+  corpus_committed_hands: hands in the committed public-corpus sample
+  corpus_distinct_refused_spots: distinct spot keys the chart refuses against real
+    hands
+  corpus_excluded_hands: selected hands excluded by name
+  corpus_human_call_disagreements: scored human call decisions the chart disagrees
+    with
+  corpus_human_call_disagreements_big_blind: of those, the ones taken from the big
+    blind
+  corpus_inexpressible_refusals: refusals whose spot the chart vocabulary cannot express
+    at all
+  corpus_preflop_decisions: preflop decision points the comparison scores or refuses
+  corpus_refusals: decision points the chart could not answer
+facts:
+  chart_solved_open_bb: '2.5'
+  corpus_all_in_hands: '24'
+  corpus_committed_hands: '499'
+  corpus_distinct_refused_spots: '78'
+  corpus_excluded_hands: '1'
+  corpus_human_call_disagreements: '89'
+  corpus_human_call_disagreements_big_blind: '58'
+  corpus_inexpressible_refusals: '19'
+  corpus_preflop_decisions: '3048'
+  corpus_refusals: '290'
+schema_version: 1
