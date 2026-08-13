@@ -186,7 +186,13 @@ COMMANDS = {
         "Generate the bot/profile comparison report",
     ),
     "pytest_sample_comparison": CommandSpec(
-        uv_python_command() + ["-m", "pytest", "tests/test_sample_comparison.py"],
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_sample_comparison.py",
+            "tests/test_sample_comparison_report.py",
+        ],
         "Run public-corpus ingestion and player comparison tests",
     ),
     "generate_sample_comparison_report": CommandSpec(

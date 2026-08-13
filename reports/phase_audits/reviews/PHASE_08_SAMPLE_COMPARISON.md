@@ -112,9 +112,17 @@ right for the wrong reason.
 The gap was also never split by position, and that is where it lives. Human calls agree
 53.2% in the big blind and 62-77% everywhere else, and the big blind is also the seat the
 chart refuses most often, at 26.6% of its decision points against 1.3% in the hijack.
-Refusals sit outside every agreement rate, so the seat the chart plays worst is the seat
-it is graded most leniently in. This pass asked what the low number meant and stopped
-before asking where it was.
+Refusals sit outside every agreement rate, so the big blind's rate is computed over the
+subset of its decisions the chart could answer. This pass asked what the low number
+meant and stopped before asking where it was.
+
+A third review on 2026-08-13, by a reviewer told nothing about either of the first two,
+went one step further and asked why. The chart is a raked NL25 solve and this corpus is
+rake-free, and a raked solution defends the blinds more tightly by construction; Phase
+05's own strategy report says so. The chart also solves a 2.5 big blind open against a
+sample whose median open is 2.25. Between them those explain most of the gap both
+earlier passes treated as a finding about the chart's quality. Written up in the audit
+packet and fixed in MAINT-09.
 
 ## Blocker status
 

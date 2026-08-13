@@ -45,7 +45,7 @@ depends entirely on which decisions you look at, and that turned out to be the f
 | 9 | The machine and the human players are never averaged together | PASS - reported as two populations |
 | 10 | Nothing this phase measured was used to edit the thing it measured | PASS - three findings went to `backlog.yml`, no chart changed |
 | 11 | Full verification gate green | PASS - 33 commands |
-| 12 | The gate bites: committed mutations make it fail | PASS - 25 of 25 caught, 9 of them about this phase |
+| 12 | The gate bites: committed mutations make it fail | PASS - 27 of 27 caught, 11 of them about this phase |
 
 ## What the comparison found
 
@@ -75,11 +75,36 @@ figure is the finding, rather than leading a reader to the reassuring one.
 **The calling gap is a blind-defence gap.** Split again by the seat the decision was
 taken from, the deficit is not spread across the table. Human calls agree 62-77% of the
 time in every seat except the big blind, where they agree 66 of 124 times (53.2%); the
-big blind alone holds 70 of the 104 human call disagreements. The same seat is also the
+big blind alone holds 58 of the 89 human call disagreements. The same seat is also the
 one the chart refuses most often, on 96 of its 361 decision points (26.6%) against 1.3%
-in the hijack. Those two compound: refusals sit outside every agreement rate, so the
-chart is graded most leniently in exactly the seat it plays worst. The report prints the
-per-seat table with its refusal column beside it for that reason.
+in the hijack. Those two interact: refusals sit outside every agreement rate, so the big
+blind's rate is computed over the subset of its decisions the chart could answer, and
+that subset is not a random sample of them. The report prints the per-seat table with
+its refusal column beside it for that reason.
+
+**And most of that gap is the chart working as designed.** Two properties of the
+committed artifact predict it before anything is measured, and neither was named
+anywhere in this phase until 2026-08-13.
+
+The ranges were solved with NL25 rake; this corpus is rake-free. A raked solution
+defends the blinds more tightly than a rake-free one, because a share of every pot it
+wins is taken away, and the blinds are where that bites hardest. Phase 05's own strategy
+report already says so in as many words. So a chart that folds the big blind more often
+than these players did is behaving the way a raked solution is supposed to behave.
+
+The ranges were also solved against a 2.5 big blind open. These players opened to a
+median 2.25, and only 18.1% of the decisions facing a single raise faced one at or above
+2.5. A cheaper price is a correct reason to continue with more hands, and the sample
+shows exactly that shape: human calls agree 52.5% facing 2.25 or less, 69.0% between
+2.26 and 2.50, and 77.8% above 2.50. The chart is answering a more expensive question
+than the one it was asked, and 47 of the 58 big-blind call disagreements faced an open
+smaller than the size it was solved for.
+
+What survives as a finding is narrower and more useful than "the chart under-defends":
+the committed chart answers a raked table at 2.5x opens, this corpus is a rake-free table
+at 2.25x, and nothing in the repo had said so. Whether any of the remaining gap is a
+defect is not established here and cannot be, which is what the contract's forbidden
+shortcut about human players is for.
 
 It is also consistent with what this repo already knows about itself. Phase 05's
 original collapse rule over-folded by 13 points against three-bets before it was
@@ -96,7 +121,7 @@ since Phase 07; the real-hand inventory should replace it.
 
 | Command | What it proves |
 |---|---|
-| `pytest_sample_comparison` | 49 tests: the conversion, the oracle, the sample's integrity, and the comparison rules |
+| `pytest_sample_comparison` | 53 tests: the conversion, the oracle, the sample's integrity, and the comparison rules |
 | `generate_sample_comparison_report` | Writes both committed reports from the committed sample alone |
 
 Committed reports:
@@ -142,6 +167,22 @@ across all 499 hands. The claim held only because `replay_hand` raises internall
 mutation had ever targeted the replayer. The assertion now reads the engine's own
 settlement, a chopped pot with one chip moved between its two winners proves the guard
 fires, and two canaries stand behind it.
+
+**MAINT-09, what a second independent reviewer found.** A reviewer with no knowledge of
+the two tasks above read the phase again and verified MAINT-07's fix by its own method:
+with the replayer's guard disabled and every pot paid to seat 0, the phase's central
+test now reports 433 mismatches of 499 where the old formulation reported none. It then
+found the rake and the opening size described above, which between them explain most of
+the blind-defence gap this packet had attributed to the repo's own over-folding bias.
+It also found that "70 of the 104 human call disagreements" was itself a pooled figure
+in four documents - humans-only is 58 of 89 - which is the violation MAINT-08 removed,
+reinstated in the sentence announcing the removal. Alongside those: prose in three
+places that read a disagreement with a human as a verdict on the chart, which the
+contract forbids in as many words; judgment call 5's sampled-action match rate, ruled to
+be reported and never built; a decision-point count of 3,056 against 3,048 actual; and
+`CORPUS-INEXPRESSIBLE-SPOTS`, filed as undiagnosable, whose 19 refusals are all one
+thing - fourth-bet-and-beyond sequences where a seat acts twice, which the Phase 04
+schema documents as out of scope for v1. All fixed.
 
 **MAINT-08, the five findings that were left.** The comparison never recorded the
 position a decision was taken from, so the calling gap above was never localised. The

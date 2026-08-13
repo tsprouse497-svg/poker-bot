@@ -241,11 +241,11 @@ items:
       professionals on 227. The 96.3% headline is dominated by the 72% of decisions that
       are folds, which is the easiest agreement in poker and says almost nothing. Split by
       position, the deficit is one seat: human calls agree 53.2% in the big blind against
-      62-77% everywhere else, and the big blind holds 70 of the 104 human call
+      62-77% everywhere else, and the big blind holds 58 of the 89 human call
       disagreements. The same seat is the one the chart refuses most often, on 26.6% of its
       decision points against 1.3% in the hijack, and refusals sit outside every agreement
-      rate, so the seat the chart plays worst is also the seat it is graded most leniently
-      in. This is the same over-folding bias the repo has already found twice - Phase 05's
+      rate, so the big blind's rate is computed over the subset of its decisions the chart
+      could answer, which is not a random sample of them. This is the same over-folding bias the repo has already found twice - Phase 05's
       plurality collapse cost 13 points against three-bets before it was re-ruled, and
       Phase 06's fallback over-folds by construction - now localised to blind defence
       against real opponents. Phase 08 may not change the chart it measures, so the work is
@@ -262,10 +262,15 @@ items:
       19 refusals across the committed sample carry no spot key, because the position and
       action sequence do not describe a spot the Phase 04 vocabulary can express - a
       different miss from a spot that is expressible and uncovered. It is the biggest
-      single entry in the real-hand inventory and the only one nobody can act on, since
-      there is no chart cell to fill. Diagnosing it means examining the Phase 04 spot
-      vocabulary against the lines real players actually take, which is outside a phase
-      that consumes the lookup unchanged.
+      single entry in the real-hand inventory.
+
+      Diagnosed in MAINT-09, having been filed as the one entry nobody could act on. All 19
+      are the same thing: a sequence in which some seat acts a second time, which is a
+      four-bet or beyond. `solver_artifacts/schema.py` rejects those in as many words - "v1
+      supports single-orbit spots only" - so this is not an unknown gap in the vocabulary
+      but the documented edge of it, reached by real play 19 times in 3,048 decisions.
+      `SECOND-ORBIT-PREFLOP-SPOTS` is the entry that would fix it; this one is the
+      measurement of what that fix would buy, and the two should be worked together.
   - id: CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK
     status: deferred
     phase: sample-comparison

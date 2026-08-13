@@ -60,8 +60,12 @@ Full gate green.
 49 tests in `pytest_sample_comparison`, up from 41.
 
 The finding underneath finding 1 turned out to be the useful one: the calling gap is a blind-defence gap.
-Human calls agree 53.2% in the big blind against 62-77% in every other seat, and the big blind holds 70 of the 104 human call disagreements.
-The same seat is refused most often, on 26.6% of its decision points against 1.3% in the hijack, and refusals sit outside every agreement rate, so the seat the chart plays worst is the seat it is graded most leniently in.
+Human calls agree 53.2% in the big blind against 62-77% in every other seat, and the big blind holds 58 of the 89 human call disagreements.
+The same seat is refused most often, on 26.6% of its decision points against 1.3% in the hijack, and refusals sit outside every agreement rate, so the big blind's rate is computed over the subset of its decisions the chart could answer.
+
+Corrected in MAINT-09: this paragraph originally read 70 of 104, which pools Pluribus with the humans while carrying a humans label - the exact violation this task removed from the code, reinstated in the sentence describing the removal.
+It also read "the seat the chart plays worst", which presents a disagreement with a human player as evidence the chart is wrong and is a forbidden shortcut in the Phase 08 contract.
+MAINT-09 also found that most of this gap is predicted by the artifact: the chart is a raked solve read against a rake-free corpus, at an opening size the sample mostly did not use.
 Both halves are now printed side by side and pinned by tests, and `CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT` is rewritten around them.
 
 ## Next Agent Bootstrap

@@ -42,7 +42,7 @@ Two rules were measured over the real corpus before this was written. Taking the
 players ever hold the button and only 3 hands contain a preflop shove. Taking every 20th
 hand across the whole sorted list gives the same 500 hands' worth of data spread over 91
 of the 92 sessions: 13 distinct players hold the button, 7 hands contain a preflop shove,
-and it yields 3,056 preflop decision points. The stride costs nothing and buys a sample
+and it yields 3,048 preflop decision points. The stride costs nothing and buys a sample
 that is not a handful of consecutive sessions between the same six people.
 
 Corrected on 2026-08-13, after the ruling and without disturbing it: both shove counts
@@ -155,6 +155,12 @@ can use it without regenerating anything.
 
 Options: nonzero-weight | sampled-action-match | weight-threshold
 Answer: [nonzero-weight, with sampled-action-match reported alongside]
+
+The second half of that answer was not implemented until MAINT-09 on 2026-08-13. For two
+maintenance tasks the report carried only the nonzero-weight rate, and the fallback this
+ruling offered a reader who preferred the other definition - that both numbers are in the
+report - was not true. It is now: Pluribus matches the drawn action 88.6% of the time and
+the humans 85.3%, against nonzero-weight rates of 96.3% and 93.6%.
 
 ## 6. Whether refusals sit in the agreement denominator
 

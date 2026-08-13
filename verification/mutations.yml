@@ -262,6 +262,31 @@ mutations:
     must_fail:
       - pytest_sample_comparison
 
+  - id: corpus-price-band-ignores-how-many-raises
+    description: >-
+      A decision facing a three-bet, or facing no raise at all, is banded as though it
+      faced a single open. The price table then reads as a statement about opening sizes
+      while holding a mixture of opens, three-bet prices, and unraised pots, which is the
+      one arrangement that makes the price effect look smaller than it is.
+    file: src/poker_training_bot/data_pipeline/comparison.py
+    find: "    if raises_faced != 1:"
+    replace: "    if False:"
+    must_fail:
+      - pytest_sample_comparison
+
+  - id: corpus-sampled-match-collapses-into-the-agreement-rate
+    description: >-
+      The sampled-action match rate stops asking whether the chart's drawn action
+      equalled the player's and starts reporting the agreement rate a second time under
+      a different heading. Judgment call 5 ruled these are two different measurements
+      and that a reader who prefers the stricter one should find it here; a duplicate of
+      the looser number is worse than its absence, because it looks like corroboration.
+    file: src/poker_training_bot/data_pipeline/comparison.py
+    find: "            sum(1 for row in drawn if row.sampled_action == row.observed_action),"
+    replace: "            sum(1 for row in drawn if row.verdict == AGREE),"
+    must_fail:
+      - pytest_sample_comparison
+
   - id: corpus-self-play-crossref-empties-silently
     description: >-
       An inventory the reader can no longer parse yields nothing instead of raising, so

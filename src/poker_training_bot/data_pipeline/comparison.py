@@ -21,6 +21,11 @@ back after the report has just finished explaining why there isn't one.
 Every decision also records the position it was taken from. A preflop chart is
 indexed by position before anything else, so a disagreement rate that does not carry
 one names a symptom and hides the cell.
+
+And every decision records the price the actor faced. The committed chart was solved
+against one opening size; these hands were not played at it. A rate computed across
+both is a rate about a table the chart was never solved for, and saying so is not a
+caveat on the finding, it is most of the finding.
 """
 
 from __future__ import annotations
@@ -60,6 +65,18 @@ _KIND_TO_ACTION = {
 REPORTED_POSITIONS = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
 REPORTED_ACTIONS = ("fold", "check", "call", "raise")
 
+# The size an open came in at, in big blinds, banded around the size the committed
+# solve assumed. Bands are only assigned to decisions facing exactly one raise: past
+# that the price is a three-bet's price and comparing it to an opening size measures
+# nothing. The boundaries are the solve's own opening size and the modal size these
+# players actually used, so a band edge is a real thing rather than a round number.
+PRICE_BANDS = (
+    ("at or under 2.25bb", 2.25),
+    ("2.26 to 2.50bb", 2.50),
+    ("over 2.50bb", None),
+)
+OPEN_SIZE_SPOTS = ("t6/d100/LJ/rfi", "t6/d100/SB/rfi")
+
 
 @dataclass(frozen=True)
 class Rate:
@@ -85,6 +102,14 @@ class ComparisonRow:
     weights: tuple[tuple[str, float], ...]
     verdict: str
     refusal: StrategyRefusal | None
+    price_faced_bb: float
+    # None where the decision faces no raise or more than one, because a band around
+    # an opening size only means something against a single open.
+    price_band: str | None
+    # What the strategy's own seeded collapse drew, or None where it declined to act
+    # on a spot whose weights it could still read. Reported as the lesser measurement
+    # it is: judgment call 5 ruled agreement is nonzero weight, not a matching draw.
+    sampled_action: str | None
 
 
 @dataclass(frozen=True)
@@ -94,11 +119,27 @@ class InventoryEntry:
     seen_in_self_play: bool
 
 
+def price_band_for(price_faced_bb: float, raises_faced: int) -> str | None:
+    """Which opening-size band a decision belongs to, or None if it belongs to none.
+
+    A decision facing no raise has no price to speak of, and one facing two or more is
+    being offered a three-bet's price; banding either against an opening size would
+    produce a number whose label is a lie.
+    """
+    if raises_faced != 1:
+        return None
+    for label, ceiling in PRICE_BANDS:
+        if ceiling is None or price_faced_bb <= ceiling:
+            return label
+    return None
+
+
 def _selects(
     row: ComparisonRow,
     population: str,
     action: str | None,
     position: str | None,
+    price_band: str | None = None,
 ) -> bool:
     """The one place a decision is narrowed, so every rate narrows the same way.
 
@@ -111,6 +152,7 @@ def _selects(
         row.population == population
         and (action is None or row.observed_action == action)
         and (position is None or row.position == position)
+        and (price_band is None or row.price_band == price_band)
     )
 
 
@@ -120,6 +162,10 @@ class ComparisonResult:
     refusal_inventory: tuple[InventoryEntry, ...]
     hands_compared: int
     hands_excluded: int
+    # Carried from the artifacts rather than restated here, so the report cannot claim
+    # the chart was solved for something the committed files do not say.
+    chart_source: str
+    solved_open_bb: tuple[tuple[str, float], ...]
 
     @property
     def populations(self) -> tuple[str, ...]:
@@ -144,6 +190,7 @@ class ComparisonResult:
         *,
         action: str | None = None,
         position: str | None = None,
+        price_band: str | None = None,
     ) -> Rate:
         """Agreement inside one population, optionally narrowed to an action or seat.
 
@@ -161,9 +208,46 @@ class ComparisonResult:
         scored = [
             row
             for row in self.rows
-            if _selects(row, population, action, position) and row.verdict in {AGREE, DISAGREE}
+            if _selects(row, population, action, position, price_band)
+            and row.verdict in {AGREE, DISAGREE}
         ]
         return Rate(sum(1 for row in scored if row.verdict == AGREE), len(scored))
+
+    def sampled_action_match(self, population: str) -> Rate:
+        """How often the strategy's single drawn action equalled the player's.
+
+        Judgment call 5 ruled that agreement means nonzero weight and that this rate
+        would be reported alongside, labelled as the different and lesser thing it is.
+        It is lesser because the chart collapses a mixed cell by a seeded draw, so on a
+        spot played as raise three times in ten this number mostly measures the seed.
+        It is reported because the ruling said it would be, and because a reader who
+        prefers the strict definition should not have to regenerate anything to get it.
+
+        The denominator is the decisions where the strategy actually returned an
+        action. A spot whose weights are readable but whose raise size is not committed
+        gives no draw, and counting those as misses would blame the collapse for a
+        missing sizing.
+        """
+        drawn = [
+            row
+            for row in self.rows
+            if row.population == population
+            and row.verdict in {AGREE, DISAGREE}
+            and row.sampled_action is not None
+        ]
+        return Rate(
+            sum(1 for row in drawn if row.sampled_action == row.observed_action), len(drawn)
+        )
+
+    def open_sizes_bb(self) -> tuple[float, ...]:
+        """Every opening raise size the sample contains, in big blinds.
+
+        Taken from the decisions that faced exactly one raise rather than from the
+        hands, because that is the population the price bands are computed over.
+        """
+        return tuple(
+            sorted(row.price_faced_bb for row in self.rows if row.price_band is not None)
+        )
 
 
 def classify_observed_action(
@@ -282,6 +366,10 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
             outcome = strategy.weights_for(query)
             player = names[point.seat]
             population = MACHINE_PLAYER if player == MACHINE_PLAYER else HUMAN_POPULATION
+            big_blind = point.hand.blinds.big_blind
+            price_faced_bb = round(query.street_bet / big_blind, 2)
+            raises_faced = sum(1 for entry in query.preflop_actions if entry.action == "raise")
+            price_band = price_band_for(price_faced_bb, raises_faced)
             if isinstance(outcome, StrategyRefusal):
                 rows.append(
                     ComparisonRow(
@@ -297,9 +385,13 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
                         weights=(),
                         verdict=REFUSED,
                         refusal=outcome,
+                        price_faced_bb=price_faced_bb,
+                        price_band=price_band,
+                        sampled_action=None,
                     )
                 )
                 return
+            drawn = strategy.decide(query)
             rows.append(
                 ComparisonRow(
                     hand_id=point.hand.hand_id,
@@ -314,6 +406,9 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
                     weights=outcome,
                     verdict=classify_observed_action(observed, outcome),
                     refusal=None,
+                    price_faced_bb=price_faced_bb,
+                    price_band=price_band,
+                    sampled_action=None if isinstance(drawn, StrategyRefusal) else drawn.action,
                 )
             )
 
@@ -331,160 +426,10 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
         refusal_inventory=inventory,
         hands_compared=len(sample.records),
         hands_excluded=len(sample.exclusions),
+        chart_source=strategy.library.artifacts[0].source.name,
+        solved_open_bb=tuple(
+            (spot.rsplit("/", 2)[1], strategy.sizing.amount_bb(spot))
+            for spot in OPEN_SIZE_SPOTS
+            if strategy.sizing.amount_bb(spot) is not None
+        ),
     )
-
-
-# --------------------------------------------------------------------------- #
-# Rendering
-# --------------------------------------------------------------------------- #
-
-_PREAMBLE = """\
-Real-Hand Comparison Report
-===========================
-
-Read this before any number below.
-
-This compares the bot's preflop decisions against what real players did in the same
-spots, using a committed slice of a public hand corpus that nobody in this repo wrote.
-It is a preflop comparison and nothing else. The postflop half of this bot is a
-continuity fallback that never bets and never raises, so comparing it against real
-postflop play would measure the fallback's known shape rather than these hands.
-
-A disagreement means this chart and this player did different things in this spot. It
-does not establish that either is wrong. Real players are not an oracle for strategy
-quality, and one of the seats here is a near-equilibrium machine while the others are
-people, which is why they are never averaged together.
-
-Agreement means the action the player took carries nonzero weight in the chart's own
-distribution, not that it matched the single action the chart happens to draw. A chart
-that folds a hand seven times in ten does not disagree with a fold.
-
-A spot the chart could not answer is a refusal. Refusals are reported on their own and
-are never counted as disagreements, because a missing chart cell and a wrong chart cell
-need different fixes.
-"""
-
-
-def _cell(rate: Rate) -> str:
-    """One cell of the position table: agreed over scored, or a dash for no decisions."""
-    return f"{rate.numerator}/{rate.denominator}" if rate.denominator else "-"
-
-
-def render_comparison_report(result: ComparisonResult) -> str:
-    lines = [_PREAMBLE, ""]
-    lines.append("## Coverage")
-    lines.append("")
-    lines.append(f"  hands compared                    {result.hands_compared:6d}")
-    lines.append(f"  hands excluded, named below       {result.hands_excluded:6d}")
-    lines.append(f"  preflop decision points           {len(result.rows):6d}")
-    lines.append("")
-    lines.append("## Agreement, by population")
-    lines.append("")
-    lines.append("  Every rate carries the count it was computed over. Refusals are not in")
-    lines.append("  the denominator; they are reported beside it.")
-    lines.append("")
-    for population in result.populations:
-        rate = result.agreement(population)
-        refused = result.refusal_count(population)
-        total = sum(1 for row in result.rows if row.population == population)
-        lines.append(f"  {population}")
-        lines.append(
-            f"    agreed {rate.numerator} of {rate.denominator} scored decisions"
-            f"  ({rate.percent:.1f}%)"
-        )
-        lines.append(f"    refused {refused} of {total} decision points")
-        lines.append("")
-    lines.append("## The number that matters more than the one above")
-    lines.append("")
-    lines.append("  Read this before quoting any figure from the previous section.")
-    lines.append("")
-    lines.append("  Roughly seven in ten preflop decisions in any six-handed sample are folds,")
-    lines.append("  and folding a bad hand is the easiest agreement in poker. An unsplit")
-    lines.append("  agreement rate is therefore mostly a measurement of how often both sides")
-    lines.append("  threw away junk, and it will look high no matter what the chart does with")
-    lines.append("  the hands people actually play. Split by what the player did:")
-    lines.append("")
-    for population in result.populations:
-        lines.append(f"  {population}")
-        for action in REPORTED_ACTIONS:
-            rate = result.agreement_within(population, action=action)
-            if not rate.denominator:
-                continue
-            lines.append(
-                f"    player {action:6s} agreed {rate.numerator:5d} of {rate.denominator:5d}"
-                f"  ({rate.percent:.1f}%)"
-            )
-        lines.append("")
-    lines.append("  Where those diverge, the low one is the finding. A chart that matches on")
-    lines.append("  folds and misses on calls is not 'mostly right'; it is right about the")
-    lines.append("  decisions that cost nothing and unproven about the ones that cost chips.")
-    lines.append("")
-    lines.append("## Which seat the disagreement is in")
-    lines.append("")
-    lines.append("  A preflop chart is indexed by position before anything else, so a rate")
-    lines.append("  without one names a symptom rather than a cell. Each entry below is")
-    lines.append("  agreed/scored for that seat, and the last column is how many of that")
-    lines.append("  seat's decision points the chart could not answer at all.")
-    lines.append("")
-    lines.append("  Refusals are outside every rate here, as they are everywhere in this")
-    lines.append("  report. They are printed alongside because they are not spread evenly: a")
-    lines.append("  seat that both refuses often and agrees poorly is being graded on the")
-    lines.append("  questions it chose to answer, and its rate reads better than it deserves.")
-    lines.append("")
-    for population in result.populations:
-        lines.append(f"  {population}")
-        header = "    seat" + "".join(f"{action:>12s}" for action in REPORTED_ACTIONS)
-        lines.append(header + f"{'refused':>14s}")
-        for position in REPORTED_POSITIONS:
-            cells = [
-                _cell(result.agreement_within(population, action=action, position=position))
-                for action in REPORTED_ACTIONS
-            ]
-            refused = result.refusal_count(population, position=position)
-            points = result.decision_count(population, position=position)
-            lines.append(
-                f"    {position:<4s}"
-                + "".join(f"{cell:>12s}" for cell in cells)
-                + f"{f'{refused}/{points}':>14s}"
-            )
-        lines.append("")
-    lines.append("## What a disagreement looked like")
-    lines.append("")
-    disagreements = [row for row in result.rows if row.verdict == DISAGREE]
-    for row in disagreements[:20]:
-        vector = ",".join(f"{name}={weight:g}" for name, weight in row.weights)
-        lines.append(
-            f"  {row.hand_id}  {row.position:<4s} {row.player}"
-            f"  {row.hole_cards[0]}{row.hole_cards[1]}"
-            f"  played {row.observed_action}  chart [{vector}]"
-        )
-    if len(disagreements) > 20:
-        lines.append(f"  ... and {len(disagreements) - 20} more")
-    lines.append("")
-    return "\n".join(lines) + "\n"
-
-
-def render_refusal_inventory(result: ComparisonResult) -> str:
-    lines = [
-        "Real-Hand Refusal Inventory",
-        "===========================",
-        "",
-        "Every spot below is one the committed charts could not answer while replaying",
-        "real hands. Each row names a spot key taken from the refusal's own detail, the",
-        "number of decision points that reached it, and whether the self-play run had",
-        "already found it. Most-reached first.",
-        "",
-        "A spot marked new is one only real hands reached, which is a different priority",
-        "from one the simulator already surfaces on every run.",
-        "",
-        "This is a lower bound on the gap, not a census of the charts: it reports only the",
-        "spots this committed sample actually reached.",
-        "",
-        f"  distinct spots  {len(result.refusal_inventory)}",
-        "",
-        "   points  spot key                                      also in self-play",
-    ]
-    for entry in result.refusal_inventory:
-        marker = "yes" if entry.seen_in_self_play else "NEW"
-        lines.append(f"  {entry.count:6d}  {entry.spot_key:<44s}  {marker}")
-    return "\n".join(lines) + "\n"

@@ -16,6 +16,8 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from poker_training_bot.data_pipeline.comparison import (  # noqa: E402
     compare_committed_sample,
+)
+from poker_training_bot.data_pipeline.comparison_report import (  # noqa: E402
     render_comparison_report,
     render_refusal_inventory,
 )

@@ -1,8 +1,20 @@
-task_id: null
+task_id: MAINT-09
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 6de4911dc4c2fa89e27a044db98dc1c7a2d8da9e
+approved_scope:
+  - src/poker_training_bot/data_pipeline/comparison.py
+  - src/poker_training_bot/data_pipeline/comparison_report.py
+  - scripts/generate_sample_comparison_report.py
+  - scripts/run_verify.py
+  - tests/test_sample_comparison.py
+  - tests/test_sample_comparison_report.py
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
+  - reports/phase_audits/decisions/PHASE_08_SAMPLE_COMPARISON_DECISIONS.md
+  - reports/phase_audits/reviews/PHASE_08_SAMPLE_COMPARISON.md
+  - docs/exec_plans/completed/MAINT_08_COMPARISON_FINDINGS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -128,3 +140,20 @@ scope_change_log:
       test file, the mutation list, and the freeze lock that records the re-frozen tests.
   - date: 2026-08-12
     reason: Stage 6 halted because a frozen test names replay.contributions while HandReplay exposes committed_by_seat. That is an authoring error in the test rather than missing behavior, and the alternative to repairing it is adding an alias to the Phase 02 replayer, which the contract forbids. The repair is one attribute name and nothing else, so the freeze can be rewritten, and it lands in its own task because the builder must not be able to reshape the tests it is measured by.
+  - date: 2026-08-13
+    reason: >-
+      An independent review of Phase 08 found the blind-defence gap is largely explained by the artifact itself: the
+      committed chart is a raked NL25 solve and this corpus is rake-free, so tighter blind defence is predicted rather
+      than discovered, and the word rake appears nowhere in the phase. It also found the chart graded at a price it was
+      not solved for, since the sample opens to a median 2.25bb against the solve's 2.5, and agreement on big-blind
+      calls tracks that price. Alongside those: a pooled figure carrying a humans label in four documents, prose that
+      reads a disagreement with a human as a verdict on the chart, judgment call 5's sampled-action rate never built,
+      a decision-point count that is off by eight, and a backlog item filed as undiagnosable that the evidence
+      diagnoses. MAINT-09 needs the comparison module, the phase tests, the mutation list, the freeze lock, the three
+      Phase 08 audit documents, and the MAINT-08 plan carrying the pooled figure.
+  - date: 2026-08-13
+    reason: >-
+      Saying what the chart was solved for takes the comparison module past the 500-line cap and its tests past 700,
+      which is the file-size rule doing its job: the module measures and renders, and those are two responsibilities.
+      MAINT-09 splits rendering into data_pipeline/comparison_report.py with its own test file, so the report generator
+      script and the pytest_sample_comparison command registration both move with it.

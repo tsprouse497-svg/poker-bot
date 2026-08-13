@@ -22,6 +22,20 @@ A spot the chart could not answer is a refusal. Refusals are reported on their o
 are never counted as disagreements, because a missing chart cell and a wrong chart cell
 need different fixes.
 
+Two properties of the chart explain part of what follows before any of it is measured,
+and a reader who does not know them will draw the wrong conclusion from the numbers.
+
+The committed ranges were solved with rake. These hands were played without any. A
+raked solution defends the blinds more tightly than a rake-free one, because a share of
+every pot it wins is gone, and that is the largest single difference between the two
+settings. So a chart that folds the big blind more often than these players did is
+behaving the way a raked solution is supposed to behave. The gap is evidence about the
+artifact this repo chose, not on its own evidence that either side played badly.
+
+The ranges were also solved against one opening size. These players used a smaller one
+most of the time, and a cheaper price is a correct reason to continue with more hands.
+The report measures that rather than leaving it as a caveat.
+
 
 ## Coverage
 
@@ -76,9 +90,11 @@ need different fixes.
   seat's decision points the chart could not answer at all.
 
   Refusals are outside every rate here, as they are everywhere in this
-  report. They are printed alongside because they are not spread evenly: a
-  seat that both refuses often and agrees poorly is being graded on the
-  questions it chose to answer, and its rate reads better than it deserves.
+  report. They are printed alongside because they are not spread evenly. A
+  seat with many refusals has its rate computed over the subset of its
+  decisions the chart could answer, and that subset is not a random sample
+  of them, so the rate is a narrower claim there than the same number would
+  be in a seat the chart answers everywhere.
 
   Pluribus
     seat        fold       check        call       raise       refused
@@ -97,6 +113,43 @@ need different fixes.
     BTN      263/267           -       14/20       83/92        39/418
     SB       265/267           -       31/45       59/62        78/452
     BB        99/100       16/16      66/124       23/25        96/361
+
+## The price these rates were graded at
+
+  The committed chart is GTO Wizard 6-max 100bb NL25 rake.
+  It solves an open from LJ at 2.5 big blinds.
+  It solves an open from SB at 3.5 big blinds.
+
+  Decisions facing exactly one raise        1156
+  Median size of that raise, big blinds     2.25
+  Mean size of that raise, big blinds       2.25
+  At or above the solved 2.5               209  (18.1%)
+
+  A smaller open is a better price, and a better price is a correct reason
+  to continue with more hands. So the chart is being asked what to do at a
+  price it was not solved for, and the answer it gives is the answer for a
+  more expensive spot. Split by the price faced:
+
+  Pluribus
+    called facing at or under 2.25bb   agreed   12 of   21  (57.1%)
+    called facing 2.26 to 2.50bb       agreed    3 of    5  (60.0%)
+    called facing over 2.50bb          agreed    2 of    4  (50.0%)
+
+  humans
+    called facing at or under 2.25bb   agreed   63 of  120  (52.5%)
+    called facing 2.26 to 2.50bb       agreed   20 of   29  (69.0%)
+    called facing over 2.50bb          agreed   14 of   18  (77.8%)
+
+## The sampled-action match rate, which is the lesser number
+
+  Agreement above means the player's action carries nonzero weight in the
+  chart's distribution. This instead asks whether it equalled the single
+  action the chart's seeded draw produced, which on a mixed cell mostly
+  measures the seed. It is reported because a reader who prefers the
+  stricter definition should not have to regenerate anything to get it.
+
+    Pluribus   matched 404 of 456 drawn decisions  (88.6%)
+    humans     matched 1963 of 2302 drawn decisions  (85.3%)
 
 ## What a disagreement looked like
 

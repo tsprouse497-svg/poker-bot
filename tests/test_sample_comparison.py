@@ -21,12 +21,12 @@ from poker_training_bot.data_pipeline import comparison as comparison_module
 from poker_training_bot.data_pipeline.comparison import (
     AGREE,
     DISAGREE,
+    PRICE_BANDS,
     REFUSED,
     REPORTED_POSITIONS,
     classify_observed_action,
     compare_committed_sample,
-    render_comparison_report,
-    render_refusal_inventory,
+    price_band_for,
 )
 from poker_training_bot.data_pipeline.convert import ConversionError, convert_hand
 from poker_training_bot.data_pipeline.corpus import CorpusParseError, parse_corpus_hand
@@ -595,6 +595,27 @@ def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> Non
     assert refused / points > 0.2
 
 
+def test_the_price_a_decision_faced_is_banded_only_where_a_band_means_something(
+    comparison,
+) -> None:
+    """A band around an opening size is only about decisions facing a single open.
+
+    Facing no raise there is no price to speak of, and facing two the price is a
+    three-bet's. Banding either against an opening size produces a figure whose label
+    does not describe what was counted.
+    """
+    for row in comparison.rows:
+        assert row.price_faced_bb >= 1.0
+        if row.price_band is not None:
+            assert row.price_band in {band for band, _ in PRICE_BANDS}
+
+    assert price_band_for(2.0, raises_faced=0) is None
+    assert price_band_for(9.5, raises_faced=2) is None
+    assert price_band_for(2.25, raises_faced=1) == "at or under 2.25bb"
+    assert price_band_for(2.5, raises_faced=1) == "2.26 to 2.50bb"
+    assert price_band_for(4.0, raises_faced=1) == "over 2.50bb"
+
+
 def test_only_preflop_decision_points_are_compared(comparison) -> None:
     """Phase 06's fallback never bets, so a postflop comparison measures the fallback."""
     for row in comparison.rows:
@@ -660,27 +681,3 @@ def test_the_refusal_inventory_is_ordered_most_reached_first(comparison) -> None
 def test_the_inventory_says_which_spots_the_self_play_run_never_reached(comparison) -> None:
     for entry in comparison.refusal_inventory:
         assert entry.seen_in_self_play in {True, False}
-
-
-def test_the_comparison_is_a_pure_function_of_the_committed_sample(sample) -> None:
-    first = compare_committed_sample(sample)
-    second = compare_committed_sample(sample)
-
-    assert render_comparison_report(first) == render_comparison_report(second)
-    assert render_refusal_inventory(first) == render_refusal_inventory(second)
-
-
-def test_the_report_states_its_preflop_boundary_before_any_number(comparison) -> None:
-    text = render_comparison_report(comparison)
-    first_digit = next(
-        (index for index, character in enumerate(text) if character.isdigit()), len(text)
-    )
-
-    assert "preflop" in text[:first_digit].lower()
-
-
-def test_the_report_says_a_disagreement_is_not_proof_the_chart_is_wrong(comparison) -> None:
-    text = render_comparison_report(comparison).lower()
-
-    assert "disagreement" in text
-    assert "does not" in text or "not establish" in text
