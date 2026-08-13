@@ -1,9 +1,8 @@
-task_id: MAINT-12
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 66c77a18a8585751f1665ece8d1e9d41cc4e17ed
-approved_scope:
-  - docs/GTOPEN_SOLVER_NOTES.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
