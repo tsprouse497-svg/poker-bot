@@ -40,7 +40,7 @@ deliberately broken input, before it was run against this repo.
 | 8 | Each check states what it does not cover, in its own report | PASS |
 | 9 | Every check was shown failing before it was shown passing | PASS - 25 tests, each check exercised both ways |
 | 10 | No poker behaviour changed | PASS - no engine, chart, strategy, or artifact file is touched |
-| 11 | Full verification gate green | PASS - 36 commands |
+| 11 | Full verification gate green | PASS - 35 commands |
 | 12 | The gate bites: committed mutations make it fail | PASS - 29 of 29 caught |
 
 ## What each check covers, and what it does not

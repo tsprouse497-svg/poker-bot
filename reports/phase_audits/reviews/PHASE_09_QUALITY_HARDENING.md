@@ -126,3 +126,8 @@ had named. This phase's Delegation Plan records the same intention.
 The self-review above found two real blockers, which is better than the Phase 08 self
 review managed, and it is still the same mind that wrote the checks judging whether the
 checks are right. That weakness should be read as real until an independent pass runs.
+
+**Taylor ruled on 2026-08-13 to close the phase with this recorded as the known
+weakness.** It is a decision rather than an omission, and it is written here so that
+anyone reading the phase later knows an independent pass was offered, costed, and
+declined at the gate rather than forgotten before it.

@@ -12,6 +12,7 @@ approved_scope:
   - scripts/run_full_quality_gate.py
   - verification/mutations.yml
   - reports/phase_audits/PHASE_09_QUALITY_HARDENING.md
+  - reports/phase_audits/reviews/PHASE_09_QUALITY_HARDENING.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -188,3 +189,8 @@ scope_change_log:
       the command the phase was adding. verification/mutations.yml comes back into approved_scope for canaries only.
       The freeze lock stays out and no test changes, so the builder still cannot reach the tests it is measured by,
       and a canary makes the gate stricter rather than looser.
+  - date: 2026-08-13
+    reason: >-
+      Loop stage 8 requires review notes under reports/phase_audits/reviews/ and the contract requires the audit packet
+      to cite them, so the phase's own review file joins approved_scope. It was written before this entry existed,
+      which is the gap check_scope is for; recorded here rather than quietly widened.
