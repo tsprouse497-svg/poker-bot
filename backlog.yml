@@ -245,15 +245,27 @@ items:
       disagreements. The same seat is the one the chart refuses most often, on 26.6% of its
       decision points against 1.3% in the hijack, and refusals sit outside every agreement
       rate, so the big blind's rate is computed over the subset of its decisions the chart
-      could answer, which is not a random sample of them. This is the same over-folding bias the repo has already found twice - Phase 05's
-      plurality collapse cost 13 points against three-bets before it was re-ruled, and
-      Phase 06's fallback over-folds by construction - now localised to blind defence
-      against real opponents. Phase 08 may not change the chart it measures, so the work is
-      recorded rather than done: establish whether blind defence is missing from the chart's
-      calling ranges, mispriced by the sizing table, or whether real players defend too
-      wide, which the corpus alone cannot settle. Start with the refused big-blind spots,
+      could answer, which is not a random sample of them.
+
+      Most of the gap is the artifact rather than a defect, and this entry said otherwise
+      until MAINT-09. The committed ranges were solved with NL25 rake and this corpus is
+      rake-free; a raked solution defends the blinds more tightly, and Phase 05's own
+      strategy report already says so. They were also solved against a 2.5bb open, while
+      these players opened to a median 2.25, and agreement tracks that price closely: human
+      calls agree 52.5% facing 2.25 or less, 69.0% between 2.26 and 2.50, and 77.8% above
+      2.50. 47 of the 58 big-blind call disagreements faced an open below the solved size.
+      The earlier reading - that this is the same over-folding bias Phase 05's collapse rule
+      and Phase 06's fallback showed - is not supported: those are properties of how a
+      decision is collapsed or declined, and this is a property of which solution was
+      committed and at what price it was read.
+
+      What is left to establish is narrower. Phase 08 may not change the chart it measures,
+      so the work is recorded rather than done: get a rake-free solve, or a 2.25bb-open
+      solve, and see how much of the gap survives. Start with the refused big-blind spots,
       because a cell that answers nothing and a cell that answers wrongly need different
-      work and this seat has an unusual amount of both.
+      work and this seat has an unusual amount of both. RAISE-SIZE-IN-SPOT-KEY is the entry
+      that would let a spot key carry the price at all, and until it lands every rate here
+      is computed across sizes the chart cannot distinguish.
   - id: CORPUS-INEXPRESSIBLE-SPOTS
     status: deferred
     phase: sample-comparison

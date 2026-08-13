@@ -59,11 +59,12 @@ phase's actual finding, and the first version of the report buried it under a nu
 that looked reassuring. The report now prints the split above the disagreement listing
 and says in plain language that the low figure is the finding.
 
-This is consistent with what the repo already knows about itself. Phase 05's original
-plurality collapse over-folded by 13 points against three-bets before it was re-ruled,
-and Phase 06's fallback over-folds postflop by construction. A 60.6% agreement rate on
-calls is the same bias showing up against real opponents rather than against the
-simulator.
+This pass read it as consistent with what the repo already knows about itself: Phase
+05's original plurality collapse over-folded by 13 points against three-bets before it
+was re-ruled, and Phase 06's fallback over-folds postflop by construction. The third
+review found that reading unsupported - see below. Those are properties of how a
+decision is collapsed or declined; the calling gap is a property of which solution was
+committed and at what price it was read.
 
 ### Second finding: the largest single refusal bucket has no spot key
 

@@ -106,10 +106,13 @@ at 2.25x, and nothing in the repo had said so. Whether any of the remaining gap 
 defect is not established here and cannot be, which is what the contract's forbidden
 shortcut about human players is for.
 
-It is also consistent with what this repo already knows about itself. Phase 05's
-original collapse rule over-folded by 13 points against three-bets before it was
-re-ruled, and Phase 06's postflop fallback over-folds by construction. The calling gap
-is the same bias appearing against real opponents instead of against our own simulator.
+This packet previously read the gap as the repo's own over-folding bias appearing
+against real opponents - the bias Phase 05's collapse rule showed before it was re-ruled
+and Phase 06's fallback still has by construction. That reading is not supported. Both
+of those are properties of how this repo collapses or declines a decision; the blind
+gap is a property of which solution was committed and at what price it was read. They
+are the same shape and not the same cause, and the resemblance is what made the wrong
+one easy to reach for.
 
 The second result is coverage. Replaying real hands found **78 distinct spots the chart
 cannot answer, against 22 from self-play**, and most of the 78 are new. Self-play only
