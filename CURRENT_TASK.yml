@@ -1,8 +1,9 @@
-task_id: null
+task_id: MAINT-11
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: dfe9c7bc7f8891f896fc0c92e769f859ebcdfbfb
+approved_scope:
+  - docs/GTOPEN_SOLVER_NOTES.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -184,3 +185,8 @@ scope_change_log:
       Loop stage 8 requires review notes under reports/phase_audits/reviews/ and the contract requires the audit packet
       to cite them, so the phase's own review file joins approved_scope. It was written before this entry existed,
       which is the gap check_scope is for; recorded here rather than quietly widened.
+  - date: 2026-08-13
+    reason: >-
+      The chart's coverage gap needs a solver the repo can re-run, and GTOpen is the candidate. What was verified about
+      it by running it lives in a note under docs/ so the next agent starts from measurements rather than from a search
+      engine, and so the line between what was executed and what was only read stays visible.
