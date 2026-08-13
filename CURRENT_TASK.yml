@@ -1,20 +1,8 @@
-task_id: MAINT-09
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 6de4911dc4c2fa89e27a044db98dc1c7a2d8da9e
-approved_scope:
-  - src/poker_training_bot/data_pipeline/comparison.py
-  - src/poker_training_bot/data_pipeline/comparison_report.py
-  - scripts/generate_sample_comparison_report.py
-  - scripts/run_verify.py
-  - tests/test_sample_comparison.py
-  - tests/test_sample_comparison_report.py
-  - verification/mutations.yml
-  - verification/freeze.lock
-  - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
-  - reports/phase_audits/decisions/PHASE_08_SAMPLE_COMPARISON_DECISIONS.md
-  - reports/phase_audits/reviews/PHASE_08_SAMPLE_COMPARISON.md
-  - docs/exec_plans/completed/MAINT_08_COMPARISON_FINDINGS.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
