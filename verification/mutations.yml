@@ -237,3 +237,30 @@ mutations:
     replace: "                        verdict=DISAGREE,"
     must_fail:
       - pytest_sample_comparison
+
+  - id: corpus-settlement-check-disabled
+    description: >-
+      The replayer stops checking the settlement it computed against the hand's own
+      published result, so a real hand that settles to the wrong stacks is accepted in
+      silence. This is the guard the entire outside-oracle argument rests on: it is
+      what makes a published finishing stack something this engine can be wrong
+      against, rather than a number the converter carries through untested.
+    file: src/poker_training_bot/hand_history/replay.py
+    find: "    if not replay.passed_expected_result:"
+    replace: "    if not True:"
+    must_fail:
+      - pytest_sample_comparison
+      - pytest_hand_history
+
+  - id: corpus-settlement-checked-against-itself
+    description: >-
+      The replayer compares its settlement's payouts against its own settlement rather
+      than against the published record, leaving the pot total and the winning seats as
+      the only checks. An oracle computed from the thing it checks is a mirror, and this
+      is that shortcut installed one clause at a time: chips misallocated between two
+      winners of the same pot then pass unnoticed.
+    file: src/poker_training_bot/hand_history/replay.py
+    find: "            and self.settlement.payouts == self.hand.result.payouts"
+    replace: "            and self.settlement.payouts == self.settlement.payouts"
+    must_fail:
+      - pytest_sample_comparison

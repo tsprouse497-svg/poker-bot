@@ -1,8 +1,11 @@
-task_id: null
+task_id: MAINT-07
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 86729fc61a99d864e85961d1bd443d43d5bf72e2
+approved_scope:
+  - tests/test_sample_comparison.py
+  - verification/mutations.yml
+  - verification/freeze.lock
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -109,5 +112,13 @@ scope_change_log:
     reason: The gate fails ruff on a 101-character line in a frozen Phase 08 test. Stage 4 never surfaced it because its check runs the phase's pytest command rather than the gate, so the defect stayed latent until stage 7. Reflowing one list comprehension changes no assertion, but it changes the file, so the freeze lock is rewritten with it and both land in their own task.
   - date: 2026-08-12
     reason: The Phase 08 canaries were never authored at stage 4, so without them check_gate_bite would pass while proving nothing about this phase, which is the definition of a decorative gate. verification/mutations.yml comes back into approved_scope for canaries only. The freeze lock is untouched because no test changes, and the builder still cannot reach tests/.
+  - date: 2026-08-13
+    reason: >-
+      A post-hoc review of Phase 08 found its central criterion asserted by a test that cannot fail on it: _settled_stacks
+      rebuilds each seat's stack from the converter's own result.payouts rather than from the engine's settlement, so the
+      assertion collapses to the corpus's finishing stacks whatever the engine computed. The enforcing check is a single
+      raise in the Phase 02 replayer that no mutation targets. MAINT-07 makes the assertion read the engine's settlement,
+      adds the test that proves the guard fires, and adds the two canaries that make both bite, so it needs the Phase 08
+      test file, the mutation list, and the freeze lock that records the re-frozen tests.
   - date: 2026-08-12
     reason: Stage 6 halted because a frozen test names replay.contributions while HandReplay exposes committed_by_seat. That is an authoring error in the test rather than missing behavior, and the alternative to repairing it is adding an alias to the Phase 02 replayer, which the contract forbids. The repair is one attribute name and nothing else, so the freeze can be rewritten, and it lands in its own task because the builder must not be able to reshape the tests it is measured by.

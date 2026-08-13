@@ -12,6 +12,7 @@ somebody else, and it is the only reason the phase exists.
 from __future__ import annotations
 
 import hashlib
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -34,7 +35,11 @@ from poker_training_bot.data_pipeline.sample import (
     select_source_paths,
 )
 from poker_training_bot.hand_history.replay import replay_hand
-from poker_training_bot.hand_history.schema import HistoryActionKind, StreetName
+from poker_training_bot.hand_history.schema import (
+    ExpectedResult,
+    HistoryActionKind,
+    StreetName,
+)
 from poker_training_bot.poker_core.positions import seat_positions
 
 # The first hand of the corpus, verbatim. Embedded rather than read from the committed
@@ -258,11 +263,21 @@ def test_a_hand_the_converter_cannot_express_raises_with_a_named_reason() -> Non
 
 
 def _settled_stacks(hand_zero_like, normalized) -> tuple[int, ...]:
+    """Each seat's final stack as the engine settles it, not as the corpus implies it.
+
+    The payouts come from `replay.settlement`, which is what the engine computed, and
+    never from `normalized.result`, which the converter derived from the corpus's own
+    finishing stacks. Sourcing them from `result` makes the whole expression collapse
+    back to those finishing stacks whatever the engine did, so the comparison below
+    would hold even against an engine paying every pot to the wrong seat. The check
+    would then rest entirely on `replay_hand` raising on its own expected-result guard,
+    which is Phase 02 code this phase does not own.
+    """
     replay = replay_hand(normalized)
     by_seat = {player.seat: player.starting_stack for player in normalized.players}
     for seat, amount in replay.committed_by_seat.items():
         by_seat[seat] -= amount
-    for seat, amount in normalized.result.payouts.items():
+    for seat, amount in replay.settlement.payouts.items():
         by_seat[seat] += amount
     return tuple(by_seat[seat] for seat in sorted(by_seat))
 
@@ -286,6 +301,40 @@ def test_every_committed_hand_settles_to_the_corpus_oracle(sample) -> None:
             mismatches.append((record.corpus.hand_id, settled, record.corpus.finishing_stacks))
 
     assert mismatches == []
+
+
+# A committed chopped pot: seats 0 and 3 take 2550 each of a 5100 pot. Named rather
+# than searched for so the test says which hand it rests on, and so a sample that no
+# longer contains it fails loudly instead of quietly testing nothing.
+MISALLOCATED_SETTLEMENT_HAND = "pluribus/41/18"
+
+
+def test_a_settlement_that_misallocates_one_chip_is_refused(sample) -> None:
+    """The guard that turns the published stacks into an oracle, exercised not assumed.
+
+    Every committed hand settles correctly, so a green run proves the comparison exists
+    but never that it is load-bearing. Moving one chip between the two winners of a
+    chopped pot leaves the pot and the winning seats identical, so the payout comparison
+    is the only check that can catch it. If the replayer ever stops checking its own
+    settlement against the hand's published record, this is the test that notices, and
+    `corpus-settlement-check-disabled` in `verification/mutations.yml` is the mutation
+    that proves it does.
+    """
+    record = next(
+        item for item in sample.records if item.corpus.hand_id == MISALLOCATED_SETTLEMENT_HAND
+    )
+    result = record.normalized.result
+    richer, poorer = result.winner_seats
+    payouts = dict(result.payouts)
+    payouts[richer] += 1
+    payouts[poorer] -= 1
+    misallocated = replace(
+        record.normalized,
+        result=ExpectedResult(result.winner_seats, result.pot, payouts),
+    )
+
+    with pytest.raises(ValueError, match="does not match expected result"):
+        replay_hand(misallocated)
 
 
 # --------------------------------------------------------------------------- #
