@@ -79,6 +79,14 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_backlog.py", "--check"],
         "Check generated backlog freshness",
     ),
+    "pytest_quality_hardening": CommandSpec(
+        uv_python_command() + ["-m", "pytest", "tests/test_quality_hardening.py"],
+        "Run quality, drift, and phase-gate hardening tests",
+    ),
+    "run_full_quality_gate": CommandSpec(
+        uv_python_command() + ["scripts/run_full_quality_gate.py"],
+        "Run the quality checks and write the quality report",
+    ),
     "check_contracts": CommandSpec(
         uv_python_command() + ["scripts/check_contracts.py"],
         "Validate phase contracts",

@@ -1,10 +1,20 @@
 task_id: PHASE-09
 active_phase: "09"
-task_mode: contract-update
+task_mode: implementation
 base_commit: 90ec336cdde0b42f69ace5cebb16855327fdaba1
 approved_scope:
   - docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md
   - reports/phase_audits/decisions/PHASE_09_QUALITY_HARDENING_DECISIONS.md
+  - scripts/run_verify.py
+  - scripts/quality_checks.py
+  - scripts/repo_facts.py
+  - scripts/generate_repo_facts.py
+  - scripts/run_full_quality_gate.py
+  - verification/repo_facts.yml
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - tests/test_quality_hardening.py
+  - reports/phase_audits/PHASE_09_QUALITY_HARDENING.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -159,3 +169,11 @@ scope_change_log:
       Phase 09 contract-update needs the phase contract itself, whose skeleton carries only gate boilerplate, plus a
       pre-implementation judgment-call record under reports/phase_audits/decisions/ so the choices about what a
       hardening check is allowed to demand are recorded with a reversibility class before any code is written.
+  - date: 2026-08-13
+    reason: >-
+      Phase 09 implementation needs the phase tests, the two new command IDs in the registry, the four quality checks
+      and the facts they read, the committed facts file and its generator, the aggregate gate command that runs them
+      and writes the quality report, the canaries for the two commands no mutation currently targets, the freeze lock
+      recording the re-frozen tests, and the audit evidence. The contract stays listed only because it already changed
+      earlier in this task and the diff is measured from base_commit; implementation mode is what forbids editing it
+      further.

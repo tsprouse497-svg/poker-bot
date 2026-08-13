@@ -18,6 +18,10 @@ mutations:
     replace: '_LATE_LABELS_BUTTON_FIRST: tuple[str, ...] = ("BTN", "HJ", "CO", "LJ")'
     must_fail:
       - pytest_preflop_artifacts
+      # The catch-all command runs every test file, so any mutation at all would cover
+      # it. It is named here rather than exempted because an exemption is a claim that
+      # something cannot be checked, and this one plainly can.
+      - pytest
 
   - id: lookup-tie-picks-an-action
     description: >-
@@ -261,6 +265,20 @@ mutations:
     replace: "        and (position is None or True)"
     must_fail:
       - pytest_sample_comparison
+
+  - id: preflop-collapse-stops-sampling-and-takes-the-first-action
+    description: >-
+      The seeded weighted draw is replaced by a roll of zero, so every mixed cell
+      collapses to whichever action the artifact lists first rather than to one drawn in
+      proportion to its weight. Nothing raises and every spot still resolves. This is the
+      plurality rule Phase 05 shipped and then re-ruled against once the independent
+      review measured what it costs: a first-order exploit, because a hand the chart
+      plays three ways in ten becomes a hand it plays one way always.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "        roll = _roll(seed) * sum(weight for _, weight in positive)"
+    replace: "        roll = 0.0"
+    must_fail:
+      - pytest_full_table_preflop
 
   - id: corpus-price-band-ignores-how-many-raises
     description: >-
