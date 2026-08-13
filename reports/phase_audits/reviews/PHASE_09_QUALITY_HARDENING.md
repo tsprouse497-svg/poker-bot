@@ -75,9 +75,14 @@ filed under an id nobody created would have been caught only in that one namespa
 check would have been about spelling rather than about whether the finding was filed.
 
 Widened to the full id shape, with two named exclusions and one shape rule: the corpus
-licence tokens, a Phase 05 review heading, and task ids of the form `MAINT-NN` or
-`PHASE-NN`, which name a unit of work rather than a filed finding and appear in every
+licence tokens, a Phase 05 review heading, and task ids such as `MAINT-07` or
+`PHASE-09`, which name a unit of work rather than a filed finding and appear in every
 ExecPlan. Each exclusion carries its reason in the code.
+
+The widened check then caught a ghost citation in this file, minutes after it was
+written: these notes originally described the excluded task ids with placeholders, and a
+placeholder is exactly a citation of an id nobody filed. The document was reworded and
+the check left alone, which is the order the contract requires.
 
 That list is the thing to watch on any future review. The contract forbids exempting
 something to make a check pass, and the difference between a true exclusion and a
