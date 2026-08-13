@@ -4,6 +4,7 @@ title: "Quality, Drift, Backlog, And Phase-Gate Hardening"
 depends_on:
   - "08"
 required_gate_commands:
+  - pytest_quality_hardening
   - run_full_quality_gate
   - check_generated_status
 required_reports:
@@ -101,6 +102,10 @@ It is limited to the work named by this contract and the active ExecPlan.
   of them were cross-checked.
 
 ### Reports and gate
+- Every check this phase adds is unit-tested against a deliberately broken input as well
+  as against this repo.
+  A check that has only ever been run on a repo that satisfies it has not been shown to
+  fail, and a check that cannot fail is the thing this phase exists to remove.
 - Required command IDs pass through `scripts/run_verify.py`.
 - Required reports exist and are fresh for this phase.
 - `reports/active/latest_quality_report.txt` states, in plain language, what each check
@@ -118,6 +123,7 @@ It is limited to the work named by this contract and the active ExecPlan.
 - `reports/active/latest_quality_report.txt`
 
 ## Required command IDs
+- `pytest_quality_hardening`
 - `run_full_quality_gate`
 - `check_generated_status`
 
