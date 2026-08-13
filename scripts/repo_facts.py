@@ -28,6 +28,7 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 PACKET = "reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md"
 LIMITS = "docs/CORPUS_COMPARISON_LIMITS.md"
 BACKLOG = "backlog.yml"
+DECISIONS = "reports/phase_audits/decisions/PHASE_08_SAMPLE_COMPARISON_DECISIONS.md"
 
 
 @dataclass(frozen=True)
@@ -115,6 +116,33 @@ def _inexpressible_refusals() -> str:
     )
 
 
+def _human_call_disagreements(position: str | None = None) -> str:
+    """Human call decisions the chart disagrees with, optionally in one seat.
+
+    Registered because "70 of the 104" stood in four documents while the humans-only
+    figure was 58 of 89. The wrong number was a pooled one carrying a humans label,
+    which is the one operation the phase's own judgment call forbids, and no gate could
+    see it because it was prose.
+    """
+    from poker_training_bot.data_pipeline.comparison import DISAGREE
+
+    _, result = _comparison()
+    return str(
+        sum(
+            1
+            for row in result.rows
+            if row.population == "humans"
+            and row.observed_action == "call"
+            and row.verdict == DISAGREE
+            and (position is None or row.position == position)
+        )
+    )
+
+
+def _human_call_disagreements_big_blind() -> str:
+    return _human_call_disagreements("BB")
+
+
 def _solved_open_bb() -> str:
     from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 
@@ -147,8 +175,14 @@ FACTS: tuple[Fact, ...] = (
         name="corpus_preflop_decisions",
         description="preflop decision points the comparison scores or refuses",
         compute=_preflop_decisions,
-        pattern=r"([\d,]+) preflop decisions",
-        quoted_in=(PACKET, LIMITS),
+        # The first lookbehind skips "roughly 3,000 preflop decision points", which is
+        # an approximation the decision record makes on purpose: a check that fails on a
+        # sentence saying roughly is a check that is wrong, not a document that is. The
+        # second one stops the match starting mid-number - without it the engine
+        # backtracks to "000", where the text before it is a comma rather than the word
+        # the first lookbehind is watching for, and the skip silently stops working.
+        pattern=r"(?<!roughly )(?<![\d,])(\d[\d,]*) preflop decisions?(?: points)?",
+        quoted_in=(PACKET, LIMITS, DECISIONS),
     ),
     Fact(
         name="corpus_refusals",
@@ -169,6 +203,20 @@ FACTS: tuple[Fact, ...] = (
         description="refusals whose spot the chart vocabulary cannot express at all",
         compute=_inexpressible_refusals,
         pattern=r"(\d+) refusals (?:that name no spot at all|across the committed sample)",
+        quoted_in=(PACKET, BACKLOG),
+    ),
+    Fact(
+        name="corpus_human_call_disagreements",
+        description="scored human call decisions the chart disagrees with",
+        compute=_human_call_disagreements,
+        pattern=r"holds \d+ of the (\d+) human call",
+        quoted_in=(PACKET, BACKLOG),
+    ),
+    Fact(
+        name="corpus_human_call_disagreements_big_blind",
+        description="of those, the ones taken from the big blind",
+        compute=_human_call_disagreements_big_blind,
+        pattern=r"holds (\d+) of the \d+ human call",
         quoted_in=(PACKET, BACKLOG),
     ),
     Fact(

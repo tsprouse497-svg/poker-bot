@@ -37,6 +37,23 @@ REPORT_PATH = REPO_ROOT / "reports" / "active" / "latest_quality_report.txt"
 FACTS_PATH = REPO_ROOT / "reports" / "active" / "repo_facts.yml"
 BACKLOG_ID = re.compile(r"\b[A-Z][A-Z0-9]*(?:-[A-Z0-9]+){1,}\b")
 
+# Tokens shaped like a backlog id that are not one, with why each appears. Without this
+# the citation check could only ever catch a ghost id in a namespace it already knew
+# about, which would make it a check about spelling rather than about whether the
+# finding was ever filed.
+NOT_BACKLOG_IDS: dict[str, str] = {
+    "CC-BY": "the corpus licence named in the source card",
+    "CC-BY-4": "the same licence, with its version caught by the id shape",
+    "NON-BLOCKER": "a review-note heading in Phase 05, not an id: findings a review"
+    " classified as not blocking the gate",
+}
+
+# Task ids share the shape of a backlog id and are not one. They name a unit of work in
+# CURRENT_TASK.yml and an ExecPlan, which is a different register from a filed finding,
+# and every ExecPlan cites its own. Excluded by shape rather than one at a time, because
+# the next task will have a new number. No backlog id in this repo takes either form.
+NOT_BACKLOG_ID_SHAPES = re.compile(r"^(?:MAINT|PHASE)-\d")
+
 
 def _load(relative: str) -> dict:
     return yaml.safe_load((REPO_ROOT / relative).read_text(encoding="utf-8"))
@@ -60,7 +77,8 @@ def _citations(known: set[str]) -> dict[str, set[str]]:
     for pattern in ("docs/**/*.md", "reports/**/*.md"):
         for path in sorted(REPO_ROOT.glob(pattern)):
             cited = set(BACKLOG_ID.findall(path.read_text(encoding="utf-8")))
-            cited = {token for token in cited if token in known or token.startswith("CORPUS-")}
+            cited -= set(NOT_BACKLOG_IDS)
+            cited = {token for token in cited if not NOT_BACKLOG_ID_SHAPES.match(token)}
             if cited:
                 citations[str(path.relative_to(REPO_ROOT))] = cited
     return citations

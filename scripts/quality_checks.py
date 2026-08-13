@@ -64,8 +64,10 @@ CHECKS: tuple[CheckSpec, ...] = (
             " mutation, so check_gate_bite has something to prove about each one."
         ),
         does_not_cover=(
-            "It does not judge whether a mutation is a good one. One canary aimed at a"
-            " command says the command can fail, not that its tests are strong."
+            "It reads pytest_* commands only, so the checkers and generators in the gate"
+            " have no canary demanded of them. And it does not judge whether a mutation"
+            " is a good one: one canary aimed at a command says the command can fail,"
+            " not that its tests are strong."
         ),
     ),
     CheckSpec(
@@ -86,8 +88,10 @@ CHECKS: tuple[CheckSpec, ...] = (
             " exists, and every backlog id cited in docs or reports resolves to an item."
         ),
         does_not_cover=(
-            "It cannot tell whether an item is still worth doing, or whether one marked"
-            " done was actually finished."
+            "A citation is recognised by the shape of a backlog id, so a finding"
+            " described in prose without one is invisible to it. And it cannot tell"
+            " whether an item is still worth doing, or whether one marked done was"
+            " actually finished."
         ),
     ),
     CheckSpec(

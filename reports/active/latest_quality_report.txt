@@ -8,7 +8,7 @@ wrong numbers and a decorative gate command past a green run.
 
 PASS  mutation coverage
       covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.
-      does not: It does not judge whether a mutation is a good one. One canary aimed at a command says the command can fail, not that its tests are strong.
+      does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.
 
 PASS  fact drift
       covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.
@@ -16,7 +16,7 @@ PASS  fact drift
 
 PASS  backlog integrity
       covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.
-      does not: It cannot tell whether an item is still worth doing, or whether one marked done was actually finished.
+      does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.
 
 PASS  phase record agreement
       covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.
