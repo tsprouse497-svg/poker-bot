@@ -1,11 +1,8 @@
-task_id: MAINT-07
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 86729fc61a99d864e85961d1bd443d43d5bf72e2
-approved_scope:
-  - tests/test_sample_comparison.py
-  - verification/mutations.yml
-  - verification/freeze.lock
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
