@@ -49,6 +49,6 @@ phases:
     audit_packet: reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
   - phase_id: "09"
     title: "Quality, Drift, Backlog, And Phase-Gate Hardening"
-    status: active
+    status: completed
     contract: docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md
     audit_packet: reports/phase_audits/PHASE_09_QUALITY_HARDENING.md

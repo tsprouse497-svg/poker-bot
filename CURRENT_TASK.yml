@@ -1,18 +1,8 @@
-task_id: PHASE-09
-active_phase: "09"
-task_mode: implementation
-base_commit: 04a740ead3c94ccf8ee9285c3708613c61e4fe6f
-approved_scope:
-  - docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md
-  - reports/phase_audits/decisions/PHASE_09_QUALITY_HARDENING_DECISIONS.md
-  - scripts/run_verify.py
-  - scripts/quality_checks.py
-  - scripts/repo_facts.py
-  - scripts/generate_repo_facts.py
-  - scripts/run_full_quality_gate.py
-  - verification/mutations.yml
-  - reports/phase_audits/PHASE_09_QUALITY_HARDENING.md
-  - reports/phase_audits/reviews/PHASE_09_QUALITY_HARDENING.md
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
