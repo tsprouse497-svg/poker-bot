@@ -4,6 +4,8 @@ This is the provenance record for `data/samples/public_corpus/`.
 A checksum proves a file has not changed; it cannot establish where the file came from or what it is allowed to be used for.
 That is what this document is for, and it is written to be read by a reviewer rather than by a script.
 
+What this sample cannot establish is `docs/CORPUS_COMPARISON_LIMITS.md`, starting with the fact that no check in this repo can confirm the committed text matches what the publisher published.
+
 ## What the corpus is
 
 The Pluribus subset of the Poker Hand History (PHH) dataset: every hand played by the Pluribus agent against human professionals, published as supplementary material to Brown and Sandholm (2019).

@@ -1,8 +1,11 @@
-task_id: null
+task_id: MAINT-10
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 646fd533acd05e1f4cc6523e39c45caefa54282d
+approved_scope:
+  - docs/CORPUS_COMPARISON_LIMITS.md
+  - docs/SAMPLE_CORPUS_SOURCE.md
+  - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -145,3 +148,10 @@ scope_change_log:
       which is the file-size rule doing its job: the module measures and renders, and those are two responsibilities.
       MAINT-09 splits rendering into data_pipeline/comparison_report.py with its own test file, so the report generator
       script and the pytest_sample_comparison command registration both move with it.
+  - date: 2026-08-13
+    reason: >-
+      The independent review's one unfixed point: nothing in this repo can check the committed corpus text against the
+      dataset it says it came from, because the gate has no network by design, and that is the assumption every number
+      in Phase 08 rests on. It was not in the packet's limitations, and neither were several limits a reader currently
+      has to reconstruct from three separate audit files. MAINT-10 collects them into one short document and points the
+      packet and the source card at it.

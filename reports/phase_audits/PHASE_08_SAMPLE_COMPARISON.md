@@ -254,6 +254,18 @@ chose out of 10,000.
 
 ## Known limitations and deferred items
 
+The full list is `docs/CORPUS_COMPARISON_LIMITS.md`, which collects in one place what
+this comparison cannot establish. The ones a reader of this packet most needs:
+
+- **Nothing in this repo can check the committed corpus text against the dataset it
+  says it came from.** The checksum proves the file has not changed since it was
+  committed, not that it is what the publisher published, and the gate has no network by
+  design. Every number here is downstream of that. The only check is the one a reader
+  runs: clone the dataset, re-run the builder, and diff, which the deterministic
+  selection rule makes byte for byte.
+- **The chart was solved with rake and at a 2.5bb open; these hands carry no rake and
+  open to a median 2.25.** Both differences push in the same direction as the
+  blind-defence gap, and neither is a defect in either side.
 - **500 hands is a sample.** Every rate carries its denominator, but the report computes
   no confidence intervals, so the gap between 96.3% and 93.6% is not established as real.
 - **A disagreement with a human is not evidence the chart is wrong.** These are strong
@@ -270,9 +282,9 @@ chose out of 10,000.
 
 Filed in `backlog.yml`:
 
-- `CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT` - the 60.6% calling agreement and what would
-  settle whether it is our ranges, our pricing, or real players calling too wide.
-- `CORPUS-INEXPRESSIBLE-SPOTS` - 19 refusals that name no spot at all, the largest single
-  bucket and the only one nobody can act on.
+- `CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT` - the calling agreement, now localised to
+  blind defence, and what a rake-free or 2.25bb-open solve would settle about it.
+- `CORPUS-INEXPRESSIBLE-SPOTS` - 19 refusals that name no spot at all, all of them
+  second-orbit sequences the Phase 04 schema documents as out of scope for v1.
 - `CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK` - the real-hand inventory should replace the
   self-play one as the chart work list.
