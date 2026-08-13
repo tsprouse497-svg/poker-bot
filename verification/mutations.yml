@@ -343,3 +343,17 @@ mutations:
     replace: "            and self.settlement.payouts == self.settlement.payouts"
     must_fail:
       - pytest_sample_comparison
+
+  - id: quality-fact-drift-accepts-a-rewritten-sentence
+    description: >-
+      A fact whose pattern no longer matches the document that quotes it passes silently
+      instead of failing. The number has stopped being checked at that point, and the
+      check reports everything as fine, which rebuilds the exact hole this phase exists
+      to close - inside the fix for it. Nothing else about the check changes: registered
+      facts with matching sentences still compare correctly, so a run against a healthy
+      repo looks identical.
+    file: scripts/quality_checks.py
+    find: "            if not found:"
+    replace: "            if False:"
+    must_fail:
+      - pytest_quality_hardening

@@ -28,7 +28,7 @@ POSITION_LABELS: tuple[str, ...] = (
 
 _HEADS_UP_LABELS: tuple[str, ...] = ("BTN", "BB")
 _BLIND_LABELS: tuple[str, ...] = ("SB", "BB")
-_LATE_LABELS_BUTTON_FIRST: tuple[str, ...] = ("BTN", "CO", "HJ", "LJ")
+_LATE_LABELS_BUTTON_FIRST: tuple[str, ...] = ("BTN", "HJ", "CO", "LJ")
 _EARLY_LABELS: tuple[str, ...] = ("UTG", "UTG1", "UTG2")
 
 

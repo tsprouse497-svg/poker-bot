@@ -1,7 +1,7 @@
 task_id: PHASE-09
 active_phase: "09"
 task_mode: implementation
-base_commit: 90ec336cdde0b42f69ace5cebb16855327fdaba1
+base_commit: 04a740ead3c94ccf8ee9285c3708613c61e4fe6f
 approved_scope:
   - docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md
   - reports/phase_audits/decisions/PHASE_09_QUALITY_HARDENING_DECISIONS.md
@@ -10,10 +10,7 @@ approved_scope:
   - scripts/repo_facts.py
   - scripts/generate_repo_facts.py
   - scripts/run_full_quality_gate.py
-  - verification/repo_facts.yml
   - verification/mutations.yml
-  - verification/freeze.lock
-  - tests/test_quality_hardening.py
   - reports/phase_audits/PHASE_09_QUALITY_HARDENING.md
 standing_scope:
   - CURRENT_TASK.yml
@@ -177,3 +174,17 @@ scope_change_log:
       recording the re-frozen tests, and the audit evidence. The contract stays listed only because it already changed
       earlier in this task and the diff is measured from base_commit; implementation mode is what forbids editing it
       further.
+  - date: 2026-08-13
+    reason: >-
+      Loop stage 5 narrows scope so the builder cannot reach the tests it is measured by. tests/ and verification/
+      leave approved_scope, and base_commit moves to the freeze commit so the diff is measured from there rather than
+      from the start of the phase. The generated facts file moves to reports/active/, which is standing scope and where
+      every other generated evidence file already lives, so the builder can regenerate it without reaching into
+      verification/.
+  - date: 2026-08-13
+    reason: >-
+      The phase's own pytest command needs a canary and did not get one at stage 4, which is the same miss Phase 08
+      made: the two canaries authored then covered the two commands that were already uncovered, and nobody covered
+      the command the phase was adding. verification/mutations.yml comes back into approved_scope for canaries only.
+      The freeze lock stays out and no test changes, so the builder still cannot reach the tests it is measured by,
+      and a canary makes the gate stricter rather than looser.
