@@ -1,8 +1,9 @@
-task_id: null
+task_id: MAINT-12
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 66c77a18a8585751f1665ece8d1e9d41cc4e17ed
+approved_scope:
+  - docs/GTOPEN_SOLVER_NOTES.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -189,3 +190,9 @@ scope_change_log:
       The chart's coverage gap needs a solver the repo can re-run, and GTOpen is the candidate. What was verified about
       it by running it lives in a note under docs/ so the next agent starts from measurements rather than from a search
       engine, and so the line between what was executed and what was only read stays visible.
+  - date: 2026-08-13
+    reason: >-
+      The GTOpen note drifted into arguing this repo's case rather than describing the tool. Its framing about coverage,
+      provenance and how a re-sourced chart should be assembled belongs to the repo's own documents, which already carry
+      it, and repeating it here dates the note the moment those numbers move. Trimmed to the tool: what is installed,
+      what config it accepts, how to get ranges out, and what has not been verified.
