@@ -1,11 +1,8 @@
-task_id: MAINT-10
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 646fd533acd05e1f4cc6523e39c45caefa54282d
-approved_scope:
-  - docs/CORPUS_COMPARISON_LIMITS.md
-  - docs/SAMPLE_CORPUS_SOURCE.md
-  - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
