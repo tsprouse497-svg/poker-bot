@@ -1,10 +1,10 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `PHASE-08-IMPLEMENTATION`
-Task mode: `implementation`
-Active phase: `08`
-Completed phases: `8`
+Current task: `none (idle)`
+Task mode: `idle`
+Active phase: `none`
+Completed phases: `9`
 
 ## Phase Snapshot
 
@@ -18,7 +18,7 @@ Completed phases: `8`
 | 05 | completed | `docs/phase_contracts/PHASE_05_FULL_TABLE_PREFLOP.md` | `reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md` |
 | 06 | completed | `docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md` | `reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md` |
 | 07 | completed | `docs/phase_contracts/PHASE_07_SIMULATOR_REPORTS.md` | `reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md` |
-| 08 | future | `docs/phase_contracts/PHASE_08_SAMPLE_COMPARISON.md` | `reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md` |
+| 08 | completed | `docs/phase_contracts/PHASE_08_SAMPLE_COMPARISON.md` | `reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md` |
 | 09 | future | `docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md` | `reports/phase_audits/PHASE_09_QUALITY_HARDENING.md` |
 
 ## Verification

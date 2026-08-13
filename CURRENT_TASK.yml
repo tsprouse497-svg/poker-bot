@@ -1,19 +1,8 @@
-task_id: PHASE-08-IMPLEMENTATION
-active_phase: "08"
-task_mode: implementation
-base_commit: 2c58a1b2ed41445feff38bd3f3637b552c1b58e7
-approved_scope:
-  - src/poker_training_bot/data_pipeline/comparison.py
-  - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
-  - reports/phase_audits/reviews/PHASE_08_SAMPLE_COMPARISON.md
-  - reports/phase_audits/logs/**
-  - scripts/generate_sample_comparison_report.py
-  - src/poker_training_bot/data_pipeline/**
-  - src/poker_training_bot/strategy/preflop_chart.py
-  - data/samples/**
-  - docs/SAMPLE_CORPUS_SOURCE.md
-  - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
-  - reports/phase_audits/logs/**
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml

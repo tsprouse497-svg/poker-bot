@@ -82,17 +82,20 @@ Forbidden throughout:
 
 ## Slices
 
-- [ ] Stage 1: contract carries real acceptance criteria; this ExecPlan is active.
-- [ ] Stage 2: judgment calls recorded with a reversibility class each.
-- [ ] Stage 3: human rules on every `frozen-into-data` item.
-- [ ] Stage 4: `pytest_sample_comparison` authored and failing for the right reason.
-- [ ] Stage 5: tests frozen; `tests/` and `verification/` leave approved scope.
-- [ ] Stage 6: converter, comparison, and report generator built until both commands
-      are green.
-- [ ] Stage 7: full gate green and `check_gate_bite` proves the new canaries bite.
-- [ ] Stage 8: mechanical review, then domain review of the poker.
-- [ ] Stage 9: audit packet with a recomputable number.
-- [ ] Stage 10: closeout, tag, idle.
+- [x] Stage 1: contract carries real acceptance criteria; this ExecPlan is active.
+- [x] Stage 2: seven judgment calls recorded, four of them `frozen-into-data`.
+- [x] Stage 3: Taylor ruled on all four frozen items and took the recommendation on each.
+- [x] Stage 4: `pytest_sample_comparison` authored, red on the missing modules.
+- [x] Stage 5: tests frozen; `tests/` and `verification/` left approved scope.
+- [x] Stage 6: converter, comparison, and report generator built. Two halts, both
+      authoring defects in frozen tests (an attribute name, a line length), each
+      repaired in its own task with the tests re-frozen.
+- [x] Stage 7: full gate green; 20 of 20 mutations caught including the four authored
+      here.
+- [x] Stage 8: mechanical pass found nothing the gate had not. Domain pass found the
+      headline agreement rate was dominated by folds and treated it as a blocker.
+- [x] Stage 9: audit packet, with one hand's settlement recomputable by pencil.
+- [x] Stage 10: closeout, tag, idle.
 
 ## Verification
 
@@ -104,14 +107,42 @@ Forbidden throughout:
 
 ## Outcome
 
-Fill this in before completing the gate.
+The phase did what it was for: 499 of the 500 selected hands settle to the corpus's
+own published finishing stacks, every seat, no tolerance. That is the first claim in
+this repository whose right answer came from outside it. The single exclusion is a
+chopped pot the corpus records in half chips, named in a committed file.
+
+The comparison half produced a result the gate could never have found. The pooled
+agreement rate looked reassuring at 96.3% against Pluribus, but 72% of scored decisions
+are folds and folds agree 98.6% of the time. Split by the player's own action, folds
+agree 98.6%, raises 93.4%, and calls 60.6%. The chart and real players disagree about
+calling four times in ten, which is the same over-folding bias Phase 05 measured at 13
+points and Phase 06 built in by construction, now visible against real opponents.
+
+Coverage was the second result: 78 distinct spots the chart cannot answer against real
+play, versus 22 from self-play, most of them new. Self-play is blind by construction to
+lines its own strategy never takes.
+
+Nothing measured here was used to edit what it measured. All three findings went to
+`backlog.yml`.
+
+Two process notes worth carrying forward. Stage 4 checks the phase's pytest command
+rather than the gate, so a lint defect in a frozen test stayed latent until stage 7.
+And the phase was left at `status: future` in `phase_status.yml` through the whole
+build, which silently kept both new commands out of the derived gate until closeout -
+`check_gate_bite` exercised them directly, so the canaries were real, but the standing
+gate was not running them.
 
 ## Next Agent Bootstrap
 
-State: on branch `phase/08-sample-comparison`, loop at stage 1, task
-`PHASE-08-CONTRACT` in `contract-update` mode from base commit `40886711`.
-The corpus has been surveyed but nothing has been fetched into the repo, and
-`data/raw/**` remains forbidden, so the sample must be produced by a committed,
-rerunnable selection rule rather than by a manual copy.
+State: Phase 08 complete, tagged `phase-08-complete`, merged to `main`, repo idle and
+clean. Phases 00-08 done; Phase 09 (quality, drift, backlog, and phase-gate hardening)
+is next and `verification/loop_policy.yml` marks it `auto_advance: true`.
 
-Next command: `uv run python scripts/loop_stage.py`
+The most useful artifact the repo now has is
+`reports/active/latest_sample_refusal_inventory.txt`: 78 chart spots real hands reached
+that the committed charts cannot answer, ordered by frequency and flagged for whether
+self-play had already found them. It should replace the self-play inventory as the work
+list for whatever chart phase comes next.
+
+Next command: `uv run python scripts/loop_stage.py --start 09`
