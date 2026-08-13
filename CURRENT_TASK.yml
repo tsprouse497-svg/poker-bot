@@ -1,8 +1,10 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE-09
+active_phase: "09"
+task_mode: contract-update
+base_commit: 90ec336cdde0b42f69ace5cebb16855327fdaba1
+approved_scope:
+  - docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md
+  - reports/phase_audits/decisions/PHASE_09_QUALITY_HARDENING_DECISIONS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -152,3 +154,8 @@ scope_change_log:
       in Phase 08 rests on. It was not in the packet's limitations, and neither were several limits a reader currently
       has to reconstruct from three separate audit files. MAINT-10 collects them into one short document and points the
       packet and the source card at it.
+  - date: 2026-08-13
+    reason: >-
+      Phase 09 contract-update needs the phase contract itself, whose skeleton carries only gate boilerplate, plus a
+      pre-implementation judgment-call record under reports/phase_audits/decisions/ so the choices about what a
+      hardening check is allowed to demand are recorded with a reversibility class before any code is written.
