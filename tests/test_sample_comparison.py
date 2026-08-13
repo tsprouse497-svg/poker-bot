@@ -17,10 +17,12 @@ from pathlib import Path
 
 import pytest
 
+from poker_training_bot.data_pipeline import comparison as comparison_module
 from poker_training_bot.data_pipeline.comparison import (
     AGREE,
     DISAGREE,
     REFUSED,
+    REPORTED_POSITIONS,
     classify_observed_action,
     compare_committed_sample,
     render_comparison_report,
@@ -391,6 +393,51 @@ def test_the_sidecar_covers_every_committed_hand_and_nothing_else(sample) -> Non
     assert {record.corpus.hand_id for record in sample.records} == set(sample.sidecar)
 
 
+def test_the_sidecar_says_the_same_thing_as_the_corpus_text_it_describes(sample) -> None:
+    """The largest committed file in the phase, checked rather than carried.
+
+    Judgment call 3 put the hole cards and the published stacks in a sidecar so the
+    oracle would never sit inside the record the replayer produces. Nothing reads it at
+    run time - the comparison parses the committed corpus text instead - so without
+    this, the biggest file in `data/samples` could disagree with the hands it claims to
+    describe and every gate would stay green.
+    """
+    for record in sample.records:
+        entry = sample.sidecar[record.corpus.hand_id]
+
+        assert entry["source_path"] == record.corpus.source_path
+        assert entry["source_checksum"] == record.source_checksum
+        assert tuple(entry["players"]) == record.corpus.players
+        assert tuple(entry["hole_cards"]) == tuple(
+            "".join(pair) for pair in record.corpus.hole_cards
+        )
+        assert tuple(entry["starting_stacks"]) == record.corpus.starting_stacks
+        assert tuple(entry["finishing_stacks"]) == record.corpus.finishing_stacks
+
+
+def test_the_all_in_coverage_the_documents_claim_is_the_coverage_the_sample_has(
+    sample,
+) -> None:
+    """The number three committed documents state about this sample, pinned to it.
+
+    They said 7, which counts only hands containing a preflop shove of a full stack.
+    PHH writes an aggressive action as the total its actor's street bet reaches, so an
+    all-in on a later street, and every all-in reached by calling one, is invisible to
+    that count. Every seat starts on exactly 10,000 here, so committing the whole
+    starting stack is the only thing an all-in can be.
+    """
+    all_in_hands = sum(
+        1
+        for record in sample.records
+        if any(
+            replay_hand(record.normalized).committed_by_seat[player.seat] == player.starting_stack
+            for player in record.normalized.players
+        )
+    )
+
+    assert all_in_hands == 24
+
+
 def test_every_hand_in_the_sample_is_six_handed_at_one_hundred_big_blinds(sample) -> None:
     """The one spot the committed chart answers, which is why these hands were chosen."""
     for record in sample.records:
@@ -478,6 +525,76 @@ def test_no_human_decision_is_counted_in_the_machine_population(comparison) -> N
         assert (row.player == "Pluribus") == (row.population == "Pluribus")
 
 
+def test_no_rate_can_be_asked_for_without_naming_a_population(comparison) -> None:
+    """The pooled rate has no way to be spelled, which is the only durable version.
+
+    Judgment call 7 forbids averaging the machine with the humans, and the first
+    version of the action split broke that rule while fixing something else - it
+    filtered on the action and nothing more. A convention would have been broken the
+    same way again; a required argument cannot be.
+    """
+    with pytest.raises(TypeError):
+        comparison.agreement_within(action="call")
+
+
+def test_every_decision_carries_the_position_it_was_taken_from(sample, comparison) -> None:
+    """A preflop chart is indexed by position, so a rate without one hides the cell."""
+    expected = {
+        record.corpus.hand_id: seat_positions(
+            [player.seat for player in record.normalized.players],
+            record.normalized.button_seat,
+        )
+        for record in sample.records
+    }
+
+    for row in comparison.rows:
+        assert row.position == expected[row.hand_id][row.seat]
+
+
+def test_the_position_split_partitions_the_population_it_splits(comparison) -> None:
+    """Every scored decision lands in exactly one seat's cell, and none lands twice.
+
+    This is what makes the table readable as a breakdown rather than as six
+    overlapping views of the same number.
+    """
+    for population in comparison.populations:
+        whole = comparison.agreement(population)
+        by_position = [
+            comparison.agreement_within(population, position=position)
+            for position in REPORTED_POSITIONS
+        ]
+
+        assert sum(rate.denominator for rate in by_position) == whole.denominator
+        assert sum(rate.numerator for rate in by_position) == whole.numerator
+
+
+def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> None:
+    """The finding this split exists for, pinned so it cannot quietly stop being true.
+
+    Calls are where the chart and real players part company, and the gap is not spread
+    across the table: it is the big blind, which is also the seat the chart refuses
+    most often. Both halves of that are asserted, because either one alone reads as a
+    smaller problem than it is.
+    """
+    humans_calling_in_the_blind = comparison.agreement_within(
+        "humans", action="call", position="BB"
+    )
+    humans_calling_elsewhere = [
+        comparison.agreement_within("humans", action="call", position=position)
+        for position in REPORTED_POSITIONS
+        if position != "BB"
+    ]
+
+    assert humans_calling_in_the_blind.denominator > 100
+    assert humans_calling_in_the_blind.percent < 60.0
+    for rate in humans_calling_elsewhere:
+        assert rate.percent > humans_calling_in_the_blind.percent
+
+    refused = comparison.refusal_count("humans", position="BB")
+    points = comparison.decision_count("humans", position="BB")
+    assert refused / points > 0.2
+
+
 def test_only_preflop_decision_points_are_compared(comparison) -> None:
     """Phase 06's fallback never bets, so a postflop comparison measures the fallback."""
     for row in comparison.rows:
@@ -499,6 +616,39 @@ def test_the_refusal_inventory_is_keyed_by_the_refusal_s_own_detail(comparison) 
     for entry in comparison.refusal_inventory:
         assert entry.spot_key
         assert entry.count > 0
+
+
+def test_the_self_play_cross_reference_actually_found_the_inventory(comparison) -> None:
+    """Some spots must come back marked as already seen, or the column means nothing.
+
+    The claim this column carries - that real hands reach spots self-play never does -
+    only survives if the self-play side was read successfully. An inventory that
+    yielded nothing would mark every spot NEW and read as the strongest possible
+    version of the same claim.
+    """
+    assert any(entry.seen_in_self_play for entry in comparison.refusal_inventory)
+    assert any(not entry.seen_in_self_play for entry in comparison.refusal_inventory)
+
+
+def test_an_unreadable_self_play_inventory_fails_loudly_rather_than_emptily(
+    tmp_path, monkeypatch
+) -> None:
+    """The cross-reference is the one input that is not the committed sample.
+
+    It is recovered by pattern from a rendered report, so the format it depends on can
+    move without anything here changing. When it does, the honest outcome is a broken
+    build rather than a report that quietly upgrades every spot to NEW.
+    """
+    missing = tmp_path / "not_written_yet.txt"
+    monkeypatch.setattr(comparison_module, "SELF_PLAY_INVENTORY", missing)
+    with pytest.raises(FileNotFoundError):
+        comparison_module._self_play_spots()
+
+    moved = tmp_path / "reformatted.txt"
+    moved.write_text("points | spot | seen\n12 | six-handed 100bb BB vs CO raise | yes\n")
+    monkeypatch.setattr(comparison_module, "SELF_PLAY_INVENTORY", moved)
+    with pytest.raises(ValueError, match="no spot keys"):
+        comparison_module._self_play_spots()
 
 
 def test_the_refusal_inventory_is_ordered_most_reached_first(comparison) -> None:

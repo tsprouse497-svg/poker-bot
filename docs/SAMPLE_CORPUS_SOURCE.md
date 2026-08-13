@@ -35,9 +35,14 @@ That is the settlement oracle this phase exists for, and it was written by the p
 The rule is every 20th hand by a stable lexicographic sort of the corpus's own file paths, giving 500 hands.
 It is implemented once, in `select_source_paths`, which both the builder and the test that pins it call.
 
-A stride rather than a prefix, because a prefix draws from about five consecutive sessions: only 7 distinct players ever hold the button and just 3 hands contain an all-in.
-The stride spreads the same 500 hands over all 92 sessions, giving 13 distinct button players and 7 all-in hands.
+A stride rather than a prefix, because a prefix draws from about five consecutive sessions: only 7 distinct players ever hold the button and just 3 hands contain a preflop shove.
+The stride spreads the same 500 hands over 91 of the corpus's 92 sessions, giving 13 distinct button players and 7 hands with a preflop shove.
 Nobody chose a hand, and re-running the rule against the same corpus reproduces the sample byte for byte.
+
+Those shove counts were the measure used when the rule was chosen, and they undercount all-ins.
+PHH writes an aggressive action as the total its actor's street bet reaches, so counting the ones that read `10000` finds a preflop shove from a full stack and nothing else: not an all-in reached on a later street, and not the caller on the other side of one.
+Counted properly - a seat committing its whole 10,000 - the committed sample holds 24 all-in hands, not 7, and `test_the_all_in_coverage_the_documents_claim_is_the_coverage_the_sample_has` pins that number so this paragraph cannot drift from the data again.
+The comparison between the prefix and the stride was made on the same undercount for both, so it still favours the stride; only the magnitudes were wrong.
 
 Three files are committed:
 

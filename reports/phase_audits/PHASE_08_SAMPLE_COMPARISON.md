@@ -45,7 +45,7 @@ depends entirely on which decisions you look at, and that turned out to be the f
 | 9 | The machine and the human players are never averaged together | PASS - reported as two populations |
 | 10 | Nothing this phase measured was used to edit the thing it measured | PASS - three findings went to `backlog.yml`, no chart changed |
 | 11 | Full verification gate green | PASS - 33 commands |
-| 12 | The gate bites: committed mutations make it fail | PASS - 20 of 20 caught, including 4 authored here |
+| 12 | The gate bites: committed mutations make it fail | PASS - 25 of 25 caught, 9 of them about this phase |
 
 ## What the comparison found
 
@@ -54,22 +54,32 @@ and 93.6% with the human professionals (2,155 of 2,302).
 
 **Both figures are close to meaningless on their own, and the stage 8 review treated
 that as a blocker.** 1,975 of the 2,758 scored decisions - 72% - are folds, and folds
-agree 98.6% of the time. Folding a bad hand from early position is the easiest
-agreement in poker. Any chart that is not actively broken scores in the nineties on a
-pooled rate, because the pool is mostly junk being thrown away by both sides.
+agree almost always. Folding a bad hand from early position is the easiest agreement in
+poker. Any chart that is not actively broken scores in the nineties on an unsplit rate,
+because the pool is mostly junk being thrown away by both sides.
 
-Split by what the player actually did:
+Split by what the player actually did, and by which population did it:
 
-| player's action | agreed | of | rate |
-|---|---|---|---|
-| fold | 1948 | 1975 | 98.6% |
-| check | 21 | 21 | 100.0% |
-| raise | 465 | 498 | 93.4% |
-| call | 160 | 264 | **60.6%** |
+| player's action | Pluribus | rate | humans | rate |
+|---|---|---|---|---|
+| fold | 332 of 332 | 100.0% | 1616 of 1643 | 98.4% |
+| check | 5 of 5 | 100.0% | 16 of 16 | 100.0% |
+| raise | 80 of 82 | 97.6% | 385 of 416 | 92.5% |
+| call | 22 of 37 | **59.5%** | 138 of 227 | **60.8%** |
 
-The chart and real players disagree about calling four times in ten. That is the
-phase's real result. The report now prints this split and states plainly that the low
+The chart and real players disagree about calling four times in ten, and it is not a
+quirk of one population: the machine and the humans produce almost the same figure. That
+is the phase's real result. The report prints this split and states plainly that the low
 figure is the finding, rather than leading a reader to the reassuring one.
+
+**The calling gap is a blind-defence gap.** Split again by the seat the decision was
+taken from, the deficit is not spread across the table. Human calls agree 62-77% of the
+time in every seat except the big blind, where they agree 66 of 124 times (53.2%); the
+big blind alone holds 70 of the 104 human call disagreements. The same seat is also the
+one the chart refuses most often, on 96 of its 361 decision points (26.6%) against 1.3%
+in the hijack. Those two compound: refusals sit outside every agreement rate, so the
+chart is graded most leniently in exactly the seat it plays worst. The report prints the
+per-seat table with its refusal column beside it for that reason.
 
 It is also consistent with what this repo already knows about itself. Phase 05's
 original collapse rule over-folded by 13 points against three-bets before it was
@@ -86,7 +96,7 @@ since Phase 07; the real-hand inventory should replace it.
 
 | Command | What it proves |
 |---|---|
-| `pytest_sample_comparison` | 40 tests: the conversion, the oracle, the sample's integrity, and the three comparison rules |
+| `pytest_sample_comparison` | 49 tests: the conversion, the oracle, the sample's integrity, and the comparison rules |
 | `generate_sample_comparison_report` | Writes both committed reports from the committed sample alone |
 
 Committed reports:
@@ -115,6 +125,32 @@ Two frozen tests needed repair mid-phase - an attribute name and a line length. 
 were authoring defects rather than behavior, both were repaired in dedicated tasks with
 the tests re-frozen, and neither weakened an assertion. They are recorded because the
 freeze exists to make exactly that visible.
+
+## Corrections after the phase closed
+
+A post-hoc review on 2026-08-13 read this phase again with the contract set aside. It
+found six things, all of them invisible to a green gate, and two maintenance tasks fixed
+them. Nothing about the corpus, the selection rule, or the committed sample changed; what
+changed is what the gate proves and what this packet is allowed to claim.
+
+**MAINT-07, the settlement oracle.** The test carrying this phase's central criterion
+could not fail on it. It rebuilt each seat's stack from the converter's own
+`result.payouts`, which was itself derived from the corpus's finishing stacks, so the
+comparison collapsed back to those stacks whatever the engine computed. Forcing the
+replayer's guard true and paying every pot to seat 0 left it reporting 0 mismatches
+across all 499 hands. The claim held only because `replay_hand` raises internally, and no
+mutation had ever targeted the replayer. The assertion now reads the engine's own
+settlement, a chopped pot with one chip moved between its two winners proves the guard
+fires, and two canaries stand behind it.
+
+**MAINT-08, the five findings that were left.** The comparison never recorded the
+position a decision was taken from, so the calling gap above was never localised. The
+action split pooled Pluribus with the humans, which is the one operation judgment call 7
+forbids, reintroduced by the fix for a different problem. The self-play cross-reference
+would have degraded silently to "every spot is new" if the report it scrapes had moved.
+The committed sidecar, the largest file in the sample, was checked by nothing. And the
+all-in count in three documents counted preflop shoves only. All five are fixed, with
+three more canaries and eight more tests.
 
 ## Decisions
 
@@ -181,7 +217,10 @@ chose out of 10,000.
   superhuman bot rather than the pool the chart was solved for.
 - **Postflop is not measured at all.** The fallback never bets, so comparing it to real
   postflop play would measure the fallback's known shape.
-- **The all-in settlement path is thinly covered**: 7 of the 500 hands contain an all-in.
+- **The all-in settlement path is thinly covered**: 24 of the 499 committed hands contain
+  an all-in. This packet and two other documents said 7 until 2026-08-13; that count
+  scanned for a preflop shove of a full stack and missed both the all-in reached on a
+  later street and the caller facing one. A test now pins the number to the sample.
 - **Equal starting stacks mean no side pot arises anywhere in the sample**, so side-pot
   settlement is not exercised by this oracle at all.
 

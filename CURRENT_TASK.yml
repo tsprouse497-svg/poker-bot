@@ -1,8 +1,16 @@
-task_id: null
+task_id: MAINT-08
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: e302d29ed198db9b81a71bcaa423119b2947ef76
+approved_scope:
+  - src/poker_training_bot/data_pipeline/comparison.py
+  - tests/test_sample_comparison.py
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - docs/SAMPLE_CORPUS_SOURCE.md
+  - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
+  - reports/phase_audits/decisions/PHASE_08_SAMPLE_COMPARISON_DECISIONS.md
+  - reports/phase_audits/reviews/PHASE_08_SAMPLE_COMPARISON.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -109,6 +117,15 @@ scope_change_log:
     reason: The gate fails ruff on a 101-character line in a frozen Phase 08 test. Stage 4 never surfaced it because its check runs the phase's pytest command rather than the gate, so the defect stayed latent until stage 7. Reflowing one list comprehension changes no assertion, but it changes the file, so the freeze lock is rewritten with it and both land in their own task.
   - date: 2026-08-12
     reason: The Phase 08 canaries were never authored at stage 4, so without them check_gate_bite would pass while proving nothing about this phase, which is the definition of a decorative gate. verification/mutations.yml comes back into approved_scope for canaries only. The freeze lock is untouched because no test changes, and the builder still cannot reach tests/.
+  - date: 2026-08-13
+    reason: >-
+      The same post-hoc review left five findings the gate could not see, and MAINT-08 closes them. The comparison
+      never recorded the position a decision was taken from, so the phase's headline calling gap was never localised;
+      the action split pooled Pluribus with the humans, which is the one operation judgment call 7 forbids; the
+      self-play cross-reference degrades silently to "everything is new" if its scraped input moves; the committed
+      sidecar's contents are checked by nothing; and three committed documents state an all-in count that counts only
+      preflop shoves. That needs the comparison module, the phase tests, the mutation list, the freeze lock, and the
+      four documents carrying the wrong number or the stale table.
   - date: 2026-08-13
     reason: >-
       A post-hoc review of Phase 08 found its central criterion asserted by a test that cannot fail on it: _settled_stacks

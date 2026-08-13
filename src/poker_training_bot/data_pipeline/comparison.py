@@ -13,7 +13,14 @@ different findings, and folding the first into the second makes absent coverage 
 like bad strategy.
 
 The machine and the humans are separate populations. One is a near-equilibrium bot
-and the others are people; an average over both describes neither.
+and the others are people; an average over both describes neither. That rule binds
+every rate this module computes, not only the headline one: a split by what the
+player did is still a rate, and pooling the populations inside it puts the average
+back after the report has just finished explaining why there isn't one.
+
+Every decision also records the position it was taken from. A preflop chart is
+indexed by position before anything else, so a disagreement rate that does not carry
+one names a symptom and hides the cell.
 """
 
 from __future__ import annotations
@@ -25,6 +32,7 @@ from pathlib import Path
 from poker_training_bot.data_pipeline.sample import MACHINE_PLAYER, CommittedSample
 from poker_training_bot.hand_history.replay import DecisionPoint, replay_hand
 from poker_training_bot.hand_history.schema import HistoryActionKind, StreetName
+from poker_training_bot.poker_core.positions import seat_positions
 from poker_training_bot.strategy.contract import SeatAction, StrategyQuery, StrategyRefusal
 from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 
@@ -46,7 +54,11 @@ _KIND_TO_ACTION = {
     HistoryActionKind.BET: "bet",
     HistoryActionKind.RAISE: "raise",
 }
-_SPOT_ACTIONS = {"fold", "call", "raise"}
+
+# Reported in table order rather than sorted, so a reader walks the ring the way the
+# chart is indexed: earliest voluntary actor first, blinds last.
+REPORTED_POSITIONS = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
+REPORTED_ACTIONS = ("fold", "check", "call", "raise")
 
 
 @dataclass(frozen=True)
@@ -63,6 +75,7 @@ class Rate:
 class ComparisonRow:
     hand_id: str
     seat: int
+    position: str
     player: str
     population: str
     street: str
@@ -81,6 +94,26 @@ class InventoryEntry:
     seen_in_self_play: bool
 
 
+def _selects(
+    row: ComparisonRow,
+    population: str,
+    action: str | None,
+    position: str | None,
+) -> bool:
+    """The one place a decision is narrowed, so every rate narrows the same way.
+
+    Written once rather than inline at each caller because these three clauses are
+    what every figure in the report means. A rate that quietly stops honouring one of
+    them is not a smaller mistake than a wrong count; it is a number describing a
+    different population than its label claims.
+    """
+    return (
+        row.population == population
+        and (action is None or row.observed_action == action)
+        and (position is None or row.position == position)
+    )
+
+
 @dataclass(frozen=True)
 class ComparisonResult:
     rows: tuple[ComparisonRow, ...]
@@ -93,30 +126,42 @@ class ComparisonResult:
         return POPULATIONS
 
     def agreement(self, population: str) -> Rate:
-        scored = [
-            row
-            for row in self.rows
-            if row.population == population and row.verdict in {AGREE, DISAGREE}
-        ]
-        return Rate(sum(1 for row in scored if row.verdict == AGREE), len(scored))
+        return self.agreement_within(population)
 
-    def refusal_count(self, population: str) -> int:
+    def refusal_count(self, population: str, *, position: str | None = None) -> int:
         return sum(
-            1 for row in self.rows if row.population == population and row.verdict == REFUSED
+            1
+            for row in self.rows
+            if _selects(row, population, None, position) and row.verdict == REFUSED
         )
 
-    def agreement_by_observed_action(self, action: str) -> Rate:
-        """Agreement restricted to decisions where the player took one named action.
+    def decision_count(self, population: str, *, position: str | None = None) -> int:
+        return sum(1 for row in self.rows if _selects(row, population, None, position))
 
-        This is the split the stage 8 domain review insisted on. Roughly seven in ten
-        preflop decisions are folds, and folding a bad hand is the easiest agreement in
-        poker, so a single pooled rate mostly measures how often both sides threw away
-        junk. The interesting number is what happens when somebody puts money in.
+    def agreement_within(
+        self,
+        population: str,
+        *,
+        action: str | None = None,
+        position: str | None = None,
+    ) -> Rate:
+        """Agreement inside one population, optionally narrowed to an action or seat.
+
+        `population` is required and has no pooled value, which is the whole point.
+        Every rate this report prints is a rate about one population, because a bot and
+        a table of humans averaged together describe neither, and a split by what the
+        player did is no more exempt from that than the headline is.
+
+        The two narrowings are what make a rate actionable. Roughly seven in ten preflop
+        decisions are folds, and folding a bad hand is the easiest agreement in poker, so
+        an unsplit rate mostly measures how often both sides threw away junk. Position
+        then says which chart cells the remainder is about: a preflop chart is indexed by
+        position first, so a rate without one names a symptom and hides the cause.
         """
         scored = [
             row
             for row in self.rows
-            if row.observed_action == action and row.verdict in {AGREE, DISAGREE}
+            if _selects(row, population, action, position) and row.verdict in {AGREE, DISAGREE}
         ]
         return Rate(sum(1 for row in scored if row.verdict == AGREE), len(scored))
 
@@ -141,14 +186,32 @@ def _self_play_spots() -> frozenset[str]:
 
     Read rather than recomputed. The point of the cross-reference is "did the
     simulator already find this", and only the simulator's own output can answer it.
+
+    It fails loudly when it finds nothing, and that is the important part. This is the
+    one input to the comparison that is not the committed sample, and it is recovered
+    by pattern from a rendered report rather than from a structured file. An empty
+    result is therefore indistinguishable from a real answer: every spot silently
+    becomes NEW, and the phase's most actionable claim - that real hands find spots
+    self-play never reaches - inverts into a claim that they find all of them, with a
+    passing gate underneath it. A missing or unrecognisable inventory is a broken
+    cross-reference, not an empty one.
     """
     if not SELF_PLAY_INVENTORY.is_file():
-        return frozenset()
+        raise FileNotFoundError(
+            f"{SELF_PLAY_INVENTORY} is missing, so no spot can be marked as already found"
+            " by self-play. Run generate_profile_comparison_report first"
+        )
     spots = set()
     for line in SELF_PLAY_INVENTORY.read_text(encoding="utf-8").splitlines():
         for token in line.split():
             if token.startswith("t") and token.count("/") >= 3:
                 spots.add(token)
+    if not spots:
+        raise ValueError(
+            f"{SELF_PLAY_INVENTORY} yielded no spot keys, so the self-play cross-reference"
+            " would mark every real-hand spot NEW without that meaning anything."
+            " The inventory's format moved and this reader has to move with it"
+        )
     return frozenset(spots)
 
 
@@ -204,8 +267,14 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
     for record in sample.records:
         names = record.corpus.players
         cards = record.corpus.hole_cards
+        # The repo's own position vocabulary, derived from the button the converter
+        # placed, rather than a second seat-to-position rule invented here.
+        positions = seat_positions(
+            [player.seat for player in record.normalized.players],
+            record.normalized.button_seat,
+        )
 
-        def collect(point: DecisionPoint, names=names, cards=cards) -> None:
+        def collect(point: DecisionPoint, names=names, cards=cards, positions=positions) -> None:
             query = _query_for(point, cards[point.seat])
             if query is None:
                 return
@@ -218,6 +287,7 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
                     ComparisonRow(
                         hand_id=point.hand.hand_id,
                         seat=point.seat,
+                        position=positions[point.seat],
                         player=player,
                         population=population,
                         street="preflop",
@@ -234,6 +304,7 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
                 ComparisonRow(
                     hand_id=point.hand.hand_id,
                     seat=point.seat,
+                    position=positions[point.seat],
                     player=player,
                     population=population,
                     street="preflop",
@@ -294,6 +365,11 @@ need different fixes.
 """
 
 
+def _cell(rate: Rate) -> str:
+    """One cell of the position table: agreed over scored, or a dash for no decisions."""
+    return f"{rate.numerator}/{rate.denominator}" if rate.denominator else "-"
+
+
 def render_comparison_report(result: ComparisonResult) -> str:
     lines = [_PREAMBLE, ""]
     lines.append("## Coverage")
@@ -323,31 +399,62 @@ def render_comparison_report(result: ComparisonResult) -> str:
     lines.append("  Read this before quoting any figure from the previous section.")
     lines.append("")
     lines.append("  Roughly seven in ten preflop decisions in any six-handed sample are folds,")
-    lines.append("  and folding a bad hand is the easiest agreement in poker. A single pooled")
+    lines.append("  and folding a bad hand is the easiest agreement in poker. An unsplit")
     lines.append("  agreement rate is therefore mostly a measurement of how often both sides")
     lines.append("  threw away junk, and it will look high no matter what the chart does with")
     lines.append("  the hands people actually play. Split by what the player did:")
     lines.append("")
-    for action in ("fold", "check", "call", "raise"):
-        rate = result.agreement_by_observed_action(action)
-        if not rate.denominator:
-            continue
-        lines.append(
-            f"    player {action:6s} agreed {rate.numerator:5d} of {rate.denominator:5d}"
-            f"  ({rate.percent:.1f}%)"
-        )
-    lines.append("")
+    for population in result.populations:
+        lines.append(f"  {population}")
+        for action in REPORTED_ACTIONS:
+            rate = result.agreement_within(population, action=action)
+            if not rate.denominator:
+                continue
+            lines.append(
+                f"    player {action:6s} agreed {rate.numerator:5d} of {rate.denominator:5d}"
+                f"  ({rate.percent:.1f}%)"
+            )
+        lines.append("")
     lines.append("  Where those diverge, the low one is the finding. A chart that matches on")
     lines.append("  folds and misses on calls is not 'mostly right'; it is right about the")
     lines.append("  decisions that cost nothing and unproven about the ones that cost chips.")
     lines.append("")
+    lines.append("## Which seat the disagreement is in")
+    lines.append("")
+    lines.append("  A preflop chart is indexed by position before anything else, so a rate")
+    lines.append("  without one names a symptom rather than a cell. Each entry below is")
+    lines.append("  agreed/scored for that seat, and the last column is how many of that")
+    lines.append("  seat's decision points the chart could not answer at all.")
+    lines.append("")
+    lines.append("  Refusals are outside every rate here, as they are everywhere in this")
+    lines.append("  report. They are printed alongside because they are not spread evenly: a")
+    lines.append("  seat that both refuses often and agrees poorly is being graded on the")
+    lines.append("  questions it chose to answer, and its rate reads better than it deserves.")
+    lines.append("")
+    for population in result.populations:
+        lines.append(f"  {population}")
+        header = "    seat" + "".join(f"{action:>12s}" for action in REPORTED_ACTIONS)
+        lines.append(header + f"{'refused':>14s}")
+        for position in REPORTED_POSITIONS:
+            cells = [
+                _cell(result.agreement_within(population, action=action, position=position))
+                for action in REPORTED_ACTIONS
+            ]
+            refused = result.refusal_count(population, position=position)
+            points = result.decision_count(population, position=position)
+            lines.append(
+                f"    {position:<4s}"
+                + "".join(f"{cell:>12s}" for cell in cells)
+                + f"{f'{refused}/{points}':>14s}"
+            )
+        lines.append("")
     lines.append("## What a disagreement looked like")
     lines.append("")
     disagreements = [row for row in result.rows if row.verdict == DISAGREE]
     for row in disagreements[:20]:
         vector = ",".join(f"{name}={weight:g}" for name, weight in row.weights)
         lines.append(
-            f"  {row.hand_id}  seat {row.seat}  {row.player}"
+            f"  {row.hand_id}  {row.position:<4s} {row.player}"
             f"  {row.hole_cards[0]}{row.hole_cards[1]}"
             f"  played {row.observed_action}  chart [{vector}]"
         )

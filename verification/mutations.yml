@@ -238,6 +238,42 @@ mutations:
     must_fail:
       - pytest_sample_comparison
 
+  - id: corpus-rate-pools-the-populations
+    description: >-
+      Every rate stops honouring the population it was asked for, so a near-equilibrium
+      machine and a table of human professionals are averaged into figures that describe
+      neither. The report still prints two labelled blocks; both now hold the same
+      pooled number, which is the failure that is hardest to see by reading the output.
+    file: src/poker_training_bot/data_pipeline/comparison.py
+    find: "        row.population == population"
+    replace: "        row.population == row.population"
+    must_fail:
+      - pytest_sample_comparison
+
+  - id: corpus-rate-ignores-the-position
+    description: >-
+      The position narrowing goes vacuous, so every seat's cell reports the whole
+      population instead of that seat's decisions. The table still renders, every row
+      still carries a denominator, and the blind-defence gap that is the phase's actual
+      finding disappears into six identical rows.
+    file: src/poker_training_bot/data_pipeline/comparison.py
+    find: "        and (position is None or row.position == position)"
+    replace: "        and (position is None or True)"
+    must_fail:
+      - pytest_sample_comparison
+
+  - id: corpus-self-play-crossref-empties-silently
+    description: >-
+      An inventory the reader can no longer parse yields nothing instead of raising, so
+      every real-hand spot is marked NEW. The phase's most actionable claim - that real
+      hands reach coverage gaps self-play never does - then reads at its strongest
+      exactly when the evidence for it has stopped being read at all.
+    file: src/poker_training_bot/data_pipeline/comparison.py
+    find: "    if not spots:"
+    replace: "    if False:"
+    must_fail:
+      - pytest_sample_comparison
+
   - id: corpus-settlement-check-disabled
     description: >-
       The replayer stops checking the settlement it computed against the hand's own

@@ -39,19 +39,29 @@ well on.
 
 Two rules were measured over the real corpus before this was written. Taking the first
 500 hands in sorted path order draws from about five consecutive sessions: 7 distinct
-players ever hold the button and only 3 hands contain an all-in. Taking every 20th hand
-across the whole sorted list gives the same 500 hands' worth of data spread over all 92
-sessions: 13 distinct players hold the button, 7 hands contain an all-in, and it yields
-3,056 preflop decision points. The stride costs nothing and buys a sample that is not a
-handful of consecutive sessions between the same six people.
+players ever hold the button and only 3 hands contain a preflop shove. Taking every 20th
+hand across the whole sorted list gives the same 500 hands' worth of data spread over 91
+of the 92 sessions: 13 distinct players hold the button, 7 hands contain a preflop shove,
+and it yields 3,056 preflop decision points. The stride costs nothing and buys a sample
+that is not a handful of consecutive sessions between the same six people.
+
+Corrected on 2026-08-13, after the ruling and without disturbing it: both shove counts
+above were read as all-in counts when this was written and when the audit packet quoted
+them. They are not. PHH writes an aggressive action as the total its actor's street bet
+reaches, so a scan for `10000` finds a preflop shove from a full stack and misses both
+the all-in reached on a later street and the caller facing one. The committed sample
+holds 24 all-in hands. Both candidate rules were measured the same way, so the
+comparison that chose the stride still stands; the numbers it was argued with were
+smaller than the truth.
 
 Recommendation: every 20th hand by a stable lexicographic sort of the corpus's own file
 paths, giving 500 hands and roughly 3,000 preflop decision points. Deterministic,
 rerunnable, and nobody chose a hand.
 
 What it costs, stated plainly: 500 hands is a sample. Rates computed on it carry real
-sampling error, and 7 all-in hands is thin coverage of the all-in settlement path. The
-report prints denominators next to every rate so this is visible rather than implied.
+sampling error, and the all-in settlement path is thinly covered - 24 of the 499
+committed hands, on the corrected count above. The report prints denominators next to
+every rate so this is visible rather than implied.
 
 Options: every-20th-by-path-500 | first-500-by-path | a different stride or count
 Answer: [every-20th-by-path-500]

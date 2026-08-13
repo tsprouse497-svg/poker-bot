@@ -234,18 +234,26 @@ items:
   - id: CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT
     status: deferred
     phase: sample-comparison
-    title: The chart and real players disagree about calling four times in ten
+    title: The chart defends the big blind nothing like real players do
     reason: >-
-      Measured over 499 real hands: folds agree 98.6% of the time, raises 93.4%, and calls
-      only 60.6% on 264 decisions. The pooled 96.3% figure against Pluribus is dominated by
-      the 72% of decisions that are folds, which is the easiest agreement in poker and says
-      almost nothing. The calling gap is the same over-folding bias the repo has already
-      found twice - Phase 05's plurality collapse cost 13 points against three-bets before
-      it was re-ruled, and Phase 06's fallback over-folds by construction - now visible
-      against real opponents rather than against the simulator. This phase may not change
-      the chart it measures, so the work is recorded rather than done: establish whether
-      the gap is the chart's calling ranges being too tight, the sizing table mispricing a
-      call, or real players simply calling too wide, which the corpus alone cannot settle.
+      Measured over 499 real hands. Folds agree almost always and raises agree in the
+      nineties, but calls agree 59.5% for Pluribus on 37 decisions and 60.8% for the human
+      professionals on 227. The 96.3% headline is dominated by the 72% of decisions that
+      are folds, which is the easiest agreement in poker and says almost nothing. Split by
+      position, the deficit is one seat: human calls agree 53.2% in the big blind against
+      62-77% everywhere else, and the big blind holds 70 of the 104 human call
+      disagreements. The same seat is the one the chart refuses most often, on 26.6% of its
+      decision points against 1.3% in the hijack, and refusals sit outside every agreement
+      rate, so the seat the chart plays worst is also the seat it is graded most leniently
+      in. This is the same over-folding bias the repo has already found twice - Phase 05's
+      plurality collapse cost 13 points against three-bets before it was re-ruled, and
+      Phase 06's fallback over-folds by construction - now localised to blind defence
+      against real opponents. Phase 08 may not change the chart it measures, so the work is
+      recorded rather than done: establish whether blind defence is missing from the chart's
+      calling ranges, mispriced by the sizing table, or whether real players defend too
+      wide, which the corpus alone cannot settle. Start with the refused big-blind spots,
+      because a cell that answers nothing and a cell that answers wrongly need different
+      work and this seat has an unusual amount of both.
   - id: CORPUS-INEXPRESSIBLE-SPOTS
     status: deferred
     phase: sample-comparison

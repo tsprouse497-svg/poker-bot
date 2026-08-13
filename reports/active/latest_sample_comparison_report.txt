@@ -47,41 +47,78 @@ need different fixes.
   Read this before quoting any figure from the previous section.
 
   Roughly seven in ten preflop decisions in any six-handed sample are folds,
-  and folding a bad hand is the easiest agreement in poker. A single pooled
+  and folding a bad hand is the easiest agreement in poker. An unsplit
   agreement rate is therefore mostly a measurement of how often both sides
   threw away junk, and it will look high no matter what the chart does with
   the hands people actually play. Split by what the player did:
 
-    player fold   agreed  1948 of  1975  (98.6%)
-    player check  agreed    21 of    21  (100.0%)
-    player call   agreed   160 of   264  (60.6%)
-    player raise  agreed   465 of   498  (93.4%)
+  Pluribus
+    player fold   agreed   332 of   332  (100.0%)
+    player check  agreed     5 of     5  (100.0%)
+    player call   agreed    22 of    37  (59.5%)
+    player raise  agreed    80 of    82  (97.6%)
+
+  humans
+    player fold   agreed  1616 of  1643  (98.4%)
+    player check  agreed    16 of    16  (100.0%)
+    player call   agreed   138 of   227  (60.8%)
+    player raise  agreed   385 of   416  (92.5%)
 
   Where those diverge, the low one is the finding. A chart that matches on
   folds and misses on calls is not 'mostly right'; it is right about the
   decisions that cost nothing and unproven about the ones that cost chips.
 
+## Which seat the disagreement is in
+
+  A preflop chart is indexed by position before anything else, so a rate
+  without one names a symptom rather than a cell. Each entry below is
+  agreed/scored for that seat, and the last column is how many of that
+  seat's decision points the chart could not answer at all.
+
+  Refusals are outside every rate here, as they are everywhere in this
+  report. They are printed alongside because they are not spread evenly: a
+  seat that both refuses often and agrees poorly is being graded on the
+  questions it chose to answer, and its rate reads better than it deserves.
+
+  Pluribus
+    seat        fold       check        call       raise       refused
+    LJ         79/79           -         1/1       11/11          1/92
+    HJ         59/59           -         2/3         8/9          2/73
+    CO         64/64           -         2/2       16/16          5/87
+    BTN        63/63           -         4/6       30/31         6/106
+    SB         47/47           -         5/5       10/10         10/72
+    BB         20/20         5/5        8/20         5/5         22/72
+
+  humans
+    seat        fold       check        call       raise       refused
+    LJ       329/330           -         5/8       73/82         7/427
+    HJ       349/356           -       10/13       73/76         6/451
+    CO       311/323           -       12/17       74/79        18/437
+    BTN      263/267           -       14/20       83/92        39/418
+    SB       265/267           -       31/45       59/62        78/452
+    BB        99/100       16/16      66/124       23/25        96/361
+
 ## What a disagreement looked like
 
-  pluribus/100/0  seat 0  MrBlue  TcQc  played call  chart [fold=0.8503,raise=0.1497]
-  pluribus/100b/129  seat 4  MrBlonde  Td9d  played raise  chart [fold=1]
-  pluribus/100b/169  seat 3  MrOrange  8hKh  played fold  chart [raise=1]
-  pluribus/100b/169  seat 0  MrBlonde  5sJs  played fold  chart [call=0.4859,raise=0.5141]
-  pluribus/103/64  seat 5  MrPink  8hQh  played raise  chart [fold=1]
-  pluribus/103b/174  seat 4  MrOrange  Kh4h  played fold  chart [raise=1]
-  pluribus/104/20  seat 3  Pluribus  JsTc  played raise  chart [fold=1]
-  pluribus/104/20  seat 0  MrWhite  8s9s  played raise  chart [fold=1]
-  pluribus/106/204  seat 4  MrPink  Ac5s  played fold  chart [raise=1]
-  pluribus/106/222  seat 3  MrOrange  Kd7d  played fold  chart [raise=1]
-  pluribus/106/32  seat 0  MrBlue  6d8h  played call  chart [fold=1]
-  pluribus/106/50  seat 0  MrBlue  JhTd  played call  chart [fold=1]
-  pluribus/106/69  seat 4  MrBlonde  As5d  played fold  chart [raise=1]
-  pluribus/106/69  seat 1  MrPink  6d3d  played call  chart [fold=1]
-  pluribus/107/50  seat 5  MrBlonde  KsJc  played raise  chart [fold=1]
-  pluribus/108/123  seat 4  MrBlonde  5dAc  played fold  chart [raise=1]
-  pluribus/108/123  seat 1  MrPink  8h7c  played call  chart [fold=1]
-  pluribus/108/141  seat 4  MrBlonde  9dTs  played call  chart [fold=1]
-  pluribus/108/16  seat 0  MrPink  9h7h  played call  chart [fold=1]
-  pluribus/108/178  seat 2  MrWhite  Td8d  played raise  chart [fold=1]
+  pluribus/100/0  SB   MrBlue  TcQc  played call  chart [fold=0.8503,raise=0.1497]
+  pluribus/100b/129  CO   MrBlonde  Td9d  played raise  chart [fold=1]
+  pluribus/100b/169  HJ   MrOrange  8hKh  played fold  chart [raise=1]
+  pluribus/100b/169  SB   MrBlonde  5sJs  played fold  chart [call=0.4859,raise=0.5141]
+  pluribus/103/64  BTN  MrPink  8hQh  played raise  chart [fold=1]
+  pluribus/103b/174  CO   MrOrange  Kh4h  played fold  chart [raise=1]
+  pluribus/104/20  HJ   Pluribus  JsTc  played raise  chart [fold=1]
+  pluribus/104/20  SB   MrWhite  8s9s  played raise  chart [fold=1]
+  pluribus/106/204  CO   MrPink  Ac5s  played fold  chart [raise=1]
+  pluribus/106/222  HJ   MrOrange  Kd7d  played fold  chart [raise=1]
+  pluribus/106/32  SB   MrBlue  6d8h  played call  chart [fold=1]
+  pluribus/106/50  SB   MrBlue  JhTd  played call  chart [fold=1]
+  pluribus/106/69  CO   MrBlonde  As5d  played fold  chart [raise=1]
+  pluribus/106/69  BB   MrPink  6d3d  played call  chart [fold=1]
+  pluribus/107/50  BTN  MrBlonde  KsJc  played raise  chart [fold=1]
+  pluribus/108/123  CO   MrBlonde  5dAc  played fold  chart [raise=1]
+  pluribus/108/123  BB   MrPink  8h7c  played call  chart [fold=1]
+  pluribus/108/141  CO   MrBlonde  9dTs  played call  chart [fold=1]
+  pluribus/108/16  SB   MrPink  9h7h  played call  chart [fold=1]
+  pluribus/108/178  LJ   MrWhite  Td8d  played raise  chart [fold=1]
   ... and 144 more
 

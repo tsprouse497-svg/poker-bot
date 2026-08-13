@@ -93,6 +93,29 @@ sample, not a proof.
 The 500 hands are a slice. Rates on them carry real sampling error that the report
 states denominators for but does not compute intervals around.
 
+## What this review missed, found later
+
+A second review on 2026-08-13, after the phase had closed, read the same work with the
+contract set aside again. It found six things this pass did not, which is the honest
+measure of what a self-review is worth even when it is done twice with different
+questions. They are recorded in the audit packet under `Corrections after the phase
+closed` and fixed in MAINT-07 and MAINT-08.
+
+Two of them bear directly on the pass above.
+
+The table in this section pools Pluribus with the human professionals. That is the
+averaging judgment call 7 exists to forbid, and this review installed it while fixing the
+fold-dominated headline. Split properly the finding survives intact - calls agree 59.5%
+for the machine and 60.8% for the humans - which is why it was not caught: the number was
+right for the wrong reason.
+
+The gap was also never split by position, and that is where it lives. Human calls agree
+53.2% in the big blind and 62-77% everywhere else, and the big blind is also the seat the
+chart refuses most often, at 26.6% of its decision points against 1.3% in the hijack.
+Refusals sit outside every agreement rate, so the seat the chart plays worst is the seat
+it is graded most leniently in. This pass asked what the low number meant and stopped
+before asking where it was.
+
 ## Blocker status
 
 One blocker was found in the domain pass and fixed inside this phase: the headline
