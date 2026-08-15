@@ -1,8 +1,10 @@
-task_id: null
+task_id: MAINT-13-V2-ROADMAP
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 1e4ed0330e758c339544b9e0c6ade4cfb23d9893
+approved_scope:
+  - docs/V2_ROADMAP.md
+  - docs/ROADMAP.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -189,6 +191,13 @@ scope_change_log:
       The chart's coverage gap needs a solver the repo can re-run, and GTOpen is the candidate. What was verified about
       it by running it lives in a note under docs/ so the next agent starts from measurements rather than from a search
       engine, and so the line between what was executed and what was only read stays visible.
+  - date: 2026-08-15
+    reason: >-
+      V1's phase sequence is exhausted rather than paused, so further work has no declared arc to sit in and
+      would arrive as one-off phases bolted onto a finished v1. MAINT-13 writes the proposed v2 sequence down
+      as a document a future agent can evaluate and argue with, which needs docs/V2_ROADMAP.md and a pointer
+      from docs/ROADMAP.md. It proposes only: phase_status.yml, the contracts, and the loop policy stay
+      untouched, because declaring phases is a decision this task is not authorised to make.
   - date: 2026-08-13
     reason: >-
       The GTOpen note drifted into arguing this repo's case rather than describing the tool. Its framing about coverage,
