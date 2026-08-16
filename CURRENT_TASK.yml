@@ -1,9 +1,8 @@
-task_id: MAINT-14
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 90a465bb697de5ba8600f2b11a12f46c171ceb9f
-approved_scope:
-  - docs/V2_ROADMAP.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
