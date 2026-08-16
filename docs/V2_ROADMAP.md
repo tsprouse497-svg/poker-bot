@@ -9,6 +9,10 @@ A future agent reading this should treat it as an argument to evaluate rather th
 The seven questions this document originally left open were all ruled on by Taylor on 2026-08-15, and the rulings are recorded at the end.
 They are decisions about what to build, not adoption of the sequence that builds it, and three of them describe boundaries that `AGENTS.md` still states the old way.
 
+Three of the rulings carry a consequence that damages a later phase if nobody plans for it.
+Those consequences are named where the phase that inherits each one will see it, and `docs/V2_RULING_MITIGATIONS.md` plans all three in full.
+Read it before writing any contract below.
+
 ## Where V1 Leaves The Repo
 
 Ten phases produced a deterministic engine, a replayer that refuses out-of-order hands, a strategy contract that refuses rather than guesses, a fail-closed chart lookup, a self-play simulator, a public-corpus comparison, and a verification gate that proves itself by breaking on purpose.
@@ -82,8 +86,12 @@ The rulings this phase needs are the ones baked into the solve itself, and all f
 Rake-free is the ruling that changes this phase's own verification, so it needs saying in full.
 `six_max_nl25_100bb.json` describes a raked NL25 solve, and the whole finding of the Phase 08 review was that rake predicts tighter blind defence.
 Checked against a rake-free solve, that file is a gross-error check and not an equality check: a uniform tolerance would either pass an extraction that is badly wrong or fail one that is right, and blind defence is exactly where the legitimate difference lands.
-The honest form is a wide bound on the aggregates rake moves and a tight one on the aggregates it does not, with the split stated rather than tuned until it passes.
 Its value is unchanged and so is the reason to keep it: it catches an extraction that is uniformly wrong, which is the failure self-consistency cannot see.
+
+`docs/V2_RULING_MITIGATIONS.md` plans this one out, and corrects an assumption made here first.
+There is no split into rake-invariant and rake-sensitive aggregates to be had, because all eleven numbers in that file are rake-sensitive.
+What works instead is a parity solve at the NL25 basis to grade the extractor against, plus the position orderings and a one-sided direction bound, which are the parts rake genuinely does not touch.
+That plan also finds a second, independent reason to put limps in the tree, since the expectations file reports a small-blind limp frequency and therefore describes a solve that had them.
 
 Limps being in the tree makes this a bigger solve than the note's 300-iteration smoke test suggests, which is another reason the unverified solve-time and determinism questions get answered here with numbers before anything is planned around them.
 
@@ -150,6 +158,7 @@ The v1 spot vocabulary can express 1,691 six-handed 100bb spots, 848 of them wit
 Both counts are recomputable by enumerating `solver_artifacts.schema.spot_key` over action sequences.
 At 7.1 KB per spot, the limps-included ruling puts this at 1,691 spots and roughly 12 MB rather than the 848 and 6 MB a no-limp solve would have cost.
 That is the price of closing the limped-pot refusals, and it is worth restating at the contract stage against whatever the phase-10 export actually weighs, since 7.1 KB per spot is measured off the current artifact and not off a GTOpen export.
+`docs/V2_RULING_MITIGATIONS.md` plans that measurement, and two things around it: `data/artifacts/**` is covered by no size check at all today, and the limped spots can go in their own artifact, which the chart library already composes without a code change.
 
 This phase carries its own closing measurement.
 Rerunning the corpus comparison against the new chart either resolves the calling gap or re-diagnoses it as a real defect (`CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT`, `CHART-COVERAGE-EXPANSION`, `CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK`).
@@ -159,8 +168,12 @@ Open size is not gone, and it collides with proposed phase 12 in a way that phas
 Phase 12 puts raise size in the spot key so that a 2.25bb open and a 2.5bb open stop sharing a spot.
 The solve is ruled at 2.5bb and the corpus median is 2.25bb.
 Taken literally, those two facts mean corpus decisions facing a 2.25bb open would find no matching key at all and arrive as refusals, which would convert the calling gap from a measured disagreement into an empty sample and quietly destroy this phase's closing measurement.
-So phase 12 must decide how a size key matches a size that was not solved: a bucket with a stated tolerance, a nearest-price rule, or an explicit refusal.
-Any of the three is defensible and the failure mode is choosing none of them and discovering the consequence here.
+So a decision is needed about how a size key matches a size that was not solved.
+
+`docs/V2_RULING_MITIGATIONS.md` works this through and reaches two conclusions that change what is written above.
+There is a fourth answer better than the three of bucket, nearest-price and refuse, which is to put the facing prices in the solved tree, since `open_raises` is a list.
+And the decision belongs at phase 10's contract stage rather than this one, because it determines that list and the list is set before the solver runs.
+Phase 08 measured the scale of the problem: only 18.1 percent of decisions facing a single raise faced one at or above the solved size, so exact matching answers less than a fifth of them, and the cost lands on the phase 15 drill as much as on this measurement.
 More depths and table sizes get cheap here in machinery terms, but each one is another solve, so they follow the same phase-10-then-phase-14 shape rather than landing inside this phase.
 
 `STACK-DEPTH-BUCKETS` is narrowed rather than closed: solving more depths means more exact matches, and bucketing stays deferred because it is a heuristic.

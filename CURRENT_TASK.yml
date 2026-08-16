@@ -1,8 +1,10 @@
-task_id: null
+task_id: MAINT-15
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 3910c8e0d5afbd775e793f184516823440e6f9df
+approved_scope:
+  - docs/V2_RULING_MITIGATIONS.md
+  - docs/V2_ROADMAP.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -196,6 +198,13 @@ scope_change_log:
       as a document a future agent can evaluate and argue with, which needs docs/V2_ROADMAP.md and a pointer
       from docs/ROADMAP.md. It proposes only: phase_status.yml, the contracts, and the loop policy stay
       untouched, because declaring phases is a decision this task is not authorised to make.
+  - date: 2026-08-15
+    reason: >-
+      Recording the seven rulings surfaced three consequences that will damage a later phase if nobody plans for
+      them, and a consequence named without a mitigation is a trap rather than a warning. MAINT-15 writes the
+      mitigation plan into docs/V2_RULING_MITIGATIONS.md and points docs/V2_ROADMAP.md at it. It plans only: no
+      solve is run, no check is written, no byte limit is added, and no phase is declared, because every mitigation
+      here belongs to a phase that does not exist yet.
   - date: 2026-08-15
     reason: >-
       The v2 proposal ends in seven open questions it says are not answerable from the repo, and Taylor has now
