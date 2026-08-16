@@ -5,7 +5,9 @@
 Nothing here is declared: no contract skeleton exists for any phase below, `verification/loop_policy.yml` has no entry for them, and the V1 boundaries in `AGENTS.md` are unchanged.
 
 A future agent reading this should treat it as an argument to evaluate rather than a plan to execute.
-The open questions are listed at the end and several of them can change the shape of the sequence.
+
+The seven questions this document originally left open were all ruled on by Taylor on 2026-08-15, and the rulings are recorded at the end.
+They are decisions about what to build, not adoption of the sequence that builds it, and three of them describe boundaries that `AGENTS.md` still states the old way.
 
 ## Where V1 Leaves The Repo
 
@@ -29,16 +31,20 @@ Roughly twenty-five deferred entries, and almost every one is a phase below or p
 ## Boundaries
 
 The V1 boundaries live in `AGENTS.md`, so changing any of them is a `contract-update` and not something a phase does in passing.
-The first three rulings below are open questions for Taylor.
+Every row below is ruled rather than proposed, as of 2026-08-15.
+Only one row moves, and `AGENTS.md` has not moved with it yet.
 
-| V1 boundary | Proposed | Reason |
+| V1 boundary | Ruled | Reason |
 | --- | --- | --- |
 | No heuristic guessing for missing chart spots | Holds permanently | It is the property that makes every number in this repo mean something. |
 | No runtime solver calls | Holds permanently | Offline extraction into a committed artifact is a different thing and is already how charts are built. |
-| No large hand-history ingestion | Lifts, bounded | A leak report on your own play needs your own hands. Proposed lift is for a single player's own history with a stated size bound, not corpus-scale mining. |
+| No large hand-history ingestion | Lifts, bounded | A leak report on your own play needs your own hands. The lift is for a single player's own history with a stated size bound, not corpus-scale mining. |
 | No UI package | Stays deferred | Revisit once the drill exists. A UI over a training loop nobody has used yet is a commitment made on a guess. |
-| No PokerNow automation | Stays out of v2 | Terms of service and account risk are a human ruling rather than an engineering one. |
+| No PokerNow automation | Stays out of v2 | Terms of service and account risk are a human ruling rather than an engineering one, and the ruling is to stay out. |
 | No browser or platform observation | Stays out of v2 | Same ruling, and it only pays off once there is something worth observing for. |
+
+The ingestion lift is the only change, and it is owed two things before proposed phase 15 can use it: the size bound stated as a number, and the wording in `AGENTS.md`.
+Until that `contract-update` lands, the boundary as written forbids what this table says is allowed, and the file wins.
 
 ## Ordering Rule
 
@@ -64,7 +70,23 @@ It then walks the tree, writes the export, and produces a range report a person 
 That expectations file is the only set of numbers in the repo that the repo did not produce, which makes it the one thing that can catch an extraction that is uniformly wrong rather than merely self-consistent.
 It should be retained for that reason even after the chart it describes is retired.
 
-The rulings this phase needs are the ones baked into the solve itself: rake, open size, whether limps are in the tree, and whether a tool shipping no LICENSE file can be the origin of committed ranges.
+The rulings this phase needs are the ones baked into the solve itself, and all four are made.
+
+| Ruling | Decided | Consequence for this phase |
+| --- | --- | --- |
+| Rake | Rake-free | Matches the games this trains for and makes the corpus comparison apples-to-apples. It also means the expectations file describes a different solve than the one being checked against it. |
+| Open size | 2.5bb, as today | Only one variable moves at the chart cutover. The corpus median is 2.25bb, so a price gap survives into proposed phase 14. |
+| Limps | In the solved tree | Closes the limped-pot refusals rather than deferring them. Larger solve, and roughly double the artifact. |
+| Licence | Proceed, and record the gap | GTOpen ships no LICENSE file. The source card must state that plainly as a known limitation rather than leave `source.kind` implying a permission nobody granted. |
+
+Rake-free is the ruling that changes this phase's own verification, so it needs saying in full.
+`six_max_nl25_100bb.json` describes a raked NL25 solve, and the whole finding of the Phase 08 review was that rake predicts tighter blind defence.
+Checked against a rake-free solve, that file is a gross-error check and not an equality check: a uniform tolerance would either pass an extraction that is badly wrong or fail one that is right, and blind defence is exactly where the legitimate difference lands.
+The honest form is a wide bound on the aggregates rake moves and a tight one on the aggregates it does not, with the split stated rather than tuned until it passes.
+Its value is unchanged and so is the reason to keep it: it catches an extraction that is uniformly wrong, which is the failure self-consistency cannot see.
+
+Limps being in the tree makes this a bigger solve than the note's 300-iteration smoke test suggests, which is another reason the unverified solve-time and determinism questions get answered here with numbers before anything is planned around them.
+
 What replaces what is deliberately not decided here, because nothing is replaced: the bot still reads the 36-spot chart when this phase closes.
 
 One instruction matters more than it looks.
@@ -126,10 +148,19 @@ What is left is the conversion, the sizing table, and the one decision held back
 
 The v1 spot vocabulary can express 1,691 six-handed 100bb spots, 848 of them without limps, against the 36 committed today.
 Both counts are recomputable by enumerating `solver_artifacts.schema.spot_key` over action sequences.
-At 7.1 KB per spot, 848 spots is roughly 6 MB.
+At 7.1 KB per spot, the limps-included ruling puts this at 1,691 spots and roughly 12 MB rather than the 848 and 6 MB a no-limp solve would have cost.
+That is the price of closing the limped-pot refusals, and it is worth restating at the contract stage against whatever the phase-10 export actually weighs, since 7.1 KB per spot is measured off the current artifact and not off a GTOpen export.
 
 This phase carries its own closing measurement.
-Rerunning the corpus comparison against the new chart either resolves the calling gap as rake and open size, which is what the evidence currently says, or re-diagnoses it as a real defect (`CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT`, `CHART-COVERAGE-EXPANSION`, `CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK`).
+Rerunning the corpus comparison against the new chart either resolves the calling gap or re-diagnoses it as a real defect (`CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT`, `CHART-COVERAGE-EXPANSION`, `CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK`).
+The rake-free ruling removes one of the two explanations the evidence offered, so what this measurement can attribute is narrower and cleaner than the earlier framing suggested: rake is gone as a variable, and open size is not.
+
+Open size is not gone, and it collides with proposed phase 12 in a way that phase has to settle before this one runs.
+Phase 12 puts raise size in the spot key so that a 2.25bb open and a 2.5bb open stop sharing a spot.
+The solve is ruled at 2.5bb and the corpus median is 2.25bb.
+Taken literally, those two facts mean corpus decisions facing a 2.25bb open would find no matching key at all and arrive as refusals, which would convert the calling gap from a measured disagreement into an empty sample and quietly destroy this phase's closing measurement.
+So phase 12 must decide how a size key matches a size that was not solved: a bucket with a stated tolerance, a nearest-price rule, or an explicit refusal.
+Any of the three is defensible and the failure mode is choosing none of them and discovering the consequence here.
 More depths and table sizes get cheap here in machinery terms, but each one is another solve, so they follow the same phase-10-then-phase-14 shape rather than landing inside this phase.
 
 `STACK-DEPTH-BUCKETS` is narrowed rather than closed: solving more depths means more exact matches, and bucketing stays deferred because it is a heuristic.
@@ -181,16 +212,41 @@ One loose end sits outside the sequence.
 Mechanically: rewrite `docs/ROADMAP.md`, add seven entries to `phase_status.yml` at `future`, create seven contract skeletons under `docs/phase_contracts/`, add seven `verification/loop_policy.yml` entries, and re-tag `backlog.yml` so every deferred item either names the phase that will close it or stays honestly deferred.
 That is a maintenance task, since those contract edits are structural rather than semantic.
 
-Then the boundary changes in `AGENTS.md`, which are semantic and need their own `contract-update` before any phase starts.
+Then the boundary change in `AGENTS.md`, which is semantic and needs its own `contract-update` before any phase starts.
+After the rulings below it is a single line rather than a set: large hand-history ingestion lifts for one player's own hands with a stated bound, and the other five boundaries stay exactly as written.
+The bound itself is the open part, and it is a number rather than a question of principle.
 
-## Open Questions
+## Rulings
 
-None of these are answerable from the repo, and the first four block proposed phase 10 rather than the adoption task.
+Seven questions were open when this document was written, none of them answerable from the repo.
+Taylor ruled on all seven on 2026-08-15.
+They are recorded here because a decision that lives only in a conversation is a decision the next agent re-opens.
 
-1. Rake: rake-free, or NL25 as the current chart. Rake-free matches the games this trains for and makes the corpus comparison apples-to-apples.
-2. Open size: 2.5bb as today, or 2.25bb to match the corpus median. One suggestion is to commit 2.5 and run 2.25 as a measurement-only second solve, so only one variable moves at a time.
-3. Limps in the solved tree: 848 expressible spots without them, 1,691 with. Real hands reached limped spots on 12 inventory rows.
-4. Licence: GTOpen ships no LICENSE file, and `source.kind` is a provenance claim no checksum can verify. This one can stop phase 10 outright.
-5. Whether large hand-history ingestion lifts for a single player's own hands.
-6. Whether the UI package stays deferred past v2.
-7. Whether PokerNow automation and browser observation stay out of v2.
+Four are about the solve, and they bind proposed phase 10 rather than the adoption task.
+
+1. **Rake: rake-free.**
+   It matches the games this trains for and makes the corpus comparison apples-to-apples, since the committed corpus is rake-free too.
+   The cost is that the expectations file describes a raked solve, which is worked through in proposed phase 10 above.
+2. **Open size: 2.5bb, as today.**
+   Only one variable moves at the chart cutover.
+   The measurement-only 2.25bb second solve that was floated alongside this is not adopted, so the corpus median stays 2.25bb against a chart solved at 2.5, and proposed phase 12 has to say how a size key matches a size that was not solved.
+3. **Limps: in the solved tree.**
+   1,691 expressible spots rather than 848, and roughly 12 MB rather than 6.
+   Real hands reached limped spots on 12 inventory rows, and this is what stops those arriving as refusals.
+4. **Licence: proceed, and record the gap.**
+   GTOpen ships no LICENSE file, and `source.kind` is a provenance claim no checksum can verify.
+   The ruling is to commit the ranges anyway with the missing licence stated plainly in the source card, as a known limitation of the artifact rather than an omission.
+   It belongs in `docs/CORPUS_COMPARISON_LIMITS.md`'s successor for the chart, alongside the limit that nothing in this repo can check a committed artifact against the tool that produced it, because the gate has no network by design.
+
+Three are boundaries, and they change what `AGENTS.md` should say rather than what any phase does.
+
+5. **Large hand-history ingestion: lifts, bounded.**
+   For a single player's own exported history with a stated size bound, not corpus-scale mining.
+   The bound is a number nobody has chosen yet, and proposed phase 15 cannot use the lift until both it and the `AGENTS.md` wording exist.
+6. **UI package: stays deferred past v2.**
+   Revisit once the drill exists and has been used.
+7. **PokerNow automation and browser observation: stay out of v2.**
+
+None of these seven adopt the sequence.
+`phase_status.yml` still holds ten completed phases and nothing after them, no contract skeleton exists for any phase above, `verification/loop_policy.yml` has no entry for them, and `AGENTS.md` still states all six V1 boundaries in their original form including the one ruling 5 lifts.
+That last point is the one a reader is most likely to get wrong: until the `contract-update` lands, the file forbids what ruling 5 permits, and the file wins.
