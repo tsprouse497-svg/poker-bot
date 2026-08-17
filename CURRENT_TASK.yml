@@ -1,10 +1,8 @@
-task_id: MAINT-16
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 589da26a5c5f3fc89cb37783488e86d11304a7a4
-approved_scope:
-  - docs/V2_RULING_MITIGATIONS.md
-  - docs/V2_ROADMAP.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
