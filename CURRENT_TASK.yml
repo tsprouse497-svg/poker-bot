@@ -1,8 +1,10 @@
-task_id: null
+task_id: MAINT-16
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 589da26a5c5f3fc89cb37783488e86d11304a7a4
+approved_scope:
+  - docs/V2_RULING_MITIGATIONS.md
+  - docs/V2_ROADMAP.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -196,6 +198,14 @@ scope_change_log:
       as a document a future agent can evaluate and argue with, which needs docs/V2_ROADMAP.md and a pointer
       from docs/ROADMAP.md. It proposes only: phase_status.yml, the contracts, and the loop policy stay
       untouched, because declaring phases is a decision this task is not authorised to make.
+  - date: 2026-08-15
+    reason: >-
+      The mitigation plan ended in one open question for Taylor, and he has ruled: opponent opening sizes abstract
+      to the single solved price of 2.5bb, keeping one opening price in the tree. The ruling was put with the
+      evidence against it and reaffirmed, which is what makes it a decision rather than an oversight, so MAINT-16
+      records it as ruling 8 with its known cost stated in the same place. It also records where the abstraction
+      should live, because normalising at lookup rather than in the spot key is what keeps the ruling revisitable
+      without re-solving. Plan documents only; no phase is declared and nothing is implemented.
   - date: 2026-08-15
     reason: >-
       Recording the seven rulings surfaced three consequences that will damage a later phase if nobody plans for

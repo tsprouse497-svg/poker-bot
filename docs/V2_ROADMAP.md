@@ -6,11 +6,11 @@ Nothing here is declared: no contract skeleton exists for any phase below, `veri
 
 A future agent reading this should treat it as an argument to evaluate rather than a plan to execute.
 
-The seven questions this document originally left open were all ruled on by Taylor on 2026-08-15, and the rulings are recorded at the end.
+The seven questions this document originally left open were all ruled on by Taylor on 2026-08-15, along with an eighth that only became visible once the first seven were written down, and the rulings are recorded at the end.
 They are decisions about what to build, not adoption of the sequence that builds it, and three of them describe boundaries that `AGENTS.md` still states the old way.
 
-Three of the rulings carry a consequence that damages a later phase if nobody plans for it.
-Those consequences are named where the phase that inherits each one will see it, and `docs/V2_RULING_MITIGATIONS.md` plans all three in full.
+Four of the rulings carry a consequence that damages a later phase if nobody plans for it.
+Those consequences are named where the phase that inherits each one will see it, and `docs/V2_RULING_MITIGATIONS.md` plans them in full.
 Read it before writing any contract below.
 
 ## Where V1 Leaves The Repo
@@ -168,12 +168,13 @@ Open size is not gone, and it collides with proposed phase 12 in a way that phas
 Phase 12 puts raise size in the spot key so that a 2.25bb open and a 2.5bb open stop sharing a spot.
 The solve is ruled at 2.5bb and the corpus median is 2.25bb.
 Taken literally, those two facts mean corpus decisions facing a 2.25bb open would find no matching key at all and arrive as refusals, which would convert the calling gap from a measured disagreement into an empty sample and quietly destroy this phase's closing measurement.
-So a decision is needed about how a size key matches a size that was not solved.
+Ruling 8 settles this: opponent sizes abstract to the solved 2.5, so the lookup always finds a cell and no sample is lost.
+The collision is dissolved rather than managed, and the tree stays at one price.
 
-`docs/V2_RULING_MITIGATIONS.md` works this through and reaches two conclusions that change what is written above.
-There is a fourth answer better than the three of bucket, nearest-price and refuse, which is to put the facing prices in the solved tree, since `open_raises` is a list.
-And the decision belongs at phase 10's contract stage rather than this one, because it determines that list and the list is set before the solver runs.
-Phase 08 measured the scale of the problem: only 18.1 percent of decisions facing a single raise faced one at or above the solved size, so exact matching answers less than a fifth of them, and the cost lands on the phase 15 drill as much as on this measurement.
+Two things follow for this phase and they are not the ones the earlier draft of this section expected.
+The measurement keeps its full sample, so rake becomes a controlled variable and this phase can attribute to it, but price does not: every rate is still computed across prices the chart answers identically, which is the same confound Phase 08 had to qualify.
+So the closing measurement resolves less than it would have, and it must say so rather than reading a residual gap as a defect.
+`docs/V2_RULING_MITIGATIONS.md` carries the detail, including where the abstraction has to live for the ruling to stay revisitable.
 More depths and table sizes get cheap here in machinery terms, but each one is another solve, so they follow the same phase-10-then-phase-14 shape rather than landing inside this phase.
 
 `STACK-DEPTH-BUCKETS` is narrowed rather than closed: solving more depths means more exact matches, and bucketing stays deferred because it is a heuristic.
@@ -260,6 +261,19 @@ Three are boundaries, and they change what `AGENTS.md` should say rather than wh
    Revisit once the drill exists and has been used.
 7. **PokerNow automation and browser observation: stay out of v2.**
 
-None of these seven adopt the sequence.
+One more was ruled the same day, after `docs/V2_RULING_MITIGATIONS.md` showed that ruling 2 had settled only half of what it appeared to.
+
+8. **Opponent opening sizes abstract to the single solved price.**
+   The tree carries 2.5bb and nothing else, and an open at any other size is answered from the 2.5 cell.
+   Ruling 2 settled what the bot opens to; this settles what it can answer when it is facing an open instead of making one, which is a separate axis nobody had asked about.
+   The reason is tree size: one price keeps the solve and the artifact at what the limps ruling already costed, rather than multiplying both by the number of prices.
+
+   The cost is known, was put alongside the ruling, and is accepted rather than overlooked.
+   The bot plays a 2.25bb open as though it cost 2.5, so it folds hands that are correct calls at the cheaper price, and since the corpus median is 2.25 the abstraction errs in that direction most of the time.
+   Phase 08 measured the size of the effect: calls agree with real players 52.5 percent facing 2.25 or less against 77.8 percent facing above 2.50, and 47 of the 58 big-blind call disagreements faced an open cheaper than the solved size.
+   So the bot is expected to keep under-defending against cheap opens after the cutover, and that is a chosen approximation rather than an open defect.
+   `docs/V2_RULING_MITIGATIONS.md` records what the ruling asks of proposed phases 12 and 14 in return, including the one design choice that decides whether it can be revisited without re-solving.
+
+None of these eight adopt the sequence.
 `phase_status.yml` still holds ten completed phases and nothing after them, no contract skeleton exists for any phase above, `verification/loop_policy.yml` has no entry for them, and `AGENTS.md` still states all six V1 boundaries in their original form including the one ruling 5 lifts.
 That last point is the one a reader is most likely to get wrong: until the `contract-update` lands, the file forbids what ruling 5 permits, and the file wins.
