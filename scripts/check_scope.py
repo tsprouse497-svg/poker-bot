@@ -15,6 +15,33 @@ except ModuleNotFoundError:
 
 VALID_TASK_MODES = {"idle", "implementation", "contract-update", "maintenance"}
 
+# check_gate_bite writes this while a source file is deliberately broken, and removes
+# it in a finally block. An interrupted run leaves both behind.
+MUTATION_SENTINEL = "verification/.mutation_in_progress"
+
+
+def mutation_sentinel_errors() -> list[str]:
+    """Refuse the whole gate while a planted defect is live in the tree.
+
+    The sentinel used to protect only the next mutation run, which refuses to start
+    when it finds one. That leaves the dangerous window unguarded: while a run is in
+    flight the tree genuinely holds a deliberate defect, and a `git add -A` in that
+    moment commits it. That has happened twice, and the second time the symptom
+    surfaced as an unrelated scope error rather than as the planted bug.
+
+    The sentinel is gitignored now, so it can never be staged. This check is what
+    replaces the accidental catch that gave: a file git cannot see is a file the
+    scope diff cannot report either, so the tree's state is asserted here instead.
+    """
+    sentinel = REPO_ROOT / MUTATION_SENTINEL
+    if not sentinel.exists():
+        return []
+    return [
+        f"{MUTATION_SENTINEL} exists, so a mutation is live in the working tree:"
+        f" {sentinel.read_text(encoding='utf-8').strip()}."
+        " Nothing may be committed until that file is restored and the sentinel deleted"
+    ]
+
 
 def git_lines(*args: str) -> list[str]:
     return subprocess.run(
@@ -133,7 +160,7 @@ def main() -> int:
         print(f"base_commit {base_commit!r} is not a known commit", file=sys.stderr)
         return 1
 
-    errors: list[str] = []
+    errors: list[str] = mutation_sentinel_errors()
 
     # A task that measures itself against HEAD has no scope at all: anything it
     # already committed is invisible to the diff.

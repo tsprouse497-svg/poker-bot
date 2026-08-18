@@ -6,3 +6,7 @@ __pycache__/
 *.pyc
 dist/
 build/
+
+# check_gate_bite writes this while a source file is deliberately broken. It must
+# never be committable, because the tree beside it holds a planted defect.
+verification/.mutation_in_progress

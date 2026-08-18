@@ -1,8 +1,14 @@
-task_id: null
+task_id: MAINT-20
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: a02237192a221092781a670bf67c6a58004c1e57
+approved_scope:
+  - .gitignore
+  - scripts/check_scope.py
+  - scripts/check_gate_bite.py
+  - tests/test_loop_machinery.py
+  - verification/freeze.lock
+  - verification/mutations.yml
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -257,3 +263,11 @@ scope_change_log:
       of that check behind one function, and nothing made it fail. verification/mutations.yml
       joins approved_scope for one canary, which stops the replacement being a function that
       could report nothing at all and still pass.
+  - date: 2026-08-18
+    reason: >-
+      MUTATION-SENTINEL-IS-COMMITTABLE has now bitten twice: once on the Phase 09 branch, where a
+      commit captured a deliberate label swap and the sentinel announcing it, and once during
+      MAINT-19, where two mutation runs raced and the loser left a mutated replay.py in the tree.
+      Fixing it needs .gitignore so the sentinel can never be staged, check_scope.py so a tree
+      holding a live mutation refuses to pass the gate at all, check_gate_bite.py to say which
+      file to restore, the tests, a canary, and the freeze lock recording the tests.

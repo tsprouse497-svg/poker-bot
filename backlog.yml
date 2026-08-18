@@ -246,7 +246,7 @@ items:
       violation, an inconsistency between two adjacent phases' evidence - and the file the
       refusal inventory would naturally live beside.
   - id: MUTATION-SENTINEL-IS-COMMITTABLE
-    status: deferred
+    status: done
     phase: contract-update
     title: The gate-bite sentinel and a mutated source file can be committed
     reason: >-
@@ -263,6 +263,11 @@ items:
       Filed rather than fixed inside Phase 09 because .gitignore and check_scope.py are
       outside this phase's approved scope, and because the phase must not edit the checks
       it is measuring itself against.
+      Closed by MAINT-20 on 2026-08-18, with both fixes rather than either: the sentinel is
+      gitignored so it can never be staged, and check_scope refuses while it exists, quoting
+      it so the operator is told which file to restore. It had bitten a second time by then,
+      when a backgrounded gate-bite run and a full gate run raced and the loser left a mutated
+      replay.py in the tree.
   - id: CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT
     status: deferred
     phase: "14"

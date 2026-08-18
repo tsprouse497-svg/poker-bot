@@ -392,3 +392,14 @@ mutations:
     replace: "    undeclared = []"
     must_fail:
       - pytest
+
+  - id: live-mutation-passes-the-gate
+    description: >-
+      The scope check stops noticing that a mutation is live in the working tree, which
+      returns the repo to the state where a commit taken during a gate-bite run captures
+      the planted defect. The sentinel is gitignored, so nothing else would report it.
+    file: scripts/check_scope.py
+    find: "    if not sentinel.exists():"
+    replace: "    if True:"
+    must_fail:
+      - pytest

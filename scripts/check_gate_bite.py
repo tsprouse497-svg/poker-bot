@@ -131,8 +131,9 @@ def main() -> int:
     if SENTINEL_PATH.exists():
         print(
             f"{SENTINEL_PATH.relative_to(REPO_ROOT)} exists, so a previous run was interrupted"
-            " while a file was mutated. Restore that file with git checkout, delete the"
-            " sentinel, and run again.",
+            " while a file was mutated, or a second run is in flight right now. The sentinel"
+            f" says: {SENTINEL_PATH.read_text(encoding='utf-8').strip()}."
+            " Restore that file with git checkout, delete the sentinel, and run again.",
             file=sys.stderr,
         )
         return 1

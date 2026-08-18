@@ -631,3 +631,50 @@ def test_every_declared_phase_names_files_where_this_repo_keeps_them() -> None:
         assert contract.is_file(), phase_id
         assert packet.startswith("reports/phase_audits/"), phase_id
         assert contract.stem in packet, phase_id
+
+
+# --------------------------------------------------------------------------- #
+# the mutation sentinel
+# --------------------------------------------------------------------------- #
+
+
+def test_a_live_mutation_fails_the_scope_check(monkeypatch, tmp_path) -> None:
+    """While a mutation is applied, the tree holds a deliberate defect.
+
+    The sentinel used to protect only the next mutation run. The window it left
+    unguarded is the one that matters: a commit taken during a run captures the
+    planted bug, which is how a swapped-label defect reached the Phase 09 branch.
+    """
+    monkeypatch.setattr(check_scope, "REPO_ROOT", tmp_path)
+    sentinel = tmp_path / check_scope.MUTATION_SENTINEL
+    sentinel.parent.mkdir(parents=True)
+    sentinel.write_text("mutating src/thing.py for label-swap\n", encoding="utf-8")
+
+    errors = check_scope.mutation_sentinel_errors()
+
+    assert len(errors) == 1
+    assert "src/thing.py" in errors[0]
+
+
+def test_a_clean_tree_passes_the_sentinel_check(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(check_scope, "REPO_ROOT", tmp_path)
+
+    assert check_scope.mutation_sentinel_errors() == []
+
+
+def test_the_sentinel_can_never_be_committed() -> None:
+    """Gitignored, so `git add -A` during a mutation run cannot stage it.
+
+    Ignoring it also hides it from the scope diff that caught it by accident, which
+    is why mutation_sentinel_errors asserts the tree's state directly.
+    """
+    ignored = (REPO_ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+
+    assert check_scope.MUTATION_SENTINEL in [line.strip() for line in ignored]
+
+
+def test_the_two_sides_name_the_same_sentinel() -> None:
+    """The writer and the check must agree, or the guard watches nothing."""
+    written = check_gate_bite.SENTINEL_PATH.relative_to(REPO_ROOT)
+
+    assert str(written) == check_scope.MUTATION_SENTINEL
