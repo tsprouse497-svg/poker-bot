@@ -1,8 +1,19 @@
-task_id: null
+task_id: MAINT-17
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 3377acd9cec1e0b1a8b80eff6592c2eb237282ee
+approved_scope:
+  - scripts/loop_stage.py
+  - docs/LOOP.md
+  - tests/test_loop_machinery.py
+  - verification/freeze.lock
+  - verification/mutations.yml
+  - reports/phase_audits/reviews/**
+  - reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md
+  - reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md
+  - reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md
+  - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
+  - reports/phase_audits/PHASE_09_QUALITY_HARDENING.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -225,3 +236,12 @@ scope_change_log:
       provenance and how a re-sourced chart should be assembled belongs to the repo's own documents, which already carry
       it, and repeating it here dates the note the moment those numbers move. Trimmed to the tool: what is installed,
       what config it accepts, how to get ranges out, and what has not been verified.
+  - date: 2026-08-17
+    reason: >-
+      Stage 8 is the loop's only review, and it arrives after the gate is green, which is after the
+      tests are frozen and the implementation is written. Every defect a reviewer could have caught
+      earlier is by then expensive to fix, and v1 spent four maintenance tasks fixing findings that a
+      reviewer at stage 2, 4 or 9 would have caught for free. MAINT-17 makes the driver require a
+      review at any stage that produced a diff, which needs the driver, its tests, the freeze lock
+      recording them, a canary so the new rule is not decorative, the loop document, and the migration
+      of the five existing review files into per-phase directories with the audit packets that cite them.

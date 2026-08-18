@@ -129,7 +129,7 @@ on the hand, which reproduces the chart's frequencies and stays replayable.
 ## Independent review
 
 Two read-only reviewers, one on poker correctness and one on mechanics. Full
-findings in `reports/phase_audits/reviews/PHASE_05_FULL_TABLE_PREFLOP.md`.
+findings in `reports/phase_audits/reviews/PHASE_05_FULL_TABLE_PREFLOP/stage-08-review.md`.
 
 **Four blockers, all resolved.** None of them would have been caught by the gate,
 which is the argument for keeping this stage even when everything is green.

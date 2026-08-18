@@ -358,3 +358,219 @@ def test_resume_refuses_a_loop_that_is_not_halted() -> None:
 
     with pytest.raises(ValueError, match="not halted"):
         loop_stage.resumed({"loop": "running", "stage": 4})
+
+
+# --------------------------------------------------------------------------- #
+# per-stage review
+# --------------------------------------------------------------------------- #
+
+
+def context_for_stage(state: dict) -> loop_stage.Context:
+    return loop_stage.Context(state=state, task={"task_mode": "implementation"}, phase_id="09")
+
+
+def test_reviewable_paths_drops_generated_and_bookkeeping_files() -> None:
+    """A stage whose whole diff is machine output has nothing for a human to read.
+
+    The driver's own pointer moves on every advance, so counting it would demand a
+    review of every stage and put us back where a fixed list of stages started.
+    """
+    paths = [
+        "verification/loop_state.yml",
+        "verification/freeze.lock",
+        "CURRENT_TASK.yml",
+        "phase_status.yml",
+        "reports/active/verify_results.json",
+        "reports/phase_audits/reviews/PHASE_09_QUALITY_HARDENING/stage-08-review.md",
+        "STATUS.md",
+        "docs/PHASE_LEDGER.md",
+        "docs/BACKLOG.md",
+    ]
+
+    assert loop_stage.reviewable_paths(paths) == []
+
+
+def test_generated_documents_are_named_by_their_generators() -> None:
+    """The exclusion list has to track the generators rather than a memory of them.
+
+    Every document a gate command regenerates is machine output, and a stage that
+    regenerates one has not asked a human to decide anything.
+    """
+    generated = {
+        "STATUS.md": "generate_status",
+        "docs/PHASE_LEDGER.md": "generate_phase_ledger",
+        "docs/BACKLOG.md": "generate_backlog",
+    }
+    for path, command_id in generated.items():
+        assert command_id in run_verify.COMMANDS, command_id
+        assert path in loop_stage.UNREVIEWED_PATHS, path
+
+
+def test_reviewable_paths_keeps_hand_written_work() -> None:
+    paths = [
+        "verification/loop_state.yml",
+        "src/poker_training_bot/strategy/preflop_chart.py",
+        "tests/test_full_table_preflop.py",
+        "verification/mutations.yml",
+        "docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md",
+    ]
+
+    assert loop_stage.reviewable_paths(paths) == paths[1:]
+
+
+def test_unresolved_blockers_reads_only_the_blocker_section() -> None:
+    text = (
+        "## Blocker\n\n- the freeze hides a weak assertion\n\n"
+        "## Non-blocker\n\n- naming nit\n\n## Alignment\n\n- LOOP-DRIFT-1\n"
+    )
+
+    assert loop_stage.unresolved_blockers(text) == ["the freeze hides a weak assertion"]
+
+
+def test_a_resolved_blocker_releases_the_stage() -> None:
+    """The finding stays in the note; deleting it would lose what the reviewer caught."""
+    text = (
+        "## Blocker\n\n- [resolved] the freeze hid a weak assertion\n\n"
+        "## Non-blocker\n\nNone.\n\n## Alignment\n\nNone.\n"
+    )
+
+    assert loop_stage.unresolved_blockers(text) == []
+
+
+def test_validate_review_requires_all_three_sections(tmp_path) -> None:
+    path = tmp_path / "stage-06-build.md"
+    path.write_text("## Blocker\n\nNone.\n\n## Non-blocker\n\nNone.\n", encoding="utf-8")
+
+    reasons = loop_stage.validate_review(path)
+
+    assert len(reasons) == 1
+    assert "## Alignment" in reasons[0]
+
+
+def test_validate_review_accepts_a_complete_note(tmp_path) -> None:
+    path = tmp_path / "stage-06-build.md"
+    path.write_text(
+        "## Blocker\n\nNone.\n\n## Non-blocker\n\n- altitude\n\n## Alignment\n\nNone.\n",
+        encoding="utf-8",
+    )
+
+    assert loop_stage.validate_review(path) == []
+
+
+def test_a_stage_with_no_reviewable_diff_owes_no_review(monkeypatch) -> None:
+    monkeypatch.setattr(
+        loop_stage, "changed_paths", lambda base: ["verification/loop_state.yml"]
+    )
+
+    reasons = loop_stage.check_stage_review(
+        context_for_stage({"stage_base": "abc123"}), loop_stage.stage_by_number(5)
+    )
+
+    assert reasons == []
+
+
+def test_a_stage_that_touched_source_must_write_a_review(monkeypatch) -> None:
+    monkeypatch.setattr(
+        loop_stage,
+        "changed_paths",
+        lambda base: ["src/poker_training_bot/strategy/preflop_chart.py"],
+    )
+
+    reasons = loop_stage.check_stage_review(
+        context_for_stage({"stage_base": "abc123"}), loop_stage.stage_by_number(6)
+    )
+
+    assert len(reasons) == 1
+    assert "preflop_chart.py" in reasons[0]
+    assert "stage-06-build.md" in reasons[0]
+
+
+def test_an_existing_review_is_still_checked_for_shape(monkeypatch, tmp_path) -> None:
+    """Writing a file is not the bar; an open blocker holds the stage."""
+    note = tmp_path / "stage-06-build.md"
+    note.write_text(
+        "## Blocker\n\n- the implementation only satisfies the test\n\n"
+        "## Non-blocker\n\nNone.\n\n## Alignment\n\nNone.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(loop_stage, "changed_paths", lambda base: ["src/anything.py"])
+    monkeypatch.setattr(loop_stage, "review_path", lambda ctx, stage: note)
+
+    reasons = loop_stage.check_stage_review(
+        context_for_stage({"stage_base": "abc123"}), loop_stage.stage_by_number(6)
+    )
+
+    assert reasons == ["unresolved blocker in stage-06-build.md: the implementation"
+                       " only satisfies the test"]
+
+
+def test_stage_eight_is_exempt_from_the_diff_trigger(monkeypatch) -> None:
+    """Its own output is excluded, so the trigger would always answer no.
+
+    check_review requires stage 8's notes whatever the diff says, which is the
+    stronger rule, and asking twice would only produce a second confusing reason.
+    """
+    monkeypatch.setattr(loop_stage, "changed_paths", lambda base: ["src/anything.py"])
+
+    reasons = loop_stage.check_stage_review(
+        context_for_stage({"stage_base": "abc123"}), loop_stage.stage_by_number(8)
+    )
+
+    assert reasons == []
+
+
+def test_stage_base_falls_back_to_the_branch_point(monkeypatch) -> None:
+    """A loop started before this rule existed must not skip its reviews.
+
+    The branch point makes the diff the whole phase so far: wider than one stage,
+    never narrower, which is the safe direction to be wrong in.
+    """
+    monkeypatch.setattr(loop_stage, "git", lambda *args: "branchpoint")
+
+    assert loop_stage.stage_base({}) == "branchpoint"
+    assert loop_stage.stage_base({"stage_base": "recorded"}) == "recorded"
+
+
+def test_a_lost_branch_point_widens_rather_than_narrows(monkeypatch) -> None:
+    """Falling back to HEAD would quietly drop every committed change from the diff.
+
+    A review rule that goes quiet when it cannot find its bearings is the exact
+    failure it exists to stop, so the empty tree is the fallback and everything
+    tracked counts as changed.
+    """
+    monkeypatch.setattr(loop_stage, "git", lambda *args: "")
+
+    assert loop_stage.stage_base({}) == loop_stage.EMPTY_TREE
+
+
+def test_review_path_is_named_for_its_phase_and_stage() -> None:
+    path = loop_stage.review_path(
+        context_for_stage({}), loop_stage.stage_by_number(4)
+    )
+
+    assert path.parent.name == "PHASE_09_QUALITY_HARDENING"
+    assert path.name == "stage-04-tests.md"
+
+
+def test_every_stage_declares_what_its_reviewer_should_ask() -> None:
+    for stage in loop_stage.STAGES:
+        assert stage.review_focus.strip(), stage.name
+
+
+def test_the_brief_goes_quiet_once_the_review_is_written(monkeypatch, tmp_path) -> None:
+    """A brief that keeps asking for work already done teaches the reader to skip it."""
+    note = tmp_path / "stage-06-build.md"
+    note.write_text(
+        "## Blocker\n\nNone.\n\n## Non-blocker\n\nNone.\n\n## Alignment\n\nNone.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(loop_stage, "changed_paths", lambda base: ["src/anything.py"])
+    ctx = context_for_stage({"stage_base": "abc123"})
+    stage = loop_stage.stage_by_number(6)
+
+    absent = loop_stage.REVIEWS_ROOT / "PHASE_99_NOT_A_PHASE" / "stage-06-build.md"
+    monkeypatch.setattr(loop_stage, "review_path", lambda c, s: absent)
+    assert loop_stage.review_brief(ctx, stage)
+
+    monkeypatch.setattr(loop_stage, "review_path", lambda c, s: note)
+    assert loop_stage.review_brief(ctx, stage) == []

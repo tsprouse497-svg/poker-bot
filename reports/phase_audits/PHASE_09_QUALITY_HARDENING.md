@@ -54,7 +54,7 @@ deliberately broken input, before it was run against this repo.
 
 ## What the review found
 
-Recorded in full at `reports/phase_audits/reviews/PHASE_09_QUALITY_HARDENING.md`.
+Recorded in full at `reports/phase_audits/reviews/PHASE_09_QUALITY_HARDENING/stage-08-review.md`.
 
 The domain question for a phase with no poker in it is whether the checks would have
 caught the defects they were built for. **Two of the three: no.**

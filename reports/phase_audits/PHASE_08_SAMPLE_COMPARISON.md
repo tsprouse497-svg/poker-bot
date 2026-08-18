@@ -136,7 +136,7 @@ Provenance: `docs/SAMPLE_CORPUS_SOURCE.md`.
 
 ## Independent review
 
-`reports/phase_audits/reviews/PHASE_08_SAMPLE_COMPARISON.md`.
+`reports/phase_audits/reviews/PHASE_08_SAMPLE_COMPARISON/stage-08-review.md`.
 
 No independent reviewer was available: subagent delegation is disabled in this
 operator's sessions, which overrides the coordinator default in `AGENTS.md`. Step 10 of

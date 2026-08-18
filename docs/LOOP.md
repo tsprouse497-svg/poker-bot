@@ -23,6 +23,7 @@ uv run python scripts/loop_stage.py --resume    # return a halted loop to its st
 
 The loop body is always the same: read the driver, perform the one stage it names, call it again.
 `--advance` refuses to move while its stage's check is failing, and prints why.
+It also refuses while the stage owes a review, which is explained below.
 
 ## The eleven stages
 
@@ -40,6 +41,33 @@ The loop body is always the same: read the driver, perform the one stage it name
 | 9 | audit | model | audit packet names summary, checklist, review, decisions, and a recomputable number |
 | 10 | closeout | script | phase completed, ExecPlan filed, tag present, idle, clean tree |
 | 11 | advance | script | policy decides: continue, or halt with the one human ask |
+
+## The review every stage owes
+
+Stage 8 is the phase's full review and it is not the only one.
+A stage cannot advance while it owes review notes, and it owes them whenever its diff touched something a human wrote.
+
+The trigger is the diff rather than a list of interesting stages.
+That way a stage with nothing to review is skipped without anyone judging it uninteresting, and a stage that starts doing real work is caught the first time it does.
+Both matter in practice: v1 authored mutation canaries at stage 7 twice, which is work that escaped the stage that was supposed to do it.
+
+The diff is measured from the commit the driver recorded at the last advance, kept in `verification/loop_state.yml` as `stage_base`.
+Not every stage ends in a commit, so a diff sometimes spans two stages: wider than the stage, never narrower.
+A state file with no recorded base falls back to the phase's branch point, so a loop started before this rule existed cannot skip its reviews by predating them.
+
+Six paths never count, because no human writes a judgment into them: `verification/loop_state.yml`, `verification/freeze.lock`, `CURRENT_TASK.yml`, `phase_status.yml`, `reports/active/**`, and the review notes themselves, without which writing a review would demand a review of the review.
+`CURRENT_TASK.yml` and `phase_status.yml` are bookkeeping that `check_scope`, `check_frozen`, and `check_closeout` already enforce exactly.
+
+Notes go to `reports/phase_audits/reviews/<CONTRACT_STEM>/stage-NN-name.md` and carry three headings.
+
+- `## Blocker` must read `None.` or list only bullets marked `[resolved]`. Anything else refuses the advance. A fixed blocker stays in the note and gets marked, because deleting it loses the record of what the reviewer caught.
+- `## Non-blocker` is everything the stage can carry.
+- `## Alignment` is long-term drift the stage cannot fix, and each item needs a `backlog.yml` ID. Without the ID it is a note nobody reads again.
+
+Each stage declares the one question its reviewer should ask, and the driver prints it with the diff scope and the note path, so the brief comes from the loop rather than from whatever the session improvises.
+Stage 8 keeps its own rule: two reviewers, mechanical and domain, required whatever the diff says.
+
+Review notes written before this existed are single files named for the phase; they were moved to `stage-08-review.md` inside their phase's directory and keep their original prose.
 
 ## Why the ordering matters
 
@@ -89,9 +117,9 @@ The loop stops rather than pushing through:
 
 Three things this machinery cannot catch, kept here rather than in a commit message.
 
-A test that was wrong when written survives everything above.
+A test that was wrong when written survives every mechanical check above.
 Freezing preserves it, and mutation canaries only prove that *something* fails, not that the assertion is right.
-The domain-focused reviewer at stage 8 is the only guard, which is why it stays even when the gate is green.
+The reviewers are the only guard: the one stage 4 owes before the freeze, and the domain-focused pass at stage 8, which is why stage 8 stays even when the gate is green.
 
 Range and strategy quality has no oracle in this repo beyond a committed solver export.
 Every shape property is satisfied by ranges that are uniformly wrong.

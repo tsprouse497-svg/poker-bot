@@ -178,7 +178,7 @@ What it changed: the test is conservative in the only direction that matters. It
 
 ## Independent review
 
-Recorded in full at `reports/phase_audits/reviews/PHASE_06_POSTFLOP_FALLBACK.md`.
+Recorded in full at `reports/phase_audits/reviews/PHASE_06_POSTFLOP_FALLBACK/stage-08-review.md`.
 One domain blocker, seven non-blockers, no mechanical blocker.
 
 The blocker is judgment call 2 above.

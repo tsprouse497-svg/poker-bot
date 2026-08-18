@@ -11,6 +11,14 @@ The driver deliberately does not touch the repo apart from
 the actions, so every destructive step still passes through the normal permission
 path. `--advance` refuses to move the pointer while its stage's check is failing.
 
+It also refuses while a stage owes a review. A stage that changed something a human
+wrote needs read-only review notes before the loop moves on, because the phase's one
+review at stage 8 arrives after the tests are frozen and the code is written, which
+is after every finding has become expensive. The trigger is the stage's own diff
+rather than a list of interesting stages, so a stage with nothing to review is
+skipped mechanically and a stage that starts doing real work is caught the first
+time it does.
+
 Usage:
     loop_stage.py                 show the current stage and what to do
     loop_stage.py --start 06      begin the loop for a phase
@@ -47,8 +55,31 @@ TASK_PATH = REPO_ROOT / "CURRENT_TASK.yml"
 PHASE_STATUS_PATH = REPO_ROOT / "phase_status.yml"
 ACTIVE_PLANS = REPO_ROOT / "docs" / "exec_plans" / "active"
 COMPLETED_PLANS = REPO_ROOT / "docs" / "exec_plans" / "completed"
+REVIEWS_ROOT = REPO_ROOT / "reports" / "phase_audits" / "reviews"
 LOCK_PATH = REPO_ROOT / ".git" / "poker-loop.lock"
 SCHEMA_VERSION = 1
+
+# Paths whose changes never require a review, because no human wrote a judgment
+# into them: the driver's own pointer, computed hashes, bookkeeping that dedicated
+# checks already enforce, generated reports and documents whose generators are gate
+# commands, and the review notes themselves, without which writing a review would
+# demand a review of the review.
+UNREVIEWED_PATHS = (
+    "verification/loop_state.yml",
+    "verification/freeze.lock",
+    "CURRENT_TASK.yml",
+    "phase_status.yml",
+    "STATUS.md",
+    "docs/PHASE_LEDGER.md",
+    "docs/BACKLOG.md",
+    "reports/active/",
+    "reports/phase_audits/reviews/",
+)
+
+REVIEW_SECTIONS = ("## Blocker", "## Non-blocker", "## Alignment")
+# git's empty tree: diffing against it makes every tracked file count as changed.
+EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+RESOLVED_MARKER = "[resolved]"
 
 
 def load_yaml(path):
@@ -63,6 +94,66 @@ def git(*args: str) -> str:
 
 def tree_is_clean() -> bool:
     return git("status", "--porcelain") == ""
+
+
+def changed_paths(base: str) -> list[str]:
+    """Every path this stage touched, committed or not, measured against `base`.
+
+    `git diff <commit>` already compares the working tree rather than the index, so
+    uncommitted edits count. Untracked files are added separately, because a stage
+    that writes a brand new file has plainly done work and git would otherwise stay
+    silent about it.
+    """
+    tracked = [line for line in git("diff", "--name-only", base).splitlines() if line]
+    untracked = [
+        line[3:]
+        for line in git("status", "--porcelain", "--untracked-files=all").splitlines()
+        if line.startswith("?? ")
+    ]
+    return sorted(set(tracked) | set(untracked))
+
+
+def reviewable_paths(paths: list[str]) -> list[str]:
+    return [path for path in paths if not path.startswith(UNREVIEWED_PATHS)]
+
+
+def stage_base(state: dict) -> str:
+    """The commit a stage's diff is measured from.
+
+    A state file written before this existed carries no base. Falling back to the
+    phase's branch point makes that diff the whole phase so far: wider than one
+    stage, never narrower, so an in-flight loop cannot skip a review by predating
+    the rule that requires it.
+
+    If even the branch point cannot be found, the fallback is the empty tree, which
+    makes every tracked file reviewable. That is deliberately the loudest answer:
+    falling back to HEAD would quietly narrow the diff to uncommitted work, and a
+    review rule that goes quiet when it is confused is the failure it exists to stop.
+    """
+    recorded = state.get("stage_base")
+    if recorded:
+        return str(recorded)
+    return git("merge-base", "HEAD", "main") or EMPTY_TREE
+
+
+def unresolved_blockers(text: str) -> list[str]:
+    """Blocker bullets that are still open.
+
+    A blocker that was found and fixed stays in the note, because deleting it loses
+    the record of what the reviewer caught. Marking it `[resolved]` is what releases
+    the stage, so the reviewer says the finding is closed rather than the writer
+    quietly removing it.
+    """
+    open_items = []
+    in_section = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            in_section = stripped == "## Blocker"
+            continue
+        if in_section and stripped.startswith("- ") and RESOLVED_MARKER not in stripped:
+            open_items.append(stripped[2:])
+    return open_items
 
 
 def run_command(command_id: str) -> tuple[bool, str]:
@@ -100,6 +191,10 @@ class Context:
     @property
     def audit_path(self):
         return REPO_ROOT / self.phase["audit_packet"]
+
+    @property
+    def review_dir(self):
+        return REVIEWS_ROOT / self.contract_path.stem
 
     def contract_commands(self) -> list[str]:
         text = self.contract_path.read_text(encoding="utf-8")
@@ -276,15 +371,24 @@ def check_full_gate(ctx: Context) -> list[str]:
     return reasons
 
 
+def validate_review(path) -> list[str]:
+    """The shape every review note has to hold, wherever in the loop it was written."""
+    text = path.read_text(encoding="utf-8")
+    missing = [section for section in REVIEW_SECTIONS if section not in text]
+    if missing:
+        return [f"{path.name} is missing section(s): {', '.join(missing)}"]
+    return [f"unresolved blocker in {path.name}: {item}" for item in unresolved_blockers(text)]
+
+
 def check_review(ctx: Context) -> list[str]:
-    review = REPO_ROOT / "reports" / "phase_audits" / "reviews" / ctx.plan_name
+    review = review_path(ctx, stage_by_number(8))
     if not review.exists():
         return [f"no review notes at {review.relative_to(REPO_ROOT)}"]
     text = review.read_text(encoding="utf-8").lower()
-    missing = [word for word in ("mechanical", "domain", "blocker") if word not in text]
+    missing = [word for word in ("mechanical", "domain") if word not in text]
     if missing:
         return [f"review notes do not cover: {', '.join(missing)}"]
-    return []
+    return validate_review(review)
 
 
 AUDIT_SECTIONS = ("summary", "checklist", "review", "decision", "recompute")
@@ -325,6 +429,33 @@ class Stage:
     who: str
     instruction: str
     check: object
+    review_focus: str
+
+
+def review_path(ctx: Context, stage: Stage):
+    return ctx.review_dir / f"stage-{stage.number:02d}-{stage.name}.md"
+
+
+def check_stage_review(ctx: Context, stage: Stage) -> list[str]:
+    """The review this stage owes, if it changed anything a human wrote.
+
+    Stage 8's two reviewers are required whatever the diff says and are checked by
+    `check_review`. Their own output is excluded from the trigger, so asking the
+    trigger about stage 8 would always answer no.
+    """
+    if stage.number == 8:
+        return []
+    touched = reviewable_paths(changed_paths(stage_base(ctx.state)))
+    if not touched:
+        return []
+    path = review_path(ctx, stage)
+    if not path.exists():
+        listed = ", ".join(touched[:3]) + (", ..." if len(touched) > 3 else "")
+        return [
+            f"stage {stage.number} changed {len(touched)} reviewed path(s)"
+            f" ({listed}) but wrote no review at {path.relative_to(REPO_ROOT)}"
+        ]
+    return validate_review(path)
 
 
 def check_advance(ctx: Context) -> list[str]:
@@ -336,72 +467,97 @@ STAGES: tuple[Stage, ...] = (
         0, "precheck", "script",
         "Claim the worktree, cut phase/NN-slug, confirm a clean tree.",
         check_precheck,
+        "This stage starts from a clean tree, so anything in its diff arrived from"
+        " somewhere else. Say what and why.",
     ),
     Stage(
         1, "contract", "model",
         "In contract-update mode, turn the phase skeleton into real acceptance"
         " criteria, and create the active ExecPlan.",
         check_contract,
+        "Is any acceptance criterion unfalsifiable, a restatement of the phase"
+        " title, or satisfiable without doing the work it names?",
     ),
     Stage(
         2, "decisions", "model",
         "Write the judgment-call list. Every item needs a default and a"
         " 'Reversibility:' line of frozen-into-data or runtime-reversible.",
         check_decisions,
+        "Is every reversibility class right? A frozen-into-data call filed as"
+        " runtime-reversible proceeds on its default and is then written into a"
+        " committed artifact that later phases are measured against.",
     ),
     Stage(
         3, "human-gate", "human",
         "Only frozen-into-data items block. Everything else proceeds on its"
         " default and is reported afterwards.",
         check_human_gate,
+        "Does the record now say what was actually ruled, including any cost that"
+        " was accepted rather than only the answer?",
     ),
     Stage(
         4, "tests", "model",
         "In implementation mode, author tests from the contract alone. No"
         " implementation exists yet, so they must fail on assertions.",
         check_tests_authored,
+        "Would each test fail against a plausible wrong implementation, and does it"
+        " assert on real behaviour rather than on state rebuilt from the code under"
+        " test? Stage 5 freezes these, so a weak test is preserved perfectly.",
     ),
     Stage(
         5, "freeze", "script",
         "Run scripts/freeze_tests.py, then drop tests/ and verification/ from"
         " approved_scope with a dated scope_change_log entry.",
         check_frozen,
+        "Is the scope narrowing real, and does its log entry say honestly why?",
     ),
     Stage(
         6, "build", "model",
         "Implement against the frozen tests. One repair attempt per failing"
         " command, then halt.",
         check_build,
+        "Does the implementation do the work, or only enough to satisfy the frozen"
+        " tests? Name anything that passes for a reason the contract did not intend.",
     ),
     Stage(
         7, "gate", "script",
         "Full run_verify.py green, then check_gate_bite to prove the gate"
         " actually catches the mutations.",
         check_full_gate,
+        "Hand-written work at this stage escaped an earlier one. A canary added here"
+        " is a canary nobody reviewed at stage 4, so review it now.",
     ),
     Stage(
         8, "review", "model",
-        "Two read-only reviewers, one mechanical and one poker-domain. Write"
-        " findings to reports/phase_audits/reviews/, classified blocker or not.",
+        "Two read-only reviewers, one mechanical and one poker-domain. Write both"
+        " to reports/phase_audits/reviews/<CONTRACT_STEM>/stage-08-review.md under"
+        " ## Blocker, ## Non-blocker, and ## Alignment.",
         check_review,
+        "The domain pass ignores the contract and asks whether the work is right,"
+        " which is the only question a green gate cannot answer.",
     ),
     Stage(
         9, "audit", "model",
         "Write the audit packet: summary, non-coding checklist, review findings,"
         " decision outcomes, and one number a reader can recompute by hand.",
         check_audit,
+        "Is every number recomputable and every claim narrower than the evidence"
+        " behind it? A wrong figure in a packet outlives the phase and gets quoted.",
     ),
     Stage(
         10, "closeout", "script",
         "File the ExecPlan as completed, set the phase completed, tag"
         " phase-NN-complete, reset to idle, gate again, commit, merge the branch.",
         check_closeout,
+        "Bookkeeping only. A content change here belongs to an earlier stage and"
+        " should be named as one.",
     ),
     Stage(
         11, "advance", "script",
         "Consult verification/loop_policy.yml: continue into the next phase, or"
         " halt with the one thing a human must supply.",
         check_advance,
+        "Bookkeeping only. A content change here belongs to an earlier stage.",
     ),
 )
 
@@ -448,6 +604,29 @@ def policy_for(phase_id: str) -> dict:
     return (load_yaml(POLICY_PATH).get("phases") or {}).get(phase_id) or {}
 
 
+def review_brief(ctx: Context, stage: Stage) -> list[str]:
+    """What to hand a reviewer, printed by the driver so it is not improvised.
+
+    Silent once the stage's review is satisfied, because a brief that keeps asking
+    for work already done teaches the reader to skip it.
+    """
+    if stage.number == 8 or not check_stage_review(ctx, stage):
+        return []
+    base = stage_base(ctx.state)
+    touched = reviewable_paths(changed_paths(base))
+    return [
+        "",
+        f"review owed: this stage changed {len(touched)} reviewed path(s).",
+        f"  ask: {stage.review_focus}",
+        f"  scope: git diff {base} -- {' '.join(touched[:6])}"
+        + (" ..." if len(touched) > 6 else ""),
+        "  context: AGENTS.md and the active phase contract, read-only, no gate runs.",
+        f"  write: {review_path(ctx, stage).relative_to(REPO_ROOT)}",
+        "  sections: ## Blocker (None. or [resolved] bullets), ## Non-blocker,"
+        " ## Alignment (each item needs a backlog.yml ID).",
+    ]
+
+
 def report(ctx: Context, stage: Stage, reasons: list[str]) -> None:
     print(
         f"stage {stage.number}/11  {stage.name}"
@@ -459,6 +638,8 @@ def report(ctx: Context, stage: Stage, reasons: list[str]) -> None:
     )
     print()
     print(f"do: {stage.instruction}")
+    for line in review_brief(ctx, stage):
+        print(line)
     print()
     if reasons:
         print("not done yet:")
@@ -493,6 +674,7 @@ def main() -> int:
                 "phase_id": args.start,
                 "stage": 0,
                 "auto_advance": bool(policy.get("auto_advance")),
+                "stage_base": git("rev-parse", "HEAD"),
             }
         )
         print(f"loop started for phase {args.start} at stage 0")
@@ -522,7 +704,7 @@ def main() -> int:
 
     ctx = Context(state=state, task=task, phase_id=str(state["phase_id"]))
     stage = stage_by_number(int(state["stage"]))
-    reasons = stage.check(ctx)
+    reasons = stage.check(ctx) + check_stage_review(ctx, stage)
 
     if not args.advance:
         report(ctx, stage, reasons)
@@ -541,6 +723,7 @@ def main() -> int:
         return 0
 
     state["stage"] = stage.number + 1
+    state["stage_base"] = git("rev-parse", "HEAD")
     write_state(state)
     nxt = stage_by_number(state["stage"])
     print(f"advanced to stage {nxt.number} ({nxt.name}, runner: {nxt.who})")

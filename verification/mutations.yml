@@ -357,3 +357,26 @@ mutations:
     replace: "            if False:"
     must_fail:
       - pytest_quality_hardening
+
+  - id: loop-review-trigger-never-fires
+    description: >-
+      The diff trigger stops seeing hand-written work, so every stage reports that it
+      owes no review and the loop advances exactly as it did before the rule existed.
+      This is the decorative failure the rule is most likely to have: nothing errors,
+      no stage stops, and the only symptom is reviews that never get asked for.
+    file: scripts/loop_stage.py
+    find: "    return [path for path in paths if not path.startswith(UNREVIEWED_PATHS)]"
+    replace: "    return []"
+    must_fail:
+      - pytest
+
+  - id: loop-blocker-stops-blocking
+    description: >-
+      A blocker finding no longer holds its stage, so a reviewer can record that the
+      work is wrong and the loop advances anyway. The note still exists and still
+      reads as a blocker, which is worse than having no review at all.
+    file: scripts/loop_stage.py
+    find: '        if in_section and stripped.startswith("- ") and RESOLVED_MARKER not in stripped:'
+    replace: "        if False:"
+    must_fail:
+      - pytest

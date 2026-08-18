@@ -90,7 +90,7 @@ Seven were recorded before any code existed, all `runtime-reversible`. Taylor re
 
 ## Independent review
 
-Recorded in full at `reports/phase_audits/reviews/PHASE_07_SIMULATOR_REPORTS.md`. One mechanical blocker, seven non-blockers, no domain blocker.
+Recorded in full at `reports/phase_audits/reviews/PHASE_07_SIMULATOR_REPORTS/stage-08-review.md`. One mechanical blocker, seven non-blockers, no domain blocker.
 
 **The blocker, in plain terms.** The phase's headline output does not contain the information it claims. A refused hand's record is built from the streets already filed, and a street is only filed once its betting round finishes - a refusal aborts the round part way, so nothing is filed and the record keeps only the two blind posts. Measured: those 128 hands took between two and seven real decisions each, 565 actions in total, and every record kept none of them. Because Phase 05's refusal codes name the kind of miss rather than the spot, that action sequence was the only place the identity of the refused spot survived. So the report's 21.3% is a count, and a count cannot be acted on.
 
