@@ -114,17 +114,26 @@ Phase 10 is limited to the work named by this contract and the active ExecPlan.
   defect Phase 09 already found in this repo's own settlement oracle. What makes the
   parity solve worth its cost is that its result stays checkable, not that it once
   passed.
-- The position orderings hold exactly and carry no tolerance: opening frequency
-  descends BTN, SB, CO, HJ, LJ, and big-blind defence descends SB, BTN, CO, HJ, LJ.
-  Rake moves the level of all eleven numbers and the ordering of none. A transposed hand
-  index, a mis-assigned actor, or an unnormalised strategy array breaks an ordering
-  immediately, and a legitimate rake-free solve preserves every one.
-- The directional bound is one-sided and needs no tolerance: the rake-free solve is at
-  least as wide as the raked expectations on all ten opening and defence numbers, and
-  the small-blind limp frequency is excluded from it by name.
-  Rake's effect on how often the small blind limps rather than raises is not obviously
-  signed, and a directional check must not be extended to a number whose direction is a
-  guess.
+- The big-blind defence ordering holds exactly and carries no tolerance, descending SB,
+  BTN, CO, HJ, LJ, and the opening ordering holds exactly among LJ, HJ, CO, BTN with the
+  small blind excluded by name and the exclusion's reason recorded.
+  `docs/V2_RULING_MITIGATIONS.md` claims rake moves the level of all eleven numbers and
+  the ordering of none. The probe falsified that for the small blind: rake-free reallocates
+  twelve points of small-blind limping into raising, which moves SB from second in the
+  opening order to first. Later position opens wider is structural and survives; the small
+  blind's place in that order is a limp-versus-raise mix that rake decides. A transposed
+  hand index, a mis-assigned actor, or an unnormalised strategy row still breaks the
+  surviving orderings immediately, which is what they are for.
+- The directional bound is one-sided with a stated slack, authored before the committed
+  solve: each of the ten opening and defence numbers is at least the raked expectation
+  minus a declared margin, and at most one of the ten may sit below its expectation at all.
+  The small-blind limp frequency is excluded by name, because rake's effect on how often
+  the small blind limps rather than raises is not obviously signed.
+  A zero-slack bound was the original specification and the probe failed it on one number
+  by 2.55 points, which between a full solver and a preflop-only equity-realization model
+  is solver difference rather than a defect. The at-most-one clause is what stops the slack
+  from degrading into a blanket tolerance: a uniformly tighter extraction still fails on
+  nine counts.
 - A parity solve at the NL25 rake basis, with limps in the tree, is run and compared to
   all eleven numbers with a tolerance set for solver difference rather than for zero.
   The expectations file reports a small-blind limp frequency, so the solve it describes
@@ -155,6 +164,16 @@ Phase 10 is limited to the work named by this contract and the active ExecPlan.
   whole tree cannot fit under a limit the phase is willing to defend, the phase halts for
   a ruling. It does not quietly drop the branches today's vocabulary cannot reach, because
   that is the one decision that would force a re-extraction after Phase 12.
+- The committed export is produced with `realization` set explicitly, and the source card
+  names the setting and states that GTOpen's preflop engine resolves flops by scaled equity
+  share rather than by playing them.
+  This field is absent from the accepted config body in `docs/GTOPEN_SOLVER_NOTES.md`, so
+  every run before the probe took its default of `static`, which is very nearly raw equity
+  realization. Under it the big blind defends 99.71 percent against a small-blind open. That
+  is not a rake effect and it is not poker, and it would have produced a self-consistent,
+  checksummed, thoroughly reported calling station. The limitation belongs on the card
+  rather than in a document, because it is what anybody reading the chart needs to know
+  about what made it.
 - A source card records the exact config body posted to the solver, the GTOpen commit
   hash, the achieved exploitability, the wall clock, the determinism result, and a
   checksum over the export, so the origin is checkable rather than asserted.

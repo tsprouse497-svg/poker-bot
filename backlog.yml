@@ -331,3 +331,19 @@ items:
       been standing in as the work list since Phase 07. Whatever chart phase comes next
       should be ordered by the real-hand inventory instead, with the self-play one kept as
       the cheaper signal that regenerates on every gate run.
+  - id: LOOP-NO-CLASS-FOR-A-HUMAN-OWNED-THRESHOLD
+    status: open
+    phase: maintenance
+    title: The loop has no reversibility class for a threshold a human must own
+    reason: >-
+      A decision list declares each judgment call frozen-into-data or runtime-reversible,
+      and only the first stops for a human. A check threshold is neither. It lives in code
+      rather than in committed data, so nothing later is measured against it the way a
+      chart cell is, which makes it reversible by the letter of the rule. But
+      docs/V2_RULING_MITIGATIONS.md names authoring the expectations tolerances before the
+      solve as one of two things a phase could get wrong quietly, and a tolerance the loop
+      proceeds on by default is a tolerance nobody ruled on. Phase 10 filed five such
+      thresholds as frozen-into-data to force the stop, which works and is a stretch of the
+      class. The fix is a third class, or an explicit rule that a threshold graded against
+      external data counts as frozen; either way it is loop machinery and not phase work.
+
