@@ -1,19 +1,8 @@
-task_id: MAINT-17
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 3377acd9cec1e0b1a8b80eff6592c2eb237282ee
-approved_scope:
-  - scripts/loop_stage.py
-  - docs/LOOP.md
-  - tests/test_loop_machinery.py
-  - verification/freeze.lock
-  - verification/mutations.yml
-  - reports/phase_audits/reviews/**
-  - reports/phase_audits/PHASE_05_FULL_TABLE_PREFLOP.md
-  - reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md
-  - reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md
-  - reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md
-  - reports/phase_audits/PHASE_09_QUALITY_HARDENING.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
