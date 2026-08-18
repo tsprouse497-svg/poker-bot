@@ -62,7 +62,7 @@ When asked to start a phase or package, enter coordinator mode:
 6. Delegate implementation to worker subagents by default where subagents are available. The coordinator implements only when the ExecPlan records why delegation is unavailable or unsuitable.
 7. Update the ExecPlan after meaningful slices.
 8. Run verification and required reports.
-9. Before completing the gate, spawn a read-only independent review subagent when subagents are available.
+9. Spawn a read-only independent review subagent when subagents are available, before completing the gate and at every loop stage that owes a review.
 10. Record the independent review findings in the audit packet. If no subagent can be spawned, record the concrete reason and perform self-review.
 11. Stop only for a blocker, prohibited scope, or completed gate.
 
@@ -72,6 +72,8 @@ When asked to start a phase or package, enter coordinator mode:
 When driving a phase through the loop, do the one stage the driver names, then run `--advance`; never skip ahead because a stage looks done.
 Tests are authored before any implementation and frozen by `scripts/freeze_tests.py`. An implementer may read `tests/**` and must never write to it; stage 5 removes it from `approved_scope` so `check_scope.py` enforces that.
 A green gate is not sufficient on its own: `check_gate_bite` must also prove the committed mutations make the gate fail.
+The loop reviews every stage, not only the phase. A stage that changed anything a human wrote owes read-only review notes before `--advance` will move, because a single review after the gate arrives once the tests are frozen and the code is written. The driver decides which stages owe one from their own diff, and prints the question to ask, where to write the answer, and what it must contain.
+A review finding is a blocker, a non-blocker, or an alignment item. A blocker holds the stage until it is fixed and marked resolved; an alignment item is long-term drift the stage cannot fix and must be filed in `backlog.yml` rather than left in the note.
 Every judgment call in a decision list declares `frozen-into-data` or `runtime-reversible`. Only the first kind blocks on a human; the second proceeds on its recorded default and is reported afterwards.
 `verification/loop_policy.yml` decides which phases may advance unattended. A phase that writes new committed data, or that needs input the repo does not have, always stops.
 
