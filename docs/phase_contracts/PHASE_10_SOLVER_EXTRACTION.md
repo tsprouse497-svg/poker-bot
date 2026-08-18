@@ -32,9 +32,12 @@ reaching that node. The last one decides whether the converter needs the
 range-intersection step the GTO Wizard export required, so it is answered before a
 converter is written rather than debugged afterwards.
 
-The solve config is ruled rather than chosen here: six-handed, 100bb, 2.5bb opens,
-limps in the tree, and rake-free for the export that gets committed. Those are rulings 1
-through 4 in `docs/V2_ROADMAP.md`.
+The solve config is ruled rather than chosen here: six-handed, 100bb, 2.5bb opens, and
+rake-free for the export that gets committed. Those are rulings 1 through 4 in
+`docs/V2_ROADMAP.md`, with ruling 3 narrowed at this phase's human gate: limps leave the
+committed solve and stay in the parity solve. The narrowing was made on a measurement -
+limps are 87 percent of the tree and buy 21 of 3,048 corpus decision points, in branches
+the solution itself almost never enters.
 
 Rake-free is what changes this phase's own verification, and
 `docs/V2_RULING_MITIGATIONS.md` section 1 plans it in full.
@@ -124,6 +127,12 @@ Phase 10 is limited to the work named by this contract and the active ExecPlan.
   blind's place in that order is a limp-versus-raise mix that rake decides. A transposed
   hand index, a mis-assigned actor, or an unnormalised strategy row still breaks the
   surviving orderings immediately, which is what they are for.
+- The small blind's opening frequency is instead bounded below by the reference's
+  raise-plus-limp sum, 48.14 percent, since removing rake may reallocate between raising
+  and limping but should not leave the position playing tighter overall.
+  Excluding the small blind from the ordering leaves the widest-ranged position covered by
+  nothing at all, and a bound spanning both sides of the limp-versus-raise mix is the one
+  check that does not depend on which side of it rake moves.
 - The directional bound is one-sided with a stated slack, authored before the committed
   solve: each of the ten opening and defence numbers is at least the raked expectation
   minus a declared margin, and at most one of the ten may sit below its expectation at all.
@@ -144,22 +153,27 @@ Phase 10 is limited to the work named by this contract and the active ExecPlan.
   ruling recorded with its reason.
 
 ### The export is the whole solved tree, and it is auditable data
-- Every action node in the solved tree appears in the export, including limped branches
-  and four-bet-and-beyond nodes. The source card records both the export's own node count
+- Every action node in the solved tree appears in the export, including
+  four-bet-and-beyond nodes. The source card records both the export's own node count
   and the `action_nodes` figure `/api/preflop/spot` reports for the same config, and
   either they agree or the difference is reconciled by a stated derivation.
   What GTOpen counts as an action node is read rather than assumed, so demanding blind
   equality would fail a correct walk on a naming difference. What may not happen is the
-  two numbers sitting side by side unexplained.
-- Committed tests assert by construction that a limped node and a four-bet node - the
-  fourth raise, counting the open as the first - are both present in the committed export.
+  two numbers sitting side by side unexplained. The ruled config offers no limp, so the
+  solved tree has no limped branch to keep or drop; what this criterion forbids is the
+  extractor filtering the tree it was handed.
+- Committed tests assert by construction that a four-bet node - the fourth raise, counting
+  the open as the first - is present in the committed export, and that no node anywhere in
+  it offers a limp.
   Requiring the whole tree in prose is not the same as failing when a branch is missing.
+  The limp assertion is the same requirement read backwards: it is what fails if the
+  committed export was produced by a config other than the ruled one.
 - The export format is chosen against the measured node count, and the whole-tree
   requirement is reconciled with the byte limit before the committed solve runs.
-  This is the one place two instructions in this contract can collide. The no-limp tree
-  already reports 38,828 action nodes, limps make it larger, and every action node carries
-  a row per action across 169 classes, so a plain array-of-floats dump is two orders of
-  magnitude past anything committable. A sparse or quantised layout is expected, and the
+  This is the one place two instructions in this contract can collide. Dropping limps did
+  not resolve it: the ruled tree still reports 38,828 action nodes, and every action node
+  carries a row per action across 169 classes, so a plain array-of-floats dump is two
+  orders of magnitude past anything committable. A sparse or quantised layout is expected, and the
   quantisation step is itself a threshold that must be declared before the solve. If the
   whole tree cannot fit under a limit the phase is willing to defend, the phase halts for
   a ruling. It does not quietly drop the branches today's vocabulary cannot reach, because
@@ -197,9 +211,13 @@ Phase 10 is limited to the work named by this contract and the active ExecPlan.
   cannot hold the whole tree. It must name which spots it shows and which it omits.
 - The report puts the eleven aggregates from the committed rake-free solve, the parity
   solve, and the expectations file side by side, and labels each comparison as an
-  ordering check, a directional bound, or a tolerance comparison.
+  ordering check, a directional bound, a tolerance comparison, or as reported under no
+  threshold at all with the reason for that stated next to it.
   A reader must be able to tell which numbers are being held to equality and which are
   only bounded, because that distinction is the whole content of the rake-free ruling.
+  The fourth label is not a loophole, it is a disclosure: the three small-blind parity
+  numbers are gated by nothing, and a report that does not say so reads as though eleven
+  numbers passed a check when eight did.
 - The audit packet records the human verdict as a verdict: which grids were read, and
   whether the extraction is faithful.
   This phase's stated purpose is a judgement no check performs, so a green gate without

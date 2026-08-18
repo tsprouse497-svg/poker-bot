@@ -73,6 +73,15 @@ Forbidden throughout:
       with three accepted costs written into the decision list rather than only the answers.
       The load-bearing ruling narrows ruling 3: limps leave the committed solve. Evidence:
       stage 3 check green.
+- [x] **S4b - Contract correction, after the ruling.** The loop halted at stage 4 before a
+      test was authored: four acceptance criteria still described the pre-ruling tree, and
+      one of them required a committed test asserting a limped node is present in an export
+      that ruling 1 forbids from containing one. Corrected in `contract-update` mode - the
+      scope paragraph, the whole-tree criterion, the by-construction test criterion, the
+      format-versus-byte-limit note, plus two the same read surfaced: the small blind gets
+      the lower bound decision 4 ruled for it, and the report gains a fourth comparison
+      label for the three parity numbers no threshold gates. Evidence: this commit, and the
+      stage-4 review note covering it.
 - [ ] **S5 - Tests, thresholds, and limits.** `tests/test_solver_export.py`, the three
       expectations checks, command registration, and the `data/artifacts/**` byte limit,
       all against a payload fixture captured from the S2 probe and a deliberately broken
@@ -111,8 +120,7 @@ Fill this in before completing the gate.
 
 ## Next Agent Bootstrap
 
-Branch `phase/10-solver-extraction`, at stage 5 of 11 (tests), `task_mode: implementation`,
-base commit `48883e615fa2fd290f581a8f37651ddc14615b1e`. Read `CURRENT_TASK.yml`, then
+Branch `phase/10-solver-extraction`, at stage 4 of 11 (tests). Read `CURRENT_TASK.yml`, then
 `uv run python scripts/loop_stage.py` and do the one stage it names. Every judgment call is
 ruled, so the next stage authors tests against `reports/phase_audits/decisions/
 PHASE_10_SOLVER_EXTRACTION_DECISIONS.md` and the contract, and nothing else needs a human

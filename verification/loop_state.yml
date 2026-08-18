@@ -1,5 +1,8 @@
 auto_advance: false
-loop: running
+halt_reason: 'Stage 4 cannot author tests from this contract: it requires a committed
+  test asserting a limped node is present in the export, and ruling 1 drops limps
+  from the committed solve. Four criteria still describe the pre-ruling tree.'
+loop: halted
 phase_id: '10'
 schema_version: 1
 stage: 4
