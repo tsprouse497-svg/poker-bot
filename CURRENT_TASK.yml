@@ -1,9 +1,8 @@
-task_id: MAINT-18
+task_id: null
 active_phase: null
-task_mode: contract-update
-base_commit: 16af8f3096d29dfc9b3efca31fe5ec22559a8a04
-approved_scope:
-  - AGENTS.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
