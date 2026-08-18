@@ -1,9 +1,9 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `none (idle)`
-Task mode: `idle`
-Active phase: `none`
+Current task: `phase-10-contract`
+Task mode: `contract-update`
+Active phase: `10`
 Completed phases: `10`
 
 ## Phase Snapshot
@@ -20,7 +20,7 @@ Completed phases: `10`
 | 07 | completed | `docs/phase_contracts/PHASE_07_SIMULATOR_REPORTS.md` | `reports/phase_audits/PHASE_07_SIMULATOR_REPORTS.md` |
 | 08 | completed | `docs/phase_contracts/PHASE_08_SAMPLE_COMPARISON.md` | `reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md` |
 | 09 | completed | `docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md` | `reports/phase_audits/PHASE_09_QUALITY_HARDENING.md` |
-| 10 | future | `docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md` | `reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md` |
+| 10 | active | `docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md` | `reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md` |
 | 11 | future | `docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md` | `reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md` |
 | 12 | future | `docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md` | `reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md` |
 | 13 | future | `docs/phase_contracts/PHASE_13_TABLE_STATE.md` | `reports/phase_audits/PHASE_13_TABLE_STATE.md` |

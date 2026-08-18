@@ -1,8 +1,11 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: phase-10-contract
+active_phase: "10"
+task_mode: contract-update
+base_commit: f53358220ebb6dcc0bf1ff73f15518ce8eeebce9
+approved_scope:
+  - docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md
+  - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
+  - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -265,3 +268,17 @@ scope_change_log:
       Fixing it needs .gitignore so the sentinel can never be staged, check_scope.py so a tree
       holding a live mutation refuses to pass the gate at all, check_gate_bite.py to say which
       file to restore, the tests, a canary, and the freeze lock recording the tests.
+  - date: 2026-08-18
+    reason: >-
+      Phase 10 stage 1 turns the solver-extraction skeleton into real acceptance criteria, which is a
+      semantic contract change and so needs contract-update mode. Only the phase 10 contract is in
+      approved_scope, plus the pre-implementation judgment-call record the next stage writes, so the
+      solve config, the exploitability target, and the expectations tolerances are ruled on before any
+      solver runs. The ExecPlan, task metadata, phase status, and generated docs pass through
+      standing_scope.
+  - date: 2026-08-18
+    reason: >-
+      The per-stage review rule means the contract stage owes read-only review notes of its own diff,
+      so reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/** joins approved_scope. The stage-1
+      review found six problems in the contract it reviewed, all fixed inside the contract, which is
+      why the notes and the contract land in the same commit.
