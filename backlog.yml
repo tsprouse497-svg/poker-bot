@@ -4,17 +4,27 @@ items:
     status: deferred
     phase: v2
     title: PokerNow automation and browser observation
-    reason: Explicit v1 non-goal.
+    reason: >-
+      Explicit v1 non-goal, and ruling 7 of docs/V2_ROADMAP.md keeps it out of v2 as well.
+      No declared phase will close this, and the v2 label means after v2 rather than
+      during it.
   - id: V2-TRAINING-UI
     status: deferred
     phase: v2
     title: Training UI package
-    reason: V1 is CLI and report driven.
+    reason: >-
+      V1 is CLI and report driven, and ruling 6 keeps it deferred through v2. The thing
+      that would change the answer is proposed phase 15, the drill: a UI is worth arguing
+      about once a CLI trainer exists and has been used, and not before.
   - id: V2-LARGE-DATASET-COMPARISON
     status: deferred
     phase: v2
     title: Large hand-history corpus comparison
-    reason: V1 allows only tiny normalized sample comparison.
+    reason: >-
+      V1 allows only tiny normalized sample comparison. Ruling 5 lifts that boundary for
+      one player's own hands with a stated bound, but the bound is not written yet and no
+      declared v2 phase owns the ingestion, so this stays deferred rather than claiming a
+      phase that will not do it.
   - id: CONTRACT-REPORT-PATHS
     status: done
     phase: contract-update
@@ -22,27 +32,31 @@ items:
     reason: Resolved by MAINT-01-AGENT-STRUCTURE; every contract now names a distinct report file and the shared latest_replay_report.txt path is gone.
   - id: UNDER-RAISE-ACCUMULATION
     status: deferred
-    phase: engine
+    phase: "11"
     title: Reopen betting when consecutive short all-ins reach a full raise
     reason: V1 keeps seats barred once an under-raise all-in occurs even if later short all-ins cumulatively amount to a full raise; real NLHE reopens raising there. Fail-closed but stricter than the live rule.
   - id: SECOND-ORBIT-PREFLOP-SPOTS
     status: deferred
-    phase: charts
+    phase: "12"
     title: Chart spots needing a position to act twice
     reason: V1 spot keys allow one entry per position, so any spot where a position acts twice (hero facing a 4bet or later) has no representable key; lookup misses those fail closed instead of guessing.
   - id: STACK-DEPTH-BUCKETS
     status: deferred
     phase: charts
     title: Stack-depth bucketing for chart lookup
-    reason: V1 lookup requires an exact stack_depth_bb match. Nearest-depth or bucketed matching would be a heuristic, so an uncovered depth fails closed.
+    reason: >-
+      V1 lookup requires an exact stack_depth_bb match. Nearest-depth or bucketed matching
+      would be a heuristic, so an uncovered depth fails closed. Narrowed rather than closed
+      by v2: each depth proposed phase 10 solves is one more exact match, which shrinks the
+      problem without introducing the heuristic. Bucketing itself stays deferred.
   - id: ASYMMETRIC-EFFECTIVE-STACKS
     status: deferred
-    phase: charts
+    phase: "13"
     title: Per-seat effective stack depth in chart spots
     reason: stack_depth_bb is one table-wide number, so hero at 100bb facing a 35bb opener cannot be expressed or queried; a caller must pick one number and silently answers a different question.
   - id: BLIND-STRUCTURE-VARIANTS
     status: deferred
-    phase: charts
+    phase: "13"
     title: Antes and straddles in the artifact format
     reason: The artifact declares no blind structure, so a straddled or anted pot reads as an ordinary one even though both materially change correct preflop ranges. Common in the home-game context this bot targets.
   - id: CONTRACT-CRITERIA-BACKFILL
@@ -52,27 +66,27 @@ items:
     reason: check_contracts now requires an active or completed phase to carry at least three acceptance criteria that are not gate boilerplate. Phases 00 through 02 were closed with only the four boilerplate criteria, so their gates asserted little beyond the gate passing. They are explicitly exempted in CRITERIA_BACKFILL_EXEMPT because backfilling is a semantic contract change that needs contract-update mode, which the maintenance task that added the check may not do.
   - id: CHART-COVERAGE-EXPANSION
     status: deferred
-    phase: charts
+    phase: "14"
     title: More chart depths and spot classes beyond six-max 100bb first-two-decisions
     reason: Phase 05 commits one six-max 100bb solution covering opens, spots facing a single open, the opener facing a three-bet, and the big blind facing a limp. Other depths and the squeeze and cold four-bet classes are already representable and already indexed by depth, so they are additive data rather than format work; every uncovered spot refuses meanwhile.
   - id: PER-SEAT-CONTRIBUTIONS-IN-QUERY
     status: deferred
-    phase: strategy
+    phase: "13"
     title: Carry each seat's committed chips on StrategyQuery
     reason: StrategyQuery gives current stacks, the pot, and the price to call, but not what each seat has put in. Hero's own contribution is recoverable as street_bet minus to_call; nobody else's is. That blocks three things the preflop strategy currently approximates or misses. A short villain is indistinguishable from one who has already invested (ASYMMETRIC-EFFECTIVE-STACKS). A straddle is only detectable while the pot stays smaller than the blinds plus one full bet per voluntary action, so a straddled pot with several callers can slip through. An ante is only detectable by the same bound. Adding per-seat contributions makes all three exact rather than bounded, and is the same shape of fix as adding the preflop action history was.
   - id: RAISE-SIZE-IN-SPOT-KEY
     status: deferred
-    phase: charts
+    phase: "12"
     title: Record raise sizes in preflop spot keys
     reason: V1 spot keys record action names without sizes, so a 2.5bb open and a 4bb open share one spot. Sizing-aware spots need a size vocabulary the artifact format does not yet declare.
   - id: FOLD-WHEN-FREE
     status: deferred
-    phase: engine
+    phase: "11"
     title: Accept recorded folds when checking is free
     reason: The engine treats fold as illegal when to_call is zero, so real histories containing open folds (timeouts, surrendered rivers) fail replay; the strategy contract inherits the same invariant.
   - id: POSTFLOP-UNBEATABLE-EARLIER-STREETS
     status: deferred
-    phase: strategy
+    phase: "16"
     title: Extend the unbeatable call from the turn back to the flop
     reason: >-
       The postflop fallback calls a bet only when no possible villain holding beats hero,
@@ -90,7 +104,7 @@ items:
       which is what kept the turn deferred for a phase longer than it needed to be.
   - id: FALLBACK-FAIL-CLOSED-CAN-CALL
     status: deferred
-    phase: strategy
+    phase: "11"
     title: The fallback's fail-closed branch can invest, and can refuse postflop
     reason: >-
       PostflopFallbackStrategy._fail_closed runs when the action the rules chose is not on
@@ -106,12 +120,12 @@ items:
       because tests/ was out of scope for that phase after the freeze.
   - id: V2-POSTFLOP-STRATEGY
     status: deferred
-    phase: v2
+    phase: "16"
     title: A postflop strategy that can bet and raise
     reason: V1 ships a fallback that never invests unless the investment cannot lose, so it never bets or raises. A bet needs a size, a size needs a source, and the only sizing source in the repo is the preflop solver export. Until a postflop solution is committed, an invented sizing scheme would produce postflop play that looks deliberate and is not.
   - id: STREET-BET-MEANING-AMBIGUOUS
     status: deferred
-    phase: strategy
+    phase: "11"
     title: Two readings of StrategyQuery.street_bet, and one consumer uses the wrong one
     reason: >-
       StrategyQuery.street_bet carries no docstring and two consumers read it
@@ -127,7 +141,7 @@ items:
       the one caller, which is Phase 03 scope and needs its own task.
   - id: DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE
     status: deferred
-    phase: strategy
+    phase: "11"
     title: The decision audit's all-in ceiling is too high by the price to call
     reason: >-
       DecisionAuditRecord computes max_target as street_bet + stack for the acting seat.
@@ -142,7 +156,7 @@ items:
       touches Phase 03's contract module and its frozen tests, so it needs its own task.
   - id: SAMPLE-HAND-THE-CHARTS-COVER
     status: deferred
-    phase: samples
+    phase: "15"
     title: No committed sample hand is a preflop spot the charts cover
     reason: >-
       The four hands in data/samples/normalized_hands.json were written to exercise the
@@ -154,7 +168,7 @@ items:
       frozen-into-data decision that needs a human, so it is not a Phase 06 change.
   - id: POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK
     status: deferred
-    phase: strategy
+    phase: "16"
     title: River pot-odds calling against the full unseen-deck range
     reason: >-
       The postflop fallback folds every bet it cannot prove it wins, so it is
@@ -208,7 +222,7 @@ items:
       vacuity that hid judgment call 4 until a mutation canary caught it.
   - id: SIMULATOR-REPORT-UNITS-AND-IDS
     status: deferred
-    phase: simulator
+    phase: "15"
     title: Report the win rate in bb/100, and disambiguate hand ids across runs
     reason: >-
       Two small things from the Phase 07 review. The floor figure is printed as 38.67 chips
@@ -221,7 +235,7 @@ items:
       different seeding scheme.
   - id: SIMULATOR-DECISION-AUDIT-NOT-COMMITTED
     status: deferred
-    phase: simulator
+    phase: "15"
     title: The simulator records a decision audit and never writes it out
     reason: >-
       Every decision the simulator applies becomes a Phase 03 DecisionAuditRecord and the
@@ -251,7 +265,7 @@ items:
       it is measuring itself against.
   - id: CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT
     status: deferred
-    phase: sample-comparison
+    phase: "14"
     title: The chart defends the big blind nothing like real players do
     reason: >-
       Measured over 499 real hands. Folds agree almost always and raises agree in the
@@ -286,7 +300,7 @@ items:
       is computed across sizes the chart cannot distinguish.
   - id: CORPUS-INEXPRESSIBLE-SPOTS
     status: deferred
-    phase: sample-comparison
+    phase: "12"
     title: The largest refusal bucket against real hands names no spot at all
     reason: >-
       19 refusals across the committed sample carry no spot key, because the position and
@@ -303,7 +317,7 @@ items:
       measurement of what that fix would buy, and the two should be worked together.
   - id: CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK
     status: deferred
-    phase: sample-comparison
+    phase: "14"
     title: Real hands find three times the coverage gap that self-play finds
     reason: >-
       78 distinct refused spots against real play versus 22 from self-play, and most of the

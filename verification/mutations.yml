@@ -380,3 +380,15 @@ mutations:
     replace: "        if False:"
     must_fail:
       - pytest
+
+  - id: contract-id-mismatch-goes-unreported
+    description: >-
+      The two sides of the phase sequence stop being compared, so a contract nobody
+      declares or a declared phase with no contract passes the gate. This is the check
+      that replaced a hardcoded count of ten, and without it the replacement is a
+      function that reports nothing at all.
+    file: scripts/check_contracts.py
+    find: "    undeclared = sorted(seen_ids - declared_ids)"
+    replace: "    undeclared = []"
+    must_fail:
+      - pytest

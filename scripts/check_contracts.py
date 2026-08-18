@@ -4,7 +4,11 @@ import re
 import sys
 
 import yaml
-from repo_paths import REPO_ROOT
+
+try:
+    from repo_paths import REPO_ROOT
+except ModuleNotFoundError:
+    from scripts.repo_paths import REPO_ROOT
 
 REQUIRED_FRONTMATTER = {
     "phase_id",
@@ -90,6 +94,26 @@ def check_criteria_are_specific(text: str, label: str, errors: list[str]) -> Non
         )
 
 
+def contract_id_errors(seen_ids: set[str], declared_ids: set[str]) -> list[str]:
+    """The two sides of the phase sequence, required to be the same set.
+
+    This used to assert ten contracts numbered 00 through 09, so declaring a new
+    phase meant editing the checker, and a contract that nobody declared could hide
+    behind a matching count. Both sides now come from `phase_status.yml`.
+    """
+    errors = []
+    undeclared = sorted(seen_ids - declared_ids)
+    uncontracted = sorted(declared_ids - seen_ids)
+    if undeclared:
+        errors.append(
+            f"contracts carry phase IDs nobody declares: {undeclared};"
+            " a contract nothing declares is a phase nothing runs"
+        )
+    if uncontracted:
+        errors.append(f"phase_status.yml declares phases with no contract: {uncontracted}")
+    return errors
+
+
 def check_phase_status(errors: list[str]) -> dict[str, str]:
     phase_status = yaml.safe_load((REPO_ROOT / "phase_status.yml").read_text(encoding="utf-8"))
     statuses: dict[str, str] = {}
@@ -111,8 +135,13 @@ def main() -> int:
     statuses = check_phase_status(errors)
     contract_dir = REPO_ROOT / "docs" / "phase_contracts"
     paths = sorted(contract_dir.glob("PHASE_*.md"))
-    if len(paths) != 10:
-        errors.append(f"expected 10 phase contracts, found {len(paths)}")
+    declared = len(statuses)
+    if len(paths) != declared:
+        errors.append(
+            f"phase_status.yml declares {declared} phases but"
+            f" docs/phase_contracts/ holds {len(paths)} contracts;"
+            " a contract nobody declares is a phase nothing runs"
+        )
     seen_ids: set[str] = set()
     for path in paths:
         text = path.read_text(encoding="utf-8")
@@ -145,8 +174,7 @@ def main() -> int:
             for report in meta.get("required_reports") or []:
                 if not (REPO_ROOT / report).exists():
                     errors.append(f"phase {phase_id} required report {report!r} is missing")
-    if seen_ids != {f"{idx:02d}" for idx in range(10)}:
-        errors.append(f"phase contract IDs are incomplete: {sorted(seen_ids)}")
+    errors.extend(contract_id_errors(seen_ids, set(statuses)))
     if errors:
         for error in errors:
             print(error, file=sys.stderr)

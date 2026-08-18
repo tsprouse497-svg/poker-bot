@@ -1,8 +1,21 @@
-task_id: null
+task_id: MAINT-19
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 9266245ba6920e397acf3d61e12d8992dc4b4f61
+approved_scope:
+  - docs/ROADMAP.md
+  - docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md
+  - docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
+  - docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md
+  - docs/phase_contracts/PHASE_13_TABLE_STATE.md
+  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+  - docs/phase_contracts/PHASE_15_DRILL.md
+  - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
+  - verification/loop_policy.yml
+  - verification/mutations.yml
+  - scripts/check_contracts.py
+  - tests/test_loop_machinery.py
+  - verification/freeze.lock
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -241,3 +254,19 @@ scope_change_log:
       rule that lives only in the driver and docs/LOOP.md is a rule a reader is entitled to miss.
       The edit is semantic rather than mechanical, which is why it is its own contract-update
       instead of riding along with the implementation.
+  - date: 2026-08-17
+    reason: >-
+      Adopting the v2 proposal is structural rather than semantic: seven phase_status entries at
+      future, seven contract skeletons carrying only boilerplate criteria, seven loop-policy entries,
+      a rewritten docs/ROADMAP.md, and a backlog re-tag so every deferred item either names the phase
+      that will close it or stays honestly deferred. It also needs scripts/check_contracts.py, which
+      asserts a hardcoded ten contracts and would fail the moment a skeleton lands, plus the test that
+      pins the derived count and the freeze lock recording it. No acceptance criterion is written and
+      no phase is activated, because both are contract-update work that belongs to each phase's own
+      stage 1.
+  - date: 2026-08-18
+    reason: >-
+      Replacing the hardcoded ten-contract assertion with a derived comparison put the whole
+      of that check behind one function, and nothing made it fail. verification/mutations.yml
+      joins approved_scope for one canary, which stops the replacement being a function that
+      could report nothing at all and still pass.

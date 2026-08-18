@@ -53,3 +53,58 @@ phases:
     reason: >-
       Every hardening claim is testable by breaking the thing deliberately and
       requiring the gate to go red, which is what check_gate_bite already does.
+  "10":
+    auto_advance: false
+    needs_human_data: false
+    reason: >-
+      GTOpen is installed and has been run, so the input exists in the sense the
+      loop cares about. It still commits a solver export that every later phase is
+      measured against, and the phase's own point is a human looking at range grids
+      and saying whether the extraction is faithful, which no check performs. Two
+      things are unverified and belong to its contract stage: the same config has
+      never been run twice and diffed, so determinism is unproven, and no solve time
+      was ever recorded.
+  "11":
+    auto_advance: true
+    needs_human_data: false
+    reason: >-
+      Closes engine and query defects that v1 found, diagnosed, and filed with
+      reproductions. It writes no committed data, and each fix is provable by a test
+      that fails against today's behaviour.
+  "12":
+    auto_advance: false
+    needs_human_data: false
+    reason: >-
+      Widening the spot key re-derives the committed artifact, so every chart cell
+      moves. The vocabulary is also what a later solve is configured against, which
+      makes a wrong choice here expensive in exactly the way committed data is.
+  "13":
+    auto_advance: true
+    needs_human_data: false
+    reason: >-
+      Per-seat committed chips are a query-shape change with an exhaustive oracle:
+      chips in equal chips out, checked against the frozen replayer. It commits no
+      data of its own.
+  "14":
+    auto_advance: false
+    needs_human_data: false
+    reason: >-
+      Commits the chart the bot plays. It is the phase where a wrong range becomes
+      the reference for everything after it, and its closing measurement is a claim
+      about whether v1's calling gap was rake and price or a real defect, which is a
+      judgement rather than a threshold.
+  "15":
+    auto_advance: false
+    needs_human_data: false
+    reason: >-
+      Commits session records, and it is the first surface a human uses directly
+      rather than reads about. What a drill asks and how it scores an answer is a
+      product judgement no test settles.
+  "16":
+    auto_advance: false
+    needs_human_data: true
+    reason: >-
+      There is no postflop solution in the tree and no source for one. The phase
+      cannot start until Taylor supplies or approves that source, and a session must
+      not invent a sizing scheme, because invented sizings produce postflop play
+      that looks deliberate and is not.

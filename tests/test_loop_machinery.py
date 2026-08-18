@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import yaml
 
+import scripts.check_contracts as check_contracts
 import scripts.check_gate_bite as check_gate_bite
 import scripts.check_repo_consistency as consistency
 import scripts.check_scope as check_scope
@@ -574,3 +575,59 @@ def test_the_brief_goes_quiet_once_the_review_is_written(monkeypatch, tmp_path) 
 
     monkeypatch.setattr(loop_stage, "review_path", lambda c, s: note)
     assert loop_stage.review_brief(ctx, stage) == []
+
+
+# --------------------------------------------------------------------------- #
+# declared phases and their contracts
+# --------------------------------------------------------------------------- #
+
+
+def declared_phases() -> list[dict]:
+    text = (REPO_ROOT / "phase_status.yml").read_text(encoding="utf-8")
+    return yaml.safe_load(text)["phases"]
+
+
+def test_contracts_and_declarations_are_the_same_set() -> None:
+    """Neither side may grow without the other.
+
+    A contract nobody declares is a phase nothing runs, and a declaration with no
+    contract is a phase the loop cannot start. The check that enforces this used to
+    hardcode ten contracts and the id set 00-09, which meant adopting v2 required
+    editing the checker; it now derives both from phase_status.yml.
+    """
+    declared = {str(phase["phase_id"]) for phase in declared_phases()}
+    contracts = {
+        path.name.split("_")[1]
+        for path in (REPO_ROOT / "docs" / "phase_contracts").glob("PHASE_*.md")
+    }
+
+    assert declared == contracts
+
+
+def test_a_contract_nobody_declares_is_an_error() -> None:
+    errors = check_contracts.contract_id_errors({"09", "10"}, {"09"})
+
+    assert len(errors) == 1
+    assert "10" in errors[0]
+
+
+def test_a_declared_phase_with_no_contract_is_an_error() -> None:
+    errors = check_contracts.contract_id_errors({"09"}, {"09", "10"})
+
+    assert len(errors) == 1
+    assert "no contract" in errors[0]
+
+
+def test_matching_sides_pass() -> None:
+    assert check_contracts.contract_id_errors({"09", "10"}, {"09", "10"}) == []
+
+
+def test_every_declared_phase_names_files_where_this_repo_keeps_them() -> None:
+    for phase in declared_phases():
+        phase_id = str(phase["phase_id"])
+        contract = REPO_ROOT / str(phase["contract"])
+        packet = str(phase["audit_packet"])
+
+        assert contract.is_file(), phase_id
+        assert packet.startswith("reports/phase_audits/"), phase_id
+        assert contract.stem in packet, phase_id
