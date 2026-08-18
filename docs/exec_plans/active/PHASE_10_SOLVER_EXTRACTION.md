@@ -33,7 +33,8 @@ Approved for implementation as of 2026-08-18, `task_mode: implementation`:
   the `data/artifacts/**` byte limit, both authored at stage 4 and frozen before the
   builder starts
 - `data/artifacts/preflop/exports/` and its source card
-- `tests/test_solver_export.py`, `verification/freeze.lock`, `verification/mutations.yml`
+- `tests/test_solver_export.py`, `tests/test_solver_expectations.py`,
+  `verification/freeze.lock`, `verification/mutations.yml`
 
 Forbidden throughout:
 
@@ -82,10 +83,15 @@ Forbidden throughout:
       the lower bound decision 4 ruled for it, and the report gains a fourth comparison
       label for the three parity numbers no threshold gates. Evidence: this commit, and the
       stage-4 review note covering it.
-- [ ] **S5 - Tests, thresholds, and limits.** `tests/test_solver_export.py`, the three
-      expectations checks, command registration, and the `data/artifacts/**` byte limit,
-      all against a payload fixture captured from the S2 probe and a deliberately broken
-      one. Evidence: `pytest_solver_export` red on assertions, then frozen.
+- [x] **S5 - Tests, thresholds, and limits.** Two files rather than one, because the
+      export with its reader and card is a different subject from the three expectations
+      checks and the report, and one file breaks the 700-line cap. Both are authored
+      against a real payload captured from a fresh solve at the ruled config - six nodes
+      committed as `gtopen_node_payloads.captured.json` - and against deliberately broken
+      exports. Command registration and the ruled 20 MB `data/artifacts/**` limit land
+      here too. The capture answered the last open question on the unverified list: the
+      payload is unconditional, so `reach` is the only thing that conditions it.
+      Evidence: `pytest_solver_export` red on a missing module, stage 4 check green.
 - [ ] **S6 - Parity solve.** `rake_pct` 5.0, `rake_cap` 3.0, `limp: true`,
       `realization: "calibrated"`, graded against all eleven numbers in the expectations
       file at the tolerance ruled in decision 6. Limps stay here even though they leave the
@@ -120,7 +126,7 @@ Fill this in before completing the gate.
 
 ## Next Agent Bootstrap
 
-Branch `phase/10-solver-extraction`, at stage 4 of 11 (tests). Read `CURRENT_TASK.yml`, then
+Branch `phase/10-solver-extraction`, at stage 5 of 11 (freeze). Read `CURRENT_TASK.yml`, then
 `uv run python scripts/loop_stage.py` and do the one stage it names. Every judgment call is
 ruled, so the next stage authors tests against `reports/phase_audits/decisions/
 PHASE_10_SOLVER_EXTRACTION_DECISIONS.md` and the contract, and nothing else needs a human
@@ -145,9 +151,17 @@ Context the next session needs and will not otherwise find:
   and under it the big blind defends 99.71 percent against a small-blind open. Ruled to
   `"calibrated"`, which loads `cache/realization_fit.json` and lands four of five opening
   frequencies within about a point of the raked GTO Wizard reference. Never omit the field.
-- Solve time is answered: the ruled target of 0.01 bb summed best-response gap is reached
-  at iteration 300 to 400 in about eight minutes, CPU only. Determinism is still unverified
-  and owes a second identical run diffed against the first, in a fresh process.
+- Solve time is answered: under the ruled no-limp config the 0.01 bb summed best-response
+  gap is reached at iteration 300 in about two minutes, CPU only, measured at stage 4.
+  Determinism is still unverified and owes a second identical run diffed against the first,
+  in a fresh process.
+- The node payload is **unconditional**: at the LJ-versus-3bet node, 72o carries reach 0.0
+  and a full uniform strategy row. Aggregates must be weighted by `reach`, and the measured
+  reach-weighted numbers reproduce GTOpen's own `freq` to six decimal places while a flat
+  169-class average is out by 15 points at that node.
+- The server was left running from stage 4: `~/projects/gtopen/target/release/gto-server`
+  on 127.0.0.1:3737, with the ruled tree already built and solved. `start.sh` needs cargo
+  on PATH; the built binary does not.
 - The walk, not the solve, is the expensive half. `/api/preflop/node` re-walks from the
   root on every call, and node queries block while a solve runs because they need the mutex
   the solve holds - a request mid-solve hangs rather than erroring.

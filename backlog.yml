@@ -375,3 +375,16 @@ items:
       the document that states the false claims is outside its approved scope and still needs
       fixing.
 
+  - id: PHASE-10-CONTRACT-MISCOUNTS-THE-FOUR-BET
+    status: open
+    phase: contract-update
+    title: The phase 10 contract glosses a four-bet as the fourth raise
+    reason: >-
+      The whole-tree criterion asks for "a four-bet node - the fourth raise, counting the
+      open as the first". A four-bet is the third raise: the open is the second bet because
+      the big blind is the first, so open, three-bet, four-bet is three raises. GTOpen
+      agrees and labels the action "4-bet 22.5" in its own action list, which is what the
+      committed tests assert on, so nothing is measured wrongly. The parenthetical is still
+      a miscount inside an acceptance criterion, and the next reader has no way to tell
+      which of the two readings the phase meant. Fix the gloss at the next contract-update;
+      it is not worth its own halt.

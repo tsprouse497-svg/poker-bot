@@ -1,9 +1,21 @@
-task_id: phase-10-contract-limp-ruling
+task_id: phase-10-implementation
 active_phase: "10"
-task_mode: contract-update
-base_commit: 652d82242dbed63dfdb220ed3df416ea74848593
+task_mode: implementation
+base_commit: 008bf3611e0115135b9ebeaa692e41e273baa9bd
 approved_scope:
-  - docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md
+  - src/poker_training_bot/solver_artifacts/**
+  - scripts/extract_gtopen_preflop.py
+  - scripts/check_solver_export_expectations.py
+  - scripts/generate_solver_export_report.py
+  - scripts/run_verify.py
+  - scripts/check_file_sizes.py
+  - data/artifacts/preflop/exports/**
+  - tests/test_solver_export.py
+  - tests/test_solver_expectations.py
+  - verification/freeze.lock
+  - verification/mutations.yml
+  - reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
+  - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -281,6 +293,13 @@ scope_change_log:
       so reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/** joins approved_scope. The stage-1
       review found six problems in the contract it reviewed, all fixed inside the contract, which is
       why the notes and the contract land in the same commit.
+  - date: 2026-08-18
+    reason: >-
+      The phase tests do not fit in one file under the 700-line cap, and the cap is right
+      here rather than inconvenient: the export, its reader and its source card are one
+      subject, and the three expectations checks plus the report a human reads are another.
+      tests/test_solver_expectations.py joins approved_scope and the pytest_solver_export
+      command runs both files, on the same precedent as pytest_preflop_artifacts.
   - date: 2026-08-18
     reason: >-
       Stage 4 halted before authoring a line: four acceptance criteria still describe the

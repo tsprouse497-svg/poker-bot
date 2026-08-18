@@ -207,6 +207,24 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_sample_comparison_report.py"],
         "Generate the real-hand comparison report and its refusal inventory",
     ),
+    "pytest_solver_export": CommandSpec(
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_solver_export.py",
+            "tests/test_solver_expectations.py",
+        ],
+        "Run GTOpen solver export, source-card, and expectations tests",
+    ),
+    "check_solver_export_expectations": CommandSpec(
+        uv_python_command() + ["scripts/check_solver_export_expectations.py"],
+        "Recompute the solver export's orderings and directional bound from the export",
+    ),
+    "generate_solver_export_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_solver_export_report.py"],
+        "Generate the solver export range-grid and comparison report",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",
