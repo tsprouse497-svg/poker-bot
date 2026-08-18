@@ -23,8 +23,7 @@ Approved for the contract stage (`task_mode: contract-update`):
 - `docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md`
 - `reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md`
 
-Expected for implementation, to be approved with its own `scope_change_log` entry when
-the loop reaches stage 4:
+Approved for implementation as of 2026-08-18, `task_mode: implementation`:
 
 - `src/poker_training_bot/solver_artifacts/` - a GTOpen export reader, additive only
 - `scripts/extract_gtopen_preflop.py` - the offline one-time extractor
@@ -55,39 +54,42 @@ Forbidden throughout:
 
 ## Slices
 
-- [ ] **S1 - Contract.** Real acceptance criteria replacing the skeleton, phase set
+- [x] **S1 - Contract.** Real acceptance criteria replacing the skeleton, phase set
       `active`, this plan created. Evidence: `loop_stage.py --advance` clears stage 1.
-- [ ] **S2 - Probe the solver.** Runs inside the decisions stage, because three of the
+- [x] **S2 - Probe the solver.** Runs inside the decisions stage, because three of the
       decisions cannot be made without its numbers. Determinism (one config twice,
       diffed), a timed solve to the declared target, the `/api/preflop/node` path
       encoding read from the Rust source, the node count for the ruled config with limps,
       and the conditioning discriminator: at a node after a raise, does a hand the raiser
       always folds carry a strategy row. Read-only against an external tool; changes no
-      repo behaviour. Evidence: numbers moved into the verified section of
-      `docs/GTOPEN_SOLVER_NOTES.md` and quoted in the audit packet.
-- [ ] **S3 - Decisions.** Every judgment call with a reversibility class: the solve config
-      as posted, the exploitability target, the three expectations thresholds, the export
-      layout and its quantisation step, the `data/artifacts/**` byte limit, and which
-      spots the report shows. The thresholds, the target, and the quantisation are
-      `frozen-into-data` and stop at the human gate. The layout decision is made against
-      S2's measured node count, which is why it follows the probe: at the no-limp figure
-      of 38,828 action nodes a dense float dump is already two orders of magnitude past
-      committable, so the decision is what layout keeps the whole tree under a defensible
-      limit. Evidence: stage 2 check green.
-- [ ] **S4 - Human gate.** Taylor rules on the frozen-into-data items, and on the export
-      layout if S2's count makes the whole-tree requirement collide with the byte limit.
-      Evidence: stage 3 check green.
+      repo behaviour. Evidence: the probe section of the decision list, and the audit packet.
+      `docs/GTOPEN_SOLVER_NOTES.md` is deliberately not edited here: its config body omits
+      `realization`, which is a defect in that document rather than in this phase, and it is
+      filed as `GTOPEN-NOTES-OMIT-REALIZATION` for a maintenance task.
+- [x] **S3 - Decisions.** Thirteen judgment calls, twelve `frozen-into-data`. Written
+      against S2's measurements rather than estimates, which is why the probe precedes them.
+      Evidence: stage 2 check green.
+- [x] **S4 - Human gate.** Ruled by Taylor on 2026-08-18, all on their recorded defaults,
+      with three accepted costs written into the decision list rather than only the answers.
+      The load-bearing ruling narrows ruling 3: limps leave the committed solve. Evidence:
+      stage 3 check green.
 - [ ] **S5 - Tests, thresholds, and limits.** `tests/test_solver_export.py`, the three
       expectations checks, command registration, and the `data/artifacts/**` byte limit,
       all against a payload fixture captured from the S2 probe and a deliberately broken
       one. Evidence: `pytest_solver_export` red on assertions, then frozen.
-- [ ] **S6 - Parity solve.** NL25 rake basis with limps, graded against all eleven
-      numbers in the expectations file. Evidence: the comparison in the report. A failure
-      here halts rather than widening a tolerance.
-- [ ] **S7 - Committed solve and export.** Rake-free, limps in the tree, `open_raises`
-      `[2.5]`, whole tree walked, source card written with checksum and the licence gap
-      stated. Evidence: node count reconciled against `action_nodes`; limped and
-      four-bet nodes asserted present; measured bytes per node and per expressible spot.
+- [ ] **S6 - Parity solve.** `rake_pct` 5.0, `rake_cap` 3.0, `limp: true`,
+      `realization: "calibrated"`, graded against all eleven numbers in the expectations
+      file at the tolerance ruled in decision 6. Limps stay here even though they leave the
+      committed solve, because the reference file reports a limp frequency. Evidence: the
+      comparison in the report. A failure halts rather than widening a tolerance.
+- [ ] **S7 - Committed solve and export.** Rake-free, `limp: false`, `open_raises` `[2.5]`,
+      `realization: "calibrated"`, whole tree walked - all 38,828 action nodes, no filter.
+      Save the solve outside the repository first and record its path, size, and checksum,
+      so a limped or wider solve later is a reload rather than a fresh run; exercise save
+      and load rather than assuming they work. Source card carries the config verbatim, the
+      commit, the achieved gap, the wall clock, the determinism result, the checksum, the
+      licence gap, and the equity-share model note. Evidence: node count reconciled against
+      `action_nodes`; a four-bet node asserted present; measured bytes per node.
 - [ ] **S8 - Report and gate.** `generate_solver_export_report.py`, full
       `run_verify.py`, `check_gate_bite`. Evidence: `reports/active/latest_verify.txt`
       and `reports/active/latest_solver_export_report.txt`.
@@ -109,9 +111,12 @@ Fill this in before completing the gate.
 
 ## Next Agent Bootstrap
 
-Branch `phase/10-solver-extraction`, base commit
-`f53358220ebb6dcc0bf1ff73f15518ce8eeebce9`. Read `CURRENT_TASK.yml`, then
-`uv run python scripts/loop_stage.py` and do the one stage it names.
+Branch `phase/10-solver-extraction`, at stage 5 of 11 (tests), `task_mode: implementation`,
+base commit `48883e615fa2fd290f581a8f37651ddc14615b1e`. Read `CURRENT_TASK.yml`, then
+`uv run python scripts/loop_stage.py` and do the one stage it names. Every judgment call is
+ruled, so the next stage authors tests against `reports/phase_audits/decisions/
+PHASE_10_SOLVER_EXTRACTION_DECISIONS.md` and the contract, and nothing else needs a human
+until the range-grid verdict at the end.
 
 Context the next session needs and will not otherwise find:
 
@@ -127,10 +132,20 @@ Context the next session needs and will not otherwise find:
   `strategy[k*169 + i]`. The class index is ranks 0-12 as `2` through `A`, a pair at
   `hi*13+hi`, suited at `hi*13+lo`, offsuit at `lo*13+hi`. That mapping was confirmed
   empirically as well as read.
-- Everything in the notes file's "Not verified" section is genuinely unverified,
-  including solve time and determinism. Do not quote the 300-iteration run as a result.
+- **`realization` is a config field the notes file does not mention, and it decides
+  everything.** Its default is `"static"`, which is very nearly raw equity realization,
+  and under it the big blind defends 99.71 percent against a small-blind open. Ruled to
+  `"calibrated"`, which loads `cache/realization_fit.json` and lands four of five opening
+  frequencies within about a point of the raked GTO Wizard reference. Never omit the field.
+- Solve time is answered: the ruled target of 0.01 bb summed best-response gap is reached
+  at iteration 300 to 400 in about eight minutes, CPU only. Determinism is still unverified
+  and owes a second identical run diffed against the first, in a fresh process.
+- The walk, not the solve, is the expensive half. `/api/preflop/node` re-walks from the
+  root on every call, and node queries block while a solve runs because they need the mutex
+  the solve holds - a request mid-solve hangs rather than erroring.
 - The solve config is ruled, not open: six-handed, 100bb, `open_raises` `[2.5]`,
-  `limp: true`, rake-free for the committed export. `docs/V2_ROADMAP.md` carries the
+  `limp: false` for the committed export and `true` for the parity solve, rake-free for the
+  committed export, `realization: "calibrated"`. `docs/V2_ROADMAP.md` carries the
   rulings; `docs/V2_RULING_MITIGATIONS.md` section 1 carries the expectations plan and
   section 2 the size measurement Phase 14 is owed.
 - Read `docs/V2_RULING_MITIGATIONS.md` before writing any threshold. The two decisions a

@@ -1,9 +1,19 @@
-task_id: phase-10-contract
+task_id: phase-10-implementation
 active_phase: "10"
-task_mode: contract-update
-base_commit: f53358220ebb6dcc0bf1ff73f15518ce8eeebce9
+task_mode: implementation
+base_commit: 48883e615fa2fd290f581a8f37651ddc14615b1e
 approved_scope:
-  - docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md
+  - src/poker_training_bot/solver_artifacts/**
+  - scripts/extract_gtopen_preflop.py
+  - scripts/check_solver_export_expectations.py
+  - scripts/generate_solver_export_report.py
+  - scripts/run_verify.py
+  - scripts/check_file_sizes.py
+  - data/artifacts/preflop/exports/**
+  - tests/test_solver_export.py
+  - verification/freeze.lock
+  - verification/mutations.yml
+  - reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
   - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
 standing_scope:
@@ -282,3 +292,12 @@ scope_change_log:
       so reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/** joins approved_scope. The stage-1
       review found six problems in the contract it reviewed, all fixed inside the contract, which is
       why the notes and the contract land in the same commit.
+  - date: 2026-08-18
+    reason: >-
+      Phase 10 implementation needs the GTOpen export reader in solver_artifacts, the offline
+      extractor, the expectations checker and report generator with their command registration,
+      the committed export and its source card under data/artifacts/preflop/exports, the phase
+      tests and the freeze lock recording them, a mutation canary so the new commands are proved
+      to bite, and the audit evidence. scripts/check_file_sizes.py is approved for one addition,
+      the data/artifacts/** byte limit ruled at 20 MB, which is authored at the test stage and
+      frozen before the builder starts.
