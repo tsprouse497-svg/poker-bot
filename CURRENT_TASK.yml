@@ -1,14 +1,8 @@
-task_id: MAINT-20
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: a02237192a221092781a670bf67c6a58004c1e57
-approved_scope:
-  - .gitignore
-  - scripts/check_scope.py
-  - scripts/check_gate_bite.py
-  - tests/test_loop_machinery.py
-  - verification/freeze.lock
-  - verification/mutations.yml
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
