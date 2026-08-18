@@ -12,6 +12,36 @@ whether it must stop for a human.
 - `frozen-into-data`: the choice is written into a committed artifact that every later
   phase is then measured against. The loop halts until a human answers.
 
+## Ruled by Taylor, 2026-08-18
+
+Every item was answered on its recorded default. Three costs were accepted rather than
+avoided, and they are listed here so the record says what was given up and not only what was
+chosen.
+
+**Ruling 3 is narrowed.** Limps leave the committed solve. The accepted cost is 21 of 3,048
+corpus decision points staying refused, the twelve limped rows of
+`reports/active/latest_sample_refusal_inventory.txt`, and the committed solve having no
+small-blind limp frequency of its own - that number now comes from the parity solve, which
+keeps limps. What is bought is that "dump the entire solved tree" can be followed literally:
+38,828 action nodes rather than 289,036, with no filtering rule anywhere in the extractor.
+
+**The zero-slack directional bound is given three points of slack.** The accepted cost is
+that a genuinely tighter rake-free solve could pass on one number by up to three points. The
+at-most-one-below clause is what limits it: a uniformly tighter extraction still fails on
+nine of ten.
+
+**The small blind leaves the opening-order check by name.** The accepted cost is that the
+tight, tolerance-free ordering check no longer covers the position with the widest range and
+the most movement between raising and limping. What replaces it there is a lower bound
+against the reference's raise-plus-limp sum, which is weaker.
+
+Two rulings correct documents rather than choosing between options, and both need saying
+plainly. `docs/GTOPEN_SOLVER_NOTES.md` records a config body that omits `realization`, and
+that omission is the difference between a usable range and a big blind that defends 99.71
+percent. `docs/V2_RULING_MITIGATIONS.md` section 1 asserts that rake changes no ordering and
+that the directional bound needs no tolerance; both are false, and the corrections live in
+decisions 4 and 5 rather than in that document, which this phase may not edit.
+
 ## What the probe established first
 
 The decisions below are written against measurements rather than estimates. The probe ran
@@ -147,7 +177,7 @@ against a reference file that reports a limp frequency.
 
 Options: drop-limps-commit-whole-tree | keep-limps-prune-by-arriving-mass |
 keep-limps-export-expressible-subset-only | keep-limps-export-uncommitted
-Answer: [ ]
+Answer: [drop-limps-commit-whole-tree]
 
 The alternatives, so the choice is made against them rather than against the default alone.
 
@@ -191,7 +221,7 @@ calibrated, this is a preflop-only model that resolves flops by scaled equity sh
 not a full solve, and the export should say so where anybody reading the chart will see it.
 
 Options: as-defaulted | calibrated-with-limps | static-realization-as-before
-Answer: [ ]
+Answer: [as-defaulted]
 
 ## 3. The exploitability target and the wall-clock ceiling
 
@@ -211,7 +241,7 @@ never fire. Tightening the target is available and cheap now that the cost is kn
 not taken, because 0.01 bb is the tool's own default and the honest reference point.
 
 Options: gap-0.01-cap-2000 | gap-0.002-cap-5000 | gap-0.01-and-also-tighter-run-reported
-Answer: [ ]
+Answer: [gap-0.01-cap-2000]
 
 ## 4. The orderings check, corrected
 
@@ -238,7 +268,7 @@ Default:
 
 Options: as-defaulted | full-five-position-order-as-originally-specified |
 orderings-on-defence-only
-Answer: [ ]
+Answer: [as-defaulted]
 
 ## 5. The directional bound, corrected
 
@@ -261,7 +291,7 @@ not the one being committed.
 
 Options: minus-3-points-at-most-one-below | zero-slack-as-originally-specified |
 minus-5-points-any-number
-Answer: [ ]
+Answer: [minus-3-points-at-most-one-below]
 
 ## 6. The parity tolerance against the expectations file
 
@@ -283,7 +313,7 @@ tree, and gating on it would mean fitting the tolerance to the one thing already
 disagree.
 
 Options: 5-points-on-eight-report-sb | 5-points-on-all-eleven | 15-percent-relative
-Answer: [ ]
+Answer: [5-points-on-eight-report-sb]
 
 ## 6b. The parity solve's rake basis
 
@@ -308,7 +338,7 @@ over-read.
 
 Options: 5pct-cap-3bb-inferred | look-up-the-reference-solution-basis-first |
 run-parity-at-two-bases-and-report-both
-Answer: [ ]
+Answer: [5pct-cap-3bb-inferred]
 
 ## 7. How the eleven aggregates are computed from the export
 
@@ -338,7 +368,7 @@ Default:
   average is the mistake that makes an extraction look uniformly reasonable and be wrong.
 
 Options: as-defaulted | fold-complement-for-opens-too | flat-169-average
-Answer: [ ]
+Answer: [as-defaulted]
 
 ## 8. The frequency quantisation step in the export
 
@@ -355,7 +385,7 @@ point is finer than any decision a chart will make and coarser than the noise th
 carries.
 
 Options: basis-points-0-10000 | f32-verbatim | per-mille-0-1000
-Answer: [ ]
+Answer: [basis-points-0-10000]
 
 ## 9. The byte limit on `data/artifacts/**`
 
@@ -371,7 +401,7 @@ the remaining headroom recorded on the source card. Exceeding it halts for a dec
 than being raised to fit, which is the only way a size limit means anything.
 
 Options: 20MB-total | 50MB-total | per-file-limit-instead
-Answer: [ ]
+Answer: [20MB-total]
 
 ## 10. Whether the export stores per-node arriving ranges
 
@@ -394,7 +424,7 @@ Default: **stored per exported node**, so the export is self-contained and every
 in every later phase is computed against the same arriving range the solver used.
 
 Options: stored-per-node | not-stored | stored-at-terminals-only
-Answer: [ ]
+Answer: [stored-per-node]
 
 ## 11. Which spots the human-readable report shows
 
@@ -432,4 +462,4 @@ for everything else. The model limitation is on the card rather than in a doc be
 probe showed it is the difference between a usable range and a calling station.
 
 Options: as-defaulted | omit-licence-field | defer-to-a-separate-notice-file
-Answer: [ ]
+Answer: [as-defaulted]

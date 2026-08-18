@@ -1,13 +1,6 @@
 auto_advance: false
-halt_reason: 'Stage 3 human gate: 12 frozen-into-data judgment calls need Taylor''s
-  ruling in reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md.
-  The load-bearing three are decision 1 (limps cost 87 percent of the tree to close
-  0.7 percent of refusals, and keeping them makes a whole-tree export uncommittable),
-  decision 2 (realization must be calibrated, not the default static, which defends
-  99.71 percent in the big blind), and decisions 4 and 5 (two of the three expectations
-  checks are falsified as specified).'
-loop: halted
+loop: running
 phase_id: '10'
 schema_version: 1
-stage: 3
-stage_base: 936ca7123ddccaa7ccb841164b5daa4ec054d175
+stage: 4
+stage_base: d088f48838452398ae799d8fdbf9543d8ba3b48a

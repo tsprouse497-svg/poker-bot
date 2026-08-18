@@ -346,4 +346,32 @@ items:
       thresholds as frozen-into-data to force the stop, which works and is a stretch of the
       class. The fix is a third class, or an explicit rule that a threshold graded against
       external data counts as frozen; either way it is loop machinery and not phase work.
+  - id: GTOPEN-NOTES-OMIT-REALIZATION
+    status: open
+    phase: maintenance
+    title: The recorded GTOpen config body omits the realization field
+    reason: >-
+      docs/GTOPEN_SOLVER_NOTES.md publishes the config body that was posted to
+      /api/preflop/spot as the accepted surface, and it has no realization field, so anyone
+      following it takes the default of static. GTOpen's preflop engine resolves flops by
+      scaled equity share rather than by playing them, and static is very nearly raw
+      realization: measured on the six-handed 100bb rake-free tree, the big blind defends
+      99.71 percent against a small-blind open under static and 49.03 percent under
+      calibrated. The note needs the field in the body and the model limitation in its own
+      section. Phase 10 records the finding in its decision list but may not edit the note,
+      which is outside its approved scope.
+  - id: MITIGATIONS-ORDERING-AND-BOUND-CLAIMS-FALSE
+    status: open
+    phase: maintenance
+    title: Two claims in V2_RULING_MITIGATIONS section 1 are falsified by measurement
+    reason: >-
+      Section 1 asserts that rake moves the level of all eleven expectations numbers and the
+      ordering of none, and that the rake-free directional bound needs no tolerance at all.
+      Both fail through the small blind. Rake-free reallocates twelve points of small-blind
+      limping into raising, which moves SB from second to first in the opening order, and
+      BB-versus-BTN defence came back 2.55 points tighter than the raked reference, which
+      between a full solver and a preflop-only equity-realization model is solver difference
+      rather than a defect. Phase 10's contract and decision list carry the corrected checks;
+      the document that states the false claims is outside its approved scope and still needs
+      fixing.
 
