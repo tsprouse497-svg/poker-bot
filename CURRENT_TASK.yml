@@ -1,8 +1,12 @@
-task_id: null
+task_id: maint-lane-root
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: a8a96d614e80e943ab2d71ee5e2feb7f5e8b6053
+approved_scope:
+  - scripts/loop_fleet.py
+  - tests/test_loop_fleet.py
+  - verification/mutations.yml
+  - verification/freeze.lock
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -291,3 +295,12 @@ scope_change_log:
       14 joins 10, 12 and 13. That is a semantic change to seven contracts, so it lands in
       contract-update mode on its own, and docs/ROADMAP.md carries the graph so a reader meets
       it where the sequence is stated.
+  - date: 2026-08-19
+    reason: >-
+      The fleet's first real --start-lane run printed a lane path one directory too deep,
+      because the lane root was derived from REPO_ROOT rather than from the repository. Run
+      from the primary checkout that is right; run from a lane it puts the next lane inside
+      that lane, and the tree nests a level deeper on every phase. MAINT-22 derives it from
+      the shared git directory instead, which belongs to the primary checkout whatever
+      worktree the driver runs in, and needs the driver, its tests, a canary, and the freeze
+      lock recording the tests.

@@ -21,8 +21,8 @@ files:
     sha256: 13c10f0f4c58cbaa9a83a8c49507d021e804846395473bdfcd900f01415fe46e
     test_functions: 1
   tests/test_loop_fleet.py:
-    sha256: 0bab404ecd50c26318fc6de2c82d6d44fec79d0f7467d5c70f64717e71b472ef
-    test_functions: 32
+    sha256: 6e7668a549aaddb54fd692c07b03efdeb661294cce82c0ed798af22292926808
+    test_functions: 34
   tests/test_loop_machinery.py:
     sha256: 2d529de697e03c0fdd5972c0736542f2d98b77da317213c2065ca0bf5718fecd
     test_functions: 58
@@ -60,4 +60,4 @@ files:
     sha256: 9db283ccfceaef42a58d09c97ed5773dd5b170f685c9d588abfa05a168fd2d34
     test_functions: 59
 schema_version: 1
-test_function_floor: 541
+test_function_floor: 543

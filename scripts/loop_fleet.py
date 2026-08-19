@@ -47,7 +47,6 @@ import loop_stage  # noqa: E402
 from check_repo_consistency import cyclic_phases  # noqa: E402
 
 INTEGRATION_REF = "main"
-LANE_ROOT = REPO_ROOT.parent / f"{REPO_ROOT.name}-worktrees"
 FINISHED = "completed"
 
 
@@ -55,6 +54,30 @@ def git(*args: str, cwd: Path | None = None) -> str:
     return subprocess.run(
         ["git", *args], cwd=cwd or REPO_ROOT, text=True, capture_output=True
     ).stdout.strip()
+
+
+def primary_worktree() -> Path:
+    """The checkout that owns the repository, whatever worktree we are run from.
+
+    The shared git directory belongs to the primary checkout even when this script
+    is running inside a linked one, so its parent is the repository. Using
+    REPO_ROOT instead would be right exactly once: run from a lane, it would place
+    the next lane inside that lane, and the tree would nest a level deeper on every
+    phase.
+    """
+    common = git("rev-parse", "--git-common-dir")
+    return Path(common).resolve().parent if common else REPO_ROOT
+
+
+def lane_root() -> Path:
+    """Where lanes live: a sibling of the repository, never inside it.
+
+    Inside would put every lane in the primary checkout's own working tree, where
+    an untracked directory of worktrees makes `tree_is_clean` false and the loop's
+    stage 0 precheck fails for every lane at once.
+    """
+    repo = primary_worktree()
+    return repo.parent / f"{repo.name}-worktrees"
 
 
 @cache
@@ -327,7 +350,7 @@ def print_start_lane(phase_id: str, graph: dict[str, list[str]], phases: list[di
         print(f"phase {phase_id} cannot start: {'; '.join(reasons)}", file=sys.stderr)
         return 1
     branch = f"phase/{phase_id}-{slug(str(phase['title']))}"
-    tree = LANE_ROOT / f"phase-{phase_id}"
+    tree = lane_root() / f"phase-{phase_id}"
     print(f"lane runbook for phase {phase_id} - {phase['title']}")
     print()
     print(f"  git worktree add {tree} -b {branch} {INTEGRATION_REF}")

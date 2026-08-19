@@ -313,3 +313,19 @@ def test_an_empty_board_says_so_rather_than_printing_a_header() -> None:
 def test_a_branch_slug_never_ends_in_a_separator() -> None:
     assert loop_fleet.slug("Solver Extraction, And A Human Verdict On It").endswith("on")
     assert not loop_fleet.slug("Quality, Drift, Backlog, And Phase-Gate Hardening").endswith("-")
+
+
+def test_lanes_are_siblings_of_the_repository_not_of_the_current_worktree() -> None:
+    """Run from a lane, deriving this from REPO_ROOT would nest the next lane
+    inside it, and a level deeper on every phase after that."""
+    repo = loop_fleet.primary_worktree()
+    root = loop_fleet.lane_root()
+    assert root.parent == repo.parent
+    assert root.name == f"{repo.name}-worktrees"
+    assert repo not in root.parents and root != repo
+
+
+def test_the_primary_worktree_is_found_from_the_shared_git_dir(monkeypatch) -> None:
+    monkeypatch.setattr(loop_fleet, "git", lambda *args: "/Users/x/projects/poker-bot/.git")
+    assert loop_fleet.primary_worktree() == Path("/Users/x/projects/poker-bot")
+    assert loop_fleet.lane_root() == Path("/Users/x/projects/poker-bot-worktrees")

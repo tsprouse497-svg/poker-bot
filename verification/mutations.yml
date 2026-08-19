@@ -451,3 +451,15 @@ mutations:
     must_fail:
       - pytest_loop_fleet
       - pytest
+
+  - id: lanes-nest-inside-the-repository
+    description: >-
+      Lanes stop being siblings of the repository and land inside it, so an untracked
+      directory of worktrees sits in the primary checkout's own tree. That makes the working
+      tree dirty, which fails the loop's stage 0 precheck for every lane at once.
+    file: scripts/loop_fleet.py
+    find: '    return repo.parent / f"{repo.name}-worktrees"'
+    replace: '    return repo / "worktrees"'
+    must_fail:
+      - pytest_loop_fleet
+      - pytest
