@@ -41,16 +41,19 @@ almost never enters - and it also settles a rule Taylor ruled separately on 2026
 hero never limps. The cost is that no spot where an opponent limped can be answered from
 this export at all, which is filed rather than left implicit.
 
-Rake-free is what changes this phase's own verification, and
-`docs/V2_RULING_MITIGATIONS.md` section 1 plans it in full.
-`data/artifacts/preflop/expectations/six_max_nl25_100bb.json` is the only set of numbers
-in this repo that this repo did not produce, which makes it the one thing that can catch
-an extraction that is uniformly wrong rather than merely self-consistent. All eleven of
-its numbers are rake-sensitive, so against a rake-free solve it is a gross-error check
-and not an equality check. What replaces the equality check is a second solve at the
-NL25 rake basis the file describes, graded against it directly, so that the question of
-whether the extractor is correct stops being fused with the question of whether rake-free
-differs from raked as expected.
+Rake-free is what changes this phase's own verification, and Taylor re-ruled that
+verification on 2026-08-18 after running the solver himself.
+`docs/V2_RULING_MITIGATIONS.md` section 1 planned a second solve at the NL25 rake basis,
+graded against `data/artifacts/preflop/expectations/six_max_nl25_100bb.json`; that plan is
+withdrawn and section 1 is superseded for this phase. Grading a rake-free GTOpen solve
+against a raked GTO Wizard solution measures the difference between two products rather
+than anything about this extraction, and the reference file was carrying two jobs at once:
+catching a pipeline that is broken, and judging whether the poker is any good.
+This phase now does each with the right instrument. The broken-pipeline job goes to two
+orderings that are internal to the export and so need no outside file. The poker judgement
+goes to a human, reading range grids from the same solve loaded in GTOpen's own interface.
+The reference file's eleven numbers are still printed beside this solve's own, as context a
+reader compares by eye and no check gates.
 
 Phase 10 is limited to the work named by this contract and the active ExecPlan.
 

@@ -21,26 +21,34 @@ chosen.
 **Ruling 3 is narrowed.** Limps leave the committed solve. The accepted cost is 21 of 3,048
 corpus decision points staying refused, the twelve limped rows of
 `reports/active/latest_sample_refusal_inventory.txt`, and the committed solve having no
-small-blind limp frequency of its own - that number now comes from the parity solve, which
-keeps limps. What is bought is that "dump the entire solved tree" can be followed literally:
+small-blind limp frequency of its own - which the re-ruling below makes final, since the
+parity solve that was going to supply it is withdrawn and nothing replaces it. The number is
+zero in this export and stays absent from this phase, and the reference file's 13.73 is
+printed beside it as context. What is bought is that "dump the entire solved tree" can be
+followed literally:
 38,828 action nodes rather than 289,036, with no filtering rule anywhere in the extractor.
 
 **The zero-slack directional bound is given three points of slack.** The accepted cost is
 that a genuinely tighter rake-free solve could pass on one number by up to three points. The
 at-most-one-below clause is what limits it: a uniformly tighter extraction still fails on
-nine of ten.
+nine of ten. (Superseded the same day: the re-ruling withdraws the bound entirely, so this
+cost is no longer paid and no threshold over the reference file survives.)
 
 **The small blind leaves the opening-order check by name.** The accepted cost is that the
 tight, tolerance-free ordering check no longer covers the position with the widest range and
-the most movement between raising and limping. What replaces it there is a lower bound
-against the reference's raise-plus-limp sum, which is weaker.
+the most movement between raising and limping. What replaced it there was a lower bound
+against the reference's raise-plus-limp sum, which is weaker. (Superseded the same day: the
+lower bound is withdrawn with the rest of the external grading, so the small blind is
+reported and gated by nothing. It stays inside decision 4's defence relation, which is
+internal and covers it wherever it sits.)
 
 Two rulings correct documents rather than choosing between options, and both need saying
 plainly. `docs/GTOPEN_SOLVER_NOTES.md` records a config body that omits `realization`, and
 that omission is the difference between a usable range and a big blind that defends 99.71
 percent. `docs/V2_RULING_MITIGATIONS.md` section 1 asserts that rake changes no ordering and
-that the directional bound needs no tolerance; both are false, and the corrections live in
-decisions 4 and 5 rather than in that document, which this phase may not edit.
+that the directional bound needs no tolerance; both are false, and rather than correct that
+document, which this phase may not edit, the re-ruling drops the external grading its
+section 1 exists to specify.
 
 ## Re-ruled by Taylor, 2026-08-18, after running the solver himself
 
@@ -147,12 +155,13 @@ in two of the eleven numbers.
   equity-realization model, is solver difference rather than a defect - but the check as
   written calls it a failure and admits no slack in which to say so.
 - **SB limp**, 1.38 against 13.73, is a 12-point disagreement that no small tolerance
-  admits. It is excluded from the directional bound by design; it is not excluded from the
-  parity comparison, and it is the number most likely to fail it.
+  admits. It was excluded from the directional bound by design and not from the parity
+  comparison, which made it the number most likely to fail that comparison.
 
-The corrected checks are decisions 4 and 5 below. They are written before the committed
-solve, which is the whole point of authoring them at this stage, and the measurements above
-come from a probe solve that is not the one being committed.
+These findings are why the external grading was re-examined at all, and the re-ruling above
+finished the job by removing it: decisions 5 and 6 are withdrawn, and decision 4 restates
+both orderings so they compare the export against itself. The measurements above come from a
+probe solve that is not the one being committed.
 
 ## 1. What the committed export contains, and whether limps stay in it
 
@@ -193,8 +202,9 @@ Default: **drop limps from the committed solve, and commit that whole tree.** 38
 nodes satisfies the roadmap's no-filtering instruction literally, at a measured cost of 21
 corpus decision points. Save the solve outside the repository and record its path, size,
 and checksum on the source card, so a limped solve later is a reload rather than a fresh
-run. Keep limps in the parity solve, where they are needed for a like-for-like comparison
-against a reference file that reports a limp frequency.
+run. (As drafted this default also kept limps in the parity solve, for a like-for-like
+comparison against a reference file that reports a limp frequency. Decision 6 withdrew the
+parity solve, so that half of the default is struck.)
 
 Options: drop-limps-commit-whole-tree | keep-limps-prune-by-arriving-mass |
 keep-limps-export-expressible-subset-only | keep-limps-export-uncommitted
@@ -436,8 +446,9 @@ Default:
   that position opening to 2.5 with everyone between folding, so call, raise and jam all
   count.
 - **SB limp frequency** is the combo-weighted frequency of the limp action at the SB node
-  with no prior raise. It is zero by construction if decision 1 drops limps, and it is then
-  reported from the parity solve instead.
+  with no prior raise. Decision 1 drops limps, so it is zero by construction, and with the
+  parity solve withdrawn there is no second solve to report it from. It is printed as zero
+  beside the reference's 13.73, labelled like every other reference row as gated by nothing.
 - Every one is weighted by `class_combos` - 6 for a pair, 4 suited, 12 offsuit - **and by
   the arriving range**, using the payload's `reach`, not over a flat 169 classes. A flat
   average is the mistake that makes an extraction look uniformly reasonable and be wrong.

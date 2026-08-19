@@ -1,21 +1,10 @@
-task_id: phase-10-implementation
+task_id: phase-10-contract-scope-follows-the-reruling
 active_phase: "10"
-task_mode: implementation
-base_commit: 31446f994487cf3de661c2e04cbce5a49abbbba3
+task_mode: contract-update
+base_commit: d25bddd151a9b63b2efb371214d0ad58862e4400
 approved_scope:
-  - src/poker_training_bot/solver_artifacts/**
-  - scripts/extract_gtopen_preflop.py
-  - scripts/check_solver_export_expectations.py
-  - scripts/generate_solver_export_report.py
-  - scripts/run_verify.py
-  - scripts/check_file_sizes.py
-  - data/artifacts/preflop/exports/**
-  - tests/test_solver_export.py
-  - tests/test_solver_expectations.py
-  - verification/freeze.lock
-  - verification/mutations.yml
-  - reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
-  - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
+  - docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md
+  - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -332,3 +321,14 @@ scope_change_log:
       to bite, and the audit evidence. scripts/check_file_sizes.py is approved for one addition,
       the data/artifacts/** byte limit ruled at 20 MB, which is authored at the test stage and
       frozen before the builder starts.
+  - date: 2026-08-19
+    reason: >-
+      The stage-5 review found the contract's Scope section still planning the parity solve
+      the 2026-08-18 re-ruling withdrew: it tells a reader that a second solve at the NL25
+      rake basis is run and graded against the reference file, which the acceptance criteria
+      forbid and the forbidden shortcuts name by hand. The same staleness survived in four
+      places in the decision record, one of them operative - decision 7 still instructs the
+      report to take the small blind's limp frequency from a solve that no longer exists.
+      Both are semantic, so they are corrected in contract-update mode before the tests are
+      frozen against them. Only the phase 10 contract and its decision record are in
+      approved_scope; the task metadata passes through standing_scope.
