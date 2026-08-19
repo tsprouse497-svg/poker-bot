@@ -130,10 +130,14 @@ Fill this in before completing the gate.
 ## Next Agent Bootstrap
 
 Branch `phase/10-solver-extraction`, at stage 5 of 11 (freeze). Read `CURRENT_TASK.yml`, then
-`uv run python scripts/loop_stage.py` and do the one stage it names. Every judgment call is
-ruled, so the next stage authors tests against `reports/phase_audits/decisions/
-PHASE_10_SOLVER_EXTRACTION_DECISIONS.md` and the contract, and nothing else needs a human
-until the range-grid verdict at the end.
+`uv run python scripts/loop_stage.py` and do the one stage it names. Tests are authored and
+reviewed; stage 5 freezes them and narrows scope. Every judgment call is ruled, and nothing
+else needs a human until the range-grid verdict at the end.
+
+**Read the decision record's re-ruling section first.** Taylor ran the solver himself on
+2026-08-18 and the phase changed shape: nothing grades this solve against GTO Wizard, the
+parity solve and the directional bound are withdrawn, both orderings are internal to the
+export, and verification is a human loading the saved solve in GTOpen's own interface.
 
 Context the next session needs and will not otherwise find:
 
@@ -168,11 +172,18 @@ Context the next session needs and will not otherwise find:
 - The walk, not the solve, is the expensive half. `/api/preflop/node` re-walks from the
   root on every call, and node queries block while a solve runs because they need the mutex
   the solve holds - a request mid-solve hangs rather than erroring.
-- The solve config is ruled, not open: six-handed, 100bb, `open_raises` `[2.5]`,
-  `limp: false` for the committed export and `true` for the parity solve, rake-free for the
-  committed export, `realization: "calibrated"`. `docs/V2_ROADMAP.md` carries the
-  rulings; `docs/V2_RULING_MITIGATIONS.md` section 1 carries the expectations plan and
-  section 2 the size measurement Phase 14 is owed.
-- Read `docs/V2_RULING_MITIGATIONS.md` before writing any threshold. The two decisions a
-  phase could get wrong quietly are named at the end of it, and one of them is this
-  phase's: authoring the expectations tolerances before the solve rather than after.
+- The solve config is ruled, not open, and decision 2 carries it verbatim: six-handed,
+  100bb, `open_raises` `[2.5]`, `limp: false`, rake-free, `realization: "calibrated"`,
+  `allin_threshold: 0.67`. There is one solve, not two - the parity solve is withdrawn.
+- **`allin_threshold: 0.67` is now ruled with a reason and it is load-bearing.** At 100bb the
+  raise ladder is 2.5, 7.5, 22.5, 67.5, so the field collapses exactly one size - the fifth
+  bet - into a jam. GTOpen's own default is 0.85, which keeps 67.5 and gives 145,590 nodes
+  instead of 83,123. It is also the one field GTOpen's web UI cannot set:
+  `web/js/preflop_lab.js` omits it from the body. That is why decision 6c verifies by loading
+  the saved solve rather than rebuilding from the form, and why pressing BUILD or RE-SOLVE
+  after a load silently reverts the tree to 0.85.
+- `docs/V2_RULING_MITIGATIONS.md` section 1 is superseded for this phase - its expectations
+  plan is exactly what the re-ruling withdrew. Section 2's size measurement for Phase 14
+  still stands. Do not author a threshold from that document.
+- Two backlog items came out of the limp ruling and belong to Phase 14, not here:
+  `CHART-HERO-MUST-NEVER-LIMP` and `CHART-CANNOT-ANSWER-A-LIMPED-POT`.
