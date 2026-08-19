@@ -1,15 +1,12 @@
-task_id: phase-11-implementation
+task_id: phase-11-frozen-test-repair
 active_phase: "11"
 task_mode: implementation
-base_commit: 9635c2336a273672c523080c09b8f9760a511e23
+base_commit: 5d0c8c85617e7a8dd54a6d7d39bbd333ccb27ca0
 approved_scope:
-  - src/poker_training_bot/poker_core/engine.py
-  - src/poker_training_bot/poker_core/order.py
-  - src/poker_training_bot/strategy/contract.py
-  - src/poker_training_bot/strategy/postflop_fallback.py
-  - scripts/generate_strategy_query_report.py
-  - scripts/generate_engine_fidelity_report.py
-  - reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md
+  - tests/test_engine_fidelity.py
+  - tests/test_postflop_fallback.py
+  - tests/test_strategy_contract.py
+  - verification/freeze.lock
   - reports/phase_audits/reviews/PHASE_11_ENGINE_FIDELITY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -522,3 +519,15 @@ scope_change_log:
       to the freeze commit so the diff is measured from there rather than from the start of
       the phase, which is what keeps work that was legitimately in scope at stage 4 from
       reading as out of scope afterwards.
+  - date: 2026-08-19
+    reason: >-
+      Stage 6 halted with ten frozen tests failing and no implementation defect among
+      them. Six are Phase 06 enumeration shapes that hardcode the free legal-action sets
+      fold now joins, one is a Phase 03 all-in amount the corrected ceiling rejects
+      because the old ceiling was the thing being asserted, and three are authoring errors
+      in this phase's own tests: two build an accumulation that does not reach the bar and
+      one acts out of turn. Repairing them needs tests/ and verification/freeze.lock back
+      in approved_scope for one task, and the builder files leave it, so this task cannot
+      reshape the implementation to suit the tests it is repairing - the pressure has to
+      run the other way. No assertion is weakened: each repair restates the same claim
+      against the behaviour the phase 11 contract requires.

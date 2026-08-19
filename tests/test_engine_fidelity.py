@@ -332,12 +332,22 @@ class TestBettingReopensWhenShortAllInsAccumulate:
         assert ActionKind.RAISE not in turn.legal_actions(0)
 
     def test_three_short_all_ins_accumulate(self) -> None:
+        """13, 16 and 21: no increment reaches 10 alone, and the level reaches 21."""
+        state = make_round((100, 13, 16, 21, 100), min_raise=2)
+        turn = TurnState.start_postflop(state, button_seat=4)
+        turn = turn.apply(Action(0, ActionKind.BET, 10))
+        for seat, target in ((1, 13), (2, 16), (3, 21)):
+            turn = turn.apply(Action(seat, ActionKind.RAISE, target))
+        assert ActionKind.RAISE in turn.legal_actions(0)
+
+    def test_three_short_all_ins_short_of_the_bar_do_not_accumulate(self) -> None:
+        """The same three, ending at 19. Nine is not ten, however many all-ins made it."""
         state = make_round((100, 13, 16, 19, 100), min_raise=2)
         turn = TurnState.start_postflop(state, button_seat=4)
         turn = turn.apply(Action(0, ActionKind.BET, 10))
         for seat, target in ((1, 13), (2, 16), (3, 19)):
             turn = turn.apply(Action(seat, ActionKind.RAISE, target))
-        assert ActionKind.RAISE in turn.legal_actions(0)
+        assert ActionKind.RAISE not in turn.legal_actions(0)
 
     def test_a_full_raise_resets_the_level_the_accumulation_is_measured_from(self) -> None:
         """After a full raise to 30, a later short all-in is measured against 30.
@@ -350,12 +360,21 @@ class TestBettingReopensWhenShortAllInsAccumulate:
         turn = turn.apply(Action(0, ActionKind.BET, 10))
         turn = turn.apply(Action(1, ActionKind.RAISE, 30))
         turn = turn.apply(Action(2, ActionKind.RAISE, 35))
-        assert 0 in turn.no_raise
-        assert ActionKind.RAISE not in turn.legal_actions(0)
+        # Seat 1 made the full raise and is the seat that has acted since it, so seat 1 is
+        # the one the short all-in must not reopen for. Measured from 30 the advance is 5
+        # against a minimum raise of 20; measured from 10 it would be 25 and would reopen,
+        # which is the reset this test exists for. Seat 0 keeps its right to raise because
+        # seat 1's full raise gave it back, and a short all-in does not take it away again.
+        assert 1 in turn.no_raise
+        assert ActionKind.RAISE not in turn.legal_actions(1)
+        assert 0 not in turn.no_raise
 
     def test_a_reopened_seat_must_still_meet_the_minimum_raise(self) -> None:
         """Reopening restores the right to raise, not a cheaper price for it."""
         turn = _two_short_all_ins(21)
+        # Seat 3 has not acted yet and is next; seat 0 is reopened behind it.
+        turn = turn.apply(Action(3, ActionKind.CALL))
+        assert turn.to_act == 0
         with pytest.raises(ValueError, match="minimum raise"):
             turn.apply(Action(0, ActionKind.RAISE, 22))
         assert turn.apply(Action(0, ActionKind.RAISE, 31)).round.current_bet == 31

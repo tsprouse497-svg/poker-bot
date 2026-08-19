@@ -271,13 +271,17 @@ class TestDecisionAuditRecord:
     def test_rejects_raise_amount_below_minimum_unless_all_in(self) -> None:
         with pytest.raises(ValueError, match="below the minimum unless all-in"):
             make_record(outcome=StrategyDecision("raise", 25, "x"))
-        all_in_target = 20 + 940
+        # Hero's own contribution to the street plus hero's stack, per Phase 11
+        # (DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE). The query carries street_bet 20 and
+        # to_call 20, so hero has put in nothing and the target is the stack itself. The
+        # old form added the whole level and was too high by exactly the price to call.
+        all_in_target = (20 - 20) + 940
         record = make_record(outcome=StrategyDecision("raise", all_in_target, "x"))
-        assert '"amount":960' in record.to_json_line()
+        assert '"amount":940' in record.to_json_line()
 
     def test_rejects_raise_amount_above_all_in_maximum(self) -> None:
         with pytest.raises(ValueError, match="exceeds the acting seat's all-in maximum"):
-            make_record(outcome=StrategyDecision("raise", 20 + 940 + 1, "x"))
+            make_record(outcome=StrategyDecision("raise", (20 - 20) + 940 + 1, "x"))
 
     def test_records_to_jsonl_has_trailing_newline(self) -> None:
         record = make_record()
