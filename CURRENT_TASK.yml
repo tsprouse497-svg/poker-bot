@@ -1,12 +1,8 @@
-task_id: maint-lane-root
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: a8a96d614e80e943ab2d71ee5e2feb7f5e8b6053
-approved_scope:
-  - scripts/loop_fleet.py
-  - tests/test_loop_fleet.py
-  - verification/mutations.yml
-  - verification/freeze.lock
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
