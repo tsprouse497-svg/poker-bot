@@ -403,3 +403,40 @@ mutations:
     replace: "    if True:"
     must_fail:
       - pytest
+
+  - id: solver-export-hand-index-uses-the-grid-ordering
+    description: >-
+      GTOpen numbers ranks low to high, and this reads them high to low, which is
+      the ordering this package's own chart grid uses. The two orderings live in one
+      package and disagree on all but a handful of classes, so confusing them is the
+      single most likely extraction defect - and it is silent. The mapping stays a
+      bijection, every strategy row still sums to the scale, every node still
+      re-resolves from its own path, and the committed range is entirely
+      self-consistent and entirely wrong.
+    file: src/poker_training_bot/solver_artifacts/gtopen_export.py
+    find: '_GTOPEN_RANKS = "23456789TJQKA"'
+    replace: '_GTOPEN_RANKS = "AKQJT98765432"'
+    must_fail:
+      - pytest_solver_export
+      - pytest
+
+  - id: solver-export-aggregates-ignore-the-arriving-range
+    description: >-
+      Every aggregate goes back to a flat combo-weighted average over all 169
+      classes, dropping the reach that conditions the payload. The node payload is
+      unconditional, so a hand the actor folded upstream still carries a full
+      strategy row - and at the LJ-versus-3bet node the flat number is more than ten
+      points from the one GTOpen reports for itself.
+
+      check_solver_export_expectations is deliberately not named here, and that is a
+      finding rather than an omission: all eleven aggregates are read at nodes where
+      the actor has not yet acted, so their reach is uniformly 1 and this mutation
+      moves none of them. The reach weighting only bites behind a raise, and the only
+      thing in the gate that reaches there is the frozen test against the captured
+      payload.
+    file: src/poker_training_bot/solver_artifacts/gtopen_export.py
+    find: "                weight *= self.reach_bp[index]"
+    replace: "                weight *= QUANTISATION_SCALE"
+    must_fail:
+      - pytest_solver_export
+      - pytest

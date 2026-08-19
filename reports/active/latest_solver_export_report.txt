@@ -6,9 +6,10 @@ data. Nothing downstream reads it yet: the bot still plays the committed 36-spot
 chart. This report exists so a person can say whether the extraction is faithful.
 
 How to check it: load the saved solve named below in GTOpen's own interface and
-read its range grids against the grids here. Do not press BUILD or RE-SOLVE after
-loading - the web form has no control for allin_threshold and re-posting it
-silently reverts the tree from the ruled 0.67 to the server default of 0.85.
+read its range grids against the grids here. Do not press the Build or Re-solve
+buttons after loading: the web form has no control for allin_threshold, and
+re-posting it silently reverts the tree from the ruled 0.67 to the server
+default of 0.85.
 
   saved solve      /Users/taylorsprouse/projects/gtopen/saves/preflop/six-max-100bb-rakefree.gtop
   saved solve sha  64d8729a30f758f24e713976ac529bab64c741d22af4b68bdeea424864f27ab5

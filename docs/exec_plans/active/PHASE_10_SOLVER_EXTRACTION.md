@@ -180,8 +180,8 @@ Context the next session needs and will not otherwise find:
   bet - into a jam. GTOpen's own default is 0.85, which keeps 67.5 and gives 145,590 nodes
   instead of 83,123. It is also the one field GTOpen's web UI cannot set:
   `web/js/preflop_lab.js` omits it from the body. That is why decision 6c verifies by loading
-  the saved solve rather than rebuilding from the form, and why pressing BUILD or RE-SOLVE
-  after a load silently reverts the tree to 0.85.
+  the saved solve rather than rebuilding from the form, and why pressing the Build or Re-solve
+  buttons after a load silently reverts the tree to 0.85.
 - `docs/V2_RULING_MITIGATIONS.md` section 1 is superseded for this phase - its expectations
   plan is exactly what the re-ruling withdrew. Section 2's size measurement for Phase 14
   still stands. Do not author a threshold from that document.

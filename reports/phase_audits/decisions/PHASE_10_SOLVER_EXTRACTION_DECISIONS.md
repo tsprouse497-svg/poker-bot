@@ -418,8 +418,8 @@ storage and the rendering - which is where a defect would live and where no auto
 in this phase reaches. Whether GTOpen's poker is any good stays a human judgement on the
 grids, which is what this phase was always for.
 
-One operating note belongs with the ruling: after loading, pressing BUILD or RE-SOLVE
-re-posts the form and silently reverts the threshold to 0.85.
+One operating note belongs with the ruling: after loading, pressing the Build or Re-solve
+buttons re-posts the form and silently reverts the threshold to 0.85.
 
 Options: load-the-saved-solve | rebuild-from-the-web-form |
 rebuild-and-accept-a-different-threshold

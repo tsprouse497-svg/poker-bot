@@ -1,10 +1,16 @@
-task_id: phase-10-repair-a-frozen-assertion
+task_id: phase-10-implementation
 active_phase: "10"
 task_mode: implementation
-base_commit: 011d57a3485522c4292e263af4574390fedd5de4
+base_commit: 0490b4ae583d1d8c258a492cdc9e9d972826b253
 approved_scope:
-  - tests/test_solver_export.py
-  - verification/freeze.lock
+  - src/poker_training_bot/solver_artifacts/**
+  - scripts/extract_gtopen_preflop.py
+  - scripts/check_solver_export_expectations.py
+  - scripts/generate_solver_export_report.py
+  - data/artifacts/preflop/exports/**
+  - verification/mutations.yml
+  - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
+  - reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
   - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -366,3 +372,22 @@ scope_change_log:
       files leave it, so this task cannot reshape the implementation to suit the test it is
       repairing. The stage-6 review notes are in scope because the reviewer marks the blocker
       resolved rather than the writer deleting it.
+  - date: 2026-08-19
+    reason: >-
+      Stage 7 needs canaries for the phase's own commands, which is the miss phases 08 and 09
+      both made: the mutations authored at stage 4 covered commands that were already
+      uncovered, and nobody covered the command the phase was adding. verification/mutations.yml
+      comes back into approved_scope for canaries only, and the freeze lock stays out because
+      no test changes, so the builder still cannot reach the tests it is measured by. A canary
+      makes the gate stricter rather than looser. The builder files return with it because the
+      repair task that preceded this one had narrowed the scope to the test it was fixing.
+  - date: 2026-08-19
+    reason: >-
+      The quality gate reads every capitalised hyphenated token in docs/ and reports/ as a
+      backlog id, and three documents write GTOpen's re-solve button in the capitals its UI
+      uses, so the gate reports a finding filed under an id nobody created. The escape hatch
+      is NOT_BACKLOG_IDS in scripts/run_full_quality_gate.py, which this phase may not touch,
+      so the fix is the prose: the button is named in sentence case in the report renderer,
+      the ExecPlan, and the decision record. The decision record joins approved_scope for that
+      one capitalisation and nothing else - no ruling, option, answer or reason changes, which
+      is what keeps a typographic edit out of contract-update mode.
