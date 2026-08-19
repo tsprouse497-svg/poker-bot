@@ -60,6 +60,14 @@ class StrategyQuery:
 
     Cards are text strings such as "As" so the query serializes cleanly.
 
+    `street_bet` is the street's **current bet level** - the amount a seat must have in
+    front of it to be square with the action - and not hero's own contribution to it.
+    Hero's own contribution is recoverable as `street_bet` minus `to_call`. The
+    distinction is written here because it was not written anywhere, which is how
+    `STREET-BET-MEANING-AMBIGUOUS` happened: two consumers read the field two ways, and
+    one report generator passed hero's contribution, so replayed hands reached the chart
+    with a mis-derived stack depth and refused for the wrong reason.
+
     `preflop_actions` is the history the price to call cannot express. A strategy
     reading a committed chart has to know whether it faces an open, a three-bet, or
     a limp, and `to_call` plus `stacks` cannot distinguish those: several different
@@ -113,12 +121,24 @@ class StrategyQuery:
             raise ValueError(f"unknown legal actions: {unknown}")
         if len(set(self.legal_actions)) != len(self.legal_actions):
             raise ValueError("duplicate legal actions are not allowed")
-        if "check" in self.legal_actions and "fold" in self.legal_actions:
-            raise ValueError("check and fold can never both be legal")
+        # There is deliberately no rule that `check` and `fold` cannot both be legal. The
+        # engine offers a fold wherever a seat may act, including where checking is free,
+        # so a query refusing to describe that set would be a query that lies about the
+        # game. Phase 11's contract names this as the single validation it may remove.
         if self.to_call < 0:
             raise ValueError("to_call cannot be negative")
         if self.street_bet < 0:
             raise ValueError("street_bet cannot be negative")
+        if self.street_bet < self.to_call:
+            # The price to call cannot exceed the level being called. A producer passing
+            # hero's own contribution trips this whenever hero has put in less than half
+            # the level - which is most producers most of the time, but not the heads-up
+            # small blind, who has put in exactly half. It narrows the defect; the
+            # documented meaning above is what closes it.
+            raise ValueError(
+                f"street_bet {self.street_bet} is below to_call {self.to_call};"
+                " street_bet is the street's current bet level, not hero's own contribution"
+            )
         if (self.to_call == 0) != ("check" in self.legal_actions):
             raise ValueError("check must be legal exactly when to_call is zero")
         if self.min_raise_target <= 0:
@@ -295,7 +315,11 @@ class DecisionAuditRecord:
                 )
             if self.outcome.action in _AMOUNT_ACTIONS:
                 stacks = dict(self.query.stacks)
-                max_target = self.query.street_bet + stacks[self.query.seat]
+                # Hero's own contribution to the street plus what is left behind it. The
+                # old form used the street's whole level, which is too high by exactly the
+                # price to call, so the legality proof several contracts lean on accepted
+                # raises hero could not make.
+                max_target = (self.query.street_bet - self.query.to_call) + stacks[self.query.seat]
                 amount = self.outcome.amount
                 if amount is None:
                     raise ValueError(f"{self.outcome.action} requires an amount")

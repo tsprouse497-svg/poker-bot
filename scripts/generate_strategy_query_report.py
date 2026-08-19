@@ -24,6 +24,14 @@ REPORT_OUTPUT = REPO_ROOT / "reports" / "active" / "latest_strategy_query_report
 
 
 def build_query(point: DecisionPoint, hole_cards: tuple[str, str]) -> StrategyQuery:
+    """Build the query for one recorded decision point.
+
+    `street_bet` is the street's current bet level, not hero's own contribution to it.
+    This generator passed the contribution until Phase 11, which is
+    `STREET-BET-MEANING-AMBIGUOUS`: the chart derives hero's starting depth as
+    `stacks[seat] + (street_bet - to_call)`, so the wrong reading mis-derives the depth
+    and the refusal blames the blind structure for what is really a table-size miss.
+    """
     state = point.turn.round
     player = state.player(point.seat)
     return StrategyQuery(
@@ -35,7 +43,7 @@ def build_query(point: DecisionPoint, hole_cards: tuple[str, str]) -> StrategyQu
         board=tuple(card_texts(point.board)),
         legal_actions=tuple(kind.value for kind in point.legal_actions),
         to_call=min(max(0, state.current_bet - player.street_bet), player.stack),
-        street_bet=player.street_bet,
+        street_bet=state.current_bet,
         min_raise_target=state.current_bet + state.min_raise,
         pot=point.pot,
         stacks=tuple(
