@@ -49,12 +49,12 @@ The report measures that rather than leaving it as a caveat.
   the denominator; they are reported beside it.
 
   Pluribus
-    agreed 439 of 456 scored decisions  (96.3%)
-    refused 46 of 502 decision points
+    agreed 2594 of 2758 scored decisions  (94.1%)
+    refused 290 of 502 decision points
 
   humans
-    agreed 2155 of 2302 scored decisions  (93.6%)
-    refused 244 of 2546 decision points
+    agreed 2594 of 2758 scored decisions  (94.1%)
+    refused 290 of 2546 decision points
 
 ## The number that matters more than the one above
 
@@ -67,16 +67,16 @@ The report measures that rather than leaving it as a caveat.
   the hands people actually play. Split by what the player did:
 
   Pluribus
-    player fold   agreed   332 of   332  (100.0%)
-    player check  agreed     5 of     5  (100.0%)
-    player call   agreed    22 of    37  (59.5%)
-    player raise  agreed    80 of    82  (97.6%)
+    player fold   agreed  1948 of  1975  (98.6%)
+    player check  agreed    21 of    21  (100.0%)
+    player call   agreed   160 of   264  (60.6%)
+    player raise  agreed   465 of   498  (93.4%)
 
   humans
-    player fold   agreed  1616 of  1643  (98.4%)
-    player check  agreed    16 of    16  (100.0%)
-    player call   agreed   138 of   227  (60.8%)
-    player raise  agreed   385 of   416  (92.5%)
+    player fold   agreed  1948 of  1975  (98.6%)
+    player check  agreed    21 of    21  (100.0%)
+    player call   agreed   160 of   264  (60.6%)
+    player raise  agreed   465 of   498  (93.4%)
 
   Where those diverge, the low one is the finding. A chart that matches on
   folds and misses on calls is not 'mostly right'; it is right about the
@@ -98,21 +98,21 @@ The report measures that rather than leaving it as a caveat.
 
   Pluribus
     seat        fold       check        call       raise       refused
-    LJ         79/79           -         1/1       11/11          1/92
-    HJ         59/59           -         2/3         8/9          2/73
-    CO         64/64           -         2/2       16/16          5/87
-    BTN        63/63           -         4/6       30/31         6/106
-    SB         47/47           -         5/5       10/10         10/72
-    BB         20/20         5/5        8/20         5/5         22/72
+    LJ       408/409           -         6/9       84/93         8/519
+    HJ       408/415           -       12/16       81/85         8/524
+    CO       375/387           -       14/19       90/95        23/524
+    BTN      326/330           -       18/26     113/123        45/524
+    SB       312/314           -       36/50       69/72        88/524
+    BB       119/120       21/21      74/144       28/30       118/433
 
   humans
     seat        fold       check        call       raise       refused
-    LJ       329/330           -         5/8       73/82         7/427
-    HJ       349/356           -       10/13       73/76         6/451
-    CO       311/323           -       12/17       74/79        18/437
-    BTN      263/267           -       14/20       83/92        39/418
-    SB       265/267           -       31/45       59/62        78/452
-    BB        99/100       16/16      66/124       23/25        96/361
+    LJ       408/409           -         6/9       84/93         8/519
+    HJ       408/415           -       12/16       81/85         8/524
+    CO       375/387           -       14/19       90/95        23/524
+    BTN      326/330           -       18/26     113/123        45/524
+    SB       312/314           -       36/50       69/72        88/524
+    BB       119/120       21/21      74/144       28/30       118/433
 
 ## The price these rates were graded at
 
@@ -131,14 +131,14 @@ The report measures that rather than leaving it as a caveat.
   more expensive spot. Split by the price faced:
 
   Pluribus
-    called facing at or under 2.25bb   agreed   12 of   21  (57.1%)
-    called facing 2.26 to 2.50bb       agreed    3 of    5  (60.0%)
-    called facing over 2.50bb          agreed    2 of    4  (50.0%)
+    called facing at or under 2.25bb   agreed   75 of  141  (53.2%)
+    called facing 2.26 to 2.50bb       agreed   23 of   34  (67.6%)
+    called facing over 2.50bb          agreed   16 of   22  (72.7%)
 
   humans
-    called facing at or under 2.25bb   agreed   63 of  120  (52.5%)
-    called facing 2.26 to 2.50bb       agreed   20 of   29  (69.0%)
-    called facing over 2.50bb          agreed   14 of   18  (77.8%)
+    called facing at or under 2.25bb   agreed   75 of  141  (53.2%)
+    called facing 2.26 to 2.50bb       agreed   23 of   34  (67.6%)
+    called facing over 2.50bb          agreed   16 of   22  (72.7%)
 
 ## The sampled-action match rate, which is the lesser number
 

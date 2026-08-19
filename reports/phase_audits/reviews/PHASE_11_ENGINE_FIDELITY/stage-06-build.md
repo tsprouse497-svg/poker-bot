@@ -43,7 +43,8 @@ Reviewer: coordinator, self-review; subagents are unavailable in this session.
 
 - **[resolved]** `ruff --no-cache` failed on a 105-character line the repair itself
   created, in a frozen Phase 06 test. Caught before the commit rather than at stage 7,
-  which is the defect Phase 08 and MAINT-RUFF-CACHE both shipped. Split into two lines; no
+  which is the defect Phase 08 shipped as a long line and the ruff cache task
+  shipped as an unsorted import block. Split into two lines; no
   assertion changed.
 
 ## Non-blocker

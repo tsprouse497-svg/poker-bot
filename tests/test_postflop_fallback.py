@@ -554,9 +554,8 @@ class TestTotalityAndLegality:
 
     def test_the_engine_shapes_cover_the_free_and_facing_a_bet_forms(self) -> None:
         """Guards the sweep itself: a broken derivation would enumerate nothing."""
-        # Fold joins both free shapes in Phase 11 (FOLD-WHEN-FREE). The set is still the
-        # engine's own, derived rather than listed, so widening it here follows the engine
-        # rather than describing it.
+        # Fold joins both free shapes in Phase 11 (FOLD-WHEN-FREE); the set is still the
+        # engine's own, so widening it here follows the engine rather than describing it.
         assert {shape.actions for shape in FREE_SHAPES} == {
             ("fold", "check", "bet"),
             ("fold", "check", "raise"),
@@ -669,13 +668,10 @@ class TestComposite:
     def test_postflop_queries_are_answered_by_the_fallback(self, composite) -> None:
         for street in POSTFLOP_STREETS:
             free = query(shape_with("fold", "check", "bet"), street, WEAK)
-            outcome = decision(composite.decide(free))
+            assert decision(composite.decide(free)).code.startswith(FALLBACK_PREFIX), street
 
-            assert outcome.code.startswith(FALLBACK_PREFIX), street
-
-    # A preflop chart refusal passes through carrying its original reason code.
-    # Substituting a passive action would erase the coverage signal Phases 04 and 05
-    # were built to produce.
+    # A preflop chart refusal passes through carrying its original reason code; a passive
+    # action would erase the coverage signal Phases 04 and 05 were built to produce.
     def test_a_preflop_chart_refusal_passes_through_unchanged(self, composite) -> None:
         request = uncovered_preflop_query()
 
