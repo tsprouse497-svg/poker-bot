@@ -388,3 +388,31 @@ items:
       a miscount inside an acceptance criterion, and the next reader has no way to tell
       which of the two readings the phase meant. Fix the gloss at the next contract-update;
       it is not worth its own halt.
+  - id: CHART-HERO-MUST-NEVER-LIMP
+    status: open
+    phase: "14"
+    title: Nothing forbids a committed chart from limping, and today's chart does
+    reason: >-
+      A spot with an empty action_sequence is folded to hero, so a call weight in it is hero
+      open-limping. The schema's action vocabulary allows one and no validation rejects it.
+      The committed GTO Wizard chart limps 13.73 percent from the small blind across 103 hand
+      classes, inherited from a raked solution, and it is the joint-second largest hole in the
+      refusal inventory: t6/d100/SB/SB:call,BB:raise, 11 hands of 600, because the bot limps
+      and then cannot play the raise that comes over the top. Taylor ruled on 2026-08-18 that
+      hero never limps. The Phase 10 export enforces it by construction, since the ruled solve
+      has no limp action at all, but that is a property of the data rather than a rule. Phase
+      14 owns the chart schema, so the check belongs there: no spot with an empty
+      action_sequence may carry a call weight.
+  - id: CHART-CANNOT-ANSWER-A-LIMPED-POT
+    status: open
+    phase: "14"
+    title: A no-limp solve cannot answer any spot where an opponent limped
+    reason: >-
+      Hero never limping and hero never facing a limp are different things, and dropping limps
+      from the Phase 10 solve settles the first while making the second permanently
+      unanswerable from that export. Opponents limp in real games: the refusal inventory
+      already carries 12 limped rows and 21 of 3048 corpus decision points, and today's chart
+      answers exactly one limp-facing spot, t6/d100/BB/SB:call, which a chart derived from a
+      no-limp solve will lose. AGENTS.md forbids heuristic guessing for a missing chart spot,
+      so the options are an honest refusal or reloading the saved solve with limps on and
+      extracting that branch. Decision 1 keeps the save for exactly this.

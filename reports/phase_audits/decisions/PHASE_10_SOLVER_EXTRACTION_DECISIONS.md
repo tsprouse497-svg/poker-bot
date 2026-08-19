@@ -42,6 +42,27 @@ percent. `docs/V2_RULING_MITIGATIONS.md` section 1 asserts that rake changes no 
 that the directional bound needs no tolerance; both are false, and the corrections live in
 decisions 4 and 5 rather than in that document, which this phase may not edit.
 
+## Re-ruled by Taylor, 2026-08-18, after running the solver himself
+
+Taylor rebuilt the ruled config in GTOpen's own interface, which surfaced two things the
+record did not have, and changed the shape of this phase.
+
+**`allin_threshold` gets a reason.** The value 0.67 was inherited from the exploration notes
+and nobody had chosen it. It is now ruled and explained under decision 2, and it stays at
+0.67.
+
+**Nothing grades this solve against GTO Wizard any more.** Decisions 6 and 6b are withdrawn
+with the parity solve they specified, decision 5's directional bound goes with them, and
+decision 4 is restated so both orderings are internal. What replaces external grading is a
+human loading the saved solve in GTOpen's interface and reading grids against the committed
+report - a better test of the pipeline, and the poker judgement stays a human's.
+
+**Hero never limps.** Ruled separately, on the finding that the committed chart limps 13.73
+percent from the small blind and then cannot play the raise that comes over the top - the
+joint-second largest hole in the refusal inventory. Decision 1 already enforces it by
+construction. Filed as `CHART-HERO-MUST-NEVER-LIMP` and `CHART-CANNOT-ANSWER-A-LIMPED-POT`,
+because the rule belongs in the chart schema, which this phase may not touch.
+
 ## What the probe established first
 
 The decisions below are written against measurements rather than estimates. The probe ran
@@ -216,6 +237,33 @@ Default:
 `limp` follows decision 1. `realization: "calibrated"` is the substantive change and it is
 not a tuning choice: the default produces a big blind that defends 99.71 percent.
 
+`allin_threshold: 0.67` was inherited from `docs/GTOPEN_SOLVER_NOTES.md` with no reasoning
+attached, and it is now ruled with one. The field snaps any raise sized at or above
+threshold times stack to a full jam and deduplicates. At 100bb with 2.5 opens and 3x
+re-raises the ladder is 2.5, 7.5, 22.5, 67.5, so 0.67 catches exactly one size: the fifth
+bet. Measured against GTOpen's own default of 0.85, which keeps 67.5 as a distinct size, the
+tree goes from 83,123 nodes to 145,590 and the node where HJ faces a 4-bet plays differently
+- fold 46.34, call 34.19, raise-to-67.5 19.47, jam 0.00 under 0.85 against fold 34.61, call
+53.56, jam 11.83 under 0.67.
+
+0.67 is kept for two reasons. A raise to 67.5 leaves 32.5 behind into a pot of about 145, so
+facing a shove hero calls with everything: the 67.5 raise and the jam are the same action,
+and a solve splitting 19.47 and 0.00 between them is choosing arbitrarily. And GTOpen prices
+all-in terminals exactly while pricing non-all-in flops through the equity model, so a
+solution that always takes 67.5 and never jams may be preferring the branch it prices
+generously rather than the better line. Collapsing them costs no strategy and removes 43
+percent of the tree.
+
+The abstraction is fragile in a way worth recording: the raise ladder is multiplicative and
+the collapse is a fraction of stack, so which sizes get collapsed depends on the opening size
+and the stack depth. Open to 2.0 instead and the ladder is 2, 6, 18, 54, nothing collapses,
+and the tree changes shape for no reason a poker player would recognise. Revisit this value
+if either the opening size or the stack depth changes.
+
+The field is also the one thing GTOpen's web UI cannot set - `web/js/preflop_lab.js` omits it
+and the server fills in 0.85 - which is why the committed solve is verified by loading the
+save rather than by rebuilding from the form.
+
 The residual limitation belongs on the source card rather than in a footnote. Even
 calibrated, this is a preflop-only model that resolves flops by scaled equity share. It is
 not a full solve, and the export should say so where anybody reading the chart will see it.
@@ -243,102 +291,129 @@ not taken, because 0.01 bb is the tool's own default and the honest reference po
 Options: gap-0.01-cap-2000 | gap-0.002-cap-5000 | gap-0.01-and-also-tighter-run-reported
 Answer: [gap-0.01-cap-2000]
 
-## 4. The orderings check, corrected
+## 4. The orderings check, restated as internal
 
 Reversibility: frozen-into-data
 
-The measured falsification is above. Rake moves the small blind's limp-versus-raise mix, so
-its position in the opening order is not structural, and the mitigations doc's claim that
-rake changes no ordering is wrong for exactly two of eleven numbers.
+Re-ruled 2026-08-18. The earlier version graded position orderings against the GTO Wizard
+reference and then argued about which of them rake preserves. That argument is unnecessary
+once the reference stops being a grader: both orderings can be stated as properties of the
+solve itself, and then they hold at any rake basis, for any solver, at any stack depth.
 
 Default:
 
-- **Big-blind defence order holds exactly, SB then BTN then CO then HJ then LJ, no
-  tolerance.** Measured to reproduce exactly under the corrected config. This is the tight
-  check, and it is the one that breaks immediately on a transposed hand index, a
-  mis-assigned actor, or an unnormalised strategy row.
-- **Opening order holds exactly among LJ, HJ, CO, BTN, no tolerance.** Later position opens
-  wider is structural and survives removing rake. Measured 18.23, 21.56, 26.90, 39.92.
-- **SB is excluded from the opening order, by name, with this reason recorded**: it is the
-  only position whose opening frequency competes with a limp, and rake is what decides that
-  mix.
-- **SB opening frequency is instead bounded below by the reference's raise-plus-limp sum**,
-  48.14 percent, since rake-free may reallocate between raising and limping but should not
-  play tighter overall. Measured 54.96.
+- **Opening order holds exactly among LJ, HJ, CO and BTN, no tolerance.** Later position
+  opens wider is a property of the game. Measured under the ruled config: 19.08, 21.64,
+  and BTN above both.
+- **SB is excluded by name, with the reason recorded**: it acts with only one opponent left,
+  and it has the worst postflop position for the rest of the hand. Which of those wins is
+  decided by rake - raked references put BTN widest, this rake-free solve puts SB widest at
+  54.09 - so its place in the order is not structural. Reported, gated by nothing.
+- **Big-blind defence must track the opening order.** For every pair of positions, if one
+  opens wider than the other, the big blind defends more against it. Exactly, no tolerance.
 
-Options: as-defaulted | full-five-position-order-as-originally-specified |
+The defence rule is the tight check and it is entirely internal: it compares the export
+against itself. A transposed hand index, a mis-assigned actor or an unnormalised strategy
+row breaks it immediately, which is what it is for. The previous version bought the same
+protection while also asserting something about GTO Wizard, and the second half was noise.
+
+The small blind's lower bound against the reference's raise-plus-limp sum is withdrawn with
+the rest of the external grading.
+
+Options: internal-orderings-only | as-previously-ruled-against-the-reference |
 orderings-on-defence-only
-Answer: [as-defaulted]
+Answer: [internal-orderings-only]
 
-## 5. The directional bound, corrected
-
-Reversibility: frozen-into-data
-
-Removing rake should widen play. Nine of ten measured numbers do. BB-versus-BTN defence
-comes back 2.55 points tighter, which between a full solver and a preflop-only
-equity-realization model is solver difference, not a defect - but a bound with no slack
-cannot say that, and the predictable response to a red check is to delete it.
-
-Default: **each of the ten opening and defence numbers must be at least the raked reference
-minus 3 percentage points, and at most one of the ten may sit below the reference at all.**
-The slack is small enough that a uniformly tighter extraction still fails on nine counts,
-and the at-most-one clause is what keeps the check from degrading into a 3-point tolerance
-everywhere. The SB limp frequency stays excluded by name, because rake's effect on limping
-is not obviously signed.
-
-Both numbers are authored here, before the committed solve, against a probe solve that is
-not the one being committed.
-
-Options: minus-3-points-at-most-one-below | zero-slack-as-originally-specified |
-minus-5-points-any-number
-Answer: [minus-3-points-at-most-one-below]
-
-## 6. The parity tolerance against the expectations file
+## 5. The directional bound - withdrawn
 
 Reversibility: frozen-into-data
 
-How far may two different solvers at a matched rake basis legitimately disagree about how
-often the big blind defends? The probe answers part of it already: at an *unmatched* basis,
-four of five opening frequencies land within about a point, while the SB limp frequency is
-out by 12 and SB opening by 19. So the disagreement is concentrated in the small blind, and
-a single tolerance across all eleven numbers will be set by its worst member.
+Withdrawn 2026-08-18 with the external grading it belonged to. It required each of ten
+numbers to be at least the raked reference minus three points, with at most one below the
+reference at all.
 
-Default: **five percentage points absolute on the eight opening and defence numbers for LJ,
-HJ, CO and BTN, and the two small-blind numbers plus the limp frequency reported without a
-pass/fail threshold.** Absolute rather than relative because the failure this check exists
-to catch is a gross error - transposed suited and offsuit, an unnormalised row - which moves
-a number by tens of points. The small-blind numbers are reported rather than gated because
-the measured difference there is a real property of removing rake and of a limp-versus-raise
-tree, and gating on it would mean fitting the tolerance to the one thing already known to
-disagree.
+Two reasons, and the first is the ruling. Grading a rake-free GTOpen solve against a raked
+GTO Wizard solve measures the difference between two products, and no threshold over that
+difference means anything about whether this extraction is correct.
 
-Options: 5-points-on-eight-report-sb | 5-points-on-all-eleven | 15-percent-relative
-Answer: [5-points-on-eight-report-sb]
+The second is that the check was already failing on its own terms. Under the ruled config HJ
+opens 21.64 against a reference of 21.65 - a hundredth of a point - which spends the single
+permitted below-reference slot on rounding, leaving the check ready to halt the phase for a
+difference nobody could defend calling a defect.
 
-## 6b. The parity solve's rake basis
+What covers the ground it claimed to cover: the internal orderings in decision 4 catch a
+broken pipeline, and a human reading grids against the same solve loaded in GTOpen catches
+what no threshold could.
+
+Options: withdrawn | minus-3-points-at-most-one-below | minus-3-points-with-an-epsilon
+Answer: [withdrawn]
+
+## 6. The parity solve and its tolerance - withdrawn
 
 Reversibility: frozen-into-data
 
-The parity solve exists to be a like-for-like comparison, and it is only that if its rake
-matches what the expectations file describes. The accepted config body in
-`docs/GTOPEN_SOLVER_NOTES.md` carries `rake_pct: 5.0` and `rake_cap: 3.0` with no stated
-derivation, and the expectations file says only "NL25 rake". If the basis is wrong the
-parity comparison measures nothing while looking like the tightest check in the phase.
+Withdrawn 2026-08-18. It specified a second solve at a matched rake basis, compared to all
+eleven reference numbers at five points absolute on eight of them, with the three
+small-blind numbers reported under no threshold.
 
-NL25 is a 25-dollar-cap game at 0.10/0.25 blinds, so the big blind is 25 cents and a rake
-cap stated in big blinds is the dollar cap divided by 0.25. A 3 bb cap is therefore a
-75-cent cap, which is in the ordinary range for the stake but is not the same claim as
-"whatever GTO Wizard's NL25 solution used".
+It was the most expensive thing in the phase and the softest. Three of its eleven numbers
+were gated by nothing by its own design, its basis was inferred rather than known (decision
+6b), and what it actually measured was how far GTOpen and GTO Wizard disagree - which is a
+fact about two products, not about this extraction. The job it was really doing, catching a
+pipeline that is self-consistent and wrong, is done better by two things that arrived after
+it was written: the converted node reproduces GTOpen's own reported frequencies to six
+decimal places, and a human compares grids against the same solve loaded in GTOpen's
+interface.
 
-Default: **`rake_pct: 5.0`, `rake_cap: 3.0`, `no_flop_no_drop: true`, and the source card
-states that this basis is inferred from the stake rather than read off the reference
-solution, so the parity comparison is a comparison at a plausible matched basis rather than
-at a confirmed one.** Recording the inference is what stops the parity result from being
-over-read.
+The reference file is not deleted. Its eleven numbers are printed beside this solve's own in
+the report, labelled as context that no check gates, because a reader comparing them by eye
+is still worth something.
 
-Options: 5pct-cap-3bb-inferred | look-up-the-reference-solution-basis-first |
-run-parity-at-two-bases-and-report-both
-Answer: [5pct-cap-3bb-inferred]
+Options: withdrawn | 5-points-on-eight-report-sb | 5-points-on-all-eleven
+Answer: [withdrawn]
+
+## 6b. The parity solve's rake basis - withdrawn
+
+Reversibility: frozen-into-data
+
+Withdrawn 2026-08-18 with decision 6. The basis was going to be inferred from the stake
+rather than read off the reference solution, which meant the tightest-looking number in the
+phase was a comparison at a plausible basis rather than a confirmed one. Removing the solve
+removes the question.
+
+Options: withdrawn | 5pct-cap-3bb-inferred | look-up-the-reference-solution-basis-first
+Answer: [withdrawn]
+
+## 6c. How the committed export is verified by a human
+
+Reversibility: frozen-into-data
+
+Added 2026-08-18. Replaces the external grading with the test Taylor asked for: rebuild the
+same setup in GTOpen and check that our numbers are its numbers.
+
+Rebuilding from the web form cannot reproduce the ruled config, because the form has no
+control for `allin_threshold` and the server defaults it to 0.85. Loading a saved solve does:
+GTOpen's save carries the full config in its header, and the UI's loader restores the built
+tree and the solved arena rather than re-posting the form.
+
+Default: **the extractor saves the solve through GTOpen's save route before walking it, the
+source card records the save's path, size and checksum, and the audit packet records a human
+loading that save in GTOpen's interface and comparing named grids against
+`reports/active/latest_solver_export_report.txt`.**
+
+What this proves and what it does not: both sides come from the same solved arena, so it is
+not two independent solves agreeing. It verifies everything on this repo's side of the
+payload - the tree walk, the hand-class mapping, the reach handling, the quantisation, the
+storage and the rendering - which is where a defect would live and where no automated check
+in this phase reaches. Whether GTOpen's poker is any good stays a human judgement on the
+grids, which is what this phase was always for.
+
+One operating note belongs with the ruling: after loading, pressing BUILD or RE-SOLVE
+re-posts the form and silently reverts the threshold to 0.85.
+
+Options: load-the-saved-solve | rebuild-from-the-web-form |
+rebuild-and-accept-a-different-threshold
+Answer: [load-the-saved-solve]
 
 ## 7. How the eleven aggregates are computed from the export
 

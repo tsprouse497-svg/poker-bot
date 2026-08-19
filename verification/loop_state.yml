@@ -1,5 +1,9 @@
 auto_advance: false
-loop: running
+halt_reason: 'The expectations design is re-ruled: no grading against GTO Wizard,
+  orderings restated as self-contained checks, parity solve dropped, verification
+  by loading the saved solve in GTOpen''s own UI. Contract and decision record change
+  before the tests are frozen.'
+loop: halted
 phase_id: '10'
 schema_version: 1
 stage: 5

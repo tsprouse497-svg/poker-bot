@@ -35,9 +35,11 @@ converter is written rather than debugged afterwards.
 The solve config is ruled rather than chosen here: six-handed, 100bb, 2.5bb opens, and
 rake-free for the export that gets committed. Those are rulings 1 through 4 in
 `docs/V2_ROADMAP.md`, with ruling 3 narrowed at this phase's human gate: limps leave the
-committed solve and stay in the parity solve. The narrowing was made on a measurement -
-limps are 87 percent of the tree and buy 21 of 3,048 corpus decision points, in branches
-the solution itself almost never enters.
+committed solve entirely. The narrowing was made on a measurement - limps are 87 percent
+of the tree and buy 21 of 3,048 corpus decision points, in branches the solution itself
+almost never enters - and it also settles a rule Taylor ruled separately on 2026-08-18:
+hero never limps. The cost is that no spot where an opponent limped can be answered from
+this export at all, which is filed rather than left implicit.
 
 Rake-free is what changes this phase's own verification, and
 `docs/V2_RULING_MITIGATIONS.md` section 1 plans it in full.
@@ -101,56 +103,65 @@ Phase 10 is limited to the work named by this contract and the active ExecPlan.
   A conditional payload needs no range intersection; an unconditional one does, and
   getting this backwards produces ranges that are self-consistent and wrong.
 
-### The expectations checks are written down before any solve runs
-- The three checks in `docs/V2_RULING_MITIGATIONS.md` section 1 exist as code with stated
-  thresholds, and are frozen by `scripts/freeze_tests.py`, before the committed solve is
-  run. The thresholds are recorded in the phase decision list with their reasoning.
-  A tolerance authored once the numbers are visible is a tolerance fitted to them. The
-  loop already enforces this ordering mechanically for tests: thresholds authored at the
-  test stage and frozen at the next one cannot be edited by the stage that runs the
-  solve, so this criterion points at that machinery rather than at good intentions.
-- `check_solver_export_expectations` computes the orderings and the directional bound
-  from the committed export itself, so it re-runs on every gate. The parity comparison is
-  a one-time measurement, and its eleven aggregates are committed alongside the export so
-  that comparison re-runs too.
+### The checks are written down before any solve runs, and they do not grade GTOpen's poker
+
+- The structural checks exist as code with stated thresholds, and are frozen by
+  `scripts/freeze_tests.py`, before the committed solve is run. Every threshold is recorded
+  in the phase decision list with its reasoning.
+  A tolerance authored once the numbers are visible is a tolerance fitted to them. The loop
+  enforces this ordering mechanically: thresholds authored at the test stage and frozen at
+  the next one cannot be edited by the stage that runs the solve, so this criterion points
+  at that machinery rather than at good intentions.
+- No gate check grades this solve's frequencies against
+  `data/artifacts/preflop/expectations/six_max_nl25_100bb.json`, and no second solve is run
+  to compare against it at a matched rake basis.
+  Ruled by Taylor on 2026-08-18, after running the solver himself. GTO Wizard is a
+  different program solving a different game - raked, with limps - and grading GTOpen's
+  poker against it measures the difference between two products rather than anything about
+  this extraction. The reference file was carrying two jobs, catching a broken pipeline and
+  judging the poker, and this phase now does each with the right instrument.
+- `check_solver_export_expectations` recomputes every number it checks from the committed
+  export on each gate run.
   A gate check that reads a number some earlier run recorded is a mirror, which is the
-  defect Phase 09 already found in this repo's own settlement oracle. What makes the
-  parity solve worth its cost is that its result stays checkable, not that it once
-  passed.
-- The big-blind defence ordering holds exactly and carries no tolerance, descending SB,
-  BTN, CO, HJ, LJ, and the opening ordering holds exactly among LJ, HJ, CO, BTN with the
-  small blind excluded by name and the exclusion's reason recorded.
-  `docs/V2_RULING_MITIGATIONS.md` claims rake moves the level of all eleven numbers and
-  the ordering of none. The probe falsified that for the small blind: rake-free reallocates
-  twelve points of small-blind limping into raising, which moves SB from second in the
-  opening order to first. Later position opens wider is structural and survives; the small
-  blind's place in that order is a limp-versus-raise mix that rake decides. A transposed
-  hand index, a mis-assigned actor, or an unnormalised strategy row still breaks the
-  surviving orderings immediately, which is what they are for.
-- The small blind's opening frequency is instead bounded below by the reference's
-  raise-plus-limp sum, 48.14 percent, since removing rake may reallocate between raising
-  and limping but should not leave the position playing tighter overall.
-  Excluding the small blind from the ordering leaves the widest-ranged position covered by
-  nothing at all, and a bound spanning both sides of the limp-versus-raise mix is the one
-  check that does not depend on which side of it rake moves.
-- The directional bound is one-sided with a stated slack, authored before the committed
-  solve: each of the ten opening and defence numbers is at least the raked expectation
-  minus a declared margin, and at most one of the ten may sit below its expectation at all.
-  The small-blind limp frequency is excluded by name, because rake's effect on how often
-  the small blind limps rather than raises is not obviously signed.
-  A zero-slack bound was the original specification and the probe failed it on one number
-  by 2.55 points, which between a full solver and a preflop-only equity-realization model
-  is solver difference rather than a defect. The at-most-one clause is what stops the slack
-  from degrading into a blanket tolerance: a uniformly tighter extraction still fails on
-  nine counts.
-- A parity solve at the NL25 rake basis, with limps in the tree, is run and compared to
-  all eleven numbers with a tolerance set for solver difference rather than for zero.
-  The expectations file reports a small-blind limp frequency, so the solve it describes
-  had limps; a no-limp parity solve would not be comparing the same thing. GTOpen is not
-  GTO Wizard, so exact agreement is not the expectation at any rake basis.
-- A tolerance may not be widened after the numbers are visible. If a check fails, the
-  phase halts and the disagreement is diagnosed, and any change to a threshold is a
-  ruling recorded with its reason.
+  defect Phase 09 already found in this repo's own settlement oracle.
+- The opening ordering holds exactly among LJ, HJ, CO and BTN, with no tolerance. Later
+  position opens wider is a property of the game rather than of any solution, so this needs
+  no external file to state.
+  The small blind is excluded by name and the reason recorded: it acts with one opponent
+  left and pays the worst postflop position, and which of those wins is decided by rake, so
+  its place in the order is not structural. Its frequency is reported and gated by nothing.
+- Big-blind defence must track the opening ordering: against a position that opens wider,
+  the big blind defends more, for every pair of positions. Exactly, with no tolerance.
+  This is the tightest check in the phase and it is entirely internal - it compares the
+  export against itself, so it holds at any rake basis, for any solver, under any stack
+  depth. A transposed hand index, a mis-assigned actor or an unnormalised strategy row
+  breaks it immediately, which is the failure it exists to catch.
+- The reference file's eleven numbers are printed beside this solve's own in the report,
+  labelled as context that no check gates.
+  They are still the only numbers in this repo that this repo did not produce, and a reader
+  comparing them by eye is the point. What is removed is the pretence that a threshold over
+  them means something.
+- A threshold may not be widened after the numbers are visible. If a check fails, the phase
+  halts and the disagreement is diagnosed, and any change is a ruling recorded with its
+  reason.
+
+### A human reproduces the solve and reads the grids
+
+- The extractor saves the solved tree through GTOpen's own save route before walking it, and
+  the source card records the save's path, size and checksum.
+  The save carries the full config in its header, including the fields the web UI has no
+  control for, so loading it restores the exact tree the export was walked from. Decision 1
+  also depends on this: a limped or wider solve later is a reload of minutes rather than a
+  fresh run.
+- The audit packet records a human loading that save in GTOpen's own interface and comparing
+  named range grids against `reports/active/latest_solver_export_report.txt`, naming which
+  grids were read and whether they matched.
+  This is what replaces grading against an outside solver, and it is a better test of the
+  thing that can go wrong silently. Both sides come from the same solved arena, so any
+  disagreement is this repo's tree walk, hand-class mapping, reach handling, quantisation,
+  storage or rendering - which is exactly where a defect would live and where no automated
+  check in this phase can reach. It is not a check on GTOpen's poker; that is the verdict
+  criterion below.
 
 ### The export is the whole solved tree, and it is auditable data
 - Every action node in the solved tree appears in the export, including
@@ -209,15 +220,11 @@ Phase 10 is limited to the work named by this contract and the active ExecPlan.
   position and big-blind defence per opener.
   The report is a human review surface and is capped like every other report, so it
   cannot hold the whole tree. It must name which spots it shows and which it omits.
-- The report puts the eleven aggregates from the committed rake-free solve, the parity
-  solve, and the expectations file side by side, and labels each comparison as an
-  ordering check, a directional bound, a tolerance comparison, or as reported under no
-  threshold at all with the reason for that stated next to it.
-  A reader must be able to tell which numbers are being held to equality and which are
-  only bounded, because that distinction is the whole content of the rake-free ruling.
-  The fourth label is not a loophole, it is a disclosure: the three small-blind parity
-  numbers are gated by nothing, and a report that does not say so reads as though eleven
-  numbers passed a check when eight did.
+- The report puts this solve's eleven aggregates beside the reference file's, and labels
+  every number as either gated by a named check or reported under no threshold at all.
+  A reader must be able to tell which numbers something would catch and which are there for
+  context. With the parity comparison gone, most of them are context: the checks that gate
+  are the two orderings, and everything else is printed to be read rather than to pass.
 - The audit packet records the human verdict as a verdict: which grids were read, and
   whether the extraction is faithful.
   This phase's stated purpose is a judgement no check performs, so a green gate without
@@ -251,6 +258,8 @@ Phase 10 is limited to the work named by this contract and the active ExecPlan.
 - Command summary with links to committed reports.
 - The four answers from the unverified list, each as a number or a stated finding.
 - The solve config as posted, and the licence gap stated as a limitation.
+- The saved solve's path and checksum, and the result of loading it in GTOpen's own
+  interface and comparing named grids against the committed report.
 - The human verdict on the range grids, naming which grids were read.
 - The recorded judgment calls and what each one changed.
 - Known limitations and deferred items.
@@ -262,8 +271,10 @@ Phase 10 is limited to the work named by this contract and the active ExecPlan.
   construction. Fixtures may stand in for a running solver in tests only once they are
   captured from a real solve and committed as such.
 - Do not infer missing strategy, chart, or hand-history behavior.
-- Do not widen an expectations tolerance, drop a check, or narrow a comparison to make
-  the extraction pass.
+- Do not widen a threshold, drop a check, or narrow a comparison to make the extraction
+  pass.
+- Do not reintroduce a pass/fail threshold over the GTO Wizard reference file. It is
+  printed for a reader, and a check over it grades one product against another.
 - Do not treat the 300-iteration smoke test in `docs/GTOPEN_SOLVER_NOTES.md` as a
   result.
 - Do not commit an export produced by a config other than the one the source card

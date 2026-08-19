@@ -92,16 +92,19 @@ Forbidden throughout:
       here too. The capture answered the last open question on the unverified list: the
       payload is unconditional, so `reach` is the only thing that conditions it.
       Evidence: `pytest_solver_export` red on a missing module, stage 4 check green.
-- [ ] **S6 - Parity solve.** `rake_pct` 5.0, `rake_cap` 3.0, `limp: true`,
-      `realization: "calibrated"`, graded against all eleven numbers in the expectations
-      file at the tolerance ruled in decision 6. Limps stay here even though they leave the
-      committed solve, because the reference file reports a limp frequency. Evidence: the
-      comparison in the report. A failure halts rather than widening a tolerance.
+- [x] **S6 - Withdrawn: the parity solve.** Taylor re-ruled the expectations design on
+      2026-08-18 after running the solver himself. Nothing grades this solve's poker against
+      GTO Wizard: decisions 6 and 6b are withdrawn with the parity solve, decision 5's
+      directional bound goes with them, and decision 4 is restated so both orderings are
+      internal to the export. Decision 6c replaces them - the extractor saves the solve and a
+      human loads that save in GTOpen's own interface to compare grids against the committed
+      report. The slice is struck rather than deleted so the record says what was removed.
 - [ ] **S7 - Committed solve and export.** Rake-free, `limp: false`, `open_raises` `[2.5]`,
       `realization: "calibrated"`, whole tree walked - all 38,828 action nodes, no filter.
-      Save the solve outside the repository first and record its path, size, and checksum,
-      so a limped or wider solve later is a reload rather than a fresh run; exercise save
-      and load rather than assuming they work. Source card carries the config verbatim, the
+      Save the solve through GTOpen's save route before walking it and record its path, size
+      and checksum - decision 6c makes the save load-bearing rather than a convenience, since
+      it is the only way a human can reproduce a config the web form cannot express. Exercise
+      save and load rather than assuming they work. Source card carries the config verbatim, the
       commit, the achieved gap, the wall clock, the determinism result, the checksum, the
       licence gap, and the equity-share model note. Evidence: node count reconciled against
       `action_nodes`; a four-bet node asserted present; measured bytes per node.
