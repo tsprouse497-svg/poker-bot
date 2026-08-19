@@ -22,6 +22,7 @@ import re
 import sys
 
 import pytest
+
 from poker_training_bot.solver_artifacts.gtopen_expectations import (
     EXPECTATIONS_PATH,
     OPENING_ORDER,
@@ -43,7 +44,6 @@ from poker_training_bot.solver_artifacts.gtopen_export_report import (
     REPORT_PATH,
     render_solver_export_report,
 )
-
 from scripts.repo_paths import REPO_ROOT
 
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -288,6 +288,7 @@ def test_the_gate_command_exits_nonzero_when_a_check_fails(tmp_path) -> None:
     """The library returning errors is not the same as the gate failing. A script that
     collects errors and returns zero anyway passes every other test in this file."""
     from check_solver_export_expectations import main as check_expectations
+
     from poker_training_bot.solver_artifacts.gtopen_export import write_solver_export
 
     broken = tmp_path / "broken.json.gz"

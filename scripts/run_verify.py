@@ -48,10 +48,17 @@ def uv_python_command() -> list[str]:
 
 
 def ruff_command() -> list[str]:
+    """Lint the tree, without reading what an earlier run left behind.
+
+    `--no-cache` is not tidiness. Phase 10 shipped a green `ruff_check` past two unsorted
+    import blocks in a frozen test, because `.ruff_cache` held a clean verdict for those
+    files from a run whose module classification differed. A gate command whose answer
+    depends on the machine rather than on the tree is not a check.
+    """
     uv = uv_command()
     if uv is not None:
-        return uv + ["run", "ruff", "check", "."]
-    return [sys.executable, "-m", "ruff", "check", "."]
+        return uv + ["run", "ruff", "check", "--no-cache", "."]
+    return [sys.executable, "-m", "ruff", "check", "--no-cache", "."]
 
 
 COMMANDS = {

@@ -1,8 +1,11 @@
-task_id: null
+task_id: MAINT-RUFF-CACHE
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 9ca71dd7783370b60017592dd6be7a6b8554d7fb
+approved_scope:
+  - tests/test_solver_expectations.py
+  - verification/freeze.lock
+  - scripts/run_verify.py
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -396,3 +399,11 @@ scope_change_log:
       scope it was already carrying, and reads as a widening only because base_commit moved to
       that repair commit. Nothing new is approved, and tests/ and verification/freeze.lock stay
       out, so the builder still cannot reach the tests it is measured by.
+  - date: 2026-08-19
+    reason: >-
+      ruff_check passed on the phase 10 branch and fails with --no-cache: two import blocks in
+      a test frozen since stage 4 are unsorted, and the gate had been reading a result some
+      earlier run left in .ruff_cache. A command whose answer depends on the machine rather
+      than the tree is not a check, which is the decorative-gate defect this repo has fixed
+      twice already. MAINT-RUFF-CACHE needs the test file, the freeze lock recording it, and
+      run_verify.py for the one flag. It touches no poker, no artifact and no evidence.
