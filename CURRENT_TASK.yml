@@ -1,8 +1,16 @@
-task_id: null
+task_id: maint-phase-dag
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: contract-update
+base_commit: 32849762b0798fc2b8a35d85893b1849117769f2
+approved_scope:
+  - docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md
+  - docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
+  - docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md
+  - docs/phase_contracts/PHASE_13_TABLE_STATE.md
+  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+  - docs/phase_contracts/PHASE_15_DRILL.md
+  - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
+  - docs/ROADMAP.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -279,3 +287,15 @@ scope_change_log:
       both new commands, the freeze lock recording the tests, docs/LOOP.md, and AGENTS.md.
       verification/loop_runs/** joins standing_scope for the same reason loop_state.yml is there:
       it is the driver's own pointer and no human writes a judgment into it.
+  - date: 2026-08-19
+    reason: >-
+      The v2 contracts were declared with depends_on as a straight chain, which was sequence
+      rather than semantics: nothing read the field, so nothing tested it. scripts/loop_fleet.py
+      now plans from it, and under the chain the fleet is a fleet of one. docs/V2_ROADMAP.md
+      already argues a looser graph phase by phase, and Taylor ruled on 2026-08-18 to adopt it:
+      phase 10 depends only on 09 because a solver export is written in the solver's own
+      vocabulary and needs none of the format work, phase 11 depends only on 09 because it sits
+      ahead of every measurement, 12 and 13 each depend on 11 and on each other not at all, and
+      14 joins 10, 12 and 13. That is a semantic change to seven contracts, so it lands in
+      contract-update mode on its own, and docs/ROADMAP.md carries the graph so a reader meets
+      it where the sequence is stated.

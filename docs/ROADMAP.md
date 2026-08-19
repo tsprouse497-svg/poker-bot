@@ -11,15 +11,33 @@ It produced a deterministic engine, a replayer that refuses out-of-order hands, 
 
 Phases 10 through 16 are declared at `future` in `phase_status.yml`, each with a contract skeleton, an audit packet path, and an entry in `verification/loop_policy.yml`.
 
-| Phase | Title | Auto-advance |
-|-------|-------|--------------|
-| 10 | Solver Extraction, And A Human Verdict On It | no, commits the export |
-| 11 | Engine And Query Fidelity | yes |
-| 12 | Spot Vocabulary V2 | no, re-derives the artifact |
-| 13 | Table-State Fidelity | yes |
-| 14 | Chart Cutover | no, commits the chart the bot plays |
-| 15 | The Drill | no, commits session records |
-| 16 | Postflop That Can Bet | no, and cannot start until a postflop source exists |
+| Phase | Title | Depends on | Auto-advance |
+|-------|-------|------------|--------------|
+| 10 | Solver Extraction, And A Human Verdict On It | 09 | no, commits the export |
+| 11 | Engine And Query Fidelity | 09 | yes |
+| 12 | Spot Vocabulary V2 | 11 | no, re-derives the artifact |
+| 13 | Table-State Fidelity | 11 | yes |
+| 14 | Chart Cutover | 10, 12, 13 | no, commits the chart the bot plays |
+| 15 | The Drill | 14 | no, commits session records |
+| 16 | Postflop That Can Bet | 15 | no, and cannot start until a postflop source exists |
+
+This is a graph rather than a queue, and `scripts/loop_fleet.py` plans from it, so up to three phases can be in flight at once.
+
+```
+09 ─┬─ 10 ──────────────┐
+    │                   │
+    └─ 11 ─┬─ 12 ───────┼── 14 ── 15 ── 16
+           └─ 13 ───────┘
+```
+
+The two edges the sequence does not have are the point of it.
+Phase 10 hangs off 09 rather than off the format work because a solver export is written in the solver's own vocabulary, so capturing one depends on nothing this repo has yet decided.
+Phase 11 hangs off 09 because it sits ahead of every measurement: a phase that fixes measurement bugs after the measurements are taken invalidates them.
+Phases 12 and 13 then split, one changing what the artifact can express and the other what the runtime query can carry, which the loop's freeze-then-build discipline handles better one axis at a time.
+Phase 14 is where they rejoin, because deriving the chart needs the export, the vocabulary, and the query all at once.
+
+`depends_on` in the contracts is the single source for that graph.
+`check_repo_consistency` rejects an edge naming a phase that does not exist and any cycle, because both would surface as a fleet reporting nothing eligible and calling it ordinary waiting.
 
 Declared is not specified.
 Every contract above carries boilerplate acceptance criteria and placeholder command IDs, which stage 1 of the loop replaces in `contract-update` mode before the phase can go active.

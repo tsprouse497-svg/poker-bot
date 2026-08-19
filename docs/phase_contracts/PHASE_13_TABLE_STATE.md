@@ -2,7 +2,7 @@
 phase_id: "13"
 title: "Table-State Fidelity"
 depends_on:
-  - "12"
+  - "11"
 required_gate_commands:
   - pytest_table_state
 required_reports:

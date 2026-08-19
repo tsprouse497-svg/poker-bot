@@ -2,6 +2,8 @@
 phase_id: "14"
 title: "Chart Cutover"
 depends_on:
+  - "10"
+  - "12"
   - "13"
 required_gate_commands:
   - pytest_chart_cutover

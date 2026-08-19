@@ -2,7 +2,7 @@
 phase_id: "11"
 title: "Engine And Query Fidelity"
 depends_on:
-  - "10"
+  - "09"
 required_gate_commands:
   - pytest_engine_fidelity
 required_reports:
