@@ -1,10 +1,20 @@
-task_id: phase-10-contract-expectations-reruled
+task_id: phase-10-implementation
 active_phase: "10"
-task_mode: contract-update
-base_commit: 1dc9666669bf696e4622abed3b7141d7215f2d42
+task_mode: implementation
+base_commit: 31446f994487cf3de661c2e04cbce5a49abbbba3
 approved_scope:
-  - docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md
-  - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
+  - src/poker_training_bot/solver_artifacts/**
+  - scripts/extract_gtopen_preflop.py
+  - scripts/check_solver_export_expectations.py
+  - scripts/generate_solver_export_report.py
+  - scripts/run_verify.py
+  - scripts/check_file_sizes.py
+  - data/artifacts/preflop/exports/**
+  - tests/test_solver_export.py
+  - tests/test_solver_expectations.py
+  - verification/freeze.lock
+  - verification/mutations.yml
+  - reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
   - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -282,6 +292,12 @@ scope_change_log:
       so reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/** joins approved_scope. The stage-1
       review found six problems in the contract it reviewed, all fixed inside the contract, which is
       why the notes and the contract land in the same commit.
+  - date: 2026-08-18
+    reason: >-
+      The re-ruling lands after the tests were authored, so the loop pointer is rewound from
+      stage 5 to stage 4 rather than freezing tests that describe a contract nobody holds any
+      more. stage_base stays at the commit before the contract-update, so the stage-4 review
+      covers the re-ruling and the reworked tests together.
   - date: 2026-08-18
     reason: >-
       Taylor re-ruled the expectations design on 2026-08-18, after running the solver himself.

@@ -23,10 +23,7 @@ from pathlib import Path
 
 import pytest
 from poker_training_bot.solver_artifacts.gtopen_expectations import (
-    EXPECTATIONS_PATH,
     aggregate_frequencies,
-    directional_bound_errors,
-    load_expectations,
     ordering_errors,
 )
 from poker_training_bot.solver_artifacts.gtopen_export import (
@@ -469,7 +466,8 @@ def complete_card() -> dict:
             "bytes_per_node": 1.0,
             "bytes_per_expressible_spot": 1.0,
         },
-        "saved_solve": {"path": "~/gtopen-saves/x.gto", "bytes": 1, "sha256": "0" * 64},
+        "saved_solve": {"path": "gtopen-saves/six-max-100bb-rakefree", "bytes": 1,
+                        "sha256": "0" * 64},
         "export_sha256": "0" * 64,
     }
 
@@ -480,7 +478,17 @@ def test_a_complete_card_reports_nothing() -> None:
 
 @pytest.mark.parametrize(
     "field",
-    ["determinism", "solve", "licence", "model", "conditioning", "node_counts", "walk", "size"],
+    [
+        "determinism",
+        "solve",
+        "licence",
+        "model",
+        "conditioning",
+        "node_counts",
+        "walk",
+        "size",
+        "saved_solve",
+    ],
 )
 def test_a_card_missing_a_required_block_fails(field: str) -> None:
     card = complete_card()
@@ -573,12 +581,10 @@ def test_the_committed_export_offers_no_limp(committed: SolverExport) -> None:
     assert "limp" not in {action.kind for node in committed.nodes for action in node.actions}
 
 
-def test_the_committed_export_passes_its_own_expectations(committed: SolverExport) -> None:
-    expectations = load_expectations(EXPECTATIONS_PATH)
-    measured = aggregate_frequencies(committed)
-
-    assert ordering_errors(measured, expectations) == []
-    assert directional_bound_errors(measured, expectations) == []
+def test_the_committed_export_passes_both_orderings(committed: SolverExport) -> None:
+    """Both are internal to the export, so this asserts the solve is self-consistent
+    rather than that it agrees with another solver."""
+    assert ordering_errors(aggregate_frequencies(committed)) == []
 
 
 def test_the_committed_card_is_complete_and_matches_the_export(committed: SolverExport) -> None:

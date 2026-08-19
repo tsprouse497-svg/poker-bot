@@ -104,3 +104,74 @@ rather than in a note of its own.
   nothing is measured wrongly, but the parenthetical leaves the next reader unable to tell
   which reading the phase meant. Filed in `backlog.yml` for the next contract-update rather
   than halting the loop a second time for a gloss.
+
+---
+
+# Stage 04 Review, second pass - after the expectations re-ruling
+
+The loop was rewound from stage 5 to stage 4 rather than freezing tests that described a
+contract nobody holds any more. `stage_base` stays at `1dc9666`, so this pass covers the
+contract-update commit `31446f9` and the reworked tests together.
+
+Same question, re-asked of the new tests: would each fail against a plausible wrong
+implementation, and does it assert on real behaviour rather than on state rebuilt from the
+code under test?
+
+## Blocker
+
+- [resolved] **Half the test file described withdrawn checks.** The directional bound, its
+  at-most-one clause, the parity tolerance and the small blind's lower bound were all
+  authored against the pre-ruling contract, and stage 5 was one command away from freezing
+  them. Removed with the decisions they came from.
+
+- [resolved] **The replacement ordering check had to be written as a relation, not a list.**
+  The obvious rewrite - keep the old tuple and delete the reference comparison - would have
+  hardcoded LJ < HJ < CO < BTN < SB for defence, which is only true while the small blind
+  opens widest, which is a rake-dependent fact and precisely what the re-ruling removed. It
+  is now "the big blind defends more against whoever opens wider, pair by pair", and a test
+  pins that a scrambled-but-consistent arrangement passes. Without that test the relation
+  and a hardcoded list are indistinguishable.
+
+## Non-blocker
+
+- **The re-ruling is asserted, not just described.**
+  `test_a_solve_nowhere_near_the_reference_still_passes_every_check` halves every frequency
+  and requires green. Under the withdrawn bound that failed on ten counts. If someone wires
+  a reference threshold back in, that test goes red and names why.
+
+- **A withdrawn threshold can survive as a module constant**, which is how a deleted check
+  comes back. `test_the_expectations_module_exposes_no_tolerance_over_the_reference` scans
+  the module's namespace for TOLERANCE, SLACK, PARITY and DIRECTIONAL and requires none.
+  Crude, and it would miss a constant named something else, but it catches the copy-paste
+  route which is the likely one.
+
+- **The record is now load-bearing in a way the tests check.** Three decisions were ruled
+  and then unruled, and a later reader finding a specification for a check that does not
+  exist would rebuild it. `test_the_withdrawn_decisions_are_recorded_as_withdrawn` fails if
+  the record stops saying so.
+
+- **The internal orderings are strictly weaker than what they replace in one respect.**
+  Nothing now checks absolute levels automatically. A solve whose every frequency is half
+  what it should be passes both orderings, and that is deliberate - it is the same property
+  that makes them rake-independent. What covers it is decision 6c's human comparison and
+  the config pin in the reader, and the audit packet should say so rather than letting a
+  green gate imply more than it proves.
+
+- **Decision 6c's verification is not two independent solves agreeing**, and the tests do
+  not claim it is. Both sides come from the same solved arena. What it verifies is this
+  repo's walk, mapping, reach handling, quantisation and rendering. Worth restating in the
+  packet, because "a human checked it against the solver" reads stronger than it is.
+
+- **Three report tests now depend on the report naming the saved solve and its checksum.**
+  That is new surface area for the report generator at stage 8, and it comes from decision
+  6c: a comparison against "whatever is currently loaded" is not a comparison.
+
+## Alignment
+
+- `CHART-HERO-MUST-NEVER-LIMP` - nothing in the chart schema forbids a call weight in a
+  folded-to-hero spot, and the committed chart limps 13.73 percent from the small blind
+  across 103 hand classes. Phase 14 owns the schema. Filed in `backlog.yml`.
+- `CHART-CANNOT-ANSWER-A-LIMPED-POT` - a no-limp solve can answer no spot where an opponent
+  limped, and phase 14 will lose the one such spot the chart answers today. Filed in
+  `backlog.yml`.
+- `PHASE-10-CONTRACT-MISCOUNTS-THE-FOUR-BET` - unchanged from the first pass, still open.

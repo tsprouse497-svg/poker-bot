@@ -1,16 +1,19 @@
-"""Phase 10: the three expectations checks, and the report a human reaches a verdict from.
+"""Phase 10: the checks over the export, and the report a human reaches a verdict from.
 
-`data/artifacts/preflop/expectations/six_max_nl25_100bb.json` holds the only numbers in
-this repo that this repo did not produce, which makes it the one thing that can catch an
-extraction that is uniformly wrong rather than merely self-consistent. Against a rake-free
-solve it is a gross-error check and not an equality check, so what it supports is two
-orderings, a one-sided bound, and a separate parity solve at a matched rake basis.
+Nothing here grades this solve's poker against another solver. Ruled on 2026-08-18: GTO
+Wizard is a different program solving a different game, raked and with limps, so a
+threshold over the gap between them measures the difference between two products rather
+than anything about this extraction. `six_max_nl25_100bb.json` is still printed beside our
+own numbers as context a reader can compare by eye, and nothing gates on it.
 
-Every threshold here was ruled in
-`reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md` before any solve
-ran, and this file is frozen before the solve stage begins. A tolerance authored once the
-numbers are visible is a tolerance fitted to them, so one test below reads the ruled record
-and fails when a constant drifts away from what the human answered.
+What gates instead is internal. Later position opens wider is a property of the game, and
+big-blind defence tracking the opening order is a relation the export must satisfy against
+itself - which means it holds at any rake basis, for any solver, at any stack depth, and
+still breaks the moment a hand index is transposed or an actor mis-assigned.
+
+The rest of the assurance is a human: decision 6c has the extractor save the solve, and a
+person loads that save in GTOpen's own interface and reads range grids against the
+committed report. No test can stand in for that, and these tests do not pretend to.
 """
 
 from __future__ import annotations
@@ -20,21 +23,14 @@ import sys
 
 import pytest
 from poker_training_bot.solver_artifacts.gtopen_expectations import (
-    DEFENCE_ORDER,
-    DIRECTIONAL_SLACK_PCT,
     EXPECTATIONS_PATH,
-    MAX_NUMBERS_BELOW_EXPECTATION,
     OPENING_ORDER,
     OPENING_ORDER_EXCLUSIONS,
-    PARITY_GATED_KEYS,
-    PARITY_REPORTED_KEYS,
-    PARITY_TOLERANCE_PCT,
     Aggregates,
     aggregate_frequencies,
-    directional_bound_errors,
     load_expectations,
     ordering_errors,
-    parity_rows,
+    reference_rows,
 )
 from poker_training_bot.solver_artifacts.gtopen_export import (
     QUANTISATION_SCALE,
@@ -75,10 +71,11 @@ RULED_CONFIG = {
     "realization": "calibrated",
 }
 
-# Indicative of the ruled config as the probe measured it, and comfortably passing every
-# check below. Each test moves one number to show what the check is actually holding.
-PASSING_OPENS = {"LJ": 19.08, "HJ": 22.4, "CO": 28.5, "BTN": 40.9, "SB": 54.09}
-PASSING_DEFENCE = {"LJ": 27.28, "HJ": 30.1, "CO": 34.0, "BTN": 40.2, "SB": 49.0}
+# The ruled config as stage 4 measured it, for the four numbers that were captured. The
+# rest are indicative and consistent with them. Each test moves one number to show what
+# the check is holding.
+MEASURED_OPENS = {"LJ": 19.08, "HJ": 21.64, "CO": 27.50, "BTN": 40.90, "SB": 54.09}
+MEASURED_DEFENCE = {"LJ": 27.28, "HJ": 30.10, "CO": 34.00, "BTN": 40.20, "SB": 49.00}
 
 
 def aggregates(open_pct: dict, defence_pct: dict, limp_pct: float = 0.0) -> Aggregates:
@@ -87,17 +84,17 @@ def aggregates(open_pct: dict, defence_pct: dict, limp_pct: float = 0.0) -> Aggr
     )
 
 
-def passing() -> Aggregates:
-    return aggregates(PASSING_OPENS, PASSING_DEFENCE)
+def measured() -> Aggregates:
+    return aggregates(MEASURED_OPENS, MEASURED_DEFENCE)
 
 
-def ruled_answer(decision_number: int) -> str:
+def ruled_answer(decision: str) -> str:
     """The bracketed answer the human ruled for one numbered decision."""
     text = DECISIONS_PATH.read_text(encoding="utf-8")
-    section = re.split(rf"^## {decision_number}\.", text, flags=re.M)
-    assert len(section) == 2, f"decision {decision_number} is not in the ruled record"
+    section = re.split(rf"^## {re.escape(decision)}\.", text, flags=re.M)
+    assert len(section) == 2, f"decision {decision} is not in the ruled record"
     match = re.search(r"^Answer: \[([^\]]+)\]", section[1], flags=re.M)
-    assert match, f"decision {decision_number} carries no bracketed answer"
+    assert match, f"decision {decision} carries no bracketed answer"
     return match.group(1)
 
 
@@ -128,11 +125,85 @@ def one_node_export(split: tuple[int, int, int]) -> SolverExport:
 
 
 # --------------------------------------------------------------------------- #
-# The reference file, and the orderings: decision 4
+# The orderings, which are internal: decision 4
 # --------------------------------------------------------------------------- #
 
 
-def test_the_reference_file_is_the_one_this_repo_did_not_produce() -> None:
+def test_the_measured_solve_passes_both_orderings() -> None:
+    assert ordering_errors(measured()) == []
+
+
+def test_later_position_opens_wider_holds_exactly() -> None:
+    """No tolerance, because this is a property of the game rather than of a solution.
+
+    It needs no external file to state, which is the whole point of restating it: the
+    previous version asserted the same thing and also asserted something about GTO Wizard.
+    """
+    swapped = dict(MEASURED_OPENS)
+    swapped["CO"], swapped["HJ"] = swapped["HJ"], swapped["CO"]
+    assert ordering_errors(aggregates(swapped, MEASURED_DEFENCE))
+
+    barely = dict(MEASURED_OPENS)
+    barely["CO"] = barely["HJ"] - 0.01
+    assert ordering_errors(aggregates(barely, MEASURED_DEFENCE))
+
+
+def test_the_small_blind_is_out_of_the_opening_order_by_name_and_with_a_reason() -> None:
+    """It acts with one opponent left and has the worst postflop position for the rest of
+    the hand. Which of those wins is decided by rake, so its place is not structural."""
+    assert OPENING_ORDER == ("LJ", "HJ", "CO", "BTN")
+    assert "SB" not in OPENING_ORDER
+    assert len(OPENING_ORDER_EXCLUSIONS["SB"]) > 40
+
+    for value in (5.0, 54.09, 95.0):
+        loose = dict(MEASURED_OPENS) | {"SB": value}
+        assert ordering_errors(aggregates(loose, MEASURED_DEFENCE)) == []
+
+
+def test_big_blind_defence_must_track_the_opening_order() -> None:
+    """The tight check, and it compares the export against itself.
+
+    Against a position that opens wider the big blind defends more, for every pair. A
+    transposed hand index, a mis-assigned actor or an unnormalised row breaks this at once.
+    """
+    inverted = dict(MEASURED_DEFENCE)
+    inverted["CO"], inverted["BTN"] = inverted["BTN"], inverted["CO"]
+
+    errors = ordering_errors(aggregates(MEASURED_OPENS, inverted))
+
+    assert errors
+    assert any("CO" in error and "BTN" in error for error in errors)
+
+
+def test_the_defence_relation_covers_the_small_blind_even_though_the_order_does_not() -> None:
+    """SB leaves the opening order because rake decides where it sits. It stays in the
+    defence relation, because wherever it sits the big blind must defend accordingly."""
+    opens = dict(MEASURED_OPENS) | {"SB": 54.09}
+    defence = dict(MEASURED_DEFENCE) | {"SB": 30.0}
+
+    errors = ordering_errors(aggregates(opens, defence))
+
+    assert any("SB" in error for error in errors)
+
+
+def test_the_relation_is_not_a_hardcoded_position_list() -> None:
+    """If the small blind opened tightest, the big blind should defend least against it.
+
+    A check that pins a fixed order would fail this arrangement; a relation passes it,
+    which is what makes it hold at any rake basis.
+    """
+    opens = dict(MEASURED_OPENS) | {"SB": 12.0}
+    defence = dict(MEASURED_DEFENCE) | {"SB": 18.0}
+
+    assert ordering_errors(aggregates(opens, defence)) == []
+
+
+# --------------------------------------------------------------------------- #
+# Nothing gates on the reference file
+# --------------------------------------------------------------------------- #
+
+
+def test_the_reference_file_still_holds_the_numbers_this_repo_did_not_produce() -> None:
     expectations = load_expectations(EXPECTATIONS_PATH)
 
     assert expectations.opening_pct["BTN"] == 40.56
@@ -140,174 +211,73 @@ def test_the_reference_file_is_the_one_this_repo_did_not_produce() -> None:
     assert expectations.limp_pct["SB"] == 13.73
 
 
-def test_the_ruled_orderings_pass() -> None:
-    assert ordering_errors(passing(), load_expectations(EXPECTATIONS_PATH)) == []
+def test_a_solve_nowhere_near_the_reference_still_passes_every_check() -> None:
+    """The re-ruling, stated as a test rather than as prose in a decision record.
 
-
-def test_the_defence_order_admits_no_tolerance_at_all() -> None:
-    """The tight check, and the one a transposed hand index breaks immediately."""
-    expectations = load_expectations(EXPECTATIONS_PATH)
-    swapped = dict(PASSING_DEFENCE)
-    swapped["SB"], swapped["BTN"] = swapped["BTN"], swapped["SB"]
-    assert ordering_errors(aggregates(PASSING_OPENS, swapped), expectations)
-
-    barely = dict(PASSING_DEFENCE)
-    barely["CO"] = barely["HJ"] - 0.01
-    assert ordering_errors(aggregates(PASSING_OPENS, barely), expectations)
-
-
-def test_the_opening_order_covers_four_positions_and_names_its_exclusion() -> None:
-    """Decision 4. The small blind leaves the order because rake decides its
-    limp-versus-raise mix, and the exclusion carries its reason rather than being silent."""
-    assert OPENING_ORDER == ("LJ", "HJ", "CO", "BTN")
-    assert DEFENCE_ORDER == ("LJ", "HJ", "CO", "BTN", "SB")
-    assert len(OPENING_ORDER_EXCLUSIONS["SB"]) > 40
-
-    expectations = load_expectations(EXPECTATIONS_PATH)
-    out_of_place = dict(PASSING_OPENS) | {"SB": 60.0}
-    assert ordering_errors(aggregates(out_of_place, PASSING_DEFENCE), expectations) == []
-
-    swapped = dict(PASSING_OPENS)
-    swapped["CO"], swapped["HJ"] = swapped["HJ"], swapped["CO"]
-    assert ordering_errors(aggregates(swapped, PASSING_DEFENCE), expectations)
-
-
-def test_the_small_blind_is_bounded_below_by_raise_plus_limp() -> None:
-    """What replaces the ordering check for the widest-ranged position.
-
-    Removing rake may reallocate between raising and limping but should not leave the
-    position playing tighter overall. The bound is read off the reference file rather than
-    written down, so it moves when the reference does instead of describing an older one.
+    These frequencies are half the reference's and internally consistent. Under the
+    withdrawn directional bound that failed on ten counts. It now passes, because whether
+    GTOpen agrees with GTO Wizard is not something this phase measures.
     """
-    expectations = load_expectations(EXPECTATIONS_PATH)
-    bound = expectations.opening_pct["SB"] + expectations.limp_pct["SB"]
-    assert bound == pytest.approx(48.14)
+    opens = {position: value / 2 for position, value in MEASURED_OPENS.items()}
+    defence = {position: value / 2 for position, value in MEASURED_DEFENCE.items()}
 
-    below = dict(PASSING_OPENS) | {"SB": bound - 0.01}
-    assert ordering_errors(aggregates(below, PASSING_DEFENCE), expectations)
-
-    above = dict(PASSING_OPENS) | {"SB": bound + 0.01}
-    assert ordering_errors(aggregates(above, PASSING_DEFENCE), expectations) == []
+    assert ordering_errors(aggregates(opens, defence)) == []
 
 
-# --------------------------------------------------------------------------- #
-# The directional bound: decision 5
-# --------------------------------------------------------------------------- #
+def test_every_reference_row_is_labelled_as_gated_by_nothing() -> None:
+    """Printed for a reader to compare by eye, and labelled so nobody reads it as a check."""
+    rows = reference_rows(measured(), load_expectations(EXPECTATIONS_PATH))
+
+    assert len(rows) == 11
+    assert {row.label for row in rows} == {"reported"}
+    assert all(row.reference is not None and row.measured is not None for row in rows)
 
 
-def test_the_directional_bound_allows_three_points_and_no_more() -> None:
-    """The slack exists because a 2.55-point miss on one number, between a full solver and
-    a preflop-only equity-realization model, is solver difference rather than a defect."""
-    expectations = load_expectations(EXPECTATIONS_PATH)
+def test_the_expectations_module_exposes_no_tolerance_over_the_reference() -> None:
+    """A withdrawn threshold that survives as a module constant is a threshold waiting to
+    be wired back in by someone who did not read the ruling."""
+    from poker_training_bot.solver_artifacts import gtopen_expectations
 
-    inside = dict(PASSING_DEFENCE)
-    inside["BTN"] = expectations.defence_pct["BTN"] - DIRECTIONAL_SLACK_PCT + 0.01
-    assert directional_bound_errors(aggregates(PASSING_OPENS, inside), expectations) == []
+    leftovers = [
+        name
+        for name in dir(gtopen_expectations)
+        if any(word in name.upper() for word in ("TOLERANCE", "SLACK", "PARITY", "DIRECTIONAL"))
+    ]
 
-    outside = dict(PASSING_DEFENCE)
-    outside["BTN"] = expectations.defence_pct["BTN"] - DIRECTIONAL_SLACK_PCT - 0.01
-    assert directional_bound_errors(aggregates(PASSING_OPENS, outside), expectations)
-
-
-def test_at_most_one_number_may_sit_below_its_expectation() -> None:
-    """The clause that stops the slack degrading into a blanket three-point tolerance."""
-    expectations = load_expectations(EXPECTATIONS_PATH)
-    defence = dict(PASSING_DEFENCE)
-    defence["BTN"] = expectations.defence_pct["BTN"] - 1.0
-    assert directional_bound_errors(aggregates(PASSING_OPENS, defence), expectations) == []
-
-    opens = dict(PASSING_OPENS)
-    opens["CO"] = expectations.opening_pct["CO"] - 1.0
-    errors = directional_bound_errors(aggregates(opens, defence), expectations)
-
-    assert errors
-    assert any(str(MAX_NUMBERS_BELOW_EXPECTATION) in error for error in errors)
-
-
-def test_a_uniformly_tighter_extraction_still_fails_on_nine_counts() -> None:
-    """The failure the bound is actually for, and the slack does not admit it."""
-    expectations = load_expectations(EXPECTATIONS_PATH)
-    opens = {key: value - 4.0 for key, value in expectations.opening_pct.items()}
-    defence = {key: value - 4.0 for key, value in expectations.defence_pct.items()}
-
-    assert len(directional_bound_errors(aggregates(opens, defence), expectations)) >= 9
-
-
-def test_the_small_blind_limp_is_excluded_from_the_bound_by_name() -> None:
-    """Rake's effect on how often the small blind limps rather than raises is not obviously
-    signed, and a directional check must not be extended to a guess. Under the ruled config
-    the number is zero by construction, and that alone must not fail the bound."""
-    expectations = load_expectations(EXPECTATIONS_PATH)
-
-    assert directional_bound_errors(passing(), expectations) == []
+    assert leftovers == []
 
 
 # --------------------------------------------------------------------------- #
-# The parity comparison: decision 6
+# The record and the code say the same thing
 # --------------------------------------------------------------------------- #
 
 
-def test_parity_gates_eight_numbers_and_reports_three() -> None:
-    """Gating the small blind would mean fitting the tolerance to the one thing already
-    measured to disagree, so it is reported instead - reported, not dropped."""
-    assert len(PARITY_GATED_KEYS) == 8
-    assert set(PARITY_REPORTED_KEYS) == {"open:SB", "defence:SB", "limp:SB"}
-
-    expectations = load_expectations(EXPECTATIONS_PATH)
-    parity = aggregates(
-        dict(expectations.opening_pct), dict(expectations.defence_pct), limp_pct=1.38
-    )
-    parity.opening_pct["SB"] = 12.0
-
-    rows = parity_rows(parity, expectations)
-
-    assert {row.key for row in rows} == set(PARITY_GATED_KEYS) | set(PARITY_REPORTED_KEYS)
-    assert [row.key for row in rows if row.failed] == []
-    assert {row.label for row in rows if row.key in PARITY_REPORTED_KEYS} == {"reported"}
-
-
-def test_parity_fails_a_gated_number_outside_the_tolerance() -> None:
-    """Absolute rather than relative, because the failure this exists to catch - transposed
-    suited and offsuit, an unnormalised row - moves a number by tens of points."""
-    expectations = load_expectations(EXPECTATIONS_PATH)
-    parity = aggregates(dict(expectations.opening_pct), dict(expectations.defence_pct))
-    parity.opening_pct["BTN"] += PARITY_TOLERANCE_PCT + 0.01
-
-    assert [row.key for row in parity_rows(parity, expectations) if row.failed] == ["open:BTN"]
-
-
-# --------------------------------------------------------------------------- #
-# The thresholds are the ruled ones, and the check reads the export
-# --------------------------------------------------------------------------- #
-
-
-def test_every_threshold_matches_what_was_ruled() -> None:
-    """A tolerance may not be widened after the numbers are visible.
-
-    The loop enforces the ordering mechanically by freezing this file before the solve
-    runs. This closes the other half: a constant edited without a matching re-ruling in
-    the decision record fails here, so code and record cannot drift apart quietly.
-    """
-    slack = re.search(r"minus-(\d+)-points", ruled_answer(5))
-    assert slack and DIRECTIONAL_SLACK_PCT == float(slack.group(1))
-    assert "at-most-one-below" in ruled_answer(5)
-    assert MAX_NUMBERS_BELOW_EXPECTATION == 1
-
-    parity = re.match(r"(\d+)-points-on-eight", ruled_answer(6))
-    assert parity and PARITY_TOLERANCE_PCT == float(parity.group(1))
-
-    scale = re.search(r"basis-points-0-(\d+)", ruled_answer(8))
+def test_the_thresholds_that_remain_match_what_was_ruled() -> None:
+    """A threshold may not be widened once the numbers are visible. The loop enforces the
+    ordering by freezing this file before the solve; this closes the other half, so a
+    constant cannot drift from the decision record without failing here."""
+    scale = re.search(r"basis-points-0-(\d+)", ruled_answer("8"))
     assert scale and QUANTISATION_SCALE == int(scale.group(1))
 
-    gap = re.search(r"gap-([\d.]+)-cap-(\d+)", ruled_answer(3))
+    gap = re.search(r"gap-([\d.]+)-cap-(\d+)", ruled_answer("3"))
     assert gap and SOLVE_TARGET_GAP_BB == float(gap.group(1))
     assert SOLVE_ITERATION_CAP == int(gap.group(2))
 
 
+def test_the_withdrawn_decisions_are_recorded_as_withdrawn() -> None:
+    """Decisions 5, 6 and 6b were ruled once and then unruled. The record has to say so, or
+    a later reader finds a specification for a check that does not exist and rebuilds it."""
+    for decision in ("5", "6", "6b"):
+        assert ruled_answer(decision) == "withdrawn"
+
+    assert ruled_answer("4") == "internal-orderings-only"
+    assert ruled_answer("6c") == "load-the-saved-solve"
+
+
 def test_the_byte_limit_is_the_ruled_twenty_megabytes() -> None:
     """Decision 9. `data/artifacts/**` is covered by no size check at all today, so a
-    12 MB artifact and a 40 MB one commit with nothing objecting."""
-    limit = re.match(r"(\d+)MB-total", ruled_answer(9))
+    12 MB artifact and a 40 MB one both commit with nothing objecting."""
+    limit = re.match(r"(\d+)MB-total", ruled_answer("9"))
     assert limit
 
     assert dict(DIRECTORY_BYTE_LIMITS)["data/artifacts"] == int(limit.group(1)) * 1024 * 1024
@@ -315,11 +285,8 @@ def test_the_byte_limit_is_the_ruled_twenty_megabytes() -> None:
 
 
 def test_the_gate_command_exits_nonzero_when_a_check_fails(tmp_path) -> None:
-    """The library functions returning errors is not the same as the gate failing.
-
-    `check_solver_export_expectations` is what the gate runs, and a script that collects
-    errors and returns zero anyway passes every other test in this file.
-    """
+    """The library returning errors is not the same as the gate failing. A script that
+    collects errors and returns zero anyway passes every other test in this file."""
     from check_solver_export_expectations import main as check_expectations
     from poker_training_bot.solver_artifacts.gtopen_export import write_solver_export
 
@@ -331,8 +298,7 @@ def test_the_gate_command_exits_nonzero_when_a_check_fails(tmp_path) -> None:
 
 def test_the_aggregates_are_recomputed_from_the_export_rather_than_recalled() -> None:
     """A gate check that reads a number an earlier run wrote is a mirror, which is the
-    defect Phase 09 found in this repo's own settlement oracle. Perturbing the export has
-    to move the answer."""
+    defect Phase 09 found in this repo's own settlement oracle."""
     before = aggregate_frequencies(one_node_export((8000, 2000, 0)))
     after = aggregate_frequencies(one_node_export((5000, 5000, 0)))
 
@@ -341,7 +307,7 @@ def test_the_aggregates_are_recomputed_from_the_export_rather_than_recalled() ->
 
 
 # --------------------------------------------------------------------------- #
-# The report a human reaches a verdict from: decision 11
+# The report a human reaches a verdict from: decisions 11 and 6c
 # --------------------------------------------------------------------------- #
 
 
@@ -357,30 +323,35 @@ def test_the_report_shows_the_ruled_spots_and_says_what_it_omits() -> None:
     assert re.search(r"omitted:? +\d+ spots", text)
 
 
-def test_every_comparison_in_the_report_carries_one_of_the_four_labels() -> None:
-    """A reader must be able to tell which numbers are held to equality, which are only
-    bounded, and which are gated by nothing at all."""
+def test_the_report_tells_a_reader_which_numbers_something_checks() -> None:
     assert REPORT_PATH.exists(), "the report has not been generated yet"
     text = REPORT_PATH.read_text(encoding="utf-8")
 
-    assert set(COMPARISON_LABELS) == {"ordering", "directional", "tolerance", "reported"}
+    assert set(COMPARISON_LABELS) == {"gated", "reported"}
     for label in COMPARISON_LABELS:
         assert label in text
 
 
-def test_the_renderer_labels_a_reported_number_as_gated_by_nothing() -> None:
+def test_the_report_names_the_saved_solve_a_human_has_to_load() -> None:
+    """Decision 6c. The verification is loading that save in GTOpen and comparing grids, so
+    the report has to say which file, or the comparison is against whatever is open."""
+    assert REPORT_PATH.exists(), "the report has not been generated yet"
+    text = REPORT_PATH.read_text(encoding="utf-8")
+
+    assert "saved solve" in text.lower()
+    assert re.search(r"[0-9a-f]{64}", text)
+
+
+def test_the_renderer_labels_a_reference_number_as_gated_by_nothing() -> None:
     """Checked against a rendering rather than only the committed file, so the label is a
     property of the code and not of one lucky run."""
-    measured = passing()
-
     text = render_solver_export_report(
         export=one_node_export((8000, 2000, 0)),
-        measured=measured,
-        parity=measured,
+        measured=measured(),
         expectations=load_expectations(EXPECTATIONS_PATH),
     )
 
-    reported_lines = [line for line in text.splitlines() if "limp" in line.lower() and "SB" in line]
-    assert reported_lines
-    for line in reported_lines:
+    reference_lines = [line for line in text.splitlines() if "40.56" in line]
+    assert reference_lines
+    for line in reference_lines:
         assert "reported" in line
