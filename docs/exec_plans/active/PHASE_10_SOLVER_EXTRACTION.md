@@ -187,3 +187,15 @@ Context the next session needs and will not otherwise find:
   still stands. Do not author a threshold from that document.
 - Two backlog items came out of the limp ruling and belong to Phase 14, not here:
   `CHART-HERO-MUST-NEVER-LIMP` and `CHART-CANNOT-ANSWER-A-LIMPED-POT`.
+- **This branch predates the parallel loop that landed on `main` on 2026-08-19, and three
+  things follow.** Work in the primary worktree `~/projects/poker-bot`; `main` is checked
+  out at `~/projects/poker-bot-worktrees/main` and lanes live beside it. This branch's
+  `scripts/loop_stage.py` has no `--phase` flag, so run the driver bare. Do not merge or
+  rebase `main` in mid-phase: `base_commit` measures the scope diff, so pulling it in drags
+  sibling changes into this task and fails `check_scope`.
+- Integration is therefore a merge at closeout, not a sync during the phase. From the `main`
+  worktree, `scripts/loop_fleet.py --integrate 10` prints the runbook. `main` has moved, so
+  expect conflicts: regenerate `verification/freeze.lock` rather than resolving it by hand,
+  keep both sides of `verification/mutations.yml` and of `COMMANDS` in
+  `scripts/run_verify.py`, and regenerate the three generated documents. Re-run the full
+  gate and `check_gate_bite` on the merged result before tagging.
