@@ -96,6 +96,15 @@ It is limited to the work named by this contract and the active ExecPlan.
   rather than by sampling: for every legal-action set the engine can produce
   postflop, at every street, the fallback returns a `StrategyDecision`.
   It never refuses postflop, never raises an exception, and never returns nothing.
+  Amended by Phase 11 (`FALLBACK-FAIL-CLOSED-CAN-CALL`): "never refuses postflop"
+  is restated as what this enumeration actually proves, which is that it never
+  refuses from a legal-action set the engine can produce. A contract-valid
+  `StrategyQuery` carrying a set the engine cannot produce - `("raise",)`, offering
+  no passive action at all - does get a postflop refusal, and that is the correct
+  fail-closed answer rather than a defect. The fail-closed branch takes `fold` when
+  `fold` is legal and refuses otherwise; it never calls, because a branch reached
+  because the chosen action was unavailable must not answer by investing in a hand
+  that can lose.
 - The enumeration covers every postflop legal-action set the engine's own
   `legal_actions` can produce, in both the free and the facing-a-bet shapes, and
   includes a hero whose whole remaining stack is less than the price to call.

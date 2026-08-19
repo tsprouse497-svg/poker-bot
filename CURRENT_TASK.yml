@@ -4,6 +4,8 @@ task_mode: contract-update
 base_commit: 1b8314c43dd0abd2962b9ee1e8ddd5055ddd9f66
 approved_scope:
   - docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
+  - docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
+  - docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md
   - reports/phase_audits/decisions/PHASE_11_ENGINE_FIDELITY_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_11_ENGINE_FIDELITY/**
 standing_scope:
@@ -479,3 +481,16 @@ scope_change_log:
       the choices about how far each of the six inherited defects is fixed are ruled on
       before any code is written. Task metadata, phase status, the lane pointer, the
       ExecPlan and the generated docs pass through standing_scope.
+  - date: 2026-08-19
+    reason: >-
+      Two completed contracts state behaviour phase 11 deliberately changes, and a fix that
+      leaves the contract behind it saying the opposite is a fix the next reader has to
+      adjudicate. The Phase 03 criterion states the reopening rule in the form decision 3
+      replaces, and the Phase 06 criterion states that the fallback never refuses postflop
+      in a form its own enumeration never proved. Both are semantic, so they are amended
+      while this task is still in contract-update mode and before any test is frozen
+      against them; both join approved_scope for those criteria and nothing else. The
+      Phase 01 and Phase 02 contracts, which docs/V2_ROADMAP.md also expected this phase to
+      touch, are deliberately not in scope: they carry only boilerplate criteria under the
+      CONTRACT-CRITERIA-BACKFILL exemption, so they contradict nothing and backfilling them
+      is not this phase's work.
