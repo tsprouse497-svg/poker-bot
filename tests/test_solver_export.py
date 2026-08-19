@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 
 import pytest
+
 from poker_training_bot.solver_artifacts.gtopen_expectations import (
     aggregate_frequencies,
     ordering_errors,
@@ -42,7 +43,6 @@ from poker_training_bot.solver_artifacts.gtopen_export import (
     source_card_errors,
     write_solver_export,
 )
-
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES, hand_class_grid_index
 from scripts.repo_paths import REPO_ROOT
 

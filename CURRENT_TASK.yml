@@ -1,16 +1,10 @@
-task_id: phase-10-implementation
+task_id: phase-10-repair-a-frozen-import-block
 active_phase: "10"
 task_mode: implementation
-base_commit: 0490b4ae583d1d8c258a492cdc9e9d972826b253
+base_commit: 810109ee62d172f4701ffa7e4fe4efb75939bf31
 approved_scope:
-  - src/poker_training_bot/solver_artifacts/**
-  - scripts/extract_gtopen_preflop.py
-  - scripts/check_solver_export_expectations.py
-  - scripts/generate_solver_export_report.py
-  - data/artifacts/preflop/exports/**
-  - verification/mutations.yml
-  - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
-  - reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
+  - tests/test_solver_export.py
+  - verification/freeze.lock
   - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -391,3 +385,11 @@ scope_change_log:
       the ExecPlan, and the decision record. The decision record joins approved_scope for that
       one capitalisation and nothing else - no ruling, option, answer or reason changes, which
       is what keeps a typographic edit out of contract-update mode.
+  - date: 2026-08-19
+    reason: >-
+      The gate fails ruff on the import block of a frozen phase test, which is the same defect
+      Phase 08 shipped as a 101-character line: stage 4's check runs the phase's pytest command
+      rather than the gate, so a lint failure in an authored test stays latent until stage 7.
+      Reordering an import block changes no assertion, but it changes the file, so the freeze
+      lock is rewritten with it and both land in their own task with the builder files out of
+      scope.
