@@ -1,19 +1,13 @@
 task_id: phase-10-implementation
 active_phase: "10"
 task_mode: implementation
-base_commit: 74fdb11c86245ae59d9a7e3c4484c1c197ccc39b
+base_commit: 46403b2870fa262b383cdd4c1a0fb3d663d9980a
 approved_scope:
   - src/poker_training_bot/solver_artifacts/**
   - scripts/extract_gtopen_preflop.py
   - scripts/check_solver_export_expectations.py
   - scripts/generate_solver_export_report.py
-  - scripts/run_verify.py
-  - scripts/check_file_sizes.py
   - data/artifacts/preflop/exports/**
-  - tests/test_solver_export.py
-  - tests/test_solver_expectations.py
-  - verification/freeze.lock
-  - verification/mutations.yml
   - reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
   - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
 standing_scope:
@@ -352,3 +346,14 @@ scope_change_log:
       verification/ due to leave at the freeze in the entry below. Recorded because a
       widening that is really a restoration still has to be said out loud rather than
       inferred from a commit message.
+  - date: 2026-08-19
+    reason: >-
+      Loop stage 5 narrows scope so the builder cannot reach the tests it is measured by.
+      tests/ and verification/ leave approved_scope and check_scope.py enforces that
+      mechanically for the rest of the phase. scripts/run_verify.py and
+      scripts/check_file_sizes.py leave with them: the three command IDs and the ruled 20 MB
+      data/artifacts limit were authored at stage 4 and are what stage 4's frozen tests
+      assert, so a builder editing either file would be editing its own specification.
+      base_commit moves to the freeze commit so the diff is measured from there rather than
+      from the start of the phase, which is what keeps work that was legitimately in scope
+      at stage 4 from reading as out of scope afterwards.
