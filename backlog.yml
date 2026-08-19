@@ -474,3 +474,22 @@ items:
       files at stage 4, and require that at least one test in the file reaches an assertion
       even when the module is missing. It belongs to whoever owns loop_stage.py, not to a phase
       that noticed it.
+  - id: REALIZATION-MODEL-UNDERPRICES-POSITION
+    status: deferred
+    phase: "14"
+    title: The button opens tighter than a raked reference and the big blind defends tight
+    reason: >-
+      GTOpen's preflop engine has no postflop play in it: a flop resolves at a pot_share
+      terminal that splits by equity share, scaled by a per-seat realization weight. Two
+      numbers in the committed rake-free export show what that costs. The button opens 40.26
+      percent against a raked GTO Wizard reference's 40.56 - removing rake should not make the
+      widest-opening non-blind position tighter, and the button's edge is almost entirely
+      postflop position, which a scalar weight is the only part of the model that can express.
+      The big blind defends 27.28 percent against a lowjack opening 19 percent while laying
+      1.5 to win 4.5, which is 570 of 1326 combos, and 49.02 percent against a small blind
+      opening 54 percent. Both are tight against what a full postflop solve gives at those
+      prices, and both are the same mechanism seen from opposite sides. It is not an
+      extraction defect: GTOpen's own interface shows the same numbers for the same save. It
+      matters to phase 14, which decides whether a chart derived from this export is played,
+      and the honest options are to accept the bias and record it in the chart's source card,
+      to correct it with a stated adjustment, or to solve elsewhere.

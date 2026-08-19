@@ -50,24 +50,45 @@ GRID_RANKS = "AKQJT98765432"
 
 
 def four_bet_node(export: SolverExport) -> tuple[str, SolverNode | None]:
-    """LJ opens, HJ three-bets, LJ four-bets, HJ to act.
+    """LJ opens, HJ three-bets, everyone between folds, LJ four-bets, HJ to act.
 
-    Chosen by label rather than by counting raises: GTOpen names its own raise levels, and
-    the contract's "fourth raise counting the open as the first" and the solver's "4-bet"
-    are the same node under two readings.
+    The folds are the point. After HJ three-bets the action passes to CO, not back to LJ,
+    so taking the next raise at every node walks into CO four-betting a three-bet it faces
+    from behind - a line the solution enters almost never and which is not the spot anybody
+    means by "LJ opens and HJ has to play a four-bet". The seats have to be folded through.
+
+    Raise levels are found by GTOpen's own labels: the contract's "fourth raise counting the
+    open as the first" and the solver's "4-bet" are the same node under two readings. The
+    label is built from the seats the walk actually landed on rather than asserted, because a
+    report naming the wrong seats is worse than one showing no four-bet at all - a reviewer
+    comparing it against GTOpen would navigate somewhere else and call it a mismatch.
     """
+    by_path = export.by_path()
     node = opening_node(export, "LJ")
-    for needle in ("Raise 2.5", "3-bet", "4-bet"):
-        if node is None:
-            return "HJ vs LJ 4-bet", None
-        index = next(
-            (i for i, action in enumerate(node.actions) if needle in action.label), None
-        )
+    if node is None:
+        return "4-bet line", None
+    opener = node.actor_pos
+    for needle in ("Raise 2.5", "3-bet"):
+        index = next((i for i, a in enumerate(node.actions) if needle in a.label), None)
         if index is None:
-            return "HJ vs LJ 4-bet", None
-        child = export.by_path().get((*node.path, index))
-        node = child
-    return "HJ vs LJ 4-bet", node
+            return "4-bet line", None
+        node = by_path.get((*node.path, index))
+        if node is None:
+            return "4-bet line", None
+    while node.actor_pos != opener:
+        fold = next((i for i, a in enumerate(node.actions) if a.kind == "fold"), None)
+        if fold is None:
+            return "4-bet line", None
+        node = by_path.get((*node.path, fold))
+        if node is None:
+            return "4-bet line", None
+    index = next((i for i, a in enumerate(node.actions) if "4-bet" in a.label), None)
+    if index is None:
+        return "4-bet line", None
+    facing = by_path.get((*node.path, index))
+    if facing is None:
+        return "4-bet line", None
+    return f"{facing.actor_pos} vs {opener} 4-bet", facing
 
 
 def selected_spots(export: SolverExport) -> list[tuple[str, SolverNode | None]]:
