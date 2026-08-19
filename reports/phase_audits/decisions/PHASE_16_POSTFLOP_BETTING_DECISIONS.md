@@ -33,8 +33,29 @@ The action summary in a spot key is therefore a handle on a pair of ranges, not 
 
 And generation stays sequential even though storage does not.
 Villain's turn range is whatever he would bet and check with on the flop, which is the flop solution.
-So enumerating turn spots requires the flop spots first, and one flop spot fans out to 47 turns and about 2,160 rivers.
-That fan-out, rather than the preflop cross product, is what bounds this phase.
+So enumerating turn spots requires the flop spots first.
+
+### The counts, and what is actually known about them
+
+An earlier version of this file gave the fan-out as 47 turns and about 2,160 rivers.
+That is hero's view, counting cards he cannot see because he holds two of them.
+A spot in the artifact is keyed by the board rather than by hero's hand, so the right counts are 49 turn cards and 48 rivers.
+
+Per preflop line covered:
+
+| Depth | Spots |
+|---|---|
+| Flop | 1,755 |
+| Flop + turn | 1,755 + 85,995 |
+| All three streets | 1,755 + 85,995 + 4,127,760 |
+
+Two things about that table are assumptions rather than measurements, and both are stated here so nothing downstream quotes them as facts.
+
+The 1,755 is per preflop line and has to be multiplied by however many lines decision 3 covers.
+And no solve in this repo has ever been timed to a real exploitability target: only a 300-iteration preflop smoke test was ever run, and solve time and determinism are both still on phase 10's unverified list.
+So affordability at any depth is unmeasured.
+
+What survives that is the ratio rather than the absolute: the turn is about 49 times a flop and the river about 2,350 times, whatever a flop turns out to cost. Every conclusion below rests on the ratio only.
 
 ## 1. How deep the committed solution goes
 
@@ -49,7 +70,12 @@ Default: **flop only.** The bot gets a real flop strategy that can bet and raise
 
 The cost of that default, stated rather than buried: the bot bets a flop and then goes quiet, which is a worse experience than never betting at all if a drill deals past the flop. Whether that matters is evidence phase 15 produces.
 
-Answer:
+Answer: [Ruled by Taylor, 2026-08-19] **Flop only.**
+
+Every flop, against a small head of common preflop lines: prune hard on the axis where pruning is real, and stay complete on the axis where completeness is cheap.
+The turn waits on `POSTFLOP-BOARD-ABSTRACTION` from decision 2, which is what makes 85,995 turn spots into a tractable number, and it is deferred with it.
+
+The accepted cost is the one above. A bot that bets a flop and then checks or folds every turn is a bot with a visible seam, and phase 15's drill is where that either matters or does not.
 
 ## 2. What the bot does on a board it holds no cell for
 
@@ -59,7 +85,7 @@ Any canonical subset smaller than all 1,755 flops guarantees the bot meets board
 
 So this is a boundary question, not an implementation detail. Either the rule holds and the bot refuses on an unsolved texture, or the rule is amended for board texture specifically, which is a `contract-update` to `AGENTS.md` in its own right.
 
-Default: **solve all 1,755 flops and keep the boundary.** With a flop-only solution the runout fan-out is gone, so the full canonical set is the thing that removes the question rather than answers it, and the bot never faces a flop it has no cell for. If 1,755 proves unaffordable once solve time is measured, the fallback is a subset plus refusal, never a subset plus abstraction.
+Default: **solve all 1,755 flops and keep the boundary.** With a flop-only solution the runout fan-out is gone, so the full canonical set is the thing that removes the question rather than answers it, and the bot never faces a flop it has no cell for. If 1,755 per line proves unaffordable once solve time is measured, the fallback is fewer preflop lines, then a flop subset plus refusal, and never a subset plus abstraction.
 
 Answer: [Ruled by Taylor, 2026-08-19] Take the default, and defer abstraction rather than reject it.
 Grouping similar flops so the bot plays them identically will eventually be needed, and it is filed as `POSTFLOP-BOARD-ABSTRACTION` rather than left as an unstated intention.
@@ -77,7 +103,22 @@ Only lines that see a flop matter, which is far fewer than the 1,691 six-handed 
 
 Default: rank the lines by how often the corpus and the drill actually reach them, take the head of that distribution, and record the covered set explicitly so a refusal names a line that was excluded rather than one that was forgotten. `reports/active/latest_refusal_inventory.txt` is the precedent and already works this way preflop.
 
-Answer:
+Answer: [Ruled by Taylor, 2026-08-19] Take the default. **A small head of common lines, grown later by adding artifacts.**
+
+This is the axis where pruning is honest, and it is the opposite of the flop axis.
+Preflop lines have a real long tail: some come up constantly and most almost never, which the refusal inventory already demonstrates for preflop spots.
+Canonical flops do not. The 1,755 classes come up at broadly comparable rates, so there is no head to solve, which is why decision 1 keeps all of them and this one keeps very few lines.
+
+That also settles what GTOpen's 47, 95 and 184 flop subsets are for here, which is nothing.
+They are study sets: a human reads texture patterns off a report. As a bot's lookup table a 47-flop subset covers 2.7% of flops and refuses the rest, so it is only usable with the abstraction decision 2 defers.
+
+Growing this later is cheap and it is the pattern the repo already runs, verified rather than assumed:
+
+- `PreflopChartLibrary.__init__` takes a sequence of artifacts, sorts them, and rejects only a genuine duplicate spot key, so an added artifact file needs no code change.
+- The lookup fail-closes, so an added spot strictly adds capability and cannot alter a spot already covered.
+- `reports/active/latest_refusal_inventory.txt` ranks the gap by how many real hands reached each missing cell, most-reached first, and regenerates every gate run.
+
+What is *not* cheap later is the spot key itself. Adding spots at a fixed key is additive; changing what the key can express re-derives every committed cell, which is why phase 12 sits ahead of phase 14 and why the ordering rule is format before data. So the one thing this phase must get right up front is the postflop spot key, and coverage may start as small as it likes.
 
 ## 4. Exploitability target, and whether the solve is reproducible
 

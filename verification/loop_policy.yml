@@ -102,15 +102,17 @@ phases:
       product judgement no test settles.
   "16":
     auto_advance: false
-    needs_human_data: true
+    needs_human_data: false
     reason: >-
-      A source exists. GTOpen solves postflop as its main function and the Preflop Lab
-      phase 10 uses is the bolt-on, so what is missing is a ruling on scope rather than
-      a solver. A postflop solve is per board and per preflop line, and each street's
-      ranges are the previous street's output, so one flop spot fans out to 47 turns and
-      about 2,160 rivers. The phase cannot start until Taylor rules how deep the
-      committed solution goes and what the bot does on a board it holds no cell for,
-      because the second answer either keeps the fail-closed boundary or amends it, and
-      a session must not make that call by quietly writing a board abstraction. The
-      questions are in
-      reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md.
+      No longer gated on a human input. It was declared blocked on a postflop sizing
+      source that does not exist, which was wrong: GTOpen solves postflop as its main
+      function and the Preflop Lab phase 10 uses is the bolt-on. The three rulings that
+      replaced that premise were made on 2026-08-19 and are recorded in
+      reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md: flop only,
+      every canonical flop against a small head of common preflop lines, and board
+      abstraction deferred rather than rejected as POSTFLOP-BOARD-ABSTRACTION. It still
+      does not auto-advance, because it commits the solution the bot plays postflop and
+      committed data is where a wrong assumption becomes permanent. One judgment call
+      stays open by design: the exploitability target and whether a solve is reproducible
+      are inherited from phase 10's measurements rather than ruled here, so stage 3
+      halts if phase 10 never produced them.

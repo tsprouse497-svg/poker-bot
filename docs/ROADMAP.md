@@ -57,4 +57,4 @@ Two things are owed before phase 10 starts.
 - Large corpus ingestion beyond one player's own hands.
 - Runtime solver calls.
 - Stack-depth bucketing, which stays a heuristic no matter how many depths get solved.
-- Board abstraction, grouping similar flops so the bot plays them identically (`POSTFLOP-BOARD-ABSTRACTION`). Ruled later rather than never on 2026-08-19. It buys depth, not breadth: all 1,755 canonical flops is affordable, so a flop-only solution needs none of it, while the turn and river cannot exist without it.
+- Board abstraction, grouping similar flops so the bot plays them identically (`POSTFLOP-BOARD-ABSTRACTION`). Ruled later rather than never on 2026-08-19. It buys depth, not breadth: a flop-only solution covers every canonical flop and so needs none of it, while the turn's 85,995 spots and the river's 4.1 million per preflop line cannot exist without it.

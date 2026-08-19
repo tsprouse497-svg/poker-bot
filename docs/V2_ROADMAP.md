@@ -212,13 +212,15 @@ A committed postflop artifact does not have to be a joint solved tree.
 A spot is self-contained in its board, both ranges, pot, stacks and sizes, so the artifact can be a library of independent per-street spots keyed the way the preflop chart already is, and the bot can evaluate each street from the board, its hand, and a summary of prior action.
 What does not decouple is ranges: postflop strategy is range against range rather than a function of hero's two cards, so the same hand on the same board plays differently after `LJ open, BTN call` than after `BTN open, BB 3-bet, BTN call`, and the action summary in a spot key is a handle on a pair of ranges rather than history for its own sake.
 Generation also stays sequential even where storage does not, because villain's turn range is whatever he would bet and check with on the flop.
-One flop spot is therefore 47 turn spots and roughly 2,160 river spots, and that fan-out bounds this phase rather than the preflop cross product does.
-The leading option is flop only, with turn and river refusing the way an uncovered preflop spot refuses today.
+A spot is keyed by the board rather than by hero's hand, so one flop spot is 49 turn spots and 48 rivers below each of those: per preflop line covered, 1,755 flops, 85,995 turns, and 4,127,760 rivers.
+No solve in this repo has been timed to a real exploitability target, so affordability at any depth is unmeasured and only the ratio is safe to reason from: the turn is about 49 times a flop and the river about 2,350 times.
+Ruled flop only on 2026-08-19, with turn and river refusing the way an uncovered preflop spot refuses today, and every canonical flop against a small head of common preflop lines.
 
 The second is what the bot does on a board it holds no cell for.
 Suit isomorphism is exact and GTOpen already exploits it internally; rank texture is not, and mapping an unsolved `K72r` onto a solved `Q83r` is precisely the heuristic guessing `AGENTS.md` forbids.
-Flop-only removes the runout fan-out, which is what makes solving all 1,755 flops the option that dissolves this question rather than answering it.
-If measured solve time rules that out, the fallback is a subset plus refusal and never a subset plus abstraction, and amending the boundary for board texture would be its own `contract-update`.
+Flop-only removes the runout fan-out, which is what makes every canonical flop the option that dissolves this question rather than answering it: pruning is real on the preflop-line axis and nearly absent on the flop axis, where the 1,755 classes come up at broadly comparable rates.
+GTOpen's 47, 95 and 184 flop subsets are study sets for a human reading texture patterns; as a bot's lookup table a 47-flop subset covers 2.7% of flops.
+If measured solve time rules the full set out, the fallback is fewer preflop lines, then a flop subset plus refusal, and never a subset plus abstraction. Amending the boundary for board texture would be its own `contract-update`.
 
 There is a cheap intermediate that needs no new data: call a river bet when equity against the unseen deck beats the price (`POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK`).
 It is an assumption rather than a fact about the hand, and it would make the bot over-call the way it currently over-folds, so it is worth building only if real opponents bet at it.
