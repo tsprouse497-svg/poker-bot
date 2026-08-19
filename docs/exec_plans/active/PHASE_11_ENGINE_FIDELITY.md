@@ -79,10 +79,13 @@ Forbidden throughout:
 
 ## Slices
 
-- [ ] **S1 - Contract.** Replace the skeleton's boilerplate with acceptance criteria a
-      check can fail on, one per inherited defect, each naming the behaviour that must
-      change and the evidence that proves it. Evidence: `loop_stage.py --advance` clears
-      stage 1, plus the stage-1 review note.
+- [x] **S1 - Contract.** Seven criteria groups replacing the boilerplate: one per inherited
+      defect, one for the upstream contract amendments, and one for evidence and reports.
+      Command IDs settled as `pytest_engine_fidelity` and `generate_engine_fidelity_report`,
+      report as `reports/active/latest_engine_fidelity_report.txt`. The stage-1 review found
+      three problems in the contract it reviewed and all three were fixed inside it, which
+      is why the notes and the contract land in the same commit. Evidence:
+      `loop_stage.py --advance` clears stage 1.
 - [ ] **S2 - Decisions.** The judgment calls each fix carries, with a reversibility class
       on every one. The load-bearing ones are how far the reopening rule goes, whether a
       free fold is accepted everywhere or only on replay, and whether the fail-closed
@@ -109,11 +112,17 @@ Forbidden throughout:
 
 ## Verification
 
-Command IDs: `pytest_engine_fidelity`, plus the full base gate through
-`scripts/run_verify.py` and `scripts/check_gate_bite.py`.
-Reports: `reports/active/latest_verify.txt`.
-The contract's final command IDs and reports are settled at S1; the frontmatter above them
-is the skeleton's proposal, not a commitment.
+Command IDs: `pytest_engine_fidelity`, `generate_engine_fidelity_report`, plus the full
+base gate through `scripts/run_verify.py` and `scripts/check_gate_bite.py`.
+Reports: `reports/active/latest_engine_fidelity_report.txt`.
+
+Both command IDs are declared by the contract and registered in `COMMANDS` in
+`scripts/run_verify.py` at stage 4, alongside the tests that assert them, on the Phase 10
+precedent. Until then `check_repo_consistency` reports both as unregistered, which is the
+expected mid-phase state and not a defect. The one-line
+`GATE-COMMAND-DESCRIPTION-NAMES-A-WITHDRAWN-CHECK` fix lives in the same file and
+therefore lands at stage 4 with them, because stage 5 removes `run_verify.py` from
+`approved_scope`.
 
 ## Outcome
 
