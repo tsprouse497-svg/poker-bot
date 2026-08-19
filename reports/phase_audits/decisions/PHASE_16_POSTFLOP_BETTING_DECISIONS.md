@@ -61,7 +61,13 @@ So this is a boundary question, not an implementation detail. Either the rule ho
 
 Default: **solve all 1,755 flops and keep the boundary.** With a flop-only solution the runout fan-out is gone, so the full canonical set is the thing that removes the question rather than answers it, and the bot never faces a flop it has no cell for. If 1,755 proves unaffordable once solve time is measured, the fallback is a subset plus refusal, never a subset plus abstraction.
 
-Answer:
+Answer: [Ruled by Taylor, 2026-08-19] Take the default, and defer abstraction rather than reject it.
+Grouping similar flops so the bot plays them identically will eventually be needed, and it is filed as `POSTFLOP-BOARD-ABSTRACTION` rather than left as an unstated intention.
+Not now, because at flop-only depth the full canonical set removes the need entirely, and an abstraction built where nothing requires it is a heuristic nobody can measure.
+
+What that ruling also settles, worth stating because it was not asked directly: abstraction is the enabling condition for **depth**, not for breadth.
+All 1,755 flops is affordable; 1,755 turns and rivers is roughly 3.8 million spots and is not.
+So the turn is not a matter of solving more of the same thing, and deferring abstraction defers the turn with it.
 
 ## 3. Which preflop lines get a postflop solution
 

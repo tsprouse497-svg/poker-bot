@@ -118,6 +118,21 @@ items:
       fail-closed is fold-or-refuse and never call, and both codes want a direct unit
       test. Found by the Phase 06 stage 8 mechanical review, which could not fix it
       because tests/ was out of scope for that phase after the freeze.
+  - id: POSTFLOP-BOARD-ABSTRACTION
+    status: deferred
+    phase: charts
+    title: Group similar flops so the bot plays them identically
+    reason: >-
+      Ruled by Taylor on 2026-08-19: eventually needed, deliberately later. Suit isomorphism is
+      exact and every solver exploits it; grouping by rank texture so an unsolved K72r reads off a
+      solved Q83r is a heuristic, and AGENTS.md forbids heuristic guessing for missing chart
+      spots, so adopting it is a boundary amendment rather than an optimisation. It is not needed
+      for breadth: all 1755 canonical flops is affordable, so a flop-only solution never meets a
+      texture it has no cell for. It is needed for depth, because 1755 flops times their turns and
+      rivers is roughly 3.8 million spots. So this item is what unblocks the turn, and until it is
+      taken the committed solution stops at the flop and later streets refuse. Building it before
+      anything requires it would produce an abstraction nobody can measure against a solved
+      baseline.
   - id: V2-POSTFLOP-STRATEGY
     status: deferred
     phase: "16"

@@ -1,8 +1,10 @@
-task_id: null
+task_id: maint-board-abstraction-deferred
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: f7dc21f5c1e1af6e2ca27d099c5d2746890eb668
+approved_scope:
+  - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
+  - docs/ROADMAP.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -310,3 +312,12 @@ scope_change_log:
       all four and records the two rulings the phase is actually gated on, with defaults, in a
       decision file under reports/phase_audits/decisions/. No phase contract changes and nothing
       is implemented; the acceptance criteria still belong to phase 16's own stage 1.
+  - date: 2026-08-19
+    reason: >-
+      Taylor ruled on phase 16 judgment call 2: take the default and keep the fail-closed
+      boundary, but defer board abstraction rather than reject it, since grouping similar flops
+      so the bot plays them identically will eventually be needed. A ruling recorded only in a
+      conversation is a ruling the next session re-asks, so it lands in the decision record with
+      the reason, and the deferred work is filed as POSTFLOP-BOARD-ABSTRACTION in backlog.yml
+      with the roadmap's deferred list pointing at it. Needs the decision record and
+      docs/ROADMAP.md; backlog.yml and docs/BACKLOG.md are standing scope.
