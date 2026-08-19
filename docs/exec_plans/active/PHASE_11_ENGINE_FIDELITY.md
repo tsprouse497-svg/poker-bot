@@ -86,20 +86,26 @@ Forbidden throughout:
       three problems in the contract it reviewed and all three were fixed inside it, which
       is why the notes and the contract land in the same commit. Evidence:
       `loop_stage.py --advance` clears stage 1.
-- [ ] **S2 - Decisions.** The judgment calls each fix carries, with a reversibility class
-      on every one. The load-bearing ones are how far the reopening rule goes, whether a
-      free fold is accepted everywhere or only on replay, and whether the fail-closed
-      branch folds or refuses. Evidence: stage 2 check green.
-- [ ] **S3 - Human gate.** Any `frozen-into-data` call ruled by Taylor. Expected to be
-      thin: the phase writes no data, so most calls should be `runtime-reversible`.
+- [x] **S2 - Decisions.** Nine judgment calls, every one `runtime-reversible`, which is
+      right because the phase commits no data. Written against measurements taken on this
+      branch rather than against the backlog's prose, and two of those measurements
+      contradicted a stage-1 criterion, so the contract was corrected here. Two deferrals
+      filed as backlog entries. Evidence: stage 2 check green.
+- [x] **S3 - Human gate.** Nothing blocks: no `frozen-into-data` call exists. Decision 3,
+      the reopening rule, is flagged in the record as the one call worth a human's eyes
+      that the loop will not stop for, and is reported to Taylor rather than buried.
       Evidence: stage 3 check green.
-- [ ] **S4 - Upstream contract amendments.** Whatever S2 shows is contradicted in the
-      Phase 01, 02, 03, and 06 contracts, in `contract-update` mode, before any test is
-      authored against it. Evidence: the amended contracts and their review note.
-- [ ] **S5 - Tests.** Authored before implementation, one file, each defect pinned by a
-      test that fails against today's behaviour and a test that the corrected behaviour
-      is not over-applied. Evidence: `pytest_engine_fidelity` red at stage 4, on
-      assertions rather than on an import error.
+- [x] **S4 - Upstream contract amendments.** Phase 03's reopening criterion and Phase 06's
+      "never refuses postflop" criterion, both amended in `contract-update` mode before any
+      test was authored against them. The Phase 01 and Phase 02 contracts, which the roadmap
+      also expected, carry only boilerplate under the `CONTRACT-CRITERIA-BACKFILL` exemption
+      and so contradict nothing. Evidence: commit `62b5dd7`.
+- [x] **S5 - Tests.** `tests/test_engine_fidelity.py`: 49 tests, 28 red on assertions
+      against today's behaviour and 21 green as the over-application guards. Two frozen
+      tests of completed phases moved with them, because this phase's fixes make them
+      assert the old behaviour. Four canaries authored here rather than at stage 7,
+      against the text the implementation must produce - which is the miss phases 08, 09
+      and 10 each recorded. Evidence: stage 4 check green.
 - [ ] **S6 - Freeze.** `tests/` and `verification/` leave `approved_scope`. Evidence:
       stage 5 check green.
 - [ ] **S7 - Build.** The six fixes. Evidence: every command the contract declares green.

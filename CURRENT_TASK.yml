@@ -1,12 +1,21 @@
-task_id: phase-11-contract
+task_id: phase-11-implementation
 active_phase: "11"
-task_mode: contract-update
-base_commit: 1b8314c43dd0abd2962b9ee1e8ddd5055ddd9f66
+task_mode: implementation
+base_commit: 62b5dd7b0f6f867472e3394a7f025945c47cb6e2
 approved_scope:
-  - docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
-  - docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
-  - docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md
-  - reports/phase_audits/decisions/PHASE_11_ENGINE_FIDELITY_DECISIONS.md
+  - src/poker_training_bot/poker_core/engine.py
+  - src/poker_training_bot/poker_core/order.py
+  - src/poker_training_bot/strategy/contract.py
+  - src/poker_training_bot/strategy/postflop_fallback.py
+  - scripts/generate_strategy_query_report.py
+  - scripts/generate_engine_fidelity_report.py
+  - scripts/run_verify.py
+  - tests/test_engine_fidelity.py
+  - tests/test_poker_core.py
+  - tests/test_strategy_contract.py
+  - verification/freeze.lock
+  - verification/mutations.yml
+  - reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md
   - reports/phase_audits/reviews/PHASE_11_ENGINE_FIDELITY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -494,3 +503,17 @@ scope_change_log:
       touch, are deliberately not in scope: they carry only boilerplate criteria under the
       CONTRACT-CRITERIA-BACKFILL exemption, so they contradict nothing and backfilling them
       is not this phase's work.
+  - date: 2026-08-19
+    reason: >-
+      Phase 11 implementation needs the two poker-core modules that hold the fold and
+      reopening rules, the strategy contract that holds the query's meaning and the all-in
+      ceiling, the postflop fallback's fail-closed branch, the one producer passing the
+      wrong reading, the new engine fidelity report generator, the command registry for the
+      phase's two command IDs and for the one-line description that names a withdrawn
+      check, the phase tests, the freeze lock, a mutation canary so the new commands are
+      proved to bite, and the audit evidence. Two frozen tests of completed phases are in
+      scope because this phase's fixes make them assert the old behaviour:
+      test_strategy_contract.py pins the check-and-fold rejection the contract now removes
+      by name, and test_poker_core.py pins a free-spot legal-action tuple that gains fold.
+      Both are authored at stage 4 with everything else and re-frozen; tests/ and
+      verification/ leave approved_scope at the stage 5 freeze.

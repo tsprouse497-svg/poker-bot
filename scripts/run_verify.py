@@ -230,11 +230,19 @@ COMMANDS = {
     ),
     "check_solver_export_expectations": CommandSpec(
         uv_python_command() + ["scripts/check_solver_export_expectations.py"],
-        "Recompute the solver export's orderings and directional bound from the export",
+        "Recompute the solver export's two orderings and check its source card against it",
     ),
     "generate_solver_export_report": CommandSpec(
         uv_python_command() + ["scripts/generate_solver_export_report.py"],
         "Generate the solver export range-grid and comparison report",
+    ),
+    "pytest_engine_fidelity": CommandSpec(
+        uv_python_command() + ["-m", "pytest", "tests/test_engine_fidelity.py"],
+        "Run the engine and strategy-query fidelity tests",
+    ),
+    "generate_engine_fidelity_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_engine_fidelity_report.py"],
+        "Generate the engine and query fidelity before/after report",
     ),
     "ruff_check": CommandSpec(
         ruff_command(),

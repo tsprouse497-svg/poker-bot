@@ -153,9 +153,15 @@ class TestStrategyQueryValidation:
         with pytest.raises(ValueError, match="duplicate legal actions"):
             make_query(legal_actions=("fold", "call", "call"))
 
-    def test_rejects_check_and_fold_together(self) -> None:
-        with pytest.raises(ValueError, match="check and fold"):
-            make_query(legal_actions=("check", "fold"), to_call=0)
+    def test_accepts_check_and_fold_together(self) -> None:
+        """Phase 11 (FOLD-WHEN-FREE) removed this invariant, because it became false.
+
+        The engine now offers a fold wherever a seat may act, so a query refusing to
+        describe that set would be a query that lies about the game. It is the one
+        validation Phase 11's contract permits removing, and it is named there.
+        """
+        query = make_query(legal_actions=("check", "fold"), to_call=0)
+        assert set(query.legal_actions) == {"check", "fold"}
 
     def test_rejects_check_with_positive_to_call(self) -> None:
         with pytest.raises(ValueError, match="to_call"):
