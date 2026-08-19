@@ -135,23 +135,23 @@ Phase 11 is limited to the work named by this contract and the active ExecPlan.
   contribution to the street is recoverable as `street_bet` minus `to_call`.
   The docstring is an acceptance criterion rather than a nicety: the field had two readings
   because nothing in the repo said which was meant.
-- `StrategyQuery` rejects a query whose `street_bet` is less than its `to_call`, because
-  the price to call cannot exceed the level being called and no correct producer can
-  violate it.
-  This is the mechanical guard that makes the wrong reading fail loudly rather than produce
-  a plausible wrong answer.
+- `StrategyQuery` rejects a query whose `street_bet` is less than its `to_call`, because the
+  price to call cannot exceed the level being called.
+  Measured, this catches a producer passing hero's own contribution only when hero has put
+  in less than half the current level; it misses the heads-up small blind, who has put in
+  exactly half. It narrows the defect rather than closing it, which is what the producer
+  audit below is for.
 - `scripts/generate_strategy_query_report.py` passes the street's current bet level.
-  The report it writes changes as a result, and the phase audit packet states which
-  refusals in it changed and why - specifically that the small blind in
-  `phase02-heads-up-showdown` stops refusing with a blind-structure code for what is
-  really a table-size miss.
+  `latest_decision_audit.jsonl` changes bytes as a result and the query report's counts do
+  not, because that report runs the reference check-fold strategy and it never reads the
+  field. What the fix buys is measured against the chart instead: fed the small blind's
+  preflop decision in `phase02-heads-up-showdown`, the chart moves from
+  `blind-structure-not-representable` to `lookup:no-artifact-for-table-size`, which is the
+  true miss. The audit packet states that with both codes.
 - Every other producer of a `StrategyQuery` in the repo is checked against the documented
   meaning, and the audit packet lists them by file with the verdict for each.
   A single corrected caller alongside an unaudited set of others would leave the defect's
   actual claim - that producers disagree - unanswered.
-  The prose list is the record and not the proof: each producer named is reached by a gate
-  command that builds real queries, so the `street_bet` guard above runs against all of them
-  on every gate and a disagreeing producer fails rather than resting on a reviewer's sweep.
 
 ### The all-in ceiling is the price hero can actually raise to
 - `DecisionAuditRecord` computes the acting seat's all-in maximum as hero's own
