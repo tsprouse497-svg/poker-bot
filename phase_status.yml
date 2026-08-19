@@ -59,7 +59,7 @@ phases:
     audit_packet: reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
   - phase_id: "11"
     title: "Engine And Query Fidelity"
-    status: future
+    status: active
     contract: docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
     audit_packet: reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md
   - phase_id: "12"
