@@ -1,5 +1,11 @@
 auto_advance: false
-loop: running
+halt_reason: 'Closeout is blocked on the one thing this phase exists for: Taylor''s
+  verdict on the range grids. The contract''s own criterion says a green gate without
+  that line has not closed the phase, and loop_policy sets auto_advance false for
+  the same reason. Everything else is done - 38 gate commands green, 35 of 35 mutations
+  caught, the coordinator''s grid comparison against the loaded save matched on three
+  nodes. Resume with --resume once the verdict is recorded in the audit packet.'
+loop: halted
 phase_id: '10'
 schema_version: 1
 stage: 10
