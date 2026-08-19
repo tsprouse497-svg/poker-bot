@@ -99,7 +99,7 @@ Forbidden throughout:
       internal to the export. Decision 6c replaces them - the extractor saves the solve and a
       human loads that save in GTOpen's own interface to compare grids against the committed
       report. The slice is struck rather than deleted so the record says what was removed.
-- [ ] **S7 - Committed solve and export.** Rake-free, `limp: false`, `open_raises` `[2.5]`,
+- [x] **S7 - Committed solve and export.** Rake-free, `limp: false`, `open_raises` `[2.5]`,
       `realization: "calibrated"`, whole tree walked - all 38,828 action nodes, no filter.
       Save the solve through GTOpen's save route before walking it and record its path, size
       and checksum - decision 6c makes the save load-bearing rather than a convenience, since
@@ -108,11 +108,27 @@ Forbidden throughout:
       commit, the achieved gap, the wall clock, the determinism result, the checksum, the
       licence gap, and the equity-share model note. Evidence: node count reconciled against
       `action_nodes`; a four-bet node asserted present; measured bytes per node.
-- [ ] **S8 - Report and gate.** `generate_solver_export_report.py`, full
+      Done: 38,828 exported against 38,828 reported, equal with no reconciliation owed; a
+      4-bet node present by label; 4,094,221 bytes at 105.45 per node, 15.6 MB of headroom
+      under the ruled 20 MB. Determinism came back byte-identical over a node-by-node diff
+      of two solves in fresh processes against a restarted server, and the walk re-resolved
+      all 38,828 nodes from their own action sequences with zero mismatches. Save and load
+      were exercised rather than assumed: the extractor saves, reloads, and walks the
+      reloaded tree.
+- [x] **S8 - Report and gate.** `generate_solver_export_report.py`, full
       `run_verify.py`, `check_gate_bite`. Evidence: `reports/active/latest_verify.txt`
       and `reports/active/latest_solver_export_report.txt`.
+      Two canaries were owed and are now committed, and two frozen-test repairs had to
+      precede a green gate - an exact-equality assertion against a real solver float, and an
+      import block ruff rejects. Both were latent from stage 4 and are filed as
+      `LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS`.
 - [ ] **S9 - Review, audit, verdict.** Mechanical and domain review passes, audit packet,
       and Taylor's verdict on the range grids recorded as a verdict.
+      The grid comparison decision 6c asks for has been performed by the coordinator: the
+      save was loaded in GTOpen's own interface and three nodes were read cell by cell
+      against the committed report. What is still owed is Taylor's own verdict on whether
+      the poker is right, which is the judgement this phase exists for and which no check
+      and no coordinator can stand in for.
 
 ## Verification
 

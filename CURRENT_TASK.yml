@@ -1,10 +1,16 @@
-task_id: phase-10-repair-a-frozen-import-block
+task_id: phase-10-implementation
 active_phase: "10"
 task_mode: implementation
-base_commit: 810109ee62d172f4701ffa7e4fe4efb75939bf31
+base_commit: 402396544439bcd74b0d921882e62316e8ac4c99
 approved_scope:
-  - tests/test_solver_export.py
-  - verification/freeze.lock
+  - src/poker_training_bot/solver_artifacts/**
+  - scripts/extract_gtopen_preflop.py
+  - scripts/check_solver_export_expectations.py
+  - scripts/generate_solver_export_report.py
+  - data/artifacts/preflop/exports/**
+  - verification/mutations.yml
+  - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
+  - reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
   - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -393,3 +399,9 @@ scope_change_log:
       Reordering an import block changes no assertion, but it changes the file, so the freeze
       lock is rewritten with it and both land in their own task with the builder files out of
       scope.
+  - date: 2026-08-19
+    reason: >-
+      Reopening the phase 10 implementation task after the frozen-import repair restores the
+      scope it was already carrying, and reads as a widening only because base_commit moved to
+      that repair commit. Nothing new is approved, and tests/ and verification/freeze.lock stay
+      out, so the builder still cannot reach the tests it is measured by.
