@@ -17,20 +17,20 @@ Reviewer: coordinator, self-review; subagents are unavailable in this session.
 
   What the ten were, and why none is an implementation defect:
 
-  - Six in `tests/test_postflop_fallback.py`. Its enumeration derives the engine's own
-    postflop legal-action sets and then names two of them by hand - `("check", "bet")` and
-    `("check", "raise")`. Fold joins both. The repair adds it at every `shape_with` call
-    site and in the assertion that guards the sweep; the sweep itself is still derived from
-    the engine rather than listed, so it follows the engine rather than describing it.
-  - One in `tests/test_strategy_contract.py`. It asserted an all-in target of `20 + 940`,
-    which is the old ceiling - the assertion *was* the defect, stated as a test. Repaired to
-    `(20 - 20) + 940`, written as the subtraction rather than as `940`, so the arithmetic a
-    reader has to check is on the page.
-  - Three in this phase's own `tests/test_engine_fidelity.py`, all authoring errors caught
-    by the implementation rather than the other way round. Two built an accumulation that
-    does not reach the bar - `19 - 10` is 9 against a minimum raise of 10 - and asserted it
-    reopens. One applied a raise from a seat that was not next to act, so it failed on
-    "cannot act out of turn" while claiming to test a minimum raise.
+  Six were in `tests/test_postflop_fallback.py`. Its enumeration derives the engine's own
+  postflop legal-action sets and then names two of them by hand, `("check", "bet")` and
+  `("check", "raise")`. Fold joins both. The repair adds it at every `shape_with` call site
+  and in the assertion that guards the sweep; the sweep itself is still derived from the
+  engine rather than listed, so it follows the engine rather than describing it.
+  One was in `tests/test_strategy_contract.py`, asserting an all-in target of `20 + 940`,
+  which is the old ceiling - the assertion *was* the defect, stated as a test. Repaired to
+  `(20 - 20) + 940`, written as the subtraction rather than as `940`, so the arithmetic a
+  reader has to check is on the page.
+  Three were in this phase's own `tests/test_engine_fidelity.py`, all authoring errors
+  caught by the implementation rather than the other way round. Two built an accumulation
+  that does not reach the bar - `19 - 10` is 9 against a minimum raise of 10 - and asserted
+  it reopens. One applied a raise from a seat that was not next to act, so it failed on
+  "cannot act out of turn" while claiming to test a minimum raise.
 
 - **[resolved]** The third of those, `test_a_full_raise_resets_the_level...`, was wrong
   about the poker and not only about the arithmetic, so it is worth stating separately. It

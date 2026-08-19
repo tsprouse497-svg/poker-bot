@@ -1,11 +1,5 @@
 auto_advance: true
-halt_reason: 'Stage 6: ten frozen tests fail on the fixes the contract requires, and
-  none is an implementation defect. Six are Phase 06 shapes that hardcode the free
-  legal-action sets fold now joins, one is a Phase 03 all-in amount the corrected
-  ceiling rejects, and three are authoring errors in this phase''s own tests. tests/
-  left approved_scope at the freeze, so the repair is its own task with the builder
-  files out of scope.'
-loop: halted
+loop: running
 phase_id: '11'
 schema_version: 1
 stage: 6
