@@ -332,8 +332,8 @@ items:
       should be ordered by the real-hand inventory instead, with the self-play one kept as
       the cheaper signal that regenerates on every gate run.
   - id: LOOP-NO-CLASS-FOR-A-HUMAN-OWNED-THRESHOLD
-    status: open
-    phase: maintenance
+    status: deferred
+    phase: contract-update
     title: The loop has no reversibility class for a threshold a human must own
     reason: >-
       A decision list declares each judgment call frozen-into-data or runtime-reversible,
@@ -347,8 +347,8 @@ items:
       class. The fix is a third class, or an explicit rule that a threshold graded against
       external data counts as frozen; either way it is loop machinery and not phase work.
   - id: GTOPEN-NOTES-OMIT-REALIZATION
-    status: open
-    phase: maintenance
+    status: deferred
+    phase: contract-update
     title: The recorded GTOpen config body omits the realization field
     reason: >-
       docs/GTOPEN_SOLVER_NOTES.md publishes the config body that was posted to
@@ -361,8 +361,8 @@ items:
       section. Phase 10 records the finding in its decision list but may not edit the note,
       which is outside its approved scope.
   - id: MITIGATIONS-ORDERING-AND-BOUND-CLAIMS-FALSE
-    status: open
-    phase: maintenance
+    status: deferred
+    phase: contract-update
     title: Two claims in V2_RULING_MITIGATIONS section 1 are falsified by measurement
     reason: >-
       Section 1 asserts that rake moves the level of all eleven expectations numbers and the
@@ -376,7 +376,7 @@ items:
       fixing.
 
   - id: PHASE-10-CONTRACT-MISCOUNTS-THE-FOUR-BET
-    status: open
+    status: deferred
     phase: contract-update
     title: The phase 10 contract glosses a four-bet as the fourth raise
     reason: >-
@@ -389,7 +389,7 @@ items:
       which of the two readings the phase meant. Fix the gloss at the next contract-update;
       it is not worth its own halt.
   - id: CHART-HERO-MUST-NEVER-LIMP
-    status: open
+    status: deferred
     phase: "14"
     title: Nothing forbids a committed chart from limping, and today's chart does
     reason: >-
@@ -404,7 +404,7 @@ items:
       14 owns the chart schema, so the check belongs there: no spot with an empty
       action_sequence may carry a call weight.
   - id: CHART-CANNOT-ANSWER-A-LIMPED-POT
-    status: open
+    status: deferred
     phase: "14"
     title: A no-limp solve cannot answer any spot where an opponent limped
     reason: >-
@@ -416,3 +416,45 @@ items:
       no-limp solve will lose. AGENTS.md forbids heuristic guessing for a missing chart spot,
       so the options are an honest refusal or reloading the saved solve with limps on and
       extracting that branch. Decision 1 keeps the save for exactly this.
+  - id: GATE-COMMAND-DESCRIPTION-NAMES-A-WITHDRAWN-CHECK
+    status: deferred
+    phase: "11"
+    title: check_solver_export_expectations still advertises the withdrawn directional bound
+    reason: >-
+      The COMMANDS entry in scripts/run_verify.py describes the command as recomputing "the
+      solver export's orderings and directional bound from the export". The directional bound
+      was withdrawn on 2026-08-18 with the parity solve, and the command computes two internal
+      orderings and nothing else. The registry is the list a reader scans to learn what the
+      gate covers, so a description naming a check that does not exist is the same drift the
+      contract's Scope section carried. Phase 10 could not fix it: the file left approved_scope
+      at the freeze, and a description is not worth reopening a narrowed scope for.
+  - id: SOLVE-TARGET-LEAVES-A-NONMONOTONE-PAIR
+    status: deferred
+    phase: "14"
+    title: At the ruled 0.01 bb target the pair ladder is still noisy in one cell
+    reason: >-
+      The committed export's LJ opening range raises 44 at 72.81 percent while raising 33 at
+      99.88 and 22 at 99.92. A pocket pair that opens less often than both pairs beneath it is
+      not poker, it is a hand that had not converged when the summed best-response gap crossed
+      0.01 bb at iteration 300. Every other pair in every other opening spot sits above 99.8,
+      so this is one cell rather than a pattern, and the target is decision 3 and may not be
+      re-ruled by the phase that measured it. It matters to phase 14, which derives the chart:
+      a cutover that copies frequencies cell by cell copies this one too, and 27 percent of a
+      set-mining hand folded preflop is a real leak. Either re-solve to a tighter gap before
+      deriving, or smooth the pair ladder with the reason recorded.
+  - id: DEFENCE-RELATION-NARROWER-THAN-THE-CONTRACT
+    status: deferred
+    phase: contract-update
+    title: The defence relation checks the small blind only as the wider opener
+    reason: >-
+      The phase 10 contract states the check as "against a position that opens wider, the big
+      blind defends more, for every pair of positions". The frozen tests require something
+      narrower: test_the_small_blind_is_out_of_the_opening_order_by_name_and_with_a_reason
+      passes an export where the small blind opens 5 percent and is defended against most of
+      all, so the relation cannot be symmetric over all five positions. As implemented, pairs
+      inside LJ/HJ/CO/BTN are checked both ways and the small blind is checked only when it is
+      the wider opener, which is the reading that satisfies both that test and
+      test_the_defence_relation_covers_the_small_blind_even_though_the_order_does_not. The
+      implementation follows the frozen tests, which are the specification. The contract's
+      sentence should be narrowed to match at the next contract-update rather than left
+      claiming a stronger check than exists.
