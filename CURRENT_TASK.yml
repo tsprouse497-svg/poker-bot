@@ -330,3 +330,140 @@ scope_change_log:
       board and it is 49 and 48, and the claim that 1,755 flops is affordable was per preflop line
       and rests on a solve nobody has ever timed. Needs the decision record, the loop policy, and
       both roadmaps; backlog.yml and docs/BACKLOG.md are standing scope.
+      Phase 10 stage 1 turns the solver-extraction skeleton into real acceptance criteria, which is a
+      semantic contract change and so needs contract-update mode. Only the phase 10 contract is in
+      approved_scope, plus the pre-implementation judgment-call record the next stage writes, so the
+      solve config, the exploitability target, and the expectations tolerances are ruled on before any
+      solver runs. The ExecPlan, task metadata, phase status, and generated docs pass through
+      standing_scope.
+  - date: 2026-08-18
+    reason: >-
+      The per-stage review rule means the contract stage owes read-only review notes of its own diff,
+      so reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/** joins approved_scope. The stage-1
+      review found six problems in the contract it reviewed, all fixed inside the contract, which is
+      why the notes and the contract land in the same commit.
+  - date: 2026-08-18
+    reason: >-
+      The re-ruling lands after the tests were authored, so the loop pointer is rewound from
+      stage 5 to stage 4 rather than freezing tests that describe a contract nobody holds any
+      more. stage_base stays at the commit before the contract-update, so the stage-4 review
+      covers the re-ruling and the reworked tests together.
+  - date: 2026-08-18
+    reason: >-
+      Taylor re-ruled the expectations design on 2026-08-18, after running the solver himself.
+      The phase must stop grading GTOpen's poker against GTO Wizard: the parity solve and its
+      inferred rake basis go, the directional bound goes with them, and the two orderings are
+      restated as self-contained checks that need no external file. What replaces the external
+      grading is a human loading the saved solve in GTOpen's own UI and reading range grids
+      against the committed report. The contract and the decision record carry all of that, so
+      both are in approved_scope for a contract-update task.
+  - date: 2026-08-18
+    reason: >-
+      The phase tests do not fit in one file under the 700-line cap, and the cap is right
+      here rather than inconvenient: the export, its reader and its source card are one
+      subject, and the three expectations checks plus the report a human reads are another.
+      tests/test_solver_expectations.py joins approved_scope and the pytest_solver_export
+      command runs both files, on the same precedent as pytest_preflop_artifacts.
+  - date: 2026-08-18
+    reason: >-
+      Stage 4 halted before authoring a line: four acceptance criteria still describe the
+      tree as it was before ruling 1 dropped limps from the committed solve, and one of
+      them demands a committed test asserting a limped node is present in an export that
+      by ruling cannot contain one. A test authored against a criterion the ruling has
+      already contradicted is frozen at the next stage, so the contract is corrected first
+      in contract-update mode. Only the phase 10 contract and the stage review notes are in
+      approved_scope; the ExecPlan and task metadata pass through standing_scope.
+  - date: 2026-08-18
+    reason: >-
+      Phase 10 implementation needs the GTOpen export reader in solver_artifacts, the offline
+      extractor, the expectations checker and report generator with their command registration,
+      the committed export and its source card under data/artifacts/preflop/exports, the phase
+      tests and the freeze lock recording them, a mutation canary so the new commands are proved
+      to bite, and the audit evidence. scripts/check_file_sizes.py is approved for one addition,
+      the data/artifacts/** byte limit ruled at 20 MB, which is authored at the test stage and
+      frozen before the builder starts.
+  - date: 2026-08-19
+    reason: >-
+      The stage-5 review found the contract's Scope section still planning the parity solve
+      the 2026-08-18 re-ruling withdrew: it tells a reader that a second solve at the NL25
+      rake basis is run and graded against the reference file, which the acceptance criteria
+      forbid and the forbidden shortcuts name by hand. The same staleness survived in four
+      places in the decision record, one of them operative - decision 7 still instructs the
+      report to take the small blind's limp frequency from a solve that no longer exists.
+      Both are semantic, so they are corrected in contract-update mode before the tests are
+      frozen against them. Only the phase 10 contract and its decision record are in
+      approved_scope; the task metadata passes through standing_scope.
+  - date: 2026-08-19
+    reason: >-
+      Reopening the phase 10 implementation task after that contract-update restores the
+      scope it was already carrying, which reads as a widening because base_commit now
+      points at the contract-update commit. Nothing new is approved: the same builder files,
+      the two phase tests, the freeze lock and the mutation list, with tests/ and
+      verification/ due to leave at the freeze in the entry below. Recorded because a
+      widening that is really a restoration still has to be said out loud rather than
+      inferred from a commit message.
+  - date: 2026-08-19
+    reason: >-
+      Loop stage 5 narrows scope so the builder cannot reach the tests it is measured by.
+      tests/ and verification/ leave approved_scope and check_scope.py enforces that
+      mechanically for the rest of the phase. scripts/run_verify.py and
+      scripts/check_file_sizes.py leave with them: the three command IDs and the ruled 20 MB
+      data/artifacts limit were authored at stage 4 and are what stage 4's frozen tests
+      assert, so a builder editing either file would be editing its own specification.
+      base_commit moves to the freeze commit so the diff is measured from there rather than
+      from the start of the phase, which is what keeps work that was legitimately in scope
+      at stage 4 from reading as out of scope afterwards.
+  - date: 2026-08-19
+    reason: >-
+      Stage 6 halted because a frozen test asserts that 72o carries reach exactly 0.0 at the
+      LJ-versus-3bet node, and the captured payload it reads holds 3.6852573e-08. The finding
+      the test makes is right and the fixture is real solver output, so the repair is the
+      assertion's bound and nothing else: editing the captured payload to fit a test is fitting
+      the evidence to the claim, which the contract's forbidden shortcuts name. Stage 4 never
+      caught it because its check requires the phase's pytest command to be red and it was red
+      on a missing module, so no assertion in either file had executed. tests/ and
+      verification/freeze.lock come back into approved_scope for this one task, and the builder
+      files leave it, so this task cannot reshape the implementation to suit the test it is
+      repairing. The stage-6 review notes are in scope because the reviewer marks the blocker
+      resolved rather than the writer deleting it.
+  - date: 2026-08-19
+    reason: >-
+      Stage 7 needs canaries for the phase's own commands, which is the miss phases 08 and 09
+      both made: the mutations authored at stage 4 covered commands that were already
+      uncovered, and nobody covered the command the phase was adding. verification/mutations.yml
+      comes back into approved_scope for canaries only, and the freeze lock stays out because
+      no test changes, so the builder still cannot reach the tests it is measured by. A canary
+      makes the gate stricter rather than looser. The builder files return with it because the
+      repair task that preceded this one had narrowed the scope to the test it was fixing.
+  - date: 2026-08-19
+    reason: >-
+      The quality gate reads every capitalised hyphenated token in docs/ and reports/ as a
+      backlog id, and three documents write GTOpen's re-solve button in the capitals its UI
+      uses, so the gate reports a finding filed under an id nobody created. The escape hatch
+      is NOT_BACKLOG_IDS in scripts/run_full_quality_gate.py, which this phase may not touch,
+      so the fix is the prose: the button is named in sentence case in the report renderer,
+      the ExecPlan, and the decision record. The decision record joins approved_scope for that
+      one capitalisation and nothing else - no ruling, option, answer or reason changes, which
+      is what keeps a typographic edit out of contract-update mode.
+  - date: 2026-08-19
+    reason: >-
+      The gate fails ruff on the import block of a frozen phase test, which is the same defect
+      Phase 08 shipped as a 101-character line: stage 4's check runs the phase's pytest command
+      rather than the gate, so a lint failure in an authored test stays latent until stage 7.
+      Reordering an import block changes no assertion, but it changes the file, so the freeze
+      lock is rewritten with it and both land in their own task with the builder files out of
+      scope.
+  - date: 2026-08-19
+    reason: >-
+      Reopening the phase 10 implementation task after the frozen-import repair restores the
+      scope it was already carrying, and reads as a widening only because base_commit moved to
+      that repair commit. Nothing new is approved, and tests/ and verification/freeze.lock stay
+      out, so the builder still cannot reach the tests it is measured by.
+  - date: 2026-08-19
+    reason: >-
+      ruff_check passed on the phase 10 branch and fails with --no-cache: two import blocks in
+      a test frozen since stage 4 are unsorted, and the gate had been reading a result some
+      earlier run left in .ruff_cache. A command whose answer depends on the machine rather
+      than the tree is not a check, which is the decorative-gate defect this repo has fixed
+      twice already. MAINT-RUFF-CACHE needs the test file, the freeze lock recording it, and
+      run_verify.py for the one flag. It touches no poker, no artifact and no evidence.

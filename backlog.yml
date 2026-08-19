@@ -354,3 +354,179 @@ items:
       been standing in as the work list since Phase 07. Whatever chart phase comes next
       should be ordered by the real-hand inventory instead, with the self-play one kept as
       the cheaper signal that regenerates on every gate run.
+  - id: LOOP-NO-CLASS-FOR-A-HUMAN-OWNED-THRESHOLD
+    status: deferred
+    phase: contract-update
+    title: The loop has no reversibility class for a threshold a human must own
+    reason: >-
+      A decision list declares each judgment call frozen-into-data or runtime-reversible,
+      and only the first stops for a human. A check threshold is neither. It lives in code
+      rather than in committed data, so nothing later is measured against it the way a
+      chart cell is, which makes it reversible by the letter of the rule. But
+      docs/V2_RULING_MITIGATIONS.md names authoring the expectations tolerances before the
+      solve as one of two things a phase could get wrong quietly, and a tolerance the loop
+      proceeds on by default is a tolerance nobody ruled on. Phase 10 filed five such
+      thresholds as frozen-into-data to force the stop, which works and is a stretch of the
+      class. The fix is a third class, or an explicit rule that a threshold graded against
+      external data counts as frozen; either way it is loop machinery and not phase work.
+  - id: GTOPEN-NOTES-OMIT-REALIZATION
+    status: deferred
+    phase: contract-update
+    title: The recorded GTOpen config body omits the realization field
+    reason: >-
+      docs/GTOPEN_SOLVER_NOTES.md publishes the config body that was posted to
+      /api/preflop/spot as the accepted surface, and it has no realization field, so anyone
+      following it takes the default of static. GTOpen's preflop engine resolves flops by
+      scaled equity share rather than by playing them, and static is very nearly raw
+      realization: measured on the six-handed 100bb rake-free tree, the big blind defends
+      99.71 percent against a small-blind open under static and 49.03 percent under
+      calibrated. The note needs the field in the body and the model limitation in its own
+      section. Phase 10 records the finding in its decision list but may not edit the note,
+      which is outside its approved scope.
+  - id: MITIGATIONS-ORDERING-AND-BOUND-CLAIMS-FALSE
+    status: deferred
+    phase: contract-update
+    title: Two claims in V2_RULING_MITIGATIONS section 1 are falsified by measurement
+    reason: >-
+      Section 1 asserts that rake moves the level of all eleven expectations numbers and the
+      ordering of none, and that the rake-free directional bound needs no tolerance at all.
+      Both fail through the small blind. Rake-free reallocates twelve points of small-blind
+      limping into raising, which moves SB from second to first in the opening order, and
+      BB-versus-BTN defence came back 2.55 points tighter than the raked reference, which
+      between a full solver and a preflop-only equity-realization model is solver difference
+      rather than a defect. Phase 10's contract and decision list carry the corrected checks;
+      the document that states the false claims is outside its approved scope and still needs
+      fixing.
+
+  - id: PHASE-10-CONTRACT-MISCOUNTS-THE-FOUR-BET
+    status: deferred
+    phase: contract-update
+    title: The phase 10 contract glosses a four-bet as the fourth raise
+    reason: >-
+      The whole-tree criterion asks for "a four-bet node - the fourth raise, counting the
+      open as the first". A four-bet is the third raise: the open is the second bet because
+      the big blind is the first, so open, three-bet, four-bet is three raises. GTOpen
+      agrees and labels the action "4-bet 22.5" in its own action list, which is what the
+      committed tests assert on, so nothing is measured wrongly. The parenthetical is still
+      a miscount inside an acceptance criterion, and the next reader has no way to tell
+      which of the two readings the phase meant. Fix the gloss at the next contract-update;
+      it is not worth its own halt.
+  - id: CHART-HERO-MUST-NEVER-LIMP
+    status: deferred
+    phase: "14"
+    title: Nothing forbids a committed chart from limping, and today's chart does
+    reason: >-
+      A spot with an empty action_sequence is folded to hero, so a call weight in it is hero
+      open-limping. The schema's action vocabulary allows one and no validation rejects it.
+      The committed GTO Wizard chart limps 13.73 percent from the small blind across 103 hand
+      classes, inherited from a raked solution, and it is the joint-second largest hole in the
+      refusal inventory: t6/d100/SB/SB:call,BB:raise, 11 hands of 600, because the bot limps
+      and then cannot play the raise that comes over the top. Taylor ruled on 2026-08-18 that
+      hero never limps. The Phase 10 export enforces it by construction, since the ruled solve
+      has no limp action at all, but that is a property of the data rather than a rule. Phase
+      14 owns the chart schema, so the check belongs there: no spot with an empty
+      action_sequence may carry a call weight.
+  - id: CHART-CANNOT-ANSWER-A-LIMPED-POT
+    status: deferred
+    phase: "14"
+    title: A no-limp solve cannot answer any spot where an opponent limped
+    reason: >-
+      Hero never limping and hero never facing a limp are different things, and dropping limps
+      from the Phase 10 solve settles the first while making the second permanently
+      unanswerable from that export. Opponents limp in real games: the refusal inventory
+      already carries 12 limped rows and 21 of 3048 corpus decision points, and today's chart
+      answers exactly one limp-facing spot, t6/d100/BB/SB:call, which a chart derived from a
+      no-limp solve will lose. AGENTS.md forbids heuristic guessing for a missing chart spot,
+      so the options are an honest refusal or reloading the saved solve with limps on and
+      extracting that branch. Decision 1 keeps the save for exactly this.
+  - id: GATE-COMMAND-DESCRIPTION-NAMES-A-WITHDRAWN-CHECK
+    status: deferred
+    phase: "11"
+    title: check_solver_export_expectations still advertises the withdrawn directional bound
+    reason: >-
+      The COMMANDS entry in scripts/run_verify.py describes the command as recomputing "the
+      solver export's orderings and directional bound from the export". The directional bound
+      was withdrawn on 2026-08-18 with the parity solve, and the command computes two internal
+      orderings and nothing else. The registry is the list a reader scans to learn what the
+      gate covers, so a description naming a check that does not exist is the same drift the
+      contract's Scope section carried. Phase 10 could not fix it: the file left approved_scope
+      at the freeze, and a description is not worth reopening a narrowed scope for.
+  - id: SOLVE-TARGET-LEAVES-A-NONMONOTONE-PAIR
+    status: deferred
+    phase: "14"
+    title: At the ruled 0.01 bb target the pair ladder is still noisy in one cell
+    reason: >-
+      The committed export's LJ opening range raises 44 at 72.81 percent while raising 33 at
+      99.88 and 22 at 99.92. A pocket pair that opens less often than both pairs beneath it is
+      not poker, it is a hand that had not converged when the summed best-response gap crossed
+      0.01 bb at iteration 300. Every other pair in every other opening spot sits above 99.8,
+      so this is one cell rather than a pattern, and the target is decision 3 and may not be
+      re-ruled by the phase that measured it. It matters to phase 14, which derives the chart:
+      a cutover that copies frequencies cell by cell copies this one too, and 27 percent of a
+      set-mining hand folded preflop is a real leak. Either re-solve to a tighter gap before
+      deriving, or smooth the pair ladder with the reason recorded.
+  - id: DEFENCE-RELATION-NARROWER-THAN-THE-CONTRACT
+    status: deferred
+    phase: contract-update
+    title: The defence relation checks the small blind only as the wider opener
+    reason: >-
+      The phase 10 contract states the check as "against a position that opens wider, the big
+      blind defends more, for every pair of positions". The frozen tests require something
+      narrower: test_the_small_blind_is_out_of_the_opening_order_by_name_and_with_a_reason
+      passes an export where the small blind opens 5 percent and is defended against most of
+      all, so the relation cannot be symmetric over all five positions. As implemented, pairs
+      inside LJ/HJ/CO/BTN are checked both ways and the small blind is checked only when it is
+      the wider opener, which is the reading that satisfies both that test and
+      test_the_defence_relation_covers_the_small_blind_even_though_the_order_does_not. The
+      implementation follows the frozen tests, which are the specification. The contract's
+      sentence should be narrowed to match at the next contract-update rather than left
+      claiming a stronger check than exists.
+  - id: LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS
+    status: deferred
+    phase: contract-update
+    title: A stage-4 red on a missing module means no assertion and no linter ever read the tests
+    reason: >-
+      loop_stage.check_tests_authored accepts a ModuleNotFoundError as a legitimate red, which
+      MAINT-04 ruled correctly: tests are authored before any implementation, so importing it
+      is supposed to fail. The consequence nobody costed is that when the red is an import
+      error, not one assertion in the file has executed and ruff has not read it either, so
+      every authoring defect survives the freeze and surfaces at stage 7 where the file is
+      frozen and the fix needs its own task. Phase 08 paid for it once with a 101-character
+      line; phase 10 paid twice, with an exact-equality assertion against a real solver float
+      and an unsorted import block. A cheap fix exists: run ruff over the phase's new test
+      files at stage 4, and require that at least one test in the file reaches an assertion
+      even when the module is missing. It belongs to whoever owns loop_stage.py, not to a phase
+      that noticed it.
+  - id: REALIZATION-MODEL-UNDERPRICES-POSITION
+    status: deferred
+    phase: "14"
+    title: The button opens tighter than a raked reference and the big blind defends tight
+    reason: >-
+      GTOpen's preflop engine has no postflop play in it: a flop resolves at a pot_share
+      terminal that splits by equity share, scaled by a per-seat realization weight. Two
+      numbers in the committed rake-free export show what that costs. The button opens 40.26
+      percent against a raked GTO Wizard reference's 40.56 - removing rake should not make the
+      widest-opening non-blind position tighter, and the button's edge is almost entirely
+      postflop position, which a scalar weight is the only part of the model that can express.
+      The big blind defends 27.28 percent against a lowjack opening 19 percent while laying
+      1.5 to win 4.5, which is 570 of 1326 combos, and 49.02 percent against a small blind
+      opening 54 percent. Both are tight against what a full postflop solve gives at those
+      prices, and both are the same mechanism seen from opposite sides. It is not an
+      extraction defect: GTOpen's own interface shows the same numbers for the same save. It
+      matters to phase 14, which decides whether a chart derived from this export is played,
+      and the honest options are to accept the bias and record it in the chart's source card,
+      to correct it with a stated adjustment, or to solve elsewhere.
+  - id: LOOP-STAGE-10-DEMANDS-A-REVIEW-IT-FORBIDS-WRITING
+    status: deferred
+    phase: contract-update
+    title: The closeout stage owes a review note that idle mode puts outside scope
+    reason: >-
+      loop_stage stage 10 requires task_mode idle, and MAINT-17 made every stage that produced
+      a diff owe a review note under reports/phase_audits/reviews/<CONTRACT_STEM>/. Idle
+      carries an empty approved_scope by AGENTS.md's closeout rule, and that directory is not
+      in standing_scope, so the note the stage demands is out of scope by construction. Phase
+      10 wrote one anyway: idle leaves base_commit null, check_scope then measures the diff
+      against HEAD, and an already-committed file is invisible to it. Passing on a loophole is
+      not the same as passing, and the next phase to reach closeout hits it again. Either the
+      reviews directory joins standing_scope, or stage 10 stops owing a note, or the closeout
+      writes its note before resetting to idle. It belongs to whoever owns loop_stage.py.

@@ -24,6 +24,9 @@ All passed: True
 - PASS generate_sample_comparison_report: Generate the real-hand comparison report and its refusal inventory
 - PASS pytest_quality_hardening: Run quality, drift, and phase-gate hardening tests
 - PASS run_full_quality_gate: Run the quality checks and write the quality report
+- PASS pytest_solver_export: Run GTOpen solver export, source-card, and expectations tests
+- PASS check_solver_export_expectations: Recompute the solver export's orderings and directional bound from the export
+- PASS generate_solver_export_report: Generate the solver export range-grid and comparison report
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness

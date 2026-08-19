@@ -20,6 +20,15 @@ BYTE_LIMITS = [
     ("reports/active/*.json", 1024 * 1024),
     ("reports/phase_audits/logs/**/*.log", 500 * 1024),
 ]
+# Total bytes across a committed data directory, not per file. A tree of artifacts is
+# reviewable or it is not, and splitting one into ten files does not make it smaller.
+# `data/artifacts` was covered by nothing until Phase 10 ruled it at 20 MB, so a 40 MB
+# solver export committed with nothing objecting. Exceeding a limit here is a halt and a
+# decision, not a number to raise.
+DIRECTORY_BYTE_LIMITS = [
+    ("data/artifacts", 20 * 1024 * 1024),
+    ("data/samples", 5 * 1024 * 1024),
+]
 
 
 def count_lines(path: Path) -> int:
@@ -36,11 +45,13 @@ def main() -> int:
         for path in REPO_ROOT.glob(pattern):
             if path.is_file() and path.stat().st_size > limit:
                 errors.append(f"{path.relative_to(REPO_ROOT)} exceeds {limit} bytes")
-    sample_root = REPO_ROOT / "data" / "samples"
-    if sample_root.exists():
-        total = sum(path.stat().st_size for path in sample_root.rglob("*") if path.is_file())
-        if total > 5 * 1024 * 1024:
-            errors.append("data/samples exceeds 5 MB")
+    for relative, limit in DIRECTORY_BYTE_LIMITS:
+        root = REPO_ROOT / relative
+        if not root.exists():
+            continue
+        total = sum(path.stat().st_size for path in root.rglob("*") if path.is_file())
+        if total > limit:
+            errors.append(f"{relative} totals {total} bytes, over its {limit} byte limit")
     if errors:
         for error in errors:
             print(error, file=sys.stderr)

@@ -48,10 +48,17 @@ def uv_python_command() -> list[str]:
 
 
 def ruff_command() -> list[str]:
+    """Lint the tree, without reading what an earlier run left behind.
+
+    `--no-cache` is not tidiness. Phase 10 shipped a green `ruff_check` past two unsorted
+    import blocks in a frozen test, because `.ruff_cache` held a clean verdict for those
+    files from a run whose module classification differed. A gate command whose answer
+    depends on the machine rather than on the tree is not a check.
+    """
     uv = uv_command()
     if uv is not None:
-        return uv + ["run", "ruff", "check", "."]
-    return [sys.executable, "-m", "ruff", "check", "."]
+        return uv + ["run", "ruff", "check", "--no-cache", "."]
+    return [sys.executable, "-m", "ruff", "check", "--no-cache", "."]
 
 
 COMMANDS = {
@@ -210,6 +217,24 @@ COMMANDS = {
     "generate_sample_comparison_report": CommandSpec(
         uv_python_command() + ["scripts/generate_sample_comparison_report.py"],
         "Generate the real-hand comparison report and its refusal inventory",
+    ),
+    "pytest_solver_export": CommandSpec(
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_solver_export.py",
+            "tests/test_solver_expectations.py",
+        ],
+        "Run GTOpen solver export, source-card, and expectations tests",
+    ),
+    "check_solver_export_expectations": CommandSpec(
+        uv_python_command() + ["scripts/check_solver_export_expectations.py"],
+        "Recompute the solver export's orderings and directional bound from the export",
+    ),
+    "generate_solver_export_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_solver_export_report.py"],
+        "Generate the solver export range-grid and comparison report",
     ),
     "ruff_check": CommandSpec(
         ruff_command(),

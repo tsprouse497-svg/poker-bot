@@ -1,5 +1,6 @@
-auto_advance: true
-loop: completed
-phase_id: 09
+auto_advance: false
+loop: running
+phase_id: '10'
 schema_version: 1
-stage: 11
+stage: 10
+stage_base: f361df7d8afe0c4845f378b8f10381aacd540239
