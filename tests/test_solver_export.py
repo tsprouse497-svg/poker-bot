@@ -154,12 +154,19 @@ def test_a_strategy_row_is_uniform_where_the_hand_never_arrives(captured: dict) 
     So the payload is unconditional, and `reach` is the only thing that conditions it. A
     converter that ignores reach produces ranges that are self-consistent and wrong, which
     is why decision 7 weights every aggregate by it and decision 10 commits it per node.
+
+    The reach bound is 1e-6 rather than exact zero, because the captured value is
+    3.6852573e-08: a solver that folds a hand at full frequency leaves the float residue of
+    however many iterations it took to get there, and one basis point - the unit decision 8
+    stores - is 1e-4. Anything under 1e-6 quantises to zero and is zero for every purpose in
+    this phase. Exact equality here would have been an assertion about float arithmetic
+    rather than about conditioning.
     """
     node = view(captured, "lj_vs_hj_threebet")
     never_arrives = gtopen_class_index("72o")
     action_count = len(node["actions"])
 
-    assert node["reach"][never_arrives] == 0.0
+    assert node["reach"][never_arrives] < 1e-6
     row = [node["strategy"][k * 169 + never_arrives] for k in range(action_count)]
     assert row == pytest.approx([1 / action_count] * action_count, abs=1e-6)
     assert node["reach"][gtopen_class_index("AA")] > 0.99

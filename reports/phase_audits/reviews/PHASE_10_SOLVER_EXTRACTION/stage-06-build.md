@@ -31,8 +31,11 @@ code does what it claims, and whether the poker it produced is poker.
   fixture, and editing the fixture to fit a test is fitting the evidence to the claim, which
   the contract's forbidden shortcuts name. Stage 4 never caught it because the stage-4 check
   requires the phase's pytest command to be *red*, and it was red on a missing module, so no
-  assertion in either file had ever executed. Repaired in its own task, tests re-frozen, and
-  the `1e-6` bound is stated in the test rather than left implicit.
+  assertion in either file had ever executed. Repaired in its own task as commit
+  `phase-10-repair-a-frozen-assertion`, with the builder files out of `approved_scope` so the
+  repair could not reshape the implementation to suit the test. One bound changed, `== 0.0`
+  to `< 1e-6`, with the reason stated in the test: one basis point is 1e-4, so anything under
+  1e-6 quantises to zero and is zero for every purpose in this phase. Tests re-frozen.
 
 ## Non-blocker
 

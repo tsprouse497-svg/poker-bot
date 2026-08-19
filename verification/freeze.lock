@@ -57,7 +57,7 @@ files:
     sha256: 5294a5eda92ee400fa4e319e9fe88546f3e3651f6f5fb0b8ce8a9883a3188b62
     test_functions: 19
   tests/test_solver_export.py:
-    sha256: d729a593166569cdb0608c0f0fcd4e7958e5e7129e727dc6ef304de289de3ace
+    sha256: e3f54ea1008ad6296528d45130155795b77103821d7aa59303fdd1b09b051a80
     test_functions: 32
   tests/test_strategy_contract.py:
     sha256: 9db283ccfceaef42a58d09c97ed5773dd5b170f685c9d588abfa05a168fd2d34

@@ -1,14 +1,10 @@
-task_id: phase-10-implementation
+task_id: phase-10-repair-a-frozen-assertion
 active_phase: "10"
 task_mode: implementation
-base_commit: 46403b2870fa262b383cdd4c1a0fb3d663d9980a
+base_commit: 011d57a3485522c4292e263af4574390fedd5de4
 approved_scope:
-  - src/poker_training_bot/solver_artifacts/**
-  - scripts/extract_gtopen_preflop.py
-  - scripts/check_solver_export_expectations.py
-  - scripts/generate_solver_export_report.py
-  - data/artifacts/preflop/exports/**
-  - reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
+  - tests/test_solver_export.py
+  - verification/freeze.lock
   - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -357,3 +353,16 @@ scope_change_log:
       base_commit moves to the freeze commit so the diff is measured from there rather than
       from the start of the phase, which is what keeps work that was legitimately in scope
       at stage 4 from reading as out of scope afterwards.
+  - date: 2026-08-19
+    reason: >-
+      Stage 6 halted because a frozen test asserts that 72o carries reach exactly 0.0 at the
+      LJ-versus-3bet node, and the captured payload it reads holds 3.6852573e-08. The finding
+      the test makes is right and the fixture is real solver output, so the repair is the
+      assertion's bound and nothing else: editing the captured payload to fit a test is fitting
+      the evidence to the claim, which the contract's forbidden shortcuts name. Stage 4 never
+      caught it because its check requires the phase's pytest command to be red and it was red
+      on a missing module, so no assertion in either file had executed. tests/ and
+      verification/freeze.lock come back into approved_scope for this one task, and the builder
+      files leave it, so this task cannot reshape the implementation to suit the test it is
+      repairing. The stage-6 review notes are in scope because the reviewer marks the blocker
+      resolved rather than the writer deleting it.
