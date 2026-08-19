@@ -1,17 +1,8 @@
-task_id: phase-10-implementation
-active_phase: "10"
-task_mode: implementation
-base_commit: 402396544439bcd74b0d921882e62316e8ac4c99
-approved_scope:
-  - src/poker_training_bot/solver_artifacts/**
-  - scripts/extract_gtopen_preflop.py
-  - scripts/check_solver_export_expectations.py
-  - scripts/generate_solver_export_report.py
-  - data/artifacts/preflop/exports/**
-  - verification/mutations.yml
-  - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
-  - reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md
-  - reports/phase_audits/reviews/PHASE_10_SOLVER_EXTRACTION/**
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
