@@ -403,3 +403,51 @@ mutations:
     replace: "    if True:"
     must_fail:
       - pytest
+
+  - id: unmerged-dependency-counts-as-done
+    description: >-
+      A phase becomes eligible the moment its dependency goes active rather than when it
+      merges, so a lane starts against work that exists nowhere but a sibling's checkout.
+      The fleet's whole safety property is that eligibility is measured on the integration
+      branch, and this is the one line that says so.
+    file: scripts/loop_fleet.py
+    find: 'FINISHED = "completed"'
+    replace: 'FINISHED = "active"'
+    must_fail:
+      - pytest_loop_fleet
+      - pytest
+
+  - id: finished-lane-occupies-a-lane-forever
+    description: >-
+      A pointer left at completed keeps counting as a running lane, so the phase that wrote
+      it can never be started again and the board reports occupancy that ended weeks ago.
+    file: scripts/loop_fleet.py
+    find: 'LIVE_LOOPS = {"running", "halted"}'
+    replace: 'LIVE_LOOPS = {"running", "halted", "completed"}'
+    must_fail:
+      - pytest_loop_fleet
+      - pytest
+
+  - id: dependency-cycle-goes-unreported
+    description: >-
+      A cycle in depends_on stops being detected, so a whole group of phases becomes
+      permanently unstartable and the driver explains it as ordinary waiting on a
+      dependency, which is the one failure mode that looks exactly like working correctly.
+    file: scripts/check_repo_consistency.py
+    find: "    for node in graph:\n        if colour.get(node) is None:\n            walk(node)\n    return found"
+    replace: "    return set()"
+    must_fail:
+      - pytest_loop_fleet
+      - pytest
+
+  - id: worktree-lock-collapses-to-the-repo-root
+    description: >-
+      The lane lock stops following the worktree's own git directory and falls back to
+      REPO_ROOT/.git, which in a linked worktree is a file rather than a directory. Every
+      lane then claims the same lock, which is the collision the lock exists to stop.
+    file: scripts/loop_stage.py
+    find: '    resolved = git("rev-parse", "--absolute-git-dir")'
+    replace: '    resolved = ""'
+    must_fail:
+      - pytest_loop_fleet
+      - pytest

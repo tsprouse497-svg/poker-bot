@@ -13,6 +13,11 @@ it.
   derives the gate from status alone, so a completed phase whose plan is still
   active, or a future phase whose plan is already filed as completed, means one of
   the two is lying.
+- Every `depends_on` must name a real phase and the graph must be acyclic.
+  `scripts/loop_fleet.py` decides which phases may start from that graph alone, so
+  a typo makes a phase unstartable forever and a cycle makes a whole group of them
+  unstartable. Both fail quietly as "waiting on a dependency", which is exactly what
+  ordinary waiting looks like.
 """
 
 from __future__ import annotations
@@ -98,9 +103,52 @@ def check_plan_location(phase: dict, errors: list[str]) -> None:
         errors.append(f"phase {phase_id} is active but has no ExecPlan in active/")
 
 
+def dependency_graph(all_phases: list[dict]) -> dict[str, list[str]]:
+    graph = {}
+    for phase in all_phases:
+        contract = REPO_ROOT / phase["contract"]
+        meta = parse_frontmatter(contract.read_text(encoding="utf-8"), phase["contract"])
+        graph[str(phase["phase_id"])] = [str(dep) for dep in (meta.get("depends_on") or [])]
+    return graph
+
+
+def check_dependency_graph(all_phases: list[dict], errors: list[str]) -> None:
+    graph = dependency_graph(all_phases)
+    known = set(graph)
+    for phase_id, deps in sorted(graph.items()):
+        for dep in deps:
+            if dep not in known:
+                errors.append(
+                    f"phase {phase_id} depends_on {dep!r}, which is not a phase in phase_status.yml"
+                )
+    for phase_id in sorted(cyclic_phases(graph)):
+        errors.append(f"phase {phase_id} is on a depends_on cycle, so it can never start")
+
+
+def cyclic_phases(graph: dict[str, list[str]]) -> set[str]:
+    """Phases reachable from themselves through `depends_on`."""
+    colour: dict[str, int] = {}
+    found: set[str] = set()
+
+    def walk(node: str) -> None:
+        colour[node] = 1
+        for dep in graph.get(node, []):
+            if colour.get(dep) == 1:
+                found.add(dep)
+            elif colour.get(dep) is None and dep in graph:
+                walk(dep)
+        colour[node] = 2
+
+    for node in graph:
+        if colour.get(node) is None:
+            walk(node)
+    return found
+
+
 def main() -> int:
     errors: list[str] = []
     check_pytest_commands_hold_tests(errors)
+    check_dependency_graph(phases(), errors)
     for phase in phases():
         if phase["status"] in GATE_PHASE_STATUSES:
             check_declared_commands_registered(phase, errors)

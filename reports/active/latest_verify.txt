@@ -30,9 +30,10 @@ All passed: True
 - PASS check_contracts: Validate phase contracts
 - PASS check_scope: Validate task scope
 - PASS check_execplan_delegation: Validate active ExecPlan delegation plan
-- PASS check_repo_consistency: Cross-check phase status, ExecPlan location, and gate commands
+- PASS check_repo_consistency: Cross-check phase status, ExecPlan location, gate commands, and the phase graph
 - PASS check_test_freeze: Check tests match verification/freeze.lock
 - PASS check_file_sizes: Validate file-size limits
+- PASS pytest_loop_fleet: Run parallel-loop eligibility, lane discovery, and pause board tests
 - PASS import_smoke: Import package smoke test
 - PASS uv_import_smoke: Prove uv environment can import the package
 - PASS pytest: Run tests

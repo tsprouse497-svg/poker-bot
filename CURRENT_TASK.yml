@@ -1,11 +1,22 @@
-task_id: null
+task_id: maint-loop-fleet
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 46880339aca7c8bd9e0c05f5722986e510778d8f
+approved_scope:
+  - scripts/loop_fleet.py
+  - scripts/review_queue.py
+  - scripts/loop_stage.py
+  - scripts/run_verify.py
+  - scripts/check_repo_consistency.py
+  - tests/test_loop_fleet.py
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - docs/LOOP.md
+  - AGENTS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
+  - verification/loop_runs/**
   - backlog.yml
   - phase_status.yml
   - STATUS.md
@@ -265,3 +276,16 @@ scope_change_log:
       Fixing it needs .gitignore so the sentinel can never be staged, check_scope.py so a tree
       holding a live mutation refuses to pass the gate at all, check_gate_bite.py to say which
       file to restore, the tests, a canary, and the freeze lock recording the tests.
+  - date: 2026-08-18
+    reason: >-
+      The loop runs one phase because its state is one file, its worktree lock is one path, and
+      nothing reads depends_on. MAINT-20 builds the fleet: per-lane state under
+      verification/loop_runs/, a lock resolved through the worktree's own git dir rather than
+      REPO_ROOT/.git, which is a file and not a directory inside a linked worktree, a driver that
+      computes eligible phases from the contract DAG, and a derived pause board so everything
+      waiting on a human is visible in one place without becoming a second record that can drift.
+      That needs the driver, the queue, loop_stage.py, the command registry, the consistency
+      checker that must reject a cyclic or dangling depends_on, the new test file, canaries for
+      both new commands, the freeze lock recording the tests, docs/LOOP.md, and AGENTS.md.
+      verification/loop_runs/** joins standing_scope for the same reason loop_state.yml is there:
+      it is the driver's own pointer and no human writes a judgment into it.

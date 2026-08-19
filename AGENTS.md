@@ -77,6 +77,14 @@ A review finding is a blocker, a non-blocker, or an alignment item. A blocker ho
 Every judgment call in a decision list declares `frozen-into-data` or `runtime-reversible`. Only the first kind blocks on a human; the second proceeds on its recorded default and is reported afterwards.
 `verification/loop_policy.yml` decides which phases may advance unattended. A phase that writes new committed data, or that needs input the repo does not have, always stops.
 
+## Parallel Phases
+
+`scripts/loop_fleet.py` runs several phases at once and is read-only: it computes and instructs, and the session performs every worktree, merge, and tag.
+One lane per git worktree, on its own `phase/NN-slug` branch, with its own pointer under `verification/loop_runs/`. Two lanes never share a checkout.
+Eligibility comes from the contracts' `depends_on` measured against `main`. A dependency is met only when it is `completed` there, so a lane never starts against work that exists only in a sibling's checkout. Changing `depends_on` is a semantic contract change and needs `contract-update`.
+Integration is serial. One lane merges at a time; the freeze lock and generated documents are rebuilt on the merged result and the full gate plus `check_gate_bite` run again before the tag. Remaining lanes rebase onto the new `main`, and one that goes red because a sibling merged returns to stage 6.
+`scripts/review_queue.py` is where a human ask becomes visible. It is a view derived from the decision lists, review notes, loop policy, ExecPlan pauses, and halted pointers; it is never a record of its own and is never committed. A lane that hits an ask halts and the others keep running.
+
 ## Verification Gate
 
 `scripts/run_verify.py` derives the full gate: a fixed base gate plus `required_gate_commands` from every contract whose phase is active or completed in `phase_status.yml`.

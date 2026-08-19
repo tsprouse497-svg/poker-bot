@@ -19,11 +19,53 @@ uv run python scripts/loop_stage.py              # what stage am I on, what do I
 uv run python scripts/loop_stage.py --advance    # verify this stage and move on
 uv run python scripts/loop_stage.py --halt "..." # record a halt and stop
 uv run python scripts/loop_stage.py --resume    # return a halted loop to its stage
+uv run python scripts/loop_stage.py --phase 11  # pick a lane when several are running
 ```
 
 The loop body is always the same: read the driver, perform the one stage it names, call it again.
 `--advance` refuses to move while its stage's check is failing, and prints why.
 It also refuses while the stage owes a review, which is explained below.
+
+## Running several phases at once
+
+`scripts/loop_fleet.py` drives the board rather than a phase.
+A lane is a git worktree on its own `phase/NN-slug` branch, holding its own pointer under `verification/loop_runs/`, so two lanes never write the same file and neither can see the other's half-finished work.
+
+```
+uv run python scripts/loop_fleet.py --plan          # which phases may start now
+uv run python scripts/loop_fleet.py --status        # every lane and its stage
+uv run python scripts/loop_fleet.py --tick          # ask every lane what it needs next
+uv run python scripts/loop_fleet.py --start-lane 11 # the runbook that opens a lane
+uv run python scripts/loop_fleet.py --integrate 11  # the runbook that merges one back
+uv run python scripts/review_queue.py --list        # everything waiting on a human
+```
+
+Like the stage driver, the fleet driver is read-only.
+It computes and it instructs; the session performs every action, so creating a worktree, seeding a task, merging a branch and moving a tag all still pass through the normal permission path.
+That is also what makes `--status` and `--tick` safe to run against live lanes.
+
+Eligibility comes from the contracts' `depends_on`, and it is measured against `main` rather than against the local branch.
+A dependency counts as met only once it is `completed` on the integration branch, because that is the only place a phase is genuinely finished.
+Reading it locally would let a lane start against work that exists nowhere but a sibling's checkout.
+`check_repo_consistency` rejects a `depends_on` that names a phase which does not exist or that closes a cycle, because both surface as a fleet reporting nothing eligible and explaining it as ordinary waiting on a dependency.
+
+Integration is deliberately serial.
+Lanes collide on `verification/freeze.lock`, `verification/mutations.yml`, `phase_status.yml`, `backlog.yml`, and the generated documents, so one lane merges at a time, the generated files are rebuilt on the merged result, and the full gate plus `check_gate_bite` run again before the tag.
+Every other live lane then rebases onto the new `main`.
+A lane that goes red because a sibling merged goes back to stage 6; it is not repaired from the integration step.
+
+## The pause board
+
+`scripts/review_queue.py` collects everything across the fleet that is waiting on a human, so a lane stops rather than guessing and the stop is visible from one place.
+
+It is derived, never recorded.
+A second file listing the open questions would be a second source of truth about them, and it would go stale the moment someone answered one in the file that actually governs it.
+So the queue reads the six places a human ask already lives: an unanswered `frozen-into-data` item in a decision list, an open `## Blocker` bullet in any stage's review notes, an `auto_advance: false` phase that has reached stage 11, a `needs_human_data` phase that cannot start at all, a `- Paused:` reason declared in an active ExecPlan, and a lane pointer sitting at `loop: halted`.
+Answering happens in the real file and the entry disappears, because the next run re-derives.
+
+Nothing about the board is committed.
+It depends on which worktrees exist on this machine, so a checked-in copy would differ between machines and could never be verified by the gate.
+Its shape is covered by `tests/test_loop_fleet.py` instead.
 
 ## The eleven stages
 
@@ -115,7 +157,12 @@ The loop stops rather than pushing through:
 
 ## Known gaps
 
-Three things this machinery cannot catch, kept here rather than in a commit message.
+Four things this machinery cannot catch, kept here rather than in a commit message.
+
+Merging a lane rewrites `verification/freeze.lock`, which is a real softening of the freeze.
+Two lanes each froze their own suite, so the merged lock describes a suite neither of them locked, and the rebuild is the only way to get one that does.
+What keeps it honest is who does it and when: the integrator, on a branch whose tests were already frozen at stage 5, built against at stage 6, and reviewed at stage 8, never a builder and never before stage 5 in any lane.
+The freeze still does its one job, which is stopping the thing being tested and the test for it from being written by the same mind.
 
 A test that was wrong when written survives every mechanical check above.
 Freezing preserves it, and mutation canaries only prove that *something* fails, not that the assertion is right.

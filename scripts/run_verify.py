@@ -101,7 +101,11 @@ COMMANDS = {
     ),
     "check_repo_consistency": CommandSpec(
         uv_python_command() + ["scripts/check_repo_consistency.py"],
-        "Cross-check phase status, ExecPlan location, and gate commands",
+        "Cross-check phase status, ExecPlan location, gate commands, and the phase graph",
+    ),
+    "pytest_loop_fleet": CommandSpec(
+        uv_python_command() + ["-m", "pytest", "tests/test_loop_fleet.py"],
+        "Run parallel-loop eligibility, lane discovery, and pause board tests",
     ),
     "freeze_tests": CommandSpec(
         uv_python_command() + ["scripts/freeze_tests.py"],
@@ -233,6 +237,9 @@ BASE_GATE_CHECKS = [
     "check_repo_consistency",
     "check_test_freeze",
     "check_file_sizes",
+    # The fleet is repo tooling rather than phase work, so no contract declares it
+    # and it belongs in the base gate.
+    "pytest_loop_fleet",
     "import_smoke",
     "uv_import_smoke",
     "pytest",

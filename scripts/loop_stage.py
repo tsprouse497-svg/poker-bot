@@ -6,8 +6,8 @@ script's output is the only source of truth about what comes next. Stage order
 cannot be skipped, because advancing runs a check rather than accepting a model's
 opinion that it is done. And a crash costs one stage instead of a phase.
 
-The driver deliberately does not touch the repo apart from
-`verification/loop_state.yml`. It instructs and it verifies; the session performs
+The driver deliberately does not touch the repo apart from its own lane pointer.
+It instructs and it verifies; the session performs
 the actions, so every destructive step still passes through the normal permission
 path. `--advance` refuses to move the pointer while its stage's check is failing.
 
@@ -19,8 +19,17 @@ rather than a list of interesting stages, so a stage with nothing to review is
 skipped mechanically and a stage that starts doing real work is caught the first
 time it does.
 
+Several phases can be in flight at once, one lane per worktree, which is why the
+pointer is a file per phase under `verification/loop_runs/` rather than one file
+for the repo. Each lane writes only its own, so two lanes merging back never
+collide and `scripts/loop_fleet.py` can read the whole board without disturbing
+any of it. A loop started before that existed keeps its `loop_state.yml` and is
+written back to the same place, because migrating a live lane mid-phase would
+move a file its own task never approved.
+
 Usage:
     loop_stage.py                 show the current stage and what to do
+    loop_stage.py --phase 11      pick a lane when more than one is running
     loop_stage.py --start 06      begin the loop for a phase
     loop_stage.py --advance       verify this stage is done and move on
     loop_stage.py --halt "reason" record a halt and stop
@@ -32,6 +41,7 @@ import argparse
 import subprocess
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 
 import yaml
 
@@ -49,14 +59,15 @@ from check_contracts import (  # noqa: E402
 )
 from run_verify import COMMANDS  # noqa: E402
 
-STATE_PATH = REPO_ROOT / "verification" / "loop_state.yml"
+LEGACY_STATE_PATH = REPO_ROOT / "verification" / "loop_state.yml"
+RUNS_DIR = REPO_ROOT / "verification" / "loop_runs"
 POLICY_PATH = REPO_ROOT / "verification" / "loop_policy.yml"
 TASK_PATH = REPO_ROOT / "CURRENT_TASK.yml"
 PHASE_STATUS_PATH = REPO_ROOT / "phase_status.yml"
 ACTIVE_PLANS = REPO_ROOT / "docs" / "exec_plans" / "active"
 COMPLETED_PLANS = REPO_ROOT / "docs" / "exec_plans" / "completed"
 REVIEWS_ROOT = REPO_ROOT / "reports" / "phase_audits" / "reviews"
-LOCK_PATH = REPO_ROOT / ".git" / "poker-loop.lock"
+LOCK_NAME = "poker-loop.lock"
 SCHEMA_VERSION = 1
 
 # Paths whose changes never require a review, because no human wrote a judgment
@@ -66,6 +77,7 @@ SCHEMA_VERSION = 1
 # demand a review of the review.
 UNREVIEWED_PATHS = (
     "verification/loop_state.yml",
+    "verification/loop_runs/",
     "verification/freeze.lock",
     "CURRENT_TASK.yml",
     "phase_status.yml",
@@ -90,6 +102,20 @@ def git(*args: str) -> str:
     return subprocess.run(
         ["git", *args], cwd=REPO_ROOT, text=True, capture_output=True
     ).stdout.strip()
+
+
+def lock_path() -> Path:
+    """The lock that claims this worktree for one lane.
+
+    In a linked worktree `.git` is a file pointing at `.git/worktrees/<name>`, so
+    `REPO_ROOT/".git"/LOCK_NAME` is a path inside a file and cannot be written at
+    all. Asking git for this worktree's own git directory gives one lock per lane,
+    which is what makes the precheck mean "this worktree is claimed" rather than
+    "some worktree somewhere is claimed" - the second reading would let two lanes
+    share a checkout, which is the collision the lock exists to stop.
+    """
+    resolved = git("rev-parse", "--absolute-git-dir")
+    return (Path(resolved) if resolved else REPO_ROOT / ".git") / LOCK_NAME
 
 
 def tree_is_clean() -> bool:
@@ -212,8 +238,8 @@ class Context:
 
 def check_precheck(ctx: Context) -> list[str]:
     reasons = []
-    if not LOCK_PATH.exists():
-        reasons.append(f"no {LOCK_PATH.name}; claim the worktree before starting")
+    if not lock_path().exists():
+        reasons.append(f"no {LOCK_NAME}; claim the worktree before starting")
     branch = git("rev-parse", "--abbrev-ref", "HEAD")
     if not branch.startswith("phase/"):
         reasons.append(f"on branch {branch!r}; cut phase/{ctx.phase_id}-slug first")
@@ -573,15 +599,47 @@ def default_state() -> dict:
     return {"schema_version": SCHEMA_VERSION, "loop": "idle", "phase_id": None, "stage": 0}
 
 
-def read_state() -> dict:
-    if not STATE_PATH.exists():
+def run_paths() -> list[Path]:
+    """Every lane pointer this worktree holds, in both layouts."""
+    paths = sorted(RUNS_DIR.glob("*.yml")) if RUNS_DIR.exists() else []
+    if LEGACY_STATE_PATH.exists():
+        paths.append(LEGACY_STATE_PATH)
+    return paths
+
+
+def state_path_for(phase_id: str | None) -> Path | None:
+    """Which pointer this invocation reads and writes.
+
+    A named phase gets its own file, falling back to the single-lane file when
+    that is where the lane actually lives. A loop already running keeps writing
+    where its own task approved, so adding lanes never moves a live one.
+
+    With no name, one lane is unambiguous and several are not. Refusing beats
+    guessing, because a guess here advances the wrong phase.
+    """
+    if phase_id:
+        run = RUNS_DIR / f"{phase_id}.yml"
+        if not run.exists() and LEGACY_STATE_PATH.exists():
+            legacy = load_yaml(LEGACY_STATE_PATH) or {}
+            if str(legacy.get("phase_id")) == str(phase_id):
+                return LEGACY_STATE_PATH
+        return run
+    live = run_paths()
+    if len(live) > 1:
+        names = ", ".join(path.stem for path in live)
+        raise ValueError(f"{len(live)} lanes in this worktree ({names}); name one with --phase")
+    return live[0] if live else None
+
+
+def read_state(path: Path | None) -> dict:
+    if path is None or not path.exists():
         return default_state()
-    return load_yaml(STATE_PATH) or default_state()
+    return load_yaml(path) or default_state()
 
 
-def write_state(state: dict) -> None:
-    STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    STATE_PATH.write_text(yaml.safe_dump(state, sort_keys=True), encoding="utf-8")
+def write_state(state: dict, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.safe_dump(state, sort_keys=True), encoding="utf-8")
 
 
 def resumed(state: dict) -> dict:
@@ -652,6 +710,7 @@ def report(ctx: Context, stage: Stage, reasons: list[str]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--start", metavar="PHASE_ID", help="begin the loop for a phase")
+    parser.add_argument("--phase", metavar="PHASE_ID", help="which lane to act on")
     parser.add_argument("--advance", action="store_true", help="verify and move to the next stage")
     parser.add_argument("--halt", metavar="REASON", help="record a halt and stop")
     parser.add_argument(
@@ -659,7 +718,6 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    state = read_state()
     task = load_yaml(TASK_PATH)
 
     if args.start:
@@ -675,10 +733,23 @@ def main() -> int:
                 "stage": 0,
                 "auto_advance": bool(policy.get("auto_advance")),
                 "stage_base": git("rev-parse", "HEAD"),
-            }
+            },
+            RUNS_DIR / f"{args.start}.yml",
         )
         print(f"loop started for phase {args.start} at stage 0")
         return 0
+
+    try:
+        path = state_path_for(args.phase)
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
+        return 1
+    state = read_state(path)
+    if path is None:
+        if not state.get("phase_id"):
+            print("no lane is running here; start one with --start PHASE_ID")
+            return 0
+        path = RUNS_DIR / f"{state['phase_id']}.yml"
 
     if args.resume:
         try:
@@ -686,7 +757,7 @@ def main() -> int:
         except ValueError as error:
             print(str(error), file=sys.stderr)
             return 1
-        write_state(state)
+        write_state(state, path)
         stage = stage_by_number(int(state["stage"]))
         print(f"resumed phase {state['phase_id']} at stage {stage.number} ({stage.name})")
         return 0
@@ -694,7 +765,7 @@ def main() -> int:
     if args.halt:
         state["loop"] = "halted"
         state["halt_reason"] = args.halt
-        write_state(state)
+        write_state(state, path)
         print(f"halted at stage {state.get('stage')}: {args.halt}")
         return 1
 
@@ -718,13 +789,13 @@ def main() -> int:
 
     if stage.number == 11:
         state["loop"] = "completed"
-        write_state(state)
+        write_state(state, path)
         print(f"phase {ctx.phase_id} loop complete")
         return 0
 
     state["stage"] = stage.number + 1
     state["stage_base"] = git("rev-parse", "HEAD")
-    write_state(state)
+    write_state(state, path)
     nxt = stage_by_number(state["stage"])
     print(f"advanced to stage {nxt.number} ({nxt.name}, runner: {nxt.who})")
     return 0
