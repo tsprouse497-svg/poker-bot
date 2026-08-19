@@ -1,11 +1,8 @@
-task_id: MAINT-RUFF-CACHE
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 9ca71dd7783370b60017592dd6be7a6b8554d7fb
-approved_scope:
-  - tests/test_solver_expectations.py
-  - verification/freeze.lock
-  - scripts/run_verify.py
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
