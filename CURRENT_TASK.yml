@@ -1,12 +1,8 @@
-task_id: maint-postflop-source
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 86db0597fe7ec723c35b707a421d8bfd86391469
-approved_scope:
-  - docs/GTOPEN_SOLVER_NOTES.md
-  - docs/V2_ROADMAP.md
-  - verification/loop_policy.yml
-  - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
