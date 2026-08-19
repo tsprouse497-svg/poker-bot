@@ -32,9 +32,9 @@ eye, labelled as gated by nothing.
 **What no check can do.** The two gated checks catch a broken pipeline and nothing else - a
 solve with every frequency halved passes both, and a test says so on purpose. So the closing
 act is a person: load the saved solve in GTOpen's own interface and read its range grids
-against the committed report. Three nodes have been read that way already and matched cell by
-cell. What is still owed is Taylor's judgement on whether the poker itself is any good, which
-is the thing this phase exists for and which nothing here stands in for.
+against the committed report. Taylor did that on 2026-08-19 and judged the extraction sound,
+which is what closes this phase. Three nodes had already been read the same way cell by cell
+by the coordinator, and matched.
 
 ## Pass/fail checklist
 
@@ -56,8 +56,8 @@ is the thing this phase exists for and which nothing here stands in for.
 | 14 | The licence gap is stated as a limitation, not a permission | PASS |
 | 15 | The report names which spots it shows and which it omits | PASS - 11 shown, omitted: 38,817 |
 | 16 | The gate proves it can fail on this phase's own command | PASS - two canaries, 35 of 35 mutations caught |
-| 17 | A human loaded the saved solve and compared named grids | PASS - by the coordinator, three nodes, matched |
-| 18 | A human verdict on whether the extraction is faithful poker | **OWED** - Taylor's, see below |
+| 17 | A human loaded the saved solve and compared named grids | PASS - Taylor read the save and the preflop grids; the coordinator had matched three nodes cell by cell |
+| 18 | A human verdict on whether the extraction is faithful poker | PASS - Taylor, 2026-08-19, see below |
 
 ## Commands and reports
 
@@ -177,20 +177,30 @@ running the solver himself.
 
 ## The human verdict
 
-**Owed.** The saved solve is at
+**Given by Taylor on 2026-08-19: the save and the preflop grids check out, and the extraction
+is faithful.** He loaded
 `/Users/taylorsprouse/projects/gtopen/saves/preflop/six-max-100bb-rakefree.gtop`, sha256
-`64d8729a30f758f24e713976ac529bab64c741d22af4b68bdeea424864f27ab5`, and the report names it
-in its own header. Load it from the "saved solves" dropdown in the Preflop Lab and do not
-press Build or Re-solve afterwards - the form has no control for `allin_threshold` and
-re-posting it reverts the tree from the ruled 0.67 to 0.85.
+`64d8729a30f758f24e713976ac529bab64c741d22af4b68bdeea424864f27ab5`, in GTOpen's own Preflop
+Lab and read the opening range grids against
+`reports/active/latest_solver_export_report.txt`. He was shown the two things the domain
+review flagged before he looked - the big blind continuing with 570 of 1,326 combinations
+against a lowjack opening 19 percent while laying 1.5 to win 4.5, and the lowjack raising 44
+at 72.8 percent while raising 33 and 22 at about 99.9 percent - and neither disqualified the
+solve. Both stay filed rather than closed: `REALIZATION-MODEL-UNDERPRICES-POSITION` and
+`SOLVE-TARGET-LEAVES-A-NONMONOTONE-PAIR`, both against Phase 14, which is the phase that
+would pay for either.
 
-What the coordinator already checked, and what is left: the grids match GTOpen cell by cell
-at RFI LJ, at the hijack facing the lowjack's open, and at the big blind facing the lowjack -
-so the walk, the index mapping, the reach handling, the quantisation and the rendering are
-sound. Both sides come from one solved arena, so none of that says the poker is right. That
-is the judgement this phase was built to obtain, and the two things worth looking at first are
-in the stage-8 note: the big blind's tight defence, and the lowjack raising 44 less often than
-33 or 22.
+State the verdict's reach honestly, because it is the phase's closing evidence. It says the
+committed export is a faithful copy of what GTOpen solved and that the poker in it is good
+enough to keep. It does not say GTOpen agrees with any other solver, and nothing in this
+phase measures that. What backs the faithfulness half mechanically: the coordinator's own
+cell-by-cell comparison at three nodes, the converted frequencies reproducing GTOpen's own
+`freq` to within four ten-thousandths, 38,828 of 38,828 nodes re-resolving from their own
+action sequences, and two solves coming back byte-identical.
+
+The operating note that goes with reloading it: after loading, do not press Build or
+Re-solve. The web form has no control for `allin_threshold` and re-posting it reverts the
+tree from the ruled 0.67 to the server default of 0.85.
 
 ## Known limitations and deferred items
 
