@@ -1,7 +1,7 @@
 task_id: phase-11-implementation
 active_phase: "11"
 task_mode: implementation
-base_commit: 62b5dd7b0f6f867472e3394a7f025945c47cb6e2
+base_commit: 9635c2336a273672c523080c09b8f9760a511e23
 approved_scope:
   - src/poker_training_bot/poker_core/engine.py
   - src/poker_training_bot/poker_core/order.py
@@ -9,12 +9,6 @@ approved_scope:
   - src/poker_training_bot/strategy/postflop_fallback.py
   - scripts/generate_strategy_query_report.py
   - scripts/generate_engine_fidelity_report.py
-  - scripts/run_verify.py
-  - tests/test_engine_fidelity.py
-  - tests/test_poker_core.py
-  - tests/test_strategy_contract.py
-  - verification/freeze.lock
-  - verification/mutations.yml
   - reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md
   - reports/phase_audits/reviews/PHASE_11_ENGINE_FIDELITY/**
 standing_scope:
@@ -517,3 +511,14 @@ scope_change_log:
       by name, and test_poker_core.py pins a free-spot legal-action tuple that gains fold.
       Both are authored at stage 4 with everything else and re-frozen; tests/ and
       verification/ leave approved_scope at the stage 5 freeze.
+  - date: 2026-08-19
+    reason: >-
+      Loop stage 5 narrows scope so the builder cannot reach the tests it is measured by.
+      tests/ and verification/ leave approved_scope and check_scope.py enforces that
+      mechanically for the rest of the phase. scripts/run_verify.py leaves with them: the
+      phase's two command IDs and the corrected description of the solver expectations
+      command were authored at stage 4 and are what stage 4's frozen tests assert, so a
+      builder editing that file would be editing its own specification. base_commit moves
+      to the freeze commit so the diff is measured from there rather than from the start of
+      the phase, which is what keeps work that was legitimately in scope at stage 4 from
+      reading as out of scope afterwards.
