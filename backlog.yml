@@ -493,3 +493,17 @@ items:
       matters to phase 14, which decides whether a chart derived from this export is played,
       and the honest options are to accept the bias and record it in the chart's source card,
       to correct it with a stated adjustment, or to solve elsewhere.
+  - id: LOOP-STAGE-10-DEMANDS-A-REVIEW-IT-FORBIDS-WRITING
+    status: deferred
+    phase: contract-update
+    title: The closeout stage owes a review note that idle mode puts outside scope
+    reason: >-
+      loop_stage stage 10 requires task_mode idle, and MAINT-17 made every stage that produced
+      a diff owe a review note under reports/phase_audits/reviews/<CONTRACT_STEM>/. Idle
+      carries an empty approved_scope by AGENTS.md's closeout rule, and that directory is not
+      in standing_scope, so the note the stage demands is out of scope by construction. Phase
+      10 wrote one anyway: idle leaves base_commit null, check_scope then measures the diff
+      against HEAD, and an already-committed file is invisible to it. Passing on a loophole is
+      not the same as passing, and the next phase to reach closeout hits it again. Either the
+      reviews directory joins standing_scope, or stage 10 stops owing a note, or the closeout
+      writes its note before resetting to idle. It belongs to whoever owns loop_stage.py.
