@@ -1,12 +1,8 @@
-task_id: maint-postflop-coverage-ruling
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: f62d6031e6607b5a5ec804f798fbc453fcbce585
-approved_scope:
-  - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
-  - verification/loop_policy.yml
-  - docs/V2_ROADMAP.md
-  - docs/ROADMAP.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
