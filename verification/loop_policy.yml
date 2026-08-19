@@ -104,7 +104,13 @@ phases:
     auto_advance: false
     needs_human_data: true
     reason: >-
-      There is no postflop solution in the tree and no source for one. The phase
-      cannot start until Taylor supplies or approves that source, and a session must
-      not invent a sizing scheme, because invented sizings produce postflop play
-      that looks deliberate and is not.
+      A source exists. GTOpen solves postflop as its main function and the Preflop Lab
+      phase 10 uses is the bolt-on, so what is missing is a ruling on scope rather than
+      a solver. A postflop solve is per board and per preflop line, and each street's
+      ranges are the previous street's output, so one flop spot fans out to 47 turns and
+      about 2,160 rivers. The phase cannot start until Taylor rules how deep the
+      committed solution goes and what the bot does on a board it holds no cell for,
+      because the second answer either keeps the fail-closed boundary or amends it, and
+      a session must not make that call by quietly writing a board abstraction. The
+      questions are in
+      reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md.

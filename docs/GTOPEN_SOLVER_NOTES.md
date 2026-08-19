@@ -2,7 +2,9 @@
 
 What was established by cloning, building and running GTOpen on 2026-08-13.
 
-**Everything down to "Not verified" was executed. Everything in that section was not.**
+**Everything down to "Not verified" was executed, apart from the "Postflop exists" section, which says so in its own first line. Everything in "Not verified" was not.**
+
+That section sits high rather than at the end on purpose. Its absence is what let a later reader infer from an all-preflop note that the tool is preflop-only, and a reader who stops early should meet the correction rather than miss it.
 
 ## Installed state
 
@@ -16,6 +18,21 @@ What was established by cloning, building and running GTOpen on 2026-08-13.
 | Binary | `target/release/gto-server`, Mach-O **arm64**, native rather than under Rosetta |
 | Serves | `127.0.0.1:3737`, a JSON API and a web UI |
 | GPU | `/api/status` reports `"gpu": false` on this machine, so the CPU engine is what runs |
+
+## Postflop exists, and none of it was run
+
+Recorded because the absence of this section led a later reader to conclude GTOpen is preflop-only.
+Everything in this section is read from the README and the route table, not executed, so it belongs to the same class as "Not verified" below.
+
+Postflop CFR is the tool's primary function and the Preflop Lab is the bolt-on beside it.
+The postflop engine is the un-namespaced route surface: `/api/spot`, `/api/solve`, `/api/node`, `/api/runouts`, `/api/reports/*`, `/api/lock`, `/api/exploit`.
+A setup takes both ranges on a 13x13 grid, a board of 3, 4 or 5 cards for a flop, turn or river solve, pot, stacks, rake, and per-street bet, raise and donk sizes.
+`SEND TO POSTFLOP` carries both conditional ranges, the pot and the stacks out of a Preflop Lab line into that setup, which is the only coupling between the two engines.
+Solves target an exploitability percentage of pot, with 0.3% given as study-quality.
+`REPORTS` batch-solves one spot across a weighted canonical flop subset of 47, 95, 184, or all 1,755 flops.
+Node locking and a best-response mode exist and the README claims both are covered by tests.
+
+Suit isomorphism is exploited internally and described as exact, worth about 1.4x on two-tone flops and 2.2x on monotone. No rank abstraction is claimed.
 
 ## Config surface, as accepted
 

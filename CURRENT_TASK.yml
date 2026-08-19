@@ -1,8 +1,12 @@
-task_id: null
+task_id: maint-postflop-source
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 86db0597fe7ec723c35b707a421d8bfd86391469
+approved_scope:
+  - docs/GTOPEN_SOLVER_NOTES.md
+  - docs/V2_ROADMAP.md
+  - verification/loop_policy.yml
+  - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -300,3 +304,13 @@ scope_change_log:
       the shared git directory instead, which belongs to the primary checkout whatever
       worktree the driver runs in, and needs the driver, its tests, a canary, and the freeze
       lock recording the tests.
+  - date: 2026-08-19
+    reason: >-
+      Phase 16 was declared blocked on a postflop sizing source that does not exist, and that
+      premise is wrong: GTOpen solves postflop as its primary function and the Preflop Lab
+      phase 10 uses is the bolt-on. The claim was quoted into verification/loop_policy.yml and
+      backlog.yml and read back as established, and docs/GTOPEN_SOLVER_NOTES.md permitted the
+      inference by documenting only the preflop calls that had been executed. MAINT-23 corrects
+      all four and records the two rulings the phase is actually gated on, with defaults, in a
+      decision file under reports/phase_audits/decisions/. No phase contract changes and nothing
+      is implemented; the acceptance criteria still belong to phase 16's own stage 1.

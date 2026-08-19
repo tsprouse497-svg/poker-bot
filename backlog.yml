@@ -122,7 +122,15 @@ items:
     status: deferred
     phase: "16"
     title: A postflop strategy that can bet and raise
-    reason: V1 ships a fallback that never invests unless the investment cannot lose, so it never bets or raises. A bet needs a size, a size needs a source, and the only sizing source in the repo is the preflop solver export. Until a postflop solution is committed, an invented sizing scheme would produce postflop play that looks deliberate and is not.
+    reason: >-
+      V1 ships a fallback that never invests unless the investment cannot lose, so it never
+      bets or raises. An earlier version of this entry said a size needs a source and the only
+      source in the repo is the preflop export; that was wrong. GTOpen solves postflop as its
+      primary function and the Preflop Lab phase 10 uses is the bolt-on. What is missing is a
+      ruling on how deep the committed solution goes and what the bot does on a board it holds
+      no cell for, since mapping an unsolved rank texture onto a solved one is the heuristic
+      guessing AGENTS.md forbids. Recorded with defaults in
+      reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md.
   - id: STREET-BET-MEANING-AMBIGUOUS
     status: deferred
     phase: "11"
