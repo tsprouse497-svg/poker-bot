@@ -244,6 +244,14 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_engine_fidelity_report.py"],
         "Generate the engine and query fidelity before/after report",
     ),
+    "pytest_spot_vocabulary": CommandSpec(
+        uv_python_command() + ["-m", "pytest", "tests/test_spot_vocabulary.py"],
+        "Run the sizing-aware and second-orbit spot vocabulary tests",
+    ),
+    "generate_spot_vocabulary_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_spot_vocabulary_report.py"],
+        "Generate the spot vocabulary report, key mapping, and price substitution census",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",

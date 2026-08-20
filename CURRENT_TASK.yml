@@ -1,10 +1,12 @@
-task_id: phase-12-contract
+task_id: phase-12-tests
 active_phase: "12"
-task_mode: contract-update
-base_commit: beec7d6331103966a259643c98a4819e9ab6466c
+task_mode: implementation
+base_commit: 700db456be1da5e2e8f27af729d7ab4f57f1aa06
 approved_scope:
-  - docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md
-  - reports/phase_audits/decisions/PHASE_12_SPOT_VOCABULARY_DECISIONS.md
+  - tests/test_spot_vocabulary.py
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - scripts/run_verify.py
   - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -592,3 +594,18 @@ scope_change_log:
       in scripts/run_verify.py are deliberately absent: check_repo_consistency requires a
       registered pytest_* command to name a file holding tests, and those tests are authored
       at stage 4, so registration lands with them the way phase 11's did.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 stage 4 authors the tests before any implementation exists, so it needs
+      tests/test_spot_vocabulary.py, the two new gate commands in scripts/run_verify.py,
+      their mutation canaries in verification/mutations.yml, and the freeze lock those
+      tests are recorded in. The canaries are authored here rather than at stage 7 because
+      phases 08, 09 and 10 each wrote their own after the code and each filed that as the
+      same miss.
+      base_commit moves to the stage-3 close for the reason phase 05 recorded when stage 5
+      narrowed its scope: the contract and the decision record legitimately changed while
+      the task was in contract-update mode, and measuring the diff from the start of the
+      lane would read that finished work as out of scope now that implementation mode
+      forbids touching a contract. Narrowing is the point rather than a side effect -
+      docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md leaves approved_scope here so
+      check_scope.py enforces the no-contract-edits-in-implementation rule mechanically.

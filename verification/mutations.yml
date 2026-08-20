@@ -570,3 +570,68 @@ mutations:
     must_fail:
       - pytest_engine_fidelity
       - pytest
+
+  # Phase 12's own four canaries, authored at stage 4 against text the implementation
+  # does not yet contain. Phases 08, 09 and 10 each wrote canaries for every command
+  # except the one the phase was adding, and each was caught at stage 7 by a gate that
+  # would otherwise have been decorative for exactly the behaviour the phase existed to
+  # add. Phase 11 authored its five here instead and all five matched on the first try.
+  # The `find` strings below are therefore a specification: stage 6 has to produce them
+  # verbatim, and a mismatch is the builder having drifted rather than the canary being
+  # wrong.
+
+  - id: spot-key-drops-the-raise-size
+    description: >-
+      The rendered key stops carrying a raise size, so every price collapses back into one
+      cell while the lookup still appears to hit. This is the shortcut the phase 12
+      contract names as the one it is most exposed to: it passes every test about a lookup
+      finding the right cell, and it makes the committed artifact permanently
+      single-price, which is the one outcome ruling 8 asked the phase to avoid.
+    file: src/poker_training_bot/solver_artifacts/schema.py
+    find: 'return f"{entry.position}:{entry.action}@{render_size_bb(entry.size_bb)}"'
+    replace: 'return f"{entry.position}:{entry.action}"'
+    must_fail:
+      - pytest_spot_vocabulary
+      - pytest_preflop_artifacts
+      - pytest
+
+  - id: price-substitution-not-recorded
+    description: >-
+      A price answered from a cell it was not asked at stops saying so, so an exact answer
+      and a substituted one become indistinguishable downstream and every later
+      measurement silently mixes them. It also makes the report's substitution census
+      read zero, which is the number that measures what ruling 8 costs in play.
+    file: src/poker_training_bot/solver_artifacts/lookup.py
+    find: "price_substitutions=tuple(substitutions),"
+    replace: "price_substitutions=(),"
+    must_fail:
+      - pytest_spot_vocabulary
+      - generate_spot_vocabulary_report
+      - pytest
+
+  - id: a-flat-re-raise-is-accepted
+    description: >-
+      The key stops requiring raises to strictly increase along the sequence, so a
+      three-bet to the same amount as the open it faces gets a key. A spot that cannot
+      happen is a spot a chart can be filled for, and a key space that admits it is no
+      longer canonical.
+    file: src/poker_training_bot/solver_artifacts/schema.py
+    find: "if size <= previous_size:"
+    replace: "if size < previous_size:"
+    must_fail:
+      - pytest_spot_vocabulary
+      - pytest
+
+  - id: a-folded-seat-may-act-again
+    description: >-
+      The second-orbit order rule stops rejecting a position the action already passed
+      without recording, so a seat that folded to a three-bet can four-bet. This is the
+      permissive direction of the same rule that makes four-bets expressible, and a
+      vocabulary that accepts sequences no hand can produce buys the phase's own defect
+      back in the opposite sign.
+    file: src/poker_training_bot/solver_artifacts/schema.py
+    find: "if entry.position in folded:"
+    replace: "if False and entry.position in folded:"
+    must_fail:
+      - pytest_spot_vocabulary
+      - pytest
