@@ -1,9 +1,8 @@
-task_id: to-call-meaning-contract
+task_id: null
 active_phase: null
-task_mode: contract-update
-base_commit: 7dc2902ca69106948cc114ab1b3d3df0dc6454fd
-approved_scope:
-  - docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
