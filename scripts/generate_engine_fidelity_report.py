@@ -155,7 +155,20 @@ def _reopening_section() -> list[str]:
         lines.append(
             f"     {second:>16}   {second - 10:>38}   {'yes' if may else 'no':>16}"
         )
+    short_open = TurnState.start_postflop(_round((5, 100, 22, 100), min_raise=20), button_seat=3)
+    short_open = short_open.apply(Action(0, ActionKind.BET, 5))
+    short_open = short_open.apply(Action(1, ActionKind.CALL))
+    short_open = short_open.apply(Action(2, ActionKind.RAISE, 22))
     turn = _reopening_states(21)
+    lines += [
+        "",
+        "   A street opened by a short all-in has had no full bet on it, so the reference",
+        "   stays at the level the street opened on. Minimum bet 20, seat 0 all-in for 5,",
+        "   seat 1 calls, seat 2 all-in for 22: the street has advanced 22 from nothing,",
+        "   which is past a full bet, so seat 1 may raise.",
+        f"     seat 1 is offered"
+        f" {[kind.value for kind in short_open.legal_actions(1)]}",
+    ]
     lines += [
         "",
         "   The bar is the minimum raise of 10, so 20 clears it and 19 does not. Reopening",

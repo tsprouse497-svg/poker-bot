@@ -1,12 +1,13 @@
-task_id: phase-11-frozen-test-repair
+task_id: phase-11-reopening-reference
 active_phase: "11"
 task_mode: implementation
-base_commit: 5d0c8c85617e7a8dd54a6d7d39bbd333ccb27ca0
+base_commit: fa97133abbcadbe3fc6f976204d12b226dbec237
 approved_scope:
+  - src/poker_training_bot/poker_core/order.py
+  - scripts/generate_engine_fidelity_report.py
   - tests/test_engine_fidelity.py
-  - tests/test_postflop_fallback.py
-  - tests/test_strategy_contract.py
   - verification/freeze.lock
+  - verification/mutations.yml
   - reports/phase_audits/reviews/PHASE_11_ENGINE_FIDELITY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -531,3 +532,16 @@ scope_change_log:
       reshape the implementation to suit the tests it is repairing - the pressure has to
       run the other way. No assertion is weakened: each repair restates the same claim
       against the behaviour the phase 11 contract requires.
+  - date: 2026-08-19
+    reason: >-
+      The stage 8 domain review found the reopening reference is set from an under-sized
+      all-in bet, which is not a full bet, so a street opened by a short all-in measures
+      every later advance from that short amount. A seat that called a 5-chip all-in on a
+      street whose minimum bet is 20 is then barred from raising over a 22-chip all-in,
+      although the street has advanced past a full bet and no full bet was ever made on it.
+      The phase 11 contract already requires the measurement to be against the last full bet
+      or raise, so no contract changes: this is the implementation not matching a criterion
+      it already carries. Fixing it needs poker_core/order.py, the phase test that pins it,
+      the freeze lock recording that test, one canary so the new branch is proved to bite,
+      and the report that shows the case. The other two test files leave approved_scope,
+      because this task has no business in them.

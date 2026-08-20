@@ -379,7 +379,35 @@ class TestBettingReopensWhenShortAllInsAccumulate:
             turn.apply(Action(0, ActionKind.RAISE, 22))
         assert turn.apply(Action(0, ActionKind.RAISE, 31)).round.current_bet == 31
 
+    def test_an_under_sized_all_in_bet_is_not_the_level_advances_are_measured_from(
+        self,
+    ) -> None:
+        """A street opened by a short all-in has had no full bet on it.
+
+        Minimum bet 20. Seat 0 is all-in for 5, which is a legal bet and not a full one.
+        Seat 1 calls it. Seat 2 is all-in for 22. The street has advanced 22 from nothing,
+        which is past a full bet, so seat 1 may raise. Measuring from the 5 instead leaves
+        an advance of 17 and bars a seat over a bet nobody ever made in full.
+        """
+        state = make_round((5, 100, 22, 100), min_raise=20)
+        turn = TurnState.start_postflop(state, button_seat=3)
+        turn = turn.apply(Action(0, ActionKind.BET, 5))
+        turn = turn.apply(Action(1, ActionKind.CALL))
+        turn = turn.apply(Action(2, ActionKind.RAISE, 22))
+        assert 1 not in turn.no_raise
+        assert ActionKind.RAISE in turn.legal_actions(1)
+
     # -- not over-applied -- #
+
+    def test_a_full_bet_does_become_the_level_advances_are_measured_from(self) -> None:
+        """The opposite case, so the fix is not a rule that never resets on a bet."""
+        state = make_round((100, 100, 25, 100), min_raise=20)
+        turn = TurnState.start_postflop(state, button_seat=3)
+        turn = turn.apply(Action(0, ActionKind.BET, 20))
+        turn = turn.apply(Action(1, ActionKind.CALL))
+        turn = turn.apply(Action(2, ActionKind.RAISE, 25))
+        assert 1 in turn.no_raise
+        assert ActionKind.RAISE not in turn.legal_actions(1)
 
     def test_a_single_short_all_in_still_does_not_reopen(self) -> None:
         state = make_round((100, 15, 100), min_raise=2)

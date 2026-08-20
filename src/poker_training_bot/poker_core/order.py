@@ -152,7 +152,14 @@ class TurnState:
         if action.kind is ActionKind.BET:
             acted = frozenset({action.seat})
             no_raise: frozenset[int] = frozenset()
-            reopen_level = new_round.current_bet
+            # An all-in bet below the minimum is a legal bet and not a full one, so it must
+            # not become the level later advances are measured from. Treating it as one
+            # means a street opened by a short all-in measures everything after it from that
+            # short amount: a seat that called a 5-chip all-in where the minimum bet is 20
+            # would stay barred over a 22-chip all-in, though the street has advanced past a
+            # full bet and no full bet was ever made on it.
+            full_bet = new_round.current_bet - self.reopen_level >= previous_min_raise
+            reopen_level = new_round.current_bet if full_bet else self.reopen_level
         elif action.kind is ActionKind.RAISE:
             acted = frozenset({action.seat})
             # Against the last full bet or raise, not against the bet level immediately

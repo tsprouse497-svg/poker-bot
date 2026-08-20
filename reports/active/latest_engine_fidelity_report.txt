@@ -40,6 +40,12 @@ contract, because the old behaviour is no longer in the tree to measure.
                    21                                       11                yes
                    30                                       20                yes
 
+   A street opened by a short all-in has had no full bet on it, so the reference
+   stays at the level the street opened on. Minimum bet 20, seat 0 all-in for 5,
+   seat 1 calls, seat 2 all-in for 22: the street has advanced 22 from nothing,
+   which is past a full bet, so seat 1 may raise.
+     seat 1 is offered ['fold', 'call', 'raise']
+
    The bar is the minimum raise of 10, so 20 clears it and 19 does not. Reopening
    restores the right to raise and not a cheaper price for it: with the level at
    21 and the minimum raise still 10, seat 0's smallest legal raise is to 31.

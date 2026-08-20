@@ -564,3 +564,18 @@ items:
       roadmap requires the refusal inventory to lose its catch-all row there; this item is the
       record that the re-run also has to restate the numbers phase 11 moved rather than only
       the ones the new vocabulary moves.
+  - id: UNDER-SIZED-ALL-IN-BET-DOES-NOT-BAR-PRIOR-CHECKERS
+    status: deferred
+    phase: contract-update
+    title: An all-in bet below the minimum clears the no-raise set it should leave alone
+    reason: >-
+      TurnState.apply clears no_raise on every BET, including an all-in bet below the
+      minimum, so seats that already checked on that street keep their right to raise over
+      it. Cardrooms bar them: an all-in wager that is less than a full bet does not reopen
+      betting for a player who has already acted on that round, and checking is acting. The
+      behaviour predates phase 11 and no phase 11 acceptance criterion names it, which is
+      why phase 11 fixed the reference level the same branch computes and left this alone -
+      a fix here would be behaviour no criterion asked for. Found by the phase 11 stage 8
+      domain review alongside the reference-level blocker it did fix. It needs a contract
+      that says what a short all-in bet does to the seats behind it, so it is
+      contract-update work before it is implementation work.

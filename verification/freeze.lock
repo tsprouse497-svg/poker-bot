@@ -9,8 +9,8 @@ files:
     sha256: 8c65b24ff3c00beb2e87abfa0d53caf5741c3fbf20be5ad215227a6847cf5e0a
     test_functions: 9
   tests/test_engine_fidelity.py:
-    sha256: e450b4fecbf374f4f0d4ed4d4f7d131872fb96df6628a49ae6d8af8bff116593
-    test_functions: 50
+    sha256: 808121a20053a8cdef598e672035f1615822ea5d7d0e093801b5c3013870d4ff
+    test_functions: 52
   tests/test_execplan_delegation.py:
     sha256: a37a70f01787f099ece26466747fb9ba575eb01fcddfe0fd65b3985472cb7ed0
     test_functions: 10
@@ -69,4 +69,4 @@ files:
     sha256: cff43cccefe7dace9edd30f122f7c54fa7e5eb99aef417e9e00bc0b742abdf48
     test_functions: 59
 schema_version: 1
-test_function_floor: 644
+test_function_floor: 646

@@ -555,3 +555,18 @@ mutations:
     must_fail:
       - pytest_engine_fidelity
       - pytest
+
+  - id: under-sized-all-in-bet-becomes-the-reference-level
+    description: >-
+      An all-in bet below the minimum becomes the level later advances are measured from,
+      so a street opened by a short all-in measures everything after it from that short
+      amount. A seat that called a 5-chip all-in where the minimum bet is 20 stays barred
+      over a 22-chip all-in, though the street has advanced past a full bet and no full bet
+      was ever made on it. Found by the phase 11 stage 8 domain review rather than by any
+      frozen test, which is why it gets a canary of its own.
+    file: src/poker_training_bot/poker_core/order.py
+    find: "            reopen_level = new_round.current_bet if full_bet else self.reopen_level"
+    replace: "            reopen_level = new_round.current_bet"
+    must_fail:
+      - pytest_engine_fidelity
+      - pytest
