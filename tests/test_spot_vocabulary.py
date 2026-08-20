@@ -592,12 +592,10 @@ def test_the_squeeze_refusals_are_untouched(comparison) -> None:
     this count must not move.
 
     Repeated-position sequences are excluded because this phase grows that population on
-    purpose. As authored, the filter also caught
-    `t6/d100/BB/SB:call,BB:raise@3,SB:raise@12` - the one limped second-orbit decision in
+    purpose: as authored, the filter also caught the one limped second-orbit decision in
     the sample, which had no key at the branch point and so was invisible to a filter
-    requiring one. Counting it here would have made a guard against nearest-spot matching
-    fail for the second orbit finally having a key, which is the opposite of what it is
-    guarding.
+    requiring one. Counting it would make a guard against nearest-spot matching fail for
+    the second orbit finally having a key, which is the opposite of what it guards.
     """
     positions = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
     two_raise = [

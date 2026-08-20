@@ -474,13 +474,10 @@ def test_restamped_mutation_still_rejected(tmp_path: Path) -> None:
 
 def test_spot_key_rfi_and_sequence_forms() -> None:
     assert spot_key(6, 100, "CO", ()) == "t6/d100/CO/rfi"
-    assert (
-        spot_key(6, 100, "BTN", (PreflopAction("HJ", "raise", 2.5),))
-        == "t6/d100/BTN/HJ:raise@2.5"
-    )
-    assert (
-        spot_key(2, 40, "BB", (PreflopAction("BTN", "raise", 2.5),)) == "t2/d40/BB/BTN:raise@2.5"
-    )
+    six = spot_key(6, 100, "BTN", (PreflopAction("HJ", "raise", 2.5),))
+    assert six == "t6/d100/BTN/HJ:raise@2.5"
+    heads_up = spot_key(2, 40, "BB", (PreflopAction("BTN", "raise", 2.5),))
+    assert heads_up == "t2/d40/BB/BTN:raise@2.5"
     sequence = (PreflopAction("CO", "raise", 2.5), PreflopAction("BTN", "call"))
     assert spot_key(6, 100, "BB", sequence) == "t6/d100/BB/CO:raise@2.5,BTN:call"
 
@@ -606,11 +603,7 @@ def test_preflop_action_rejects_folds_and_checks() -> None:
 @pytest.mark.parametrize(
     ("label", "hero", "sequence"),
     [
-        (
-            "action from a position that acts after hero",
-            "CO",
-            (PreflopAction("BTN", "raise", 2.5),),
-        ),
+        ("action from a position that acts later", "CO", (PreflopAction("BTN", "raise", 2.5),)),
         ("early position facing a later open", "LJ", (PreflopAction("CO", "raise", 2.5),)),
         (
             "small blind facing a big blind raise it never saw",
@@ -651,12 +644,7 @@ def test_spot_key_rejects_folded_to_the_big_blind() -> None:
             (PreflopAction("CO", "raise", 2.5),),
             "t6/d100/BB/CO:raise@2.5",
         ),
-        (
-            "blind versus blind",
-            "BB",
-            (PreflopAction("SB", "raise", 3.5),),
-            "t6/d100/BB/SB:raise@3.5",
-        ),
+        ("blind vs blind", "BB", (PreflopAction("SB", "raise", 3.5),), "t6/d100/BB/SB:raise@3.5"),
         (
             "limped pot",
             "BB",

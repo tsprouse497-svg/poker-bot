@@ -3,6 +3,9 @@ active_phase: "12"
 task_mode: implementation
 base_commit: dd52b5b90cef9bf1188e9ed96ddfc471217d89f6
 approved_scope:
+  - tests/test_preflop_artifacts.py
+  - tests/test_spot_vocabulary.py
+  - verification/freeze.lock
   - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
   - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
@@ -763,3 +766,12 @@ scope_change_log:
       defect and stays filed as SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE;
       redesigning it would mean editing the phase 10 extractor, which this phase has no
       business in.
+  - date: 2026-08-20
+    reason: >-
+      The frozen-test repair pushed two test files past the 700-line cap, by one line and
+      by ten. Splitting a phase's test file for that is disproportionate and would drag
+      scripts/run_verify.py in behind it, so the repair is to tighten the prose the repair
+      itself added: two parametrize cases go back to one line each, one assertion is named
+      instead of wrapped, and three lines leave a docstring I wrote. The two files and the
+      freeze lock recording them join approved_scope for that and nothing else. No
+      assertion, case or label with meaning is removed.

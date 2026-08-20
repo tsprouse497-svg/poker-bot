@@ -10,32 +10,32 @@ All passed: False
 - PASS generate_golden_hand_report: Generate golden-hand replay report
 - PASS pytest_hand_history: Run hand-history tests
 - PASS generate_hand_history_replay_report: Generate normalized hand-history replay report
-- FAIL pytest_strategy_contract: Run strategy-contract and turn-order tests
+- PASS pytest_strategy_contract: Run strategy-contract and turn-order tests
 - PASS generate_strategy_query_report: Generate strategy query report and decision audit
-- FAIL pytest_preflop_artifacts: Run preflop position, artifact, and chart-lookup tests
+- PASS pytest_preflop_artifacts: Run preflop position, artifact, and chart-lookup tests
 - PASS generate_preflop_chart_report: Generate preflop chart coverage report
-- FAIL pytest_full_table_preflop: Run full-table preflop strategy tests
+- PASS pytest_full_table_preflop: Run full-table preflop strategy tests
 - PASS generate_preflop_strategy_report: Generate preflop strategy coverage and frequency report
 - PASS pytest_postflop_fallback: Run postflop fallback and composite strategy tests
 - PASS generate_postflop_fallback_report: Generate postflop fallback enumeration report and decision audit
-- FAIL pytest_simulator: Run offline simulator and profile tests
+- PASS pytest_simulator: Run offline simulator and profile tests
 - PASS generate_profile_comparison_report: Generate the bot/profile comparison report
 - PASS pytest_sample_comparison: Run public-corpus ingestion and player comparison tests
 - PASS generate_sample_comparison_report: Generate the real-hand comparison report and its refusal inventory
-- FAIL pytest_quality_hardening: Run quality, drift, and phase-gate hardening tests
-- FAIL run_full_quality_gate: Run the quality checks and write the quality report
-- FAIL pytest_solver_export: Run GTOpen solver export, source-card, and expectations tests
+- PASS pytest_quality_hardening: Run quality, drift, and phase-gate hardening tests
+- PASS run_full_quality_gate: Run the quality checks and write the quality report
+- PASS pytest_solver_export: Run GTOpen solver export, source-card, and expectations tests
 - PASS check_solver_export_expectations: Recompute the solver export's two orderings and check its source card against it
 - PASS generate_solver_export_report: Generate the solver export range-grid and comparison report
 - PASS pytest_engine_fidelity: Run the engine and strategy-query fidelity tests
 - PASS generate_engine_fidelity_report: Generate the engine and query fidelity before/after report
-- FAIL pytest_spot_vocabulary: Run the sizing-aware and second-orbit spot vocabulary tests
+- PASS pytest_spot_vocabulary: Run the sizing-aware and second-orbit spot vocabulary tests
 - PASS generate_spot_vocabulary_report: Generate the spot vocabulary report, key mapping, and price substitution census
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness
 - PASS check_contracts: Validate phase contracts
-- FAIL check_scope: Validate task scope
+- PASS check_scope: Validate task scope
 - PASS check_execplan_delegation: Validate active ExecPlan delegation plan
 - PASS check_repo_consistency: Cross-check phase status, ExecPlan location, gate commands, and the phase graph
 - PASS check_test_freeze: Check tests match verification/freeze.lock
@@ -43,7 +43,7 @@ All passed: False
 - PASS pytest_loop_fleet: Run parallel-loop eligibility, lane discovery, and pause board tests
 - PASS import_smoke: Import package smoke test
 - PASS uv_import_smoke: Prove uv environment can import the package
-- FAIL pytest: Run tests
+- PASS pytest: Run tests
 - FAIL check_gate_bite: Prove committed mutations make the gate fail
 - PASS ruff_check: Run ruff
 
