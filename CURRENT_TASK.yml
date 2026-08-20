@@ -8,6 +8,7 @@ approved_scope:
   - tests/test_engine_fidelity.py
   - verification/freeze.lock
   - verification/mutations.yml
+  - reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md
   - reports/phase_audits/reviews/PHASE_11_ENGINE_FIDELITY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -545,3 +546,8 @@ scope_change_log:
       the freeze lock recording that test, one canary so the new branch is proved to bite,
       and the report that shows the case. The other two test files leave approved_scope,
       because this task has no business in them.
+  - date: 2026-08-19
+    reason: >-
+      Loop stage 9 writes the phase audit packet, so reports/phase_audits/
+      PHASE_11_ENGINE_FIDELITY.md joins approved_scope. Nothing else is added, and the
+      builder files stay as the stage 8 blocker fix left them.
