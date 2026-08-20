@@ -1,9 +1,23 @@
-task_id: phase-12-freeze
+task_id: phase-12-build
 active_phase: "12"
 task_mode: implementation
-base_commit: 00a4e0cdb955d385069dee53b7a648202a6c861a
+base_commit: 5681010a91f7e8439dbf610068b7d5516e11c12f
 approved_scope:
-  - verification/freeze.lock
+  - src/poker_training_bot/solver_artifacts/schema.py
+  - src/poker_training_bot/solver_artifacts/lookup.py
+  - src/poker_training_bot/solver_artifacts/importer.py
+  - src/poker_training_bot/solver_artifacts/vocabulary_report.py
+  - src/poker_training_bot/strategy/contract.py
+  - src/poker_training_bot/strategy/preflop_chart.py
+  - src/poker_training_bot/strategy/preflop_sizing.py
+  - src/poker_training_bot/data_pipeline/comparison.py
+  - src/poker_training_bot/simulator/run.py
+  - scripts/convert_preflop_export.py
+  - scripts/generate_spot_vocabulary_report.py
+  - scripts/generate_preflop_strategy_report.py
+  - scripts/generate_postflop_fallback_report.py
+  - data/artifacts/preflop/six_max_nl25_100bb.json
+  - data/artifacts/preflop/sizings/six_max_nl25_100bb.json
   - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -659,3 +673,19 @@ scope_change_log:
       going 58 to 59 from MAINT-24. The narrowing follows in its own commit, because
       check_scope measures the diff against base_commit and a lock written after its own path
       left approved_scope reads as an out-of-scope edit.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 stage 5 narrowing. tests/ and verification/ leave approved_scope so
+      check_scope.py enforces mechanically that the builder cannot touch the tests it is
+      measured by or the lock recording them, and scripts/run_verify.py leaves too because
+      both new command IDs are already registered and a builder editing the command registry
+      is a builder editing its own gate. base_commit moves to the freeze commit for the reason
+      phase 05 recorded: work that was legitimately in scope at stage 4 would otherwise read
+      as out of scope now.
+      What replaces them is the builder's own list: the schema and lookup that carry the key,
+      the importer that validates it, the new vocabulary report module, the strategy contract
+      and chart that build a query into a key and put the substitution on the answer, the two
+      history producers that must now carry a raise amount, the converter and the two report
+      generators, and the re-derived artifact and sizing table. docs/LOOP.md names any new or
+      changed file under data/artifacts/** as a halt condition, so that pair is expected to
+      stop the loop for a human look rather than pass silently.
