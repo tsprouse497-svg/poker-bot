@@ -552,44 +552,50 @@ items:
     phase: "13"
     title: to_call is capped at hero's stack by two producers and uncapped by three
     reason: >-
-      Phase 11 documented street_bet and wrote a corollary into its own criteria - hero's own
-      contribution is recoverable as street_bet minus to_call - which is false, because to_call
-      carries the same undocumented pair of readings. simulator/table.py, comparison.py and the
-      enumeration site in generate_postflop_fallback_report.py pass the level owed;
-      generate_strategy_query_report.py and the sample-replay site in the same fallback report
-      script pass min(level owed, hero's stack). Both readings are deliberate: Phase 06's
-      enumeration needs the uncapped one, because its hero_is_short shape is 0 < stack <
-      to_call and the capped sites can never produce it. Neither is written down anywhere, and
-      StrategyQuery validates both. Two consumers derive real answers from the false identity.
-      DecisionAuditRecord's all-in ceiling reopens under the capped reading - hero holding 15
-      who has contributed nothing to a level of 100 gets a ceiling of 100, which is the defect
-      DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE was closed for, at 6.7x - and two of the eleven
-      records in latest_decision_audit.jsonl are that shape, passing the committed-records
-      assertion only because the reference strategy folds and never reaches the branch.
-      PreflopChartStrategy._table_depth_bb derives 30 bb where the truth is 25 bb for a hero
-      with 150 behind who has posted 100 into a level of 300, with no refusal and no signal,
-      and phase 14 publishes chart numbers through that path. The robust fix is to stop
-      deriving and carry hero's own street contribution as its own field, which is proposed
-      phase 13's stated scope - per-seat committed chips through the query - and sits beside
-      ASYMMETRIC-EFFECTIVE-STACKS and STRATEGY-QUERY-STREET-BET-NAME. Whoever fixes it owes the
-      choice of reading its own human gate rather than taking this entry's reading on trust.
-      Found by an independent review of phases 10 and 11 on 2026-08-20; the Phase 11 contract
-      was corrected by MAINT-21 in contract-update mode, and nothing else was touched.
+      RULED by Taylor on 2026-08-20: to_call is what hero would actually pay, capped at hero's
+      remaining stack. The two capped producers are therefore right and the three uncapped ones
+      are the ones to change - generate_strategy_query_report.py and the sample-replay site in
+      generate_postflop_fallback_report.py already cap; simulator/table.py, comparison.py and the
+      enumeration site in that same fallback script pass the level owed and must be brought over.
+      What the ruling settles, and it settles more than expected. A capped hero can never raise,
+      because the engine only offers raise when stack exceeds the price owed, so the all-in
+      ceiling (street_bet - to_call) + stack is only ever applied to a hero who is not capped -
+      and for an uncapped hero street_bet minus to_call IS hero's contribution. So the ceiling
+      becomes sound under this ruling rather than needing new arithmetic. What makes it sound is
+      a guard that does not exist yet: StrategyQuery must reject a query offering raise when
+      to_call equals stacks[seat]. Measured on the branch - today such a query validates fine,
+      and that is the only route by which the ceiling accepts a raise hero cannot make.
+      What the ruling does NOT settle. PreflopChartStrategy._table_depth_bb derives hero's
+      starting depth as stacks[seat] + (street_bet - to_call), and a capped hero can still call
+      or fold, so the chart is still consulted. Measured: 30 bb derived where the truth is 25 bb,
+      for a hero with 150 behind who has posted 100 into a level of 300, with no refusal and no
+      signal. Phase 14 publishes chart numbers through that path. Hero's own contribution still
+      has to become its own field, which is proposed phase 13's stated scope - per-seat committed
+      chips through the query - beside ASYMMETRIC-EFFECTIVE-STACKS and STRATEGY-QUERY-STREET-BET-NAME.
+      One consequence to carry into phase 13's stage 1: Phase 06's enumeration describes its
+      short hero as 0 < stack < to_call, which the ruling makes inexpressible. The situation
+      survives and its encoding changes to to_call == stack, so Phase 06's contract needs that
+      restated when the ruling is implemented. The two capped records in
+      latest_decision_audit.jsonl are correct under the ruling and need no repair.
+      Found by an independent review of phases 10 and 11 on 2026-08-20; the false corollary was
+      struck from the Phase 11 contract by MAINT-21, and no behaviour has changed yet.
   - id: CONTRACT-LINE-CAP-BLOCKS-ITS-OWN-AMENDMENT
-    status: deferred
+    status: done
     phase: contract-update
     title: A completed contract at the 300-line cap cannot be corrected without deleting text
     reason: >-
-      check_file_sizes caps docs/phase_contracts/*.md at 300 lines. PHASE_11_ENGINE_FIDELITY.md
-      arrived at 298 and is now exactly 300 after MAINT-21 struck one false clause and added a
-      three-line amendment note, so the next correction to it cannot be made at all without
-      first deleting text a completed phase wrote. That is backwards: amendments are how this
-      repo keeps completed contracts honest, and the cap now prices honesty against length on
-      the contracts that have most to say. MAINT-21 paid it by compressing its note and moving
-      the diagnosis into this file, which worked once and does not generalise. The options are
-      a higher cap for contracts specifically, an amendments section that lives outside the
-      capped file, or a rule that a contract at its cap is a contract due for a rewrite. Not
-      urgent until the next amendment lands, but it will be a halt when it does.
+      Resolved by the Contract Amendments section of AGENTS.md, on Taylor's ruling of 2026-08-20.
+      The cap is capped at the amendment rather than raised at the file: an amendment is at most
+      two lines plus the backlog id carrying the diagnosis, the reasoning lives here and in the
+      audit packet where nothing is capped, and a contract that still fills up is due for a
+      rewrite that folds its amendments into the criteria they amend, as its own contract-update
+      task. Raising the cap to fit an amendment is forbidden by name, because that is widening a
+      threshold so a check passes. The rule was applied to itself immediately: recording the
+      to_call ruling was written into the existing three-line note on PHASE_11_ENGINE_FIDELITY.md
+      without adding a line, so that contract is still at 300 and still amendable.
+      What was wrong and is now fixed: amendments only ever add lines, so a long amendment style
+      made the contracts that had been corrected most the first ones that could not be corrected
+      at all - the check punished exactly the behaviour that keeps completed contracts honest.
   - id: PHASE-11-MOVED-NUMBERS-AWAIT-REMEASUREMENT
     status: deferred
     phase: "12"

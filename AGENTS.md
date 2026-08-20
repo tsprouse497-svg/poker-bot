@@ -23,6 +23,16 @@ If another document contradicts it, this file wins and the other document must b
 - `contract-update`: contract edits are allowed and must not mix with unrelated implementation.
 - `maintenance`: repo tooling, structure, or process work outside any phase, including the mechanical contract edits that work requires. Semantic contract changes still require `contract-update`.
 
+## Contract Amendments
+
+A completed contract that a later phase contradicts is amended rather than left asserting the opposite.
+An amendment is at most two lines plus the `backlog.yml` id that carries the diagnosis, and it states what is no longer true and what replaced it - nothing else.
+The reasoning, the measurements, and the options belong in the backlog entry and the audit packet, where no line cap applies.
+
+This is a size rule because `check_file_sizes` caps a contract at 300 lines and amendments only ever add lines, so a long amendment style makes the contracts that have been corrected most the first ones that cannot be corrected at all.
+A contract that reaches the cap even under this rule is a contract due for a rewrite that folds its amendments into the criteria they amend; that rewrite is its own `contract-update` task and is not done to make room mid-amendment.
+Never raise the cap to fit an amendment.
+
 ## Scope Model
 
 `CURRENT_TASK.yml` controls scope. `scripts/check_scope.py` enforces it.

@@ -135,8 +135,8 @@ Phase 11 is limited to the work named by this contract and the active ExecPlan.
   The docstring is an acceptance criterion rather than a nicety: the field had two readings
   because nothing in the repo said which was meant.
   Amended by MAINT-21: a clause claiming hero's contribution is `street_bet` minus `to_call`
-  is struck. `to_call` carries the same two readings and two of five producers cap it, which
-  reopens the ceiling below. `STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS`, proposed phase 13.
+  is struck. `to_call` is the capped price hero can actually pay, ruled 2026-08-20, so that
+  subtraction is unsound. `STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS`, proposed phase 13.
 - `StrategyQuery` rejects a query whose `street_bet` is less than its `to_call`, because the
   price to call cannot exceed the level being called.
   Measured, this catches a producer passing hero's own contribution only when hero has put

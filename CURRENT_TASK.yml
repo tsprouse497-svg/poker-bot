@@ -1,8 +1,10 @@
-task_id: null
+task_id: to-call-ruling-and-amendment-rule
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: contract-update
+base_commit: f45d11dbee8e92409f65974802ecad809f0a50b0
+approved_scope:
+  - docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
+  - AGENTS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -571,3 +573,12 @@ scope_change_log:
       untrue requires contract-update mode and docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
       in approved_scope. The implementation belongs to a later phase and is filed, not done
       here.
+  - date: 2026-08-20
+    reason: >-
+      Taylor ruled to_call on 2026-08-20 - it is the capped price hero can actually pay - and
+      chose the amendment-size rule for the contract line cap. Recording the ruling is a
+      semantic edit to PHASE_11_ENGINE_FIDELITY.md, and stating the rule is an edit to
+      AGENTS.md, so both are in approved_scope. AGENTS.md is process documentation rather than
+      implementation, so a contract-update task carrying it breaks no mode rule; the rule being
+      added governs contract amendments and this task's own amendment is its first application,
+      which is why they are not split into two tasks.
