@@ -1,7 +1,7 @@
-task_id: null
+task_id: maint-fleet-integration-seam
 active_phase: null
-task_mode: idle
-base_commit: null
+task_mode: maintenance
+base_commit: 2d8d62dd993ace19fbd020dd5592ec53865d8164
 approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
@@ -555,3 +555,10 @@ scope_change_log:
       was never counted, and an under-sized all-in bet's raise bar was never filed anywhere.
       The packet correction and the ruling are both semantic, so this is contract-update;
       the two backlog filings pass through standing_scope.
+  - date: 2026-08-20
+    reason: >-
+      Driving phase 11 to its tag surfaced two places where loop_stage.py and loop_fleet.py
+      disagree about who owns integration, and both bite the next lane rather than this one.
+      Filing them needs backlog.yml alone, which is standing scope, so approved_scope stays
+      empty; the entry is recorded here because a maintenance task with no approved paths
+      still has to say what it did.
