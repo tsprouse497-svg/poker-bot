@@ -35,6 +35,13 @@ limited to the work named by this contract and the active ExecPlan.
   skipped, the big-blind option, betting-round completion, and a reopening
   rule where an all-in raise below the minimum does not reopen raising for
   seats that already acted (they may still call or fold).
+  Amended by Phase 11 (`UNDER-RAISE-ACCUMULATION`): the "below the minimum"
+  test is measured against the last full bet or raise and not against the bet
+  level immediately preceding the all-in, so consecutive short all-ins whose
+  increments together reach the minimum raise do reopen raising, and a full bet
+  or raise resets the level the accumulation is measured from. A single short
+  all-in that does not reach the bar still does not reopen, which is what this
+  criterion originally said and what it continues to say.
 - Hand-history replay enforces turn order fail-closed: every recorded action
   must come from the seat to act, and a street with live action cannot end
   with its betting round open. Committed fixtures are corrected where rounds

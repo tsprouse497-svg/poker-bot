@@ -8,6 +8,9 @@ files:
   tests/test_command_registry.py:
     sha256: 8c65b24ff3c00beb2e87abfa0d53caf5741c3fbf20be5ad215227a6847cf5e0a
     test_functions: 9
+  tests/test_engine_fidelity.py:
+    sha256: 808121a20053a8cdef598e672035f1615822ea5d7d0e093801b5c3013870d4ff
+    test_functions: 52
   tests/test_execplan_delegation.py:
     sha256: a37a70f01787f099ece26466747fb9ba575eb01fcddfe0fd65b3985472cb7ed0
     test_functions: 10
@@ -27,10 +30,10 @@ files:
     sha256: 2d529de697e03c0fdd5972c0736542f2d98b77da317213c2065ca0bf5718fecd
     test_functions: 58
   tests/test_poker_core.py:
-    sha256: b8355f633b0943b2caeb41fc40906248a2412ba2ebd093395f998917e886dd57
+    sha256: a11a3e8b94dcb37033e366fa55c13ae6007c8f75318f315a69b3e4e9041953b2
     test_functions: 9
   tests/test_postflop_fallback.py:
-    sha256: 53e3e3777dd4a0e6b0119783b156078d092630e9a46b693a42798bcefce9c3ec
+    sha256: e6764a1fcdadfd5565a4e2a5babf75fe16f1aa78bfad6d29bbdb907945216daf
     test_functions: 37
   tests/test_preflop_artifacts.py:
     sha256: d865b9e2e10de5d72f88f8962925be9e1dfe42c97b5f4fdb7ac09b538c2bf1ca
@@ -63,7 +66,7 @@ files:
     sha256: bb4fa994fa9a609e75778b16f31e3c3703f51a5efa1a069792b73d5e37fa3456
     test_functions: 32
   tests/test_strategy_contract.py:
-    sha256: 9db283ccfceaef42a58d09c97ed5773dd5b170f685c9d588abfa05a168fd2d34
+    sha256: cff43cccefe7dace9edd30f122f7c54fa7e5eb99aef417e9e00bc0b742abdf48
     test_functions: 59
 schema_version: 1
-test_function_floor: 594
+test_function_floor: 646

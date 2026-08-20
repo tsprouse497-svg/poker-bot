@@ -96,9 +96,11 @@ CODE_FOLD_CAN_LOSE = f"{CODE_PREFIX}:fold-hand-can-lose"
 CODE_PASSIVE_SUBSTITUTE = f"{CODE_PREFIX}:wanted-action-not-legal-here"
 REFUSE_NO_PASSIVE_ACTION = f"{CODE_PREFIX}:no-passive-action-is-legal"
 
-# Facing a bet, checking is by definition not on offer, so the only passive actions
-# left are folding and calling. Folding comes first because it invests nothing.
-_PASSIVE_ORDER: tuple[str, ...] = ("fold", "call")
+# The only action this branch may substitute is a fold. Calling was here once, and it was
+# `FALLBACK-FAIL-CLOSED-CAN-CALL`: a branch reached because the chosen action was
+# unavailable answered by investing in a hand that can lose, which is the one thing this
+# module exists not to do. Where fold is absent too, the answer is a refusal.
+_PASSIVE_ORDER: tuple[str, ...] = ("fold",)
 
 # One memo entry per distinct river question. Bounded rather than unbounded because a
 # long simulation asks a great many of them and a cache that only grows is a leak. A

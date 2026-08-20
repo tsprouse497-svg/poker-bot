@@ -467,3 +467,98 @@ scope_change_log:
       than the tree is not a check, which is the decorative-gate defect this repo has fixed
       twice already. MAINT-RUFF-CACHE needs the test file, the freeze lock recording it, and
       run_verify.py for the one flag. It touches no poker, no artifact and no evidence.
+  - date: 2026-08-19
+    reason: >-
+      Phase 11 stage 1 turns the engine-and-query-fidelity skeleton into real acceptance
+      criteria, which is a semantic contract change and so needs contract-update mode. Only
+      the phase 11 contract is in approved_scope, plus the pre-implementation judgment-call
+      record the next stage writes and the review notes this stage owes on its own diff, so
+      the choices about how far each of the six inherited defects is fixed are ruled on
+      before any code is written. Task metadata, phase status, the lane pointer, the
+      ExecPlan and the generated docs pass through standing_scope.
+  - date: 2026-08-19
+    reason: >-
+      Two completed contracts state behaviour phase 11 deliberately changes, and a fix that
+      leaves the contract behind it saying the opposite is a fix the next reader has to
+      adjudicate. The Phase 03 criterion states the reopening rule in the form decision 3
+      replaces, and the Phase 06 criterion states that the fallback never refuses postflop
+      in a form its own enumeration never proved. Both are semantic, so they are amended
+      while this task is still in contract-update mode and before any test is frozen
+      against them; both join approved_scope for those criteria and nothing else. The
+      Phase 01 and Phase 02 contracts, which docs/V2_ROADMAP.md also expected this phase to
+      touch, are deliberately not in scope: they carry only boilerplate criteria under the
+      CONTRACT-CRITERIA-BACKFILL exemption, so they contradict nothing and backfilling them
+      is not this phase's work.
+  - date: 2026-08-19
+    reason: >-
+      Phase 11 implementation needs the two poker-core modules that hold the fold and
+      reopening rules, the strategy contract that holds the query's meaning and the all-in
+      ceiling, the postflop fallback's fail-closed branch, the one producer passing the
+      wrong reading, the new engine fidelity report generator, the command registry for the
+      phase's two command IDs and for the one-line description that names a withdrawn
+      check, the phase tests, the freeze lock, a mutation canary so the new commands are
+      proved to bite, and the audit evidence. Two frozen tests of completed phases are in
+      scope because this phase's fixes make them assert the old behaviour:
+      test_strategy_contract.py pins the check-and-fold rejection the contract now removes
+      by name, and test_poker_core.py pins a free-spot legal-action tuple that gains fold.
+      Both are authored at stage 4 with everything else and re-frozen; tests/ and
+      verification/ leave approved_scope at the stage 5 freeze.
+  - date: 2026-08-19
+    reason: >-
+      Loop stage 5 narrows scope so the builder cannot reach the tests it is measured by.
+      tests/ and verification/ leave approved_scope and check_scope.py enforces that
+      mechanically for the rest of the phase. scripts/run_verify.py leaves with them: the
+      phase's two command IDs and the corrected description of the solver expectations
+      command were authored at stage 4 and are what stage 4's frozen tests assert, so a
+      builder editing that file would be editing its own specification. base_commit moves
+      to the freeze commit so the diff is measured from there rather than from the start of
+      the phase, which is what keeps work that was legitimately in scope at stage 4 from
+      reading as out of scope afterwards.
+  - date: 2026-08-19
+    reason: >-
+      Stage 6 halted with ten frozen tests failing and no implementation defect among
+      them. Six are Phase 06 enumeration shapes that hardcode the free legal-action sets
+      fold now joins, one is a Phase 03 all-in amount the corrected ceiling rejects
+      because the old ceiling was the thing being asserted, and three are authoring errors
+      in this phase's own tests: two build an accumulation that does not reach the bar and
+      one acts out of turn. Repairing them needs tests/ and verification/freeze.lock back
+      in approved_scope for one task, and the builder files leave it, so this task cannot
+      reshape the implementation to suit the tests it is repairing - the pressure has to
+      run the other way. No assertion is weakened: each repair restates the same claim
+      against the behaviour the phase 11 contract requires.
+  - date: 2026-08-19
+    reason: >-
+      The stage 8 domain review found the reopening reference is set from an under-sized
+      all-in bet, which is not a full bet, so a street opened by a short all-in measures
+      every later advance from that short amount. A seat that called a 5-chip all-in on a
+      street whose minimum bet is 20 is then barred from raising over a 22-chip all-in,
+      although the street has advanced past a full bet and no full bet was ever made on it.
+      The phase 11 contract already requires the measurement to be against the last full bet
+      or raise, so no contract changes: this is the implementation not matching a criterion
+      it already carries. Fixing it needs poker_core/order.py, the phase test that pins it,
+      the freeze lock recording that test, one canary so the new branch is proved to bite,
+      and the report that shows the case. The other two test files leave approved_scope,
+      because this task has no business in them.
+  - date: 2026-08-19
+    reason: >-
+      Loop stage 9 writes the phase audit packet, so reports/phase_audits/
+      PHASE_11_ENGINE_FIDELITY.md joins approved_scope. Nothing else is added, and the
+      builder files stay as the stage 8 blocker fix left them.
+  - date: 2026-08-20
+    reason: >-
+      Taylor ruled decision 3 on 2026-08-19: the player who already acted does get to raise
+      again once two short all-ins together reach a full raise. The record still asks the
+      question, and a record that asks a question somebody answered elsewhere is a question
+      the next agent re-asks, so the ruling lands in the decision record. Assembling the
+      full assumption list for him surfaced two things the phase's own machinery did not:
+      the audit packet generalises 499 committed hands to "six-handed Pluribus play", which
+      was never counted, and an under-sized all-in bet's raise bar was never filed anywhere.
+      The packet correction and the ruling are both semantic, so this is contract-update;
+      the two backlog filings pass through standing_scope.
+  - date: 2026-08-20
+    reason: >-
+      Driving phase 11 to its tag surfaced two places where loop_stage.py and loop_fleet.py
+      disagree about who owns integration, and both bite the next lane rather than this one.
+      Filing them needs backlog.yml alone, which is standing scope, so approved_scope stays
+      empty; the entry is recorded here because a maintenance task with no approved paths
+      still has to say what it did.

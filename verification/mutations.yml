@@ -498,3 +498,75 @@ mutations:
     must_fail:
       - pytest_solver_export
       - pytest
+
+  # Phase 11's four canaries, authored at stage 4 against the text the implementation must
+  # produce rather than against the text that exists now. They therefore cannot apply until
+  # stage 6 lands, which is deliberate: a canary written after the code is a canary shaped to
+  # the code. Phases 08, 09 and 10 each wrote their own phase's canaries at stage 7 and each
+  # recorded that as the same miss, so this phase writes them before the builder starts and
+  # lets the find-string be part of the specification the builder has to satisfy.
+
+  - id: free-fold-taken-off-the-table-again
+    description: >-
+      A seat with nothing to call is offered check and aggression only, which is the
+      behaviour that stops any real history containing a surrendered river from replaying
+      at all. The engine stays internally consistent, so nothing but the fidelity tests
+      notices.
+    file: src/poker_training_bot/poker_core/engine.py
+    find: "            actions = [ActionKind.FOLD, ActionKind.CHECK]"
+    replace: "            actions = [ActionKind.CHECK]"
+    must_fail:
+      - pytest_engine_fidelity
+      - pytest
+
+  - id: reopening-measured-against-the-preceding-bet-again
+    description: >-
+      Each short all-in is measured against the bet level immediately before it rather than
+      against the last full bet or raise, so consecutive short all-ins never accumulate and
+      betting stays closed for a seat a real room would let raise.
+    file: src/poker_training_bot/poker_core/order.py
+    find: "            full_raise = new_round.current_bet - self.reopen_level >= previous_min_raise"
+    replace: "            full_raise = new_round.current_bet - previous_bet >= previous_min_raise"
+    must_fail:
+      - pytest_engine_fidelity
+      - pytest
+
+  - id: all-in-ceiling-loose-by-the-price-to-call-again
+    description: >-
+      The decision audit's all-in maximum goes back to the street's bet level plus hero's
+      stack, which is too high by exactly the price to call. No shipped strategy produces a
+      raise in the gap, so a green gate proves nothing about the legality claim several
+      contracts lean on.
+    file: src/poker_training_bot/strategy/contract.py
+    find: "                max_target = (self.query.street_bet - self.query.to_call) + stacks[self.query.seat]"
+    replace: "                max_target = self.query.street_bet + stacks[self.query.seat]"
+    must_fail:
+      - pytest_engine_fidelity
+      - pytest
+
+  - id: fail-closed-can-invest-again
+    description: >-
+      The fallback's fail-closed branch takes calling as a passive substitute again, so a
+      branch reached because the chosen action was unavailable answers by investing in a
+      hand that can lose - the one thing the module exists not to do.
+    file: src/poker_training_bot/strategy/postflop_fallback.py
+    find: '_PASSIVE_ORDER: tuple[str, ...] = ("fold",)'
+    replace: '_PASSIVE_ORDER: tuple[str, ...] = ("fold", "call")'
+    must_fail:
+      - pytest_engine_fidelity
+      - pytest
+
+  - id: under-sized-all-in-bet-becomes-the-reference-level
+    description: >-
+      An all-in bet below the minimum becomes the level later advances are measured from,
+      so a street opened by a short all-in measures everything after it from that short
+      amount. A seat that called a 5-chip all-in where the minimum bet is 20 stays barred
+      over a 22-chip all-in, though the street has advanced past a full bet and no full bet
+      was ever made on it. Found by the phase 11 stage 8 domain review rather than by any
+      frozen test, which is why it gets a canary of its own.
+    file: src/poker_training_bot/poker_core/order.py
+    find: "            reopen_level = new_round.current_bet if full_bet else self.reopen_level"
+    replace: "            reopen_level = new_round.current_bet"
+    must_fail:
+      - pytest_engine_fidelity
+      - pytest

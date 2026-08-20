@@ -68,10 +68,20 @@ def _next_to_act(round: BettingRoundState, start_seat: int, acted: frozenset[int
 
 @dataclass(frozen=True)
 class TurnState:
+    """Whose turn it is, who has acted, and who may no longer raise.
+
+    `reopen_level` is the bet level the last full bet or raise landed on, and it is what
+    the reopening rule measures against. Measuring against the immediately preceding bet
+    level instead is `UNDER-RAISE-ACCUMULATION`: two short all-ins that each fall short on
+    their own but together advance the bet by a full raise leave betting closed forever,
+    where a real room reopens it for the seats that already acted.
+    """
+
     round: BettingRoundState
     to_act: int | None
     acted: frozenset[int]
     no_raise: frozenset[int]
+    reopen_level: int = 0
 
     def __post_init__(self) -> None:
         seats = set(_occupied_seats(self.round))
@@ -89,6 +99,7 @@ class TurnState:
             to_act=_next_to_act(round, big_blind, frozenset()),
             acted=frozenset(),
             no_raise=frozenset(),
+            reopen_level=round.current_bet,
         )
 
     @staticmethod
@@ -100,6 +111,7 @@ class TurnState:
             to_act=_next_to_act(round, button_seat, frozenset()),
             acted=frozenset(),
             no_raise=frozenset(),
+            reopen_level=round.current_bet,
         )
 
     @property
@@ -135,22 +147,38 @@ class TurnState:
             raise ValueError(
                 f"seat {action.seat} cannot bet or raise with no live opponent to respond"
             )
-        previous_bet = self.round.current_bet
         previous_min_raise = self.round.min_raise
         new_round = self.round.apply(action)
         if action.kind is ActionKind.BET:
             acted = frozenset({action.seat})
             no_raise: frozenset[int] = frozenset()
+            # An all-in bet below the minimum is a legal bet and not a full one, so it must
+            # not become the level later advances are measured from. Treating it as one
+            # means a street opened by a short all-in measures everything after it from that
+            # short amount: a seat that called a 5-chip all-in where the minimum bet is 20
+            # would stay barred over a 22-chip all-in, though the street has advanced past a
+            # full bet and no full bet was ever made on it.
+            full_bet = new_round.current_bet - self.reopen_level >= previous_min_raise
+            reopen_level = new_round.current_bet if full_bet else self.reopen_level
         elif action.kind is ActionKind.RAISE:
             acted = frozenset({action.seat})
-            full_raise = new_round.current_bet - previous_bet >= previous_min_raise
+            # Against the last full bet or raise, not against the bet level immediately
+            # before this action. Short all-ins accumulate: each may fall short alone while
+            # the pair advances the bet by a full raise, and that reopens betting for the
+            # seats that already acted. A full raise resets the level it is measured from,
+            # so an accumulator that never resets - which would reopen on any later
+            # all-in - is a different bug in the same place.
+            full_raise = new_round.current_bet - self.reopen_level >= previous_min_raise
             no_raise = frozenset() if full_raise else (self.no_raise | self.acted)
+            reopen_level = new_round.current_bet if full_raise else self.reopen_level
         else:
             acted = self.acted | {action.seat}
             no_raise = self.no_raise
+            reopen_level = self.reopen_level
         return TurnState(
             round=new_round,
             to_act=_next_to_act(new_round, action.seat, acted),
             acted=acted,
             no_raise=no_raise,
+            reopen_level=reopen_level,
         )

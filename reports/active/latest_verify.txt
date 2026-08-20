@@ -25,8 +25,10 @@ All passed: True
 - PASS pytest_quality_hardening: Run quality, drift, and phase-gate hardening tests
 - PASS run_full_quality_gate: Run the quality checks and write the quality report
 - PASS pytest_solver_export: Run GTOpen solver export, source-card, and expectations tests
-- PASS check_solver_export_expectations: Recompute the solver export's orderings and directional bound from the export
+- PASS check_solver_export_expectations: Recompute the solver export's two orderings and check its source card against it
 - PASS generate_solver_export_report: Generate the solver export range-grid and comparison report
+- PASS pytest_engine_fidelity: Run the engine and strategy-query fidelity tests
+- PASS generate_engine_fidelity_report: Generate the engine and query fidelity before/after report
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness

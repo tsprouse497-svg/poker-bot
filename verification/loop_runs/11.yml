@@ -1,0 +1,6 @@
+auto_advance: true
+loop: completed
+phase_id: '11'
+schema_version: 1
+stage: 11
+stage_base: e51dda14d48b48a9e67dca52a7190917ffac3b23

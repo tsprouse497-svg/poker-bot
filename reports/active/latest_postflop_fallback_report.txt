@@ -30,10 +30,10 @@ remaining stack that the engine can be put in. If the engine ever produces a new
 set, this sweep widens on its own rather than missing it.
 
 Legal-action sets the engine produced: 4
-  check/bet               to call    0
-  check/raise             to call    0
   fold/call               to call   20  (hero's whole stack is short of the price to call)
   fold/call/raise         to call   20
+  fold/check/bet          to call    0
+  fold/check/raise        to call    0
 
 Streets: 3 (flop, turn, river)
 Hands enumerated at each: 6

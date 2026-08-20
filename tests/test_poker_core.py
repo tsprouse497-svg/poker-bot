@@ -68,7 +68,9 @@ def test_big_blind_option_offers_raise_and_applies_it() -> None:
     )
     state = BettingRoundState(players=players, current_bet=10, min_raise=10)
 
-    assert state.legal_actions(1) == (ActionKind.CHECK, ActionKind.RAISE)
+    # Fold joins the free set in Phase 11 (FOLD-WHEN-FREE): folding for nothing is a bad
+    # play and a legal one, and calling it illegal is what stopped real histories replaying.
+    assert state.legal_actions(1) == (ActionKind.FOLD, ActionKind.CHECK, ActionKind.RAISE)
     raised = state.apply(Action(1, ActionKind.RAISE, amount=30))
     assert raised.current_bet == 30
     assert raised.player(1).street_bet == 30

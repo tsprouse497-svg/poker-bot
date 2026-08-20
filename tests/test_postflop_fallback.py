@@ -344,7 +344,7 @@ class TestStreetRouting:
 
     def test_all_three_postflop_streets_are_answered(self, fallback) -> None:
         for street in POSTFLOP_STREETS:
-            outcome = fallback.decide(query(shape_with("check", "bet"), street, WEAK))
+            outcome = fallback.decide(query(shape_with("fold", "check", "bet"), street, WEAK))
 
             assert isinstance(outcome, StrategyDecision), street
 
@@ -365,7 +365,7 @@ class TestNeverAggresses:
     # It never bets and never raises, at any street, in any spot: aggression needs a
     # sizing source and the repo has none postflop.
     def test_it_never_bets_where_betting_is_legal(self, fallback) -> None:
-        shape = shape_with("check", "bet")
+        shape = shape_with("fold", "check", "bet")
         for street in POSTFLOP_STREETS:
             outcome = decision(fallback.decide(query(shape, street, NUTS)))
 
@@ -373,7 +373,7 @@ class TestNeverAggresses:
             assert outcome.amount is None
 
     def test_it_never_raises_where_raising_is_legal(self, fallback) -> None:
-        for shape in (shape_with("check", "raise"), shape_with("fold", "call", "raise")):
+        for shape in (shape_with("fold", "check", "raise"), shape_with("fold", "call", "raise")):
             for street in POSTFLOP_STREETS:
                 outcome = decision(fallback.decide(query(shape, street, NUTS)))
 
@@ -554,9 +554,11 @@ class TestTotalityAndLegality:
 
     def test_the_engine_shapes_cover_the_free_and_facing_a_bet_forms(self) -> None:
         """Guards the sweep itself: a broken derivation would enumerate nothing."""
+        # Fold joins both free shapes in Phase 11 (FOLD-WHEN-FREE); the set is still the
+        # engine's own, so widening it here follows the engine rather than describing it.
         assert {shape.actions for shape in FREE_SHAPES} == {
-            ("check", "bet"),
-            ("check", "raise"),
+            ("fold", "check", "bet"),
+            ("fold", "check", "raise"),
         }
         assert {shape.actions for shape in FACING_SHAPES} == {
             ("fold", "call"),
@@ -595,7 +597,7 @@ class TestInvarianceAndDeterminism:
     # The turn case uses the hand a club river breaks, because relabelling moves which
     # suit that is and the answer still has to come back the same.
     def test_a_consistent_suit_relabelling_does_not_change_the_decision(self, fallback) -> None:
-        for shape in (shape_with("fold", "call", "raise"), shape_with("check", "bet")):
+        for shape in (shape_with("fold", "call", "raise"), shape_with("fold", "check", "bet")):
             for street, scenario in (("flop", NUTS), ("turn", TURN_BREAKS), ("river", NUTS)):
                 original = decision(fallback.decide(query(shape, street, scenario)))
                 swapped = decision(fallback.decide(query(shape, street, relabelled(scenario))))
@@ -665,13 +667,11 @@ class TestComposite:
 
     def test_postflop_queries_are_answered_by_the_fallback(self, composite) -> None:
         for street in POSTFLOP_STREETS:
-            outcome = decision(composite.decide(query(shape_with("check", "bet"), street, WEAK)))
+            free = query(shape_with("fold", "check", "bet"), street, WEAK)
+            assert decision(composite.decide(free)).code.startswith(FALLBACK_PREFIX), street
 
-            assert outcome.code.startswith(FALLBACK_PREFIX), street
-
-    # A preflop chart refusal passes through carrying its original reason code.
-    # Substituting a passive action would erase the coverage signal Phases 04 and 05
-    # were built to produce.
+    # A preflop chart refusal passes through carrying its original reason code; a passive
+    # action would erase the coverage signal Phases 04 and 05 were built to produce.
     def test_a_preflop_chart_refusal_passes_through_unchanged(self, composite) -> None:
         request = uncovered_preflop_query()
 

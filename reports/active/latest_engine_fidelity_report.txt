@@ -1,0 +1,134 @@
+Engine And Query Fidelity Report
+================================
+
+Six defects that v1's own reviews found, diagnosed, and filed. Every 'now' below
+is computed on this run; every 'was' is stated from backlog.yml and the phase
+contract, because the old behaviour is no longer in the tree to measure.
+
+1. A fold is legal whenever a seat may act  (FOLD-WHEN-FREE)
+
+   Was:  a seat with nothing to call was offered check and aggression only, so
+         applying a fold raised 'fold is not legal'. Any real history holding a
+         surrendered river or a timed-out check failed to replay at the action.
+   Now:  the same seat is offered fold, check, bet
+
+   Worked example. Two seats, 100 chips each, nobody has bet this street.
+     seat 0 folds for free -> chips committed 0, stack 100
+     the bet level stays 0 and the minimum raise stays 20
+     seat 0 is now folded=True and is offered []
+
+   Legal is not chosen. No strategy in this repo folds when checking is free:
+     postflop fallback, flop  free spot -> check
+     postflop fallback, turn  free spot -> check
+     postflop fallback, river free spot -> check
+     committed chart spot t6/d100/BB/SB:call -> fold 0.00% of the range
+
+2. Betting reopens when short all-ins accumulate  (UNDER-RAISE-ACCUMULATION)
+
+   Was:  each all-in was measured against the bet level immediately before it, so
+         two short all-ins that together made a full raise left betting closed.
+   Now:  the measurement is against the last full bet or raise, and a full bet or
+         raise resets the level it is measured from.
+
+   Worked example. Four seats. Seat 0 bets 10, which sets the bet level to 10 and
+   the minimum raise to 10. Seat 1 is all-in for 15 - five over, half a raise.
+   Seat 2 is then all-in for the amount shown. Seat 0 has already acted.
+
+     seat 2 all-in to   advance since the last full raise (10)   seat 0 may raise
+                   19                                        9                 no
+                   20                                       10                yes
+                   21                                       11                yes
+                   30                                       20                yes
+
+   A street opened by a short all-in has had no full bet on it, so the reference
+   stays at the level the street opened on. Minimum bet 20, seat 0 all-in for 5,
+   seat 1 calls, seat 2 all-in for 22: the street has advanced 22 from nothing,
+   which is past a full bet, so seat 1 may raise.
+     seat 1 is offered ['fold', 'call', 'raise']
+
+   The bar is the minimum raise of 10, so 20 clears it and 19 does not. Reopening
+   restores the right to raise and not a cheaper price for it: with the level at
+   21 and the minimum raise still 10, seat 0's smallest legal raise is to 31.
+
+   A seat barred from raising may still call and may still fold:
+     at 19, seat 0 is offered ['fold', 'call']
+
+3. street_bet means the street's bet level  (STREET-BET-MEANING-AMBIGUOUS)
+
+   Was:  the field carried no statement of which of two readings it held, and
+         scripts/generate_strategy_query_report.py passed hero's own contribution
+         while every other producer passed the street's level.
+   Now:  the meaning is written on StrategyQuery, the one producer is corrected,
+         and a query whose street_bet is below its to_call is rejected.
+
+   Worked example. Heads-up, blinds 5 and 10, the small blind acts preflop. Hero
+   has put in 5, the level is 10, the price to call is 5.
+     the wrong reading passed 5, and the chart derived hero's starting stack as
+       stacks[seat] + (5 - 5), which is the stack itself, and refused with
+       preflop-chart:blind-structure-not-representable
+     the right reading passes 10, and the chart refuses with
+       preflop-chart:lookup:no-artifact-for-table-size, which is the true miss:
+       a two-handed table against a six-handed chart
+
+   The guard, and its measured limit. A query with street_bet 10 and to_call 20 is
+   rejected: street_bet 10 is below to_call 20; street_bet is the street's current bet level, not hero's own contribution
+   It catches a producer passing hero's contribution only when hero has put in
+   less than half the level, so it misses the heads-up small blind, who has put in
+   exactly half. Filed as STRATEGY-QUERY-STREET-BET-NAME.
+
+4. The all-in ceiling is what hero can raise to  (DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE)
+
+   Was:  the ceiling was the street's bet level plus hero's stack, which is too
+         high by exactly the price to call.
+   Now:  it is hero's own contribution to the street plus hero's stack.
+
+   Worked example. Street bet 20, price to call 20, stack 100. Hero has put in
+   20 minus 20, which is nothing, so hero's all-in raise target is 100.
+     accepted: [100]
+     rejected: [101, 120]
+   The old ceiling accepted a raise to 120 and only rejected 121.
+
+5. The fail-closed branch never invests  (FALLBACK-FAIL-CLOSED-CAN-CALL)
+
+   Was:  the branch took the most passive action from fold then call, so a set
+         offering call but not fold invested in a hand that can lose.
+   Now:  it folds when fold is legal and refuses otherwise. It never calls.
+
+   Neither set below is reachable from the engine's own legal actions, which is
+   why neither was covered. Both are contract-valid queries.
+
+     legal actions ['fold', 'call']         -> fold (postflop-fallback:fold-facing-bet-on-the-flop)
+     legal actions ['call', 'raise']        -> refused (postflop-fallback:no-passive-action-is-legal)
+     legal actions ['raise']                -> refused (postflop-fallback:no-passive-action-is-legal)
+
+6. The registry describes checks that exist  (GATE-COMMAND-DESCRIPTION-NAMES-A-
+   WITHDRAWN-CHECK)
+
+   Was:  the entry said the command recomputes the export's orderings and
+         directional bound. The directional bound was withdrawn on 2026-08-18
+         with the parity solve, and the command never computed it.
+   Now:  Recompute the solver export's two orderings and check its source card against it
+
+What these fixes move, and who re-measures it
+
+   This phase names the committed numbers its fixes move and recomputes none of
+   them, by decision 9. A fix phase that grades its own fixes puts a moved number
+   and a mistaken one in the same commit.
+
+     latest_decision_audit.jsonl        street_bet changes on every preflop record
+                                        where hero had not matched the level
+     Phase 08 agreement rates           measured through the uncorrected query and
+                                        the uncorrected replayer
+     Phase 08 refusal inventory         the same
+     Phase 07 simulator counts          replayed through the old reopening rule
+
+   Filed as PHASE-11-MOVED-NUMBERS-AWAIT-REMEASUREMENT against proposed phase 12,
+   which already re-runs the comparison for its own reasons.
+
+Recomputable by hand, without reading code:
+
+   The reopening table. The last full bet set the level to 10 with a minimum raise
+   of 10, so betting reopens once the level reaches 10 plus 10, which is 20. Every
+   row of that table is that subtraction and that comparison.
+
+Generated by `scripts/generate_engine_fidelity_report.py`.

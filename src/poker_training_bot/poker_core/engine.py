@@ -69,7 +69,12 @@ class BettingRoundState:
             return ()
         to_call = self.current_bet - player.street_bet
         if to_call <= 0:
-            actions = [ActionKind.CHECK]
+            # Folding for nothing is a bad play and a legal one. Calling it illegal is what
+            # stopped any real history containing a surrendered river or a timed-out check
+            # from replaying at all, which is FOLD-WHEN-FREE in `backlog.yml`. Fold comes
+            # first here for the same reason it does below: one ordering everywhere, so no
+            # caller has to know that position carries meaning.
+            actions = [ActionKind.FOLD, ActionKind.CHECK]
             if player.stack > 0:
                 actions.append(ActionKind.BET if self.current_bet == 0 else ActionKind.RAISE)
             return tuple(actions)
