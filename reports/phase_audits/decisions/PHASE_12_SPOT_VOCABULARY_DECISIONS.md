@@ -39,7 +39,7 @@ Decision 5 was ruled the same day and it is the one that mattered most. It was p
 alongside the three above even though it is `runtime-reversible` and the loop would not have
 stopped for it, because it extends ruling 8 rather than reading it. **His answer was that
 three-bets have to be accommodated**, so normalisation reaches every raise in the sequence and
-not only the open, and the 185-of-205 refusal figure is the rejected alternative rather than
+not only the open, and the 72-of-79 refusal figure is the rejected alternative rather than
 this phase's expected outcome.
 
 The remaining nine items proceed on their recorded defaults and are reported afterwards.
@@ -107,12 +107,23 @@ before any solve. It quantifies ruling 8 rather than reopening it.
 
 205 decisions faced exactly two raises. The second raise took 34 distinct sizes from 5.25bb
 to 14.0bb. The solved three-bet sizes are 8.0 in position, 10.5 and 11.0 from the blinds
-against a late open, and 13.5 from the big blind. **Twenty of the 205 landed exactly on the
-solved size for that three-bettor against that opener.** One fourth raise appears in the
-sample, at 19.0bb, against a solved 21.5.
+against a late open, and 13.5 from the big blind. One fourth raise appears in the sample, at
+19.0bb, against a solved 21.5.
 
-Exact size matching past the open would therefore refuse 185 of those 205 decisions. That is
-decision 5, and it is why it is a decision at all.
+The 205 have to be broken down before any of that means anything, and the first version of
+this section did not do it. **1 is inexpressible** (a position acting twice), **125 are
+expressible but uncovered** - a squeeze or a cold four-bet, which already refuse today and
+which no price rule touches - and **79 are spots the committed chart holds a cell for**,
+which is hero having opened and facing a three-bet.
+
+Of those 79, **72 faced a three-bet at a price the tree does not hold and 7 did not.**
+
+So exact size matching past the open would refuse 72 of the 79 three-bet decisions this
+chart can answer at all: 91 percent of the answerable three-bet sample. That is decision 5,
+and it is why it is a decision at all. The earlier figure in this section said 185 of 205,
+which counted every two-raise decision as though the chart could answer it. The conclusion
+is sharper under the correction, not weaker, which is exactly why the arithmetic had to be
+right rather than directionally right.
 
 ### Two roadmap numbers do not reproduce
 
@@ -250,8 +261,8 @@ size the artifact holds for that position after the already-normalised prefix.
 Options: normalise-every-raise | normalise-the-open-only | normalise-the-open-and-refuse-past-it
 Answer: [normalise-every-raise]
 
-*Normalise the open only.* Literal to the ruling. Measured, it refuses 185 of the 205
-three-bet decisions in the corpus, because only 20 of them landed exactly on a solved size.
+*Normalise the open only.* Literal to the ruling. Measured, it refuses 72 of the 79
+three-bet decisions the chart can answer, because only 7 of them faced a solved size.
 Proposed phase 14's closing measurement would then be computed over opened pots alone, which
 is the collapse the mitigation document was written to prevent, arriving on a different axis
 from the one it watched.

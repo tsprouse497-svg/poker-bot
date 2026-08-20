@@ -1,12 +1,10 @@
-task_id: phase-12-tests
+task_id: phase-12-price-figure-correction
 active_phase: "12"
-task_mode: implementation
-base_commit: 700db456be1da5e2e8f27af729d7ab4f57f1aa06
+task_mode: contract-update
+base_commit: 61b7995cc9b121ac2179199fba6fa4ae5f958839
 approved_scope:
-  - tests/test_spot_vocabulary.py
-  - verification/mutations.yml
-  - verification/freeze.lock
-  - scripts/run_verify.py
+  - docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md
+  - reports/phase_audits/decisions/PHASE_12_SPOT_VOCABULARY_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -609,3 +607,17 @@ scope_change_log:
       forbids touching a contract. Narrowing is the point rather than a side effect -
       docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md leaves approved_scope here so
       check_scope.py enforces the no-contract-edits-in-implementation rule mechanically.
+  - date: 2026-08-20
+    reason: >-
+      The phase 12 stage-4 review found that the number justifying Taylor's three-bet ruling
+      is wrong in the contract and in the decision record. Both say exact three-bet matching
+      would refuse 185 of the 205 three-bet decisions in the committed sample. Measured, the
+      205 are 1 inexpressible, 125 expressible but uncovered, and 79 the chart holds a cell
+      for; the 125 already refuse and no price rule touches them, so the real cost is 72 of
+      the 79. The conclusion is sharper and the arithmetic was not.
+      Correcting a contract needs contract-update mode, so this is its own task between the
+      stage-4 test commit and the stage-4 advance rather than an edit inside implementation
+      mode. approved_scope is the contract, the decision record, and the review note that
+      carries the finding, and nothing else; tests/** and scripts/** are deliberately absent
+      because the test docstrings that quoted the same figure were corrected in the
+      implementation task where they belong.

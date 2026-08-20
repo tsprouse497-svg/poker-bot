@@ -34,8 +34,12 @@ that makes the record checkable later - a reader can see the same thing he saw.
   not have stopped for it, and the record says so. This is the Phase 11 decision-3 pattern:
   reversible, flagged, and the one a human actually needed to see. What the record cannot show
   is his answer, because the item stands on its default and no ruling was asked for; if he
-  reverses it, the item flips to `normalise-the-open-only` and the 185-of-205 refusal figure
-  becomes the phase's expected outcome rather than its rejected alternative.
+  reverses it, the item flips to `normalise-the-open-only` and the refusal figure becomes the
+  phase's expected outcome rather than its rejected alternative.
+  [Corrected at stage 4] That figure was written here as 185 of 205 and it was wrong. 125 of
+  those 205 are squeezes and cold four-bets that already refuse for coverage, so the cost of
+  exact matching is 72 of the 79 three-bet decisions the chart can answer. The line is
+  corrected rather than deleted, because what a reviewer believed at the time is the record.
 
 ## Alignment
 

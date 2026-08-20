@@ -124,9 +124,9 @@ Phase 12 is limited to the work named by this contract and the active ExecPlan.
   deliberate extension of ruling 8 rather than a reading of it, and Taylor ruled it on
   2026-08-20: three-bets have to be accommodated. Ruling 8 answers the price hero faces from
   an opener; a three-bet and a four-bet also arrive at sizes the tree does not hold, and
-  exact matching there would refuse 185 of the 205 three-bet decisions in the committed
-  sample, collapsing the raised-pot half the same way it would have collapsed the opened-pot
-  one.
+  exact matching there would refuse 72 of the 79 three-bet decisions the committed chart
+  holds a cell for, collapsing the raised-pot half the same way it would have collapsed the
+  opened-pot one.
 - No decision in the committed sample refuses for a price the chart does not hold. A
   three-bet at any size reaches the cell the chart holds for that spot, and the phase states
   that count as zero rather than describing the mechanism that should produce it. This is the
