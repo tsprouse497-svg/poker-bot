@@ -579,3 +579,35 @@ items:
       domain review alongside the reference-level blocker it did fix. It needs a contract
       that says what a short all-in bet does to the seats behind it, so it is
       contract-update work before it is implementation work.
+  - id: MIN-RAISE-OVER-AN-INCOMPLETE-ALL-IN-BET
+    status: deferred
+    phase: contract-update
+    title: The raise bar over an under-sized all-in bet is measured from the all-in amount
+    reason: >-
+      BettingRoundState.apply requires target - current_bet >= min_raise, so on a street whose
+      minimum bet is 20, after an all-in bet of 5, it demands a raise to 25 and rejects 20.
+      Measured on the branch. Most rooms allow 20: an incomplete bet does not set the raise
+      increment, so the bar stays the round's minimum bet. It is the same rules question
+      decision 3 of PHASE_11_ENGINE_FIDELITY_DECISIONS.md was, and the repo has no oracle for
+      it, so whoever fixes it owes the ruling its own human gate rather than taking this
+      reading on trust. Phase 11 edited the same branch - that is where the reopening
+      reference-level fix landed - and left this alone because no acceptance criterion named
+      it; it surfaced only when the full assumption inventory was written afterwards. It bites
+      the same population as the two rules phase 11 did fix: real-room hands with short
+      all-ins, of which the committed corpus has none.
+  - id: DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS
+    status: deferred
+    phase: contract-update
+    title: One decision-audit schema version covers both readings of street_bet
+    reason: >-
+      Phase 11 corrected scripts/generate_strategy_query_report.py to pass the street's bet
+      level rather than hero's own contribution, so that producer now emits a different number
+      for the same spot, and DECISION_AUDIT_SCHEMA_VERSION stayed at 1. The field's name and
+      type did not change, so not bumping is defensible - but nothing on an audit line says
+      which reading wrote it, and a reader comparing a line from before the fix against one
+      from after cannot tell a corrected instrument from a changed decision. Phase 11 treated
+      "a corrected value is not a schema change" as obvious rather than as a call, which is
+      why this is filed rather than ruled. The cheap fix is a line in the Phase 03 contract
+      saying version 1 spans both readings and naming the commit that divides them; the
+      expensive one is a version bump plus a reader that accepts both, which is more machinery
+      than the problem justifies today.

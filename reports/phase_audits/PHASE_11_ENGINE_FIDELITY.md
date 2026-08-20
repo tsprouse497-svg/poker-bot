@@ -182,10 +182,16 @@ its own fixes puts a moved number and a mistaken one in the same commit.
 
 **Measured, and worth more than the list above.** With all six fixes in,
 `reports/active/latest_sample_comparison_report.txt` is byte-identical to the version on
-`main`. Not one of the 3,048 corpus decisions moves. The honest reading is not that the
-fixes changed nothing - each has a test that fails without it - but that neither the free
-fold nor the all-in chain occurs in six-handed Pluribus play. They occur in real rooms,
-which is the case this phase was closed for.
+`main`. Not one of the 3,048 corpus decisions moves. The honest reading is not that the fixes
+changed nothing - each has a test that fails without it - but that neither the free fold nor
+the all-in chain occurs in **the 499 hands this repo committed**.
+
+That is close to proof for those 499 and it is not a claim about Pluribus play. The sample
+carries exactly one recorded exclusion, and it is for fractional chips, so a hand containing
+either spot would have failed replay under the old rules and appeared as an exclusion of its
+own. What was never done is counting either spot across the full 10,000-hand subset, which
+needs the corpus clone and is not in this repo. Both spots occur in real-room hands, which is
+the case this phase was closed for; how often they occur in this dataset is unmeasured.
 
 ## Judgment calls and what each one changed
 
@@ -260,6 +266,19 @@ Blockers found and resolved, by stage:
   keep a right cardrooms take away. No phase 11 criterion names it, and fixing it would be
   behaviour nobody asked for. `UNDER-SIZED-ALL-IN-BET-DOES-NOT-BAR-PRIOR-CHECKERS`,
   contract-update.
+- **The raise bar over an under-sized all-in bet is measured from the all-in amount.** On a
+  street whose minimum bet is 20, after an all-in bet of 5, the engine demands a raise to 25
+  and rejects 20; most rooms allow 20, because an incomplete bet does not set the raise
+  increment. This phase edited the same branch and did not file it, which is the finding as
+  much as the behaviour is. `MIN-RAISE-OVER-AN-INCOMPLETE-ALL-IN-BET`, contract-update.
+- **The decision-audit schema version stayed at 1** although one producer's `street_bet`
+  values changed, so nothing on an audit line says which reading wrote it. The field's name
+  and type did not change, so this is defensible rather than obviously right, and it was
+  treated as obvious. `DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS`, contract-update.
+- **Nine of the assumptions this phase rests on were recorded only in review notes or code
+  comments, never as judgment calls**, so they never reached the human gate. The reopening
+  rule's price is the one that matters most: the ruling covers who may raise, not what the
+  raise must cost. The full inventory is the reason the two items above are filed at all.
 - **`TurnState.reopen_level` carries a default of 0.** The correct initial value is the
   street's opening bet level, which both factory methods set; a required field would break
   callers that construct a `TurnState` directly. A hand-built one measures from zero.

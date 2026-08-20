@@ -20,7 +20,25 @@ came close was a criterion in the stage-1 draft requiring a committed hand fixtu
 a free fold; the stage-1 review killed it for this reason and the hand is now built inside
 the test.
 
-**One call is worth a human's eyes anyway, and the loop will not stop for it: decision 3,
+## Ruled by Taylor, 2026-08-19
+
+**Decision 3 stands on its default.** Asked in poker rather than in code - when two players
+move all-in for short amounts one after the other and their two increments together add up
+to a full raise, does the player who already acted get to raise again - his answer was yes.
+Nothing in the phase changes; what changes is that the record stops asking.
+
+No other item needed him, and that is the point of the reversibility class rather than an
+oversight: this phase commits no data, so every remaining call is one a later edit can
+change.
+
+Two things the phase's own machinery did not surface came out of writing the full assumption
+list for him afterwards, and both are recorded rather than quietly fixed. The audit packet
+generalised 499 committed hands to "six-handed Pluribus play", which was never counted -
+corrected in the packet. And the raise bar over an under-sized all-in bet was never filed
+anywhere, though this phase edited the same branch; filed as
+`MIN-RAISE-OVER-AN-INCOMPLETE-ALL-IN-BET`.
+
+**One call was worth a human's eyes and the loop did not stop for it: decision 3,
 the reopening rule.** It is a poker rule, not an arithmetic identity. The repo has no oracle
 for it - no rulebook is checked in, and the corpus is not consulted for rules - so the only
 check on it is somebody who knows how a real room rules the spot. It is written in chips
@@ -181,11 +199,17 @@ is a history this repo cannot replay. That is the same class of damage as the fr
 *Reopen on any all-in.* Simplest of all and plainly wrong. A one-chip all-in would hand a
 seat that already acted a fresh raise, which is the abuse the under-raise rule exists to stop.
 
-What a human should check, in one sentence: in a real room, when two players move all-in for
-short amounts one after the other and their two increments together add up to a full raise,
-does the player who already acted get to raise again? The default says yes. If the answer is
-no, decision 3 flips to `keep-the-current-strict-rule`, the backlog entry is restated as a
-deliberate difference rather than a defect, and nothing else in this phase changes.
+**Ruled by Taylor on 2026-08-19: yes, the player gets to raise again.** The default stands and
+nothing in the phase changes. The question as put to him: in a real room, when two players
+move all-in for short amounts one after the other and their two increments together add up
+to a full raise, does the player who already acted get to raise again?
+
+One thing the ruling covers and one it does not. It covers who may raise. It does not cover
+what that raise must cost, which the implementation settled separately: the minimum raise
+stays the largest single prior full increment rather than the accumulated total, so with the
+level at 21 and the minimum raise at 10 the reopened seat's smallest legal raise is to 31
+and not 22. That is the standard reading, it is pinned by a test, and it was not part of what
+was asked.
 
 ## 4. Whether `street_bet` is documented or renamed
 

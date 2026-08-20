@@ -1,8 +1,11 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: phase-11-ruling-and-corrections
+active_phase: "11"
+task_mode: contract-update
+base_commit: e51dda14d48b48a9e67dca52a7190917ffac3b23
+approved_scope:
+  - reports/phase_audits/decisions/PHASE_11_ENGINE_FIDELITY_DECISIONS.md
+  - reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md
+  - reports/phase_audits/reviews/PHASE_11_ENGINE_FIDELITY/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -544,3 +547,14 @@ scope_change_log:
       Loop stage 9 writes the phase audit packet, so reports/phase_audits/
       PHASE_11_ENGINE_FIDELITY.md joins approved_scope. Nothing else is added, and the
       builder files stay as the stage 8 blocker fix left them.
+  - date: 2026-08-20
+    reason: >-
+      Taylor ruled decision 3 on 2026-08-19: the player who already acted does get to raise
+      again once two short all-ins together reach a full raise. The record still asks the
+      question, and a record that asks a question somebody answered elsewhere is a question
+      the next agent re-asks, so the ruling lands in the decision record. Assembling the
+      full assumption list for him surfaced two things the phase's own machinery did not:
+      the audit packet generalises 499 committed hands to "six-handed Pluribus play", which
+      was never counted, and an under-sized all-in bet's raise bar was never filed anywhere.
+      The packet correction and the ruling are both semantic, so this is contract-update;
+      the two backlog filings pass through standing_scope.
