@@ -100,20 +100,31 @@ Forbidden throughout:
       `generate_spot_coverage_report` was dropped because `generate_preflop_chart_report`
       already reports chart coverage and this phase reports what the vocabulary can say.
       Evidence: `loop_stage.py --phase 12 --advance` clears stage 1.
-- [ ] **S2 - Decisions.** The judgment-call list, with the key rendering as the
-      `frozen-into-data` item, since it goes into the committed artifact phase 14 is measured
-      against. Also owed: whether the decision-audit schema version bumps when the query
-      payload gains a raise amount, and whether the Phase 04 and Phase 05 contracts need
-      amendment. Evidence: stage 2 check green.
-- [ ] **S3 - Human gate.** `auto_advance: false`, so this stage halts and asks Taylor
-      whatever the decision list files as `frozen-into-data`. Evidence: stage 3 check green
-      after his answer lands in the decision record.
-- [ ] **S4 - Tests.** `tests/test_spot_vocabulary.py`, authored from the contract alone, red
-      on assertions against today's behaviour. Canaries for both new command IDs authored
-      here rather than at stage 7, which is the lesson phases 08, 09 and 10 each paid for.
-      Evidence: stage 4 check green.
-- [ ] **S5 - Freeze.** `tests/` and `verification/` leave `approved_scope`, `base_commit`
-      moves to the freeze commit. Evidence: stage 5 check green.
+- [x] **S2 - Decisions.** Thirteen calls, three `frozen-into-data` and all three the rendered
+      form of the key. Written against measurements taken on the branch, which killed one
+      assumption and corrected another: the committed sizing table already holds every size the
+      new key needs, re-keying 36 spots gives 36 spots because each prefix admits one solved
+      size, and the tree already carries two opening prices since the small blind opens to 3.5.
+      The stage-2 review found a thirteenth call missing altogether - the artifact's
+      `generated_at`. Two backlog entries filed. Evidence: stage 2 check green.
+- [x] **S3 - Human gate.** All three frozen items ruled on their defaults, so a key reads
+      `t6/d100/LJ/LJ:raise@2.5,BTN:raise@8`. Decision 5 was put to Taylor alongside them even
+      though it is `runtime-reversible`, because it extends ruling 8 past the open, and he ruled
+      that three-bets have to be accommodated. Evidence: stage 3 check green.
+- [x] **S4 - Tests.** 62 tests: 53 red, 9 green as over-application guards, 6 errored on a
+      fixture importing a module stage 6 has to write. Both command IDs registered and four
+      canaries authored here against text the implementation must produce. The stage-4 review
+      found two blockers: a test that could never fail, and the number justifying Taylor's
+      ruling was wrong - exact matching costs 72 of the 79 three-bet decisions the chart can
+      answer, not 185 of 205, because 125 of those 205 already refuse for coverage. The
+      contract half of that correction needed `contract-update` mode and landed as its own
+      task. Stage 4 then could not advance for a reason that was not phase 12's, and MAINT-24
+      fixed it. Evidence: stage 4 check green.
+- [x] **S5 - Freeze.** 24 files, 708 test functions, floor 646 to 708, and only two entries
+      moved. Two commits: the lock written while its own path was still approved, then the
+      narrowing, because check_scope measures against `base_commit`. `scripts/run_verify.py`
+      left too, since both command IDs are registered and a builder editing the registry is a
+      builder editing its own gate. Evidence: stage 5 check green.
 - [ ] **S6 - Build.** Schema and lookup, the substituted-price flag on the answer, the four
       history producers, the converter, the re-derived artifact and sizing table, and the
       report generator. Evidence: stage 6 check green.
@@ -182,3 +193,19 @@ State as of this commit: stage 1 complete, `phase_status.yml` has phase 12 `acti
 `CURRENT_TASK.yml` is `contract-update` with the three contract-stage paths approved. Next
 is stage 2, the decision list, and stage 3 halts for Taylor because `auto_advance` is false.
 </content>
+
+## Interruptions this lane already paid for
+
+Recorded here rather than only in commit messages, because both cost a task and the next
+lane will meet the second one.
+
+`MAINT-24` - `loop_stage.py`'s `run_command` returned the last 4,000 characters of a
+command's output and `red_for_the_right_reason` searched that window for an assertion.
+pytest ends with its `FAILED` summary list, which names every failing test and quotes none,
+so this suite's 38 occurrences of `assert` across 57,328 characters were all outside the
+window and stage 4 read an assertion-red file as a broken one. Filed as
+`LOOP-STAGE-4-RED-WINDOW-HIDES-ASSERTIONS`.
+
+The price-figure correction - a contract-update task between the stage-4 commit and the
+stage-4 advance. A wrong number in a contract cannot be fixed from implementation mode, and
+this one had been quoted to Taylor to get a ruling.
