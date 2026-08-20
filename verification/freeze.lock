@@ -66,10 +66,13 @@ files:
     sha256: bb4fa994fa9a609e75778b16f31e3c3703f51a5efa1a069792b73d5e37fa3456
     test_functions: 32
   tests/test_spot_vocabulary.py:
-    sha256: 7f629e6efa758969e32ae2ff346fd08263db3534d786ae986b5232d256df2a65
-    test_functions: 61
+    sha256: 7e23f3e826a20aedc2cccf7712773cd1c0fbc2af1060601b9c9b7a0f4daeef91
+    test_functions: 31
+  tests/test_spot_vocabulary_downstream.py:
+    sha256: 8ec13a4633a701144772f434935363b1c0dfb231a6d946a0ea7e42684f2202d3
+    test_functions: 31
   tests/test_strategy_contract.py:
     sha256: 8f71d8f5b14ebf3ce80a57b5cf7a53809af0877fa2e946367ee98bb5abea822d
     test_functions: 59
 schema_version: 1
-test_function_floor: 708
+test_function_floor: 709

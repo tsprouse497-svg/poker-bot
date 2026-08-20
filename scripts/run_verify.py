@@ -245,7 +245,13 @@ COMMANDS = {
         "Generate the engine and query fidelity before/after report",
     ),
     "pytest_spot_vocabulary": CommandSpec(
-        uv_python_command() + ["-m", "pytest", "tests/test_spot_vocabulary.py"],
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_spot_vocabulary.py",
+            "tests/test_spot_vocabulary_downstream.py",
+        ],
         "Run the sizing-aware and second-orbit spot vocabulary tests",
     ),
     "generate_spot_vocabulary_report": CommandSpec(

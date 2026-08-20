@@ -1,12 +1,12 @@
-task_id: phase-12-build
+task_id: phase-12-canary-repair
 active_phase: "12"
 task_mode: implementation
-base_commit: dd52b5b90cef9bf1188e9ed96ddfc471217d89f6
+base_commit: 772e2833ca7293565a79db9f1b9b8480c3b79162
 approved_scope:
-  - tests/test_preflop_artifacts.py
   - tests/test_spot_vocabulary.py
+  - tests/test_spot_vocabulary_downstream.py
   - verification/freeze.lock
-  - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
+  - scripts/run_verify.py
   - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -775,3 +775,19 @@ scope_change_log:
       instead of wrapped, and three lines leave a docstring I wrote. The two files and the
       freeze lock recording them join approved_scope for that and nothing else. No
       assertion, case or label with meaning is removed.
+  - date: 2026-08-20
+    reason: >-
+      Stage 7 found a real gap rather than a decorative canary.
+      `a-folded-seat-may-act-again` survives `pytest_spot_vocabulary`, because the frozen
+      test aimed at the fold rule puts hero on the button: the walk reaches hero before it
+      reaches the folded seat, so mutating the fold rule away still leaves the neighbouring
+      hero-can-never-fold rule raising, and the assertion passes for the wrong reason. The
+      repair is a test that puts hero out of the walk's path, not a weaker canary - the
+      canary is correct and the suite was not isolating the behaviour it names.
+      Adding it takes tests/test_spot_vocabulary.py past the 700-line cap, and it was
+      already one line under, so the file splits at a real seam: what a key can say stays,
+      and what the widened key changes downstream of it moves to
+      tests/test_spot_vocabulary_downstream.py. `pytest_spot_vocabulary` runs both, which
+      is why scripts/run_verify.py is in scope for that one entry, on the precedent
+      pytest_preflop_artifacts and pytest_solver_export already set. Every builder file
+      stays out, so this task cannot reshape the implementation to suit the canary.
