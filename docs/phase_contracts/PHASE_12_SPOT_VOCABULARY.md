@@ -120,13 +120,19 @@ Phase 12 is limited to the work named by this contract and the active ExecPlan.
 - The set of solved prices is derived from the keys the loaded artifacts declare, not from a
   constant in code. A second solved price must become answerable by committing a chart, with
   no edit to the normaliser.
-- Normalisation applies to every raise in the sequence and not only to the open, and that is
-  a deliberate extension of ruling 8 rather than a reading of it. Ruling 8 answers the price
-  hero faces from an opener; a three-bet and a four-bet also arrive at sizes the tree does
-  not hold, and exact matching there would collapse the raised-pot sample the same way it
-  would have collapsed the opened-pot one. The extension is carried as a named judgment call
-  in the decision list so a human sees it, because a phase that quietly widens somebody
-  else's ruling has taken the decision away from them.
+- Normalisation applies to every raise in the sequence and not only to the open. This is a
+  deliberate extension of ruling 8 rather than a reading of it, and Taylor ruled it on
+  2026-08-20: three-bets have to be accommodated. Ruling 8 answers the price hero faces from
+  an opener; a three-bet and a four-bet also arrive at sizes the tree does not hold, and
+  exact matching there would refuse 185 of the 205 three-bet decisions in the committed
+  sample, collapsing the raised-pot half the same way it would have collapsed the opened-pot
+  one.
+- No decision in the committed sample refuses for a price the chart does not hold. A
+  three-bet at any size reaches the cell the chart holds for that spot, and the phase states
+  that count as zero rather than describing the mechanism that should produce it. This is the
+  falsifiable form of the ruling above, and it is separate from coverage: a spot the chart
+  holds no cell for at any price still refuses, which is `CHART-COVERAGE-EXPANSION` and
+  proposed phase 14.
 - There is no distance bound, and that is deliberate rather than overlooked. Ruling 8 is a
   single unbounded bucket, so the guard is measurement instead: every answer reports how
   far its price was moved.

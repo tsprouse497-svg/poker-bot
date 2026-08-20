@@ -35,9 +35,14 @@ life. The costs went with them: ragged column widths from stripping trailing zer
 precision ceiling at hundredths that a future solve exceeds by being rejected rather than
 rounded.
 
-The remaining ten items proceed on their recorded defaults and are reported afterwards.
-Decision 5 is the one that most deserved his eyes and the loop would not have stopped for it,
-so it is put to him alongside these rather than left in this file to be found.
+Decision 5 was ruled the same day and it is the one that mattered most. It was put to him
+alongside the three above even though it is `runtime-reversible` and the loop would not have
+stopped for it, because it extends ruling 8 rather than reading it. **His answer was that
+three-bets have to be accommodated**, so normalisation reaches every raise in the sequence and
+not only the open, and the 185-of-205 refusal figure is the rejected alternative rather than
+this phase's expected outcome.
+
+The remaining nine items proceed on their recorded defaults and are reported afterwards.
 
 ## What was measured first
 
@@ -222,11 +227,22 @@ not measure.
 
 Reversibility: runtime-reversible
 
-**This is the call worth a human's eyes, and the loop would not have stopped for it.** It
-extends a ruling Taylor made rather than implementing it.
+**Ruled by Taylor on 2026-08-20: three-bets have to be accommodated.** So this stands on its
+default, and it is his ruling rather than a default the loop took because nothing stopped it.
 
-Ruling 8 says an opponent *open* at any size is answered from the 2.5 cell. It does not say
-what happens to a three-bet at 6.25 against a solved 8.0, because nobody had asked.
+It was the call worth a human's eyes and the loop would not have stopped for it, because it
+extends a ruling he made rather than implementing one. Ruling 8 says an opponent *open* at any
+size is answered from the 2.5 cell. It does not say what happens to a three-bet at 6.25
+against a solved 8.0, because nobody had asked. Ruling 8 now reaches every raise in the
+sequence.
+
+What the ruling does and does not buy, because the two are easy to conflate. It makes a
+three-bet at any price *answerable* wherever the chart holds a cell for that spot, which is
+the six vs-three-bet spots where hero was the opener. It adds no coverage: a squeeze or a
+cold four-bet is expressible today and uncovered today, and stays uncovered here. Those are 65
+rows and 250 decision points of `latest_sample_refusal_inventory.txt`, and they belong to
+`CHART-COVERAGE-EXPANSION` at proposed phase 14, which is the phase that commits a chart
+derived from an export holding those nodes.
 
 Default: **`normalise-every-raise`.** Each raise in the sequence is normalised to the nearest
 size the artifact holds for that position after the already-normalised prefix.
