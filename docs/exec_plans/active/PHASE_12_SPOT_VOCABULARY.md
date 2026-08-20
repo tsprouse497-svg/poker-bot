@@ -140,8 +140,15 @@ Forbidden throughout:
       population narrowed to its claim, the fact-drift check pointed away from a finished
       phase's audit packet after Taylor's ruling, and the GTOpen source card's headroom
       re-settled. Evidence: 887 tests pass, stage 6 check green.
-- [ ] **S7 - Gate and bite.** Full `run_verify.py` plus `check_gate_bite`, including both new
-      canaries. Evidence: stage 7 check green.
+- [x] **S7 - Gate and bite.** All 43 gate commands green and every canary bites, including
+      the phase's own two - the thing phases 08, 09 and 10 each shipped without. The bite
+      check earned its keep: `a-folded-seat-may-act-again` survived, because the frozen test
+      aimed at that rule put hero on the button, so the ring walk reached hero before the
+      folded seat and the rejection came from the neighbouring hero-can-never-fold rule. An
+      assertion passing off a rule other than the one it names is invisible at stage 4 by
+      construction. Repaired with a test that puts hero out of the walk's path, checked in
+      both directions, which took the file past the 700-line cap and split it at the same
+      seam the source split took. Evidence: stage 7 check green.
 - [ ] **S8 - Review.** Two passes, mechanical and domain, written separately. The domain pass
       is pointed at the poker: whether a size-aware key answers the spot a player is actually
       in, and what the substitution census says about how often the chart answers a question
