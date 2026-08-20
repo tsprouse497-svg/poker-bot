@@ -4,9 +4,14 @@ task_mode: implementation
 base_commit: 5681010a91f7e8439dbf610068b7d5516e11c12f
 approved_scope:
   - src/poker_training_bot/solver_artifacts/schema.py
+  - src/poker_training_bot/solver_artifacts/spot_key.py
   - src/poker_training_bot/solver_artifacts/lookup.py
+  - src/poker_training_bot/solver_artifacts/price_normalisation.py
   - src/poker_training_bot/solver_artifacts/importer.py
+  - src/poker_training_bot/solver_artifacts/strict_json.py
+  - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
   - src/poker_training_bot/solver_artifacts/vocabulary_report.py
+  - scripts/generate_preflop_chart_report.py
   - src/poker_training_bot/strategy/contract.py
   - src/poker_training_bot/strategy/preflop_chart.py
   - src/poker_training_bot/strategy/preflop_sizing.py
@@ -689,3 +694,22 @@ scope_change_log:
       generators, and the re-derived artifact and sizing table. docs/LOOP.md names any new or
       changed file under data/artifacts/** as a halt condition, so that pair is expected to
       stop the loop for a human look rather than pass silently.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 stage 6, four files split and one report generator repaired.
+      The widened key pushed four modules past the 500-line cap, and the cap is
+      right here rather than inconvenient: schema.py was holding the vocabulary
+      and the artifact container, lookup.py the resolution walk and the ruled
+      price abstraction, importer.py strict JSON reading and poker validation,
+      and vocabulary_report.py measurement and rendering. Each split is on the
+      MAINT-09 precedent that split comparison.py, so spot_key.py,
+      price_normalisation.py, strict_json.py and vocabulary_measures.py join
+      approved_scope. Nothing moved between packages and no behaviour changed;
+      schema.py re-exports the vocabulary because every caller has always
+      reached for it there and there is still exactly one derivation.
+      scripts/generate_preflop_chart_report.py joins them because it builds
+      PreflopAction probes by hand and a sizeless raise no longer constructs, so
+      the phase 04 gate command cannot run without it. Its probe labels are
+      corrected in the same edit: one already read "uncovered" against a spot the
+      committed report shows as a hit, and the four-bet probe's label named a
+      limit this phase removes.

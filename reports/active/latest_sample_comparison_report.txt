@@ -148,8 +148,8 @@ The report measures that rather than leaving it as a caveat.
   measures the seed. It is reported because a reader who prefers the
   stricter definition should not have to regenerate anything to get it.
 
-    Pluribus   matched 404 of 456 drawn decisions  (88.6%)
-    humans     matched 1963 of 2302 drawn decisions  (85.3%)
+    Pluribus   matched 406 of 456 drawn decisions  (89.0%)
+    humans     matched 1964 of 2302 drawn decisions  (85.3%)
 
 ## What a disagreement looked like
 

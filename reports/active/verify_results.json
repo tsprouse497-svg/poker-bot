@@ -1,6 +1,6 @@
 {
-  "all_passed": true,
-  "generated_at_epoch": 1787240208,
+  "all_passed": false,
+  "generated_at_epoch": 1787253052,
   "results": [
     {
       "command": [
@@ -11,7 +11,7 @@
       ],
       "command_id": "generate_status",
       "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.06,
+      "duration_seconds": 0.061,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -26,7 +26,7 @@
       ],
       "command_id": "generate_phase_ledger",
       "description": "Regenerate phase ledger",
-      "duration_seconds": 0.041,
+      "duration_seconds": 0.042,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -41,7 +41,7 @@
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.052,
+      "duration_seconds": 0.053,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -58,11 +58,11 @@
       ],
       "command_id": "pytest_poker_core",
       "description": "Run poker-core tests",
-      "duration_seconds": 0.149,
+      "duration_seconds": 0.125,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 9 items\n\ntests/test_poker_core.py .........                                       [100%]\n\n============================== 9 passed in 0.02s ===============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 9 items\n\ntests/test_poker_core.py .........                                       [100%]\n\n============================== 9 passed in 0.02s ===============================\n"
     },
     {
       "command": [
@@ -73,7 +73,7 @@
       ],
       "command_id": "generate_golden_hand_report",
       "description": "Generate golden-hand replay report",
-      "duration_seconds": 0.043,
+      "duration_seconds": 0.049,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -90,11 +90,11 @@
       ],
       "command_id": "pytest_hand_history",
       "description": "Run hand-history tests",
-      "duration_seconds": 0.118,
+      "duration_seconds": 0.132,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 18 items\n\ntests/test_hand_history.py ..................                            [100%]\n\n============================== 18 passed in 0.02s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 18 items\n\ntests/test_hand_history.py ..................                            [100%]\n\n============================== 18 passed in 0.02s ==============================\n"
     },
     {
       "command": [
@@ -123,11 +123,11 @@
       ],
       "command_id": "pytest_strategy_contract",
       "description": "Run strategy-contract and turn-order tests",
-      "duration_seconds": 0.176,
-      "passed": true,
-      "returncode": 0,
+      "duration_seconds": 0.237,
+      "passed": false,
+      "returncode": 1,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 80 items\n\ntests/test_strategy_contract.py ........................................ [ 50%]\n...................                                                      [ 73%]\ntests/test_action_order.py .....................                         [100%]\n\n============================== 80 passed in 0.07s ==============================\n"
+      "stdout": "None:\n>       query = make_query(preflop_actions=(SeatAction(0, \"raise\"),))\n                                            ^^^^^^^^^^^^^^^^^^^^^^\n\ntests/test_strategy_contract.py:378: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n<string>:6: in __init__\n    ???\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = SeatAction(seat=0, action='raise', amount=None)\n\n    def __post_init__(self) -> None:\n        if not isinstance(self.seat, int) or isinstance(self.seat, bool) or self.seat < 0:\n            raise ValueError(f\"seat must be a non-negative integer, got {self.seat!r}\")\n        if self.action not in _PREFLOP_HISTORY_ACTIONS:\n            raise ValueError(\n                f\"unknown history action {self.action!r};\"\n                f\" expected one of {list(_PREFLOP_HISTORY_ACTIONS)}\"\n            )\n        if self.action == \"raise\":\n            if (\n                self.amount is None\n                or isinstance(self.amount, bool)\n                or not isinstance(self.amount, int)\n                or self.amount <= 0\n            ):\n>               raise ValueError(\n                    \"a recorded raise requires the positive raise-to amount in chips,\"\n                    f\" got {self.amount!r}\"\nE                   ValueError: a recorded raise requires the positive raise-to amount in chips, got None\n\nsrc/poker_training_bot/strategy/contract.py:71: ValueError\n_ TestPreflopActionHistory.test_audit_line_stays_byte_deterministic_with_history _\n\nself = <test_strategy_contract.TestPreflopActionHistory object at 0x104e054f0>\n\n    def test_audit_line_stays_byte_deterministic_with_history(self) -> None:\n>       history = (SeatAction(0, \"raise\"), SeatAction(1, \"call\"))\n                   ^^^^^^^^^^^^^^^^^^^^^^\n\ntests/test_strategy_contract.py:385: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n<string>:6: in __init__\n    ???\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = SeatAction(seat=0, action='raise', amount=None)\n\n    def __post_init__(self) -> None:\n        if not isinstance(self.seat, int) or isinstance(self.seat, bool) or self.seat < 0:\n            raise ValueError(f\"seat must be a non-negative integer, got {self.seat!r}\")\n        if self.action not in _PREFLOP_HISTORY_ACTIONS:\n            raise ValueError(\n                f\"unknown history action {self.action!r};\"\n                f\" expected one of {list(_PREFLOP_HISTORY_ACTIONS)}\"\n            )\n        if self.action == \"raise\":\n            if (\n                self.amount is None\n                or isinstance(self.amount, bool)\n                or not isinstance(self.amount, int)\n                or self.amount <= 0\n            ):\n>               raise ValueError(\n                    \"a recorded raise requires the positive raise-to amount in chips,\"\n                    f\" got {self.amount!r}\"\nE                   ValueError: a recorded raise requires the positive raise-to amount in chips, got None\n\nsrc/poker_training_bot/strategy/contract.py:71: ValueError\n___ TestPreflopActionHistory.test_different_histories_serialize_differently ____\n\nself = <test_strategy_contract.TestPreflopActionHistory object at 0x104e992b0>\n\n    def test_different_histories_serialize_differently(self) -> None:\n        \"\"\"Two spots that share a price must not share an audit line.\"\"\"\n>       opened = make_record(query=make_query(preflop_actions=(SeatAction(0, \"raise\"),)))\n                                                               ^^^^^^^^^^^^^^^^^^^^^^\n\ntests/test_strategy_contract.py:393: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n<string>:6: in __init__\n    ???\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = SeatAction(seat=0, action='raise', amount=None)\n\n    def __post_init__(self) -> None:\n        if not isinstance(self.seat, int) or isinstance(self.seat, bool) or self.seat < 0:\n            raise ValueError(f\"seat must be a non-negative integer, got {self.seat!r}\")\n        if self.action not in _PREFLOP_HISTORY_ACTIONS:\n            raise ValueError(\n                f\"unknown history action {self.action!r};\"\n                f\" expected one of {list(_PREFLOP_HISTORY_ACTIONS)}\"\n            )\n        if self.action == \"raise\":\n            if (\n                self.amount is None\n                or isinstance(self.amount, bool)\n                or not isinstance(self.amount, int)\n                or self.amount <= 0\n            ):\n>               raise ValueError(\n                    \"a recorded raise requires the positive raise-to amount in chips,\"\n                    f\" got {self.amount!r}\"\nE                   ValueError: a recorded raise requires the positive raise-to amount in chips, got None\n\nsrc/poker_training_bot/strategy/contract.py:71: ValueError\n_ TestChartRefusalsNameTheirSpot.test_an_uncovered_spot_reports_the_key_it_looked_for _\n\nself = <test_strategy_contract.TestChartRefusalsNameTheirSpot object at 0x104e88690>\n\n    def test_an_uncovered_spot_reports_the_key_it_looked_for(self) -> None:\n        strategy = PreflopChartStrategy.from_repo()\n>       outcome = strategy.decide(_uncovered_spot_query())\n                                  ^^^^^^^^^^^^^^^^^^^^^^^\n\ntests/test_strategy_contract.py:459: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \ntests/test_strategy_contract.py:78: in _uncovered_spot_query\n    SeatAction(1, \"raise\"),\n    ^^^^^^^^^^^^^^^^^^^^^^\n<string>:6: in __init__\n    ???\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = SeatAction(seat=1, action='raise', amount=None)\n\n    def __post_init__(self) -> None:\n        if not isinstance(self.seat, int) or isinstance(self.seat, bool) or self.seat < 0:\n            raise ValueError(f\"seat must be a non-negative integer, got {self.seat!r}\")\n        if self.action not in _PREFLOP_HISTORY_ACTIONS:\n            raise ValueError(\n                f\"unknown history action {self.action!r};\"\n                f\" expected one of {list(_PREFLOP_HISTORY_ACTIONS)}\"\n            )\n        if self.action == \"raise\":\n            if (\n                self.amount is None\n                or isinstance(self.amount, bool)\n                or not isinstance(self.amount, int)\n                or self.amount <= 0\n            ):\n>               raise ValueError(\n                    \"a recorded raise requires the positive raise-to amount in chips,\"\n                    f\" got {self.amount!r}\"\nE                   ValueError: a recorded raise requires the positive raise-to amount in chips, got None\n\nsrc/poker_training_bot/strategy/contract.py:71: ValueError\n=========================== short test summary info ============================\nFAILED tests/test_strategy_contract.py::TestDecisionAuditRecord::test_rejects_wrong_schema_version\nFAILED tests/test_strategy_contract.py::TestDecisionAuditRecord::test_to_json_line_pins_key_ordering\nFAILED tests/test_strategy_contract.py::TestPreflopActionHistory::test_accepts_an_ordered_history_of_seat_actions\nFAILED tests/test_strategy_contract.py::TestPreflopActionHistory::test_records_folds_as_well_as_voluntary_actions\nFAILED tests/test_strategy_contract.py::TestPreflopActionHistory::test_hero_may_appear_in_its_own_history\nFAILED tests/test_strategy_contract.py::TestPreflopActionHistory::test_rejects_a_seat_that_is_not_at_the_table\nFAILED tests/test_strategy_contract.py::TestPreflopActionHistory::test_history_reaches_the_decision_audit\nFAILED tests/test_strategy_contract.py::TestPreflopActionHistory::test_audit_line_stays_byte_deterministic_with_history\nFAILED tests/test_strategy_contract.py::TestPreflopActionHistory::test_different_histories_serialize_differently\nFAILED tests/test_strategy_contract.py::TestChartRefusalsNameTheirSpot::test_an_uncovered_spot_reports_the_key_it_looked_for\n======================== 10 failed, 70 passed in 0.12s =========================\n"
     },
     {
       "command": [
@@ -138,7 +138,7 @@
       ],
       "command_id": "generate_strategy_query_report",
       "description": "Generate strategy query report and decision audit",
-      "duration_seconds": 0.05,
+      "duration_seconds": 0.051,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -158,11 +158,11 @@
       ],
       "command_id": "pytest_preflop_artifacts",
       "description": "Run preflop position, artifact, and chart-lookup tests",
-      "duration_seconds": 0.386,
-      "passed": true,
-      "returncode": 0,
+      "duration_seconds": 0.202,
+      "passed": false,
+      "returncode": 2,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 236 items\n\ntests/test_preflop_positions.py ........................................ [ 16%]\n............................................................             [ 42%]\ntests/test_preflop_artifacts.py ........................................ [ 59%]\n...........................................                              [ 77%]\ntests/test_preflop_lookup.py ..............................              [ 90%]\ntests/test_preflop_committed_charts.py .......................           [100%]\n\n============================= 236 passed in 0.21s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 100 items / 3 errors\n\n==================================== ERRORS ====================================\n_______________ ERROR collecting tests/test_preflop_artifacts.py _______________\ntests/test_preflop_artifacts.py:595: in <module>\n    (\"action from a position that acts after hero\", \"CO\", (PreflopAction(\"BTN\", \"raise\"),)),\n                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n<string>:6: in __init__\n    ???\nsrc/poker_training_bot/solver_artifacts/schema.py:257: in __post_init__\n    raise ValueError(\nE   ValueError: a raise by BTN must carry the amount it raised to, in big blinds; a sizeless raise is the v1 shape and reading it as matching any price is how a lookup silently hits the wrong cell\n________________ ERROR collecting tests/test_preflop_lookup.py _________________\ntests/test_preflop_lookup.py:43: in <module>\n    CO_OPEN: tuple[PreflopAction, ...] = (PreflopAction(\"CO\", \"raise\"),)\n                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n<string>:6: in __init__\n    ???\nsrc/poker_training_bot/solver_artifacts/schema.py:257: in __post_init__\n    raise ValueError(\nE   ValueError: a raise by CO must carry the amount it raised to, in big blinds; a sizeless raise is the v1 shape and reading it as matching any price is how a lookup silently hits the wrong cell\n___________ ERROR collecting tests/test_preflop_committed_charts.py ____________\ntests/test_preflop_committed_charts.py:179: in <module>\n    (PreflopAction(\"LJ\", \"raise\"), PreflopAction(\"CO\", \"call\")),\n     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n<string>:6: in __init__\n    ???\nsrc/poker_training_bot/solver_artifacts/schema.py:257: in __post_init__\n    raise ValueError(\nE   ValueError: a raise by LJ must carry the amount it raised to, in big blinds; a sizeless raise is the v1 shape and reading it as matching any price is how a lookup silently hits the wrong cell\n=========================== short test summary info ============================\nERROR tests/test_preflop_artifacts.py - ValueError: a raise by BTN must carry...\nERROR tests/test_preflop_lookup.py - ValueError: a raise by CO must carry the...\nERROR tests/test_preflop_committed_charts.py - ValueError: a raise by LJ must...\n!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!\n============================== 3 errors in 0.08s ===============================\n"
     },
     {
       "command": [
@@ -173,7 +173,7 @@
       ],
       "command_id": "generate_preflop_chart_report",
       "description": "Generate preflop chart coverage report",
-      "duration_seconds": 0.062,
+      "duration_seconds": 0.063,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -190,11 +190,11 @@
       ],
       "command_id": "pytest_full_table_preflop",
       "description": "Run full-table preflop strategy tests",
-      "duration_seconds": 0.444,
-      "passed": true,
-      "returncode": 0,
+      "duration_seconds": 0.387,
+      "passed": false,
+      "returncode": 1,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 55 items\n\ntests/test_full_table_preflop.py ....................................... [ 70%]\n................                                                         [100%]\n\n============================== 55 passed in 0.30s ==============================\n"
+      "stdout": "test_the_same_query_serializes_to_the_same_audit_line(self, strategy) -> None:\n        request = query(\"BTN\", hole_cards=(\"As\", \"Ah\"))\n        lines = set()\n        for _ in range(3):\n            outcome = strategy.decide(request)\n            lines.add(\n>               DecisionAuditRecord(\n                    schema_version=1,\n                    strategy_id=strategy.strategy_id,\n                    strategy_version=strategy.strategy_version,\n                    query=request,\n                    outcome=outcome,\n                ).to_json_line()\n            )\n\ntests/test_full_table_preflop.py:516: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n<string>:8: in __init__\n    ???\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = DecisionAuditRecord(schema_version=1, strategy_id='preflop-chart', strategy_version=1, query=StrategyQuery(hand_id='h1...)), outcome=StrategyDecision(action='raise', amount=250, code='preflop-chart:weighted-draw:raise[raise=1]', detail=()))\n\n    def __post_init__(self) -> None:\n        if self.schema_version != DECISION_AUDIT_SCHEMA_VERSION:\n>           raise ValueError(\n                f\"only decision-audit schema_version {DECISION_AUDIT_SCHEMA_VERSION} is supported\"\n            )\nE           ValueError: only decision-audit schema_version 2 is supported\n\nsrc/poker_training_bot/strategy/contract.py:367: ValueError\n_ TestLegalityAndDeterminism.test_the_draw_depends_on_the_hand_not_only_the_spot _\n\nself = <test_full_table_preflop.TestLegalityAndDeterminism object at 0x102e36be0>\nstrategy = PreflopChartStrategy(library=<poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x102f04cd0>, s...t6/d100/SB/SB:raise@3.5,BB:raise@10.5': 22.0, 't6/d100/SB/rfi': 3.5}), strategy_id='preflop-chart', strategy_version=1)\n\n    def test_the_draw_depends_on_the_hand_not_only_the_spot(self, strategy) -> None:\n        \"\"\"A seed of spot and hand class alone is the plurality rule wearing a hash.\n    \n        It would freeze every mixed cell to one action forever while every frequency\n        test that routes through decide_spot kept passing.\n        \"\"\"\n        spot = \"t6/d100/LJ/LJ:raise,CO:raise\"\n>       mixed = next(\n            hand\n            for hand in strategy.library.hand_classes_for(spot)\n            if len(strategy.library.artifacts[0].weights_for(spot, hand)) > 1\n        )\nE       StopIteration\n\ntests/test_full_table_preflop.py:534: StopIteration\n_ TestLegalityAndDeterminism.test_decide_reproduces_the_charts_frequencies_over_many_hands _\n\nself = <test_full_table_preflop.TestLegalityAndDeterminism object at 0x102e0bb50>\nstrategy = PreflopChartStrategy(library=<poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x102f04cd0>, s...t6/d100/SB/SB:raise@3.5,BB:raise@10.5': 22.0, 't6/d100/SB/rfi': 3.5}), strategy_id='preflop-chart', strategy_version=1)\n\n    def test_decide_reproduces_the_charts_frequencies_over_many_hands(self, strategy) -> None:\n        \"\"\"Measured through decide, not decide_spot, so the seed is under test too.\"\"\"\n        spot = \"t6/d100/LJ/LJ:raise,CO:raise\"\n        charted = strategy.library.action_frequency_pct(spot, \"fold\")\n>       history = (raised(\"LJ\"), raised(\"CO\"))\n                   ^^^^^^^^^^^^\n\ntests/test_full_table_preflop.py:557: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \ntests/test_full_table_preflop.py:134: in raised\n    return SeatAction(seat_of(position), \"raise\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n<string>:6: in __init__\n    ???\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = SeatAction(seat=0, action='raise', amount=None)\n\n    def __post_init__(self) -> None:\n        if not isinstance(self.seat, int) or isinstance(self.seat, bool) or self.seat < 0:\n            raise ValueError(f\"seat must be a non-negative integer, got {self.seat!r}\")\n        if self.action not in _PREFLOP_HISTORY_ACTIONS:\n            raise ValueError(\n                f\"unknown history action {self.action!r};\"\n                f\" expected one of {list(_PREFLOP_HISTORY_ACTIONS)}\"\n            )\n        if self.action == \"raise\":\n            if (\n                self.amount is None\n                or isinstance(self.amount, bool)\n                or not isinstance(self.amount, int)\n                or self.amount <= 0\n            ):\n>               raise ValueError(\n                    \"a recorded raise requires the positive raise-to amount in chips,\"\n                    f\" got {self.amount!r}\"\nE                   ValueError: a recorded raise requires the positive raise-to amount in chips, got None\n\nsrc/poker_training_bot/strategy/contract.py:71: ValueError\n_ TestLegalityAndDeterminism.test_the_strategy_does_not_over_fold_against_three_bets _\n\nself = <test_full_table_preflop.TestLegalityAndDeterminism object at 0x102f0a270>\nstrategy = PreflopChartStrategy(library=<poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x102f04cd0>, s...t6/d100/SB/SB:raise@3.5,BB:raise@10.5': 22.0, 't6/d100/SB/rfi': 3.5}), strategy_id='preflop-chart', strategy_version=1)\n\n    def test_the_strategy_does_not_over_fold_against_three_bets(self, strategy) -> None:\n        \"\"\"The blocker that halted this phase, pinned as a test.\n    \n        A plurality rule folded 72.8% here where the chart folds 59.8%, which is past\n        the 66.7% at which an 8bb three-bet over a 2.5x open auto-profits as a pure\n        bluff.\n        \"\"\"\n        spot = \"t6/d100/LJ/LJ:raise,CO:raise\"\n        charted = strategy.library.action_frequency_pct(spot, \"fold\")\n        folds = 0\n        total = 0\n        for hand in strategy.library.hand_classes_for(spot):\n            weight = combos_of(hand)\n            total += weight\n            for index in range(20):\n                outcome = strategy.decide_spot(spot, hand, seed_suffix=str(index))\n                if isinstance(outcome, StrategyDecision) and outcome.action == \"fold\":\n                    folds += weight / 20\n    \n>       assert 100.0 * folds / total == pytest.approx(charted, abs=2.0)\n               ^^^^^^^^^^^^^^^^^^^^^\nE       ZeroDivisionError: float division by zero\n\ntests/test_full_table_preflop.py:617: ZeroDivisionError\n=========================== short test summary info ============================\nFAILED tests/test_full_table_preflop.py::TestCommittedArtifact::test_every_spot_facing_a_single_open_is_covered\nFAILED tests/test_full_table_preflop.py::TestCommittedArtifact::test_the_opener_facing_a_three_bet_is_covered\nFAILED tests/test_full_table_preflop.py::TestSourceFrequencies::test_big_blind_defence_matches_the_source\nFAILED tests/test_full_table_preflop.py::TestDecisions::test_facing_an_open_uses_the_spot_for_that_opener\nFAILED tests/test_full_table_preflop.py::TestDecisions::test_folds_in_the_history_do_not_change_the_spot\nFAILED tests/test_full_table_preflop.py::TestRefusals::test_a_second_orbit_spot_refuses\nFAILED tests/test_full_table_preflop.py::TestRefusals::test_a_straddled_pot_refuses_after_someone_raises\nFAILED tests/test_full_table_preflop.py::TestTotality::test_no_reachable_six_handed_spot_raises\nFAILED tests/test_full_table_preflop.py::TestTotality::test_a_decision_is_never_returned_without_chart_backing\nFAILED tests/test_full_table_preflop.py::TestLegalityAndDeterminism::test_every_decision_passes_the_phase_03_audit_record\nFAILED tests/test_full_table_preflop.py::TestLegalityAndDeterminism::test_the_same_query_serializes_to_the_same_audit_line\nFAILED tests/test_full_table_preflop.py::TestLegalityAndDeterminism::test_the_draw_depends_on_the_hand_not_only_the_spot\nFAILED tests/test_full_table_preflop.py::TestLegalityAndDeterminism::test_decide_reproduces_the_charts_frequencies_over_many_hands\nFAILED tests/test_full_table_preflop.py::TestLegalityAndDeterminism::test_the_strategy_does_not_over_fold_against_three_bets\n======================== 14 failed, 41 passed in 0.25s =========================\n"
     },
     {
       "command": [
@@ -205,7 +205,7 @@
       ],
       "command_id": "generate_preflop_strategy_report",
       "description": "Generate preflop strategy coverage and frequency report",
-      "duration_seconds": 0.222,
+      "duration_seconds": 0.219,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -222,11 +222,11 @@
       ],
       "command_id": "pytest_postflop_fallback",
       "description": "Run postflop fallback and composite strategy tests",
-      "duration_seconds": 5.027,
+      "duration_seconds": 5.137,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_postflop_fallback.py ........................................ [ 90%]\n....                                                                     [100%]\n\n============================== 44 passed in 4.91s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_postflop_fallback.py ........................................ [ 90%]\n....                                                                     [100%]\n\n============================== 44 passed in 5.01s ==============================\n"
     },
     {
       "command": [
@@ -237,7 +237,7 @@
       ],
       "command_id": "generate_postflop_fallback_report",
       "description": "Generate postflop fallback enumeration report and decision audit",
-      "duration_seconds": 12.141,
+      "duration_seconds": 13.46,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -254,11 +254,11 @@
       ],
       "command_id": "pytest_simulator",
       "description": "Run offline simulator and profile tests",
-      "duration_seconds": 0.278,
-      "passed": true,
-      "returncode": 0,
+      "duration_seconds": 0.357,
+      "passed": false,
+      "returncode": 1,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_simulator.py ............................................     [100%]\n\n============================== 44 passed in 0.13s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_simulator.py ...F................F..................FFF..     [100%]\n\n=================================== FAILURES ===================================\n_ TestEveryHandReachesATerminalState.test_the_run_actually_reaches_refusals_rather_than_folding_through_them _\n\nself = <test_simulator.TestEveryHandReachesATerminalState object at 0x1046883e0>\nself_play = SimulationResult(seed=20260812, seat_names=('composite-preflop-chart-postflop-fallback', 'composite-preflop-chart-post..., 'LJ': 2, 'BB': 2, 'SB': 2, 'BTN': 2, 'CO': 2}), 5: Counter({'CO': 2, 'HJ': 2, 'LJ': 2, 'BB': 2, 'SB': 2, 'BTN': 2})})\n\n    def test_the_run_actually_reaches_refusals_rather_than_folding_through_them(\n        self, self_play\n    ) -> None:\n        refused = [hand for hand in self_play.hands if hand.outcome == \"refused\"]\n    \n>       assert refused, \"no hand was refused, so every refusal assertion here is vacuous\"\nE       AssertionError: no hand was refused, so every refusal assertion here is vacuous\nE       assert []\n\ntests/test_simulator.py:123: AssertionError\n__ TestReplayAgreement.test_a_refused_hand_carries_no_completed_hand_history ___\n\nself = <test_simulator.TestReplayAgreement object at 0x104649bd0>\nself_play = SimulationResult(seed=20260812, seat_names=('composite-preflop-chart-postflop-fallback', 'composite-preflop-chart-post..., 'LJ': 2, 'BB': 2, 'SB': 2, 'BTN': 2, 'CO': 2}), 5: Counter({'CO': 2, 'HJ': 2, 'LJ': 2, 'BB': 2, 'SB': 2, 'BTN': 2})})\n\n    def test_a_refused_hand_carries_no_completed_hand_history(self, self_play) -> None:\n        refused = [hand for hand in self_play.hands if hand.outcome == \"refused\"]\n    \n>       assert refused, \"no hand was refused, so this assertion is vacuous\"\nE       AssertionError: no hand was refused, so this assertion is vacuous\nE       assert []\n\ntests/test_simulator.py:280: AssertionError\n_ TestRefusalsAreActionable.test_a_refused_hand_keeps_every_action_taken_before_the_refusal _\n\nself = <test_simulator.TestRefusalsAreActionable object at 0x10464a5d0>\nself_play = SimulationResult(seed=20260812, seat_names=('composite-preflop-chart-postflop-fallback', 'composite-preflop-chart-post..., 'LJ': 2, 'BB': 2, 'SB': 2, 'BTN': 2, 'CO': 2}), 5: Counter({'CO': 2, 'HJ': 2, 'LJ': 2, 'BB': 2, 'SB': 2, 'BTN': 2})})\n\n    def test_a_refused_hand_keeps_every_action_taken_before_the_refusal(self, self_play) -> None:\n        refused = [hand for hand in self_play.hands if hand.outcome == \"refused\"]\n    \n>       assert refused, \"no hand was refused, so this assertion is vacuous\"\nE       AssertionError: no hand was refused, so this assertion is vacuous\nE       assert []\n\ntests/test_simulator.py:433: AssertionError\n_ TestRefusalsAreActionable.test_a_refusal_names_the_spot_the_chart_could_not_answer _\n\nself = <test_simulator.TestRefusalsAreActionable object at 0x10464a710>\nself_play = SimulationResult(seed=20260812, seat_names=('composite-preflop-chart-postflop-fallback', 'composite-preflop-chart-post..., 'LJ': 2, 'BB': 2, 'SB': 2, 'BTN': 2, 'CO': 2}), 5: Counter({'CO': 2, 'HJ': 2, 'LJ': 2, 'BB': 2, 'SB': 2, 'BTN': 2})})\n\n    def test_a_refusal_names_the_spot_the_chart_could_not_answer(self, self_play) -> None:\n        refused = [hand for hand in self_play.hands if hand.outcome == \"refused\"]\n    \n>       assert refused, \"no hand was refused, so this assertion is vacuous\"\nE       AssertionError: no hand was refused, so this assertion is vacuous\nE       assert []\n\ntests/test_simulator.py:445: AssertionError\n_ TestRefusalsAreActionable.test_the_inventory_accounts_for_every_refused_hand _\n\nself = <test_simulator.TestRefusalsAreActionable object at 0x104689220>\nself_play = SimulationResult(seed=20260812, seat_names=('composite-preflop-chart-postflop-fallback', 'composite-preflop-chart-post..., 'LJ': 2, 'BB': 2, 'SB': 2, 'BTN': 2, 'CO': 2}), 5: Counter({'CO': 2, 'HJ': 2, 'LJ': 2, 'BB': 2, 'SB': 2, 'BTN': 2})})\n\n    def test_the_inventory_accounts_for_every_refused_hand(self, self_play) -> None:\n        inventory = self_play.refusal_inventory()\n        refused = sum(1 for hand in self_play.hands if hand.outcome == \"refused\")\n    \n>       assert refused > 0\nE       assert 0 > 0\n\ntests/test_simulator.py:456: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_simulator.py::TestEveryHandReachesATerminalState::test_the_run_actually_reaches_refusals_rather_than_folding_through_them\nFAILED tests/test_simulator.py::TestReplayAgreement::test_a_refused_hand_carries_no_completed_hand_history\nFAILED tests/test_simulator.py::TestRefusalsAreActionable::test_a_refused_hand_keeps_every_action_taken_before_the_refusal\nFAILED tests/test_simulator.py::TestRefusalsAreActionable::test_a_refusal_names_the_spot_the_chart_could_not_answer\nFAILED tests/test_simulator.py::TestRefusalsAreActionable::test_the_inventory_accounts_for_every_refused_hand\n========================= 5 failed, 39 passed in 0.18s =========================\n"
     },
     {
       "command": [
@@ -269,7 +269,7 @@
       ],
       "command_id": "generate_profile_comparison_report",
       "description": "Generate the bot/profile comparison report",
-      "duration_seconds": 0.579,
+      "duration_seconds": 0.58,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -287,11 +287,11 @@
       ],
       "command_id": "pytest_sample_comparison",
       "description": "Run public-corpus ingestion and player comparison tests",
-      "duration_seconds": 1.888,
+      "duration_seconds": 2.429,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 53 items\n\ntests/test_sample_comparison.py ........................................ [ 75%]\n.......                                                                  [ 88%]\ntests/test_sample_comparison_report.py ......                            [100%]\n\n============================== 53 passed in 1.71s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 53 items\n\ntests/test_sample_comparison.py ........................................ [ 75%]\n.......                                                                  [ 88%]\ntests/test_sample_comparison_report.py ......                            [100%]\n\n============================== 53 passed in 2.26s ==============================\n"
     },
     {
       "command": [
@@ -302,7 +302,7 @@
       ],
       "command_id": "generate_sample_comparison_report",
       "description": "Generate the real-hand comparison report and its refusal inventory",
-      "duration_seconds": 0.361,
+      "duration_seconds": 0.483,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -319,11 +319,11 @@
       ],
       "command_id": "pytest_quality_hardening",
       "description": "Run quality, drift, and phase-gate hardening tests",
-      "duration_seconds": 2.282,
-      "passed": true,
-      "returncode": 0,
+      "duration_seconds": 2.747,
+      "passed": false,
+      "returncode": 1,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 26 items\n\ntests/test_quality_hardening.py ..........................               [100%]\n\n============================== 26 passed in 2.09s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 26 items\n\ntests/test_quality_hardening.py .........FF..............F               [100%]\n\n=================================== FAILURES ===================================\n_________ test_the_committed_facts_file_matches_what_the_code_computes _________\n\n    def test_the_committed_facts_file_matches_what_the_code_computes() -> None:\n        \"\"\"A stale committed facts file is the same defect one indirection back.\"\"\"\n        committed = yaml.safe_load((REPO_ROOT / \"reports\" / \"active\" / \"repo_facts.yml\").read_text())\n    \n>       assert committed[\"facts\"] == computed_values()\nE       AssertionError: assert {'chart_solve...s': '78', ...} == {'chart_solve...': '159', ...}\nE         \nE         Omitting 8 identical items, use -vv to show\nE         Differing items:\nE         {'corpus_inexpressible_refusals': '19'} != {'corpus_inexpressible_refusals': '0'}\nE         {'corpus_distinct_refused_spots': '78'} != {'corpus_distinct_refused_spots': '159'}\nE         Use -v to get more diff\n\ntests/test_quality_hardening.py:214: AssertionError\n______________ test_no_document_in_this_repo_states_a_stale_fact _______________\n\n    def test_no_document_in_this_repo_states_a_stale_fact() -> None:\n>       assert fact_drift_errors(FACTS, computed_values(), REPO_ROOT) == []\nE       assert ['reports/pha... repo says 0'] == []\nE         \nE         Left contains 3 more items, first extra item: \"reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md states 78 for fact 'corpus_distinct_refused_spots' (distinct spot keys the chart refuses against real hands); the repo says 159\"\nE         Use -v to get more diff\n\ntests/test_quality_hardening.py:218: AssertionError\n____________ test_the_quality_gate_command_passes_against_this_repo ____________\n\n    def test_the_quality_gate_command_passes_against_this_repo() -> None:\n        \"\"\"The end-to-end claim, run as the gate runs it.\"\"\"\n        proc = subprocess.run(\n            [sys.executable, str(Path(\"scripts\") / \"run_full_quality_gate.py\")],\n            cwd=REPO_ROOT,\n            capture_output=True,\n            text=True,\n            check=False,\n        )\n    \n>       assert proc.returncode == 0, proc.stdout + proc.stderr\nE       AssertionError: Quality And Drift Report\nE         ========================\nE         \nE         Four checks, each with what it covers and what it does not. The second half of\nE         each entry matters as much as the result: a check that passed is not a promise\nE         about everything it did not look at, and this repo has already shipped three\nE         wrong numbers and a decorative gate command past a green run.\nE         \nE         PASS  mutation coverage\nE               covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\nE               does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\nE         \nE         FAIL  fact drift\nE               covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\nE               does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\nE               ! the committed facts file disagrees with what the code computes; run scripts/generate_repo_facts.py and update the documents it names\nE               ! reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md states 78 for fact 'corpus_distinct_refused_spots' (distinct spot keys the chart refuses against real hands); the repo says 159\nE               ! reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md states 19 for fact 'corpus_inexpressible_refusals' (refusals whose spot the chart vocabulary cannot express at all); the repo says 0\nE               ! backlog.yml states 19 for fact 'corpus_inexpressible_refusals' (refusals whose spot the chart vocabulary cannot express at all); the repo says 0\nE         \nE         PASS  backlog integrity\nE               covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\nE               does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\nE         \nE         PASS  phase record agreement\nE               covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\nE               does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\nE         \nE         \nE         wrote reports/active/latest_quality_report.txt\nE         quality gate failed: fact drift\nE         \nE       assert 1 == 0\nE        +  where 1 = CompletedProcess(args=['/Users/taylorsprouse/projects/poker-bot-worktrees/phase-12/.venv/bin/python3', 'scripts/run_fu...clone with no tags.\\n\\n\\nwrote reports/active/latest_quality_report.txt\\n\", stderr='quality gate failed: fact drift\\n').returncode\n\ntests/test_quality_hardening.py:403: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_quality_hardening.py::test_the_committed_facts_file_matches_what_the_code_computes\nFAILED tests/test_quality_hardening.py::test_no_document_in_this_repo_states_a_stale_fact\nFAILED tests/test_quality_hardening.py::test_the_quality_gate_command_passes_against_this_repo\n========================= 3 failed, 23 passed in 2.52s =========================\n"
     },
     {
       "command": [
@@ -334,11 +334,11 @@
       ],
       "command_id": "run_full_quality_gate",
       "description": "Run the quality checks and write the quality report",
-      "duration_seconds": 0.852,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "Quality And Drift Report\n========================\n\nFour checks, each with what it covers and what it does not. The second half of\neach entry matters as much as the result: a check that passed is not a promise\nabout everything it did not look at, and this repo has already shipped three\nwrong numbers and a decorative gate command past a green run.\n\nPASS  mutation coverage\n      covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\n      does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\n\nPASS  fact drift\n      covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\n      does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\n\nPASS  backlog integrity\n      covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\n      does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\n\nPASS  phase record agreement\n      covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\n      does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\n\n\nwrote reports/active/latest_quality_report.txt\n"
+      "duration_seconds": 1.009,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "quality gate failed: fact drift\n",
+      "stdout": "Quality And Drift Report\n========================\n\nFour checks, each with what it covers and what it does not. The second half of\neach entry matters as much as the result: a check that passed is not a promise\nabout everything it did not look at, and this repo has already shipped three\nwrong numbers and a decorative gate command past a green run.\n\nPASS  mutation coverage\n      covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\n      does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\n\nFAIL  fact drift\n      covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\n      does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\n      ! the committed facts file disagrees with what the code computes; run scripts/generate_repo_facts.py and update the documents it names\n      ! reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md states 78 for fact 'corpus_distinct_refused_spots' (distinct spot keys the chart refuses against real hands); the repo says 159\n      ! reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md states 19 for fact 'corpus_inexpressible_refusals' (refusals whose spot the chart vocabulary cannot express at all); the repo says 0\n      ! backlog.yml states 19 for fact 'corpus_inexpressible_refusals' (refusals whose spot the chart vocabulary cannot express at all); the repo says 0\n\nPASS  backlog integrity\n      covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\n      does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\n\nPASS  phase record agreement\n      covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\n      does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\n\n\nwrote reports/active/latest_quality_report.txt\n"
     },
     {
       "command": [
@@ -352,11 +352,11 @@
       ],
       "command_id": "pytest_solver_export",
       "description": "Run GTOpen solver export, source-card, and expectations tests",
-      "duration_seconds": 2.404,
-      "passed": true,
-      "returncode": 0,
+      "duration_seconds": 2.545,
+      "passed": false,
+      "returncode": 1,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 74 items\n\ntests/test_solver_export.py ............................................ [ 59%]\n...........                                                              [ 74%]\ntests/test_solver_expectations.py ...................                    [100%]\n\n============================== 74 passed in 2.26s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 74 items\n\ntests/test_solver_export.py ............................................ [ 59%]\n.........F.                                                              [ 74%]\ntests/test_solver_expectations.py ...................                    [100%]\n\n=================================== FAILURES ===================================\n_____ test_the_committed_export_sits_under_the_limit_with_stated_headroom ______\n\n    def test_the_committed_export_sits_under_the_limit_with_stated_headroom() -> None:\n        assert COMMITTED_EXPORT_PATH.exists(), \"the export has not been committed yet\"\n        card = load_source_card(COMMITTED_SOURCE_CARD_PATH)\n        limit = dict(DIRECTORY_BYTE_LIMITS)[\"data/artifacts\"]\n        total = sum(path.stat().st_size for path in ARTIFACTS.rglob(\"*\") if path.is_file())\n    \n        assert COMMITTED_EXPORT_PATH.stat().st_size == card[\"size\"][\"bytes\"]\n        assert total < limit\n>       assert card[\"size\"][\"headroom_bytes\"] == limit - total\nE       assert 16394365 == (20971520 - 4579073)\n\ntests/test_solver_export.py:613: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_solver_export.py::test_the_committed_export_sits_under_the_limit_with_stated_headroom\n========================= 1 failed, 73 passed in 2.41s =========================\n"
     },
     {
       "command": [
@@ -367,11 +367,11 @@
       ],
       "command_id": "check_solver_export_expectations",
       "description": "Recompute the solver export's two orderings and check its source card against it",
-      "duration_seconds": 2.226,
+      "duration_seconds": 2.334,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "export:        /Users/taylorsprouse/projects/poker-bot-worktrees/main/data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz\naction nodes:  38828\n  RFI BTN    40.26%\n  RFI CO     27.34%\n  RFI HJ     21.64%\n  RFI LJ     19.08%\n  RFI SB     54.09%\n  BB vs BTN    36.76%\n  BB vs CO     34.12%\n  BB vs HJ     29.92%\n  BB vs LJ     27.28%\n  BB vs SB     49.02%\nboth orderings hold, and the source card matches the export\n"
+      "stdout": "export:        /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12/data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz\naction nodes:  38828\n  RFI BTN    40.26%\n  RFI CO     27.34%\n  RFI HJ     21.64%\n  RFI LJ     19.08%\n  RFI SB     54.09%\n  BB vs BTN    36.76%\n  BB vs CO     34.12%\n  BB vs HJ     29.92%\n  BB vs LJ     27.28%\n  BB vs SB     49.02%\nboth orderings hold, and the source card matches the export\n"
     },
     {
       "command": [
@@ -382,7 +382,7 @@
       ],
       "command_id": "generate_solver_export_report",
       "description": "Generate the solver export range-grid and comparison report",
-      "duration_seconds": 2.282,
+      "duration_seconds": 2.384,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -403,7 +403,7 @@
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 52 items\n\ntests/test_engine_fidelity.py .......................................... [ 80%]\n..........                                                               [100%]\n\n============================== 52 passed in 0.19s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 52 items\n\ntests/test_engine_fidelity.py .......................................... [ 80%]\n..........                                                               [100%]\n\n============================== 52 passed in 0.20s ==============================\n"
     },
     {
       "command": [
@@ -414,11 +414,43 @@
       ],
       "command_id": "generate_engine_fidelity_report",
       "description": "Generate the engine and query fidelity before/after report",
-      "duration_seconds": 0.079,
+      "duration_seconds": 0.091,
       "passed": true,
       "returncode": 0,
       "stderr": "",
       "stdout": "wrote reports/active/latest_engine_fidelity_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_spot_vocabulary.py"
+      ],
+      "command_id": "pytest_spot_vocabulary",
+      "description": "Run the sizing-aware and second-orbit spot vocabulary tests",
+      "duration_seconds": 2.076,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 68 items\n\ntests/test_spot_vocabulary.py .......................................... [ 61%]\n.................F........                                               [100%]\n\n=================================== FAILURES ===================================\n___________________ test_the_squeeze_refusals_are_untouched ____________________\n\ncomparison = ComparisonResult(rows=(ComparisonRow(hand_id='pluribus/100/0', seat=2, position='LJ', player='MrWhite', population='hu...ared=499, hands_excluded=1, chart_source='GTO Wizard 6-max 100bb NL25 rake', solved_open_bb=(('LJ', 2.5), ('SB', 3.5)))\n\n    def test_the_squeeze_refusals_are_untouched(comparison) -> None:\n        \"\"\"The falsifiable form of what the three-bet ruling does *not* buy.\n    \n        132 refusals face a two-raise sequence, and 125 of those are a squeeze or a cold\n        four-bet: expressible today, uncovered today, and uncovered after this phase.\n        Normalising a price is not finding a nearest spot, so this count must not move.\n        \"\"\"\n        two_raise = [\n            row\n            for row in comparison.rows\n            if row.refusal is not None\n            and row.spot_key\n            and row.spot_key.split(\"/\")[-1].count(\":raise\") == 2\n        ]\n>       assert len(two_raise) == 132\nE       AssertionError: assert 133 == 132\nE        +  where 133 = len([ComparisonRow(hand_id='pluribus/100/63', seat=5, position='BTN', player='MrWhite', population='humans', street='prefl...5),), asked_spot_key='t6/d100/BB/HJ:raise@2.5,CO:raise@7.5', raises_faced=2, miss_code='lookup:spot-not-covered'), ...])\n\ntests/test_spot_vocabulary.py:600: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_spot_vocabulary.py::test_the_squeeze_refusals_are_untouched\n========================= 1 failed, 67 passed in 1.95s =========================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_spot_vocabulary_report.py"
+      ],
+      "command_id": "generate_spot_vocabulary_report",
+      "description": "Generate the spot vocabulary report, key mapping, and price substitution census",
+      "duration_seconds": 1.496,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_spot_vocabulary_report.txt\n"
     },
     {
       "command": [
@@ -430,7 +462,7 @@
       ],
       "command_id": "check_generated_status",
       "description": "Check generated STATUS.md freshness",
-      "duration_seconds": 0.059,
+      "duration_seconds": 0.061,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -462,7 +494,7 @@
       ],
       "command_id": "check_generated_backlog",
       "description": "Check generated backlog freshness",
-      "duration_seconds": 0.055,
+      "duration_seconds": 0.057,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -477,7 +509,7 @@
       ],
       "command_id": "check_contracts",
       "description": "Validate phase contracts",
-      "duration_seconds": 0.051,
+      "duration_seconds": 0.047,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -492,10 +524,10 @@
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.132,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
+      "duration_seconds": 0.181,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "outside approved scope: scripts/generate_preflop_chart_report.py\n",
       "stdout": ""
     },
     {
@@ -507,7 +539,7 @@
       ],
       "command_id": "check_execplan_delegation",
       "description": "Validate active ExecPlan delegation plan",
-      "duration_seconds": 0.05,
+      "duration_seconds": 0.059,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -522,7 +554,7 @@
       ],
       "command_id": "check_repo_consistency",
       "description": "Cross-check phase status, ExecPlan location, gate commands, and the phase graph",
-      "duration_seconds": 0.105,
+      "duration_seconds": 0.093,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -538,11 +570,11 @@
       ],
       "command_id": "check_test_freeze",
       "description": "Check tests match verification/freeze.lock",
-      "duration_seconds": 0.08,
+      "duration_seconds": 0.085,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "test freeze intact: 23 files\n"
+      "stdout": "test freeze intact: 24 files\n"
     },
     {
       "command": [
@@ -553,10 +585,10 @@
       ],
       "command_id": "check_file_sizes",
       "description": "Validate file-size limits",
-      "duration_seconds": 0.044,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
+      "duration_seconds": 0.045,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "src/poker_training_bot/solver_artifacts/importer.py exceeds 500 lines\nsrc/poker_training_bot/solver_artifacts/lookup.py exceeds 500 lines\nsrc/poker_training_bot/solver_artifacts/vocabulary_report.py exceeds 500 lines\nsrc/poker_training_bot/solver_artifacts/schema.py exceeds 500 lines\n",
       "stdout": ""
     },
     {
@@ -570,11 +602,11 @@
       ],
       "command_id": "pytest_loop_fleet",
       "description": "Run parallel-loop eligibility, lane discovery, and pause board tests",
-      "duration_seconds": 0.226,
+      "duration_seconds": 0.24,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.10s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.12s ==============================\n"
     },
     {
       "command": [
@@ -586,7 +618,7 @@
       ],
       "command_id": "import_smoke",
       "description": "Import package smoke test",
-      "duration_seconds": 0.024,
+      "duration_seconds": 0.029,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -602,7 +634,7 @@
       ],
       "command_id": "uv_import_smoke",
       "description": "Prove uv environment can import the package",
-      "duration_seconds": 0.028,
+      "duration_seconds": 0.026,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -619,11 +651,11 @@
       ],
       "command_id": "pytest",
       "description": "Run tests",
-      "duration_seconds": 13.97,
-      "passed": true,
-      "returncode": 0,
+      "duration_seconds": 0.295,
+      "passed": false,
+      "returncode": 2,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 816 items\n\ntests/test_action_order.py .....................                         [  2%]\ntests/test_check_scope.py .............                                  [  4%]\ntests/test_command_registry.py .........                                 [  5%]\ntests/test_engine_fidelity.py .......................................... [ 10%]\n..........                                                               [ 11%]\ntests/test_execplan_delegation.py ..........                             [ 12%]\ntests/test_full_table_preflop.py ....................................... [ 17%]\n................                                                         [ 19%]\ntests/test_hand_history.py ..................                            [ 21%]\ntests/test_import_smoke.py .                                             [ 21%]\ntests/test_loop_fleet.py ..................................              [ 26%]\ntests/test_loop_machinery.py ........................................... [ 31%]\n...............                                                          [ 33%]\ntests/test_poker_core.py .........                                       [ 34%]\ntests/test_postflop_fallback.py ........................................ [ 39%]\n....                                                                     [ 39%]\ntests/test_preflop_artifacts.py ........................................ [ 44%]\n...........................................                              [ 49%]\ntests/test_preflop_committed_charts.py .......................           [ 52%]\ntests/test_preflop_lookup.py ..............................              [ 56%]\ntests/test_preflop_positions.py ........................................ [ 61%]\n............................................................             [ 68%]\ntests/test_quality_hardening.py ..........................               [ 71%]\ntests/test_sample_comparison.py ........................................ [ 76%]\n.......                                                                  [ 77%]\ntests/test_sample_comparison_report.py ......                            [ 78%]\ntests/test_simulator.py ............................................     [ 83%]\ntests/test_solver_expectations.py ...................                    [ 86%]\ntests/test_solver_export.py ............................................ [ 91%]\n...........                                                              [ 92%]\ntests/test_strategy_contract.py ........................................ [ 97%]\n...................                                                      [100%]\n\n============================= 816 passed in 13.77s =============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-12\nconfigfile: pyproject.toml\ncollected 749 items / 3 errors\n\n==================================== ERRORS ====================================\n_______________ ERROR collecting tests/test_preflop_artifacts.py _______________\ntests/test_preflop_artifacts.py:595: in <module>\n    (\"action from a position that acts after hero\", \"CO\", (PreflopAction(\"BTN\", \"raise\"),)),\n                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n<string>:6: in __init__\n    ???\nsrc/poker_training_bot/solver_artifacts/schema.py:257: in __post_init__\n    raise ValueError(\nE   ValueError: a raise by BTN must carry the amount it raised to, in big blinds; a sizeless raise is the v1 shape and reading it as matching any price is how a lookup silently hits the wrong cell\n___________ ERROR collecting tests/test_preflop_committed_charts.py ____________\ntests/test_preflop_committed_charts.py:179: in <module>\n    (PreflopAction(\"LJ\", \"raise\"), PreflopAction(\"CO\", \"call\")),\n     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n<string>:6: in __init__\n    ???\nsrc/poker_training_bot/solver_artifacts/schema.py:257: in __post_init__\n    raise ValueError(\nE   ValueError: a raise by LJ must carry the amount it raised to, in big blinds; a sizeless raise is the v1 shape and reading it as matching any price is how a lookup silently hits the wrong cell\n________________ ERROR collecting tests/test_preflop_lookup.py _________________\ntests/test_preflop_lookup.py:43: in <module>\n    CO_OPEN: tuple[PreflopAction, ...] = (PreflopAction(\"CO\", \"raise\"),)\n                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n<string>:6: in __init__\n    ???\nsrc/poker_training_bot/solver_artifacts/schema.py:257: in __post_init__\n    raise ValueError(\nE   ValueError: a raise by CO must carry the amount it raised to, in big blinds; a sizeless raise is the v1 shape and reading it as matching any price is how a lookup silently hits the wrong cell\n=========================== short test summary info ============================\nERROR tests/test_preflop_artifacts.py - ValueError: a raise by BTN must carry...\nERROR tests/test_preflop_committed_charts.py - ValueError: a raise by LJ must...\nERROR tests/test_preflop_lookup.py - ValueError: a raise by CO must carry the...\n!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!\n============================== 3 errors in 0.17s ===============================\n"
     },
     {
       "command": [
@@ -634,11 +666,11 @@
       ],
       "command_id": "check_gate_bite",
       "description": "Prove committed mutations make the gate fail",
-      "duration_seconds": 604.205,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "gate bites: 45 mutations all caught\n"
+      "duration_seconds": 166.703,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "after restoring 'positions-late-labels-swapped', 'pytest_preflop_artifacts' is still failing: restore src/poker_training_bot/poker_core/positions.py with git checkout before trusting this run\nafter restoring 'positions-late-labels-swapped', 'pytest' is still failing: restore src/poker_training_bot/poker_core/positions.py with git checkout before trusting this run\nafter restoring 'lookup-tie-picks-an-action', 'pytest_preflop_artifacts' is still failing: restore src/poker_training_bot/solver_artifacts/lookup.py with git checkout before trusting this run\nafter restoring 'importer-checksum-not-enforced', 'pytest_preflop_artifacts' is still failing: restore src/poker_training_bot/solver_artifacts/importer.py with git checkout before trusting this run\nafter restoring 'decision-audit-skips-legality', 'pytest_strategy_contract' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'simulator-seeds-from-global-random', 'pytest_simulator' is still failing: restore src/poker_training_bot/simulator/run.py with git checkout before trusting this run\nafter restoring 'simulator-forgets-what-players-put-in', 'pytest_simulator' is still failing: restore src/poker_training_bot/simulator/run.py with git checkout before trusting this run\nafter restoring 'simulator-carries-stacks-between-hands', 'pytest_simulator' is still failing: restore src/poker_training_bot/simulator/run.py with git checkout before trusting this run\nafter restoring 'simulator-converts-a-refusal-into-a-fold', 'pytest_simulator' is still failing: restore src/poker_training_bot/simulator/run.py with git checkout before trusting this run\nafter restoring 'chart-refusal-forgets-what-it-looked-for', 'pytest_strategy_contract' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'chart-refusal-forgets-what-it-looked-for', 'pytest_simulator' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'simulator-drops-the-refused-street', 'pytest_simulator' is still failing: restore src/poker_training_bot/simulator/run.py with git checkout before trusting this run\nafter restoring 'preflop-collapse-stops-sampling-and-takes-the-first-action', 'pytest_full_table_preflop' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'quality-fact-drift-accepts-a-rewritten-sentence', 'pytest_quality_hardening' is still failing: restore scripts/quality_checks.py with git checkout before trusting this run\nafter restoring 'loop-review-trigger-never-fires', 'pytest' is still failing: restore scripts/loop_stage.py with git checkout before trusting this run\nafter restoring 'loop-blocker-stops-blocking', 'pytest' is still failing: restore scripts/loop_stage.py with git checkout before trusting this run\nafter restoring 'contract-id-mismatch-goes-unreported', 'pytest' is still failing: restore scripts/check_contracts.py with git checkout before trusting this run\nafter restoring 'live-mutation-passes-the-gate', 'pytest' is still failing: restore scripts/check_scope.py with git checkout before trusting this run\nafter restoring 'unmerged-dependency-counts-as-done', 'pytest' is still failing: restore scripts/loop_fleet.py with git checkout before trusting this run\nafter restoring 'finished-lane-occupies-a-lane-forever', 'pytest' is still failing: restore scripts/loop_fleet.py with git checkout before trusting this run\nafter restoring 'dependency-cycle-goes-unreported', 'pytest' is still failing: restore scripts/check_repo_consistency.py with git checkout before trusting this run\nafter restoring 'worktree-lock-collapses-to-the-repo-root', 'pytest' is still failing: restore scripts/loop_stage.py with git checkout before trusting this run\nafter restoring 'solver-export-hand-index-uses-the-grid-ordering', 'pytest_solver_export' is still failing: restore src/poker_training_bot/solver_artifacts/gtopen_export.py with git checkout before trusting this run\nafter restoring 'solver-export-hand-index-uses-the-grid-ordering', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/gtopen_export.py with git checkout before trusting this run\nafter restoring 'solver-export-aggregates-ignore-the-arriving-range', 'pytest_solver_export' is still failing: restore src/poker_training_bot/solver_artifacts/gtopen_export.py with git checkout before trusting this run\nafter restoring 'solver-export-aggregates-ignore-the-arriving-range', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/gtopen_export.py with git checkout before trusting this run\nafter restoring 'free-fold-taken-off-the-table-again', 'pytest' is still failing: restore src/poker_training_bot/poker_core/engine.py with git checkout before trusting this run\nafter restoring 'reopening-measured-against-the-preceding-bet-again', 'pytest' is still failing: restore src/poker_training_bot/poker_core/order.py with git checkout before trusting this run\nafter restoring 'all-in-ceiling-loose-by-the-price-to-call-again', 'pytest' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'fail-closed-can-invest-again', 'pytest' is still failing: restore src/poker_training_bot/strategy/postflop_fallback.py with git checkout before trusting this run\nafter restoring 'under-sized-all-in-bet-becomes-the-reference-level', 'pytest' is still failing: restore src/poker_training_bot/poker_core/order.py with git checkout before trusting this run\nafter restoring 'spot-key-drops-the-raise-size', 'pytest_spot_vocabulary' is still failing: restore src/poker_training_bot/solver_artifacts/schema.py with git checkout before trusting this run\nafter restoring 'spot-key-drops-the-raise-size', 'pytest_preflop_artifacts' is still failing: restore src/poker_training_bot/solver_artifacts/schema.py with git checkout before trusting this run\nafter restoring 'spot-key-drops-the-raise-size', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/schema.py with git checkout before trusting this run\nafter restoring 'price-substitution-not-recorded', 'pytest_spot_vocabulary' is still failing: restore src/poker_training_bot/solver_artifacts/lookup.py with git checkout before trusting this run\nafter restoring 'price-substitution-not-recorded', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/lookup.py with git checkout before trusting this run\nafter restoring 'a-flat-re-raise-is-accepted', 'pytest_spot_vocabulary' is still failing: restore src/poker_training_bot/solver_artifacts/schema.py with git checkout before trusting this run\nafter restoring 'a-flat-re-raise-is-accepted', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/schema.py with git checkout before trusting this run\nafter restoring 'a-folded-seat-may-act-again', 'pytest_spot_vocabulary' is still failing: restore src/poker_training_bot/solver_artifacts/schema.py with git checkout before trusting this run\nafter restoring 'a-folded-seat-may-act-again', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/schema.py with git checkout before trusting this run\n",
+      "stdout": ""
     },
     {
       "command": [
@@ -651,7 +683,7 @@
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.08,
+      "duration_seconds": 0.066,
       "passed": true,
       "returncode": 0,
       "stderr": "",

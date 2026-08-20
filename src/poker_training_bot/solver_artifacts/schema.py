@@ -1,12 +1,10 @@
-"""Committed preflop artifact schema and the canonical spot key.
+"""Committed preflop artifact schema: the container the ranges are shipped in.
 
-The spot key is derived here and nowhere else. The importer stamps artifacts with
-it and the chart lookup rebuilds it from game state, so a spot that imports is
-reachable by a lookup.
-
-Folds never appear in a spot's action sequence. A folded position carries no
-information beyond its absence, so an empty sequence means "folded to hero"
-(RFI) and every recorded entry is live aggression or a call.
+The vocabulary a spot is named in lives in `solver_artifacts.spot_key`, and is
+re-exported here because every caller in this repo has always reached for it through
+`schema` and there is still exactly one derivation behind the name. What is left in this
+file is the artifact itself: where it came from, what it covers, what it declares, and
+the validation that makes an artifact either fully trustworthy or refused.
 """
 
 from __future__ import annotations
@@ -14,34 +12,60 @@ from __future__ import annotations
 import json
 import math
 import re
-from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import cached_property
 from hashlib import sha256
 from typing import Any
 
-from poker_training_bot.poker_core.positions import (
-    POSITION_LABELS,
-    preflop_action_order,
-    table_positions,
-)
+from poker_training_bot.poker_core.positions import POSITION_LABELS
 from poker_training_bot.solver_artifacts.hand_classes import (
     hand_class_grid_index,
     is_hand_class,
 )
+from poker_training_bot.solver_artifacts.spot_key import (
+    MAX_TABLE_SIZE,
+    MIN_TABLE_SIZE,
+    SEQUENCE_ACTIONS,
+    SIZE_QUANTUM,
+    PreflopAction,
+    _validate_int,
+    _validate_stack_depth,
+    _validate_table_size,
+    action_entry_payload,
+    render_entry,
+    render_size_bb,
+    spot_key,
+)
+
+__all__ = [
+    "ARTIFACT_SCHEMA_VERSION",
+    "ARTIFACT_SOURCE_KINDS",
+    "MAX_TABLE_SIZE",
+    "MIN_TABLE_SIZE",
+    "PREFLOP_ACTIONS",
+    "SEQUENCE_ACTIONS",
+    "SIZE_QUANTUM",
+    "WEIGHT_SUM_TOLERANCE",
+    "ActionWeights",
+    "ArtifactAuditFields",
+    "ArtifactSource",
+    "HandClassWeights",
+    "PreflopAction",
+    "PreflopArtifact",
+    "SpotActionWeights",
+    "SpotDefinition",
+    "action_entry_payload",
+    "render_entry",
+    "render_size_bb",
+    "spot_key",
+    "weights_checksum",
+]
 
 ARTIFACT_SCHEMA_VERSION = 1
 WEIGHT_SUM_TOLERANCE = 1e-6
 PREFLOP_ACTIONS = ("fold", "check", "call", "raise")
-# A recorded sequence entry can only be a call or a raise. Preflop everyone faces
-# the big blind, so the only seat that can check is the big blind, and its check
-# ends the betting round. A check can therefore never precede hero's decision.
-SEQUENCE_ACTIONS = ("call", "raise")
 ARTIFACT_SOURCE_KINDS = ("solver-export", "hand-authored")
-
-MIN_TABLE_SIZE = 2
-MAX_TABLE_SIZE = 9
 
 ActionWeights = tuple[tuple[str, float], ...]
 HandClassWeights = tuple[tuple[str, ActionWeights], ...]
@@ -49,30 +73,6 @@ SpotActionWeights = tuple[tuple[str, HandClassWeights], ...]
 
 _SHA256_HEX = re.compile(r"\A[0-9a-f]{64}\Z")
 _SLUG_SEPARATOR = re.compile(r"[^a-z0-9]+")
-
-
-def _validate_int(value: object, field: str) -> int:
-    if not isinstance(value, int) or isinstance(value, bool):
-        raise ValueError(f"{field} must be an integer, got {value!r}")
-    return value
-
-
-def _validate_table_size(table_size: int) -> tuple[str, ...]:
-    _validate_int(table_size, "table_size")
-    if table_size < MIN_TABLE_SIZE or table_size > MAX_TABLE_SIZE:
-        raise ValueError(
-            f"table_size must be between {MIN_TABLE_SIZE} and {MAX_TABLE_SIZE},"
-            f" got {table_size}"
-        )
-    return table_positions(table_size)
-
-
-def _validate_stack_depth(stack_depth_bb: int) -> int:
-    _validate_int(stack_depth_bb, "stack_depth_bb")
-    if stack_depth_bb <= 0:
-        raise ValueError(f"stack_depth_bb must be positive, got {stack_depth_bb}")
-    return stack_depth_bb
-
 
 def _validate_rfc3339_utc(text: str, field: str) -> datetime:
     if not isinstance(text, str):
@@ -89,82 +89,6 @@ def _validate_rfc3339_utc(text: str, field: str) -> datetime:
     if parsed.utcoffset() != timedelta(0):
         raise ValueError(f"{field} must be UTC, got {text!r}")
     return parsed
-
-
-def _validate_subsequence(positions: Sequence[str], order: Sequence[str]) -> None:
-    remaining = list(order)
-    for position in positions:
-        while remaining and remaining[0] != position:
-            remaining.pop(0)
-        if not remaining:
-            raise ValueError(
-                "action_sequence positions must follow preflop action order:"
-                f" {list(positions)} is not ordered like {list(order)}"
-            )
-        remaining.pop(0)
-
-
-def _validate_hero_is_to_act(
-    hero_position: str,
-    entries: Sequence[PreflopAction],
-    order: Sequence[str],
-) -> None:
-    """Reject sequences that leave hero unable to be the player to act.
-
-    Two shapes are legal. Hero has not acted yet, in which case every recorded
-    action must come from a position ahead of hero, and hero cannot be the last
-    position with nothing in front (folded to the big blind ends the hand).
-    Or hero already acted and faces new aggression, in which case at least one
-    later entry must be a raise, since a call behind hero does not give hero
-    another turn.
-    """
-    hero_index = order.index(hero_position)
-    own = [index for index, entry in enumerate(entries) if entry.position == hero_position]
-    if not own:
-        behind = [entry.position for entry in entries if order.index(entry.position) > hero_index]
-        if behind:
-            raise ValueError(
-                f"{hero_position} cannot face action from {behind}, which act later preflop;"
-                f" hero would have had to act first"
-            )
-        if not entries and hero_index == len(order) - 1:
-            raise ValueError(
-                f"{hero_position} acts last preflop, so a folded-to-hero spot has no decision"
-            )
-        return
-    later = entries[own[0] + 1 :]
-    if not later:
-        raise ValueError(
-            f"{hero_position} acted last in the sequence, so it is not the player to act"
-        )
-    if not any(entry.action == "raise" for entry in later):
-        raise ValueError(
-            f"{hero_position} already acted and faces no later raise,"
-            " so the betting round is closed"
-        )
-
-
-@dataclass(frozen=True)
-class PreflopAction:
-    """One recorded preflop action in front of (or by) hero.
-
-    Only calls and raises are recorded, so `action` is restricted to
-    `SEQUENCE_ACTIONS`. A fold is implicit in the position's absence, and a check
-    cannot precede hero's decision preflop.
-    """
-
-    position: str
-    action: str
-
-    def __post_init__(self) -> None:
-        if self.position not in POSITION_LABELS:
-            raise ValueError(f"unknown position: {self.position!r}")
-        if self.action not in SEQUENCE_ACTIONS:
-            raise ValueError(
-                f"action_sequence action must be one of {list(SEQUENCE_ACTIONS)},"
-                f" got {self.action!r} (a fold is implicit in the position's absence,"
-                " and a preflop check ends the round)"
-            )
 
 
 @dataclass(frozen=True)
@@ -190,55 +114,6 @@ class SpotDefinition:
                 raise ValueError(
                     f"action_sequence entries must be PreflopAction, got {entry!r}"
                 )
-
-
-def spot_key(
-    table_size: int,
-    stack_depth_bb: int,
-    hero_position: str,
-    action_sequence: Sequence[PreflopAction],
-) -> str:
-    """Derive the canonical spot key.
-
-    An empty sequence renders as `rfi` (folded to hero); otherwise the sequence
-    renders as comma-separated `POSITION:action` entries in action order. Hero may
-    appear in the sequence, which is how an open-raiser facing a 3bet is keyed.
-
-    The sequence must describe a spot where hero is actually the player to act.
-    A well-formed string is not enough: `t6/d100/CO/BTN:raise` reads fine but
-    cannot happen, because the button acts after the cutoff. Keys that no real
-    preflop situation produces are rejected, so the key space stays canonical
-    rather than merely parseable.
-    """
-    positions = _validate_table_size(table_size)
-    _validate_stack_depth(stack_depth_bb)
-    if hero_position not in positions:
-        raise ValueError(
-            f"hero_position {hero_position!r} is not a {table_size}-handed position;"
-            f" expected one of {list(positions)}"
-        )
-    entries = tuple(action_sequence)
-    for entry in entries:
-        if not isinstance(entry, PreflopAction):
-            raise ValueError(f"action_sequence entries must be PreflopAction, got {entry!r}")
-        if entry.position not in positions:
-            raise ValueError(
-                f"action_sequence position {entry.position!r} is not a"
-                f" {table_size}-handed position"
-            )
-    acted = [entry.position for entry in entries]
-    if len(set(acted)) != len(acted):
-        raise ValueError(
-            "action_sequence covers a position more than once;"
-            f" v1 supports single-orbit spots only: {acted}"
-        )
-    order = preflop_action_order(table_size)
-    _validate_subsequence(acted, order)
-    _validate_hero_is_to_act(hero_position, entries, order)
-    prefix = f"t{table_size}/d{stack_depth_bb}/{hero_position}/"
-    if not entries:
-        return f"{prefix}rfi"
-    return prefix + ",".join(f"{entry.position}:{entry.action}" for entry in entries)
 
 
 @dataclass(frozen=True)
@@ -473,8 +348,7 @@ class PreflopArtifact:
                     "spot_id": spot.spot_id,
                     "hero_position": spot.hero_position,
                     "action_sequence": [
-                        {"position": entry.position, "action": entry.action}
-                        for entry in spot.action_sequence
+                        action_entry_payload(entry) for entry in spot.action_sequence
                     ],
                 }
                 for spot in self.spots

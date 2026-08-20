@@ -38,6 +38,7 @@ from poker_training_bot.data_pipeline.sample import MACHINE_PLAYER, CommittedSam
 from poker_training_bot.hand_history.replay import DecisionPoint, replay_hand
 from poker_training_bot.hand_history.schema import HistoryActionKind, StreetName
 from poker_training_bot.poker_core.positions import seat_positions
+from poker_training_bot.solver_artifacts.lookup import ChartMiss
 from poker_training_bot.strategy.contract import SeatAction, StrategyQuery, StrategyRefusal
 from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 
@@ -110,6 +111,23 @@ class ComparisonRow:
     # on a spot whose weights it could still read. Reported as the lesser measurement
     # it is: judgment call 5 ruled agreement is nonzero weight, not a matching draw.
     sampled_action: str | None
+    # Which raises in front of this decision the lookup moved before asking the chart,
+    # as (sequence index, asked bb, answered bb). Empty where every price was one the
+    # chart holds, and empty where the query never reached a chart at all. This is what
+    # ruling 8 costs in play rather than in theory, one decision at a time.
+    price_substitutions: tuple[tuple[int, float, float], ...] = ()
+    # The key the lookup asked about, carried on every row rather than only on the
+    # refusals, because the substitution census has to classify answered decisions by
+    # the spot they were answered at. None where no lookup happened.
+    asked_spot_key: str | None = None
+    # Raises in the recorded history, hero's own included. One is facing an open, two
+    # is the opener facing a three-bet or a cold caller facing a squeeze, and the split
+    # matters because a price band around an opening size means nothing past the first.
+    raises_faced: int = 0
+    # The most specific reason the chart gave, or None where it answered. Kept apart
+    # from `refusal.code` because a spot the chart declares but has no cell for in
+    # hero's range is a covered spot, and the census counts it as one.
+    miss_code: str | None = None
 
 
 @dataclass(frozen=True)
@@ -322,7 +340,18 @@ def _query_for(point: DecisionPoint, hole_cards: tuple[str, str]) -> StrategyQue
             continue
         if action is point.action:
             break
-        seen.append(SeatAction(action.seat, _KIND_TO_ACTION[action.kind]))
+        # A raise carries its raise-to target, which is what `HistoryAction.amount`
+        # already holds for a raise; every other kind carries nothing. Without it the
+        # chart cannot tell a 2.25bb open from the 2.5bb one it was solved against,
+        # which is the whole of `RAISE-SIZE-IN-SPOT-KEY`.
+        raised = action.kind is HistoryActionKind.RAISE
+        seen.append(
+            SeatAction(
+                action.seat,
+                _KIND_TO_ACTION[action.kind],
+                action.amount if raised else None,
+            )
+        )
     return StrategyQuery(
         hand_id=point.hand.hand_id,
         street="preflop",
@@ -364,6 +393,10 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
                 return
             observed = _KIND_TO_ACTION[point.action.kind]
             outcome = strategy.weights_for(query)
+            found = strategy.chart_lookup(query)
+            asked_spot_key = None if found is None else found.spot_key
+            substitutions = () if found is None else found.price_substitutions
+            miss_code = found.code if isinstance(found, ChartMiss) else None
             player = names[point.seat]
             population = MACHINE_PLAYER if player == MACHINE_PLAYER else HUMAN_POPULATION
             big_blind = point.hand.blinds.big_blind
@@ -388,6 +421,10 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
                         price_faced_bb=price_faced_bb,
                         price_band=price_band,
                         sampled_action=None,
+                        price_substitutions=substitutions,
+                        asked_spot_key=asked_spot_key,
+                        raises_faced=raises_faced,
+                        miss_code=miss_code,
                     )
                 )
                 return
@@ -409,6 +446,10 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
                     price_faced_bb=price_faced_bb,
                     price_band=price_band,
                     sampled_action=None if isinstance(drawn, StrategyRefusal) else drawn.action,
+                    price_substitutions=substitutions,
+                    asked_spot_key=asked_spot_key,
+                    raises_faced=raises_faced,
+                    miss_code=miss_code,
                 )
             )
 

@@ -838,3 +838,72 @@ items:
       first. LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS is the neighbouring item and stays open:
       it is about a red that is not an assertion at all, where no linter has read the file and no
       assertion has run, which this fix does not touch.
+  - id: FROZEN-TESTS-PREDATE-THE-SIZED-SPOT-KEY
+    status: open
+    phase: "12"
+    title: Frozen tests of phases 03 to 09 build v1-shaped actions
+    reason: >-
+      Phase 12 stage 6 left 34 failures and 3 collection errors in frozen tests of earlier
+      phases, and none of them is an implementation defect: they construct
+      PreflopAction("CO", "raise") and SeatAction(seat, "raise") without the size and the
+      amount the widened vocabulary requires, or they assert the v1 key strings, the
+      v1 decision-audit schema version, or that a second-orbit spot has no key. Stage 4
+      authored the phase's own tests and none of the migrations the phase forces on
+      earlier ones, which is the same miss phase 11 made and repaired in its own task.
+      tests/** and verification/freeze.lock are out of the builder's scope by design, so
+      this needs its own task with the builder files out of scope instead.
+  - id: SQUEEZE-REFUSAL-COUNT-INCLUDES-A-SECOND-ORBIT-ROW
+    status: open
+    phase: "12"
+    title: A frozen phase 12 test counts a population the phase deliberately grows
+    reason: >-
+      test_the_squeeze_refusals_are_untouched asserts that 132 corpus refusals face a
+      two-raise sequence and calls the count a guard that the price normaliser finds no
+      nearer spot. Measured, it is 133, and the extra row is
+      t6/d100/BB/SB:call,BB:raise@3,SB:raise@12 - the one limped second-orbit decision the
+      decision record named, which had no key at the branch point and so was invisible to
+      a filter that requires one. The claim the test makes is right and its population is
+      a superset of the one the claim is about; the repair is to exclude repeated-position
+      keys, and it belongs with the frozen-test task rather than in the builder's hands.
+  - id: FACT-DRIFT-CANNOT-EXEMPT-A-HISTORICAL-AUDIT-PACKET
+    status: open
+    phase: "12"
+    title: The quality gate demands a committed packet restate a number the contract forbids editing
+    reason: >-
+      Phase 12 moves two registered facts, corpus_inexpressible_refusals from 19 to 0 and
+      corpus_distinct_refused_spots from 78 to 159. run_full_quality_gate's fact-drift
+      check names reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md and backlog.yml as
+      stating stale values, and the phase 12 contract forbids editing a committed audit
+      packet to correct a number this phase re-measures, because a packet is the record of
+      what a phase found and rewriting it destroys the evidence that a number ever changed.
+      Both rules are right and they cannot both be satisfied as written. The fix is a
+      ruling: either the drift checker learns that a phase audit packet is a historical
+      document, or those facts are retired from the registry once no live document quotes
+      them. scripts/repo_facts.py and scripts/run_full_quality_gate.py are check-script
+      territory that a phase task must not reach.
+  - id: SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE
+    status: open
+    phase: "12"
+    title: The GTOpen source card's headroom moves when any other committed artifact does
+    reason: >-
+      test_the_committed_export_sits_under_the_limit_with_stated_headroom compares the
+      card's headroom_bytes against the 20 MB limit less the total bytes under
+      data/artifacts/**, so re-keying the preflop chart moved it by the 1,918 bytes the
+      sizes added and the card now disagrees with the tree. The number is a property of the
+      directory rather than of the export, so any phase committing any artifact invalidates
+      a card it never touched. Regenerating the card needs scripts/extract_gtopen_preflop.py
+      and data/artifacts/preflop/exports/**, neither in phase 12 scope; the better fix is
+      for the card to state its own size and for the directory total to be the checker's
+      business.
+  - id: DOCS-CARRY-STRAY-WRITE-TOOL-CLOSING-TAGS
+    status: open
+    phase: maintenance
+    title: Seven committed documents end with a stray </content> or </invoke> line
+    reason: >-
+      docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md ends with </content> and </invoke>,
+      and the phase 12 decision record, the active ExecPlan, four phase 12 stage review
+      notes and docs/exec_plans/completed/MAINT_24_STAGE_4_RED_WINDOW.md each end with a
+      stray </content>. They are tool markup a previous session's writes leaked into the
+      files, they render as text, and nothing in the gate looks for them. Filed rather than
+      fixed here because the contract and the decision record are contract-update territory
+      and this task is in implementation mode.

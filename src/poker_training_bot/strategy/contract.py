@@ -5,7 +5,11 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
-DECISION_AUDIT_SCHEMA_VERSION = 1
+# Version 2 carries the raise-to amount on each recorded preflop action and lets a
+# decision carry structured detail. Version 1 bytes and version 2 bytes would otherwise
+# be indistinguishable at an unchanged version number, which is the defect
+# `DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS` already records once.
+DECISION_AUDIT_SCHEMA_VERSION = 2
 
 _STREET_BOARD_SIZES = {
     "preflop": 0,
@@ -36,10 +40,18 @@ class SeatAction:
     Seat-based on purpose. Positions are derived from the button, so recording a
     position here would bake a derivation into the raw decision context and give
     two places to disagree about what `CO` means.
+
+    A raise carries the amount it raised *to*, in chips, which is the unit the hand
+    history and the engine already use; converting to big blinds is the chart layer's
+    job and it needs the blinds to do it. Without this a size-aware spot key cannot be
+    derived at all, because the history is where the price in front of hero lives.
+    Every other action carries nothing: a call pays the level the preceding raise
+    states, and a fold and a check pay nothing.
     """
 
     seat: int
     action: str
+    amount: int | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.seat, int) or isinstance(self.seat, bool) or self.seat < 0:
@@ -49,9 +61,22 @@ class SeatAction:
                 f"unknown history action {self.action!r};"
                 f" expected one of {list(_PREFLOP_HISTORY_ACTIONS)}"
             )
+        if self.action == "raise":
+            if (
+                self.amount is None
+                or isinstance(self.amount, bool)
+                or not isinstance(self.amount, int)
+                or self.amount <= 0
+            ):
+                raise ValueError(
+                    "a recorded raise requires the positive raise-to amount in chips,"
+                    f" got {self.amount!r}"
+                )
+        elif self.amount is not None:
+            raise ValueError(f"a recorded {self.action} must not carry an amount")
 
     def to_payload(self) -> dict[str, Any]:
-        return {"seat": self.seat, "action": self.action}
+        return {"seat": self.seat, "action": self.action, "amount": self.amount}
 
 
 @dataclass(frozen=True)
@@ -72,7 +97,9 @@ class StrategyQuery:
     reading a committed chart has to know whether it faces an open, a three-bet, or
     a limp, and `to_call` plus `stacks` cannot distinguish those: several different
     histories produce identical numbers. Defaults to empty, which means the action
-    folded to hero.
+    folded to hero. Each recorded raise carries the amount it raised to, because a
+    spot key that distinguishes a 2.25bb open from a 2.5bb one cannot be derived from
+    a history that does not hold the price.
     """
 
     hand_id: str
@@ -194,11 +221,47 @@ class StrategyQuery:
         }
 
 
+def _validate_detail(detail: tuple[tuple[str, str], ...], noun: str) -> None:
+    """The shape both outcomes use for structured detail.
+
+    Ordered pairs rather than a mapping, because the record has to serialize to
+    identical bytes on every run and an ordering that is explicit cannot drift.
+    """
+    if not isinstance(detail, tuple):
+        raise ValueError(f"{noun} detail must be a tuple, got {type(detail).__name__}")
+    for entry in detail:
+        if not isinstance(entry, tuple) or len(entry) != 2:
+            raise ValueError(f"{noun} detail entries must be name/value pairs, got {entry!r}")
+        name, value = entry
+        if not isinstance(name, str) or not name:
+            raise ValueError(f"{noun} detail names must be non-empty strings, got {name!r}")
+        if not isinstance(value, str):
+            raise ValueError(f"{noun} detail values must be strings, got {value!r}")
+    names = [name for name, _ in detail]
+    if len(set(names)) != len(names):
+        raise ValueError(f"{noun} detail names must be unique, got {names}")
+
+
 @dataclass(frozen=True)
 class StrategyDecision:
+    """An action a strategy is willing to take, and anything qualifying it.
+
+    `detail` is the same ordered, structured shape `StrategyRefusal` already carries,
+    on the branch that answers rather than the branch that declines. It exists because
+    an answer can be exact or substituted - the chart holds the spot but not at the
+    price that was asked - and a report that cannot tell those apart silently mixes
+    them into every rate it computes. An exact answer carries no detail at all, so the
+    absence is as informative as the presence.
+
+    The alternative was a flag inside the rationale string, which makes every consumer
+    parse a private format to find out whether a number is exact; the Phase 03 contract
+    already had to fix that once.
+    """
+
     action: str
     amount: int | None
     code: str
+    detail: tuple[tuple[str, str], ...] = ()
 
     def __post_init__(self) -> None:
         if self.action not in _ACTION_NAMES:
@@ -210,6 +273,14 @@ class StrategyDecision:
                 raise ValueError(f"{self.action} requires a positive amount")
         elif self.amount is not None:
             raise ValueError(f"{self.action} must not include an amount")
+        _validate_detail(self.detail, "decision")
+
+    def named(self, name: str) -> str | None:
+        """One detail value by name, or None."""
+        for entry_name, value in self.detail:
+            if entry_name == name:
+                return value
+        return None
 
 
 @dataclass(frozen=True)
@@ -237,19 +308,7 @@ class StrategyRefusal:
     def __post_init__(self) -> None:
         if not self.code:
             raise ValueError("refusal code is required")
-        if not isinstance(self.detail, tuple):
-            raise ValueError(f"refusal detail must be a tuple, got {type(self.detail).__name__}")
-        for entry in self.detail:
-            if not isinstance(entry, tuple) or len(entry) != 2:
-                raise ValueError(f"refusal detail entries must be name/value pairs, got {entry!r}")
-            name, value = entry
-            if not isinstance(name, str) or not name:
-                raise ValueError(f"refusal detail names must be non-empty strings, got {name!r}")
-            if not isinstance(value, str):
-                raise ValueError(f"refusal detail values must be strings, got {value!r}")
-        names = [name for name, _ in self.detail]
-        if len(set(names)) != len(names):
-            raise ValueError(f"refusal detail names must be unique, got {names}")
+        _validate_detail(self.detail, "refusal")
 
     def named(self, name: str) -> str | None:
         """One detail value by name, or None.
@@ -273,12 +332,18 @@ class StrategyProtocol(Protocol):
 
 def _outcome_payload(outcome: StrategyDecision | StrategyRefusal) -> dict[str, Any]:
     if isinstance(outcome, StrategyDecision):
-        return {
+        decision: dict[str, Any] = {
             "kind": "decision",
             "action": outcome.action,
             "amount": outcome.amount,
             "code": outcome.code,
         }
+        if outcome.detail:
+            # Only when there is something to say, so an exact answer and a substituted
+            # one differ in the bytes rather than in a field that is always present and
+            # usually empty.
+            decision["detail"] = [list(entry) for entry in outcome.detail]
+        return decision
     if isinstance(outcome, StrategyRefusal):
         payload: dict[str, Any] = {"kind": "refusal", "code": outcome.code}
         if outcome.detail:

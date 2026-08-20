@@ -125,9 +125,15 @@ Forbidden throughout:
       narrowing, because check_scope measures against `base_commit`. `scripts/run_verify.py`
       left too, since both command IDs are registered and a builder editing the registry is a
       builder editing its own gate. Evidence: stage 5 check green.
-- [ ] **S6 - Build.** Schema and lookup, the substituted-price flag on the answer, the four
-      history producers, the converter, the re-derived artifact and sizing table, and the
-      report generator. Evidence: stage 6 check green.
+- [~] **S6 - Build.** Written and measuring: the sized key with its second-orbit order rule,
+      the price normaliser derived from the loaded keys, the substitution flag on the answer,
+      the four history producers, the converter, the re-derived artifact and sizing table, and
+      the report. 67 of 68 phase tests pass. Four modules crossed the 500-line cap and were
+      split on the MAINT-09 precedent. The re-keying is proved rather than promised: stripping
+      the sizes back out of the committed keys reproduces the pre-phase weights checksum
+      exactly, so the file's own changed checksum is accounted for entirely by the spot ids
+      inside it. Held by four blockers in the stage-6 review, none of them an implementation
+      defect and none of them fixable from this task's scope. Evidence: stage 6 check red.
 - [ ] **S7 - Gate and bite.** Full `run_verify.py` plus `check_gate_bite`, including both new
       canaries. Evidence: stage 7 check green.
 - [ ] **S8 - Review.** Two passes, mechanical and domain, written separately. The domain pass

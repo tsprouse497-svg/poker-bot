@@ -18,6 +18,7 @@ a spot that imports reachable from a real hand.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal
 from hashlib import sha256
 from pathlib import Path
 
@@ -25,10 +26,11 @@ from poker_training_bot.poker_core.positions import position_for_seat
 from poker_training_bot.solver_artifacts.hand_classes import hand_class
 from poker_training_bot.solver_artifacts.lookup import (
     ChartHit,
+    ChartMiss,
     ChartQuery,
     PreflopChartLibrary,
 )
-from poker_training_bot.solver_artifacts.schema import PreflopAction
+from poker_training_bot.solver_artifacts.schema import SIZE_QUANTUM, PreflopAction
 from poker_training_bot.strategy.contract import (
     StrategyDecision,
     StrategyQuery,
@@ -48,11 +50,29 @@ REFUSE_UNEVEN_TABLE = f"{CODE_PREFIX}:table-is-not-one-flat-stack-depth"
 REFUSE_ILLEGAL = f"{CODE_PREFIX}:charted-action-not-legal-here"
 REFUSE_NO_SIZING = f"{CODE_PREFIX}:no-committed-raise-size"
 REFUSE_SIZE_BELOW_MINIMUM = f"{CODE_PREFIX}:committed-size-below-minimum-raise"
+REFUSE_UNREPRESENTABLE_PRICE = f"{CODE_PREFIX}:raise-price-not-a-whole-hundredth-of-a-big-blind"
 
 # Only voluntary actions describe a spot. A fold adds no information beyond the
 # folder's absence, and preflop the big blind's check ends the round rather than
 # posing a spot, so both drop out on the way to a chart key.
 _SPOT_ACTIONS = frozenset({"call", "raise"})
+
+
+def _size_bb(amount: int | None, big_blind: int) -> float | None:
+    """A raise-to in chips as a raise-to in big blinds, or None if it is not exact.
+
+    Exact arithmetic rather than float division, so the answer depends on the numbers
+    and not on how a binary fraction happened to land. At the 50/100 blinds of every
+    committed sample and every simulator profile this is always exact; a game whose
+    blind level makes it inexact refuses, which is the fail-closed direction.
+    """
+    if amount is None or big_blind <= 0:
+        return None
+    value = Decimal(amount) / Decimal(big_blind)
+    quantized = value.quantize(SIZE_QUANTUM)
+    if quantized != value:
+        return None
+    return float(quantized)
 
 
 def _roll(seed: str) -> float:
@@ -180,21 +200,41 @@ class PreflopChartStrategy:
             return None, REFUSE_UNEVEN_TABLE
         return hero_start // big_blind, None
 
-    def _action_sequence(self, query: StrategyQuery) -> tuple[PreflopAction, ...]:
-        seats = tuple(seat for seat, _ in query.stacks)
-        return tuple(
-            PreflopAction(position_for_seat(seats, query.button_seat, entry.seat), entry.action)
-            for entry in query.preflop_actions
-            if entry.action in _SPOT_ACTIONS
-        )
+    def _action_sequence(self, query: StrategyQuery) -> tuple[PreflopAction, ...] | None:
+        """The sized action sequence in front of hero, or None if a price will not fit.
 
-    def _chart_query(self, query: StrategyQuery, depth_bb: int) -> ChartQuery:
+        A raise-to in chips becomes a raise-to in big blinds, which is the unit the key
+        is written in because chips do not survive a change of blind level. The
+        division is exact or it is refused: rounding a price into the neighbouring
+        hundredth would put a decision in a cell it was not asked about, and it is the
+        same reason `render_size_bb` rejects rather than rounds.
+        """
+        seats = tuple(seat for seat, _ in query.stacks)
+        _, big_blind = query.blinds
+        entries: list[PreflopAction] = []
+        for entry in query.preflop_actions:
+            if entry.action not in _SPOT_ACTIONS:
+                continue
+            position = position_for_seat(seats, query.button_seat, entry.seat)
+            if entry.action != "raise":
+                entries.append(PreflopAction(position, entry.action))
+                continue
+            size_bb = _size_bb(entry.amount, big_blind)
+            if size_bb is None:
+                return None
+            entries.append(PreflopAction(position, "raise", size_bb))
+        return tuple(entries)
+
+    def _chart_query(self, query: StrategyQuery, depth_bb: int) -> ChartQuery | None:
+        sequence = self._action_sequence(query)
+        if sequence is None:
+            return None
         seats = tuple(seat for seat, _ in query.stacks)
         return ChartQuery(
             table_size=len(query.stacks),
             stack_depth_bb=depth_bb,
             hero_position=position_for_seat(seats, query.button_seat, query.seat),
-            action_sequence=self._action_sequence(query),
+            action_sequence=sequence,
             hand_class=hand_class(query.hole_cards),
         )
 
@@ -218,28 +258,28 @@ class PreflopChartStrategy:
         return amount, None
 
     @staticmethod
-    def _miss_detail(chart_query: ChartQuery) -> tuple[tuple[str, str], ...]:
+    def _miss_detail(chart_query: ChartQuery, found: ChartMiss) -> tuple[tuple[str, str], ...]:
         """What the chart was asked for, so a refusal names a cell somebody can fill.
 
-        The spot key comes from `ChartQuery.spot_key`, which is the derivation Phase 04
-        already shares between the importer and the lookup. Deriving it a second time here
-        would give the repo two answers to "what spot is this" that could drift, and the
-        drift would be invisible: the refusal would name a spot the lookup never asked
+        The spot key is the one the lookup itself used, carried out on the miss rather
+        than re-derived here. Re-deriving would give the repo two answers to "what spot
+        is this" that could drift, and the drift would be invisible in the worst
+        direction: since phase 12 the lookup asks about a normalised price, so a refusal
+        re-deriving the key would send somebody to fill a cell the lookup never asked
         about.
 
-        `spot_key` is None when the position and action sequence do not describe a spot the
-        vocabulary can express at all - a different miss from a spot that is expressible
-        and uncovered - so it is reported only when it exists, and its absence is itself the
-        information.
+        The key is absent when the position and action sequence do not describe a spot
+        the vocabulary can express at all - a different miss from a spot that is
+        expressible and uncovered - so it is reported only when it exists, and its
+        absence is itself the information.
         """
         detail: list[tuple[str, str]] = [
             ("table_size", str(chart_query.table_size)),
             ("stack_depth_bb", str(chart_query.stack_depth_bb)),
             ("hand_class", chart_query.hand_class),
         ]
-        spot_key = chart_query.spot_key
-        if spot_key is not None:
-            detail.insert(0, ("spot_key", spot_key))
+        if found.spot_key is not None:
+            detail.insert(0, ("spot_key", found.spot_key))
         return tuple(detail)
 
     # -- entry points ------------------------------------------------------ #
@@ -254,9 +294,13 @@ class PreflopChartStrategy:
             return StrategyRefusal(depth_refusal or REFUSE_RAGGED_DEPTH)
 
         chart_query = self._chart_query(query, depth_bb)
+        if chart_query is None:
+            return StrategyRefusal(REFUSE_UNREPRESENTABLE_PRICE)
         found = self.library.lookup(chart_query)
         if not isinstance(found, ChartHit):
-            return StrategyRefusal(f"{CODE_PREFIX}:{found.code}", self._miss_detail(chart_query))
+            return StrategyRefusal(
+                f"{CODE_PREFIX}:{found.code}", self._miss_detail(chart_query, found)
+            )
 
         seed = self._seed(query, found.spot_key, found.hand_class)
         action = self.collapse(found.action_weights, seed)
@@ -264,13 +308,22 @@ class PreflopChartStrategy:
             return StrategyRefusal(f"{CODE_PREFIX}:no-positive-weight")
         if action not in query.legal_actions:
             return StrategyRefusal(REFUSE_ILLEGAL)
+        # Every answer produced through a substituted price says so on the answer, so a
+        # substituted decision and an exact one stay distinguishable downstream. An
+        # exact answer carries nothing, which is what makes the field's absence a fact
+        # rather than a default.
+        detail = found.substitution_detail()
         if action != "raise":
-            return StrategyDecision(action, None, self._rationale(action, found.action_weights))
+            return StrategyDecision(
+                action, None, self._rationale(action, found.action_weights), detail
+            )
 
         amount, refusal_code = self._raise_amount(query, found.spot_key)
         if amount is None:
             return StrategyRefusal(refusal_code or REFUSE_NO_SIZING)
-        return StrategyDecision("raise", amount, self._rationale("raise", found.action_weights))
+        return StrategyDecision(
+            "raise", amount, self._rationale("raise", found.action_weights), detail
+        )
 
     def weights_for(
         self, query: StrategyQuery
@@ -297,10 +350,41 @@ class PreflopChartStrategy:
         if depth_bb is None:
             return StrategyRefusal(depth_refusal or REFUSE_RAGGED_DEPTH)
         chart_query = self._chart_query(query, depth_bb)
+        if chart_query is None:
+            return StrategyRefusal(REFUSE_UNREPRESENTABLE_PRICE)
         found = self.library.lookup(chart_query)
         if not isinstance(found, ChartHit):
-            return StrategyRefusal(f"{CODE_PREFIX}:{found.code}", self._miss_detail(chart_query))
+            return StrategyRefusal(
+                f"{CODE_PREFIX}:{found.code}", self._miss_detail(chart_query, found)
+            )
         return found.action_weights
+
+    def chart_lookup(self, query: StrategyQuery) -> ChartHit | ChartMiss | None:
+        """The raw lookup outcome for a query, or None if it never reached the chart.
+
+        Read-only and additive, and it exists for the same reason `weights_for` does.
+        The substitution census asks what the *lookup* did - which key it asked about
+        and which prices it moved to get there - and that is a different question from
+        what `decide` drew out of the answer. The alternative is parsing the numbers
+        back out of a decision's detail strings, which couples a caller to a format,
+        or rebuilding the chart query somewhere else, which gives the repo two
+        derivations of "what spot is this" that can drift apart invisibly.
+
+        None means the query was refused before a chart was consulted at all: not
+        preflop, a pot the format cannot describe, a depth that is not whole. Those
+        have no key and no substitutions because no lookup happened.
+        """
+        if query.street != "preflop":
+            return None
+        if not self._blind_structure_is_representable(query):
+            return None
+        depth_bb, _ = self._table_depth_bb(query)
+        if depth_bb is None:
+            return None
+        chart_query = self._chart_query(query, depth_bb)
+        if chart_query is None:
+            return None
+        return self.library.lookup(chart_query)
 
     def decide_spot(
         self, spot_key_text: str, hand_class_text: str, seed_suffix: str = ""

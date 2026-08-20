@@ -225,7 +225,9 @@ def _play(
             added = turn.round.player(seat).street_bet - before
             actions.append(history_action(outcome, seat, added))
             if street is StreetName.PREFLOP and outcome.action in _HISTORY_ACTIONS:
-                history.append(SeatAction(seat, outcome.action))
+                # `outcome.amount` is the raise-to target for a raise and None for
+                # every other action, which is exactly what a recorded action carries.
+                history.append(SeatAction(seat, outcome.action, outcome.amount))
 
         streets.append(HistoryStreet(name=street, board=street_board, actions=tuple(actions)))
         committed, folded, all_in = snapshot(turn.round)

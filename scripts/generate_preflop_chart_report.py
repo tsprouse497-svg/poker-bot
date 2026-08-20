@@ -41,7 +41,11 @@ PROBES = [
     ),
     (
         "covered: big blind defending a cutoff open with ace-king suited",
-        ChartQuery(6, 100, "BB", (PreflopAction("CO", "raise"),), "AKs"),
+        ChartQuery(6, 100, "BB", (PreflopAction("CO", "raise", 2.5),), "AKs"),
+    ),
+    (
+        "covered by price substitution: the same open at 2.25bb",
+        ChartQuery(6, 100, "BB", (PreflopAction("CO", "raise", 2.25),), "AKs"),
     ),
     (
         "uncovered table size",
@@ -56,22 +60,36 @@ PROBES = [
         ChartQuery(6, 100, "UTG", (), "AA"),
     ),
     (
-        "uncovered spot: cutoff facing a lojack open",
-        ChartQuery(6, 100, "CO", (PreflopAction("LJ", "raise"),), "AA"),
+        "covered: cutoff facing a lojack open",
+        ChartQuery(6, 100, "CO", (PreflopAction("LJ", "raise", 2.5),), "AA"),
     ),
     (
-        "spot v1 cannot represent: big blind facing a four-bet",
+        "uncovered spot: the button squeezing an open and a three-bet",
+        ChartQuery(
+            6,
+            100,
+            "BTN",
+            (PreflopAction("HJ", "raise", 2.5), PreflopAction("CO", "raise", 8.0)),
+            "AA",
+        ),
+    ),
+    (
+        "expressible since phase 12, and uncovered: big blind facing a four-bet",
         ChartQuery(
             6,
             100,
             "BB",
             (
-                PreflopAction("CO", "raise"),
-                PreflopAction("BB", "raise"),
-                PreflopAction("CO", "raise"),
+                PreflopAction("CO", "raise", 2.5),
+                PreflopAction("BB", "raise", 13.5),
+                PreflopAction("CO", "raise", 21.5),
             ),
             "AA",
         ),
+    ),
+    (
+        "no legal preflop order produces it: the button raising before the cutoff",
+        ChartQuery(6, 100, "CO", (PreflopAction("BTN", "raise", 2.5),), "AA"),
     ),
 ]
 

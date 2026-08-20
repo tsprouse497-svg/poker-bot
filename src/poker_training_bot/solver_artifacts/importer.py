@@ -34,14 +34,25 @@ from poker_training_bot.solver_artifacts.schema import (
     spot_key,
     weights_checksum,
 )
+from poker_training_bot.solver_artifacts.strict_json import (
+    INVALID_VALUE,
+    MISSING_FIELD,
+    NOT_AN_OBJECT,
+    UNKNOWN_FIELD,
+    ArtifactImportError,
+    _fail,
+    _object_pairs_hook,
+    _require_int,
+    _require_keys,
+    _require_list,
+    _require_object,
+    _require_str,
+    _require_unique_keys,
+)
 
 UNREADABLE_FILE = "artifact:unreadable-file"
 INVALID_JSON = "artifact:invalid-json"
-NOT_AN_OBJECT = "artifact:not-an-object"
-MISSING_FIELD = "artifact:missing-field"
-UNKNOWN_FIELD = "artifact:unknown-field"
 UNSUPPORTED_SCHEMA_VERSION = "artifact:unsupported-schema-version"
-INVALID_VALUE = "artifact:invalid-value"
 INVALID_POSITION_VOCABULARY = "artifact:invalid-position-vocabulary"
 SPOT_KEY_MISMATCH = "artifact:spot-key-mismatch"
 DUPLICATE_SPOT = "artifact:duplicate-spot"
@@ -91,78 +102,12 @@ _ARTIFACT_KEYS = {
 _SOURCE_KEYS = {"name", "kind", "reference"}
 _SPOT_KEYS = {"spot_id", "hero_position", "action_sequence"}
 _ACTION_KEYS = {"position", "action"}
+# `size_bb` is present exactly where the entry is a raise, so it is optional at the
+# key-set level and required by `PreflopAction` itself. A raise entry without one is a
+# v1 record, and it is rejected rather than read as matching any price: a format that
+# admits both is a format where a lookup can silently hit the wrong cell.
+_ACTION_OPTIONAL_KEYS = {"size_bb"}
 _AUDIT_KEYS = {"weights_sha256", "spot_count", "hand_class_count", "notes"}
-
-
-class ArtifactImportError(ValueError):
-    """A fail-closed artifact rejection carrying a namespaced reason code."""
-
-    def __init__(self, code: str, message: str) -> None:
-        super().__init__(f"{code}: {message}")
-        self.code = code
-        self.message = message
-
-
-class _JsonObject(dict):
-    """JSON object that remembers duplicate keys the parser collapsed."""
-
-    duplicate_keys: tuple[str, ...] = ()
-
-
-def _object_pairs_hook(pairs: list[tuple[str, Any]]) -> _JsonObject:
-    obj = _JsonObject(pairs)
-    if len(obj) != len(pairs):
-        names = [name for name, _ in pairs]
-        obj.duplicate_keys = tuple(sorted({name for name in names if names.count(name) > 1}))
-    return obj
-
-
-def _fail(code: str, origin: str, message: str) -> ArtifactImportError:
-    return ArtifactImportError(code, f"{origin}: {message}")
-
-
-def _require_object(raw: Any, origin: str, path: str) -> dict[str, Any]:
-    if not isinstance(raw, dict):
-        raise _fail(
-            NOT_AN_OBJECT, origin, f"{path} must be a JSON object, got {type(raw).__name__}"
-        )
-    return raw
-
-
-def _require_unique_keys(payload: dict[str, Any], origin: str, path: str, code: str) -> None:
-    duplicates = getattr(payload, "duplicate_keys", ())
-    if duplicates:
-        raise _fail(code, origin, f"{path} repeats keys: {list(duplicates)}")
-
-
-def _require_keys(payload: dict[str, Any], origin: str, path: str, required: set[str]) -> None:
-    missing = sorted(required - set(payload))
-    if missing:
-        raise _fail(MISSING_FIELD, origin, f"{path} is missing required keys: {missing}")
-    unknown = sorted(set(payload) - required)
-    if unknown:
-        raise _fail(UNKNOWN_FIELD, origin, f"{path} has unknown keys: {unknown}")
-
-
-def _require_str(payload: dict[str, Any], origin: str, path: str, key: str) -> str:
-    value = payload.get(key)
-    if not isinstance(value, str):
-        raise _fail(INVALID_VALUE, origin, f"{path}.{key} must be a string, got {value!r}")
-    return value
-
-
-def _require_int(payload: dict[str, Any], origin: str, path: str, key: str) -> int:
-    value = payload.get(key)
-    if not isinstance(value, int) or isinstance(value, bool):
-        raise _fail(INVALID_VALUE, origin, f"{path}.{key} must be an integer, got {value!r}")
-    return value
-
-
-def _require_list(payload: dict[str, Any], origin: str, path: str, key: str) -> list[Any]:
-    value = payload.get(key)
-    if not isinstance(value, list):
-        raise _fail(INVALID_VALUE, origin, f"{path}.{key} must be a list, got {value!r}")
-    return value
 
 
 def _parse_source(payload: dict[str, Any], origin: str) -> ArtifactSource:
@@ -206,7 +151,7 @@ def _parse_action_entry(
 ) -> PreflopAction:
     entry = _require_object(raw, origin, path)
     _require_unique_keys(entry, origin, path, INVALID_VALUE)
-    _require_keys(entry, origin, path, _ACTION_KEYS)
+    _require_keys(entry, origin, path, _ACTION_KEYS, _ACTION_OPTIONAL_KEYS)
     position = _require_str(entry, origin, path, "position")
     action = _require_str(entry, origin, path, "action")
     if position not in vocabulary:
@@ -222,7 +167,17 @@ def _parse_action_entry(
             origin,
             f"{path}.action must be one of {list(SEQUENCE_ACTIONS)}, got {action!r}{detail}",
         )
-    return PreflopAction(position=position, action=action)
+    size_bb = entry.get("size_bb")
+    if size_bb is not None and (
+        isinstance(size_bb, bool) or not isinstance(size_bb, int | float)
+    ):
+        raise _fail(
+            INVALID_VALUE, origin, f"{path}.size_bb must be a number, got {size_bb!r}"
+        )
+    try:
+        return PreflopAction(position=position, action=action, size_bb=size_bb)
+    except ValueError as error:
+        raise _fail(INVALID_VALUE, origin, f"{path}: {error}") from error
 
 
 def _parse_spots(

@@ -8,6 +8,23 @@ spot stays uncovered and says so.
 The lookup never spells a spot key by hand. It rebuilds the key with
 `schema.spot_key`, the same function the importer stamps artifacts with, so a
 spot that imports is reachable from a query built out of real game state.
+
+There is exactly one abstraction in here, and it exists because a human ruled it.
+Ruling 8 of `docs/V2_ROADMAP.md` says the solved tree carries one opening price and
+every other price is answered from it; Taylor extended it on 2026-08-20 to every
+raise in the sequence, because three-bets arrive at sizes the tree does not hold
+either and exact matching there would refuse 72 of the 79 three-bet decisions the
+committed chart can answer at all. So an observed price is normalised to the nearest
+price the loaded artifacts actually declare for that position after the same
+already-normalised prefix, and the answer carries the substitution so nothing
+downstream can mistake it for an exact one.
+
+Normalising a price is not finding a nearest spot, and the difference is the whole
+boundary. The candidate prices come from the keys the artifacts declare, never from a
+constant, so committing a second chart makes a second price answerable with no edit
+here. Everything else - a nearer position, a nearer depth, a nearer hand class, a
+nearer action sequence - stays forbidden: a squeeze is expressible and uncovered, and
+it refuses at every price.
 """
 
 from __future__ import annotations
@@ -24,10 +41,16 @@ from poker_training_bot.solver_artifacts.hand_classes import (
     is_hand_class,
 )
 from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
+from poker_training_bot.solver_artifacts.price_normalisation import (
+    PriceSubstitutions,
+    SolvedPriceIndex,
+)
 from poker_training_bot.solver_artifacts.schema import (
     ActionWeights,
     PreflopAction,
     PreflopArtifact,
+    render_entry,
+    render_size_bb,
 )
 from poker_training_bot.solver_artifacts.schema import spot_key as derive_spot_key
 
@@ -125,11 +148,13 @@ class ChartQuery:
 
     @property
     def spot_key(self) -> str | None:
-        """The derived spot key, or None when this spot has no representation.
+        """The derived spot key at the query's own prices, or None if there is none.
 
-        None is not an error. A second-orbit sequence is a real thing a player
-        can face and v1 has no key for it, so the lookup misses rather than
-        guesses.
+        None is not an error. It means no legal preflop situation produces this
+        sequence at all - a seat acting out of turn, a re-raise that is not an
+        increase, a raise nobody at the stated depth can pay - and the lookup misses
+        rather than guesses. A position acting more than once is no longer one of
+        those cases, which is what closed `SECOND-ORBIT-PREFLOP-SPOTS`.
         """
         try:
             return derive_spot_key(
@@ -151,6 +176,10 @@ class ChartHit:
     spot_key: str
     hand_class: str
     action_weights: ActionWeights
+    # Empty when every price in the query was one the chart holds. Non-empty is the
+    # only thing that keeps a substituted answer and an exact one distinguishable
+    # downstream, and it is what the phase 12 substitution census is computed from.
+    price_substitutions: PriceSubstitutions = ()
 
     def __post_init__(self) -> None:
         if not self.artifact_id:
@@ -161,6 +190,20 @@ class ChartHit:
             raise ValueError("hand_class is required")
         if not self.action_weights:
             raise ValueError("a hit must carry at least one action weight")
+
+    def substitution_detail(self) -> tuple[tuple[str, str], ...]:
+        """The substitutions as ordered name/value pairs, for a decision's detail.
+
+        `price_substitution_2 = 6.25->8` reads as "the raise at sequence index 2 was
+        asked at 6.25 big blinds and answered from the 8 cell".
+        """
+        return tuple(
+            (
+                f"price_substitution_{index}",
+                f"{render_size_bb(asked)}->{render_size_bb(answered)}",
+            )
+            for index, asked, answered in self.price_substitutions
+        )
 
     @property
     def best_action(self) -> str | None:
@@ -181,6 +224,12 @@ class ChartMiss:
 
     code: str
     detail: str
+    # The key the lookup actually asked about, once it had one. A refusal that names a
+    # key names a cell somebody can fill; a refusal that names the key the lookup did
+    # *not* use would send them to fill the wrong one, which is why this is carried out
+    # of the lookup rather than re-derived by the caller.
+    spot_key: str | None = None
+    price_substitutions: PriceSubstitutions = ()
 
     def __post_init__(self) -> None:
         if not self.code:
@@ -222,6 +271,7 @@ class PreflopChartLibrary:
             )
         owner_by_spot: dict[str, PreflopArtifact] = {}
         depths_by_table: dict[int, set[int]] = {}
+        solved_prices = SolvedPriceIndex()
         for artifact in ordered:
             depths_by_table.setdefault(artifact.table_size, set()).add(artifact.stack_depth_bb)
             for spot in artifact.spots:
@@ -233,11 +283,13 @@ class PreflopChartLibrary:
                         f" both declare spot {spot.spot_id!r}",
                     )
                 owner_by_spot[spot.spot_id] = artifact
+                solved_prices.add(artifact, spot)
         self._artifacts = ordered
         self._owner_by_spot = owner_by_spot
         self._depths_by_table = {
             table_size: frozenset(depths) for table_size, depths in depths_by_table.items()
         }
+        self._solved_prices = solved_prices
 
     @classmethod
     def from_artifacts(cls, artifacts: Sequence[PreflopArtifact]) -> PreflopChartLibrary:
@@ -304,6 +356,55 @@ class PreflopChartLibrary:
                         chosen += weight * combos
         return 0.0 if total == 0.0 else 100.0 * chosen / total
 
+    def solved_prices_bb(
+        self,
+        table_size: int,
+        stack_depth_bb: int,
+        hero_position: str,
+        prefix: Sequence[PreflopAction],
+        position: str,
+    ) -> tuple[float, ...]:
+        """Every raise price the loaded artifacts declare at one point in the tree.
+
+        Read-only, and it is the whole of "where the set of solved prices comes from".
+        Committing a chart that opens to a second size makes that size answerable with
+        no edit to the normaliser.
+        """
+        return self._solved_prices.prices_at(
+            table_size, stack_depth_bb, hero_position, prefix, position
+        )
+
+    def _substituted_key(
+        self, query: ChartQuery, asked_key: str
+    ) -> tuple[str, PriceSubstitutions]:
+        """The key the lookup asks the artifacts about, and what moving cost.
+
+        A normalised sequence can fail to be a legal spot even though the sequence as
+        asked was one - move an open down to the solved price and a small three-bet
+        behind it may stop being an increase. That is not a spot to guess at, so the
+        query is answered at its own prices instead and misses honestly.
+        """
+        sequence, substitutions = self._solved_prices.normalise(
+            query.table_size,
+            query.stack_depth_bb,
+            query.hero_position,
+            query.action_sequence,
+        )
+        if not substitutions:
+            return asked_key, ()
+        try:
+            return (
+                derive_spot_key(
+                    query.table_size,
+                    query.stack_depth_bb,
+                    query.hero_position,
+                    sequence,
+                ),
+                substitutions,
+            )
+        except ValueError:
+            return asked_key, ()
+
     def lookup(self, query: ChartQuery) -> ChartHit | ChartMiss:
         """Answer `query` with the artifact's weights or an explicit miss.
 
@@ -341,18 +442,22 @@ class PreflopChartLibrary:
                 f"the action sequence names {absent}, which are not"
                 f" {query.table_size}-handed positions; the table is {list(positions)}",
             )
-        spot_key_text = query.spot_key
-        if spot_key_text is None:
-            rendered = [f"{entry.position}:{entry.action}" for entry in query.action_sequence]
+        asked_key = query.spot_key
+        if asked_key is None:
+            rendered = [render_entry(entry) for entry in query.action_sequence]
             return ChartMiss(
                 MISS_UNREPRESENTABLE_SPOT,
-                f"{query.hero_position} facing {rendered} has no v1 spot key;"
-                " v1 represents first-orbit spots only",
+                f"{query.hero_position} facing {rendered} has no spot key;"
+                " no legal preflop order produces it",
             )
+        spot_key_text, substitutions = self._substituted_key(query, asked_key)
         artifact = self._owner_by_spot.get(spot_key_text)
         if artifact is None:
             return ChartMiss(
-                MISS_SPOT_NOT_COVERED, f"no artifact declares spot {spot_key_text!r}"
+                MISS_SPOT_NOT_COVERED,
+                f"no artifact declares spot {spot_key_text!r}",
+                spot_key=spot_key_text,
+                price_substitutions=substitutions,
             )
         weights = artifact.weights_for(spot_key_text, query.hand_class)
         if weights is None:
@@ -360,12 +465,15 @@ class PreflopChartLibrary:
                 MISS_HAND_CLASS_NOT_COVERED,
                 f"spot {spot_key_text!r} in artifact {artifact.artifact_id!r} declares no"
                 f" weights for {query.hand_class}",
+                spot_key=spot_key_text,
+                price_substitutions=substitutions,
             )
         return ChartHit(
             artifact_id=artifact.artifact_id,
             spot_key=spot_key_text,
             hand_class=query.hand_class,
             action_weights=weights,
+            price_substitutions=tuple(substitutions),
         )
 
     def lookup_hole_cards(

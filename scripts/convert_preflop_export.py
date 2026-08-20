@@ -9,15 +9,24 @@ Three transformations happen here, and each one loses information on purpose.
 Position names are renamed into this repo's vocabulary. The source calls the first
 seat to act at six-handed `UTG`; `poker_core.positions` calls it `LJ`.
 
-Raise sizings collapse. A spot key carries no size, so an all-in offer and a named
-raise are both `raise` and their weights add. The sizes themselves are not thrown
-away: they are written to the sizing table, which is where the strategy reads them.
+Hero's own raise offers collapse. At the spot hero is deciding, an all-in offer and a
+named raise are both `raise` and their weights add, because the artifact holds what
+hero does rather than at what price. The sizes themselves are not thrown away: they
+are written to the sizing table, which is where the strategy reads them. The raises
+*in front of* hero are a different thing entirely and they do carry their price, in
+the spot key, which is what phase 12 added.
 
 For a spot where hero has already acted, the source normalizes strategy within
 hero's own range. Hands hero would never have opened carry a normalized strategy
 for a holding hero cannot have, so they are dropped rather than committed: an
 uncovered class is an explicit lookup miss, which is honest, where a fabricated
 strategy is not.
+
+Every size that enters a key comes from the source's own action label at the spot the
+raise was made at, never from a constant here. Facing an `LJ` open is 2.5 because
+`RFI_UTG` offers `Raise 2.5`; facing a three-bet from the button carries the button's
+own label at `BTN_vs_UTG_open`. So a re-solve at different sizings re-keys the
+artifact by itself.
 """
 
 from __future__ import annotations
@@ -40,6 +49,7 @@ from poker_training_bot.solver_artifacts.schema import (  # noqa: E402
     ARTIFACT_SCHEMA_VERSION,
     PREFLOP_ACTIONS,
     PreflopAction,
+    action_entry_payload,
     spot_key,
 )
 
@@ -51,7 +61,12 @@ EXPECTATIONS = PREFLOP_DIR / "expectations" / "six_max_nl25_100bb.json"
 
 TABLE_SIZE = 6
 DEPTH_BB = 100
-GENERATED_AT = "2026-08-11T00:00:00Z"
+# The date this file was re-derived, not the date the ranges were extracted. Re-keying
+# writes a new file, and a file claiming to predate the vocabulary it is written in
+# would be false about itself - and would tie with its own predecessor in
+# `lookup._artifact_sort_key`, which breaks ties on exactly this field.
+GENERATED_AT = "2026-08-20T00:00:00Z"
+RANGES_EXTRACTED_AT = "2026-08-11"
 RANGE_EPSILON = 0.0005
 
 # The source's six-handed labels against this repo's vocabulary. Only the first
@@ -62,11 +77,15 @@ POSITION_MAP = {"UTG": "LJ", "HJ": "HJ", "CO": "CO", "BTN": "BTN", "SB": "SB", "
 SOURCE_NAME = "GTO Wizard 6-max 100bb NL25 rake"
 SOURCE_NOTES = (
     "Solver export from GTO Wizard solution Cash6mGeneral_6mNL25R25, six-max cash,"
-    " 100bb effective, NL25 rake, cold calls allowed. Raise sizings collapse into the"
-    " single raise action because a spot key carries no size; the sizes are committed"
-    " separately in sizings/six_max_nl25_100bb.json. Spots where hero has already"
-    " acted cover only hands inside hero's own opening range, so a hand hero could not"
-    " hold is an explicit lookup miss rather than a fabricated strategy."
+    " 100bb effective, NL25 rake, cold calls allowed. The ranges are the"
+    f" {RANGES_EXTRACTED_AT} extraction re-keyed at the phase 12 spot vocabulary, not a"
+    " new solve: every spot key now carries the raise-to size in big blinds of each"
+    " raise in front of hero, and the per-hand per-action weights are unchanged."
+    " Hero's own raise offers still collapse into the single raise action, and hero's"
+    " own size is committed separately in sizings/six_max_nl25_100bb.json. Spots where"
+    " hero has already acted cover only hands inside hero's own opening range, so a"
+    " hand hero could not hold is an explicit lookup miss rather than a fabricated"
+    " strategy."
 )
 
 
@@ -101,19 +120,52 @@ def raise_size_bb(actions: list[dict]) -> float | None:
     return None
 
 
-def hero_and_sequence(key: str, hero_source: str) -> tuple[str, tuple[PreflopAction, ...]]:
+def size_at(spots: dict[str, dict], source_key: str) -> float:
+    """The raise-to size the source's own action label declares at one of its spots.
+
+    Fails loudly rather than defaulting. A missing size here would mean the export
+    stopped describing the line a key depends on, and inventing one is exactly the
+    hand-authored number this whole file exists to keep out.
+    """
+    spot = spots.get(source_key)
+    if spot is None:
+        raise ValueError(f"the export has no spot {source_key!r} to take a raise size from")
+    size = raise_size_bb(spot["actions"])
+    if size is None:
+        raise ValueError(f"the export's spot {source_key!r} offers no named raise size")
+    return size
+
+
+def hero_and_sequence(
+    key: str, hero_source: str, spots: dict[str, dict]
+) -> tuple[str, tuple[PreflopAction, ...]]:
+    """Hero's position and the sized action sequence in front of hero.
+
+    Each size is read from the spot at which that raise was actually offered, so the
+    key's provenance is the export rather than this script.
+    """
     hero = POSITION_MAP[hero_source]
     if key.startswith("RFI_"):
         return hero, ()
+    facing = key.split("_vs_")[1]
     if key.endswith("_open"):
-        opener = POSITION_MAP[key.split("_vs_")[1].removesuffix("_open")]
-        return hero, (PreflopAction(opener, "raise"),)
+        opener_source = facing.removesuffix("_open")
+        opener = POSITION_MAP[opener_source]
+        return hero, (PreflopAction(opener, "raise", size_at(spots, f"RFI_{opener_source}")),)
     if key.endswith("_limp"):
-        limper = POSITION_MAP[key.split("_vs_")[1].removesuffix("_limp")]
+        limper = POSITION_MAP[facing.removesuffix("_limp")]
         return hero, (PreflopAction(limper, "call"),)
     if key.endswith("_3bet"):
-        three_bettor = POSITION_MAP[key.split("_vs_")[1].removesuffix("_3bet")]
-        return hero, (PreflopAction(hero, "raise"), PreflopAction(three_bettor, "raise"))
+        three_bettor_source = facing.removesuffix("_3bet")
+        three_bettor = POSITION_MAP[three_bettor_source]
+        return hero, (
+            PreflopAction(hero, "raise", size_at(spots, f"RFI_{hero_source}")),
+            PreflopAction(
+                three_bettor,
+                "raise",
+                size_at(spots, f"{three_bettor_source}_vs_{hero_source}_open"),
+            ),
+        )
     raise ValueError(f"unrecognized spot key: {key!r}")
 
 
@@ -136,7 +188,7 @@ def build_weights(source: dict) -> dict[str, dict[str, dict[str, float]]]:
     spots = {spot["key"]: spot for spot in source["spots"]}
     weights: dict[str, dict[str, dict[str, float]]] = {}
     for key, spot in spots.items():
-        hero, sequence = hero_and_sequence(key, spot["hero"])
+        hero, sequence = hero_and_sequence(key, spot["hero"], spots)
         derived_key = spot_key(TABLE_SIZE, DEPTH_BB, hero, sequence)
         possible = hero_range(key, spots)
         per_hand: dict[str, dict[str, float]] = {}
@@ -185,14 +237,12 @@ def build_artifact(source: dict) -> dict:
     spots = {spot["key"]: spot for spot in source["spots"]}
     definitions = []
     for key, spot in spots.items():
-        hero, sequence = hero_and_sequence(key, spot["hero"])
+        hero, sequence = hero_and_sequence(key, spot["hero"], spots)
         definitions.append(
             {
                 "spot_id": spot_key(TABLE_SIZE, DEPTH_BB, hero, sequence),
                 "hero_position": hero,
-                "action_sequence": [
-                    {"position": entry.position, "action": entry.action} for entry in sequence
-                ],
+                "action_sequence": [action_entry_payload(entry) for entry in sequence],
             }
         )
     definitions.sort(key=lambda item: item["spot_id"])
@@ -223,7 +273,7 @@ def build_sizings(source: dict) -> dict:
     spots = {spot["key"]: spot for spot in source["spots"]}
     sizes: dict[str, float] = {}
     for key, spot in spots.items():
-        hero, sequence = hero_and_sequence(key, spot["hero"])
+        hero, sequence = hero_and_sequence(key, spot["hero"], spots)
         size = raise_size_bb(spot["actions"])
         if size is not None:
             sizes[spot_key(TABLE_SIZE, DEPTH_BB, hero, sequence)] = size
