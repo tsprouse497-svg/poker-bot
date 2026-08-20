@@ -106,15 +106,24 @@ Forbidden throughout:
       assert the old behaviour. Four canaries authored here rather than at stage 7,
       against the text the implementation must produce - which is the miss phases 08, 09
       and 10 each recorded. Evidence: stage 4 check green.
-- [ ] **S6 - Freeze.** `tests/` and `verification/` leave `approved_scope`. Evidence:
-      stage 5 check green.
-- [ ] **S7 - Build.** The six fixes. Evidence: every command the contract declares green.
-- [ ] **S8 - Gate and bite.** Full `run_verify.py`, plus canaries aimed at this phase's
-      own command so the new coverage is proved to bite. Evidence: stage 7 check green.
-- [ ] **S9 - Review.** Mechanical and domain passes. The domain question here is poker
-      rules rather than code: does the reopening rule match the rule real rooms use, and
-      does accepting a free fold change any hand the bot itself would play.
-- [ ] **S10 - Audit packet and closeout.**
+- [x] **S6 - Freeze.** 49 tests and 23 files in `verification/freeze.lock`. `tests/`,
+      `verification/` and `scripts/run_verify.py` left `approved_scope`; `base_commit` moved
+      to the freeze commit. Evidence: stage 5 check green.
+- [x] **S7 - Build.** The six fixes, plus the report generator. The stage halted once: ten
+      frozen tests failed and none was an implementation defect, so the repair landed in its
+      own task with the builder files out of scope. Evidence: stage 6 check green.
+- [x] **S8 - Gate and bite.** Full `run_verify.py` green at 41 commands, `check_gate_bite`
+      green. The four canaries authored at stage 4 against text that did not yet exist all
+      matched the implementation and bit. Evidence: stage 7 check green.
+- [x] **S9 - Review.** Two passes, mechanical and domain, written separately. The domain
+      pass found a blocker no frozen test reaches: every reopening test opens its street
+      with a full bet, so the reference level and the street's opening level coincide and
+      two different rules agree. They do not agree when the street opens with a short
+      all-in. Fixed, pinned by two tests and a fifth canary, with a second finding filed
+      rather than fixed. Evidence: stage 8 check green.
+- [x] **S10 - Audit packet and closeout.** Sixteen-row checklist, the reopening example in
+      chips, one number recomputable by hand, and the phase's own finding: the corpus
+      comparison does not move. Evidence: stage 9 check green, and this closeout.
 
 ## Verification
 
@@ -132,7 +141,28 @@ therefore lands at stage 4 with them, because stage 5 removes `run_verify.py` fr
 
 ## Outcome
 
-Not yet complete.
+All six inherited defects closed, and a seventh found by the stage-8 domain review and
+closed with them. The phase commits no data, so `auto_advance: true` held throughout and
+no judgment call blocked on a human.
+
+What the phase bought, stated as narrowly as the evidence allows. Each fix has a test that
+fails without it, so each is real. None of them moves a number in the 3,048-decision corpus
+comparison, which is byte-identical to main's - because six-handed Pluribus play contains
+no surrendered rivers and no chains of short all-ins. Both spots occur in the real-room
+hands this repo now wants to ingest, which is what the phase was for.
+
+Two process results worth carrying forward. Authoring mutation canaries at stage 4, against
+text the implementation did not yet contain, worked: four of four matched on the first try
+and bit, where phases 08, 09 and 10 each wrote their own canaries after the code and each
+filed that as the same miss. And the per-stage review earned its keep three times over -
+stage 1 caught a criterion that would have revoked the phase's own auto-advance permission,
+stage 4 caught five weak tests before the freeze preserved them, and stage 8 caught a poker
+rule the whole frozen suite agreed with.
+
+Four items deferred, each filed with the phase that owns it:
+`PHASE-11-MOVED-NUMBERS-AWAIT-REMEASUREMENT` (12), `STRATEGY-QUERY-STREET-BET-NAME` (13),
+`UNDER-SIZED-ALL-IN-BET-DOES-NOT-BAR-PRIOR-CHECKERS` (contract-update), and the new road
+into `MUTATION-SENTINEL-IS-COMMITTABLE` recorded at stage 7.
 
 ## Next Agent Bootstrap
 
@@ -152,5 +182,16 @@ Subagents are unavailable in this operator's sessions, so every review the drive
 is a coordinator-written read-only pass; the no-delegation exception above is the record
 of why, and it must not be quietly dropped.
 
-State as of this commit: phase 11 set `active`, task seeded as `phase-11-contract` in
-`contract-update` mode from `1b8314c`, loop started, stage 0 precheck.
+State as of this commit: phase 11 `completed` and tagged `phase-11-complete`,
+`CURRENT_TASK.yml` reset to idle, the lane at stage 11. The lane still has to be merged
+back: run `uv run python scripts/loop_fleet.py --integrate 11` from
+`~/projects/poker-bot-worktrees/main` and follow the runbook it prints. Integration is
+serial by design, and this is the only live lane.
+
+One open question for Taylor, which the loop did not stop for because it is
+`runtime-reversible`: decision 3, the reopening rule. In a real room, when two players move
+all-in for short amounts one after the other and their two increments together add up to a
+full raise, does the player who already acted get to raise again? This phase says yes. If
+the answer is no, decision 3 flips to `keep-the-current-strict-rule`, the accumulation
+backlog item is restated as a deliberate difference rather than a defect, and nothing else
+in the phase changes.

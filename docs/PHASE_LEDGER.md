@@ -13,7 +13,7 @@
 | 08 | Tiny Normalized Sample Ingestion And Player Tendency Comparison | completed | `docs/phase_contracts/PHASE_08_SAMPLE_COMPARISON.md` | `reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md` |
 | 09 | Quality, Drift, Backlog, And Phase-Gate Hardening | completed | `docs/phase_contracts/PHASE_09_QUALITY_HARDENING.md` | `reports/phase_audits/PHASE_09_QUALITY_HARDENING.md` |
 | 10 | Solver Extraction, And A Human Verdict On It | completed | `docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md` | `reports/phase_audits/PHASE_10_SOLVER_EXTRACTION.md` |
-| 11 | Engine And Query Fidelity | active | `docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md` | `reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md` |
+| 11 | Engine And Query Fidelity | completed | `docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md` | `reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md` |
 | 12 | Spot Vocabulary V2 | future | `docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md` | `reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md` |
 | 13 | Table-State Fidelity | future | `docs/phase_contracts/PHASE_13_TABLE_STATE.md` | `reports/phase_audits/PHASE_13_TABLE_STATE.md` |
 | 14 | Chart Cutover | future | `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` | `reports/phase_audits/PHASE_14_CHART_CUTOVER.md` |

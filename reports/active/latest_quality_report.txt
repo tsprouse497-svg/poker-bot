@@ -18,7 +18,8 @@ PASS  backlog integrity
       covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.
       does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.
 
-PASS  phase record agreement
+FAIL  phase record agreement
       covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.
       does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.
+      ! phase 11 is completed but tag 'phase-11-complete' does not exist
 

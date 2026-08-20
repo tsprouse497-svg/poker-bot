@@ -1,15 +1,8 @@
-task_id: phase-11-reopening-reference
-active_phase: "11"
-task_mode: implementation
-base_commit: fa97133abbcadbe3fc6f976204d12b226dbec237
-approved_scope:
-  - src/poker_training_bot/poker_core/order.py
-  - scripts/generate_engine_fidelity_report.py
-  - tests/test_engine_fidelity.py
-  - verification/freeze.lock
-  - verification/mutations.yml
-  - reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md
-  - reports/phase_audits/reviews/PHASE_11_ENGINE_FIDELITY/**
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
