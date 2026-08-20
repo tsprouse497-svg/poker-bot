@@ -1,7 +1,7 @@
-task_id: maint-fleet-integration-seam
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 2d8d62dd993ace19fbd020dd5592ec53865d8164
+task_mode: idle
+base_commit: null
 approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
