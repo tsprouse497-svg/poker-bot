@@ -1,7 +1,7 @@
-task_id: phase-11-backlog-closeout
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 47684d7dd05f44504e8e89accffd2a60ac3491d2
+task_mode: idle
+base_commit: null
 approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
