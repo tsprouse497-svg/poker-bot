@@ -21,6 +21,24 @@ Everything else here is a lookup rule or a report choice and can be changed late
 halts even for the items that would not have blocked. Decision 5 is the one that most needs
 a human's eyes despite being `runtime-reversible`, and it is flagged as such below.
 
+## Ruled by Taylor, 2026-08-20
+
+All three `frozen-into-data` items stand on their defaults, so the committed key is `raise-to`
+in big blinds, rendered as an `@` suffix quantized to hundredths with trailing zeros stripped,
+and a call entry carries no size. A key therefore reads
+`t6/d100/LJ/LJ:raise@2.5,BTN:raise@8`, where 8 is the total the button raised to and not the
+increment.
+
+He was shown the rendered key under each option rather than the option names, because the
+question is what a string will look like in a refusal inventory for the rest of this repo's
+life. The costs went with them: ragged column widths from stripping trailing zeros, and a
+precision ceiling at hundredths that a future solve exceeds by being rejected rather than
+rounded.
+
+The remaining ten items proceed on their recorded defaults and are reported afterwards.
+Decision 5 is the one that most deserved his eyes and the loop would not have stopped for it,
+so it is put to him alongside these rather than left in this file to be found.
+
 ## What was measured first
 
 Every number below was measured on this branch rather than taken from `backlog.yml`,
@@ -110,7 +128,7 @@ Reversibility: frozen-into-data
 Default: **`raise-to-bb`.** The key records the amount the raiser raised *to*, in big blinds.
 
 Options: raise-to-bb | raise-to-chips | multiple-of-the-previous-bet
-Answer: []
+Answer: [raise-to-bb]
 
 *Chips.* What the history actually contains, and it does not survive a change of blind level:
 the same spot at 25NL and at 100NL would key two ways, and the artifact is already keyed by
@@ -137,7 +155,7 @@ quantized to hundredths of a big blind, and trailing zeros are stripped: `CO:rai
 than rounded into a neighbouring cell.
 
 Options: at-suffix-hundredths | colon-suffix-two-decimals | integer-hundredths-token
-Answer: []
+Answer: [at-suffix-hundredths]
 
 *Two fixed decimals after a colon.* `CO:raise:2.50`. Uniform width, and it puts three
 colon-separated fields in an entry that already uses the colon to separate position from
@@ -161,7 +179,7 @@ no price of its own; it pays the level the preceding raise already states, and i
 it pays the big blind, which the key's own prefix states.
 
 Options: no-size-on-a-call | size-on-every-entry
-Answer: []
+Answer: [no-size-on-a-call]
 
 *A size on every entry.* Uniform, and it writes a number into the key that is derivable from
 the rest of the key. Two spot keys that describe one spot is the defect the single derivation
