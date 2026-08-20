@@ -1,12 +1,9 @@
-task_id: phase-12-tests
+task_id: phase-12-freeze
 active_phase: "12"
 task_mode: implementation
-base_commit: cf1e12aace8b8fc1523fae1ca0221216661452a3
+base_commit: 00a4e0cdb955d385069dee53b7a648202a6c861a
 approved_scope:
-  - tests/test_spot_vocabulary.py
-  - verification/mutations.yml
   - verification/freeze.lock
-  - scripts/run_verify.py
   - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -653,3 +650,12 @@ scope_change_log:
       Back to the phase 12 stage-4 task after MAINT-24. scripts/loop_stage.py and
       tests/test_loop_machinery.py leave approved_scope again, which is the point: the driver
       and its test are check-script territory that a phase task must not reach.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 stage 5, the freeze, in two commits rather than one. This first one writes
+      verification/freeze.lock while it is still in approved_scope: 24 files, 708 test
+      functions, the floor moved from 646, and the only entries that changed are
+      tests/test_spot_vocabulary.py arriving with 61 functions and tests/test_loop_machinery.py
+      going 58 to 59 from MAINT-24. The narrowing follows in its own commit, because
+      check_scope measures the diff against base_commit and a lock written after its own path
+      left approved_scope reads as an out-of-scope edit.
