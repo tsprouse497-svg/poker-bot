@@ -1,8 +1,9 @@
-task_id: null
+task_id: to-call-meaning-contract
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: contract-update
+base_commit: 7dc2902ca69106948cc114ab1b3d3df0dc6454fd
+approved_scope:
+  - docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -562,3 +563,12 @@ scope_change_log:
       Filing them needs backlog.yml alone, which is standing scope, so approved_scope stays
       empty; the entry is recorded here because a maintenance task with no approved paths
       still has to say what it did.
+  - date: 2026-08-20
+    reason: >-
+      An independent review of phases 10 and 11 found that the Phase 11 contract asserts a
+      corollary that is false: hero's own contribution is not recoverable as street_bet minus
+      to_call, because to_call itself carries two readings across producers and two of them
+      cap it at hero's remaining stack. Correcting a completed contract that states something
+      untrue requires contract-update mode and docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
+      in approved_scope. The implementation belongs to a later phase and is filed, not done
+      here.

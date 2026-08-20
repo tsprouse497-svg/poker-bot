@@ -131,10 +131,12 @@ Phase 11 is limited to the work named by this contract and the active ExecPlan.
 
 ### `street_bet` means one thing, and every producer says it
 - `StrategyQuery.street_bet` is documented on the field as the street's current bet level,
-  which is the reading the Phase 04, 05 and 06 code and tests already use, and hero's own
-  contribution to the street is recoverable as `street_bet` minus `to_call`.
+  which is the reading the Phase 04, 05 and 06 code and tests already use.
   The docstring is an acceptance criterion rather than a nicety: the field had two readings
   because nothing in the repo said which was meant.
+  Amended by MAINT-21: a clause claiming hero's contribution is `street_bet` minus `to_call`
+  is struck. `to_call` carries the same two readings and two of five producers cap it, which
+  reopens the ceiling below. `STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS`, proposed phase 13.
 - `StrategyQuery` rejects a query whose `street_bet` is less than its `to_call`, because the
   price to call cannot exceed the level being called.
   Measured, this catches a producer passing hero's own contribution only when hero has put
