@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import inspect
+
 import yaml
 
 import scripts.check_contracts as check_contracts
@@ -341,6 +343,22 @@ def test_a_missing_implementation_module_is_a_legitimate_stage_four_red() -> Non
 def test_a_broken_test_file_is_not_a_legitimate_red() -> None:
     assert not loop_stage.red_for_the_right_reason("SyntaxError: invalid syntax")
     assert not loop_stage.red_for_the_right_reason("ModuleNotFoundError: No module named 'reqests'")
+
+
+def test_the_stage_four_check_reads_the_whole_output_not_its_tail() -> None:
+    """MAINT-24: a tail window holds no assertion when the run ends in a FAILED list.
+
+    Phase 12's stage-4 suite produced 57,328 characters with 38 occurrences of `assert`
+    and none in the final 4,000, so a clipped output read an assertion-red file as a
+    broken one. `check_tests_authored` therefore opts out of the clip, and the clip
+    stays the default for every caller that prints a reason to a human instead.
+    """
+    full = "E       AssertionError: nope\n" + "FAILED tests/test_x.py::test_one\n" * 400
+
+    assert "assert" not in full[-4000:].lower()
+    assert loop_stage.red_for_the_right_reason(full)
+    assert inspect.signature(loop_stage.run_command).parameters["clip"].default == 4000
+    assert "clip=None" in inspect.getsource(loop_stage.check_tests_authored)
 
 
 def test_resume_returns_a_halted_loop_to_its_stage() -> None:

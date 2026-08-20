@@ -815,3 +815,26 @@ items:
       what a phase is scoped to: docs/V2_ROADMAP.md in two places, and the artifact-size section
       of docs/V2_RULING_MITIGATIONS.md. Phase 12's report publishes the measured pair, which is
       what makes this a correction owed rather than an open question.
+  - id: LOOP-STAGE-4-RED-WINDOW-HIDES-ASSERTIONS
+    status: done
+    phase: contract-update
+    title: The stage-4 red check searched a window that could hold no assertion
+    reason: >-
+      Closed by MAINT-24, evidenced in docs/exec_plans/completed/MAINT_24_STAGE_4_RED_WINDOW.md.
+      As found: run_command in scripts/loop_stage.py returned only the last 4000 characters of a
+      gate command's output, and red_for_the_right_reason searched that window for an assertion.
+      pytest ends with its FAILED summary list, which names every failing test and quotes none
+      of them, so the window a long run leaves behind is exactly the part with no assertions in
+      it. Phase 12's stage-4 suite produced 57,328 characters with 38 occurrences of "assert" and
+      zero in the final 4,000, so a suite that was nothing but assertion failures read as a
+      broken test file and stage 4 refused to advance.
+      run_command now takes clip, defaulting to the same 4000 so every caller that prints a
+      reason to a human keeps its readable tail, and check_tests_authored passes clip=None
+      because it is the one caller that reads the text rather than printing it. Pinned by
+      test_the_stage_four_check_reads_the_whole_output_not_its_tail, and guarded by
+      test_run_command_clips_for_a_reader_and_not_for_a_reader_of_output so a later refactor
+      cannot restore the bug by dropping the argument.
+      Second time this check has rejected the state it exists to require; MAINT-04 was the
+      first. LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS is the neighbouring item and stays open:
+      it is about a red that is not an assertion at all, where no linter has read the file and no
+      assertion has run, which this fix does not touch.

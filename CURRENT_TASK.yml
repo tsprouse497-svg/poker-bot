@@ -1,11 +1,11 @@
-task_id: phase-12-price-figure-correction
-active_phase: "12"
-task_mode: contract-update
-base_commit: 61b7995cc9b121ac2179199fba6fa4ae5f958839
+task_id: MAINT-24-stage-4-red-window
+active_phase: null
+task_mode: maintenance
+base_commit: f6b2c84ca9973a263b84ae148555750999259702
 approved_scope:
-  - docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md
-  - reports/phase_audits/decisions/PHASE_12_SPOT_VOCABULARY_DECISIONS.md
-  - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
+  - scripts/loop_stage.py
+  - tests/test_loop_machinery.py
+  - docs/exec_plans/completed/MAINT_24_STAGE_4_RED_WINDOW.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -621,3 +621,28 @@ scope_change_log:
       carries the finding, and nothing else; tests/** and scripts/** are deliberately absent
       because the test docstrings that quoted the same figure were corrected in the
       implementation task where they belong.
+  - date: 2026-08-20
+    reason: >-
+      Back to implementation mode so the phase 12 loop can advance stage 4. The contract and
+      the decision record leave approved_scope again, which is the point: check_scope.py is
+      what stops a builder editing the contract it is measured against, and the figure
+      correction that needed contract-update mode is committed and closed. base_commit moves
+      to that commit so the diff is measured from it rather than from the stage-4 test commit,
+      which would read the correction as an out-of-scope contract edit by this task.
+  - date: 2026-08-20
+    reason: >-
+      MAINT-24. Phase 12 stage 4 cannot advance for a reason that is not about phase 12.
+      run_command in loop_stage.py returns only the last 4000 characters of a command's
+      output, and red_for_the_right_reason searches that window for an assertion. The phase
+      12 test file produces 57,328 characters with 38 occurrences of "assert" and zero of
+      them in the final 4000, because the tail is pytest's FAILED summary list. So a
+      legitimately assertion-red suite reads as a broken test file.
+      This is the second time this check has rejected the exact state it exists to require;
+      MAINT-04 was the first. Fixing it needs scripts/loop_stage.py and its test, which
+      docs/LOOP.md names as a builder-diff halt condition, so it cannot happen inside the
+      phase task and lands as its own maintenance task between the stage-4 commit and the
+      stage-4 advance. Precedent is MAINT-06, split out of the phase 05 closeout for the same
+      shape of reason. verification/freeze.lock is deliberately not in scope: adding a test to
+      tests/test_loop_machinery.py does move the recorded count, and re-freezing is stage 5's
+      act rather than a maintenance task's, so check_test_freeze stays red until then - which
+      it already was, because tests/test_spot_vocabulary.py is not in the lock yet.
