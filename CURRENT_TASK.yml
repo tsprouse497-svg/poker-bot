@@ -1,11 +1,8 @@
-task_id: phase-11-ruling-and-corrections
-active_phase: "11"
-task_mode: contract-update
-base_commit: e51dda14d48b48a9e67dca52a7190917ffac3b23
-approved_scope:
-  - reports/phase_audits/decisions/PHASE_11_ENGINE_FIDELITY_DECISIONS.md
-  - reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md
-  - reports/phase_audits/reviews/PHASE_11_ENGINE_FIDELITY/**
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
