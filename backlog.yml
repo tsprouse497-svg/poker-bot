@@ -390,12 +390,19 @@ items:
       that would let a spot key carry the price at all, and until it lands every rate here
       is computed across sizes the chart cannot distinguish.
   - id: CORPUS-INEXPRESSIBLE-SPOTS
-    status: deferred
+    status: done
     phase: "12"
     title: The largest refusal bucket against real hands names no spot at all
     reason: >-
-      19 refusals across the committed sample carry no spot key, because the position and
-      action sequence do not describe a spot the Phase 04 vocabulary can express - a
+      Closed by phase 12. The sample holds 0 refusals that name no spot at all now, and
+      the 19 that did arrive as `lookup:spot-not-covered` instead: the vocabulary
+      can name the cell, and filling it is `CHART-COVERAGE-EXPANSION` at proposed phase 14.
+      The refusal total is unchanged at 290, which is the expected result rather than a
+      disappointing one, because this phase added no chart coverage.
+
+      As filed: 19 decision points across the committed sample carried no spot key, because
+      the position and action sequence did not describe a spot the Phase 04 vocabulary could
+      express - a
       different miss from a spot that is expressible and uncovered. It is the biggest
       single entry in the real-hand inventory.
 
@@ -839,7 +846,7 @@ items:
       it is about a red that is not an assertion at all, where no linter has read the file and no
       assertion has run, which this fix does not touch.
   - id: FROZEN-TESTS-PREDATE-THE-SIZED-SPOT-KEY
-    status: open
+    status: deferred
     phase: "12"
     title: Frozen tests of phases 03 to 09 build v1-shaped actions
     reason: >-
@@ -853,7 +860,7 @@ items:
       tests/** and verification/freeze.lock are out of the builder's scope by design, so
       this needs its own task with the builder files out of scope instead.
   - id: SQUEEZE-REFUSAL-COUNT-INCLUDES-A-SECOND-ORBIT-ROW
-    status: open
+    status: deferred
     phase: "12"
     title: A frozen phase 12 test counts a population the phase deliberately grows
     reason: >-
@@ -866,7 +873,7 @@ items:
       a superset of the one the claim is about; the repair is to exclude repeated-position
       keys, and it belongs with the frozen-test task rather than in the builder's hands.
   - id: FACT-DRIFT-CANNOT-EXEMPT-A-HISTORICAL-AUDIT-PACKET
-    status: open
+    status: done
     phase: "12"
     title: The quality gate demands a committed packet restate a number the contract forbids editing
     reason: >-
@@ -879,10 +886,16 @@ items:
       Both rules are right and they cannot both be satisfied as written. The fix is a
       ruling: either the drift checker learns that a phase audit packet is a historical
       document, or those facts are retired from the registry once no live document quotes
-      them. scripts/repo_facts.py and scripts/run_full_quality_gate.py are check-script
-      territory that a phase task must not reach.
+      them.
+
+      Taylor ruled on 2026-08-20: the packet is a snapshot of what phase 08 believed.
+      Closed by MAINT-25, which removed the packet from every fact's quoted_in and pointed
+      the three facts it was the only quoter for at docs/CORPUS_COMPARISON_LIMITS.md, the
+      live limitations document MAINT-10 wrote for exactly these caveats. No fact was
+      retired, so the numbers stay checked wherever a document a reader acts on states
+      them.
   - id: SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE
-    status: open
+    status: deferred
     phase: "12"
     title: The GTOpen source card's headroom moves when any other committed artifact does
     reason: >-
@@ -896,8 +909,8 @@ items:
       for the card to state its own size and for the directory total to be the checker's
       business.
   - id: DOCS-CARRY-STRAY-WRITE-TOOL-CLOSING-TAGS
-    status: open
-    phase: maintenance
+    status: deferred
+    phase: contract-update
     title: Seven committed documents end with a stray </content> or </invoke> line
     reason: >-
       docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md ends with </content> and </invoke>,

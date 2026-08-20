@@ -1,10 +1,29 @@
-task_id: MAINT-25
-active_phase: null
-task_mode: maintenance
-base_commit: d046ac9d27feeb3b64a71b3ad4ba65d32b88d3a3
+task_id: phase-12-build
+active_phase: "12"
+task_mode: implementation
+base_commit: 36d867a4ccd288f73a08919f9c97507114dda843
 approved_scope:
-  - scripts/repo_facts.py
-  - docs/CORPUS_COMPARISON_LIMITS.md
+  - src/poker_training_bot/solver_artifacts/schema.py
+  - src/poker_training_bot/solver_artifacts/spot_key.py
+  - src/poker_training_bot/solver_artifacts/lookup.py
+  - src/poker_training_bot/solver_artifacts/price_normalisation.py
+  - src/poker_training_bot/solver_artifacts/importer.py
+  - src/poker_training_bot/solver_artifacts/strict_json.py
+  - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
+  - src/poker_training_bot/solver_artifacts/vocabulary_report.py
+  - scripts/generate_preflop_chart_report.py
+  - src/poker_training_bot/strategy/contract.py
+  - src/poker_training_bot/strategy/preflop_chart.py
+  - src/poker_training_bot/strategy/preflop_sizing.py
+  - src/poker_training_bot/data_pipeline/comparison.py
+  - src/poker_training_bot/simulator/run.py
+  - scripts/convert_preflop_export.py
+  - scripts/generate_spot_vocabulary_report.py
+  - scripts/generate_preflop_strategy_report.py
+  - scripts/generate_postflop_fallback_report.py
+  - data/artifacts/preflop/six_max_nl25_100bb.json
+  - data/artifacts/preflop/sizings/six_max_nl25_100bb.json
+  - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -715,3 +734,11 @@ scope_change_log:
       docs/CORPUS_COMPARISON_LIMITS.md joins approved_scope and now states all three in
       its own prose. MAINT-10 wrote that document to be the live home for exactly these
       caveats, which is why it is the right target rather than a convenient one.
+  - date: 2026-08-20
+    reason: >-
+      Back to the phase 12 stage-6 task after MAINT-25. scripts/repo_facts.py and
+      docs/CORPUS_COMPARISON_LIMITS.md leave approved_scope again, which is the point:
+      the fact registry and the live limitations document are check territory a phase
+      task must not reach. base_commit moves to the MAINT-25 commit so the diff is
+      measured from it rather than from the stage-5 freeze, which would read that
+      finished work as an out-of-scope edit by this task.
