@@ -1,29 +1,10 @@
-task_id: phase-12-build
-active_phase: "12"
-task_mode: implementation
-base_commit: 5681010a91f7e8439dbf610068b7d5516e11c12f
+task_id: MAINT-25
+active_phase: null
+task_mode: maintenance
+base_commit: d046ac9d27feeb3b64a71b3ad4ba65d32b88d3a3
 approved_scope:
-  - src/poker_training_bot/solver_artifacts/schema.py
-  - src/poker_training_bot/solver_artifacts/spot_key.py
-  - src/poker_training_bot/solver_artifacts/lookup.py
-  - src/poker_training_bot/solver_artifacts/price_normalisation.py
-  - src/poker_training_bot/solver_artifacts/importer.py
-  - src/poker_training_bot/solver_artifacts/strict_json.py
-  - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
-  - src/poker_training_bot/solver_artifacts/vocabulary_report.py
-  - scripts/generate_preflop_chart_report.py
-  - src/poker_training_bot/strategy/contract.py
-  - src/poker_training_bot/strategy/preflop_chart.py
-  - src/poker_training_bot/strategy/preflop_sizing.py
-  - src/poker_training_bot/data_pipeline/comparison.py
-  - src/poker_training_bot/simulator/run.py
-  - scripts/convert_preflop_export.py
-  - scripts/generate_spot_vocabulary_report.py
-  - scripts/generate_preflop_strategy_report.py
-  - scripts/generate_postflop_fallback_report.py
-  - data/artifacts/preflop/six_max_nl25_100bb.json
-  - data/artifacts/preflop/sizings/six_max_nl25_100bb.json
-  - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
+  - scripts/repo_facts.py
+  - docs/CORPUS_COMPARISON_LIMITS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -713,3 +694,24 @@ scope_change_log:
       corrected in the same edit: one already read "uncovered" against a spot the
       committed report shows as a hit, and the four-bet probe's label named a
       limit this phase removes.
+  - date: 2026-08-20
+    reason: >-
+      MAINT-25. Taylor ruled on 2026-08-20 that a completed phase's audit packet is a
+      snapshot of what that phase believed rather than a document that must stay current.
+      scripts/repo_facts.py points all ten registered facts at
+      reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md, and the drift check fails both
+      ways - a stale value fails, and a sentence rewritten past the pattern also fails - so
+      there is no state in which that packet passes except by restating a number a later
+      phase moved, which every phase contract since forbids. The module's own docstring
+      already draws this line for a fact's content ("deliberately not a record of a past
+      run") and then breaks it for a fact's location. Removing the packet from every
+      quoted_in is the fix, and it is check-script territory a phase task must not reach,
+      so it lands as its own maintenance task between phase 12 stage-6 commits on the
+      MAINT-24 precedent. No fact is retired: all ten stay computed and pinned by the
+      committed facts file, and the live documents that quote them keep being checked.
+      Three facts had the packet as their only quoter, and a registered fact must be
+      quoted somewhere - tests/test_quality_hardening.py asserts it, and it is right,
+      because a fact nobody states is a fact nobody can get wrong. So
+      docs/CORPUS_COMPARISON_LIMITS.md joins approved_scope and now states all three in
+      its own prose. MAINT-10 wrote that document to be the live home for exactly these
+      caveats, which is why it is the right target rather than a convenient one.

@@ -9,6 +9,21 @@ demand rewriting history every time the gate grows.
 Each fact carries the pattern that finds it in prose. Searching for the bare value would
 match any number in the file; matching a sentence shape means a rewritten sentence stops
 matching, which the checker treats as an error rather than a silent pass.
+
+`quoted_in` names live documents only, never a completed phase's audit packet. Taylor
+ruled on 2026-08-20 that a packet is a snapshot of what that phase found and believed,
+and the check is a two-way trap: a stale value fails, and a sentence rewritten past the
+pattern also fails. So a packet listed here can only ever be made to pass by restating a
+number a later phase moved, which every phase contract forbids for the good reason that
+rewriting a packet destroys the only evidence a number ever changed. That is the same
+line the paragraph above draws about a fact's *content*, applied to its *location*: a
+present-tense property of committed data does not belong to a dated document.
+
+Three facts had that packet as their only quoter, and none is retired: a fact must be
+quoted somewhere, which `tests/test_quality_hardening.py` asserts and which is right,
+because a fact nobody states is a fact nobody can get wrong. They point at
+`docs/CORPUS_COMPARISON_LIMITS.md` instead, which MAINT-10 wrote to be the live home for
+exactly these caveats and which now states all three in its own prose.
 """
 
 from __future__ import annotations
@@ -25,7 +40,6 @@ except ModuleNotFoundError:
 
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-PACKET = "reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md"
 LIMITS = "docs/CORPUS_COMPARISON_LIMITS.md"
 BACKLOG = "backlog.yml"
 DECISIONS = "reports/phase_audits/decisions/PHASE_08_SAMPLE_COMPARISON_DECISIONS.md"
@@ -155,21 +169,21 @@ FACTS: tuple[Fact, ...] = (
         description="hands in the committed public-corpus sample",
         compute=_committed_hands,
         pattern=r"(?:all|from) (\d+) hands",
-        quoted_in=(PACKET, LIMITS),
+        quoted_in=(LIMITS,),
     ),
     Fact(
         name="corpus_excluded_hands",
         description="selected hands excluded by name",
         compute=_excluded_hands,
         pattern=r"`corpus_exclusions\.json` names (\d+) hand",
-        quoted_in=(PACKET,),
+        quoted_in=(LIMITS,),
     ),
     Fact(
         name="corpus_all_in_hands",
         description="committed hands where a seat commits its whole stack",
         compute=_all_in_hands,
         pattern=r"(\d+) of the 499 (?:committed )?hands contain\s+an all-in",
-        quoted_in=(PACKET, LIMITS),
+        quoted_in=(LIMITS,),
     ),
     Fact(
         name="corpus_preflop_decisions",
@@ -182,49 +196,49 @@ FACTS: tuple[Fact, ...] = (
         # backtracks to "000", where the text before it is a comma rather than the word
         # the first lookbehind is watching for, and the skip silently stops working.
         pattern=r"(?<!roughly )(?<![\d,])(\d[\d,]*) preflop decisions?(?: points)?",
-        quoted_in=(PACKET, LIMITS, DECISIONS),
+        quoted_in=(LIMITS, DECISIONS),
     ),
     Fact(
         name="corpus_refusals",
         description="decision points the chart could not answer",
         compute=_refusals,
         pattern=r"(\d+) refusals, outside every agreement denominator",
-        quoted_in=(PACKET,),
+        quoted_in=(LIMITS,),
     ),
     Fact(
         name="corpus_distinct_refused_spots",
         description="distinct spot keys the chart refuses against real hands",
         compute=_distinct_refused_spots,
         pattern=r"\*\*(\d+) distinct spots the chart",
-        quoted_in=(PACKET,),
+        quoted_in=(LIMITS,),
     ),
     Fact(
         name="corpus_inexpressible_refusals",
         description="refusals whose spot the chart vocabulary cannot express at all",
         compute=_inexpressible_refusals,
         pattern=r"(\d+) refusals (?:that name no spot at all|across the committed sample)",
-        quoted_in=(PACKET, BACKLOG),
+        quoted_in=(BACKLOG,),
     ),
     Fact(
         name="corpus_human_call_disagreements",
         description="scored human call decisions the chart disagrees with",
         compute=_human_call_disagreements,
         pattern=r"holds \d+ of the (\d+) human call",
-        quoted_in=(PACKET, BACKLOG),
+        quoted_in=(BACKLOG,),
     ),
     Fact(
         name="corpus_human_call_disagreements_big_blind",
         description="of those, the ones taken from the big blind",
         compute=_human_call_disagreements_big_blind,
         pattern=r"holds (\d+) of the \d+ human call",
-        quoted_in=(PACKET, BACKLOG),
+        quoted_in=(BACKLOG,),
     ),
     Fact(
         name="chart_solved_open_bb",
         description="the opening size the committed chart was solved against",
         compute=_solved_open_bb,
         pattern=r"solved against a ([\d.]+) big blind open",
-        quoted_in=(PACKET, LIMITS),
+        quoted_in=(LIMITS,),
     ),
 )
 
