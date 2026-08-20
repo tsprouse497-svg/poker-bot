@@ -586,16 +586,27 @@ def test_every_refusal_names_a_spot_key(comparison) -> None:
 def test_the_squeeze_refusals_are_untouched(comparison) -> None:
     """The falsifiable form of what the three-bet ruling does *not* buy.
 
-    132 refusals face a two-raise sequence, and 125 of those are a squeeze or a cold
-    four-bet: expressible today, uncovered today, and uncovered after this phase.
-    Normalising a price is not finding a nearest spot, so this count must not move.
+    132 refusals face a two-raise sequence in which every position acts once, and 125 of
+    those are a squeeze or a cold four-bet: expressible today, uncovered today, and
+    uncovered after this phase. Normalising a price is not finding a nearest spot, so
+    this count must not move.
+
+    Repeated-position sequences are excluded because this phase grows that population on
+    purpose. As authored, the filter also caught
+    `t6/d100/BB/SB:call,BB:raise@3,SB:raise@12` - the one limped second-orbit decision in
+    the sample, which had no key at the branch point and so was invisible to a filter
+    requiring one. Counting it here would have made a guard against nearest-spot matching
+    fail for the second orbit finally having a key, which is the opposite of what it is
+    guarding.
     """
+    positions = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
     two_raise = [
         row
         for row in comparison.rows
         if row.refusal is not None
         and row.spot_key
         and row.spot_key.split("/")[-1].count(":raise") == 2
+        and not any(row.spot_key.count(f"{position}:") > 1 for position in positions)
     ]
     assert len(two_raise) == 132
 

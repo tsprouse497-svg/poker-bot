@@ -44,8 +44,8 @@ from poker_training_bot.solver_artifacts.schema import (
 )
 
 RFI_SPOT = "t6/d100/CO/rfi"
-BTN_SPOT = "t6/d100/BTN/CO:raise"
-BB_SPOT = "t6/d100/BB/BTN:raise"
+BTN_SPOT = "t6/d100/BTN/CO:raise@2.5"
+BB_SPOT = "t6/d100/BB/BTN:raise@2.5"
 SIX_MAX_POSITIONS = ["LJ", "HJ", "CO", "BTN", "SB", "BB"]
 
 
@@ -92,12 +92,12 @@ def valid_payload() -> dict[str, Any]:
             {
                 "spot_id": BTN_SPOT,
                 "hero_position": "BTN",
-                "action_sequence": [{"position": "CO", "action": "raise"}],
+                "action_sequence": [{"position": "CO", "action": "raise", "size_bb": 2.5}],
             },
             {
                 "spot_id": BB_SPOT,
                 "hero_position": "BB",
-                "action_sequence": [{"position": "BTN", "action": "raise"}],
+                "action_sequence": [{"position": "BTN", "action": "raise", "size_bb": 2.5}],
             },
         ],
         "action_weights": {
@@ -308,7 +308,9 @@ def _foreign_hero_position(payload: dict[str, Any]) -> None:
 
 
 def _foreign_sequence_position(payload: dict[str, Any]) -> None:
-    payload["spots"][1]["action_sequence"] = [{"position": "UTG", "action": "raise"}]
+    payload["spots"][1]["action_sequence"] = [
+        {"position": "UTG", "action": "raise", "size_bb": 2.5}
+    ]
 
 
 def _spot_key_mismatch(payload: dict[str, Any]) -> None:
@@ -342,7 +344,7 @@ def _unknown_weight_action(payload: dict[str, Any]) -> None:
 def _folded_sequence_entry(payload: dict[str, Any]) -> None:
     payload["spots"][1]["action_sequence"] = [
         {"position": "HJ", "action": "fold"},
-        {"position": "CO", "action": "raise"},
+        {"position": "CO", "action": "raise", "size_bb": 2.5},
     ]
 
 
@@ -384,17 +386,17 @@ def _hand_class_count_mismatch(payload: dict[str, Any]) -> None:
 
 def _duplicate_sequence_position(payload: dict[str, Any]) -> None:
     payload["spots"][1]["action_sequence"] = [
-        {"position": "CO", "action": "raise"},
+        {"position": "CO", "action": "raise", "size_bb": 2.5},
         {"position": "CO", "action": "call"},
     ]
 
 
 def _out_of_order_sequence(payload: dict[str, Any]) -> None:
     payload["spots"][2]["action_sequence"] = [
-        {"position": "BTN", "action": "raise"},
-        {"position": "HJ", "action": "raise"},
+        {"position": "BTN", "action": "raise", "size_bb": 2.5},
+        {"position": "HJ", "action": "raise", "size_bb": 8.0},
     ]
-    payload["spots"][2]["spot_id"] = "t6/d100/BB/BTN:raise,HJ:raise"
+    payload["spots"][2]["spot_id"] = "t6/d100/BB/BTN:raise@2.5,HJ:raise@8"
 
 
 REJECTIONS: tuple[tuple[str, str, Callable[[dict[str, Any]], None]], ...] = (
@@ -472,25 +474,37 @@ def test_restamped_mutation_still_rejected(tmp_path: Path) -> None:
 
 def test_spot_key_rfi_and_sequence_forms() -> None:
     assert spot_key(6, 100, "CO", ()) == "t6/d100/CO/rfi"
-    assert spot_key(6, 100, "BTN", (PreflopAction("HJ", "raise"),)) == "t6/d100/BTN/HJ:raise"
-    assert spot_key(2, 40, "BB", (PreflopAction("BTN", "raise"),)) == "t2/d40/BB/BTN:raise"
-    sequence = (PreflopAction("CO", "raise"), PreflopAction("BTN", "call"))
-    assert spot_key(6, 100, "BB", sequence) == "t6/d100/BB/CO:raise,BTN:call"
+    assert (
+        spot_key(6, 100, "BTN", (PreflopAction("HJ", "raise", 2.5),))
+        == "t6/d100/BTN/HJ:raise@2.5"
+    )
+    assert (
+        spot_key(2, 40, "BB", (PreflopAction("BTN", "raise", 2.5),)) == "t2/d40/BB/BTN:raise@2.5"
+    )
+    sequence = (PreflopAction("CO", "raise", 2.5), PreflopAction("BTN", "call"))
+    assert spot_key(6, 100, "BB", sequence) == "t6/d100/BB/CO:raise@2.5,BTN:call"
 
 
 def test_spot_key_allows_hero_inside_the_sequence() -> None:
-    sequence = (PreflopAction("LJ", "raise"), PreflopAction("BTN", "raise"))
-    assert spot_key(6, 100, "LJ", sequence) == "t6/d100/LJ/LJ:raise,BTN:raise"
+    sequence = (PreflopAction("LJ", "raise", 2.5), PreflopAction("BTN", "raise", 8.0))
+    assert spot_key(6, 100, "LJ", sequence) == "t6/d100/LJ/LJ:raise@2.5,BTN:raise@8"
 
 
 def test_spot_key_requires_action_order() -> None:
     with pytest.raises(ValueError):
-        spot_key(6, 100, "BB", (PreflopAction("BTN", "raise"), PreflopAction("HJ", "raise")))
+        spot_key(
+            6, 100, "BB", (PreflopAction("BTN", "raise", 2.5), PreflopAction("HJ", "raise", 8.0))
+        )
 
 
-def test_spot_key_rejects_repeated_position() -> None:
+def test_spot_key_rejects_a_seat_taking_two_turns_in_a_row() -> None:
+    """A position may act more than once since phase 12, but not twice running.
+
+    Reaching the cutoff a second time means the ring came round, which means the big
+    blind was passed - and the big blind is hero here, so hero would have folded.
+    """
     with pytest.raises(ValueError):
-        spot_key(6, 100, "BB", (PreflopAction("CO", "raise"), PreflopAction("CO", "call")))
+        spot_key(6, 100, "BB", (PreflopAction("CO", "raise", 2.5), PreflopAction("CO", "call")))
 
 
 @pytest.mark.parametrize("table_size", [-1, 0, 1, 10, 99])
@@ -511,7 +525,7 @@ def test_spot_key_rejects_positions_outside_the_table() -> None:
     with pytest.raises(ValueError):
         spot_key(2, 100, "CO", ())
     with pytest.raises(ValueError):
-        spot_key(2, 100, "BB", (PreflopAction("CO", "raise"),))
+        spot_key(2, 100, "BB", (PreflopAction("CO", "raise", 2.5),))
 
 
 def test_preflop_action_rejects_folds_and_unknown_actions() -> None:
@@ -522,7 +536,7 @@ def test_preflop_action_rejects_folds_and_unknown_actions() -> None:
     with pytest.raises(ValueError):
         PreflopAction("CO", "bet")
     with pytest.raises(ValueError):
-        PreflopAction("ZZ", "raise")
+        PreflopAction("ZZ", "raise", 2.5)
 
 
 def test_import_directory_is_sorted_and_complete(tmp_path: Path) -> None:
@@ -592,18 +606,22 @@ def test_preflop_action_rejects_folds_and_checks() -> None:
 @pytest.mark.parametrize(
     ("label", "hero", "sequence"),
     [
-        ("action from a position that acts after hero", "CO", (PreflopAction("BTN", "raise"),)),
-        ("early position facing a later open", "LJ", (PreflopAction("CO", "raise"),)),
+        (
+            "action from a position that acts after hero",
+            "CO",
+            (PreflopAction("BTN", "raise", 2.5),),
+        ),
+        ("early position facing a later open", "LJ", (PreflopAction("CO", "raise", 2.5),)),
         (
             "small blind facing a big blind raise it never saw",
             "SB",
-            (PreflopAction("BB", "raise"),),
+            (PreflopAction("BB", "raise", 2.5),),
         ),
-        ("hero acted last in its own sequence", "CO", (PreflopAction("CO", "raise"),)),
+        ("hero acted last in its own sequence", "CO", (PreflopAction("CO", "raise", 2.5),)),
         (
             "hero already acted and faces only a call",
             "CO",
-            (PreflopAction("CO", "raise"), PreflopAction("BB", "call")),
+            (PreflopAction("CO", "raise", 2.5), PreflopAction("BB", "call")),
         ),
     ],
 )
@@ -630,10 +648,15 @@ def test_spot_key_rejects_folded_to_the_big_blind() -> None:
         (
             "big blind versus a cutoff open",
             "BB",
-            (PreflopAction("CO", "raise"),),
-            "t6/d100/BB/CO:raise",
+            (PreflopAction("CO", "raise", 2.5),),
+            "t6/d100/BB/CO:raise@2.5",
         ),
-        ("blind versus blind", "BB", (PreflopAction("SB", "raise"),), "t6/d100/BB/SB:raise"),
+        (
+            "blind versus blind",
+            "BB",
+            (PreflopAction("SB", "raise", 3.5),),
+            "t6/d100/BB/SB:raise@3.5",
+        ),
         (
             "limped pot",
             "BB",
@@ -643,26 +666,26 @@ def test_spot_key_rejects_folded_to_the_big_blind() -> None:
         (
             "squeeze spot",
             "BB",
-            (PreflopAction("CO", "raise"), PreflopAction("BTN", "call")),
-            "t6/d100/BB/CO:raise,BTN:call",
+            (PreflopAction("CO", "raise", 2.5), PreflopAction("BTN", "call")),
+            "t6/d100/BB/CO:raise@2.5,BTN:call",
         ),
         (
             "opener facing a three-bet",
             "CO",
-            (PreflopAction("CO", "raise"), PreflopAction("BB", "raise")),
-            "t6/d100/CO/CO:raise,BB:raise",
+            (PreflopAction("CO", "raise", 2.5), PreflopAction("BB", "raise", 11.0)),
+            "t6/d100/CO/CO:raise@2.5,BB:raise@11",
         ),
         (
             "cold four-bet-or-fold",
             "BTN",
-            (PreflopAction("LJ", "raise"), PreflopAction("HJ", "raise")),
-            "t6/d100/BTN/LJ:raise,HJ:raise",
+            (PreflopAction("LJ", "raise", 2.5), PreflopAction("HJ", "raise", 8.0)),
+            "t6/d100/BTN/LJ:raise@2.5,HJ:raise@8",
         ),
         (
             "limper facing a later raise",
             "SB",
-            (PreflopAction("SB", "call"), PreflopAction("BB", "raise")),
-            "t6/d100/SB/SB:call,BB:raise",
+            (PreflopAction("SB", "call"), PreflopAction("BB", "raise", 3.5)),
+            "t6/d100/SB/SB:call,BB:raise@3.5",
         ),
     ],
 )

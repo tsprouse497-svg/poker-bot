@@ -1,28 +1,11 @@
-task_id: phase-12-build
+task_id: phase-12-frozen-test-repair
 active_phase: "12"
 task_mode: implementation
-base_commit: 36d867a4ccd288f73a08919f9c97507114dda843
+base_commit: d83405bee4a25084f2c27ddfe1b26d82501e977c
 approved_scope:
-  - src/poker_training_bot/solver_artifacts/schema.py
-  - src/poker_training_bot/solver_artifacts/spot_key.py
-  - src/poker_training_bot/solver_artifacts/lookup.py
-  - src/poker_training_bot/solver_artifacts/price_normalisation.py
-  - src/poker_training_bot/solver_artifacts/importer.py
-  - src/poker_training_bot/solver_artifacts/strict_json.py
-  - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
-  - src/poker_training_bot/solver_artifacts/vocabulary_report.py
-  - scripts/generate_preflop_chart_report.py
-  - src/poker_training_bot/strategy/contract.py
-  - src/poker_training_bot/strategy/preflop_chart.py
-  - src/poker_training_bot/strategy/preflop_sizing.py
-  - src/poker_training_bot/data_pipeline/comparison.py
-  - src/poker_training_bot/simulator/run.py
-  - scripts/convert_preflop_export.py
-  - scripts/generate_spot_vocabulary_report.py
-  - scripts/generate_preflop_strategy_report.py
-  - scripts/generate_postflop_fallback_report.py
-  - data/artifacts/preflop/six_max_nl25_100bb.json
-  - data/artifacts/preflop/sizings/six_max_nl25_100bb.json
+  - tests/**
+  - verification/freeze.lock
+  - verification/mutations.yml
   - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -742,3 +725,29 @@ scope_change_log:
       task must not reach. base_commit moves to the MAINT-25 commit so the diff is
       measured from it rather than from the stage-5 freeze, which would read that
       finished work as an out-of-scope edit by this task.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 stage 6 left 34 failures and 3 collection errors in frozen tests of phases
+      03 to 09, and none is an implementation defect: they construct
+      PreflopAction("CO", "raise") with no size, SeatAction(seat, "raise") with no amount,
+      or they assert a v1 key string, decision-audit schema version 1, or that a
+      second-orbit spot has no key - which is the behaviour the phase 12 contract requires
+      removed. Stage 4 authored this phase's own tests and none of the migrations the
+      phase forces on earlier ones. Repairing them needs tests/** and
+      verification/freeze.lock back in approved_scope for one task, and every builder file
+      leaves it, so this task cannot reshape the implementation to suit the tests it is
+      repairing - the pressure has to run the other way. No assertion is weakened: each
+      repair restates the same claim against the behaviour the phase 12 contract requires,
+      and where a test's claim survives but its population does not - the two-raise refusal
+      count that this phase deliberately grows by one - the population is narrowed to the
+      claim rather than the number bumped to the measurement. Precedent is phase 11's
+      stage-6 repair task, filed for the identical reason.
+  - date: 2026-08-20
+    reason: >-
+      The stage-6 file splits moved three of phase 12's four canaries out from under the
+      path they name: the sized rendering, the strictly-increasing rule and the folded-seat
+      rule now live in solver_artifacts/spot_key.py rather than in schema.py, so
+      check_gate_bite reports them as applying to nothing. verification/mutations.yml joins
+      approved_scope for the file paths and nothing else - every find and replace string is
+      untouched, which is what keeps this a relocation rather than a canary being reshaped
+      to suit the code it is aimed at.

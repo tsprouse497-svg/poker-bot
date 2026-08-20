@@ -38,14 +38,18 @@ from poker_training_bot.solver_artifacts.schema import (
 )
 
 RFI_SPOT = "t6/d100/CO/rfi"
-VS_OPEN_SPOT = "t6/d100/BB/CO:raise"
+VS_OPEN_SPOT = "t6/d100/BB/CO:raise@2.5"
 
-CO_OPEN: tuple[PreflopAction, ...] = (PreflopAction("CO", "raise"),)
+CO_OPEN: tuple[PreflopAction, ...] = (PreflopAction("CO", "raise", 2.5),)
 FOLDED_TO_HERO: tuple[PreflopAction, ...] = ()
+# A second orbit is expressible since phase 12, so what stands for "no key exists" has to
+# be a sequence no legal preflop order produces at all. The cutoff acts before the button,
+# so a button raise in front of a cutoff hero cannot have happened.
+UNREPRESENTABLE: tuple[PreflopAction, ...] = (PreflopAction("BTN", "raise", 2.5),)
 SECOND_ORBIT: tuple[PreflopAction, ...] = (
-    PreflopAction("CO", "raise"),
-    PreflopAction("BB", "raise"),
-    PreflopAction("CO", "raise"),
+    PreflopAction("CO", "raise", 2.5),
+    PreflopAction("BB", "raise", 11.0),
+    PreflopAction("CO", "raise", 23.0),
 )
 
 PURE_RAISE: ActionWeights = (("raise", 1.0),)
@@ -204,7 +208,16 @@ MISSES: tuple[tuple[str, str, dict[str, object]], ...] = (
     ("unknown table size", MISS_NO_ARTIFACT_FOR_TABLE, {"table_size": 9}),
     ("unknown stack depth", MISS_NO_ARTIFACT_FOR_DEPTH, {"stack_depth_bb": 40}),
     ("position not at table", MISS_POSITION_NOT_AT_TABLE, {"hero_position": "UTG"}),
-    ("second orbit sequence", MISS_UNREPRESENTABLE_SPOT, {"action_sequence": SECOND_ORBIT}),
+    (
+        "sequence no legal order produces",
+        MISS_UNREPRESENTABLE_SPOT,
+        {"action_sequence": UNREPRESENTABLE},
+    ),
+    (
+        "second orbit sequence, expressible and uncovered",
+        MISS_SPOT_NOT_COVERED,
+        {"hero_position": "BB", "action_sequence": SECOND_ORBIT},
+    ),
     ("uncovered spot", MISS_SPOT_NOT_COVERED, {"hero_position": "SB"}),
     ("uncovered hand class", MISS_HAND_CLASS_NOT_COVERED, {"hand_class": "T9s"}),
 )
@@ -247,10 +260,15 @@ def test_uncovered_table_size_never_borrows_another_table() -> None:
         assert refused.code == MISS_NO_ARTIFACT_FOR_TABLE
 
 
-def test_second_orbit_spot_has_no_key() -> None:
+def test_only_a_sequence_no_order_produces_has_no_key() -> None:
+    """Phase 12 gave the second orbit a key; an impossible order still has none."""
     assert query().spot_key == RFI_SPOT
     assert vs_open().spot_key == VS_OPEN_SPOT
-    assert query(action_sequence=SECOND_ORBIT).spot_key is None
+    assert (
+        query(hero_position="BB", action_sequence=SECOND_ORBIT).spot_key
+        == "t6/d100/BB/CO:raise@2.5,BB:raise@11,CO:raise@23"
+    )
+    assert query(action_sequence=UNREPRESENTABLE).spot_key is None
     assert query(table_size=99).spot_key is None
     assert query(hero_position="UTG").spot_key is None
 
@@ -316,7 +334,7 @@ def test_library_ordering_is_stable_regardless_of_input_order() -> None:
     ]
     assert forward.spot_keys() == backward.spot_keys()
     assert forward.spot_keys() == tuple(
-        sorted([RFI_SPOT, VS_OPEN_SPOT, "t6/d50/CO/rfi", "t6/d50/BB/CO:raise"])
+        sorted([RFI_SPOT, VS_OPEN_SPOT, "t6/d50/CO/rfi", "t6/d50/BB/CO:raise@2.5"])
     )
     assert forward.spot_keys() == forward.spot_keys()
 
@@ -380,7 +398,9 @@ def test_query_rejects_programming_errors() -> None:
     with pytest.raises(ValueError):
         ChartQuery(6, 100, "CO", ("CO:raise",), "AA")  # type: ignore[arg-type]
     with pytest.raises(ValueError):
-        ChartQuery(6, 100, "CO", [PreflopAction("CO", "raise")], "AA")  # type: ignore[arg-type]
+        ChartQuery(  # type: ignore[arg-type]
+            6, 100, "CO", [PreflopAction("CO", "raise", 2.5)], "AA"
+        )
     with pytest.raises(ValueError):
         query(hero_position="")
     with pytest.raises(ValueError):

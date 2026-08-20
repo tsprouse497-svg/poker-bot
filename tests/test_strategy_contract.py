@@ -75,10 +75,10 @@ def _uncovered_spot_query() -> StrategyQuery:
         stacks=tuple((seat, full - (2200 if seat == 2 else 0)) for seat in seats),
         blinds=(50, big_blind),
         preflop_actions=(
-            SeatAction(1, "raise"),
-            SeatAction(2, "raise"),
-            SeatAction(1, "raise"),
-            SeatAction(2, "raise"),
+            SeatAction(1, "raise", 250),
+            SeatAction(2, "raise", 800),
+            SeatAction(1, "raise", 2150),
+            SeatAction(2, "raise", 2200),
         ),
     )
 
@@ -239,7 +239,7 @@ class TestDecisionAuditRecord:
 
     def test_rejects_wrong_schema_version(self) -> None:
         with pytest.raises(ValueError, match="schema_version"):
-            make_record(schema_version=2)
+            make_record(schema_version=1)
 
     def test_rejects_bad_strategy_identity(self) -> None:
         with pytest.raises(ValueError, match="strategy_id"):
@@ -263,7 +263,7 @@ class TestDecisionAuditRecord:
             '"preflop_actions":[],'
             '"seat":1,"stacks":{"0":980,"1":940},"street":"flop","street_bet":20,'
             '"to_call":20},'
-            '"schema_version":1,"strategy_id":"reference-check-fold",'
+            '"schema_version":2,"strategy_id":"reference-check-fold",'
             '"strategy_version":1}'
         )
         assert make_record().to_json_line() == expected
@@ -336,7 +336,7 @@ class TestPreflopActionHistory:
         assert make_query().preflop_actions == ()
 
     def test_accepts_an_ordered_history_of_seat_actions(self) -> None:
-        history = (SeatAction(0, "raise"), SeatAction(1, "call"))
+        history = (SeatAction(0, "raise", 40), SeatAction(1, "call"))
 
         query = make_query(preflop_actions=history)
 
@@ -344,19 +344,21 @@ class TestPreflopActionHistory:
 
     def test_records_folds_as_well_as_voluntary_actions(self) -> None:
         """This is game state, not an already-canonicalized chart key."""
-        query = make_query(preflop_actions=(SeatAction(0, "fold"), SeatAction(1, "raise")))
+        query = make_query(preflop_actions=(SeatAction(0, "fold"), SeatAction(1, "raise", 40)))
 
         assert [entry.action for entry in query.preflop_actions] == ["fold", "raise"]
 
     def test_hero_may_appear_in_its_own_history(self) -> None:
         """The original raiser facing a three-bet is a real spot."""
-        query = make_query(preflop_actions=(SeatAction(1, "raise"), SeatAction(0, "raise")))
+        query = make_query(
+            preflop_actions=(SeatAction(1, "raise", 40), SeatAction(0, "raise", 120))
+        )
 
         assert query.preflop_actions[0].seat == 1
 
     def test_rejects_a_seat_that_is_not_at_the_table(self) -> None:
         with pytest.raises(ValueError, match="not at the table"):
-            make_query(preflop_actions=(SeatAction(7, "raise"),))
+            make_query(preflop_actions=(SeatAction(7, "raise", 40),))
 
     def test_rejects_an_unknown_action(self) -> None:
         with pytest.raises(ValueError, match="unknown history action"):
@@ -368,21 +370,21 @@ class TestPreflopActionHistory:
 
     def test_rejects_a_negative_seat(self) -> None:
         with pytest.raises(ValueError, match="non-negative integer"):
-            SeatAction(-1, "raise")
+            SeatAction(-1, "raise", 40)
 
     def test_rejects_entries_that_are_not_seat_actions(self) -> None:
         with pytest.raises(ValueError, match="must be SeatAction"):
             make_query(preflop_actions=((0, "raise"),))
 
     def test_history_reaches_the_decision_audit(self) -> None:
-        query = make_query(preflop_actions=(SeatAction(0, "raise"),))
+        query = make_query(preflop_actions=(SeatAction(0, "raise", 40),))
 
         payload = query.to_payload()
 
-        assert payload["preflop_actions"] == [{"seat": 0, "action": "raise"}]
+        assert payload["preflop_actions"] == [{"seat": 0, "action": "raise", "amount": 40}]
 
     def test_audit_line_stays_byte_deterministic_with_history(self) -> None:
-        history = (SeatAction(0, "raise"), SeatAction(1, "call"))
+        history = (SeatAction(0, "raise", 40), SeatAction(1, "call"))
         first = make_record(query=make_query(preflop_actions=history))
         second = make_record(query=make_query(preflop_actions=history))
 
@@ -390,7 +392,7 @@ class TestPreflopActionHistory:
 
     def test_different_histories_serialize_differently(self) -> None:
         """Two spots that share a price must not share an audit line."""
-        opened = make_record(query=make_query(preflop_actions=(SeatAction(0, "raise"),)))
+        opened = make_record(query=make_query(preflop_actions=(SeatAction(0, "raise", 40),)))
         limped = make_record(query=make_query(preflop_actions=(SeatAction(0, "call"),)))
 
         assert opened.to_json_line() != limped.to_json_line()

@@ -587,7 +587,7 @@ mutations:
       contract names as the one it is most exposed to: it passes every test about a lookup
       finding the right cell, and it makes the committed artifact permanently
       single-price, which is the one outcome ruling 8 asked the phase to avoid.
-    file: src/poker_training_bot/solver_artifacts/schema.py
+    file: src/poker_training_bot/solver_artifacts/spot_key.py
     find: 'return f"{entry.position}:{entry.action}@{render_size_bb(entry.size_bb)}"'
     replace: 'return f"{entry.position}:{entry.action}"'
     must_fail:
@@ -615,7 +615,7 @@ mutations:
       three-bet to the same amount as the open it faces gets a key. A spot that cannot
       happen is a spot a chart can be filled for, and a key space that admits it is no
       longer canonical.
-    file: src/poker_training_bot/solver_artifacts/schema.py
+    file: src/poker_training_bot/solver_artifacts/spot_key.py
     find: "if size <= previous_size:"
     replace: "if size < previous_size:"
     must_fail:
@@ -629,7 +629,7 @@ mutations:
       permissive direction of the same rule that makes four-bets expressible, and a
       vocabulary that accepts sequences no hand can produce buys the phase's own defect
       back in the opposite sign.
-    file: src/poker_training_bot/solver_artifacts/schema.py
+    file: src/poker_training_bot/solver_artifacts/spot_key.py
     find: "if entry.position in folded:"
     replace: "if False and entry.position in folded:"
     must_fail:

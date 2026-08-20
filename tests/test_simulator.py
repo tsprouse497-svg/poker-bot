@@ -48,11 +48,15 @@ BIG_BLIND = 100
 STARTING_STACK = 100 * BIG_BLIND
 
 # One full orbit is six hands, so every count that has to come out even needs a
-# multiple of six. Two orbits is the smallest run that gives every profile every
-# position twice, which is enough for the coverage assertions without making the
-# gate slow.
+# multiple of six. Six orbits, because of the anti-vacuity guard below rather than
+# the coverage assertions: the run has to actually reach a refusal or every
+# "for each refused hand" assertion in this file passes on an empty list. At roughly
+# one refusal in five hands a twelve-hand run contains none about six percent of the
+# time, and phase 12's re-keying re-seeded every mixed draw and landed on exactly
+# that. Thirty-six hands holds eight refusals here, which is margin rather than luck,
+# and the run still costs a fraction of a second.
 ORBIT = SEATS
-RUN_HANDS = 2 * ORBIT
+RUN_HANDS = 6 * ORBIT
 
 TERMINAL_OUTCOMES = frozenset({"showdown", "uncontested", "refused"})
 
