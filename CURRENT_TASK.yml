@@ -1,11 +1,9 @@
-task_id: phase-12-frozen-test-repair
+task_id: phase-12-build
 active_phase: "12"
 task_mode: implementation
-base_commit: d83405bee4a25084f2c27ddfe1b26d82501e977c
+base_commit: dd52b5b90cef9bf1188e9ed96ddfc471217d89f6
 approved_scope:
-  - tests/**
-  - verification/freeze.lock
-  - verification/mutations.yml
+  - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
   - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -751,3 +749,17 @@ scope_change_log:
       approved_scope for the file paths and nothing else - every find and replace string is
       untouched, which is what keeps this a relocation rather than a canary being reshaped
       to suit the code it is aimed at.
+  - date: 2026-08-20
+    reason: >-
+      Back to the phase task to settle the last stage-6 blocker. The GTOpen source card
+      states headroom_bytes as the 20 MB limit less the total bytes under
+      data/artifacts/**, so re-keying the preflop chart moved a number on a card belonging
+      to a different export by the 1,918 bytes the sizes added. The card joins
+      approved_scope for that one field, re-settled by the same fixed-point rule
+      scripts/extract_gtopen_preflop.py already uses, so no figure is hand-computed and
+      nothing else on the card moves. tests/ and verification/ leave approved_scope again,
+      because the repair task that preceded this one is committed and closed. That the
+      number is a property of the whole directory rather than of the export is a real
+      defect and stays filed as SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE;
+      redesigning it would mean editing the phase 10 extractor, which this phase has no
+      business in.
