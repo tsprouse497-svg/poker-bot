@@ -771,3 +771,23 @@ items:
       Found by MAINT-23, which did the bookkeeping and deliberately did not write the check,
       because a gate check added in the same commit as the correction it would have caught is a
       check reviewing its own motivation.
+  - id: LOOP-LANE-POINTERS-NEVER-RETIRE
+    status: deferred
+    phase: contract-update
+    title: Completed lane pointers still count as live lanes
+    reason: >-
+      loop_stage.py names its own selection `live`, but run_paths() returns every file under
+      verification/loop_runs/ plus the legacy verification/loop_state.yml, and nothing ever
+      removes a pointer when a phase completes. So the count grows monotonically: opening the
+      phase 12 lane made a bare `loop_stage.py` refuse with "3 lanes in this worktree (11, 12,
+      loop_state)" while `loop_fleet.py --status` correctly said no lanes were running.
+      Two costs, and the second is the one that bites. A bare invocation stops working
+      permanently, which docs/LOOP.md still presents as the ordinary way to ask what stage you
+      are on. And the error text asserts three live lanes when there are none, so a fresh
+      session reading it concludes two other phases are mid-flight and coordinates around work
+      that finished. By phase 16 it will name eight.
+      Filed as contract-update rather than tooling because the fix is a ruling first: either a
+      completed lane's pointer is retired at closeout, or `live` means "not completed" and is
+      read from phase_status.yml, and the legacy loop_state.yml either migrates or is excluded
+      by name. docs/LOOP.md then has to say which. Found by the phase 12 stage-1 review, which
+      hit it opening the lane.
