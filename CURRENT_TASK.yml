@@ -1,11 +1,13 @@
-task_id: MAINT-24-stage-4-red-window
-active_phase: null
-task_mode: maintenance
-base_commit: f6b2c84ca9973a263b84ae148555750999259702
+task_id: phase-12-tests
+active_phase: "12"
+task_mode: implementation
+base_commit: cf1e12aace8b8fc1523fae1ca0221216661452a3
 approved_scope:
-  - scripts/loop_stage.py
-  - tests/test_loop_machinery.py
-  - docs/exec_plans/completed/MAINT_24_STAGE_4_RED_WINDOW.md
+  - tests/test_spot_vocabulary.py
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - scripts/run_verify.py
+  - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -646,3 +648,8 @@ scope_change_log:
       tests/test_loop_machinery.py does move the recorded count, and re-freezing is stage 5's
       act rather than a maintenance task's, so check_test_freeze stays red until then - which
       it already was, because tests/test_spot_vocabulary.py is not in the lock yet.
+  - date: 2026-08-20
+    reason: >-
+      Back to the phase 12 stage-4 task after MAINT-24. scripts/loop_stage.py and
+      tests/test_loop_machinery.py leave approved_scope again, which is the point: the driver
+      and its test are check-script territory that a phase task must not reach.
