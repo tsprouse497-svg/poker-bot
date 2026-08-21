@@ -1,7 +1,7 @@
-task_id: null
+task_id: maint-stale-lane-pointers
 active_phase: null
-task_mode: idle
-base_commit: null
+task_mode: maintenance
+base_commit: beec7d6331103966a259643c98a4819e9ab6466c
 approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
@@ -580,3 +580,10 @@ scope_change_log:
       implementation, so a contract-update task carrying it breaks no mode rule; the rule being
       added governs contract amendments and this task's own amendment is its first application,
       which is why they are not split into two tasks.
+  - date: 2026-08-20
+    reason: >-
+      A session reading verification/loop_state.yml reported the repo idle at phase 10 while
+      phase 12 was live at stage 7 in another worktree, because completed lane pointers are
+      never retired. Filing it needs backlog.yml alone, which is standing scope, so
+      approved_scope stays empty; the entry is recorded here because a maintenance task with
+      no approved paths still has to say what it did.
