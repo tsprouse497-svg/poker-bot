@@ -920,3 +920,58 @@ items:
       files, they render as text, and nothing in the gate looks for them. Filed rather than
       fixed here because the contract and the decision record are contract-update territory
       and this task is in implementation mode.
+  - id: NORMALISER-MEASURES-DISTANCE-IN-BIG-BLINDS
+    status: deferred
+    phase: "14"
+    title: Nearest price is nearest in big blinds, and hero's range responds to a ratio
+    reason: >-
+      SolvedPriceIndex.normalise picks the candidate minimising abs(size - asked) in big
+      blinds. The quantity that decides whether hero continues is not the absolute size but
+      the price relative to what is already in: a three-bet to 12 over a 4bb open is a 3.0x
+      and the same 12 over a 2.5bb open is a 4.8x, and those are different spots to a
+      defender even though the key's number is identical.
+      Latent today and provably so: every location in the committed artifact declares exactly
+      one solved price, so normalise never chooses between candidates and the metric is never
+      exercised. It goes live the first time a location holds two, which is what deriving a
+      chart from the phase 10 export does. Concretely, with three-bets solved at 8 and 11 over
+      a 2.5 open, an observed three-bet to 12 that arrived over an observed 4bb open is
+      answered from 11 - a 4.4x - when 8 at 3.2x is the nearer price in the only unit the
+      decision responds to.
+      Filed against phase 14 rather than fixed in phase 12 because changing the metric changes
+      which cell a price reaches, and phase 12's committed keys are what phase 14 is measured
+      against. Found by the phase 12 stage-8 poker review.
+  - id: RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL
+    status: deferred
+    phase: "14"
+    title: A vocabulary change re-randomises every mixed decision, so self-play cannot regress
+    reason: >-
+      PreflopChartStrategy._seed hashes the spot key into the seeded draw that collapses a
+      mixed cell, so re-keying the artifact re-seeds every mixed decision and a self-play run
+      walks a different path through the same distributions. Phase 12 moved the profile
+      comparison from 128 refused and 472 measured to 126 and 474 for exactly this reason and
+      said so in its report, which is the honest handling of it.
+      The cost is that the numbers cannot be used for what they look like they are for. Phase
+      14 re-keys again when it derives a chart, and every self-play figure will move again for
+      no poker reason, so a real regression arriving in the same phase is indistinguishable
+      from the re-seed. The phases most likely to need a self-play regression signal are the
+      ones guaranteed not to have one.
+      A fix has to decide what the seed should be stable against - the hand and the spot's
+      identity rather than its rendering - and that is a ruling about what a mixed cell's draw
+      means, so it is filed rather than patched. Found by the phase 12 stage-8 poker review.
+  - id: TWO-LANES-CAN-FILE-ONE-DEFECT-TWICE
+    status: deferred
+    phase: contract-update
+    title: Two worktrees filing one defect produce two backlog ids and nothing notices
+    reason: >-
+      backlog.yml is in standing_scope in every lane, so any worktree may file into it, and
+      the lanes do not see each other until a merge. On 2026-08-20 this lane filed
+      LOOP-LANE-POINTERS-NEVER-RETIRE at d0c7c43 from the phase 12 stage-1 review, and hours
+      later the main lane filed the same defect under a different id at 14fa982, with the same
+      diagnosis and the same "3 lanes in this worktree" evidence. Neither session could see the
+      other's entry, and no check compares them: backlog_errors rejects a duplicate id but two
+      ids describing one defect is exactly what it cannot see.
+      It gets worse with lanes rather than with time, and the merge is the wrong place to catch
+      it, because by then two audit trails cite two ids for one thing. Filed as contract-update
+      because the fix is a rule about where a cross-cutting defect is filed when several lanes
+      are open, not a check that can be written before that rule exists. Found by the phase 12
+      stage-8 review, which is also the review that caused the duplicate.
