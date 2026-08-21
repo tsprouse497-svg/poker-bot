@@ -25,9 +25,16 @@ stopped it. That is the whole reason the class matters here: phase 12 could flag
 call for a human because policy already halted it at stage 3, and phase 13 cannot. A flag with
 no mechanism behind it reaches nobody.
 
-The other twelve items are `runtime-reversible`. Every one is a field shape, a validation rule,
+The other fifteen items are `runtime-reversible`. Every one is a field shape, a validation rule,
 a refusal rule, or a report choice whose default a later edit changes without re-opening a
 frozen test that asserts the *behaviour* rather than the shape.
+
+## Ruled by Taylor, 2026-08-21
+
+**Decision 6 stands at its strictest option: a live seat whose starting stack differs from
+hero's at all refuses, with no tolerance band.** The full record, including the cost he
+accepted and the one committed fixture where it bites today, is in decision 6 itself. The other
+fifteen items proceed on their recorded defaults and are reported afterwards.
 
 ## What was measured first
 
@@ -180,7 +187,11 @@ a positive contribution, and a seat yet to act in an unopened pot has none.
 
 The cost the default accepts: a third per-seat field, and a producer that forgets to set it
 reports a folded seat as live, which over-refuses rather than under-refuses. Over-refusing is
-the safer failure and the reconciliation will usually catch it anyway.
+the safer failure, and nothing else catches it. Decision 3's reconciliation cannot: a folded
+seat's chips are in the pot either way, so the sum is identical whichever the marker says. Under
+decision 6's exact-equality ruling that makes the marker the single point between a mis-set
+producer and a refusal, which is why decision 14 puts the all-in marker beside it rather than
+deriving either.
 
 ## 6. Whether a live seat shallower than hero refuses, and at what tolerance
 
@@ -201,7 +212,29 @@ own depth matches the chart and refuse only when an opponent is short enough to 
 price hero is being offered?
 
 Options: exact-equality | tolerance-band | shallower-only-beyond-a-threshold | no-check
-Answer: []
+Answer: [exact-equality]
+
+**Ruled by Taylor, 2026-08-21: refuse on any difference.** He was shown the three live options
+in poker English with their costs and took the strictest, on the reading that it costs almost
+nothing today and that the alternatives both need a number nobody in this repo can currently
+derive. The cost he accepted is the one stated above: once real table state arrives the bot
+answers almost nothing until this is re-ruled, and the re-ruling belongs to whoever solves
+`CORPUS-CANNOT-EXPRESS-A-TABLE-SHAPE`, because that is the first point at which there is
+evidence to set a tolerance against.
+
+**Almost nothing, not nothing, and the correction matters in this phase's favour.** He was told
+it costs nothing today because all 499 corpus hands are exactly 100bb, which is true of the
+corpus and false of the repo. The independent stage 3 reviewer found the one committed surface
+where this rule fires: `data/samples/normalized_hands.json` holds `phase02-three-way-side-pot`
+at 50, 100 and 200 chips with 5/10 blinds, and the postflop fallback report drives all three of
+its preflop decision points through `PreflopChartStrategy`. They refuse today with
+`lookup:no-artifact-for-table-size`, because the current derivation makes every seat present as
+20bb and the three-handed table has no artifact. Once starting stacks are recomputed from
+contributions, the depth check fires first and two of the three change code, with the deep seat
+taking the new shorter-live-seat code. So the committed postflop fallback report changes and
+this fixture is the phase's only live evidence that decision 6 fires at all. That strengthens
+the ruling rather than weakening it, and the report says so rather than the packet claiming
+nothing moved.
 
 This is the decision with the largest behavioural reach in the phase, and the honest statement
 of its cost is that **it refuses essentially every real table.** Committed data cannot show
@@ -444,8 +477,9 @@ Reversibility: runtime-reversible
 
 Default: **`preflop-chart:a-live-seat-is-shorter-than-hero`,
 `preflop-chart:pot-holds-a-straddle`, and `preflop-chart:pot-holds-an-ante`.**
-`preflop-chart:blind-structure-not-representable` is retired, because both of its branches
-become one of the two new codes and it would otherwise have no trigger left.
+`preflop-chart:blind-structure-not-representable` is kept, narrowed to forced money the three
+signals cannot classify, because both of its current branches become one of the two new codes
+and it would otherwise have no trigger left.
 
 Options: named-above | keep-one-blind-structure-code | reuse-table-is-not-one-flat-stack-depth
 Answer: [named-above]
@@ -455,10 +489,12 @@ and are the vocabulary a human reads coverage in, so they are chosen here rather
 They follow the existing house style at `preflop_chart.py`: a plain-English phrase, hyphenated,
 saying what is wrong rather than which check fired.
 
-Retiring `blind-structure-not-representable` contradicts the contract's regression expectation
-that every existing refusal code stays reachable, so the phase either keeps it as the code for a
-pot that holds forced money it cannot classify, or amends that expectation. The default is to
-keep it for exactly that residual, which decision 8 says has to be named anyway.
+Correcting the default's own first sentence, which said the code is retired and then said it is
+kept: **`preflop-chart:blind-structure-not-representable` is kept, not retired.** It becomes the
+code for a pot holding forced money the three signals cannot classify as either a straddle or an
+ante, which is the residual decision 8 has to name anyway. That satisfies the contract's
+regression expectation that every existing code stays reachable, and it means the two new codes
+are additions rather than a replacement.
 
 The cost the default accepts: three more codes in an inventory that already has thirteen, and a
 grouping question for whoever reads the inventory next.

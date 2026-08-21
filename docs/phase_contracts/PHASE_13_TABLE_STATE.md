@@ -124,13 +124,12 @@ Phase 13 is limited to the work named by this contract and the active ExecPlan.
   chart answers at hero's depth. Both now refuse, and a shallower seat gets a refusal code of
   its own, because "somebody is short" and "somebody is deep" are different tables and a
   single code would merge them in the inventory.
-- A seat that has already folded does not make the table ragged, and a test pins that. Its
-  chips stay in the pot and in the reconciliation, but effective stack is pairwise and against
-  seats that can still act, so a folded 40bb seat cannot change a chip of hero's decision.
-  Refusing on it is a regression this phase would have introduced, and it is the case a
-  stricter check gets wrong first.
-- The refusal names the seat and the depth it holds in its structured detail, so the refusal
-  inventory can say which table shape the chart is missing rather than only that one is.
+- A seat that has already folded does not make the table ragged, and a test pins that. Its chips
+  stay in the pot and in the reconciliation, but effective stack is pairwise and against seats
+  that can still act, so a folded 40bb seat cannot change a chip of hero's decision. Refusing on
+  it is a regression this phase would have introduced.
+- The refusal names the seat and the depth it holds in its detail, so the refusal inventory can
+  say which table shape the chart is missing rather than only that one is.
 - The order the depth checks fire in is ruled and pinned by test, since a ragged hero is
   tested before any villain today. Without an order the codes are unpredictable in exactly the
   low-stakes games where no stack is a whole number of big blinds, and the inventory stops
@@ -142,7 +141,9 @@ Phase 13 is limited to the work named by this contract and the active ExecPlan.
 - On the committed corpus every count above is expected to be zero, and the phase reports those
   zeros as a checked regression proof rather than omitting them: a corpus number that moves is
   a defect, not a discovery. The discovery evidence is constructed fixtures, and the report
-  states for each what the chart derived before and derives now.
+  states for each what the chart derived before and derives now. One committed fixture is
+  expected to move and is the phase's only live evidence: the three-handed side-pot hand at 50,
+  100 and 200 chips changes refusal code in the postflop fallback report.
 
 ### A straddle and an ante are detected exactly, not bounded
 - Forced money is found by reconstructing what each seat should hold from the two declared
@@ -294,7 +295,6 @@ Phase 13 is limited to the work named by this contract and the active ExecPlan.
   committed audit packet is edited to match.
 - The committed decision audits still validate, at the moved schema version, and the report
   regenerates them rather than the phase hand-editing a payload.
-- Every existing refusal code keeps its meaning and stays reachable. The new codes are
-  additions; a code that quietly absorbs another takes the distinction it drew with it.
-- Generated human docs remain current.
+- Every existing refusal code stays reachable and the new ones are additions, because a code
+  that absorbs another takes the distinction it drew with it. Generated docs stay current.
 - File-size and scope checks continue to pass.

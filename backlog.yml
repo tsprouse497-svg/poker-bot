@@ -99,6 +99,19 @@ items:
     phase: "13"
     title: Antes and straddles in the artifact format
     reason: The artifact declares no blind structure, so a straddled or anted pot reads as an ordinary one even though both materially change correct preflop ranges. Common in the home-game context this bot targets.
+  - id: DECISION-LIST-HAS-NO-FIXED-PLACE-FOR-A-RULING
+    status: deferred
+    phase: contract-update
+    title: A decision list has no convention for where a human ruling is recorded
+    reason: >-
+      Phase 12 put its ruling in a top-level "Ruled by Taylor" section before any decision
+      body; phase 13 first put its ruling inside the decision it answered. Both are legible
+      alone and neither is the convention, so a document can hold an answered question whose
+      header and body still read as open, which is what the independent stage 3 reviewer
+      found in phase 13 before it was corrected. The loop driver only reads the Answer
+      bracket, so nothing mechanical notices. docs/LOOP.md or docs/exec_plans/TEMPLATE.md
+      should name one place, and the natural one is both: a summary section at the head and
+      the full record beside the item it settles.
   - id: QUERY-CANNOT-EXPRESS-RAKE-OR-DEAD-MONEY
     status: deferred
     phase: strategy
@@ -138,14 +151,18 @@ items:
       [50, 100, 0, 0, 0, 0] in 499 of 499. data_pipeline/corpus.py rejects at parse time any
       hand that does not post exactly two positive blinds in the first two seats, the engine
       posts only two blinds and knows no ante, and simulator/config.py forces one starting
-      stack for every seat. The only unequal table committed anywhere is the three-handed
-      phase02-three-way-side-pot fixture, which can never reach the six-max chart. So every
-      table-shape number phase 13 could report against the corpus is structurally zero before
-      anything is measured, the detection that phase builds has no live caller, and its tests
-      are synthetic fixtures with no producer behind them. Two independent reviewers found
-      this at phase 13 stage 1. Whatever schedules ASYMMETRIC-EFFECTIVE-STACKS or the format
-      half of BLIND-STRUCTURE-VARIANTS needs data first, and bounded ingestion of one
-      player's own hands is the ruled route to it.
+      stack for every seat. So every table-shape number phase 13 could report against the
+      corpus is structurally zero before anything is measured, and the detection that phase
+      builds is exercised almost entirely by synthetic fixtures with no producer behind them.
+      Two independent reviewers found this at phase 13 stage 1. One exception, found at stage
+      3 and worth keeping: data/samples/normalized_hands.json holds phase02-three-way-side-pot
+      at 50, 100 and 200 chips, the only unequal table committed anywhere, and the postflop
+      fallback report drives its three preflop decision points through PreflopChartStrategy.
+      It is three-handed so it never reaches the six-max chart, but it does reach the depth
+      check, which makes it the sole live evidence that a per-seat depth rule fires at all.
+      Whatever schedules ASYMMETRIC-EFFECTIVE-STACKS or the format half of
+      BLIND-STRUCTURE-VARIANTS needs data first, and bounded ingestion of one player's own
+      hands is the ruled route to it.
   - id: ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP
     status: deferred
     phase: contract-update
