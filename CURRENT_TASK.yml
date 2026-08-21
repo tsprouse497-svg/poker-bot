@@ -1,12 +1,19 @@
-task_id: PHASE_13_TESTS
+task_id: PHASE_13_BUILD
 active_phase: "13"
 task_mode: implementation
-base_commit: bf05ca43ed3f894f85c58008232cfa90223405b6
+base_commit: 80ca70d9748f884a39400a455ea346bf4399ac90
 approved_scope:
-  - tests/**
-  - verification/mutations.yml
-  - verification/freeze.lock
-  - scripts/run_verify.py
+  - src/poker_training_bot/strategy/contract.py
+  - src/poker_training_bot/strategy/preflop_chart.py
+  - src/poker_training_bot/simulator/table.py
+  - src/poker_training_bot/data_pipeline/comparison.py
+  - src/poker_training_bot/solver_artifacts/spot_key.py
+  - src/poker_training_bot/table_state/**
+  - scripts/generate_table_state_report.py
+  - scripts/generate_preflop_strategy_report.py
+  - scripts/generate_postflop_fallback_report.py
+  - scripts/generate_strategy_query_report.py
+  - scripts/generate_engine_fidelity_report.py
   - reports/phase_audits/reviews/PHASE_13_TABLE_STATE/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -888,3 +895,20 @@ scope_change_log:
       37 before and 37 after with the name set diffed rather than the count. The new file is
       registered on the existing pytest_postflop_fallback command, which is why
       scripts/run_verify.py is in scope for more than this phase's own two command IDs.
+  - date: 2026-08-21
+    reason: >-
+      Phase 13 stage 5 freezes the tests and narrows scope for the build. tests/** and
+      verification/** leave approved_scope, so check_scope.py mechanically stops the builder
+      reaching the tests it is measured by, which is the loop's central protection. The freeze
+      records 28 files and 775 test functions, up from 37 to 66 in this phase's own two files
+      plus the split companion.
+      scripts/run_verify.py leaves scope with them: the two command IDs and the split file are
+      registered, and a builder that can edit the gate can edit what the gate runs.
+      In come the six source files the criteria name and the five query producers. The report
+      generator and its module are new files. solver_artifacts/spot_key.py is approved for the
+      docstring correction only, since the key itself is a declared non-goal; any change to the
+      grammar or to _validate_sizes is out of scope and is a finding rather than a fix.
+      base_commit moves to 80ca70d, the freeze commit, for the same reason phase 05 moved its
+      own: check_scope measures the diff from base_commit, and stage 4's tests were legitimately
+      in scope under their own entry. Left where it was, the freeze itself would read as the
+      builder writing tests, which is precisely the thing this narrowing exists to stop.
