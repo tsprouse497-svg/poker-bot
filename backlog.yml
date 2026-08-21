@@ -99,6 +99,39 @@ items:
     phase: "13"
     title: Antes and straddles in the artifact format
     reason: The artifact declares no blind structure, so a straddled or anted pot reads as an ordinary one even though both materially change correct preflop ranges. Common in the home-game context this bot targets.
+  - id: CORPUS-CANNOT-EXPRESS-A-TABLE-SHAPE
+    status: deferred
+    phase: samples
+    title: Nothing in this repo can produce an asymmetric, straddled, or anted table
+    reason: >-
+      Measured at phase 13 stage 1 over all 499 committed corpus hands: starting_stacks is
+      [10000] x 6 in 499 of 499, antes is all zeros in 499 of 499, and blinds_or_straddles is
+      [50, 100, 0, 0, 0, 0] in 499 of 499. data_pipeline/corpus.py rejects at parse time any
+      hand that does not post exactly two positive blinds in the first two seats, the engine
+      posts only two blinds and knows no ante, and simulator/config.py forces one starting
+      stack for every seat. The only unequal table committed anywhere is the three-handed
+      phase02-three-way-side-pot fixture, which can never reach the six-max chart. So every
+      table-shape number phase 13 could report against the corpus is structurally zero before
+      anything is measured, the detection that phase builds has no live caller, and its tests
+      are synthetic fixtures with no producer behind them. Two independent reviewers found
+      this at phase 13 stage 1. Whatever schedules ASYMMETRIC-EFFECTIVE-STACKS or the format
+      half of BLIND-STRUCTURE-VARIANTS needs data first, and bounded ingestion of one
+      player's own hands is the ruled route to it.
+  - id: ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP
+    status: deferred
+    phase: contract-update
+    title: The Phase 11 contract is 300 of 300 lines and owes an amendment it cannot take
+    reason: >-
+      docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md sits at exactly the 300-line cap in
+      scripts/check_file_sizes.py. It names StrategyQuery.street_bet in three acceptance
+      criteria, which phase 13 renames under STRATEGY-QUERY-STREET-BET-NAME, and it asserts
+      that the preflop chart's raise cap is its own all-in target, which is already false:
+      the chart caps at street_bet plus stack while DecisionAuditRecord caps at street_bet
+      minus to_call plus stack, differing by exactly to_call. AGENTS.md forbids raising the
+      cap to fit an amendment and rules that a contract at the cap is due for a rewrite
+      folding its amendments into the criteria they amend, as its own contract-update task.
+      That rewrite is what is owed. No check reports a contract sitting at the cap while it
+      owes an amendment, which is why phase 13 stage 1 is the first place it surfaced.
   - id: CONTRACT-CRITERIA-BACKFILL
     status: deferred
     phase: contract-update

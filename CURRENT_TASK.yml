@@ -1,8 +1,12 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE_13_CONTRACT
+active_phase: "13"
+task_mode: contract-update
+base_commit: 41ec07a3bcc918312e4c1600a3b842cf9f944a82
+approved_scope:
+  - docs/phase_contracts/PHASE_13_TABLE_STATE.md
+  - docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
+  - docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md
+  - reports/phase_audits/reviews/PHASE_13_TABLE_STATE/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -834,3 +838,17 @@ scope_change_log:
       to the code. No frozen test asserts a Census field or a census line's wording; the one
       test over this section asserts the words 'substitution' and 'open' and the figure 72 are
       present, all of which survive.
+  - date: 2026-08-21
+    reason: >-
+      Phase 13 stage 1 is contract-update. The skeleton at
+      docs/phase_contracts/PHASE_13_TABLE_STATE.md carries only boilerplate criteria, so it
+      is approved along with the stage's own review notes.
+      Two completed contracts are approved with it, because stage 1 is the only
+      contract-update window the loop gives a phase and both amendments are this phase's
+      declared target rather than new opinions. PHASE_03_STRATEGY_CONTRACT.md names the
+      query's fields and the street_bet reading that this phase renames, and
+      PHASE_06_POSTFLOP_FALLBACK.md states its short hero as a stack below the price to
+      call, which the 2026-08-20 capped-to_call ruling makes inexpressible;
+      STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS names that restatement as phase 13 stage 1
+      work in as many words. Both amendments obey the two-line cap in AGENTS.md.
+      No source, test, artifact, or gate file is in scope at this stage.

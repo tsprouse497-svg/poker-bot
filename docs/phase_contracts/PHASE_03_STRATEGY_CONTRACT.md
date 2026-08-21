@@ -51,6 +51,8 @@ limited to the work named by this contract and the active ExecPlan.
   legal actions, price to call, minimum raise target, pot, stacks, blinds,
   button); `StrategyDecision` must name a legal action; a first-class refusal
   outcome lets a strategy decline rather than guess.
+  Amended by Phase 13 (`PER-SEAT-CONTRIBUTIONS-IN-QUERY`, `STRATEGY-QUERY-STREET-BET-NAME`):
+  the query also carries each seat's committed chips, and `street_bet` is now `current_bet`.
 - `StrategyQuery` carries the preflop action history as an ordered sequence of
   seat and action pairs, because price to call and stack sizes cannot tell a
   strategy who raised. Without it an artifact-backed strategy cannot name the
