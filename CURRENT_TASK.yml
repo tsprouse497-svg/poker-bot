@@ -1,7 +1,7 @@
-task_id: maint-stale-lane-pointers
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: beec7d6331103966a259643c98a4819e9ab6466c
+task_mode: idle
+base_commit: null
 approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
