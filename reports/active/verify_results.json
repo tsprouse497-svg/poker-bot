@@ -1,6 +1,6 @@
 {
   "all_passed": true,
-  "generated_at_epoch": 1787291471,
+  "generated_at_epoch": 1787352972,
   "results": [
     {
       "command": [
@@ -11,7 +11,7 @@
       ],
       "command_id": "generate_status",
       "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.057,
+      "duration_seconds": 0.062,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -26,7 +26,7 @@
       ],
       "command_id": "generate_phase_ledger",
       "description": "Regenerate phase ledger",
-      "duration_seconds": 0.038,
+      "duration_seconds": 0.042,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -41,7 +41,7 @@
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.052,
+      "duration_seconds": 0.057,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -58,11 +58,11 @@
       ],
       "command_id": "pytest_poker_core",
       "description": "Run poker-core tests",
-      "duration_seconds": 0.147,
+      "duration_seconds": 0.11,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 9 items\n\ntests/test_poker_core.py .........                                       [100%]\n\n============================== 9 passed in 0.02s ===============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 9 items\n\ntests/test_poker_core.py .........                                       [100%]\n\n============================== 9 passed in 0.01s ===============================\n"
     },
     {
       "command": [
@@ -73,7 +73,7 @@
       ],
       "command_id": "generate_golden_hand_report",
       "description": "Generate golden-hand replay report",
-      "duration_seconds": 0.037,
+      "duration_seconds": 0.038,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -90,11 +90,11 @@
       ],
       "command_id": "pytest_hand_history",
       "description": "Run hand-history tests",
-      "duration_seconds": 0.115,
+      "duration_seconds": 0.116,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 18 items\n\ntests/test_hand_history.py ..................                            [100%]\n\n============================== 18 passed in 0.02s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 18 items\n\ntests/test_hand_history.py ..................                            [100%]\n\n============================== 18 passed in 0.02s ==============================\n"
     },
     {
       "command": [
@@ -105,7 +105,7 @@
       ],
       "command_id": "generate_hand_history_replay_report",
       "description": "Generate normalized hand-history replay report",
-      "duration_seconds": 0.04,
+      "duration_seconds": 0.041,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -123,11 +123,11 @@
       ],
       "command_id": "pytest_strategy_contract",
       "description": "Run strategy-contract and turn-order tests",
-      "duration_seconds": 0.156,
+      "duration_seconds": 0.152,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 80 items\n\ntests/test_strategy_contract.py ........................................ [ 50%]\n...................                                                      [ 73%]\ntests/test_action_order.py .....................                         [100%]\n\n============================== 80 passed in 0.06s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 80 items\n\ntests/test_strategy_contract.py ........................................ [ 50%]\n...................                                                      [ 73%]\ntests/test_action_order.py .....................                         [100%]\n\n============================== 80 passed in 0.05s ==============================\n"
     },
     {
       "command": [
@@ -138,7 +138,7 @@
       ],
       "command_id": "generate_strategy_query_report",
       "description": "Generate strategy query report and decision audit",
-      "duration_seconds": 0.041,
+      "duration_seconds": 0.045,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -158,11 +158,11 @@
       ],
       "command_id": "pytest_preflop_artifacts",
       "description": "Run preflop position, artifact, and chart-lookup tests",
-      "duration_seconds": 0.348,
+      "duration_seconds": 0.35,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 238 items\n\ntests/test_preflop_positions.py ........................................ [ 16%]\n............................................................             [ 42%]\ntests/test_preflop_artifacts.py ........................................ [ 58%]\n...........................................                              [ 76%]\ntests/test_preflop_lookup.py ...............................             [ 89%]\ntests/test_preflop_committed_charts.py ........................          [100%]\n\n============================= 238 passed in 0.19s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 238 items\n\ntests/test_preflop_positions.py ........................................ [ 16%]\n............................................................             [ 42%]\ntests/test_preflop_artifacts.py ........................................ [ 58%]\n...........................................                              [ 76%]\ntests/test_preflop_lookup.py ...............................             [ 89%]\ntests/test_preflop_committed_charts.py ........................          [100%]\n\n============================= 238 passed in 0.20s ==============================\n"
     },
     {
       "command": [
@@ -173,7 +173,7 @@
       ],
       "command_id": "generate_preflop_chart_report",
       "description": "Generate preflop chart coverage report",
-      "duration_seconds": 0.056,
+      "duration_seconds": 0.055,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -190,11 +190,11 @@
       ],
       "command_id": "pytest_full_table_preflop",
       "description": "Run full-table preflop strategy tests",
-      "duration_seconds": 0.406,
+      "duration_seconds": 0.416,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 55 items\n\ntests/test_full_table_preflop.py ....................................... [ 70%]\n................                                                         [100%]\n\n============================== 55 passed in 0.31s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 55 items\n\ntests/test_full_table_preflop.py ....................................... [ 70%]\n................                                                         [100%]\n\n============================== 55 passed in 0.32s ==============================\n"
     },
     {
       "command": [
@@ -205,7 +205,7 @@
       ],
       "command_id": "generate_preflop_strategy_report",
       "description": "Generate preflop strategy coverage and frequency report",
-      "duration_seconds": 0.185,
+      "duration_seconds": 0.191,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -218,15 +218,16 @@
         "python",
         "-m",
         "pytest",
-        "tests/test_postflop_fallback.py"
+        "tests/test_postflop_fallback.py",
+        "tests/test_postflop_fallback_components.py"
       ],
       "command_id": "pytest_postflop_fallback",
       "description": "Run postflop fallback and composite strategy tests",
-      "duration_seconds": 4.231,
+      "duration_seconds": 7.083,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_postflop_fallback.py ........................................ [ 90%]\n....                                                                     [100%]\n\n============================== 44 passed in 4.13s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_postflop_fallback.py ..........................               [ 59%]\ntests/test_postflop_fallback_components.py ..................            [100%]\n\n============================== 44 passed in 6.97s ==============================\n"
     },
     {
       "command": [
@@ -237,7 +238,7 @@
       ],
       "command_id": "generate_postflop_fallback_report",
       "description": "Generate postflop fallback enumeration report and decision audit",
-      "duration_seconds": 10.44,
+      "duration_seconds": 22.712,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -254,11 +255,11 @@
       ],
       "command_id": "pytest_simulator",
       "description": "Run offline simulator and profile tests",
-      "duration_seconds": 0.353,
+      "duration_seconds": 0.884,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_simulator.py ............................................     [100%]\n\n============================== 44 passed in 0.23s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_simulator.py ............................................     [100%]\n\n============================== 44 passed in 0.60s ==============================\n"
     },
     {
       "command": [
@@ -269,7 +270,7 @@
       ],
       "command_id": "generate_profile_comparison_report",
       "description": "Generate the bot/profile comparison report",
-      "duration_seconds": 0.467,
+      "duration_seconds": 1.261,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -287,11 +288,11 @@
       ],
       "command_id": "pytest_sample_comparison",
       "description": "Run public-corpus ingestion and player comparison tests",
-      "duration_seconds": 2.038,
+      "duration_seconds": 5.029,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 53 items\n\ntests/test_sample_comparison.py ........................................ [ 75%]\n.......                                                                  [ 88%]\ntests/test_sample_comparison_report.py ......                            [100%]\n\n============================== 53 passed in 1.85s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 53 items\n\ntests/test_sample_comparison.py ........................................ [ 75%]\n.......                                                                  [ 88%]\ntests/test_sample_comparison_report.py ......                            [100%]\n\n============================== 53 passed in 4.67s ==============================\n"
     },
     {
       "command": [
@@ -302,7 +303,7 @@
       ],
       "command_id": "generate_sample_comparison_report",
       "description": "Generate the real-hand comparison report and its refusal inventory",
-      "duration_seconds": 0.397,
+      "duration_seconds": 1.017,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -319,11 +320,11 @@
       ],
       "command_id": "pytest_quality_hardening",
       "description": "Run quality, drift, and phase-gate hardening tests",
-      "duration_seconds": 2.262,
+      "duration_seconds": 4.659,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 26 items\n\ntests/test_quality_hardening.py ..........................               [100%]\n\n============================== 26 passed in 2.08s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 26 items\n\ntests/test_quality_hardening.py ..........................               [100%]\n\n============================== 26 passed in 4.35s ==============================\n"
     },
     {
       "command": [
@@ -334,7 +335,7 @@
       ],
       "command_id": "run_full_quality_gate",
       "description": "Run the quality checks and write the quality report",
-      "duration_seconds": 0.843,
+      "duration_seconds": 1.432,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -352,11 +353,11 @@
       ],
       "command_id": "pytest_solver_export",
       "description": "Run GTOpen solver export, source-card, and expectations tests",
-      "duration_seconds": 2.067,
+      "duration_seconds": 5.22,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 74 items\n\ntests/test_solver_export.py ............................................ [ 59%]\n...........                                                              [ 74%]\ntests/test_solver_expectations.py ...................                    [100%]\n\n============================== 74 passed in 1.95s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 74 items\n\ntests/test_solver_export.py ............................................ [ 59%]\n...........                                                              [ 74%]\ntests/test_solver_expectations.py ...................                    [100%]\n\n============================== 74 passed in 4.99s ==============================\n"
     },
     {
       "command": [
@@ -367,11 +368,11 @@
       ],
       "command_id": "check_solver_export_expectations",
       "description": "Recompute the solver export's two orderings and check its source card against it",
-      "duration_seconds": 1.953,
+      "duration_seconds": 4.475,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "export:        /Users/taylorsprouse/projects/poker-bot-worktrees/main/data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz\naction nodes:  38828\n  RFI BTN    40.26%\n  RFI CO     27.34%\n  RFI HJ     21.64%\n  RFI LJ     19.08%\n  RFI SB     54.09%\n  BB vs BTN    36.76%\n  BB vs CO     34.12%\n  BB vs HJ     29.92%\n  BB vs LJ     27.28%\n  BB vs SB     49.02%\nboth orderings hold, and the source card matches the export\n"
+      "stdout": "export:        /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13/data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz\naction nodes:  38828\n  RFI BTN    40.26%\n  RFI CO     27.34%\n  RFI HJ     21.64%\n  RFI LJ     19.08%\n  RFI SB     54.09%\n  BB vs BTN    36.76%\n  BB vs CO     34.12%\n  BB vs HJ     29.92%\n  BB vs LJ     27.28%\n  BB vs SB     49.02%\nboth orderings hold, and the source card matches the export\n"
     },
     {
       "command": [
@@ -382,7 +383,7 @@
       ],
       "command_id": "generate_solver_export_report",
       "description": "Generate the solver export range-grid and comparison report",
-      "duration_seconds": 1.952,
+      "duration_seconds": 5.103,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -399,11 +400,11 @@
       ],
       "command_id": "pytest_engine_fidelity",
       "description": "Run the engine and strategy-query fidelity tests",
-      "duration_seconds": 0.263,
+      "duration_seconds": 0.76,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 52 items\n\ntests/test_engine_fidelity.py .......................................... [ 80%]\n..........                                                               [100%]\n\n============================== 52 passed in 0.16s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 52 items\n\ntests/test_engine_fidelity.py .......................................... [ 80%]\n..........                                                               [100%]\n\n============================== 52 passed in 0.46s ==============================\n"
     },
     {
       "command": [
@@ -414,7 +415,7 @@
       ],
       "command_id": "generate_engine_fidelity_report",
       "description": "Generate the engine and query fidelity before/after report",
-      "duration_seconds": 0.071,
+      "duration_seconds": 0.165,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -432,11 +433,11 @@
       ],
       "command_id": "pytest_spot_vocabulary",
       "description": "Run the sizing-aware and second-orbit spot vocabulary tests",
-      "duration_seconds": 1.746,
+      "duration_seconds": 4.828,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 69 items\n\ntests/test_spot_vocabulary.py ......................................     [ 55%]\ntests/test_spot_vocabulary_downstream.py ............................... [100%]\n\n============================== 69 passed in 1.64s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 69 items\n\ntests/test_spot_vocabulary.py ......................................     [ 55%]\ntests/test_spot_vocabulary_downstream.py ............................... [100%]\n\n============================== 69 passed in 4.59s ==============================\n"
     },
     {
       "command": [
@@ -447,11 +448,44 @@
       ],
       "command_id": "generate_spot_vocabulary_report",
       "description": "Generate the spot vocabulary report, key mapping, and price substitution census",
-      "duration_seconds": 1.21,
+      "duration_seconds": 3.403,
       "passed": true,
       "returncode": 0,
       "stderr": "",
       "stdout": "wrote reports/active/latest_spot_vocabulary_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_table_state.py",
+        "tests/test_table_state_strategy.py"
+      ],
+      "command_id": "pytest_table_state",
+      "description": "Run the per-seat contribution query and table-shape strategy tests",
+      "duration_seconds": 0.486,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 66 items\n\ntests/test_table_state.py .............................................. [ 69%]\n                                                                         [ 69%]\ntests/test_table_state_strategy.py ....................                  [100%]\n\n============================== 66 passed in 0.18s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_table_state_report.py"
+      ],
+      "command_id": "generate_table_state_report",
+      "description": "Generate the table-state report: pot reconciliation, depth, and blind structure",
+      "duration_seconds": 0.975,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_table_state_report.txt\n"
     },
     {
       "command": [
@@ -463,7 +497,7 @@
       ],
       "command_id": "check_generated_status",
       "description": "Check generated STATUS.md freshness",
-      "duration_seconds": 0.054,
+      "duration_seconds": 0.139,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -479,7 +513,7 @@
       ],
       "command_id": "check_generated_phase_ledger",
       "description": "Check generated phase ledger freshness",
-      "duration_seconds": 0.038,
+      "duration_seconds": 0.088,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -495,7 +529,7 @@
       ],
       "command_id": "check_generated_backlog",
       "description": "Check generated backlog freshness",
-      "duration_seconds": 0.053,
+      "duration_seconds": 0.138,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -510,7 +544,7 @@
       ],
       "command_id": "check_contracts",
       "description": "Validate phase contracts",
-      "duration_seconds": 0.042,
+      "duration_seconds": 0.099,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -525,7 +559,7 @@
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.117,
+      "duration_seconds": 0.344,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -540,7 +574,7 @@
       ],
       "command_id": "check_execplan_delegation",
       "description": "Validate active ExecPlan delegation plan",
-      "duration_seconds": 0.052,
+      "duration_seconds": 0.119,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -555,7 +589,7 @@
       ],
       "command_id": "check_repo_consistency",
       "description": "Cross-check phase status, ExecPlan location, gate commands, and the phase graph",
-      "duration_seconds": 0.088,
+      "duration_seconds": 0.229,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -571,11 +605,11 @@
       ],
       "command_id": "check_test_freeze",
       "description": "Check tests match verification/freeze.lock",
-      "duration_seconds": 0.069,
+      "duration_seconds": 0.207,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "test freeze intact: 25 files\n"
+      "stdout": "test freeze intact: 28 files\n"
     },
     {
       "command": [
@@ -586,7 +620,7 @@
       ],
       "command_id": "check_file_sizes",
       "description": "Validate file-size limits",
-      "duration_seconds": 0.04,
+      "duration_seconds": 0.081,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -603,11 +637,11 @@
       ],
       "command_id": "pytest_loop_fleet",
       "description": "Run parallel-loop eligibility, lane discovery, and pause board tests",
-      "duration_seconds": 0.191,
+      "duration_seconds": 0.335,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.09s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.14s ==============================\n"
     },
     {
       "command": [
@@ -619,7 +653,7 @@
       ],
       "command_id": "import_smoke",
       "description": "Import package smoke test",
-      "duration_seconds": 0.024,
+      "duration_seconds": 0.035,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -635,7 +669,7 @@
       ],
       "command_id": "uv_import_smoke",
       "description": "Prove uv environment can import the package",
-      "duration_seconds": 0.023,
+      "duration_seconds": 0.034,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -652,11 +686,11 @@
       ],
       "command_id": "pytest",
       "description": "Run tests",
-      "duration_seconds": 14.5,
+      "duration_seconds": 39.274,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/main\nconfigfile: pyproject.toml\ncollected 888 items\n\ntests/test_action_order.py .....................                         [  2%]\ntests/test_check_scope.py .............                                  [  3%]\ntests/test_command_registry.py .........                                 [  4%]\ntests/test_engine_fidelity.py .......................................... [  9%]\n..........                                                               [ 10%]\ntests/test_execplan_delegation.py ..........                             [ 11%]\ntests/test_full_table_preflop.py ....................................... [ 16%]\n................                                                         [ 18%]\ntests/test_hand_history.py ..................                            [ 20%]\ntests/test_import_smoke.py .                                             [ 20%]\ntests/test_loop_fleet.py ..................................              [ 23%]\ntests/test_loop_machinery.py ........................................... [ 28%]\n................                                                         [ 30%]\ntests/test_poker_core.py .........                                       [ 31%]\ntests/test_postflop_fallback.py ........................................ [ 36%]\n....                                                                     [ 36%]\ntests/test_preflop_artifacts.py ........................................ [ 41%]\n...........................................                              [ 45%]\ntests/test_preflop_committed_charts.py ........................          [ 48%]\ntests/test_preflop_lookup.py ...............................             [ 52%]\ntests/test_preflop_positions.py ........................................ [ 56%]\n............................................................             [ 63%]\ntests/test_quality_hardening.py ..........................               [ 66%]\ntests/test_sample_comparison.py ........................................ [ 70%]\n.......                                                                  [ 71%]\ntests/test_sample_comparison_report.py ......                            [ 72%]\ntests/test_simulator.py ............................................     [ 77%]\ntests/test_solver_expectations.py ...................                    [ 79%]\ntests/test_solver_export.py ............................................ [ 84%]\n...........                                                              [ 85%]\ntests/test_spot_vocabulary.py ......................................     [ 89%]\ntests/test_spot_vocabulary_downstream.py ............................... [ 93%]\n                                                                         [ 93%]\ntests/test_strategy_contract.py ........................................ [ 97%]\n...................                                                      [100%]\n\n============================= 888 passed in 14.35s =============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 954 items\n\ntests/test_action_order.py .....................                         [  2%]\ntests/test_check_scope.py .............                                  [  3%]\ntests/test_command_registry.py .........                                 [  4%]\ntests/test_engine_fidelity.py .......................................... [  8%]\n..........                                                               [  9%]\ntests/test_execplan_delegation.py ..........                             [ 11%]\ntests/test_full_table_preflop.py ....................................... [ 15%]\n................                                                         [ 16%]\ntests/test_hand_history.py ..................                            [ 18%]\ntests/test_import_smoke.py .                                             [ 18%]\ntests/test_loop_fleet.py ..................................              [ 22%]\ntests/test_loop_machinery.py ........................................... [ 26%]\n................                                                         [ 28%]\ntests/test_poker_core.py .........                                       [ 29%]\ntests/test_postflop_fallback.py ..........................               [ 32%]\ntests/test_postflop_fallback_components.py ..................            [ 34%]\ntests/test_preflop_artifacts.py ........................................ [ 38%]\n...........................................                              [ 42%]\ntests/test_preflop_committed_charts.py ........................          [ 45%]\ntests/test_preflop_lookup.py ...............................             [ 48%]\ntests/test_preflop_positions.py ........................................ [ 52%]\n............................................................             [ 59%]\ntests/test_quality_hardening.py ..........................               [ 61%]\ntests/test_sample_comparison.py ........................................ [ 65%]\n.......                                                                  [ 66%]\ntests/test_sample_comparison_report.py ......                            [ 67%]\ntests/test_simulator.py ............................................     [ 71%]\ntests/test_solver_expectations.py ...................                    [ 73%]\ntests/test_solver_export.py ............................................ [ 78%]\n...........                                                              [ 79%]\ntests/test_spot_vocabulary.py ......................................     [ 83%]\ntests/test_spot_vocabulary_downstream.py ............................... [ 86%]\n                                                                         [ 86%]\ntests/test_strategy_contract.py ........................................ [ 91%]\n...................                                                      [ 93%]\ntests/test_table_state.py .............................................. [ 97%]\n                                                                         [ 97%]\ntests/test_table_state_strategy.py ....................                  [100%]\n\n============================= 954 passed in 38.89s =============================\n"
     },
     {
       "command": [
@@ -667,11 +701,11 @@
       ],
       "command_id": "check_gate_bite",
       "description": "Prove committed mutations make the gate fail",
-      "duration_seconds": 806.201,
+      "duration_seconds": 1143.331,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "gate bites: 49 mutations all caught\n"
+      "stdout": "gate bites: 56 mutations all caught\n"
     },
     {
       "command": [
@@ -684,7 +718,7 @@
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.061,
+      "duration_seconds": 0.067,
       "passed": true,
       "returncode": 0,
       "stderr": "",

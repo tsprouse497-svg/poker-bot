@@ -31,6 +31,8 @@ All passed: True
 - PASS generate_engine_fidelity_report: Generate the engine and query fidelity before/after report
 - PASS pytest_spot_vocabulary: Run the sizing-aware and second-orbit spot vocabulary tests
 - PASS generate_spot_vocabulary_report: Generate the spot vocabulary report, key mapping, and price substitution census
+- PASS pytest_table_state: Run the per-seat contribution query and table-shape strategy tests
+- PASS generate_table_state_report: Generate the table-state report: pot reconciliation, depth, and blind structure
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness
