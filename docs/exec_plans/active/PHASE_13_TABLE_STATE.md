@@ -97,16 +97,19 @@ to an independent read-only reviewer rather than to the coordinator.
       all-in-ceiling claim this phase makes false. `AGENTS.md` forbids raising the cap and
       rules the answer is a rewrite folding its amendments into the criteria they amend. This
       phase must not tag before that task has run.
-- [ ] S2 Decisions. Judgment calls recorded with a reversibility class before any code:
+- [x] S2 Decisions. Sixteen calls recorded with a reversibility class before any code, one of
+      them `frozen-into-data`. The independent reviewer found four blockers, all resolved:
       the field names and shape, whether the query carries street and hand contributions or
       only one, what a shallower seat's refusal code is called, whether a straddle and an ante
       get one code or two, the rename target, and how far the frozen-test migration reaches.
-- [ ] S3 Human gate. Any `frozen-into-data` call answered. This phase should have none; one
-      appearing is the signal that scope drifted into the artifact.
-- [ ] S4 Tests. `tests/test_table_state.py` authored red, the frozen-test migrations authored
-      with it, the mutation canaries authored before any implementation, and both command IDs
-      registered.
-- [ ] S5 Freeze. `scripts/freeze_tests.py`, then `tests/**` and `verification/**` out of scope.
+- [x] S3 Human gate. Decision 6 ruled by Taylor on 2026-08-21: a live seat whose starting stack
+      differs from hero's at all refuses, no tolerance band. The reviewer corrected the recorded
+      cost, which is almost nothing rather than nothing.
+- [x] S4 Tests. 66 tests across two files, all red on assertions; five canaries; the frozen
+      tests of five completed phases migrated; `test_postflop_fallback.py` split at 718 lines.
+      The independent reviewer found six blockers, all fixed.
+- [x] S5 Freeze. 28 files, 775 test functions. `tests/**`, `verification/**` and
+      `scripts/run_verify.py` out of `approved_scope`; `base_commit` moved to the freeze commit.
 - [ ] S6 Build. L1 to L5 merged in the integration order above, each command green.
 - [ ] S7 Gate. Full `scripts/run_verify.py` plus `check_gate_bite`.
 - [ ] S8 Review. Two independent reviewers, mechanical and domain.
