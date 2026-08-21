@@ -1,12 +1,8 @@
-task_id: phase-12-census-legibility
-active_phase: "12"
-task_mode: implementation
-base_commit: bd94f7e42d268e15d095e4d26734ac994227a485
-approved_scope:
-  - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
-  - src/poker_training_bot/solver_artifacts/vocabulary_report.py
-  - reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md
-  - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
