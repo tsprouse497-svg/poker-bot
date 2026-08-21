@@ -201,7 +201,7 @@ own depth matches the chart and refuse only when an opponent is short enough to 
 price hero is being offered?
 
 Options: exact-equality | tolerance-band | shallower-only-beyond-a-threshold | no-check
-Answer: [exact-equality]
+Answer: []
 
 This is the decision with the largest behavioural reach in the phase, and the honest statement
 of its cost is that **it refuses essentially every real table.** Committed data cannot show
