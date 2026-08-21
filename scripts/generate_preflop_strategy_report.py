@@ -25,6 +25,7 @@ except ModuleNotFoundError:
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from poker_training_bot.poker_core.positions import table_positions  # noqa: E402
+from poker_training_bot.solver_artifacts.schema import PreflopAction, spot_key  # noqa: E402
 from poker_training_bot.strategy.contract import (  # noqa: E402
     SeatAction,
     StrategyDecision,
@@ -45,8 +46,8 @@ SAMPLE_HANDS = ("AA", "AKs", "AJo", "76s", "72o")
 SAMPLE_SPOTS = (
     "t6/d100/LJ/rfi",
     "t6/d100/BTN/rfi",
-    "t6/d100/BB/CO:raise",
-    "t6/d100/LJ/LJ:raise,CO:raise",
+    "t6/d100/BB/CO:raise@2.5",
+    "t6/d100/LJ/LJ:raise@2.5,CO:raise@8",
 )
 
 
@@ -59,9 +60,28 @@ def seat_of(position: str) -> int:
     raise ValueError(position)
 
 
-def refusal_probe(label: str, **overrides) -> tuple[str, StrategyQuery]:
+def refusal_probe(
+    label: str, preflop_actions: tuple[SeatAction, ...] = (), **overrides
+) -> tuple[str, StrategyQuery]:
+    """One probe query, with its chips derived from the actions rather than fixed.
+
+    Since a recorded raise carries the amount it raised to, a probe that states an
+    open and a bet level independently can state two different opens. So the level,
+    the price to call, the pot, and the stacks are all walked out of the recorded
+    actions here, and a probe that wants an unrepresentable pot - a straddle, an ante -
+    overrides exactly the field that makes it one.
+    """
     hero = seat_of(overrides.pop("hero", "LJ"))
     committed = {seat_of("SB"): SMALL_BLIND, seat_of("BB"): BIG_BLIND}
+    level = BIG_BLIND
+    min_raise = BIG_BLIND
+    for entry in preflop_actions:
+        if entry.action == "raise":
+            min_raise = max(min_raise, (entry.amount or 0) - level)
+            level = entry.amount or level
+            committed[entry.seat] = level
+        elif entry.action == "call":
+            committed[entry.seat] = level
     fields = {
         "hand_id": "probe",
         "street": "preflop",
@@ -70,13 +90,13 @@ def refusal_probe(label: str, **overrides) -> tuple[str, StrategyQuery]:
         "hole_cards": ("As", "Ks"),
         "board": (),
         "legal_actions": ("fold", "call", "raise"),
-        "to_call": BIG_BLIND,
-        "street_bet": BIG_BLIND,
-        "min_raise_target": 2 * BIG_BLIND,
-        "pot": SMALL_BLIND + BIG_BLIND,
+        "to_call": level - committed.get(hero, 0),
+        "street_bet": level,
+        "min_raise_target": level + min_raise,
+        "pot": sum(committed.values()),
         "stacks": tuple((seat, 100 * BIG_BLIND - committed.get(seat, 0)) for seat in SEATS),
         "blinds": (SMALL_BLIND, BIG_BLIND),
-        "preflop_actions": (),
+        "preflop_actions": preflop_actions,
     }
     fields.update(overrides)
     return label, StrategyQuery(**fields)
@@ -86,9 +106,16 @@ def probes() -> list[tuple[str, StrategyQuery]]:
     shallow = tuple((seat, 40 * BIG_BLIND) for seat in SEATS)
     return [
         refusal_probe("covered: lojack opens", hero="LJ"),
-        refusal_probe("covered: big blind faces a cutoff open",
-                      hero="BB",
-                      preflop_actions=(SeatAction(seat_of("CO"), "raise"),)),
+        refusal_probe(
+            "covered: big blind faces a cutoff open at the solved 2.5bb",
+            hero="BB",
+            preflop_actions=(SeatAction(seat_of("CO"), "raise", 250),),
+        ),
+        refusal_probe(
+            "covered by substitution: the same open at 2.25bb",
+            hero="BB",
+            preflop_actions=(SeatAction(seat_of("CO"), "raise", 225),),
+        ),
         refusal_probe("uncovered: forty big blinds deep", stacks=shallow),
         refusal_probe("uncovered: straddled pot", street_bet=2 * BIG_BLIND),
         refusal_probe("uncovered: anted pot", pot=SMALL_BLIND + BIG_BLIND + 60),
@@ -96,19 +123,24 @@ def probes() -> list[tuple[str, StrategyQuery]]:
             "uncovered: squeeze after an open and a cold call",
             hero="BTN",
             preflop_actions=(
-                SeatAction(seat_of("LJ"), "raise"),
+                SeatAction(seat_of("LJ"), "raise", 250),
                 SeatAction(seat_of("CO"), "call"),
             ),
         ),
         refusal_probe(
-            "uncovered: facing a four-bet",
+            "uncovered but expressible since phase 12: facing a five-bet",
             hero="CO",
             preflop_actions=(
-                SeatAction(seat_of("CO"), "raise"),
-                SeatAction(seat_of("BB"), "raise"),
-                SeatAction(seat_of("CO"), "raise"),
-                SeatAction(seat_of("BB"), "raise"),
+                SeatAction(seat_of("CO"), "raise", 250),
+                SeatAction(seat_of("BB"), "raise", 1350),
+                SeatAction(seat_of("CO"), "raise", 2150),
+                SeatAction(seat_of("BB"), "raise", 5000),
             ),
+        ),
+        refusal_probe(
+            "no legal preflop order produces it: the button raising before the cutoff",
+            hero="CO",
+            preflop_actions=(SeatAction(seat_of("BTN"), "raise", 250),),
         ),
         refusal_probe("uncovered: postflop", street="flop", board=("2c", "7h", "Ts")),
     ]
@@ -143,6 +175,21 @@ def realised_pct(strategy: PreflopChartStrategy, spot: str, action: str) -> floa
     return 0.0 if total == 0.0 else 100.0 * taken / total
 
 
+def big_blind_defence_spot(strategy: PreflopChartStrategy, position: str) -> str | None:
+    """The committed key for the big blind facing an open from `position`.
+
+    The open's price is read out of the committed keys rather than spelled here, which
+    is the same rule the lookup normaliser follows and the reason it matters: this
+    solve opens the small blind to 3.5 and everyone else to 2.5, so one constant would
+    already be wrong today. A position the artifact holds two opening prices for has no
+    single defence spot, and it is skipped rather than guessed at.
+    """
+    prices = strategy.library.solved_prices_bb(6, 100, "BB", (), position)
+    if len(prices) != 1:
+        return None
+    return spot_key(6, 100, "BB", (PreflopAction(position, "raise", prices[0]),))
+
+
 def frequency_lines(strategy: PreflopChartStrategy) -> list[str]:
     expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
     lines = [
@@ -165,7 +212,9 @@ def frequency_lines(strategy: PreflopChartStrategy) -> list[str]:
             f"{bot - actual:>+11.2f}"
         )
     for position, expected in sorted(expectations["big_blind_defence_pct"].items()):
-        spot = f"t6/d100/BB/{position}:raise"
+        spot = big_blind_defence_spot(strategy, position)
+        if spot is None:
+            continue
         actual = 100.0 - strategy.library.action_frequency_pct(spot, "fold")
         bot = 100.0 - realised_pct(strategy, spot, "fold")
         lines.append(

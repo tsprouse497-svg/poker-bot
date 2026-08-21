@@ -15,7 +15,7 @@ files:
     sha256: a37a70f01787f099ece26466747fb9ba575eb01fcddfe0fd65b3985472cb7ed0
     test_functions: 10
   tests/test_full_table_preflop.py:
-    sha256: 9bffe0c26f6434583ee4dfab1c174ed5b1fedf7c199177a2f552fab55fcdea89
+    sha256: b154f1d9019bc330e76d6fbfae4414216000db0de7e8925c450d6ee0c3e76ace
     test_functions: 55
   tests/test_hand_history.py:
     sha256: 9d431bf4ffbaedeb940f907fd5fe0929b3d0d6cdf2f3f11fc2e0eb0d5459497c
@@ -27,8 +27,8 @@ files:
     sha256: 6e7668a549aaddb54fd692c07b03efdeb661294cce82c0ed798af22292926808
     test_functions: 34
   tests/test_loop_machinery.py:
-    sha256: 2d529de697e03c0fdd5972c0736542f2d98b77da317213c2065ca0bf5718fecd
-    test_functions: 58
+    sha256: b6175f80d1b1bc894482f788eda0d936145393abb9e8dea0d3ba448ea29a0eba
+    test_functions: 59
   tests/test_poker_core.py:
     sha256: a11a3e8b94dcb37033e366fa55c13ae6007c8f75318f315a69b3e4e9041953b2
     test_functions: 9
@@ -36,13 +36,13 @@ files:
     sha256: e6764a1fcdadfd5565a4e2a5babf75fe16f1aa78bfad6d29bbdb907945216daf
     test_functions: 37
   tests/test_preflop_artifacts.py:
-    sha256: d865b9e2e10de5d72f88f8962925be9e1dfe42c97b5f4fdb7ac09b538c2bf1ca
+    sha256: 18ebf4b0ab4f707417acf4892120df380de87095479b770c0a0c6b9d5a7adb70
     test_functions: 35
   tests/test_preflop_committed_charts.py:
-    sha256: 09bf77d31d5e57783ecf8b15a6579e04cad45774faa5b369e55de3115daa77a4
+    sha256: c46df95d09b360a6c28f8e2e92ebbd284bf4893a85ddfb4e0e4a8ba96b2ae54f
     test_functions: 11
   tests/test_preflop_lookup.py:
-    sha256: 4e8ea82e0de42fe6d8684b3577637f3a24e3fe42aca6d3fbbbb958f83d80f20f
+    sha256: 68ff2ecade4684048277efc48c78d770ffec9104f2facdf6d0c7ef08ba8c6896
     test_functions: 23
   tests/test_preflop_positions.py:
     sha256: cb051eb9e8e2f707f306ae182ad38bc038870661dde5ba002b60989c0c2c1c87
@@ -57,7 +57,7 @@ files:
     sha256: d66edfa903e55cfc43c48f57019d400fc01d063241fb99062eb3e3f86ca40dae
     test_functions: 6
   tests/test_simulator.py:
-    sha256: 9ece5d18fdd281df226aac1b5a1a6c7cf8d44853ce9dc30f0b08fd97108d39b2
+    sha256: 1f5b7b55e1c19272888ebce5528981aea43ba54336c4efc1860e93f2d2d28d58
     test_functions: 44
   tests/test_solver_expectations.py:
     sha256: 76b408edd97fec292b586a397aa524c1f924fa073a8ea79a5c71497b9f36a930
@@ -65,8 +65,14 @@ files:
   tests/test_solver_export.py:
     sha256: bb4fa994fa9a609e75778b16f31e3c3703f51a5efa1a069792b73d5e37fa3456
     test_functions: 32
+  tests/test_spot_vocabulary.py:
+    sha256: 7e23f3e826a20aedc2cccf7712773cd1c0fbc2af1060601b9c9b7a0f4daeef91
+    test_functions: 31
+  tests/test_spot_vocabulary_downstream.py:
+    sha256: 8ec13a4633a701144772f434935363b1c0dfb231a6d946a0ea7e42684f2202d3
+    test_functions: 31
   tests/test_strategy_contract.py:
-    sha256: cff43cccefe7dace9edd30f122f7c54fa7e5eb99aef417e9e00bc0b742abdf48
+    sha256: 8f71d8f5b14ebf3ce80a57b5cf7a53809af0877fa2e946367ee98bb5abea822d
     test_functions: 59
 schema_version: 1
-test_function_floor: 646
+test_function_floor: 709

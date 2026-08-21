@@ -61,7 +61,7 @@
   "bytes_per_expressible_spot": 113728.36,
   "bytes_per_expressible_spot_note": "the whole export divided by the 36 spots the committed chart expresses today, so it is what keeping the entire tree costs per spot currently usable rather than the size of a derived chart. The roadmap's 7.1 KB per spot was measured off the GTO Wizard chart format and is not comparable",
   "bytes_per_node": 105.45,
-  "headroom_bytes": 16394365,
+  "headroom_bytes": 16392447,
   "limit_bytes": 20971520
  },
  "solve": {

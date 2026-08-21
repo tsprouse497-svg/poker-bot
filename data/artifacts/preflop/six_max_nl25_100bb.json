@@ -5,7 +5,7 @@
     "kind": "solver-export",
     "reference": "data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json"
   },
-  "generated_at": "2026-08-11T00:00:00Z",
+  "generated_at": "2026-08-20T00:00:00Z",
   "table_size": 6,
   "stack_depth_bb": 100,
   "positions": [
@@ -18,42 +18,46 @@
   ],
   "spots": [
     {
-      "spot_id": "t6/d100/BB/BTN:raise",
+      "spot_id": "t6/d100/BB/BTN:raise@2.5",
       "hero_position": "BB",
       "action_sequence": [
         {
           "position": "BTN",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/BB/CO:raise",
+      "spot_id": "t6/d100/BB/CO:raise@2.5",
       "hero_position": "BB",
       "action_sequence": [
         {
           "position": "CO",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/BB/HJ:raise",
+      "spot_id": "t6/d100/BB/HJ:raise@2.5",
       "hero_position": "BB",
       "action_sequence": [
         {
           "position": "HJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/BB/LJ:raise",
+      "spot_id": "t6/d100/BB/LJ:raise@2.5",
       "hero_position": "BB",
       "action_sequence": [
         {
           "position": "LJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
@@ -68,70 +72,78 @@
       ]
     },
     {
-      "spot_id": "t6/d100/BB/SB:raise",
+      "spot_id": "t6/d100/BB/SB:raise@3.5",
       "hero_position": "BB",
       "action_sequence": [
         {
           "position": "SB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 3.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/BTN/BTN:raise,BB:raise",
+      "spot_id": "t6/d100/BTN/BTN:raise@2.5,BB:raise@13.5",
       "hero_position": "BTN",
       "action_sequence": [
         {
           "position": "BTN",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "BB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 13.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/BTN/BTN:raise,SB:raise",
+      "spot_id": "t6/d100/BTN/BTN:raise@2.5,SB:raise@11",
       "hero_position": "BTN",
       "action_sequence": [
         {
           "position": "BTN",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "SB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 11.0
         }
       ]
     },
     {
-      "spot_id": "t6/d100/BTN/CO:raise",
+      "spot_id": "t6/d100/BTN/CO:raise@2.5",
       "hero_position": "BTN",
       "action_sequence": [
         {
           "position": "CO",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/BTN/HJ:raise",
+      "spot_id": "t6/d100/BTN/HJ:raise@2.5",
       "hero_position": "BTN",
       "action_sequence": [
         {
           "position": "HJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/BTN/LJ:raise",
+      "spot_id": "t6/d100/BTN/LJ:raise@2.5",
       "hero_position": "BTN",
       "action_sequence": [
         {
           "position": "LJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
@@ -141,64 +153,72 @@
       "action_sequence": []
     },
     {
-      "spot_id": "t6/d100/CO/CO:raise,BB:raise",
+      "spot_id": "t6/d100/CO/CO:raise@2.5,BB:raise@13.5",
       "hero_position": "CO",
       "action_sequence": [
         {
           "position": "CO",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "BB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 13.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/CO/CO:raise,BTN:raise",
+      "spot_id": "t6/d100/CO/CO:raise@2.5,BTN:raise@8",
       "hero_position": "CO",
       "action_sequence": [
         {
           "position": "CO",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "BTN",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 8.0
         }
       ]
     },
     {
-      "spot_id": "t6/d100/CO/CO:raise,SB:raise",
+      "spot_id": "t6/d100/CO/CO:raise@2.5,SB:raise@11",
       "hero_position": "CO",
       "action_sequence": [
         {
           "position": "CO",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "SB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 11.0
         }
       ]
     },
     {
-      "spot_id": "t6/d100/CO/HJ:raise",
+      "spot_id": "t6/d100/CO/HJ:raise@2.5",
       "hero_position": "CO",
       "action_sequence": [
         {
           "position": "HJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/CO/LJ:raise",
+      "spot_id": "t6/d100/CO/LJ:raise@2.5",
       "hero_position": "CO",
       "action_sequence": [
         {
           "position": "LJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
@@ -208,68 +228,77 @@
       "action_sequence": []
     },
     {
-      "spot_id": "t6/d100/HJ/HJ:raise,BB:raise",
+      "spot_id": "t6/d100/HJ/HJ:raise@2.5,BB:raise@13.5",
       "hero_position": "HJ",
       "action_sequence": [
         {
           "position": "HJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "BB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 13.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/HJ/HJ:raise,BTN:raise",
+      "spot_id": "t6/d100/HJ/HJ:raise@2.5,BTN:raise@8",
       "hero_position": "HJ",
       "action_sequence": [
         {
           "position": "HJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "BTN",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 8.0
         }
       ]
     },
     {
-      "spot_id": "t6/d100/HJ/HJ:raise,CO:raise",
+      "spot_id": "t6/d100/HJ/HJ:raise@2.5,CO:raise@8",
       "hero_position": "HJ",
       "action_sequence": [
         {
           "position": "HJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "CO",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 8.0
         }
       ]
     },
     {
-      "spot_id": "t6/d100/HJ/HJ:raise,SB:raise",
+      "spot_id": "t6/d100/HJ/HJ:raise@2.5,SB:raise@11",
       "hero_position": "HJ",
       "action_sequence": [
         {
           "position": "HJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "SB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 11.0
         }
       ]
     },
     {
-      "spot_id": "t6/d100/HJ/LJ:raise",
+      "spot_id": "t6/d100/HJ/LJ:raise@2.5",
       "hero_position": "HJ",
       "action_sequence": [
         {
           "position": "LJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
@@ -279,72 +308,82 @@
       "action_sequence": []
     },
     {
-      "spot_id": "t6/d100/LJ/LJ:raise,BB:raise",
+      "spot_id": "t6/d100/LJ/LJ:raise@2.5,BB:raise@13.5",
       "hero_position": "LJ",
       "action_sequence": [
         {
           "position": "LJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "BB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 13.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/LJ/LJ:raise,BTN:raise",
+      "spot_id": "t6/d100/LJ/LJ:raise@2.5,BTN:raise@8",
       "hero_position": "LJ",
       "action_sequence": [
         {
           "position": "LJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "BTN",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 8.0
         }
       ]
     },
     {
-      "spot_id": "t6/d100/LJ/LJ:raise,CO:raise",
+      "spot_id": "t6/d100/LJ/LJ:raise@2.5,CO:raise@8",
       "hero_position": "LJ",
       "action_sequence": [
         {
           "position": "LJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "CO",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 8.0
         }
       ]
     },
     {
-      "spot_id": "t6/d100/LJ/LJ:raise,HJ:raise",
+      "spot_id": "t6/d100/LJ/LJ:raise@2.5,HJ:raise@8",
       "hero_position": "LJ",
       "action_sequence": [
         {
           "position": "LJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "HJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 8.0
         }
       ]
     },
     {
-      "spot_id": "t6/d100/LJ/LJ:raise,SB:raise",
+      "spot_id": "t6/d100/LJ/LJ:raise@2.5,SB:raise@11",
       "hero_position": "LJ",
       "action_sequence": [
         {
           "position": "LJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         },
         {
           "position": "SB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 11.0
         }
       ]
     },
@@ -354,56 +393,62 @@
       "action_sequence": []
     },
     {
-      "spot_id": "t6/d100/SB/BTN:raise",
+      "spot_id": "t6/d100/SB/BTN:raise@2.5",
       "hero_position": "SB",
       "action_sequence": [
         {
           "position": "BTN",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/SB/CO:raise",
+      "spot_id": "t6/d100/SB/CO:raise@2.5",
       "hero_position": "SB",
       "action_sequence": [
         {
           "position": "CO",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/SB/HJ:raise",
+      "spot_id": "t6/d100/SB/HJ:raise@2.5",
       "hero_position": "SB",
       "action_sequence": [
         {
           "position": "HJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/SB/LJ:raise",
+      "spot_id": "t6/d100/SB/LJ:raise@2.5",
       "hero_position": "SB",
       "action_sequence": [
         {
           "position": "LJ",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 2.5
         }
       ]
     },
     {
-      "spot_id": "t6/d100/SB/SB:raise,BB:raise",
+      "spot_id": "t6/d100/SB/SB:raise@3.5,BB:raise@10.5",
       "hero_position": "SB",
       "action_sequence": [
         {
           "position": "SB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 3.5
         },
         {
           "position": "BB",
-          "action": "raise"
+          "action": "raise",
+          "size_bb": 10.5
         }
       ]
     },
@@ -3156,7 +3201,7 @@
         "raise": 0.8845
       }
     },
-    "t6/d100/HJ/LJ:raise": {
+    "t6/d100/HJ/LJ:raise@2.5": {
       "22": {
         "fold": 0.9999,
         "call": 0.0001
@@ -3722,7 +3767,7 @@
         "raise": 0.2574
       }
     },
-    "t6/d100/CO/LJ:raise": {
+    "t6/d100/CO/LJ:raise@2.5": {
       "22": {
         "fold": 0.9999,
         "call": 0.0001
@@ -4289,7 +4334,7 @@
         "raise": 0.3506
       }
     },
-    "t6/d100/BTN/LJ:raise": {
+    "t6/d100/BTN/LJ:raise@2.5": {
       "22": {
         "fold": 0.9996,
         "call": 0.0004
@@ -4859,7 +4904,7 @@
         "raise": 0.3841
       }
     },
-    "t6/d100/SB/LJ:raise": {
+    "t6/d100/SB/LJ:raise@2.5": {
       "22": {
         "fold": 1.0
       },
@@ -5421,7 +5466,7 @@
         "raise": 0.378338
       }
     },
-    "t6/d100/BB/LJ:raise": {
+    "t6/d100/BB/LJ:raise@2.5": {
       "22": {
         "call": 1.0
       },
@@ -6002,7 +6047,7 @@
         "raise": 0.0106
       }
     },
-    "t6/d100/CO/HJ:raise": {
+    "t6/d100/CO/HJ:raise@2.5": {
       "22": {
         "fold": 0.9999,
         "call": 0.0001
@@ -6570,7 +6615,7 @@
         "raise": 0.404759
       }
     },
-    "t6/d100/BTN/HJ:raise": {
+    "t6/d100/BTN/HJ:raise@2.5": {
       "22": {
         "fold": 0.9995,
         "call": 0.0005
@@ -7137,7 +7182,7 @@
         "raise": 0.2281
       }
     },
-    "t6/d100/SB/HJ:raise": {
+    "t6/d100/SB/HJ:raise@2.5": {
       "22": {
         "fold": 1.0
       },
@@ -7702,7 +7747,7 @@
         "raise": 0.2411
       }
     },
-    "t6/d100/BB/HJ:raise": {
+    "t6/d100/BB/HJ:raise@2.5": {
       "22": {
         "call": 1.0
       },
@@ -8284,7 +8329,7 @@
         "call": 1.0
       }
     },
-    "t6/d100/BTN/CO:raise": {
+    "t6/d100/BTN/CO:raise@2.5": {
       "22": {
         "fold": 0.9997,
         "call": 0.0003
@@ -8851,7 +8896,7 @@
         "raise": 0.5387
       }
     },
-    "t6/d100/SB/CO:raise": {
+    "t6/d100/SB/CO:raise@2.5": {
       "22": {
         "fold": 1.0
       },
@@ -9408,7 +9453,7 @@
         "raise": 0.302
       }
     },
-    "t6/d100/BB/CO:raise": {
+    "t6/d100/BB/CO:raise@2.5": {
       "22": {
         "call": 1.0
       },
@@ -9990,7 +10035,7 @@
         "raise": 0.0342
       }
     },
-    "t6/d100/SB/BTN:raise": {
+    "t6/d100/SB/BTN:raise@2.5": {
       "22": {
         "fold": 1.0
       },
@@ -10543,7 +10588,7 @@
         "raise": 0.952895
       }
     },
-    "t6/d100/BB/BTN:raise": {
+    "t6/d100/BB/BTN:raise@2.5": {
       "22": {
         "call": 0.9998,
         "raise": 0.0002
@@ -11125,7 +11170,7 @@
         "raise": 1.0
       }
     },
-    "t6/d100/BB/SB:raise": {
+    "t6/d100/BB/SB:raise@3.5": {
       "22": {
         "call": 1.0
       },
@@ -12382,7 +12427,7 @@
         "raise": 1.0
       }
     },
-    "t6/d100/LJ/LJ:raise,HJ:raise": {
+    "t6/d100/LJ/LJ:raise@2.5,HJ:raise@8": {
       "33": {
         "call": 1.0
       },
@@ -12585,7 +12630,7 @@
         "raise": 0.0484
       }
     },
-    "t6/d100/LJ/LJ:raise,CO:raise": {
+    "t6/d100/LJ/LJ:raise@2.5,CO:raise@8": {
       "33": {
         "fold": 0.0001,
         "call": 0.9999
@@ -12788,7 +12833,7 @@
         "raise": 0.0039
       }
     },
-    "t6/d100/LJ/LJ:raise,BTN:raise": {
+    "t6/d100/LJ/LJ:raise@2.5,BTN:raise@8": {
       "33": {
         "call": 1.0
       },
@@ -12989,7 +13034,7 @@
         "raise": 0.0125
       }
     },
-    "t6/d100/LJ/LJ:raise,SB:raise": {
+    "t6/d100/LJ/LJ:raise@2.5,SB:raise@11": {
       "33": {
         "fold": 0.8253,
         "call": 0.1747
@@ -13187,7 +13232,7 @@
         "call": 0.354835
       }
     },
-    "t6/d100/LJ/LJ:raise,BB:raise": {
+    "t6/d100/LJ/LJ:raise@2.5,BB:raise@13.5": {
       "33": {
         "fold": 1.0
       },
@@ -13395,7 +13440,7 @@
         "raise": 0.0005
       }
     },
-    "t6/d100/HJ/HJ:raise,CO:raise": {
+    "t6/d100/HJ/HJ:raise@2.5,CO:raise@8": {
       "33": {
         "fold": 0.0001,
         "call": 0.9999
@@ -13615,7 +13660,7 @@
         "raise": 0.013799
       }
     },
-    "t6/d100/HJ/HJ:raise,BTN:raise": {
+    "t6/d100/HJ/HJ:raise@2.5,BTN:raise@8": {
       "33": {
         "call": 1.0
       },
@@ -13834,7 +13879,7 @@
         "raise": 0.1073
       }
     },
-    "t6/d100/HJ/HJ:raise,SB:raise": {
+    "t6/d100/HJ/HJ:raise@2.5,SB:raise@11": {
       "33": {
         "fold": 0.8236,
         "call": 0.1764
@@ -14053,7 +14098,7 @@
         "raise": 0.0015
       }
     },
-    "t6/d100/HJ/HJ:raise,BB:raise": {
+    "t6/d100/HJ/HJ:raise@2.5,BB:raise@13.5": {
       "33": {
         "fold": 1.0
       },
@@ -14279,7 +14324,7 @@
         "raise": 0.033303
       }
     },
-    "t6/d100/CO/CO:raise,BTN:raise": {
+    "t6/d100/CO/CO:raise@2.5,BTN:raise@8": {
       "33": {
         "fold": 0.0001,
         "call": 0.9999
@@ -14529,7 +14574,7 @@
         "raise": 0.4908
       }
     },
-    "t6/d100/CO/CO:raise,SB:raise": {
+    "t6/d100/CO/CO:raise@2.5,SB:raise@11": {
       "33": {
         "fold": 0.599,
         "call": 0.401
@@ -14778,7 +14823,7 @@
         "raise": 0.0989
       }
     },
-    "t6/d100/CO/CO:raise,BB:raise": {
+    "t6/d100/CO/CO:raise@2.5,BB:raise@13.5": {
       "33": {
         "fold": 1.0
       },
@@ -15031,7 +15076,7 @@
         "raise": 0.181282
       }
     },
-    "t6/d100/BTN/BTN:raise,SB:raise": {
+    "t6/d100/BTN/BTN:raise@2.5,SB:raise@11": {
       "22": {
         "fold": 1.0
       },
@@ -15340,7 +15385,7 @@
         "raise": 0.7609
       }
     },
-    "t6/d100/BTN/BTN:raise,BB:raise": {
+    "t6/d100/BTN/BTN:raise@2.5,BB:raise@13.5": {
       "22": {
         "fold": 1.0
       },
@@ -15646,7 +15691,7 @@
         "raise": 0.5571
       }
     },
-    "t6/d100/SB/SB:raise,BB:raise": {
+    "t6/d100/SB/SB:raise@3.5,BB:raise@10.5": {
       "22": {
         "fold": 1.0
       },
@@ -16009,9 +16054,9 @@
     }
   },
   "audit_fields": {
-    "weights_sha256": "eaf2c6ccbf3917c7fd924cc144435244fffb1a678e97685bafe36d52150482f7",
+    "weights_sha256": "d2d5c3fa04a6fe41c6eca8ca286c82d5c833dd2dc635b4fb21b69471c179ad60",
     "spot_count": 36,
     "hand_class_count": 169,
-    "notes": "Solver export from GTO Wizard solution Cash6mGeneral_6mNL25R25, six-max cash, 100bb effective, NL25 rake, cold calls allowed. Raise sizings collapse into the single raise action because a spot key carries no size; the sizes are committed separately in sizings/six_max_nl25_100bb.json. Spots where hero has already acted cover only hands inside hero's own opening range, so a hand hero could not hold is an explicit lookup miss rather than a fabricated strategy."
+    "notes": "Solver export from GTO Wizard solution Cash6mGeneral_6mNL25R25, six-max cash, 100bb effective, NL25 rake, cold calls allowed. The ranges are the 2026-08-11 extraction re-keyed at the phase 12 spot vocabulary, not a new solve: every spot key now carries the raise-to size in big blinds of each raise in front of hero, and the per-hand per-action weights are unchanged. Hero's own raise offers still collapse into the single raise action, and hero's own size is committed separately in sizings/six_max_nl25_100bb.json. Spots where hero has already acted cover only hands inside hero's own opening range, so a hand hero could not hold is an explicit lookup miss rather than a fabricated strategy."
   }
 }

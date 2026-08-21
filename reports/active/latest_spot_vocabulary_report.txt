@@ -1,0 +1,300 @@
+Spot Vocabulary Report
+======================
+
+Artifact: preflop/gto-wizard-6-max-100bb-nl25-rake
+Source: GTO Wizard 6-max 100bb NL25 rake
+Generated at: 2026-08-20T00:00:00Z
+Spots: 36
+Sample: 499 hands, 3048 preflop decision points
+
+This phase committed no new solve and no new chart. It widened what a spot key
+can say, re-derived the committed artifact under the new keys carrying the same
+ranges, and re-ran the measurements Phase 11 deliberately left open.
+
+## What a spot key can say now
+
+A key is a string a person reads in a refusal inventory, so what it looks like
+is the change rather than a detail of it. Two things are new.
+
+**A raise carries the amount it raised to, in big blinds, after an `@`.** The
+number is the total the raiser put in, not the increment: `BTN:raise@8` is a
+three-bet to eight big blinds, which a player would describe as a 3.2x.
+
+    before   t6/d100/BTN/CO:raise
+    after    t6/d100/BTN/CO:raise@2.5
+
+Before, one cell answered every price. A 2.25bb open and a 4bb open were the
+same spot, so every agreement rate this repo has published was computed across
+prices the chart could not tell apart.
+
+**A position may act more than once.** A four-bet had no key at all: the rule
+rejected any sequence in which a position appeared twice, in as many words.
+
+    could not be written before   t6/d100/BTN/LJ:raise@2.5,BTN:raise@8,LJ:raise@21.5
+
+That reads: the lojack opened to 2.5, the button three-bet to 8, the lojack
+four-bet to 21.5, and the button is to act. Nothing bounds the number of orbits;
+what bounds the vocabulary is whether the sequence is a legal preflop order and
+whether its raises can be paid at the stated depth. A five-bet to 300bb in a
+100bb game is rejected because nobody can pay it, which is a check the key could
+not perform at all until it carried sizes.
+
+## The committed artifact, re-keyed and not re-solved
+
+36 spots before, 36 spots after. The count does not move because
+each size-stripped prefix admits exactly one solved size, so the key gained the
+ability to tell prices apart at no cost in cells.
+
+The ranges did not move, and that is checked rather than asserted. Strip every
+`@size` back out of the committed keys, recompute the weights checksum over the
+result, and it has to reproduce the checksum the artifact carried before this
+phase. It does:
+
+    checksum under the old keys   eaf2c6ccbf3917c7fd924cc144435244fffb1a678e97685bafe36d52150482f7
+    recorded before this phase    eaf2c6ccbf3917c7fd924cc144435244fffb1a678e97685bafe36d52150482f7
+    checksum the file carries now d2d5c3fa04a6fe41c6eca8ca286c82d5c833dd2dc635b4fb21b69471c179ad60
+
+Spot ids are inside the checksum, so the file's own checksum had to change. The
+two lines above it are why that is evidence and not an alarm.
+
+The old-to-new mapping, in full. Every size here came from the source export's
+own action label at the spot that raise was offered at, never from a constant:
+facing a lojack open is 2.5 because the export's `RFI_UTG` offers `Raise 2.5`.
+
+  old key                                     new key
+  t6/d100/BB/BTN:raise                        t6/d100/BB/BTN:raise@2.5
+  t6/d100/BB/CO:raise                         t6/d100/BB/CO:raise@2.5
+  t6/d100/BB/HJ:raise                         t6/d100/BB/HJ:raise@2.5
+  t6/d100/BB/LJ:raise                         t6/d100/BB/LJ:raise@2.5
+  t6/d100/BB/SB:call                          t6/d100/BB/SB:call
+  t6/d100/BB/SB:raise                         t6/d100/BB/SB:raise@3.5
+  t6/d100/BTN/BTN:raise,BB:raise              t6/d100/BTN/BTN:raise@2.5,BB:raise@13.5
+  t6/d100/BTN/BTN:raise,SB:raise              t6/d100/BTN/BTN:raise@2.5,SB:raise@11
+  t6/d100/BTN/CO:raise                        t6/d100/BTN/CO:raise@2.5
+  t6/d100/BTN/HJ:raise                        t6/d100/BTN/HJ:raise@2.5
+  t6/d100/BTN/LJ:raise                        t6/d100/BTN/LJ:raise@2.5
+  t6/d100/BTN/rfi                             t6/d100/BTN/rfi
+  t6/d100/CO/CO:raise,BB:raise                t6/d100/CO/CO:raise@2.5,BB:raise@13.5
+  t6/d100/CO/CO:raise,BTN:raise               t6/d100/CO/CO:raise@2.5,BTN:raise@8
+  t6/d100/CO/CO:raise,SB:raise                t6/d100/CO/CO:raise@2.5,SB:raise@11
+  t6/d100/CO/HJ:raise                         t6/d100/CO/HJ:raise@2.5
+  t6/d100/CO/LJ:raise                         t6/d100/CO/LJ:raise@2.5
+  t6/d100/CO/rfi                              t6/d100/CO/rfi
+  t6/d100/HJ/HJ:raise,BB:raise                t6/d100/HJ/HJ:raise@2.5,BB:raise@13.5
+  t6/d100/HJ/HJ:raise,BTN:raise               t6/d100/HJ/HJ:raise@2.5,BTN:raise@8
+  t6/d100/HJ/HJ:raise,CO:raise                t6/d100/HJ/HJ:raise@2.5,CO:raise@8
+  t6/d100/HJ/HJ:raise,SB:raise                t6/d100/HJ/HJ:raise@2.5,SB:raise@11
+  t6/d100/HJ/LJ:raise                         t6/d100/HJ/LJ:raise@2.5
+  t6/d100/HJ/rfi                              t6/d100/HJ/rfi
+  t6/d100/LJ/LJ:raise,BB:raise                t6/d100/LJ/LJ:raise@2.5,BB:raise@13.5
+  t6/d100/LJ/LJ:raise,BTN:raise               t6/d100/LJ/LJ:raise@2.5,BTN:raise@8
+  t6/d100/LJ/LJ:raise,CO:raise                t6/d100/LJ/LJ:raise@2.5,CO:raise@8
+  t6/d100/LJ/LJ:raise,HJ:raise                t6/d100/LJ/LJ:raise@2.5,HJ:raise@8
+  t6/d100/LJ/LJ:raise,SB:raise                t6/d100/LJ/LJ:raise@2.5,SB:raise@11
+  t6/d100/LJ/rfi                              t6/d100/LJ/rfi
+  t6/d100/SB/BTN:raise                        t6/d100/SB/BTN:raise@2.5
+  t6/d100/SB/CO:raise                         t6/d100/SB/CO:raise@2.5
+  t6/d100/SB/HJ:raise                         t6/d100/SB/HJ:raise@2.5
+  t6/d100/SB/LJ:raise                         t6/d100/SB/LJ:raise@2.5
+  t6/d100/SB/SB:raise,BB:raise                t6/d100/SB/SB:raise@3.5,BB:raise@10.5
+  t6/d100/SB/rfi                              t6/d100/SB/rfi
+
+## How many spots the vocabulary can express
+
+Counted by enumerating `solver_artifacts.schema.spot_key` over legal preflop
+orders at a six-handed 100bb table, not quoted. A limp is a call before anybody
+has raised; a cold call behind an open is not a limp and is counted in both
+columns.
+
+                                        with limps   without limps
+  v1, one orbit only                         1,949             977
+  v2, positions may repeat                  18,773           9,389
+
+Both rows are enumerated to at most 6 recorded actions. For v1
+that is not a bound at all - a single-orbit key at a six-handed table cannot have
+more than six entries - so the v1 row is complete. For v2 it is a bound on this
+report rather than on the vocabulary, which has no orbit cap by ruling and is
+limited in play by what the stacks can pay.
+
+`docs/V2_ROADMAP.md` states 1,691 and 848 for the v1 pair and says both are
+recomputable this way. They are not: this enumeration gives 1,949 and 977.
+The ratio between the published pair is the same to within a percent, so it looks
+like one systematic difference rather than two errors, but
+no variation tried reproduces the published numbers. Correcting the four places
+that quote them is `ROADMAP-SPOT-COUNTS-DO-NOT-REPRODUCE` in `backlog.yml`; the
+roadmap is a `contract-update` document and is not edited from an implementation
+phase.
+
+## The real-hand refusal inventory loses its catch-all row
+
+The largest single row of the real-hand inventory used to be 19 decision points
+filed under `(no expressible spot)`, and it was the one row nobody could act on:
+a refusal that names no spot names no cell anybody could fill. All 19 were a
+position acting twice.
+
+  rows still reading '(no expressible spot)'          0
+  decisions refusing as lookup:unrepresentable-spot   0
+  decision points now naming a repeated-position key  19
+  total refusals over the committed sample            290
+
+The total is expected not to fall, and it did not. This phase adds no chart
+coverage: those 19 arrive as `lookup:spot-not-covered` instead, which is a
+different and better miss because the vocabulary can now name the cell. Filling
+it is `CHART-COVERAGE-EXPANSION`, proposed phase 14.
+
+The deepest sequence the committed sample reached, now expressible:
+
+    t6/d100/CO/HJ:raise@2.5,CO:raise@6.81,HJ:raise@19.93,CO:raise@36.67,HJ:raise@100
+
+## What ruling 8 costs in play: the price-substitution census
+
+Ruling 8 says the solved tree carries one opening price and every other price is
+answered from it. Taylor extended it on 2026-08-20 to every raise in the
+sequence, because exact matching past the open would have refused most of the
+three-bet decisions this chart can answer at all.
+
+Until this phase nothing counted how often that abstraction was used, because
+the key could not tell two prices apart and so could not tell that one had been
+moved. Over the committed sample:
+
+  decisions the chart answered                           2758
+  answered at the price they were asked at               1789
+  answered at a price they were not asked at              969   (35.1%)
+
+Two different things get counted below and adding the wrong column gives a
+number this heading contradicts, so each table says which it counts. One
+decision can face several raises and have more than one of them moved: there
+are 969 substituted decisions carrying 1,025 substituted raises between them.
+
+Split by which raise was moved, counting DECISIONS. The first line is what
+ruling 8 itself costs; the second is what extending it past the open costs, and
+they are kept apart because they were ruled separately. The third is why the
+first two sum to more than the total above.
+
+  the opener's price was moved                            959
+  a later raise's price was moved                          66
+  both, counted once in each line above                    56
+
+Split by how far a price moved, counting SUBSTITUTED RAISES:
+
+  moved under 0.25bb                                     554
+  moved 0.25 to 0.50bb                                   412
+  moved 0.50 to 1.00bb                                    22
+  moved 1.00 to 3.00bb                                    34
+  moved over 3.00bb                                        3
+  all substituted raises                                1025
+
+And by direction, which the distance split above cannot show and which is the
+half with poker content. A smaller open gives the defender a better price, so
+the correct response to it is a wider continue than the correct response to a
+larger one. Where the answered price is the higher, the chart hands back the
+tighter range:
+
+  answered above the price asked                        1010
+  answered below the price asked                          15
+
+The opening prices the sample actually came in at, and the cell each was
+answered from, counting DECISIONS.
+
+The answered column is aggregated across openers whose solved prices differ, so
+one asked price can appear against two answered cells and an answered cell can
+be a price the tree does hold. The small blind's solved open is 3.5 and every
+other position's is 2.5, which is the whole of that effect: a row reading
+'2.5 -> 3.5' is a small-blind open answered from the small-blind cell, not a
+solved price that was moved.
+
+     asked  answered   decisions
+         2       2.5         233
+         2       3.5           3
+      2.05       2.5           5
+       2.1       2.5          82
+      2.11       2.5           6
+      2.22       2.5          23
+      2.25       2.5         541
+      2.33       2.5           2
+      2.34       2.5           2
+      2.35       3.5           4
+       2.4       2.5           2
+      2.44       2.5           3
+      2.45       2.5           2
+       2.5       3.5           5
+      2.75       3.5           1
+      2.85       3.5           1
+      2.87       2.5           7
+         3       2.5           2
+         3       3.5          34
+         4       3.5           1
+
+And the figure the three-bet extension was ruled on, re-measured here rather
+than quoted from the decision record:
+
+  decisions facing a three-bet at a spot the chart holds     79
+  of those, facing a price the tree does not hold            72
+  of those, facing a price it does                            7
+
+So exact matching past the open would have refused 72 of the 79
+three-bet decisions this chart can answer at all. That is the alternative
+decision 5 rejected, not this phase's outcome.
+
+What this does not buy is coverage. A squeeze or a cold four-bet is expressible
+today and uncovered today, and it stays uncovered here at every price: the
+normaliser moves a price, it does not find a nearer spot.
+
+## Every number Phase 11 moved, and every number this phase moved
+
+Phase 11 corrected the engine and the strategy query that every published figure
+in this repo was measured through, and ruled that a fix phase does not grade its
+own fixes. This is the first phase to re-run those measurements, so it owes the
+restatement - and it owes it with the two causes kept apart, because a number
+that moved for both reasons and is reported once teaches nothing.
+
+The packet column is what the phase published. The branch column is what the
+committed report said at this phase's branch point, which already carried Phase
+11's corrections. So packet-to-branch is Phase 11 and branch-to-now is this
+phase, and neither is asserted.
+
+  number                                             packet       branch          now  cause
+  hands compared                                        499          499          499  unchanged (checked against both)
+  preflop decision points                              3048         3048         3048  unchanged (checked against both)
+  refusals                                              290          290          290  unchanged (checked against both)
+  Pluribus agreement                             439 of 456   439 of 456   439 of 456  unchanged (checked against both)
+  human agreement                              2155 of 2302 2155 of 2302 2155 of 2302  unchanged (checked against both)
+  human calls agreeing                           138 of 227   138 of 227   138 of 227  unchanged (checked against both)
+  human raises agreeing                          385 of 416   385 of 416   385 of 416  unchanged (checked against both)
+  inventory decisions naming no spot at all              19           19            0  moved by this phase
+
+The corpus figures did not move at all, and that is the phase's own result
+rather than an absence of one. A finer key would have moved them if it had
+changed which cell a decision reached; it did not, because a price the tree does
+not hold is normalised back to the one cell the coarse key would have hit. What
+changed is that the answer now says so, which is what the census above counts.
+
+The self-play figures in `reports/active/latest_profile_comparison_report.txt`
+did move: 128 refused hands became 126, and 472 measured became 474. That is not
+a coverage change either. `PreflopChartStrategy._seed` hashes the spot key into
+the seeded draw that collapses a mixed cell, so re-keying re-seeds every mixed
+decision and the run walks a different path through the same distributions.
+Attributed to this phase, and reported here because a reader comparing the two
+reports would otherwise read it as coverage.
+
+No committed audit packet was edited. The Phase 07 and Phase 08 packets are the
+record of what those phases found and believed; rewriting them would destroy the
+only evidence that a number ever changed.
+
+## Check one number by hand
+
+**The number: the committed tree carries two opening prices, not one.**
+
+Open `data/artifacts/preflop/sizings/six_max_nl25_100bb.json` and read the five
+entries whose key ends in `/rfi`. Four of them - LJ, HJ, CO, BTN - read 2.5, and
+`t6/d100/SB/rfi` reads 3.5. No code required, and it settles a question the
+roadmap left open: a single constant for 'the solved opening price' would already
+be wrong today rather than only after some future solve, which is why the
+normaliser derives its candidate prices from the keys the artifacts declare.
+
+The same file holds 10 distinct raise-to sizes in all, and every one is a
+whole tenth of a big blind:
+
+    2.5, 3.5, 8, 10.5, 11, 13.5, 21.5, 22, 23, 28.5
+
+Generated by `scripts/generate_spot_vocabulary_report.py`.

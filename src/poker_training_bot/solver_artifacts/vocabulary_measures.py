@@ -1,0 +1,500 @@
+"""What the widened spot vocabulary changed, measured rather than quoted.
+
+Every figure the phase 12 report prints is derived here, so the report is a rendering
+job and the measurements are importable and testable on their own. Four of them:
+
+*Did the ranges move when the keys did?* Strip the sizes back out of the committed keys,
+recompute the weights checksum, and it has to reproduce the checksum the artifact carried
+before this phase. Spot ids are inside that checksum, which is why the artifact's own
+checksum changed, and this is what makes the change evidence instead of an alarm.
+
+*How much can the vocabulary express?* Enumerated by running the preflop order and
+deriving each key with `spot_key`, so the count is a property of the function every other
+caller uses rather than of a rule restated here.
+
+*What does the ruled price abstraction cost in play?* The substitution census, split by
+whether the raise that moved was the opener's or a later one, because ruling 8 and the
+2026-08-20 extension of it were ruled separately and merging them answers neither.
+
+*Which published numbers moved, and because of what?* Each headline figure is carried
+against both its pre-Phase-11 value and its value at this phase's branch point, so the
+cause is read off two comparisons rather than asserted.
+
+Nothing here is quoted. A figure is either measured when this runs or declared as a
+historical constant naming the committed document it came from, and the two never share
+a column.
+"""
+
+from __future__ import annotations
+
+import re
+from collections import Counter
+from collections.abc import Callable
+from dataclasses import dataclass
+
+from poker_training_bot.data_pipeline.comparison import (
+    ComparisonResult,
+)
+from poker_training_bot.data_pipeline.sample import MACHINE_PLAYER
+from poker_training_bot.poker_core.positions import preflop_action_order
+from poker_training_bot.solver_artifacts.schema import (
+    PreflopAction,
+    PreflopArtifact,
+    spot_key,
+    weights_checksum,
+)
+
+TABLE_SIZE = 6
+DEPTH_BB = 100
+
+# The checksum the committed artifact carried before this phase, taken from
+# `reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md` and from the file itself at commit
+# 5b715d6. Spot ids are inside the checksum, so re-keying necessarily changes it; this is
+# the value the re-keyed weights have to reproduce once the sizes are stripped back out,
+# and reproducing it is what proves no weight moved.
+V1_WEIGHTS_SHA256 = "eaf2c6ccbf3917c7fd924cc144435244fffb1a678e97685bafe36d52150482f7"
+
+# How deep the spot enumeration below goes. It is a bound on the *report*, not on the
+# vocabulary: the vocabulary has no orbit cap by ruling, and what stops it in play is
+# stack depth. Six recorded entries is the exact maximum a single-orbit key can have at a
+# six-handed table, which is what makes the v1 column complete rather than truncated and
+# makes the two columns comparable at the same bound.
+ENUMERATION_ENTRIES = 6
+
+# A strictly increasing ladder of payable sizes, used only to give each enumerated shape
+# one legal set of prices. The count is a count of action shapes; the sizes are scaffolding
+# and any legal increasing ladder gives the same count.
+ENUMERATION_LADDER = (2.5, 8.0, 21.5, 50.0, 75.0, 100.0)
+
+_SIZE_SUFFIX = re.compile(r"@[0-9.]+")
+
+
+class VocabularyReportError(RuntimeError):
+    """The report measured something it cannot honestly publish.
+
+    Raised rather than printed. A census that totals zero, a mapping that is not a
+    bijection, or a checksum that does not reproduce all mean the report would be a
+    confident statement about something that did not happen, and a generator that writes
+    that file anyway is a generator whose gate command proves nothing.
+    """
+
+
+# --------------------------------------------------------------------------- #
+# The key itself
+# --------------------------------------------------------------------------- #
+
+
+def strip_sizes(spot_key_text: str) -> str:
+    """The v1 form of a v2 key: the same string with every `@size` removed.
+
+    This is the whole of the old-to-new mapping. It is a function rather than a stored
+    table because a stored table is a second statement of something the keys already
+    say, and the two can disagree.
+    """
+    return _SIZE_SUFFIX.sub("", spot_key_text)
+
+
+def key_mapping(artifact: PreflopArtifact) -> tuple[tuple[str, str], ...]:
+    """Every committed spot as (old key, new key), sorted by the old key."""
+    return tuple(
+        sorted((strip_sizes(spot.spot_id), spot.spot_id) for spot in artifact.spots)
+    )
+
+
+def v1_weights_checksum(artifact: PreflopArtifact) -> str:
+    """The weights checksum this artifact would have carried under v1 keys.
+
+    Same weights, same hand classes, same actions; only the keys are stripped back. If
+    this reproduces the checksum the committed artifact carried before the re-keying,
+    then no per-hand per-action weight moved, and the changed checksum on the file is
+    accounted for entirely by the spot ids inside it.
+    """
+    return weights_checksum(
+        tuple(
+            (strip_sizes(spot_id), hand_classes)
+            for spot_id, hand_classes in artifact.action_weights
+        )
+    )
+
+
+# --------------------------------------------------------------------------- #
+# How much the vocabulary can express
+# --------------------------------------------------------------------------- #
+
+
+def _shapes(max_entries: int, single_orbit: bool) -> list[tuple[tuple[str, str], ...]]:
+    """Every legal (position, action) shape, walked out on the ring itself.
+
+    Generated by running the preflop order rather than by filtering a product, so a
+    shape that reaches the enumeration is a shape somebody could deal. `single_orbit`
+    restricts to a position acting at most once, which is exactly what v1 could express,
+    so the two columns differ in one rule and nothing else.
+    """
+    order = preflop_action_order(TABLE_SIZE)
+    found: list[tuple[tuple[str, str], ...]] = []
+
+    def walk(cursor: int, folded: frozenset[str], acted: frozenset[str], seq: list) -> None:
+        found.append(tuple(seq))
+        if len(seq) >= max_entries:
+            return
+        position = cursor
+        skipped: frozenset[str] = frozenset()
+        for _ in range(len(order)):
+            standing = order[position % len(order)]
+            eligible = standing not in folded and standing not in skipped
+            if eligible and not (single_orbit and standing in acted):
+                for action in ("call", "raise"):
+                    walk(
+                        position + 1,
+                        folded | skipped,
+                        acted | {standing},
+                        [*seq, (standing, action)],
+                    )
+            if eligible:
+                skipped = skipped | {standing}
+            position += 1
+
+    walk(0, frozenset(), frozenset(), [])
+    return found
+
+
+def _sized(shape: tuple[tuple[str, str], ...]) -> tuple[PreflopAction, ...] | None:
+    entries: list[PreflopAction] = []
+    raises = 0
+    for position, action in shape:
+        if action != "raise":
+            entries.append(PreflopAction(position, action))
+            continue
+        if raises >= len(ENUMERATION_LADDER):
+            return None
+        entries.append(PreflopAction(position, "raise", ENUMERATION_LADDER[raises]))
+        raises += 1
+    return tuple(entries)
+
+
+def _is_limped(shape: tuple[tuple[str, str], ...]) -> bool:
+    """A limp is a call before anybody has raised. A cold call is not a limp."""
+    return bool(shape) and shape[0][1] == "call"
+
+
+@dataclass(frozen=True)
+class SpotCounts:
+    with_limps: int
+    without_limps: int
+
+
+def expressible_spots(single_orbit: bool) -> SpotCounts:
+    """How many distinct six-handed 100bb keys the vocabulary admits.
+
+    Counted by deriving each one with `schema.spot_key` and keeping the distinct
+    strings, so the count is a property of the function every other caller uses rather
+    than of a rule restated here.
+    """
+    everything: set[str] = set()
+    no_limps: set[str] = set()
+    order = preflop_action_order(TABLE_SIZE)
+    for shape in _shapes(ENUMERATION_ENTRIES, single_orbit):
+        entries = _sized(shape)
+        if entries is None:
+            continue
+        for hero in order:
+            try:
+                derived = spot_key(TABLE_SIZE, DEPTH_BB, hero, entries)
+            except ValueError:
+                continue
+            everything.add(derived)
+            if not _is_limped(shape):
+                no_limps.add(derived)
+    return SpotCounts(len(everything), len(no_limps))
+
+
+# --------------------------------------------------------------------------- #
+# The substitution census
+# --------------------------------------------------------------------------- #
+
+
+@dataclass(frozen=True)
+class Census:
+    """Two populations, and conflating them is what made the first published census
+    unreconcilable. `substituted`, `open_substituted`, `later_substituted` and
+    `both_substituted` count decisions; `substitutions`, `by_distance`, `moved_up` and
+    `moved_down` count substituted raises, of which one decision can carry several.
+    """
+
+    answered: int
+    substituted: int
+    exact: int
+    open_substituted: int
+    later_substituted: int
+    both_substituted: int
+    substitutions: int
+    moved_up: int
+    moved_down: int
+    by_asked_open: tuple[tuple[float, float, int], ...]
+    by_distance: tuple[tuple[str, int], ...]
+    three_bet_spots_covered: int
+    three_bet_spots_substituted: int
+    three_bet_spots_exact: int
+
+
+_DISTANCE_BANDS = (
+    ("moved under 0.25bb", 0.25),
+    ("moved 0.25 to 0.50bb", 0.50),
+    ("moved 0.50 to 1.00bb", 1.00),
+    ("moved 1.00 to 3.00bb", 3.00),
+    ("moved over 3.00bb", None),
+)
+
+
+def _distance_band(distance: float) -> str:
+    for label, ceiling in _DISTANCE_BANDS:
+        if ceiling is None or distance <= ceiling:
+            return label
+    return _DISTANCE_BANDS[-1][0]
+
+
+def census(result: ComparisonResult) -> Census:
+    """What the price abstraction actually did over the committed sample.
+
+    The open and the later raises are counted apart on purpose. Ruling 8 is about the
+    price an opponent opens at; reaching past it to three-bets and beyond is this
+    phase's extension of the ruling, ruled separately on 2026-08-20. Merging them would
+    make the cost of the ruling and the cost of the extension one number that answers
+    neither question.
+    """
+    answered = [row for row in result.rows if row.refusal is None]
+    substituted = [row for row in answered if row.price_substitutions]
+    opens = Counter()
+    distances = Counter()
+    open_rows = 0
+    later_rows = 0
+    both_rows = 0
+    entries = 0
+    up = 0
+    down = 0
+    for row in substituted:
+        moved_open = any(index == 0 for index, _, _ in row.price_substitutions)
+        moved_later = any(index > 0 for index, _, _ in row.price_substitutions)
+        open_rows += moved_open
+        later_rows += moved_later
+        both_rows += moved_open and moved_later
+        for index, asked, given in row.price_substitutions:
+            if index == 0:
+                opens[(asked, given)] += 1
+            distances[_distance_band(abs(given - asked))] += 1
+            entries += 1
+            if given > asked:
+                up += 1
+            else:
+                down += 1
+
+    # A spot the chart holds a cell for, whether or not it holds one for hero's hand:
+    # `hand-class-not-covered` means the artifact declares the spot and hero's own
+    # opening range does not contain this holding, which is a coverage fact about the
+    # range rather than about the price.
+    facing_three_bet = [
+        row
+        for row in result.rows
+        if row.raises_faced == 2
+        and (row.miss_code is None or row.miss_code.endswith("hand-class-not-covered"))
+    ]
+    three_bet_substituted = [
+        row
+        for row in facing_three_bet
+        if any(index > 0 for index, _, _ in row.price_substitutions)
+    ]
+
+    measured = Census(
+        answered=len(answered),
+        substituted=len(substituted),
+        exact=len(answered) - len(substituted),
+        open_substituted=open_rows,
+        later_substituted=later_rows,
+        both_substituted=both_rows,
+        substitutions=entries,
+        moved_up=up,
+        moved_down=down,
+        by_asked_open=tuple(
+            (asked, given, count) for (asked, given), count in sorted(opens.items())
+        ),
+        by_distance=tuple(
+            (label, distances[label]) for label, _ in _DISTANCE_BANDS if distances[label]
+        ),
+        three_bet_spots_covered=len(facing_three_bet),
+        three_bet_spots_substituted=len(three_bet_substituted),
+        three_bet_spots_exact=len(facing_three_bet) - len(three_bet_substituted),
+    )
+    _validate_census(measured)
+    return measured
+
+
+def _validate_census(measured: Census) -> None:
+    """The report checks its own census before publishing it.
+
+    A census that totals zero is what a lookup that stopped recording substitutions
+    looks like from here, and it is indistinguishable from a chart that was asked every
+    question at its own price. Publishing it either way would state, with a passing
+    gate underneath, that ruling 8 costs nothing.
+    """
+    if measured.answered <= 0:
+        raise VocabularyReportError("no corpus decision was answered at all")
+    if measured.substituted <= 0:
+        raise VocabularyReportError(
+            "no answered decision recorded a price substitution, which cannot be true of"
+            " a sample where four fifths of opens came in below the solved size; either"
+            " the lookup stopped recording substitutions or it stopped making them"
+        )
+    if measured.substituted + measured.exact != measured.answered:
+        raise VocabularyReportError(
+            f"the census splits {measured.answered} answered decisions into"
+            f" {measured.substituted} substituted and {measured.exact} exact, which do"
+            " not add up"
+        )
+    counted = sum(count for _, count in measured.by_distance)
+    if counted <= 0:
+        raise VocabularyReportError("the distance split accounts for no substitution")
+    # The first published census could not be reconciled: the heading counted decisions,
+    # the splits counted raises, and nothing said so. Now that gap fails the gate.
+    decisions = (
+        measured.open_substituted + measured.later_substituted - measured.both_substituted
+    )
+    if decisions != measured.substituted:
+        raise VocabularyReportError(
+            f"the decision splits reconcile to {decisions}, not the"
+            f" {measured.substituted} decisions recorded as substituted"
+        )
+    directions = measured.moved_up + measured.moved_down
+    for name, total in (("distance", counted), ("direction", directions)):
+        if total != measured.substitutions:
+            raise VocabularyReportError(
+                f"the {name} split accounts for {total} substituted raises against"
+                f" {measured.substitutions} counted"
+            )
+    if measured.three_bet_spots_covered <= 0:
+        raise VocabularyReportError(
+            "no decision facing a three-bet reached a spot the chart declares, so the"
+            " figure this phase's ruling was decided on cannot be reproduced"
+        )
+
+
+# --------------------------------------------------------------------------- #
+# The numbers Phase 11 and this phase moved
+# --------------------------------------------------------------------------- #
+
+
+@dataclass(frozen=True)
+class Restated:
+    label: str
+    source: str
+    packet: str
+    branch: str
+    measure: Callable[[ComparisonResult], str]
+
+    def cause(self, now: str) -> str:
+        moved_by_eleven = self.branch != self.packet
+        moved_by_twelve = now != self.branch
+        if moved_by_eleven and moved_by_twelve:
+            return "moved by both"
+        if moved_by_eleven:
+            return "moved by Phase 11"
+        if moved_by_twelve:
+            return "moved by this phase"
+        return "unchanged (checked against both)"
+
+
+def _rate(numerator: int, denominator: int) -> str:
+    return f"{numerator} of {denominator}"
+
+
+def restated_numbers() -> tuple[Restated, ...]:
+    """Every headline figure the Phase 07 and Phase 08 packets quote.
+
+    The packet column is what that phase published and believed. The branch column is
+    what the committed report said at this phase's branch point, which already carried
+    Phase 11's corrected engine and query, so the difference between the two columns is
+    Phase 11's effect and the difference between the branch and the measurement is this
+    phase's. No committed audit packet is edited to agree with any of it: a packet is the
+    record of what a phase found, and rewriting it would destroy the only evidence that a
+    number ever changed.
+    """
+    packet_08 = "reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md"
+    return (
+        Restated(
+            "hands compared",
+            packet_08,
+            "499",
+            "499",
+            lambda result: str(result.hands_compared),
+        ),
+        Restated(
+            "preflop decision points",
+            packet_08,
+            "3048",
+            "3048",
+            lambda result: str(len(result.rows)),
+        ),
+        Restated(
+            "refusals",
+            packet_08,
+            "290",
+            "290",
+            lambda result: str(
+                sum(1 for row in result.rows if row.refusal is not None)
+            ),
+        ),
+        Restated(
+            "Pluribus agreement",
+            packet_08,
+            "439 of 456",
+            "439 of 456",
+            lambda result: _rate(
+                result.agreement(MACHINE_PLAYER).numerator,
+                result.agreement(MACHINE_PLAYER).denominator,
+            ),
+        ),
+        Restated(
+            "human agreement",
+            packet_08,
+            "2155 of 2302",
+            "2155 of 2302",
+            lambda result: _rate(
+                result.agreement("humans").numerator,
+                result.agreement("humans").denominator,
+            ),
+        ),
+        Restated(
+            "human calls agreeing",
+            packet_08,
+            "138 of 227",
+            "138 of 227",
+            lambda result: _rate(
+                result.agreement_within("humans", action="call").numerator,
+                result.agreement_within("humans", action="call").denominator,
+            ),
+        ),
+        Restated(
+            "human raises agreeing",
+            packet_08,
+            "385 of 416",
+            "385 of 416",
+            lambda result: _rate(
+                result.agreement_within("humans", action="raise").numerator,
+                result.agreement_within("humans", action="raise").denominator,
+            ),
+        ),
+        Restated(
+            "inventory decisions naming no spot at all",
+            packet_08,
+            "19",
+            "19",
+            lambda result: str(
+                sum(
+                    entry.count
+                    for entry in result.refusal_inventory
+                    if entry.spot_key == "(no expressible spot)"
+                )
+            ),
+        ),
+    )
+
+

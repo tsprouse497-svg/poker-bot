@@ -41,6 +41,7 @@ These are strong professionals, but they are not solvers, and they were playing 
 Agreement with Pluribus is the closer thing to a correctness signal, and even there 456 scored decisions is a sample rather than a proof.
 
 **Refusals sit outside every agreement rate, and they are not spread evenly.**
+There are 290 refusals, outside every agreement denominator, and they land on **159 distinct spots the chart holds no cell for**.
 The big blind refuses on 26.6% of its decision points against 1.3% in the hijack, so the seat with the largest disagreement is also the seat whose rate is computed over the smallest share of its decisions.
 That subset is not a random sample of them.
 
@@ -56,7 +57,7 @@ They come from 499 hands, a handful of players, and a small number of chart cell
 Every seat starts each hand on exactly 10,000, so side-pot settlement is not exercised by this oracle at all.
 
 **The one exclusion is not a random miss.**
-`pluribus/41b/204` is excluded because the published settlement splits a pot into half chips and this engine settles in whole ones.
+`corpus_exclusions.json` names 1 hand, and `pluribus/41b/204` is excluded because the published settlement splits a pot into half chips and this engine settles in whole ones.
 Half-chip settlements only arise on chopped pots, so the exclusion rule can only ever remove chops - it is correlated with hand type by construction.
 The four whole-chip chops that remain do settle exactly, which is a real and otherwise unstated result: this engine's odd-chip rule agrees with the publisher's.
 

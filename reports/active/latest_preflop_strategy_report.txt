@@ -24,11 +24,11 @@ CO opens                         27.89%   27.89%   27.81%      -0.08
 HJ opens                         21.65%   21.65%   21.76%      +0.11
 LJ opens                         17.49%   17.49%   17.59%      +0.10
 SB opens                         34.41%   34.41%   34.28%      -0.13
-BB defends vs BTN                39.43%   39.43%   39.31%      -0.13
-BB defends vs CO                 31.48%   31.48%   31.42%      -0.06
-BB defends vs HJ                 26.20%   26.20%   26.22%      +0.02
-BB defends vs LJ                 22.63%   22.63%   22.79%      +0.16
-BB defends vs SB                 42.88%   42.88%   43.16%      +0.28
+BB defends vs BTN                39.43%   39.43%   39.28%      -0.16
+BB defends vs CO                 31.48%   31.48%   31.20%      -0.28
+BB defends vs HJ                 26.20%   26.20%   26.32%      +0.12
+BB defends vs LJ                 22.63%   22.63%   22.50%      -0.13
+BB defends vs SB                 42.88%   42.88%   42.99%      +0.11
 SB limps                         13.73%   13.73%   13.77%      +0.04
 
 ## Coverage
@@ -36,41 +36,41 @@ SB limps                         13.73%   13.73%   13.77%      +0.04
 Every seat at a six-handed 100bb table can be asked. That is not the same as
 every situation being charted, and the spots below are the ones that are.
 
-  t6/d100/BB/BTN:raise                     169 hand classes
-  t6/d100/BB/CO:raise                      169 hand classes
-  t6/d100/BB/HJ:raise                      169 hand classes
-  t6/d100/BB/LJ:raise                      169 hand classes
+  t6/d100/BB/BTN:raise@2.5                 169 hand classes
+  t6/d100/BB/CO:raise@2.5                  169 hand classes
+  t6/d100/BB/HJ:raise@2.5                  169 hand classes
+  t6/d100/BB/LJ:raise@2.5                  169 hand classes
   t6/d100/BB/SB:call                       169 hand classes
-  t6/d100/BB/SB:raise                      169 hand classes
-  t6/d100/BTN/BTN:raise,BB:raise            88 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/BTN:raise,SB:raise            88 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/CO:raise                     169 hand classes
-  t6/d100/BTN/HJ:raise                     169 hand classes
-  t6/d100/BTN/LJ:raise                     169 hand classes
+  t6/d100/BB/SB:raise@3.5                  169 hand classes
+  t6/d100/BTN/BTN:raise@2.5,BB:raise@13.5   88 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,SB:raise@11     88 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/CO:raise@2.5                 169 hand classes
+  t6/d100/BTN/HJ:raise@2.5                 169 hand classes
+  t6/d100/BTN/LJ:raise@2.5                 169 hand classes
   t6/d100/BTN/rfi                          169 hand classes
-  t6/d100/CO/CO:raise,BB:raise              67 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise,BTN:raise             67 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise,SB:raise              67 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/HJ:raise                      169 hand classes
-  t6/d100/CO/LJ:raise                      169 hand classes
+  t6/d100/CO/CO:raise@2.5,BB:raise@13.5     67 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BTN:raise@8       67 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,SB:raise@11       67 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5                  169 hand classes
+  t6/d100/CO/LJ:raise@2.5                  169 hand classes
   t6/d100/CO/rfi                           169 hand classes
-  t6/d100/HJ/HJ:raise,BB:raise              58 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise,BTN:raise             58 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise,CO:raise              58 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise,SB:raise              58 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/LJ:raise                      169 hand classes
+  t6/d100/HJ/HJ:raise@2.5,BB:raise@13.5     58 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BTN:raise@8       58 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:raise@8        58 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,SB:raise@11       58 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5                  169 hand classes
   t6/d100/HJ/rfi                           169 hand classes
-  t6/d100/LJ/LJ:raise,BB:raise              52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise,BTN:raise             52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise,CO:raise              52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise,HJ:raise              52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise,SB:raise              52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BB:raise@13.5     52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BTN:raise@8       52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:raise@8        52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:raise@8        52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,SB:raise@11       52 hand classes  (hero has acted, so only hero's own range)
   t6/d100/LJ/rfi                           169 hand classes
-  t6/d100/SB/BTN:raise                     169 hand classes
-  t6/d100/SB/CO:raise                      169 hand classes
-  t6/d100/SB/HJ:raise                      169 hand classes
-  t6/d100/SB/LJ:raise                      169 hand classes
-  t6/d100/SB/SB:raise,BB:raise             103 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/BTN:raise@2.5                 169 hand classes
+  t6/d100/SB/CO:raise@2.5                  169 hand classes
+  t6/d100/SB/HJ:raise@2.5                  169 hand classes
+  t6/d100/SB/LJ:raise@2.5                  169 hand classes
+  t6/d100/SB/SB:raise@3.5,BB:raise@10.5    103 hand classes  (hero has acted, so only hero's own range)
   t6/d100/SB/rfi                           169 hand classes
 
 ## What it does with a few named hands
@@ -92,14 +92,14 @@ one way across different hands. The draw below is seeded on the spot.
     76s   raise to 2.5bb
     72o   fold
 
-  t6/d100/BB/CO:raise
+  t6/d100/BB/CO:raise@2.5
     AA    raise to 13.5bb
     AKs   raise to 13.5bb
     AJo   call
     76s   call
     72o   fold
 
-  t6/d100/LJ/LJ:raise,CO:raise
+  t6/d100/LJ/LJ:raise@2.5,CO:raise@8
     AA    raise to 21.5bb
     AKs   raise to 21.5bb
     AJo   fold
@@ -112,21 +112,22 @@ one way across different hands. The draw below is seeded on the spot.
 What the bot does where its chart is silent.
 
   covered: lojack opens                               decides: raise
-  covered: big blind faces a cutoff open              refuses: preflop-chart:table-is-not-one-flat-stack-depth
+  covered: big blind faces a cutoff open at the solved 2.5bbdecides: raise
+  covered by substitution: the same open at 2.25bb    decides: raise
   uncovered: forty big blinds deep                    refuses: preflop-chart:lookup:no-artifact-for-stack-depth
   uncovered: straddled pot                            refuses: preflop-chart:blind-structure-not-representable
   uncovered: anted pot                                refuses: preflop-chart:blind-structure-not-representable
   uncovered: squeeze after an open and a cold call    refuses: preflop-chart:lookup:spot-not-covered
-  uncovered: facing a four-bet                        refuses: preflop-chart:lookup:unrepresentable-spot
+  uncovered but expressible since phase 12: facing a five-betrefuses: preflop-chart:lookup:spot-not-covered
+  no legal preflop order produces it: the button raising before the cutoffrefuses: preflop-chart:lookup:unrepresentable-spot
   uncovered: postflop                                 refuses: preflop-chart:not-preflop
 
 Refusal codes seen:
   preflop-chart:blind-structure-not-representable           2
   preflop-chart:lookup:no-artifact-for-stack-depth          1
-  preflop-chart:lookup:spot-not-covered                     1
+  preflop-chart:lookup:spot-not-covered                     2
   preflop-chart:lookup:unrepresentable-spot                 1
   preflop-chart:not-preflop                                 1
-  preflop-chart:table-is-not-one-flat-stack-depth           1
 
 ## Check one number by hand
 

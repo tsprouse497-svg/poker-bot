@@ -182,10 +182,23 @@ def unresolved_blockers(text: str) -> list[str]:
     return open_items
 
 
-def run_command(command_id: str) -> tuple[bool, str]:
+def run_command(command_id: str, clip: int | None = 4000) -> tuple[bool, str]:
+    """Run a gate command and return whether it passed, with its output.
+
+    `clip` keeps the tail, because a reason printed to a human wants the end of a
+    failing run and not four thousand characters of the start. A caller that reads the
+    output rather than printing it must pass `clip=None`: pytest ends with its FAILED
+    summary list, which names every failing test and quotes none of them, so a tail
+    window can hold no assertion at all while the run is nothing but assertions.
+
+    That is not hypothetical. Phase 12's stage-4 suite produced 57,328 characters with
+    38 occurrences of `assert` and none of them in the final 4,000, so
+    `red_for_the_right_reason` read a legitimately assertion-red file as a broken one.
+    """
     spec = COMMANDS[command_id]
     proc = subprocess.run(spec.command, cwd=REPO_ROOT, text=True, capture_output=True)
-    return proc.returncode == 0, (proc.stdout + proc.stderr)[-4000:]
+    output = proc.stdout + proc.stderr
+    return proc.returncode == 0, output if clip is None else output[-clip:]
 
 
 @dataclass(frozen=True)
@@ -342,7 +355,8 @@ def check_tests_authored(ctx: Context) -> list[str]:
         if command_id not in COMMANDS:
             reasons.append(f"gate command {command_id!r} is not registered yet")
             continue
-        passed, output = run_command(command_id)
+        # Unclipped: this is the one check that reads the output rather than printing it.
+        passed, output = run_command(command_id, clip=None)
         if passed:
             reasons.append(
                 f"{command_id} already passes, so the tests do not yet describe missing behavior"

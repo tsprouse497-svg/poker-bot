@@ -594,3 +594,243 @@ scope_change_log:
       9eec03d was committed in maintenance mode with no plan tracked at all. Filing this needs
       backlog.yml, and correcting one false sentence MAINT-24 wrote about how MAINT-23 passed
       needs docs/exec_plans/**; both are standing scope, so approved_scope stays empty.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 opens its lane at stage 1, which replaces the skeleton contract with real
+      acceptance criteria and writes the judgment-call list stage 2 checks. That needs
+      docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md, the phase's decision record, and
+      its stage review notes in approved_scope, and nothing else. The gate-command entries
+      in scripts/run_verify.py are deliberately absent: check_repo_consistency requires a
+      registered pytest_* command to name a file holding tests, and those tests are authored
+      at stage 4, so registration lands with them the way phase 11's did.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 stage 4 authors the tests before any implementation exists, so it needs
+      tests/test_spot_vocabulary.py, the two new gate commands in scripts/run_verify.py,
+      their mutation canaries in verification/mutations.yml, and the freeze lock those
+      tests are recorded in. The canaries are authored here rather than at stage 7 because
+      phases 08, 09 and 10 each wrote their own after the code and each filed that as the
+      same miss.
+      base_commit moves to the stage-3 close for the reason phase 05 recorded when stage 5
+      narrowed its scope: the contract and the decision record legitimately changed while
+      the task was in contract-update mode, and measuring the diff from the start of the
+      lane would read that finished work as out of scope now that implementation mode
+      forbids touching a contract. Narrowing is the point rather than a side effect -
+      docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md leaves approved_scope here so
+      check_scope.py enforces the no-contract-edits-in-implementation rule mechanically.
+  - date: 2026-08-20
+    reason: >-
+      The phase 12 stage-4 review found that the number justifying Taylor's three-bet ruling
+      is wrong in the contract and in the decision record. Both say exact three-bet matching
+      would refuse 185 of the 205 three-bet decisions in the committed sample. Measured, the
+      205 are 1 inexpressible, 125 expressible but uncovered, and 79 the chart holds a cell
+      for; the 125 already refuse and no price rule touches them, so the real cost is 72 of
+      the 79. The conclusion is sharper and the arithmetic was not.
+      Correcting a contract needs contract-update mode, so this is its own task between the
+      stage-4 test commit and the stage-4 advance rather than an edit inside implementation
+      mode. approved_scope is the contract, the decision record, and the review note that
+      carries the finding, and nothing else; tests/** and scripts/** are deliberately absent
+      because the test docstrings that quoted the same figure were corrected in the
+      implementation task where they belong.
+  - date: 2026-08-20
+    reason: >-
+      Back to implementation mode so the phase 12 loop can advance stage 4. The contract and
+      the decision record leave approved_scope again, which is the point: check_scope.py is
+      what stops a builder editing the contract it is measured against, and the figure
+      correction that needed contract-update mode is committed and closed. base_commit moves
+      to that commit so the diff is measured from it rather than from the stage-4 test commit,
+      which would read the correction as an out-of-scope contract edit by this task.
+  - date: 2026-08-20
+    reason: >-
+      MAINT-24. Phase 12 stage 4 cannot advance for a reason that is not about phase 12.
+      run_command in loop_stage.py returns only the last 4000 characters of a command's
+      output, and red_for_the_right_reason searches that window for an assertion. The phase
+      12 test file produces 57,328 characters with 38 occurrences of "assert" and zero of
+      them in the final 4000, because the tail is pytest's FAILED summary list. So a
+      legitimately assertion-red suite reads as a broken test file.
+      This is the second time this check has rejected the exact state it exists to require;
+      MAINT-04 was the first. Fixing it needs scripts/loop_stage.py and its test, which
+      docs/LOOP.md names as a builder-diff halt condition, so it cannot happen inside the
+      phase task and lands as its own maintenance task between the stage-4 commit and the
+      stage-4 advance. Precedent is MAINT-06, split out of the phase 05 closeout for the same
+      shape of reason. verification/freeze.lock is deliberately not in scope: adding a test to
+      tests/test_loop_machinery.py does move the recorded count, and re-freezing is stage 5's
+      act rather than a maintenance task's, so check_test_freeze stays red until then - which
+      it already was, because tests/test_spot_vocabulary.py is not in the lock yet.
+  - date: 2026-08-20
+    reason: >-
+      Back to the phase 12 stage-4 task after MAINT-24. scripts/loop_stage.py and
+      tests/test_loop_machinery.py leave approved_scope again, which is the point: the driver
+      and its test are check-script territory that a phase task must not reach.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 stage 5, the freeze, in two commits rather than one. This first one writes
+      verification/freeze.lock while it is still in approved_scope: 24 files, 708 test
+      functions, the floor moved from 646, and the only entries that changed are
+      tests/test_spot_vocabulary.py arriving with 61 functions and tests/test_loop_machinery.py
+      going 58 to 59 from MAINT-24. The narrowing follows in its own commit, because
+      check_scope measures the diff against base_commit and a lock written after its own path
+      left approved_scope reads as an out-of-scope edit.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 stage 5 narrowing. tests/ and verification/ leave approved_scope so
+      check_scope.py enforces mechanically that the builder cannot touch the tests it is
+      measured by or the lock recording them, and scripts/run_verify.py leaves too because
+      both new command IDs are already registered and a builder editing the command registry
+      is a builder editing its own gate. base_commit moves to the freeze commit for the reason
+      phase 05 recorded: work that was legitimately in scope at stage 4 would otherwise read
+      as out of scope now.
+      What replaces them is the builder's own list: the schema and lookup that carry the key,
+      the importer that validates it, the new vocabulary report module, the strategy contract
+      and chart that build a query into a key and put the substitution on the answer, the two
+      history producers that must now carry a raise amount, the converter and the two report
+      generators, and the re-derived artifact and sizing table. docs/LOOP.md names any new or
+      changed file under data/artifacts/** as a halt condition, so that pair is expected to
+      stop the loop for a human look rather than pass silently.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 stage 6, four files split and one report generator repaired.
+      The widened key pushed four modules past the 500-line cap, and the cap is
+      right here rather than inconvenient: schema.py was holding the vocabulary
+      and the artifact container, lookup.py the resolution walk and the ruled
+      price abstraction, importer.py strict JSON reading and poker validation,
+      and vocabulary_report.py measurement and rendering. Each split is on the
+      MAINT-09 precedent that split comparison.py, so spot_key.py,
+      price_normalisation.py, strict_json.py and vocabulary_measures.py join
+      approved_scope. Nothing moved between packages and no behaviour changed;
+      schema.py re-exports the vocabulary because every caller has always
+      reached for it there and there is still exactly one derivation.
+      scripts/generate_preflop_chart_report.py joins them because it builds
+      PreflopAction probes by hand and a sizeless raise no longer constructs, so
+      the phase 04 gate command cannot run without it. Its probe labels are
+      corrected in the same edit: one already read "uncovered" against a spot the
+      committed report shows as a hit, and the four-bet probe's label named a
+      limit this phase removes.
+  - date: 2026-08-20
+    reason: >-
+      MAINT-25. Taylor ruled on 2026-08-20 that a completed phase's audit packet is a
+      snapshot of what that phase believed rather than a document that must stay current.
+      scripts/repo_facts.py points all ten registered facts at
+      reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md, and the drift check fails both
+      ways - a stale value fails, and a sentence rewritten past the pattern also fails - so
+      there is no state in which that packet passes except by restating a number a later
+      phase moved, which every phase contract since forbids. The module's own docstring
+      already draws this line for a fact's content ("deliberately not a record of a past
+      run") and then breaks it for a fact's location. Removing the packet from every
+      quoted_in is the fix, and it is check-script territory a phase task must not reach,
+      so it lands as its own maintenance task between phase 12 stage-6 commits on the
+      MAINT-24 precedent. No fact is retired: all ten stay computed and pinned by the
+      committed facts file, and the live documents that quote them keep being checked.
+      Three facts had the packet as their only quoter, and a registered fact must be
+      quoted somewhere - tests/test_quality_hardening.py asserts it, and it is right,
+      because a fact nobody states is a fact nobody can get wrong. So
+      docs/CORPUS_COMPARISON_LIMITS.md joins approved_scope and now states all three in
+      its own prose. MAINT-10 wrote that document to be the live home for exactly these
+      caveats, which is why it is the right target rather than a convenient one.
+  - date: 2026-08-20
+    reason: >-
+      Back to the phase 12 stage-6 task after MAINT-25. scripts/repo_facts.py and
+      docs/CORPUS_COMPARISON_LIMITS.md leave approved_scope again, which is the point:
+      the fact registry and the live limitations document are check territory a phase
+      task must not reach. base_commit moves to the MAINT-25 commit so the diff is
+      measured from it rather than from the stage-5 freeze, which would read that
+      finished work as an out-of-scope edit by this task.
+  - date: 2026-08-20
+    reason: >-
+      Phase 12 stage 6 left 34 failures and 3 collection errors in frozen tests of phases
+      03 to 09, and none is an implementation defect: they construct
+      PreflopAction("CO", "raise") with no size, SeatAction(seat, "raise") with no amount,
+      or they assert a v1 key string, decision-audit schema version 1, or that a
+      second-orbit spot has no key - which is the behaviour the phase 12 contract requires
+      removed. Stage 4 authored this phase's own tests and none of the migrations the
+      phase forces on earlier ones. Repairing them needs tests/** and
+      verification/freeze.lock back in approved_scope for one task, and every builder file
+      leaves it, so this task cannot reshape the implementation to suit the tests it is
+      repairing - the pressure has to run the other way. No assertion is weakened: each
+      repair restates the same claim against the behaviour the phase 12 contract requires,
+      and where a test's claim survives but its population does not - the two-raise refusal
+      count that this phase deliberately grows by one - the population is narrowed to the
+      claim rather than the number bumped to the measurement. Precedent is phase 11's
+      stage-6 repair task, filed for the identical reason.
+  - date: 2026-08-20
+    reason: >-
+      The stage-6 file splits moved three of phase 12's four canaries out from under the
+      path they name: the sized rendering, the strictly-increasing rule and the folded-seat
+      rule now live in solver_artifacts/spot_key.py rather than in schema.py, so
+      check_gate_bite reports them as applying to nothing. verification/mutations.yml joins
+      approved_scope for the file paths and nothing else - every find and replace string is
+      untouched, which is what keeps this a relocation rather than a canary being reshaped
+      to suit the code it is aimed at.
+  - date: 2026-08-20
+    reason: >-
+      Back to the phase task to settle the last stage-6 blocker. The GTOpen source card
+      states headroom_bytes as the 20 MB limit less the total bytes under
+      data/artifacts/**, so re-keying the preflop chart moved a number on a card belonging
+      to a different export by the 1,918 bytes the sizes added. The card joins
+      approved_scope for that one field, re-settled by the same fixed-point rule
+      scripts/extract_gtopen_preflop.py already uses, so no figure is hand-computed and
+      nothing else on the card moves. tests/ and verification/ leave approved_scope again,
+      because the repair task that preceded this one is committed and closed. That the
+      number is a property of the whole directory rather than of the export is a real
+      defect and stays filed as SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE;
+      redesigning it would mean editing the phase 10 extractor, which this phase has no
+      business in.
+  - date: 2026-08-20
+    reason: >-
+      The frozen-test repair pushed two test files past the 700-line cap, by one line and
+      by ten. Splitting a phase's test file for that is disproportionate and would drag
+      scripts/run_verify.py in behind it, so the repair is to tighten the prose the repair
+      itself added: two parametrize cases go back to one line each, one assertion is named
+      instead of wrapped, and three lines leave a docstring I wrote. The two files and the
+      freeze lock recording them join approved_scope for that and nothing else. No
+      assertion, case or label with meaning is removed.
+  - date: 2026-08-20
+    reason: >-
+      Stage 7 found a real gap rather than a decorative canary.
+      `a-folded-seat-may-act-again` survives `pytest_spot_vocabulary`, because the frozen
+      test aimed at the fold rule puts hero on the button: the walk reaches hero before it
+      reaches the folded seat, so mutating the fold rule away still leaves the neighbouring
+      hero-can-never-fold rule raising, and the assertion passes for the wrong reason. The
+      repair is a test that puts hero out of the walk's path, not a weaker canary - the
+      canary is correct and the suite was not isolating the behaviour it names.
+      Adding it takes tests/test_spot_vocabulary.py past the 700-line cap, and it was
+      already one line under, so the file splits at a real seam: what a key can say stays,
+      and what the widened key changes downstream of it moves to
+      tests/test_spot_vocabulary_downstream.py. `pytest_spot_vocabulary` runs both, which
+      is why scripts/run_verify.py is in scope for that one entry, on the precedent
+      pytest_preflop_artifacts and pytest_solver_export already set. Every builder file
+      stays out, so this task cannot reshape the implementation to suit the canary.
+  - date: 2026-08-21
+    reason: >-
+      Stage 9 of the phase 12 loop needs the audit packet itself,
+      reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md, which no prior task in this lane
+      approved. The stage-7 canary-repair scope is retired with it: the tests, the freeze
+      lock and scripts/run_verify.py are out, so a writing task cannot touch the code or
+      the gate it is describing. base_commit moves to b6a0958, the stage-8 review commit,
+      so the diff this task is measured against is the packet and nothing before it.
+      Three of the four inherited backlog entries were still `deferred` while the phase
+      that closed them sat two stages from completion. d83405b closed
+      CORPUS-INEXPRESSIBLE-SPOTS during the build and missed RAISE-SIZE-IN-SPOT-KEY,
+      SECOND-ORBIT-PREFLOP-SPOTS and PHASE-11-MOVED-NUMBERS-AWAIT-REMEASUREMENT, which are
+      the phase's three headline deliverables. Settled here through standing scope. This is
+      the second consecutive phase to do it - BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE
+      records phase 11 leaving all six of its own items deferred through tag and merge - and
+      the check that entry asks for would not have caught phase 12 either, because it fires
+      on a completed phase and phase 12 is still active at stage 9.
+  - date: 2026-08-21
+    reason: >-
+      Taylor asked for the two stage-8 report defects fixed before the phase is tagged, rather
+      than shipped as stated limitations in the audit packet. Both are in the census section of
+      the vocabulary report, so solver_artifacts/vocabulary_report.py and
+      solver_artifacts/vocabulary_measures.py are approved: the report writes the section and
+      the measures compute what it can say, and the reconciliation fix needs a number the
+      Census does not currently carry.
+      The census heading says 969 decisions while its two split tables sum to 1,025, because
+      open_substituted and later_substituted count decisions and a decision can appear in both,
+      while the distance bands count substitutions. Neither figure is wrong and nothing in the
+      report says either thing, which leaves the non-coding reviewer the report criterion names
+      unable to tell a labelling gap from an arithmetic error.
+      tests/** and verification/freeze.lock stay out, so the pressure runs from the frozen tests
+      to the code. No frozen test asserts a Census field or a census line's wording; the one
+      test over this section asserts the words 'substitution' and 'open' and the figure 72 are
+      present, all of which survive.

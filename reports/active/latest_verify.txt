@@ -29,6 +29,8 @@ All passed: True
 - PASS generate_solver_export_report: Generate the solver export range-grid and comparison report
 - PASS pytest_engine_fidelity: Run the engine and strategy-query fidelity tests
 - PASS generate_engine_fidelity_report: Generate the engine and query fidelity before/after report
+- PASS pytest_spot_vocabulary: Run the sizing-aware and second-orbit spot vocabulary tests
+- PASS generate_spot_vocabulary_report: Generate the spot vocabulary report, key mapping, and price substitution census
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness

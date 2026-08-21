@@ -33,8 +33,8 @@ ARTIFACT = ARTIFACT_DIR / "six_max_nl25_100bb.json"
 
 LJ_OPEN = "t6/d100/LJ/rfi"
 BTN_OPEN = "t6/d100/BTN/rfi"
-BB_VS_CO = "t6/d100/BB/CO:raise"
-LJ_VS_CO_3BET = "t6/d100/LJ/LJ:raise,CO:raise"
+BB_VS_CO = "t6/d100/BB/CO:raise@2.5"
+LJ_VS_CO_3BET = "t6/d100/LJ/LJ:raise@2.5,CO:raise@8"
 
 
 @pytest.fixture(scope="module")
@@ -139,7 +139,7 @@ def test_lookup_hits_the_committed_chart_from_hole_cards(library: PreflopChartLi
 
 
 def test_lookup_hits_the_defense_spot(library: PreflopChartLibrary) -> None:
-    result = library.lookup(ChartQuery(6, 100, "BB", (PreflopAction("CO", "raise"),), "AA"))
+    result = library.lookup(ChartQuery(6, 100, "BB", (PreflopAction("CO", "raise", 2.5),), "AA"))
 
     assert isinstance(result, ChartHit)
     assert result.spot_key == BB_VS_CO
@@ -147,7 +147,7 @@ def test_lookup_hits_the_defense_spot(library: PreflopChartLibrary) -> None:
 
 def test_the_cutoff_facing_a_lojack_open_is_now_covered(library: PreflopChartLibrary) -> None:
     """Phase 04's chart missed this spot; the full-table export holds it."""
-    result = library.lookup(ChartQuery(6, 100, "CO", (PreflopAction("LJ", "raise"),), "AA"))
+    result = library.lookup(ChartQuery(6, 100, "CO", (PreflopAction("LJ", "raise", 2.5),), "AA"))
 
     assert isinstance(result, ChartHit)
 
@@ -176,24 +176,33 @@ def test_the_cutoff_facing_a_lojack_open_is_now_covered(library: PreflopChartLib
                 6,
                 100,
                 "BTN",
-                (PreflopAction("LJ", "raise"), PreflopAction("CO", "call")),
+                (PreflopAction("LJ", "raise", 2.5), PreflopAction("CO", "call")),
                 "AA",
             ),
             "lookup:spot-not-covered",
         ),
         (
+            # Expressible since phase 12 and still uncovered: the vocabulary can name the
+            # cell now, and the committed chart holds no four-bet node to fill it with.
             "big blind facing a four-bet",
             ChartQuery(
                 6,
                 100,
                 "BB",
                 (
-                    PreflopAction("CO", "raise"),
-                    PreflopAction("BB", "raise"),
-                    PreflopAction("CO", "raise"),
+                    PreflopAction("CO", "raise", 2.5),
+                    PreflopAction("BB", "raise", 13.5),
+                    PreflopAction("CO", "raise", 28.5),
                 ),
                 "AA",
             ),
+            "lookup:spot-not-covered",
+        ),
+        (
+            # What no legal preflop order produces, which is what the unrepresentable code
+            # still means: the cutoff acts before the button.
+            "the button raising in front of the cutoff",
+            ChartQuery(6, 100, "CO", (PreflopAction("BTN", "raise", 2.5),), "AA"),
             "lookup:unrepresentable-spot",
         ),
         (
@@ -202,7 +211,7 @@ def test_the_cutoff_facing_a_lojack_open_is_now_covered(library: PreflopChartLib
                 6,
                 100,
                 "LJ",
-                (PreflopAction("LJ", "raise"), PreflopAction("CO", "raise")),
+                (PreflopAction("LJ", "raise", 2.5), PreflopAction("CO", "raise", 8.0)),
                 "72o",
             ),
             "lookup:hand-class-not-covered",

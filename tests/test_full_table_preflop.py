@@ -27,7 +27,10 @@ from poker_training_bot.poker_core.positions import position_for_seat, table_pos
 from poker_training_bot.solver_artifacts.hand_classes import hand_class
 from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
 from poker_training_bot.solver_artifacts.lookup import PreflopChartLibrary
+from poker_training_bot.solver_artifacts.schema import PreflopAction
+from poker_training_bot.solver_artifacts.schema import spot_key as derive_spot_key
 from poker_training_bot.strategy.contract import (
+    DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
     SeatAction,
     StrategyDecision,
@@ -79,7 +82,10 @@ def query(
     street_bet = BIG_BLIND
     for entry in history:
         if entry.action == "raise":
-            street_bet = street_bet * 3 if street_bet > BIG_BLIND else BIG_BLIND * 5 // 2
+            # The level is what the raise says it is, rather than a ladder this helper
+            # invents, so the price the query states and the price the key carries are one
+            # number instead of two that can disagree.
+            street_bet = entry.amount or street_bet
             committed[entry.seat] = street_bet
         elif entry.action == "call":
             committed[entry.seat] = street_bet
@@ -130,8 +136,34 @@ def combos_of(hand: str) -> int:
     return 4 if hand.endswith("s") else 12
 
 
-def raised(position: str) -> SeatAction:
-    return SeatAction(seat_of(position), "raise")
+# The prices this table actually plays at, in chips, matching the committed solve. They
+# are named rather than derived inside `raised` because since phase 12 the amount is what
+# the spot key is built from, and a helper that invented it would be inventing the price
+# the chart is then asked about.
+OPEN_TO = int(2.5 * BIG_BLIND)
+THREE_BET_TO = int(8.0 * BIG_BLIND)
+FOUR_BET_TO = int(21.5 * BIG_BLIND)
+FIVE_BET_TO = int(50.0 * BIG_BLIND)
+
+# The one committed spot where hero has already acted and faces a re-raise.
+THREE_BET_SPOT = "t6/d100/LJ/LJ:raise@2.5,CO:raise@8"
+
+
+def raised(position: str, amount: int = OPEN_TO) -> SeatAction:
+    return SeatAction(seat_of(position), "raise", amount)
+
+
+def vs_open_key(library: PreflopChartLibrary, hero: str, opener: str) -> str:
+    """The committed key for `hero` facing an open from `opener`.
+
+    The opener's price is read out of the keys the artifact declares rather than spelled
+    here, which is the same rule the lookup normaliser follows and matters for the same
+    reason: this solve opens the small blind to 3.5 and everyone else to 2.5, so one
+    constant would already be wrong.
+    """
+    prices = library.solved_prices_bb(6, DEPTH_BB, hero, (), opener)
+    assert len(prices) == 1, (hero, opener, prices)
+    return derive_spot_key(6, DEPTH_BB, hero, (PreflopAction(opener, "raise", prices[0]),))
 
 
 def folded(position: str) -> SeatAction:
@@ -209,10 +241,10 @@ class TestCommittedArtifact:
         order = table_positions(6)
         for opener_index, opener in enumerate(order[:-1]):
             for hero in order[opener_index + 1 :]:
-                assert f"t6/d{DEPTH_BB}/{hero}/{opener}:raise" in library.spot_keys()
+                assert vs_open_key(library, hero, opener) in library.spot_keys()
 
     def test_the_opener_facing_a_three_bet_is_covered(self, library) -> None:
-        assert f"t6/d{DEPTH_BB}/LJ/LJ:raise,CO:raise" in library.spot_keys()
+        assert THREE_BET_SPOT in library.spot_keys()
 
     def test_the_big_blind_facing_a_limp_is_covered(self, library) -> None:
         assert f"t6/d{DEPTH_BB}/BB/SB:call" in library.spot_keys()
@@ -239,7 +271,7 @@ class TestSourceFrequencies:
         expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
 
         for opener, expected in expectations["big_blind_defence_pct"].items():
-            spot = f"t6/d{DEPTH_BB}/BB/{opener}:raise"
+            spot = vs_open_key(library, "BB", opener)
             folded_pct = library.action_frequency_pct(spot, "fold")
 
             assert 100.0 - folded_pct == pytest.approx(expected, abs=0.5), opener
@@ -348,8 +380,17 @@ class TestRefusals:
         assert "blind-structure" in refusal(outcome).code
 
     def test_a_second_orbit_spot_refuses(self, strategy) -> None:
-        """Facing a four-bet has no representable spot key in v1."""
-        history = (raised("LJ"), raised("CO"), raised("LJ"), raised("CO"))
+        """Phase 12 gave it a key; the committed chart still holds no cell for it.
+
+        The refusal is the same answer for a better reason - `spot-not-covered` names a
+        cell somebody could fill, where `unrepresentable-spot` named nothing at all.
+        """
+        history = (
+            raised("LJ", OPEN_TO),
+            raised("CO", THREE_BET_TO),
+            raised("LJ", FOUR_BET_TO),
+            raised("CO", FIVE_BET_TO),
+        )
         outcome = strategy.decide(query("LJ", history=history))
 
         assert isinstance(outcome, StrategyRefusal)
@@ -474,7 +515,7 @@ class TestTotality:
 
         assert isinstance(outcome, StrategyRefusal | StrategyDecision)
         if isinstance(outcome, StrategyDecision):
-            assert f"t6/d{DEPTH_BB}/LJ/HJ:raise" in library.spot_keys()
+            assert vs_open_key(library, "LJ", "HJ") in library.spot_keys()
 
 
 class TestLegalityAndDeterminism:
@@ -485,7 +526,7 @@ class TestLegalityAndDeterminism:
             outcome = strategy.decide(request)
             if isinstance(outcome, StrategyDecision):
                 DecisionAuditRecord(
-                    schema_version=1,
+                    schema_version=DECISION_AUDIT_SCHEMA_VERSION,
                     strategy_id=strategy.strategy_id,
                     strategy_version=strategy.strategy_version,
                     query=request,
@@ -514,7 +555,7 @@ class TestLegalityAndDeterminism:
             outcome = strategy.decide(request)
             lines.add(
                 DecisionAuditRecord(
-                    schema_version=1,
+                    schema_version=DECISION_AUDIT_SCHEMA_VERSION,
                     strategy_id=strategy.strategy_id,
                     strategy_version=strategy.strategy_version,
                     query=request,
@@ -530,7 +571,7 @@ class TestLegalityAndDeterminism:
         It would freeze every mixed cell to one action forever while every frequency
         test that routes through decide_spot kept passing.
         """
-        spot = "t6/d100/LJ/LJ:raise,CO:raise"
+        spot = THREE_BET_SPOT
         mixed = next(
             hand
             for hand in strategy.library.hand_classes_for(spot)
@@ -552,9 +593,9 @@ class TestLegalityAndDeterminism:
 
     def test_decide_reproduces_the_charts_frequencies_over_many_hands(self, strategy) -> None:
         """Measured through decide, not decide_spot, so the seed is under test too."""
-        spot = "t6/d100/LJ/LJ:raise,CO:raise"
+        spot = THREE_BET_SPOT
         charted = strategy.library.action_frequency_pct(spot, "fold")
-        history = (raised("LJ"), raised("CO"))
+        history = (raised("LJ", OPEN_TO), raised("CO", THREE_BET_TO))
         folds = 0.0
         total = 0.0
         for hand in strategy.library.hand_classes_for(spot):
@@ -602,7 +643,7 @@ class TestLegalityAndDeterminism:
         the 66.7% at which an 8bb three-bet over a 2.5x open auto-profits as a pure
         bluff.
         """
-        spot = "t6/d100/LJ/LJ:raise,CO:raise"
+        spot = THREE_BET_SPOT
         charted = strategy.library.action_frequency_pct(spot, "fold")
         folds = 0
         total = 0

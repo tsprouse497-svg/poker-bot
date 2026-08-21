@@ -709,10 +709,18 @@ def preflop_history(points: list[DecisionPoint], index: int) -> tuple[SeatAction
     The two blind posts are forced rather than chosen, so the replayer never offers them
     as decision points and they are absent here by construction, which is also what
     `SeatAction` requires - it knows nothing called `post_blind`.
+
+    A raise carries the amount it raised to, which is what `HistoryAction.amount`
+    already holds for a raise. Without it the chart cannot tell which price the spot
+    was played at, which is the whole of `RAISE-SIZE-IN-SPOT-KEY`.
     """
     earlier = points[:index] if points[index].street.value == "preflop" else points
     return tuple(
-        SeatAction(point.seat, point.action.kind.value)
+        SeatAction(
+            point.seat,
+            point.action.kind.value,
+            point.action.amount if point.action.kind.value == "raise" else None,
+        )
         for point in earlier
         if point.street.value == "preflop"
     )
