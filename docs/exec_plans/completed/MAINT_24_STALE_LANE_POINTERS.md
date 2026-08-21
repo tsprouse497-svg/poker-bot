@@ -111,10 +111,16 @@ Question asked: is the filed entry true, and is it the same item as the seam alr
 
 - A maintenance task that only files a backlog entry still has to invent an ExecPlan, because
   `check_execplan_delegation` requires an active plan for every non-`idle` mode.
-  MAINT-23 passed the same gate without one only because a paused phase plan happened to be
-  sitting in `active/` at the time.
   Not filed: it is process shape rather than a defect, and it belongs in the same ruling as the
   two driver items rather than in a third entry.
+
+  Corrected by MAINT-25, which filed it after all as
+  `EXECPLAN-REQUIRED-FOR-A-TASK-WITH-NO-IMPLEMENTATION`.
+  This section originally added that MAINT-23 passed the same gate without a plan only because a
+  paused phase plan happened to be sitting in `active/`, which is false: `fd77388` tracks
+  `MAINT_23_PHASE_11_BACKLOG_CLOSEOUT.md` in `active/` and MAINT-23 passed honestly.
+  The commit that did pass in maintenance mode with nothing but `.gitkeep` in `active/` is
+  `9eec03d`, and that is the evidence the filed entry rests on.
 
 ## Outcome
 

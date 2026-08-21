@@ -1,7 +1,7 @@
-task_id: null
+task_id: maint-execplan-for-a-filing
 active_phase: null
-task_mode: idle
-base_commit: null
+task_mode: maintenance
+base_commit: db626b5eaf043b1e41dbe23cc9de970b63277fd9
 approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
@@ -587,3 +587,10 @@ scope_change_log:
       never retired. Filing it needs backlog.yml alone, which is standing scope, so
       approved_scope stays empty; the entry is recorded here because a maintenance task with
       no approved paths still has to say what it did.
+  - date: 2026-08-20
+    reason: >-
+      Filing that item showed that check_execplan_delegation requires an active ExecPlan for
+      every non-idle mode, including a task whose whole output is one backlog entry, and that
+      9eec03d was committed in maintenance mode with no plan tracked at all. Filing this needs
+      backlog.yml, and correcting one false sentence MAINT-24 wrote about how MAINT-23 passed
+      needs docs/exec_plans/**; both are standing scope, so approved_scope stays empty.

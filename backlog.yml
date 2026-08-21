@@ -797,3 +797,30 @@ items:
       they belong somewhere that does not read as current state. That choice is a ruling about
       what a finished lane's pointer is, which is why this is filed as contract-update rather than
       as tooling. Same owner as FLEET-AND-STAGE-DRIVERS-DISAGREE-ABOUT-INTEGRATION.
+  - id: EXECPLAN-REQUIRED-FOR-A-TASK-WITH-NO-IMPLEMENTATION
+    status: deferred
+    phase: contract-update
+    title: A task whose whole output is one backlog entry still has to invent an ExecPlan
+    reason: >-
+      scripts/check_execplan_delegation.py requires at least one file in docs/exec_plans/active/
+      for every task_mode that is not idle, and validates a Delegation Plan inside it. That is
+      right for a phase or a package, where the plan is how a coordinator states lanes, ownership
+      and integration order before implementing anything. It fits badly on a task whose entire
+      output is one backlog entry: there is nothing to delegate, so the plan reduces to a
+      no-delegation exception, a restatement of the commit message, and slices already done by the
+      time the plan is written. MAINT-24 wrote one to file a single item, and MAINT-25 wrote
+      another to file this one.
+      The evidence that the requirement is being evaded rather than merely felt as awkward is
+      9eec03d, the seam filing: task_mode maintenance, docs/exec_plans/active/ holding nothing but
+      .gitkeep, and the check unchanged since 4d4d528 when it was built. Either that commit's gate
+      was red, or its plan existed untracked and is now gone. AGENTS.md's Task Closeout requires a
+      passing gate before the commit, so both readings are process failures and neither was
+      noticed at the time. MAINT-23, by contrast, wrote a real plan and passed honestly, so the
+      requirement is satisfiable and this is not a claim that it cannot be met.
+      Three directions, and choosing among them is a ruling rather than an implementation detail:
+      exempt a task with an empty approved_scope from needing a plan, give a filing a smaller
+      committed form than an ExecPlan, or keep the requirement and have AGENTS.md say plainly that
+      filing a backlog item is a task like any other, plan included. Filed as contract-update
+      because AGENTS.md and the check have to agree before either moves, and it belongs with
+      COMPLETED-LANE-POINTERS-ARE-NEVER-RETIRED and
+      FLEET-AND-STAGE-DRIVERS-DISAGREE-ABOUT-INTEGRATION rather than on its own.
