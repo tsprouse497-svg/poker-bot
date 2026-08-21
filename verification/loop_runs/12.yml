@@ -1,6 +1,6 @@
 auto_advance: false
-loop: running
+loop: completed
 phase_id: '12'
 schema_version: 1
-stage: 10
-stage_base: c965ce20a0e6615a6af99bbef35ae9e4f07cc120
+stage: 11
+stage_base: 6eb7da376c91ccfb75ad3ed6f406c736a13fa1a0
