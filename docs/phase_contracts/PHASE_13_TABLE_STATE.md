@@ -97,7 +97,7 @@ Phase 13 is limited to the work named by this contract and the active ExecPlan.
 - `to_call` is capped at hero's remaining stack at every producer, which is Taylor's ruling of
   2026-08-20 applied rather than restated. The criterion is the sweep, not a count: the backlog
   entry says three producers are uncapped, and stage 1 measured nine construction sites across
-  seven files of which two cap. Two the entry does not name are load-bearing and are named here
+  six files of which two cap. Two the entry does not name are load-bearing and are named here
   rather than discovered at stage 6. The preflop strategy report builds its straddle probe by
   overriding the bet level alone and its ante probe by overriding the pot alone, so under this
   phase's rules the first stops refusing and the second cannot be built at all; both are
@@ -235,8 +235,9 @@ Phase 13 is limited to the work named by this contract and the active ExecPlan.
   bites, because a validator nobody can break is a validator nobody has tested.
 - The judgment calls in `reports/phase_audits/decisions/PHASE_13_TABLE_STATE_DECISIONS.md`
   carry a reversibility class before implementation begins and the packet records each
-  outcome. This phase writes no committed data, so a `frozen-into-data` call here is a sign
-  the scope drifted into the artifact.
+  outcome. `frozen-into-data` reaches a fixture as well as an artifact, so a behaviour default
+  this contract requires a frozen test to pin carries the class even though the phase commits
+  no artifact.
 - The phase audit packet includes plain-language pass/fail evidence.
 - Any deferred work is recorded in `backlog.yml`, and each of the five entries this contract
   is written against is marked `done` with the evidence that closed it, or restated as what

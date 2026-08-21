@@ -7,6 +7,7 @@ approved_scope:
   - docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
   - docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md
   - reports/phase_audits/reviews/PHASE_13_TABLE_STATE/**
+  - reports/phase_audits/decisions/PHASE_13_TABLE_STATE_DECISIONS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -852,3 +853,10 @@ scope_change_log:
       STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS names that restatement as phase 13 stage 1
       work in as many words. Both amendments obey the two-line cap in AGENTS.md.
       No source, test, artifact, or gate file is in scope at this stage.
+  - date: 2026-08-21
+    reason: >-
+      Phase 13 stage 2 writes the judgment-call list, so
+      reports/phase_audits/decisions/PHASE_13_TABLE_STATE_DECISIONS.md joins approved_scope.
+      Still contract-update mode and still no source, test, artifact or gate file in scope.
+      The loop driver reads the Reversibility line of each item at stage 3 to decide whether
+      the phase must stop for a human, so the list has to exist before any test is authored.

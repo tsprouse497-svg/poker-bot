@@ -99,6 +99,35 @@ items:
     phase: "13"
     title: Antes and straddles in the artifact format
     reason: The artifact declares no blind structure, so a straddled or anted pot reads as an ordinary one even though both materially change correct preflop ranges. Common in the home-game context this bot targets.
+  - id: QUERY-CANNOT-EXPRESS-RAKE-OR-DEAD-MONEY
+    status: deferred
+    phase: strategy
+    title: A pot holding chips no seat contributed cannot be expressed as a StrategyQuery
+    reason: >-
+      Phase 13 decision 3 rules that pot must equal the sum of the per-seat hand
+      contributions exactly, with no dead-money field, because a dead-money field is a hole
+      the size of the defect the rule exists to catch: any producer whose arithmetic does not
+      work can put the difference there and pass. The deliberate cost is that rake taken
+      preflop, a forfeited dead blind, and any other unattributed chips make a hand
+      inexpressible as a query at all. That is a hard stop for later ingestion of real online
+      hands, and it is a query-format change to lift rather than a validation to relax, so
+      whoever takes that ingestion owns deciding where those chips sit. Filed because the
+      alternative is a paragraph in a decision list nobody reads again when the ingestion
+      phase starts. Charts in this repo are rake-free by ruling, which is why the stop costs
+      nothing today.
+  - id: SIDE-POTS-NOT-EXPRESSIBLE-ON-THE-QUERY
+    status: deferred
+    phase: strategy
+    title: The query carries one undivided pot, so a short all-in has no side pot
+    reason: >-
+      Per-seat contributions, a capped to_call, and phase 13's refusal on a live seat
+      shallower than hero are exactly the state in which a side pot exists, and StrategyQuery
+      still carries pot as one scalar. Hero's real price and pot odds against the main pot are
+      not recoverable even with contributions in hand. Phase 13 hides the question rather than
+      answering it, because decision 6 refuses every asymmetric table, which is precisely why
+      it will be missed when decision 6 is re-ruled. Whoever loosens that rule owns deciding
+      whether pot becomes a list of pots or the refusal survives for the all-in case alone.
+      Found by the independent stage 2 reviewer.
   - id: CORPUS-CANNOT-EXPRESS-A-TABLE-SHAPE
     status: deferred
     phase: samples
@@ -518,6 +547,13 @@ items:
       thresholds as frozen-into-data to force the stop, which works and is a stretch of the
       class. The fix is a third class, or an explicit rule that a threshold graded against
       external data counts as frozen; either way it is loop machinery and not phase work.
+      Phase 13 is the third instance and the first with no workaround: phase 12 could flag a
+      reversible call for a human only because policy gave it auto_advance false, and phase
+      13 has auto_advance true, so a flag with no mechanism behind it reaches nobody. It was
+      settled by reading docs/LOOP.md in full rather than by stretching anything: the class
+      says "committed artifact or fixture", and a behaviour default a contract requires a
+      frozen test to pin is a fixture. That reading covers phase 10's five thresholds too,
+      so the fix may be a documentation clarification rather than a third class.
   - id: GTOPEN-NOTES-OMIT-REALIZATION
     status: deferred
     phase: contract-update
