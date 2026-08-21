@@ -1,7 +1,7 @@
-task_id: maint-execplan-for-a-filing
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: db626b5eaf043b1e41dbe23cc9de970b63277fd9
+task_mode: idle
+base_commit: null
 approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
