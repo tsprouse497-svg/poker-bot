@@ -239,20 +239,52 @@ producers and the contract now says where it actually bites.
 Work only in `~/projects/poker-bot-worktrees/phase-13` on `phase/13-table-state-fidelity`.
 Never work in `~/projects/poker-bot` or the main worktree.
 
-Ask the driver and do only what it names:
+Ask the driver and do only what it names, then `--advance`:
 
     uv run python scripts/loop_stage.py --phase 13 [--advance]
 
-Current state: stage 1 complete, `task_mode: contract-update`, `base_commit`
-`41ec07a3bcc918312e4c1600a3b842cf9f944a82`, phase 13 `active` in `phase_status.yml`. Next is
-stage 2, the decision list at
-`reports/phase_audits/decisions/PHASE_13_TABLE_STATE_DECISIONS.md`, which needs its own
-`scope_change_log` entry before it is written.
+**Current state: stages 0 to 5 are complete and committed. The loop sits at stage 6, the
+build.** `task_mode: implementation`, `base_commit` `80ca70d`, phase 13 `active` in
+`phase_status.yml`, tree clean. The two red commands the driver names, `pytest_table_state` and
+`generate_table_state_report`, are red because the implementation does not exist yet. That is
+the expected state, not a failure to repair.
 
-Read first: this plan, the contract, the five `phase: "13"` entries in `backlog.yml`, and the
-Phase 12 audit packet's limitations section, which hands this phase two findings by name.
+Read before doing anything: this whole plan, especially `Coordinator rulings during the build`
+and `What stage 4 specified for the stage 6 builder`; then
+`docs/phase_contracts/PHASE_13_TABLE_STATE.md`; then
+`reports/phase_audits/decisions/PHASE_13_TABLE_STATE_DECISIONS.md`, where decision 6 is ruled by
+Taylor and frozen. The five stage review notes under
+`reports/phase_audits/reviews/PHASE_13_TABLE_STATE/` record what was already caught and fixed,
+so a finding that appears there is settled rather than new.
 
-Two things to keep in view. The spot key is out of scope on purpose: phase 14 re-keys anyway
-and re-keying re-seeds every mixed cell (`RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`), so paying that
-cost twice buys one result. And the frozen tests of completed phases must be migrated at stage
-4, not discovered at stage 6, which is the mistake phases 11 and 12 both made.
+The tests are the specification and they are frozen. `tests/test_table_state.py` and
+`tests/test_table_state_strategy.py` hold 66 tests, all red. `tests/**`,
+`verification/**` and `scripts/run_verify.py` are out of `approved_scope` and
+`check_scope.py` enforces it: an implementer may read the tests and must never write to them. A
+test that looks wrong is a halt and a review finding, never an edit.
+
+Build in the integration order the Delegation Plan sets out, delegating to workers and running
+the phase's own commands after each merge: L1 the query shape alone first, since every other
+lane needs the field to exist; then L2 the producers and L3 the strategy in parallel on disjoint
+files; then L4 the rename across the whole tree alone; then L5 the report once its numbers are
+real. Full gate only after L5.
+
+Five things that will bite if they are not carried forward.
+
+1. The five canaries in `verification/mutations.yml` name `find` strings the build must produce
+   verbatim, listed above. `check_gate_bite` fails at stage 7 otherwise.
+2. `generate_table_state_report.py` must validate its own figures and exit non-zero when they do
+   not hold, because two canaries name it in `must_fail`.
+3. An ante lives in `committed_total` only and never reduces what a seat owes. The gap between
+   the two per-seat figures is the ante signal.
+4. A folded seat never makes the table ragged, whatever it holds.
+5. This phase does not tag until `ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` has run as its
+   own `contract-update` task. That task also owes a reword of this contract's line saying the
+   two per-seat figures "coincide" preflop, which the ante ruling made false.
+
+The spot key stays out of scope on purpose: phase 14 re-keys anyway and re-keying re-seeds every
+mixed cell (`RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`), so paying that cost twice buys one result.
+
+Subagents are authorized for this phase and every stage review has gone to an independent
+reader. Two workers died mid-task on API errors during stage 4, so verify a worker's output
+against the artifact rather than against its own report.
