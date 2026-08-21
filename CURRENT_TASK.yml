@@ -1,8 +1,10 @@
-task_id: phase-12-audit-packet
+task_id: phase-12-census-legibility
 active_phase: "12"
 task_mode: implementation
-base_commit: b6a0958072a393b68f99587d24ce50314eff6134
+base_commit: bd94f7e42d268e15d095e4d26734ac994227a485
 approved_scope:
+  - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
+  - src/poker_training_bot/solver_artifacts/vocabulary_report.py
   - reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md
   - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
@@ -805,3 +807,20 @@ scope_change_log:
       records phase 11 leaving all six of its own items deferred through tag and merge - and
       the check that entry asks for would not have caught phase 12 either, because it fires
       on a completed phase and phase 12 is still active at stage 9.
+  - date: 2026-08-21
+    reason: >-
+      Taylor asked for the two stage-8 report defects fixed before the phase is tagged, rather
+      than shipped as stated limitations in the audit packet. Both are in the census section of
+      the vocabulary report, so solver_artifacts/vocabulary_report.py and
+      solver_artifacts/vocabulary_measures.py are approved: the report writes the section and
+      the measures compute what it can say, and the reconciliation fix needs a number the
+      Census does not currently carry.
+      The census heading says 969 decisions while its two split tables sum to 1,025, because
+      open_substituted and later_substituted count decisions and a decision can appear in both,
+      while the distance bands count substitutions. Neither figure is wrong and nothing in the
+      report says either thing, which leaves the non-coding reviewer the report criterion names
+      unable to tell a labelling gap from an arithmetic error.
+      tests/** and verification/freeze.lock stay out, so the pressure runs from the frozen tests
+      to the code. No frozen test asserts a Census field or a census line's wording; the one
+      test over this section asserts the words 'substitution' and 'open' and the figure 72 are
+      present, all of which survive.

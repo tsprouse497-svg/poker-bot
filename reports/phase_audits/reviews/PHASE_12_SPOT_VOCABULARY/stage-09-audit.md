@@ -28,12 +28,19 @@ This stage was picked up by a session that did not run stages 1 to 8, which is w
   Two were recomputed rather than copied: 966 is 554 plus 412 from the distance histogram, and 69 tests is `pytest --collect-only` on the two files the command names.
   43 of 43 gate commands and four canaries were counted from the tree rather than taken from the ExecPlan.
 
-- **The packet carries the two report defects stage 8 found rather than passing them off.**
-  The census reconciliation gap and the aggregated opening-price column are in Known limitations, named as report defects, not folded into a sentence that implies the report is clean.
-  This is the right disposition for a packet whose contract asks the report to be legible to a non-coding reviewer and whose own reviewer found it is not, in two specific places.
-  It should be said plainly that this stage did not fix them.
-  Both fixes are inside `scripts/generate_spot_vocabulary_report.py`, which is a builder file and out of this task's scope by design, and regenerating the report from a writing task would let the packet's author reshape the evidence the packet describes.
-  So they ship as stated limitations, and a reader who wants the census to add up has to read this packet beside the report.
+- **The three report findings are fixed rather than shipped as limitations, on Taylor's instruction, and the packet was rewritten to match.**
+  The packet first carried the census reconciliation gap and the aggregated opening-price column in Known limitations, which was the correct disposition for a writing task with builder files out of scope.
+  Taylor ruled on 2026-08-21 that the report should be legible before the phase is tagged, so `vocabulary_measures.py` and `vocabulary_report.py` entered scope in their own task with `tests/` and the freeze lock left out.
+  Two things about the shape of that fix are worth recording.
+  The reconciliation is enforced and not merely explained: `_validate_census` now fails the gate if the decision splits do not reconcile by inclusion-exclusion, or if the distance or direction split disagrees with the substituted-raise total, so a census that cannot be added up cannot be published again.
+  And the direction split went in at the same time, because the domain finding's own stated fix was a column in the census and the census was already open - 1,010 of 1,025 substituted raises answered above the price asked, which is the biased half the distance histogram could never show.
+  The opening-price table took the sentence rather than the position column, deliberately: parsing the opener out of every spot key to reshape a table risks a bug in the report the phase is measured by, and the sentence closes the misreading exactly.
+
+- **The fix took `vocabulary_measures.py` to exactly its 500-line cap, and that is a new finding rather than a clean result.**
+  459 lines to 500, and `check_file_sizes.py` treats 500 as passing, so the gate is green and the next line added to that file turns it red in whatever task is unlucky enough to add it.
+  I trimmed my own additions twice to get there and deliberately did not reach for the other available line, which was deleting the pre-existing `counted <= 0` check.
+  That check is now provably unreachable - `substituted > 0` is asserted above it and a substituted decision carries at least one substitution - so deleting it would have been defensible and would still have been the wrong instinct, because a check removed to fit a line cap is a check removed for the worst possible reason.
+  Filed as `VOCABULARY-MEASURES-AT-ITS-LINE-CAP`.
 
 - **The checklist claims and the contract criteria line up, and where a criterion is met by a sweep rather than a test the checklist says so.**
   Rows 7 and 8 are sweeps, and both name their method.
@@ -57,6 +64,12 @@ This stage was picked up by a session that did not run stages 1 to 8, which is w
   The entry already asks for a check comparing an item's `phase` against that phase's status in `phase_status.yml`.
   What this stage adds as evidence is that the check as described would not have fired here: it triggers on an item filed against a *completed* phase, and phase 12 was `active` the whole time it was wrong.
   So the check would catch the state only after closeout had already committed it, which makes the missing closeout rule the load-bearing half rather than the missing check.
+
+- `VOCABULARY-MEASURES-AT-ITS-LINE-CAP` - newly filed, and it carries a second finding inside it that is not worth its own entry.
+  `NON_PHASE_LABELS` in `scripts/quality_checks.py` has no `maintenance` label, though `AGENTS.md` declares `maintenance` as a task mode and this repo has more than twenty completed MAINT ExecPlans.
+  So a pure repo-structure item has no honest label and lands on `contract-update`, which then reads as needing a ruling it does not need.
+  `DOCS-CARRY-STRAY-WRITE-TOOL-CLOSING-TAGS` is mislabelled the same way for the same reason.
+  Recorded inside the new entry rather than filed separately, since the fix is one line in a check script.
 
 - `TWO-LANES-CAN-FILE-ONE-DEFECT-TWICE` - unchanged and still open, and this stage is a second instance of the same shape.
   The stale primary checkout at `~/projects/poker-bot` reports 11 completed phases while `main` has 12, because a parked lane's `phase_status.yml` is as committed as the live one.

@@ -161,23 +161,47 @@ moved. Over the committed sample:
   answered at the price they were asked at               1789
   answered at a price they were not asked at              969   (35.1%)
 
-Split by which raise was moved. The first line is what ruling 8 itself costs;
-the second is what extending it past the open costs, and they are kept apart
-because they were ruled separately.
+Two different things get counted below and adding the wrong column gives a
+number this heading contradicts, so each table says which it counts. One
+decision can face several raises and have more than one of them moved: there
+are 969 substituted decisions carrying 1,025 substituted raises between them.
+
+Split by which raise was moved, counting DECISIONS. The first line is what
+ruling 8 itself costs; the second is what extending it past the open costs, and
+they are kept apart because they were ruled separately. The third is why the
+first two sum to more than the total above.
 
   the opener's price was moved                            959
   a later raise's price was moved                          66
+  both, counted once in each line above                    56
 
-Split by how far a price moved:
+Split by how far a price moved, counting SUBSTITUTED RAISES:
 
   moved under 0.25bb                                     554
   moved 0.25 to 0.50bb                                   412
   moved 0.50 to 1.00bb                                    22
   moved 1.00 to 3.00bb                                    34
   moved over 3.00bb                                        3
+  all substituted raises                                1025
+
+And by direction, which the distance split above cannot show and which is the
+half with poker content. A smaller open gives the defender a better price, so
+the correct response to it is a wider continue than the correct response to a
+larger one. Where the answered price is the higher, the chart hands back the
+tighter range:
+
+  answered above the price asked                        1010
+  answered below the price asked                          15
 
 The opening prices the sample actually came in at, and the cell each was
-answered from:
+answered from, counting DECISIONS.
+
+The answered column is aggregated across openers whose solved prices differ, so
+one asked price can appear against two answered cells and an answered cell can
+be a price the tree does hold. The small blind's solved open is 3.5 and every
+other position's is 2.5, which is the whole of that effect: a row reading
+'2.5 -> 3.5' is a small-blind open answered from the small-blind cell, not a
+solved price that was moved.
 
      asked  answered   decisions
          2       2.5         233

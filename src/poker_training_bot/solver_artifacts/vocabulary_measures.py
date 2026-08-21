@@ -215,11 +215,21 @@ def expressible_spots(single_orbit: bool) -> SpotCounts:
 
 @dataclass(frozen=True)
 class Census:
+    """Two populations, and conflating them is what made the first published census
+    unreconcilable. `substituted`, `open_substituted`, `later_substituted` and
+    `both_substituted` count decisions; `substitutions`, `by_distance`, `moved_up` and
+    `moved_down` count substituted raises, of which one decision can carry several.
+    """
+
     answered: int
     substituted: int
     exact: int
     open_substituted: int
     later_substituted: int
+    both_substituted: int
+    substitutions: int
+    moved_up: int
+    moved_down: int
     by_asked_open: tuple[tuple[float, float, int], ...]
     by_distance: tuple[tuple[str, int], ...]
     three_bet_spots_covered: int
@@ -258,15 +268,25 @@ def census(result: ComparisonResult) -> Census:
     distances = Counter()
     open_rows = 0
     later_rows = 0
+    both_rows = 0
+    entries = 0
+    up = 0
+    down = 0
     for row in substituted:
-        if any(index == 0 for index, _, _ in row.price_substitutions):
-            open_rows += 1
-        if any(index > 0 for index, _, _ in row.price_substitutions):
-            later_rows += 1
+        moved_open = any(index == 0 for index, _, _ in row.price_substitutions)
+        moved_later = any(index > 0 for index, _, _ in row.price_substitutions)
+        open_rows += moved_open
+        later_rows += moved_later
+        both_rows += moved_open and moved_later
         for index, asked, given in row.price_substitutions:
             if index == 0:
                 opens[(asked, given)] += 1
             distances[_distance_band(abs(given - asked))] += 1
+            entries += 1
+            if given > asked:
+                up += 1
+            else:
+                down += 1
 
     # A spot the chart holds a cell for, whether or not it holds one for hero's hand:
     # `hand-class-not-covered` means the artifact declares the spot and hero's own
@@ -290,6 +310,10 @@ def census(result: ComparisonResult) -> Census:
         exact=len(answered) - len(substituted),
         open_substituted=open_rows,
         later_substituted=later_rows,
+        both_substituted=both_rows,
+        substitutions=entries,
+        moved_up=up,
+        moved_down=down,
         by_asked_open=tuple(
             (asked, given, count) for (asked, given), count in sorted(opens.items())
         ),
@@ -329,6 +353,23 @@ def _validate_census(measured: Census) -> None:
     counted = sum(count for _, count in measured.by_distance)
     if counted <= 0:
         raise VocabularyReportError("the distance split accounts for no substitution")
+    # The first published census could not be reconciled: the heading counted decisions,
+    # the splits counted raises, and nothing said so. Now that gap fails the gate.
+    decisions = (
+        measured.open_substituted + measured.later_substituted - measured.both_substituted
+    )
+    if decisions != measured.substituted:
+        raise VocabularyReportError(
+            f"the decision splits reconcile to {decisions}, not the"
+            f" {measured.substituted} decisions recorded as substituted"
+        )
+    directions = measured.moved_up + measured.moved_down
+    for name, total in (("distance", counted), ("direction", directions)):
+        if total != measured.substitutions:
+            raise VocabularyReportError(
+                f"the {name} split accounts for {total} substituted raises against"
+                f" {measured.substitutions} counted"
+            )
     if measured.three_bet_spots_covered <= 0:
         raise VocabularyReportError(
             "no decision facing a three-bet reached a spot the chart declares, so the"

@@ -19,7 +19,14 @@ None.
 
 ## Non-blocker
 
-- **The substitution census cannot be reconciled by the reader it was written for.**
+- [resolved] **The substitution census cannot be reconciled by the reader it was written for.**
+  Fixed on 2026-08-21 at Taylor's instruction, rather than shipped as a stated limitation.
+  Each table now names the population it counts, the 56 decisions carrying both a moved open
+  and a moved later raise are printed, and the distance split carries its total, so the two
+  figures reconcile on the page.
+  `_validate_census` also now fails the gate when the decision splits do not reconcile by
+  inclusion-exclusion, or when the distance or direction split disagrees with the
+  substituted-raise total, so this class of gap cannot be published again.
   The heading says 969 decisions were answered at a price they were not asked at.
   Both tables under it sum to 1,025: the open-against-later split is 959 + 66, and the distance
   histogram is 554 + 412 + 22 + 34 + 3.
@@ -31,7 +38,14 @@ None.
   asks for exactly that reader.
   Fix is one word per table caption plus a line stating the 56.
 
-- **`asked 2.5 → answered 3.5` reads as a bug and is not one.**
+- [resolved] **`asked 2.5 → answered 3.5` reads as a bug and is not one.**
+  Fixed on 2026-08-21 by the sentence option rather than the position column, because parsing
+  the opener out of every spot key to reshape a table risks a bug in the report the phase is
+  measured by, and the sentence closes the misreading exactly.
+  The table now states that it aggregates openers whose solved prices differ, that the small
+  blind's solved open is 3.5 and every other position's is 2.5, and that a row reading
+  `2.5 -> 3.5` is therefore a small-blind open answered from the small-blind cell rather than
+  a solved price that was moved.
   The opening-price table aggregates every position into one column pair, so the small blind's
   solved open of 3.5 appears alongside everyone else's 2.5.
   That is why one asked price maps to two answered cells (`3 → 2.5` twice, `3 → 3.5`
@@ -50,7 +64,12 @@ None.
 
 ## Poker-domain findings
 
-- **The price substitution is one-directional, and the report's distance histogram hides that.**
+- [resolved] **The price substitution is one-directional, and the report's distance histogram hides that.**
+  Fixed on 2026-08-21, in the same pass as the two report findings above, because the fix this
+  note named was a column in the census and the census was already being opened.
+  The report now carries the direction split: of 1,025 substituted raises, 1,010 were answered
+  above the price asked and 15 below, with the poker reason stated in the report rather than
+  only here.
   Of the 959 opener substitutions, 949 move the price *up* and 10 move it down.
   Hero is therefore answered, in 98.9% of substituted opens, with the strategy solved for a
   larger open than the one actually faced: 2 → 2.5 in 233 decisions, 2.25 → 2.5 in 541.

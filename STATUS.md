@@ -1,7 +1,7 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `phase-12-audit-packet`
+Current task: `phase-12-census-legibility`
 Task mode: `implementation`
 Active phase: `12`
 Completed phases: `12`

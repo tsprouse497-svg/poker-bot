@@ -147,14 +147,22 @@ Taylor extended it on 2026-08-20 to every raise in the sequence, because exact m
 
       of those, the opener's price was moved         959    <- what ruling 8 itself costs
       of those, a later raise's price was moved       66    <- what extending it costs
+      of those, both                                  56    <- why the two lines above overlap
 
+    substituted raises in all                       1025    <- not 969; the 56 carried two each
+      answered above the price asked                1010
+      answered below the price asked                  15
     substitutions within 0.5bb                       966 of 1025
     substitutions over 3bb                             3 of 1025
 
-Two things a reader should carry away, both from the stage-8 domain review rather than from the report.
+The two totals are the thing to read carefully, and the report now labels them.
+969 counts *decisions*; 1,025 counts *substituted raises*, because a decision facing several raises can have more than one moved, and 56 did.
 
-The substitution is one-directional, and the report's distance histogram does not say so.
-Of the 959 opener substitutions, 949 move the price **up** and 10 move it down.
+Two things a reader should carry away, both first found by the stage-8 domain review.
+
+The substitution is one-directional.
+Across all substituted raises, 1,010 of 1,025 were answered **above** the price asked.
+Narrowed to the opens, which is what ruling 8 itself governs, 949 of 959 move up and 10 move down.
 A smaller open gives the defender a better price, so the correct response to a 2bb open is a wider continue than the correct response to a 2.5bb open, and the chart hands back the tighter one every time.
 The abstraction is small in this sample and it is biased.
 
@@ -253,12 +261,16 @@ Blockers found and fixed, none of them an implementation defect:
 - **Stage 7.** A canary survived, and it was a real finding. `test_a_seat_the_action_already_passed_cannot_act_later` put hero on the button, so the ring walk reached hero before the folded seat and the rejection came from a neighbouring rule. Repaired with a test that puts hero out of the walk's path, checked in both directions. An assertion passing off a rule other than the one it names is invisible at stage 4 by construction, and `check_gate_bite` is the argument for itself stated as a result.
 
 The most useful non-blocking finding is the one-directional substitution, above.
-Two report defects were found at stage 8 and are **not** fixed, recorded here as limitations rather than as passes.
+
+Three stage-8 report findings were fixed after the packet was first written, on Taylor's instruction that the report be legible before the phase is tagged rather than carry the defects as stated limitations.
+The census now says which population each table counts, prints the 56 decisions that carried both a moved open and a moved later raise, and totals the distance split so the two figures reconcile on the page.
+The reconciliation is also enforced: `_validate_census` fails the gate if the decision splits do not reconcile by inclusion-exclusion, or if either the distance or the direction split disagrees with the substituted-raise total.
+The opening-price table now says it aggregates openers whose solved prices differ, and that a row reading `2.5 -> 3.5` is a small-blind open answered from the small-blind cell rather than a solved price that was moved.
+And the direction split the domain review asked for is in the report rather than only in a review note: of 1,025 substituted raises, 1,010 were answered above the price asked and 15 below, so the report now states the bias instead of only the distance.
 
 ## Known limitations and deferred items
 
-- **The substitution census cannot be reconciled by the reader it was written for.** The heading says 969 decisions; both tables under it sum to 1,025. Neither is wrong - 969 counts decisions and 1,025 counts substitutions, so 56 decisions carried two - and nothing in the report says a decision can carry more than one. A non-coding reviewer adding the column and getting 1,025 has no way to tell a labelling gap from an arithmetic error, and this is the report criterion that asks for exactly that reader.
-- **`asked 2.5 -> answered 3.5` in the opening-price table reads as a bug and is not one.** The table aggregates every position into one column pair, and the small blind's solved open is 3.5. It needs the position column that makes it legible, or a sentence saying the column is aggregated across openers with different solved prices.
+- **`vocabulary_measures.py` now sits at exactly its 500-line cap.** The reconciliation checks took it from 459 to 500, so the next edit to that file forces a split. It has three real seams - the expressible-spot enumeration, the census, and the restatement - so the split is available rather than awkward, but it is a landmine for whoever edits next and was not worth spending this task on. Filed as `VOCABULARY-MEASURES-AT-ITS-LINE-CAP`.
 - **The key admits raise sizes no legal preflop action produces.** Nothing checks the minimum raise, so a three-bet to 2.6 over a 2.5 open has a key. Deliberately not fixed: an all-in for less than a full raise is legal, and the key cannot tell an under-raise from a short all-in because it holds one table-wide depth and no per-seat stacks. The same limit makes payability weaker than it looks. Both wait on `ASYMMETRIC-EFFECTIVE-STACKS` at phase 13, and the module docstring's "legal preflop order" is a stronger claim than the check behind it.
 - **Nearest is measured in big blinds, and the quantity that decides hero's range is a ratio.** Latent today, because every location in the committed artifact holds exactly one solved price, so the normaliser never chooses. It goes live the moment phase 14 commits a second price at one location. Filed as `NORMALISER-MEASURES-DISTANCE-IN-BIG-BLINDS`.
 - **The roadmap's expressible-spot counts do not reproduce.** `docs/V2_ROADMAP.md` states 1,691 and 848 and says both are recomputable by enumerating `spot_key`; doing exactly that gives 1,949 and 977. The ratio survives to within a percent, so it reads as one systematic difference rather than two errors, but no variation tried reproduces the published pair. It matters because the numbers are load-bearing: the 12 MB artifact estimate in `docs/V2_RULING_MITIGATIONS.md` is 1,691 times a measured 7.1 KB, and phase 14 is scoped against both. Filed as `ROADMAP-SPOT-COUNTS-DO-NOT-REPRODUCE`, `contract-update`.

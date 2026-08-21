@@ -926,6 +926,31 @@ items:
       first. LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS is the neighbouring item and stays open:
       it is about a red that is not an assertion at all, where no linter has read the file and no
       assertion has run, which this fix does not touch.
+  - id: VOCABULARY-MEASURES-AT-ITS-LINE-CAP
+    status: deferred
+    phase: contract-update
+    title: solver_artifacts/vocabulary_measures.py sits at exactly its 500-line cap
+    reason: >-
+      The census reconciliation checks added on 2026-08-21 took the file from 459 lines to 500,
+      which is the cap check_file_sizes.py enforces as an inclusive bound, so it passes today
+      and the next line added to the file fails the gate. That is a landmine rather than a
+      defect: whoever makes the next edit pays for a split they did not plan, in whatever task
+      they were actually doing.
+      The split is available rather than awkward. The module holds three seams the stage-6
+      review already recognised as real elsewhere in this package: the expressible-spot
+      enumeration, the census and its validation, and the Phase 07/08 restatement. Each is read
+      by a different section of vocabulary_report.py.
+      Not done in the task that caused it, because that task was approved to make a report
+      legible before a tag and a structural split of a module the phase is measured through is
+      not a thing to slip into it. The MAINT-09 precedent is the one to follow.
+      The `contract-update` label is approximate and the reason is worth recording, because it
+      makes this entry look like it needs a ruling and it does not. NON_PHASE_LABELS in
+      scripts/quality_checks.py has no `maintenance` slot, even though AGENTS.md declares
+      `maintenance` as a task mode and this repo has more than twenty completed MAINT ExecPlans.
+      So a pure repo-structure item has no honest label and lands on the catch-all, which is
+      also where DOCS-CARRY-STRAY-WRITE-TOOL-CLOSING-TAGS ended up for the same reason. Adding
+      the label is a one-line edit to a check script, which is why it is mentioned here rather
+      than filed as its own entry.
   - id: FROZEN-TESTS-PREDATE-THE-SIZED-SPOT-KEY
     status: deferred
     phase: "12"
