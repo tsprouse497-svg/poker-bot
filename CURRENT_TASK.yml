@@ -15,6 +15,10 @@ approved_scope:
   - scripts/generate_strategy_query_report.py
   - scripts/generate_engine_fidelity_report.py
   - reports/phase_audits/reviews/PHASE_13_TABLE_STATE/**
+  - verification/mutations.yml
+  - reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md
+  - reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md
+  - reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -912,3 +916,28 @@ scope_change_log:
       own: check_scope measures the diff from base_commit, and stage 4's tests were legitimately
       in scope under their own entry. Left where it was, the freeze itself would read as the
       builder writing tests, which is precisely the thing this narrowing exists to stop.
+  - date: 2026-08-21
+    reason: >-
+      Phase 13 stage 6 needs verification/mutations.yml back for one re-pointing and nothing
+      else. The phase 11 canary all-in-ceiling-loose-by-the-price-to-call-again targets the exact
+      line of the decision audit's all-in ceiling, and decision 11 rewrote that line: it now
+      reads hero's own recorded contribution off seat_states instead of subtracting to_call from
+      the bet level. A canary whose find string no longer occurs is a canary that cannot bite, so
+      leaving it would retire a phase 11 legality claim by accident while the gate stayed green.
+      The re-point keeps the claim identical - the ceiling goes back to the street's bet level
+      plus hero's stack, too high by exactly the price to call - stated in this phase's names.
+      verification/freeze.lock stays out and no test changes, so the builder still cannot reach
+      the tests it is measured by, and a canary that bites makes the gate stricter.
+  - date: 2026-08-21
+    reason: >-
+      The rename criterion says no committed audit is left on the old name, so the three packets
+      that name StrategyQuery.street_bet join approved_scope: phase 03, phase 06 and phase 11.
+      Ruled narrowly. A completed packet is dated evidence rather than live vocabulary, so its
+      prose keeps the name it shipped with and gains a dated pointer saying phase 13 renamed the
+      field; rewriting it would falsify the record, because the phase 11 packet's claim that it
+      documented street_bet and left the name was true when it was written. What is corrected is
+      the two citations that no longer resolve - stage 4 renamed
+      test_a_street_bet_below_the_price_to_call_is_rejected and its accepted twin, and the phase
+      11 packet cites both by name, so it now sends a reader to tests that do not exist. Nothing
+      mechanical catches that: run_full_quality_gate.py checks backlog ids in reports/, not test
+      names.

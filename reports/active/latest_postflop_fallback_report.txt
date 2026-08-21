@@ -30,10 +30,22 @@ remaining stack that the engine can be put in. If the engine ever produces a new
 set, this sweep widens on its own rather than missing it.
 
 Legal-action sets the engine produced: 4
-  fold/call               to call   20  (hero's whole stack is short of the price to call)
+  fold/call               to call   10  (the price to call takes hero's whole stack)
   fold/call/raise         to call   20
   fold/check/bet          to call    0
   fold/check/raise        to call    0
+
+The price to call is capped at what hero holds, so it is the price hero can actually
+pay. A hero whose whole stack is the price is Phase 06's short hero restated: the old
+form, a stack below the price, cannot happen once the price is capped, and the situation
+survives as a price equal to the stack.
+
+The pot in each enumerated state is a construction, not data: it is the 100 chips
+villain put in on the street before, plus what the two seats have put in on the street
+being played. A pot is the sum of what the seats put in, so those chips had to belong to
+somebody, and villain's earlier street is the attribution that describes a real hand.
+Nothing in the enumeration reads the pot, so no verdict below depends on it - read it as
+a claim about how the hand got here rather than as a measurement.
 
 Streets: 3 (flop, turn, river)
 Hands enumerated at each: 6
@@ -189,9 +201,9 @@ being quietly converted into a check.
     river   seat 0   check  (postflop-fallback:check-when-free)
 
   phase02-three-way-side-pot
-    preflop seat 2   refused  (preflop-chart:lookup:no-artifact-for-table-size)
-    preflop seat 0   refused  (preflop-chart:lookup:no-artifact-for-table-size)
-    preflop seat 1   refused  (preflop-chart:lookup:no-artifact-for-table-size)
+    preflop seat 2   refused  (preflop-chart:a-live-seat-is-shorter-than-hero)
+    preflop seat 0   refused  (preflop-chart:table-is-not-one-flat-stack-depth)
+    preflop seat 1   refused  (preflop-chart:table-is-not-one-flat-stack-depth)
 
   phase02-preflop-fold-out
     preflop seat 2   not asked (this seat's hole cards are not recorded)
@@ -219,7 +231,9 @@ skipped (hole cards unknown)                         4                     4
 
 Refusal codes, all of them from the chart and none from the fallback:
 
-  preflop-chart:lookup:no-artifact-for-table-size          5
+  preflop-chart:a-live-seat-is-shorter-than-hero           1
+  preflop-chart:lookup:no-artifact-for-table-size          2
+  preflop-chart:table-is-not-one-flat-stack-depth          2
 
 Read the per-hand listing above as the shape of a hand played by this bot: the chart
 speaks preflop or declines to, every postflop street checks through, and the hand is

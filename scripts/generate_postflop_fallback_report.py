@@ -56,6 +56,7 @@ from poker_training_bot.strategy.contract import (
     DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
     SeatAction,
+    SeatState,
     StrategyDecision,
     StrategyQuery,
     StrategyRefusal,
@@ -85,6 +86,14 @@ MIN_RAISE = BIG_BLIND
 HERO_SEAT = 1
 VILLAIN_SEAT = 0
 VILLAIN_STACK = 500
+
+# The chips in the enumeration's pot beyond what the two seats have put in on the street
+# being played. They are villain's, from the street before: a pot is the sum of what the
+# seats put in, so a hundred chips belonging to nobody cannot be described as a query at
+# all. Attributing them to villain's earlier street describes a real hand - money went in
+# on the flop and the turn is being played - and it is the enumeration's own statement
+# about how the hand got here rather than data read off anything.
+VILLAIN_EARLIER_STREET = 100
 
 # Forty-five cards hero cannot see on a complete board, taken two at a time, and the
 # forty-six cards that can complete a turn board. Both come from the strategy module so
@@ -124,12 +133,17 @@ class Shape:
 
     @property
     def to_call(self) -> int:
-        return self.current_bet - self.hero_street_bet
+        """Capped at hero's stack, so the price is what hero would actually pay."""
+        return min(self.current_bet - self.hero_street_bet, self.hero_stack)
 
     @property
     def hero_is_short(self) -> bool:
-        """Hero's whole remaining stack is less than the price to call."""
-        return 0 < self.hero_stack < self.to_call
+        """The price to call takes hero's whole remaining stack.
+
+        Phase 06 wrote this as `0 < stack < to_call`, which the cap makes unsatisfiable:
+        a price hero can actually pay never exceeds what hero holds. Same hero, restated.
+        """
+        return 0 < self.hero_stack == self.to_call
 
     @property
     def label(self) -> str:
@@ -323,7 +337,18 @@ ENUMERATED = (
 
 
 def enumeration_query(shape: Shape, street: str, scenario: Scenario) -> StrategyQuery:
-    """A postflop query whose betting numbers come from an engine-produced shape."""
+    """A postflop query whose betting numbers come from an engine-produced shape.
+
+    The pot is a construction rather than a replayed hand: villain's earlier street plus
+    what the two seats have put in on this one. Nothing in the enumeration reads the pot -
+    the fallback reads the street, the action set and the cards - so the attribution buys
+    a shape that describes a real hand instead of one holding money nobody paid.
+
+    Neither seat has folded, because a folded seat is never asked to decide, and neither is
+    all-in: villain has its whole stack behind and every hero the engine offers an action to
+    has chips left. Both markers are stated rather than read off a zero stack.
+    """
+    villain_total = VILLAIN_EARLIER_STREET + shape.current_bet
     return StrategyQuery(
         hand_id=f"enumeration|{scenario.name}|{street}|{shape.label}",
         street=street,
@@ -333,10 +358,28 @@ def enumeration_query(shape: Shape, street: str, scenario: Scenario) -> Strategy
         board=scenario.board_for(street),
         legal_actions=shape.actions,
         to_call=shape.to_call,
-        street_bet=shape.current_bet,
+        current_bet=shape.current_bet,
+        # The level plus the size of the last full bet or raise, which on this street is
+        # `MIN_RAISE`. It is the engine's own derivation rather than a number chosen here.
         min_raise_target=shape.current_bet + MIN_RAISE,
-        pot=100 + shape.current_bet + shape.hero_street_bet,
+        pot=villain_total + shape.hero_street_bet,
         stacks=((VILLAIN_SEAT, VILLAIN_STACK), (HERO_SEAT, shape.hero_stack)),
+        seat_states=(
+            SeatState(
+                seat=VILLAIN_SEAT,
+                street_bet=shape.current_bet,
+                committed_total=villain_total,
+                folded=False,
+                all_in=False,
+            ),
+            SeatState(
+                seat=HERO_SEAT,
+                street_bet=shape.hero_street_bet,
+                committed_total=shape.hero_street_bet,
+                folded=False,
+                all_in=False,
+            ),
+        ),
         blinds=(SMALL_BLIND, BIG_BLIND),
     )
 
@@ -497,9 +540,26 @@ def enumeration_lines(
         f"Legal-action sets the engine produced: {len(shapes)}",
     ]
     for shape in shapes:
-        note = "  (hero's whole stack is short of the price to call)" if shape.hero_is_short else ""
+        note = "  (the price to call takes hero's whole stack)" if shape.hero_is_short else ""
         lines.append(f"  {shape.label:<24}to call {shape.to_call:>4}{note}")
     lines += [
+        "",
+        *wrapped(
+            "The price to call is capped at what hero holds, so it is the price hero can"
+            " actually pay. A hero whose whole stack is the price is Phase 06's short hero"
+            " restated: the old form, a stack below the price, cannot happen once the price is"
+            " capped, and the situation survives as a price equal to the stack."
+        ),
+        "",
+        *wrapped(
+            f"The pot in each enumerated state is a construction, not data: it is the"
+            f" {VILLAIN_EARLIER_STREET} chips villain put in on the street before, plus what the"
+            " two seats have put in on the street being played. A pot is the sum of what the"
+            " seats put in, so those chips had to belong to somebody, and villain's earlier"
+            " street is the attribution that describes a real hand. Nothing in the enumeration"
+            " reads the pot, so no verdict below depends on it - read it as a claim about how"
+            " the hand got here rather than as a measurement."
+        ),
         "",
         f"Streets: {len(POSTFLOP_STREETS)} ({', '.join(POSTFLOP_STREETS)})",
         f"Hands enumerated at each: {len(ENUMERATED)}",
@@ -656,14 +716,18 @@ def build_query(
 ) -> StrategyQuery:
     """Turn one replayed decision point into a query, in the shape Phase 03 defined.
 
-    `street_bet` is the street's current bet level rather than hero's own contribution
-    to it. That is the reading the rest of the repo is built on: `docs/BACKLOG.md` states
-    that hero's own contribution is recoverable as `street_bet` minus `to_call`, and the
-    preflop chart derives hero's starting depth that way. Passing hero's own bet here
-    instead would hand the chart a depth it never had.
+    `current_bet` is the street's current bet level rather than hero's own contribution to
+    it. Hero's own contribution is carried on hero's seat record and read from there, which
+    is what the rest of the repo now does: the price to call is capped at what hero holds,
+    so nothing computed from the level and the price is a contribution.
+
+    Every per-seat figure is the replayer's own `PlayerState`, under the engine's four
+    names, and the pot is the sum of those hand totals rather than a second number stated
+    beside them.
     """
     state = point.turn.round
     player = state.player(point.seat)
+    seated = sorted(state.players, key=lambda entry: entry.seat)
     return StrategyQuery(
         hand_id=point.hand.hand_id,
         street=point.street.value,
@@ -673,12 +737,19 @@ def build_query(
         board=tuple(card_texts(point.board)),
         legal_actions=tuple(kind.value for kind in point.legal_actions),
         to_call=min(max(0, state.current_bet - player.street_bet), player.stack),
-        street_bet=state.current_bet,
+        current_bet=state.current_bet,
         min_raise_target=state.current_bet + state.min_raise,
-        pot=point.pot,
-        stacks=tuple(
-            (seat_player.seat, seat_player.stack)
-            for seat_player in sorted(state.players, key=lambda entry: entry.seat)
+        pot=sum(entry.committed_total for entry in seated),
+        stacks=tuple((entry.seat, entry.stack) for entry in seated),
+        seat_states=tuple(
+            SeatState(
+                seat=entry.seat,
+                street_bet=entry.street_bet,
+                committed_total=entry.committed_total,
+                folded=entry.folded,
+                all_in=entry.all_in,
+            )
+            for entry in seated
         ),
         blinds=(point.hand.blinds.small_blind, point.hand.blinds.big_blind),
         preflop_actions=history,

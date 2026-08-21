@@ -68,9 +68,26 @@ to an independent read-only reviewer rather than to the coordinator.
   ran with their output, a changed-file summary, and the frozen tests it made pass or found
   failing. L5 also returns the report text. L6 returns a per-file verdict saying whether an
   assertion was migrated or rewritten, and why.
-- Status: L1 planned; L2 planned; L3 planned; L4 planned; L5 planned; L6 planned. No lane is
-  assigned before stage 4 freezes the tests, because a builder must not reach the tests it is
-  measured by.
+- Status: L6 done at stage 4. L1 done at stage 6, 496 lines, `tests/test_table_state.py` at 45 of
+  46 with the one remainder inside L3's file. L2 done, all six producer files and all nine
+  construction sites, 137 frozen tests green across three completed phases. L3 running. L4 done
+  by the coordinator rather than a worker, see the paragraph below - it shrank to four edits in
+  files the coordinator already owns, and dispatching a worker for four edits would have cost
+  more coordination than it saved. L5 not yet dispatched, because the numbers it reports are not
+  real until L3 lands.
+- L2 found the one thing no lane owned: the phase 11 canary
+  `all-in-ceiling-loose-by-the-price-to-call-again` targets the exact line decision 11 rewrote,
+  so its `find` string no longer occurred and the canary could no longer bite. Left alone it
+  would have retired a phase 11 legality claim by accident behind a green gate, which is the
+  decorative-gate defect this repo has now fixed three times. Re-pointed with the claim
+  unchanged, and `test_every_mutation_applies_exactly_once_to_its_file` proves it applies again.
+- L4 is smaller than the plan assumed, measured rather than estimated. Every remaining
+  `street_bet` in `src/` outside L1's and L2's files is the *engine's* field and keeps its name:
+  `poker_core/engine.py` and `poker_core/order.py` read `PlayerState.street_bet`,
+  `hand_history/replay.py` and `simulator/run.py` the same, and `data_pipeline/convert.py` uses it
+  as a local while walking a street. That is decision 2's one-vocabulary argument working: the
+  per-seat name on the query is the engine's name, so the sweep has nothing left to rename in
+  code. What L4 owes is the two dangling test citations and the three dated pointers ruled above.
 - Integration order: L1 first, alone, because every other lane depends on the field existing.
   Then L2 and L3 in parallel on disjoint files, then L4 alone across the whole tree, then L5
   once the numbers it reports are real. The coordinator runs the phase's own commands after
@@ -110,7 +127,10 @@ to an independent read-only reviewer rather than to the coordinator.
       The independent reviewer found six blockers, all fixed.
 - [x] S5 Freeze. 28 files, 775 test functions. `tests/**`, `verification/**` and
       `scripts/run_verify.py` out of `approved_scope`; `base_commit` moved to the freeze commit.
-- [ ] S6 Build. L1 to L5 merged in the integration order above, each command green.
+- [x] S6 Build. L1 to L5 merged in the integration order above. 954 tests pass, both new command
+      IDs run clean, all five phase canaries and the re-pointed phase 11 canary occur verbatim,
+      `check_scope`, `check_file_sizes` and the full quality gate green. Two independent
+      reviewers read the stage diff, one mechanical and one on the poker.
 - [ ] S7 Gate. Full `scripts/run_verify.py` plus `check_gate_bite`.
 - [ ] S8 Review. Two independent reviewers, mechanical and domain.
 - [ ] S9 Audit. Packet with the corpus counts, the producer sweep, and one hand-recomputable
@@ -176,6 +196,42 @@ class docstring must contain the phrase "current bet level" and must name both `
 the per-seat `street_bet`. A migrated frozen test in `tests/test_engine_fidelity.py` asserts it,
 and the point of the rename is that one name now has one meaning.
 
+**2026-08-21, where the per-seat impossibility is rejected.** Raised by lane L1, which had been
+told to put `committed_total >= street_bet` in `StrategyQuery.__post_init__`. Ruled: it moves to
+`SeatState.__post_init__`. The invariant is per-seat, so a standalone record that holds more on
+this street than over the whole hand is impossible on its own terms and should not need a query
+wrapped around it to be caught. No test or canary distinguishes the two placements - the frozen
+test wraps the whole query construction in `pytest.raises`, which the record's own error
+satisfies, and L1 verified that rather than assuming it.
+
+**2026-08-21, the order the forced-money signals fire in.** Not raised by a worker: derived by
+the coordinator from the stage 4 fixtures before lane L3 was briefed, because a builder who gets
+it wrong reads a passing specification as a broken test. Ruled: the two straddle signals fire
+*before* unexplained money is classified. Unraised-level first, then the minimum-raise
+disagreement, and only then is a seat's unexplained money read as an ante when it is uniform
+across every seat and as the kept residual code when it is not.
+
+The fixture that forces the order is `test_every_pot_the_deleted_arithmetic_bound_refused_still_refuses`.
+Its straddled table has 200 unexplained chips sitting on one seat, so classified first it would
+take `blind-structure-not-representable`, and the test requires `pot-holds-a-straddle`. What
+names it is the minimum-raise disagreement, which is decision 8's third signal doing exactly the
+job it was added for. Forced money as a whole still runs before the depth checks, keeping the
+position the deleted pot bound already held, so no spot changes which code it refuses with
+unless this phase genuinely changed the answer for it.
+
+**2026-08-21, what the rename owes a completed phase's audit packet.** The contract says no
+committed audit is left on the old name. Ruled: a completed packet is dated evidence rather than
+live vocabulary, so its prose keeps the name it shipped with and gains a dated pointer saying the
+field was renamed here. Rewriting the record would falsify it - the Phase 11 packet's claim that
+it documented `street_bet` and left the name was true when it was written.
+
+What is not history is a citation that no longer resolves. Stage 4 renamed the two frozen tests
+`test_a_street_bet_below_the_price_to_call_is_rejected` and
+`test_a_street_bet_equal_to_the_price_to_call_is_accepted`, and the Phase 11 packet cites both by
+name, so it now sends a reader to tests that do not exist. Those two citations are corrected.
+Nothing mechanical catches this: `run_full_quality_gate.py` checks backlog ids in `reports/`, not
+test names, so it is a finding rather than a red gate.
+
 **2026-08-21, lane L1 died mid-task.** The worker authoring `tests/test_table_state.py` was
 terminated by an API error while applying the naming ruling. The file it had written was
 complete and parsed, so the coordinator finished the rename and then owned that file for the
@@ -211,6 +267,108 @@ the bet level minus the price, and the straddle census, which has to reconcile a
 minimum-raise prediction the detector used. This is the stage 4 reviewer's sixth blocker and it
 is a real requirement rather than a bookkeeping fix: a report nobody can break is a report
 nobody has tested.
+
+## What the stage 6 review round changed
+
+Two independent reviewers read the build, one on mechanical fidelity and one on the poker. They
+found three blockers between them and neither had seen the other's work. That is the per-stage
+review rule earning its keep: phases 10, 11 and 12 each self-reviewed and each paid for it later.
+
+Both reviewers independently found the same hole, and the mechanical one found the half that
+makes it a blocker rather than a footnote. Signal 3's prediction is the final level plus the last
+increment, and a straddle perturbs only the FIRST increment, so past one raise the prediction is a
+difference of two recorded amounts and is identical straddled or not. It then built a straddled
+table with two raises where `chart_lookup` returns a hit and `weights_for` hands back the
+UNSTRADDLED range. That is the phase's headline claim failing and the forbidden shortcut about
+reaching for a neighbouring cell, found by nothing the gate runs.
+
+**Ruled: no guard, and the residual is restated instead.** The straddle's trace is genuinely
+destroyed once its poster raises, because a raiser's predicted contribution is its own raise-to
+amount and that absorbs the forced money. Only a declared blind structure on the query recovers
+it, and decision 8 considered that and declined it as the format change this phase is scoped out
+of; any guard written without it over-refuses ordinary unstraddled tables. So the fix is the
+truth: `forced_money.py`, `_forced_money_refusal` and the report's limitations now all say signal
+3 fires only on single-raise pots, and say plainly that a table inside that residual is *answered*
+with the wrong range rather than merely mis-coded. Filed as
+`STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`. A report that hides this is worse than one that never
+claimed it.
+
+The poker reviewer's two blockers were both about the refusal detail, which is this phase's whole
+non-answer deliverable. The depth refusal reported the first offending seat in ascending seat
+order, so two physically identical tables reported 90bb or 20bb depending on seat numbering, when
+the number that caps hero's effective stack is the *shortest* live opponent - somebody reading an
+inventory of those rows would have set a tolerance band against the wrong number. And the
+ragged-hero code, which decision 7 puts first and which therefore swallows the majority of live
+spots, carried no detail at all. Both fixed and both behaviour-preserving on the frozen suite.
+
+One correction to my own earlier judgment, recorded because the reasoning matters more than the
+outcome. I filed the short-all-in false straddle as a deferred alignment item on the builder's
+argument that flooring the minimum-raise walk would also hide a genuine one-big-blind straddle.
+The poker reviewer showed that argument is wrong - a straddle's first increment is a full raise
+measured from a level above the declared big blind, so it never sits below the floor - which made
+the fix free. It is fixed, the walk now mirrors `BettingRoundState.apply`, and the backlog entry
+is `done` against phase 13 rather than deferred, keeping its wrong reason on the record because an
+unreachable defect with a plausible argument for leaving it is exactly what a review is for.
+
+The mechanical reviewer also caught a forbidden reconstruction that had shipped: a fixture producer
+derived villain's contribution as the pot minus hero's, by subtraction, which is the defect this
+phase exists to end appearing inside the phase that ends it.
+
+### The three fix rounds, and the one figure the packet must get right
+
+Round one fixed the three blockers. The verifying reviewer then found that the fix for one of them
+was itself unguarded: reverting the new extremal-seat selection in BOTH copies left all 954 tests
+green, because no frozen test puts two live seats on the same side of hero and the report's
+validator only pinned that the two copies AGREE. A blocker fix that nothing can catch is this
+repo's most-repeated defect arriving inside the remedy, so round two closed it two ways - the
+validator now recomputes the extreme offending seat from the seat states and asks neither copy, and
+refuses to publish unless a distinguishing row exists in each direction. Verified by the
+coordinator by hand rather than taken on report: both copies reverted in both directions leaves
+every test green and `generate_table_state_report` exits 1 naming the seat it should have picked.
+
+Round two also replaced the phase's most important admission with a table that can actually happen.
+The demonstration that a straddled pot reaches the chart had the lojack straddling and then making
+the first raise, and a straddler acts last, so it was unreachable. It now rests on a big-blind
+straddle to 200, a cutoff open to 500 and a big-blind three-bet to 1,350, every price legal at the
+straddled table's own minimums, verified reaching `t6/d100/CO/CO:raise@2.5,BB:raise@13.5` and
+returning a real raise.
+
+Round three is coordinator work on the last three findings. The canary added in round two credited
+the wrong one of the validator's two rules, so its description now says which rule kills which
+mutation and states plainly that `pytest` is named but is not what notices - all 66 frozen tests
+pass under it, and the registry check is the only thing that reddens. A second canary was added for
+the SHORTER direction, which had none: that is the direction this phase created and the one that
+matters in poker, since effective stack is the minimum of hero and villain. And a sentence in the
+report claiming one committed row was the only place the two rules differ now says it covers the
+deeper direction only and names the constructed probe covering the other.
+
+**The figure the audit packet must not inherit wrong.** The report's own prose was corrected for
+this and the plan carries it too, because a packet written from the plan would otherwise repeat the
+error. On `phase02-three-way-side-pot` at 5/10 blinds, only ONE row changed behaviourally: from
+seat 0's chair, `table-is-not-one-flat-stack-depth (seat 1, stack_depth_bb 10)` became
+`(seat 2, starting_chips 200, stack_depth_bb 20)`. The button's chair and seat 1's chair each only
+GAINED `starting_chips`; their seat and depth were already the extremal ones. The first fix report
+attributed the move to the button's chair, which is wrong.
+
+## Coordinator verification the reviews could not do
+
+The stage 6 mechanical reviewer listed, honestly, what it had not checked, and one item on that
+list is load-bearing: it compared the 499 hands and 3,048 decision points against two committed
+reports rather than re-deriving them, so the phase's whole "the corpus cannot exercise any of
+this" premise rested on documents this repo wrote about itself.
+
+Re-derived by the coordinator from the raw committed source text in
+`data/samples/public_corpus/corpus_hands.jsonl`, parsing each hand's own PHH body rather than any
+normalized form: 499 hands, and across all of them exactly one distinct `starting_stacks`
+(`[10000] x 6`), one distinct `antes` (all zeros), and one distinct `blinds_or_straddles`
+(`[50, 100, 0, 0, 0, 0]`). Not one unequal stack, not one ante, not one straddle, measured at the
+source. That is the contract's Scope claim and decision 2's "what was measured first" section
+confirmed against the bytes the dataset shipped, and it is what makes every zero in the report a
+checked regression proof rather than an assertion.
+
+What it does not establish, and the packet must say so: that those bytes are the dataset they
+claim to come from. The gate has no network by design, so the provenance claim stays unchecked
+here exactly as `docs/CORPUS_COMPARISON_LIMITS.md` already records for phase 08.
 
 ## Verification
 
@@ -282,8 +440,22 @@ Five things that will bite if they are not carried forward.
    the two per-seat figures is the ante signal.
 4. A folded seat never makes the table ragged, whatever it holds.
 5. This phase does not tag until `ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` has run as its
-   own `contract-update` task. That task also owes a reword of this contract's line saying the
-   two per-seat figures "coincide" preflop, which the ante ruling made false.
+   own `contract-update` task. That task now owes four edits rather than one, and they are
+   listed here because a debt named in passing is a debt the next agent misses:
+   - the Phase 11 contract rewrite the backlog item is filed for;
+   - the reword of this contract's line saying the two per-seat figures "coincide" preflop,
+     which the ante ruling made false;
+   - the reword of this contract's straddle criterion, which says the minimum-raise targets
+     disagree "by exactly the straddle". Over a 200 straddle at a 100 big blind the gap is 100,
+     so it is the straddle less the big blind. The contract's own worked numbers, 1,000 against
+     1,100, are right; only the sentence describing them is wrong. Found by the stage 6 report
+     builder;
+   - the correction of decision 6's stated cost. It says two of the three
+     `phase02-three-way-side-pot` decisions change refusal code. Measured at stage 6, all three
+     change: seat 2 takes `a-live-seat-is-shorter-than-hero` and seats 0 and 1 take
+     `table-is-not-one-flat-stack-depth`. The committed postflop fallback report agrees. The
+     table-state report states three and says the estimate is corrected, so the live evidence is
+     right and only the decision record is stale.
 
 The spot key stays out of scope on purpose: phase 14 re-keys anyway and re-keying re-seeds every
 mixed cell (`RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`), so paying that cost twice buys one result.

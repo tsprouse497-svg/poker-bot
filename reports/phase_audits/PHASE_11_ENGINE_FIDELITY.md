@@ -36,6 +36,16 @@ mis-derived stack depth and refused for the wrong reason. The meaning is now on 
 query whose `street_bet` is below its `to_call` is rejected, and the one wrong producer is
 corrected.
 
+> Pointer added 2026-08-21 by Phase 13. The field described above no longer exists under that
+> name. Phase 13 renamed it to `StrategyQuery.current_bet` and put the engine's `street_bet` -
+> one seat's own share of the level - on the new per-seat `seat_states` record, which is what
+> made one name carrying two readings unaffordable. This packet keeps the name it shipped with,
+> because it is dated evidence of what this phase did rather than a document tracking the
+> current tree; see `reports/phase_audits/PHASE_13_TABLE_STATE.md`. The corollary this phase's
+> contract drew from the field - that hero's contribution is recoverable as `street_bet` minus
+> `to_call` - was withdrawn by MAINT-21 and is false under the capped `to_call` ruling of
+> 2026-08-20.
+
 **The decision audit's all-in ceiling is now what hero can actually raise to.** It was the
 street's bet level plus hero's stack, which is too high by exactly the price to call: with a
 street bet of 20, a price to call of 20 and a stack of 100, it accepted a raise to 120 and
@@ -91,7 +101,7 @@ blocker that stage found.
 |---|---|---|
 | `FOLD-WHEN-FREE` | `test_a_free_spot_offers_fold`, `TestReplayAcceptsARecordedFreeFold` (4 tests) | `test_check_stays_legal_exactly_when_the_price_to_call_is_zero`, `test_facing_a_bet_offers_the_same_set_it_always_did` |
 | `UNDER-RAISE-ACCUMULATION` | `test_two_short_all_ins_past_the_bar_reopen_betting`, `test_exactly_at_the_bar_reopens`, `test_three_short_all_ins_accumulate`, `test_an_under_sized_all_in_bet_is_not_the_level_advances_are_measured_from` | `test_one_chip_below_the_bar_does_not_reopen`, `test_a_single_short_all_in_still_does_not_reopen`, `test_a_full_bet_does_become_the_level_advances_are_measured_from` |
-| `STREET-BET-MEANING-AMBIGUOUS` | `test_the_query_documents_which_reading_it_carries`, `test_a_street_bet_below_the_price_to_call_is_rejected`, `test_the_query_report_generator_writes_the_street_level` | `test_a_street_bet_equal_to_the_price_to_call_is_accepted` |
+| `STREET-BET-MEANING-AMBIGUOUS` | `test_the_query_documents_which_reading_it_carries`, `test_a_current_bet_below_the_price_to_call_is_rejected`, `test_the_query_report_generator_writes_the_street_level` | `test_a_current_bet_equal_to_the_price_to_call_is_accepted` |
 | `DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE` | `test_a_raise_above_the_corrected_ceiling_is_rejected`, `test_the_old_ceiling_is_no_longer_the_boundary` | `test_a_raise_exactly_at_the_corrected_target_is_accepted`, `test_every_committed_decision_audit_record_still_validates` |
 | `FALLBACK-FAIL-CLOSED-CAN-CALL` | `test_a_set_offering_call_but_not_fold_refuses_rather_than_investing` | `test_the_unbeatable_call_is_untouched`, `test_a_preflop_query_still_refuses` |
 | `GATE-COMMAND-DESCRIPTION-NAMES-A-WITHDRAWN-CHECK` | `test_the_expectations_command_names_no_directional_bound` | `test_every_command_still_carries_a_description` |

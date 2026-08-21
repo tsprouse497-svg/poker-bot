@@ -537,9 +537,14 @@ mutations:
       stack, which is too high by exactly the price to call. No shipped strategy produces a
       raise in the gap, so a green gate proves nothing about the legality claim several
       contracts lean on.
+      Re-pointed at phase 13 stage 6, claim unchanged. Decision 11 rewrote the line this
+      canary targets: the ceiling now reads hero's own recorded contribution off `seat_states`
+      rather than subtracting `to_call` from the bet level, and the query's bet level is
+      called `current_bet`. A find string that no longer occurs is a canary that cannot bite,
+      which would have retired a phase 11 legality claim by accident behind a green gate.
     file: src/poker_training_bot/strategy/contract.py
-    find: "                max_target = (self.query.street_bet - self.query.to_call) + stacks[self.query.seat]"
-    replace: "                max_target = self.query.street_bet + stacks[self.query.seat]"
+    find: "                max_target = hero.street_bet + stacks[self.query.seat]"
+    replace: "                max_target = self.query.current_bet + stacks[self.query.seat]"
     must_fail:
       - pytest_engine_fidelity
       - pytest
@@ -717,5 +722,64 @@ mutations:
     replace: "if False and query.min_raise_target != predicted_min_raise:"
     must_fail:
       - pytest_table_state
+      - generate_table_state_report
+      - pytest
+
+  - id: the-depth-refusal-names-the-first-offender-in-seat-order
+    description: >-
+      The deeper branch goes back to naming whichever live seat deeper than hero comes first in
+      seat order rather than the deepest one. Decision 6 refuses any difference at all and keeps
+      the seat and the depth it holds as the evidence whoever re-rules it will work from, and
+      evidence that moves with the seating is not evidence: the same two stacks in swapped chairs
+      report 90bb and 20bb. `pytest` is named below but is NOT what notices this, and saying so is
+      the point rather than a hedge: all 66 frozen phase 13 tests pass under this mutation, because
+      no frozen test puts two live seats on the same side of hero, so first-in-seat-order and
+      deepest agree in every one of them. `pytest` still goes red, but only through
+      `test_every_mutation_applies_exactly_once_to_its_file`, which is a fact about this registry
+      rather than about the behaviour - the same trivially-true mechanism several sibling entries
+      lean on, named honestly here instead of being passed off as coverage.
+      `generate_table_state_report` is what actually has to fail, and it does so through two
+      different checks in `_validate_depth_probes` depending on how the rule is broken. Change the
+      strategy alone, as this mutation does, and the rule that kills it is the one comparing the
+      strategy against the report's second copy: they stop agreeing on the committed hand
+      `phase02-three-way-side-pot`, where from the 50-chip chair the first deeper live seat holds
+      100 and the deepest holds 200, so the mutation would publish 10bb for a table that is 20bb.
+      Change BOTH copies the same way and that rule is silent, and what kills it instead is the
+      rule recomputing the extreme offending seat from the seat states and asking neither copy.
+      Verified by hand: reverting both copies in both directions leaves every test green and the
+      report exits non-zero anyway.
+      That second rule is why this canary exists at all. Two agreeing copies of a rule cannot show
+      the rule is right, and a validator that only compares them is the repo's most-repeated
+      defect - a check that cannot fail - sitting inside the fix for a blocker.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "deep = max(live, default=None, key=lambda pair: (pair[0], -pair[1]))"
+    replace: "deep = next((pair for pair in live if pair[0] > hero_start), None)"
+    must_fail:
+      - generate_table_state_report
+      - pytest
+
+  - id: the-short-seat-refusal-names-the-first-offender-in-seat-order
+    description: >-
+      The same defect in the other direction: the shorter branch goes back to naming whichever
+      live seat shorter than hero comes first in seat order rather than the shortest one.
+      A separate entry rather than a second `find` on the same one, because the two directions
+      are not equally load-bearing and one canary would have left that invisible. This is the
+      direction the phase ADDED - `a-live-seat-is-shorter-than-hero` did not exist before it -
+      and it is the direction that matters most in poker, since effective stack is the minimum of
+      hero and villain, so a live seat shorter than hero is what makes a hundred-big-blind chart
+      the wrong chart while a deeper one barely moves the correct range. The number whoever
+      re-rules decision 6 will set a tolerance against is the SHORTEST live opponent's depth, and
+      under the mutation that number is whatever the seating happens to put first.
+      Committed data cannot kill this one, which is why the phase constructed a probe that can:
+      the deeper direction has `phase02-three-way-side-pot`, and the shorter direction has the
+      report's own two-live-seats-shorter-than-hero table at 90bb and 20bb, where first-in-order
+      holds 9,000 and the shortest holds 2,000. `_validate_depth_probes` refuses to publish unless
+      a distinguishing row exists in EACH direction, so neither branch can be quietly reverted
+      behind a probe set that covers only the other one. As with its sibling, all 66 frozen phase
+      13 tests pass under this mutation and `pytest` goes red only through the registry check.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "short = min(live, default=None)"
+    replace: "short = next((pair for pair in live if pair[0] < hero_start), None)"
+    must_fail:
       - generate_table_state_report
       - pytest

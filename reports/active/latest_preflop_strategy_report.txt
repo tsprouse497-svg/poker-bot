@@ -115,19 +115,20 @@ What the bot does where its chart is silent.
   covered: big blind faces a cutoff open at the solved 2.5bbdecides: raise
   covered by substitution: the same open at 2.25bb    decides: raise
   uncovered: forty big blinds deep                    refuses: preflop-chart:lookup:no-artifact-for-stack-depth
-  uncovered: straddled pot                            refuses: preflop-chart:blind-structure-not-representable
-  uncovered: anted pot                                refuses: preflop-chart:blind-structure-not-representable
+  uncovered: straddled pot                            refuses: preflop-chart:pot-holds-a-straddle
+  uncovered: anted pot                                refuses: preflop-chart:pot-holds-an-ante
   uncovered: squeeze after an open and a cold call    refuses: preflop-chart:lookup:spot-not-covered
   uncovered but expressible since phase 12: facing a five-betrefuses: preflop-chart:lookup:spot-not-covered
   no legal preflop order produces it: the button raising before the cutoffrefuses: preflop-chart:lookup:unrepresentable-spot
   uncovered: postflop                                 refuses: preflop-chart:not-preflop
 
 Refusal codes seen:
-  preflop-chart:blind-structure-not-representable           2
   preflop-chart:lookup:no-artifact-for-stack-depth          1
   preflop-chart:lookup:spot-not-covered                     2
   preflop-chart:lookup:unrepresentable-spot                 1
   preflop-chart:not-preflop                                 1
+  preflop-chart:pot-holds-a-straddle                        1
+  preflop-chart:pot-holds-an-ante                           1
 
 ## Check one number by hand
 
