@@ -1,12 +1,9 @@
-task_id: phase-12-canary-repair
+task_id: phase-12-audit-packet
 active_phase: "12"
 task_mode: implementation
-base_commit: 772e2833ca7293565a79db9f1b9b8480c3b79162
+base_commit: b6a0958072a393b68f99587d24ce50314eff6134
 approved_scope:
-  - tests/test_spot_vocabulary.py
-  - tests/test_spot_vocabulary_downstream.py
-  - verification/freeze.lock
-  - scripts/run_verify.py
+  - reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md
   - reports/phase_audits/reviews/PHASE_12_SPOT_VOCABULARY/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -791,3 +788,20 @@ scope_change_log:
       is why scripts/run_verify.py is in scope for that one entry, on the precedent
       pytest_preflop_artifacts and pytest_solver_export already set. Every builder file
       stays out, so this task cannot reshape the implementation to suit the canary.
+  - date: 2026-08-21
+    reason: >-
+      Stage 9 of the phase 12 loop needs the audit packet itself,
+      reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md, which no prior task in this lane
+      approved. The stage-7 canary-repair scope is retired with it: the tests, the freeze
+      lock and scripts/run_verify.py are out, so a writing task cannot touch the code or
+      the gate it is describing. base_commit moves to b6a0958, the stage-8 review commit,
+      so the diff this task is measured against is the packet and nothing before it.
+      Three of the four inherited backlog entries were still `deferred` while the phase
+      that closed them sat two stages from completion. d83405b closed
+      CORPUS-INEXPRESSIBLE-SPOTS during the build and missed RAISE-SIZE-IN-SPOT-KEY,
+      SECOND-ORBIT-PREFLOP-SPOTS and PHASE-11-MOVED-NUMBERS-AWAIT-REMEASUREMENT, which are
+      the phase's three headline deliverables. Settled here through standing scope. This is
+      the second consecutive phase to do it - BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE
+      records phase 11 leaving all six of its own items deferred through tag and merge - and
+      the check that entry asks for would not have caught phase 12 either, because it fires
+      on a completed phase and phase 12 is still active at stage 9.

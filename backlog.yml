@@ -55,10 +55,31 @@ items:
       for. They are open as UNDER-SIZED-ALL-IN-BET-DOES-NOT-BAR-PRIOR-CHECKERS and
       MIN-RAISE-OVER-AN-INCOMPLETE-ALL-IN-BET, and both need a ruling before an implementation.
   - id: SECOND-ORBIT-PREFLOP-SPOTS
-    status: deferred
+    status: done
     phase: "12"
     title: Chart spots needing a position to act twice
-    reason: V1 spot keys allow one entry per position, so any spot where a position acts twice (hero facing a 4bet or later) has no representable key; lookup misses those fail closed instead of guessing.
+    reason: >-
+      Closed by phase 12 at `d046ac9`. `spot_key` accepts a position appearing more than
+      once, and the order rule generalises from one pass over the preflop action order to
+      repeated passes over the positions still live. A four-bet has a key from both sides
+      and is pinned by test:
+      `t6/d100/BTN/LJ:raise@2.5,BTN:raise@8,LJ:raise@21.5`. There is no orbit cap; what
+      bounds the vocabulary is whether the sequence is a legal preflop order and whether
+      its raises can be paid at the stated depth, which is decision 4.
+
+      Two limits are recorded rather than hidden. A folded seat still cannot reappear, and
+      the test that pins it had to be rewritten at stage 7 because it was passing off a
+      neighbouring rule. And the depth check is table-wide rather than per-seat, so a
+      five-bet to 100 is admitted at 100bb because the deepest seat could pay it, which
+      waits on `ASYMMETRIC-EFFECTIVE-STACKS` at proposed phase 13.
+
+      Expressible six-handed 100bb spots go from 1,949 to 18,773 with limps, enumerated
+      rather than quoted. Vocabulary only: nothing here commits a second-orbit chart cell,
+      which is `CHART-COVERAGE-EXPANSION` at proposed phase 14.
+
+      As filed: V1 spot keys allow one entry per position, so any spot where a position
+      acts twice (hero facing a 4bet or later) has no representable key; lookup misses
+      those fail closed instead of guessing.
   - id: STACK-DEPTH-BUCKETS
     status: deferred
     phase: charts
@@ -94,10 +115,35 @@ items:
     title: Carry each seat's committed chips on StrategyQuery
     reason: StrategyQuery gives current stacks, the pot, and the price to call, but not what each seat has put in. Nobody's own contribution is recoverable, hero's included - street_bet minus to_call was thought to give hero's, and under the 2026-08-20 ruling that to_call is the capped price it does not (STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS). That blocks three things the preflop strategy currently approximates or misses. A short villain is indistinguishable from one who has already invested (ASYMMETRIC-EFFECTIVE-STACKS). A straddle is only detectable while the pot stays smaller than the blinds plus one full bet per voluntary action, so a straddled pot with several callers can slip through. An ante is only detectable by the same bound. Adding per-seat contributions makes all three exact rather than bounded, and is the same shape of fix as adding the preflop action history was.
   - id: RAISE-SIZE-IN-SPOT-KEY
-    status: deferred
+    status: done
     phase: "12"
     title: Record raise sizes in preflop spot keys
-    reason: V1 spot keys record action names without sizes, so a 2.5bb open and a 4bb open share one spot. Sizing-aware spots need a size vocabulary the artifact format does not yet declare.
+    reason: >-
+      Closed by phase 12 at `d046ac9`. A raise entry renders the amount it raised *to* in
+      big blinds after an `@`, quantized to hundredths with trailing zeros stripped, and a
+      call carries no size because it pays a level the key already states:
+      `t6/d100/LJ/LJ:raise@2.5,BTN:raise@8`. Decisions 1, 2 and 3, all `frozen-into-data`
+      and all ruled by Taylor on 2026-08-20. A size the renderer cannot represent exactly
+      is rejected rather than rounded into a neighbouring cell, and a v1 key carrying no
+      size fails import rather than matching any size.
+
+      The committed artifact was re-derived under the new keys and the ranges provably did
+      not move: stripping every `@size` back out reproduces the pre-phase weights checksum
+      `eaf2c6cd` exactly, so the file's changed checksum `d2d5c3fa` is accounted for
+      entirely by the spot ids inside it. 36 spots before, 36 after, because each
+      size-stripped prefix admits exactly one solved size.
+
+      What the entry as filed did not anticipate is that closing it does not by itself move
+      any agreement rate. Under ruling 8 and Taylor's 2026-08-20 extension of it, a price
+      the tree does not hold is normalised back to the cell the coarse key already hit, so
+      every corpus rate is unchanged. What the key bought is that the answer now says it
+      was substituted, on 969 of 2,758 answered decisions - a measurement that was
+      impossible while one cell answered every price. Making the chart *answer* those
+      prices differently is a second solve, at proposed phase 14.
+
+      As filed: V1 spot keys record action names without sizes, so a 2.5bb open and a 4bb
+      open share one spot. Sizing-aware spots need a size vocabulary the artifact format
+      does not yet declare.
   - id: FOLD-WHEN-FREE
     status: done
     phase: "11"
@@ -672,11 +718,34 @@ items:
       made the contracts that had been corrected most the first ones that could not be corrected
       at all - the check punished exactly the behaviour that keeps completed contracts honest.
   - id: PHASE-11-MOVED-NUMBERS-AWAIT-REMEASUREMENT
-    status: deferred
+    status: done
     phase: "12"
     title: Numbers measured through the instrument phase 11 corrected are not re-measured
     reason: >-
-      Phase 11 fixed the engine and the strategy query that every published measurement in
+      Closed by phase 12 at `d046ac9`. `reports/active/latest_spot_vocabulary_report.txt`
+      restates every number the Phase 07 and Phase 08 packets quote, in a three-column table
+      - what the packet published, what the committed report said at this phase's branch
+      point, and what it says now - so packet-to-branch isolates Phase 11 and branch-to-now
+      isolates this phase. Neither cause is asserted; both are differences between committed
+      artifacts.
+
+      The result is that Phase 11 moved none of them. 499 hands, 3,048 decision points, 290
+      refusals, 439 of 456 for Pluribus and 2,155 of 2,302 for the humans are identical
+      across all three columns. That is reported as a checked non-move rather than as
+      silence, which is what this entry asked for.
+
+      One number moved for this phase: inventory decisions naming no spot at all, 19 to 0.
+      And one moved for a reason with no poker content, reported before a reader could
+      misread it as coverage - the self-play profile comparison went 128 to 126 refused and
+      472 to 474 measured, because `PreflopChartStrategy._seed` hashes the spot key, so
+      re-keying re-seeds every mixed cell. That re-seeding will recur at every future
+      vocabulary change and is filed as `RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`.
+
+      No committed audit packet was edited. The stale figures are named where they sit,
+      which required MAINT-25 first, because the fact-drift check was policing a finished
+      phase's packet against numbers this phase moved.
+
+      As filed: Phase 11 fixed the engine and the strategy query that every published measurement in
       this repo was taken through: a fold is now legal when checking is free, betting reopens
       when short all-ins accumulate, and the chart now receives the street's bet level rather
       than hero's contribution. Decision 9 of PHASE_11_ENGINE_FIDELITY_DECISIONS.md rules that
@@ -778,6 +847,18 @@ items:
       Found by MAINT-23, which did the bookkeeping and deliberately did not write the check,
       because a gate check added in the same commit as the correction it would have caught is a
       check reviewing its own motivation.
+      Phase 12 repeated it, which makes this a pattern rather than one phase's slip. d83405b
+      closed CORPUS-INEXPRESSIBLE-SPOTS during the build and left RAISE-SIZE-IN-SPOT-KEY,
+      SECOND-ORBIT-PREFLOP-SPOTS and PHASE-11-MOVED-NUMBERS-AWAIT-REMEASUREMENT deferred - the
+      phase's three headline deliverables - and it was caught at stage 9 the same way phase 11
+      was caught, by somebody reading the backlog beside the audit packet.
+      That instance also sharpens what the check has to do. As described above it fires on an
+      item filed against a completed phase, and phase 12 was `active` for the whole period the
+      three entries were wrong, so the check would have reported the state only after closeout
+      had committed it. Catching it earlier means either testing an `active` phase's items
+      against the audit packet's own claims, which is not mechanical, or the closeout rule doing
+      the work. That ordering is the argument for the contract-update half being load-bearing
+      and the check being the smaller part.
   - id: LOOP-LANE-POINTERS-NEVER-RETIRE
     status: deferred
     phase: contract-update

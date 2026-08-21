@@ -149,13 +149,30 @@ Forbidden throughout:
       construction. Repaired with a test that puts hero out of the walk's path, checked in
       both directions, which took the file past the 700-line cap and split it at the same
       seam the source split took. Evidence: stage 7 check green.
-- [ ] **S8 - Review.** Two passes, mechanical and domain, written separately. The domain pass
-      is pointed at the poker: whether a size-aware key answers the spot a player is actually
-      in, and what the substitution census says about how often the chart answers a question
-      nobody asked. Evidence: stage 8 check green.
-- [ ] **S9 - Audit packet.** Checklist, the before-and-after keys, both checksums, the
-      substitution census, the restated Phase 07 and Phase 08 numbers with their cause, and
-      one number recomputable by hand. Evidence: stage 9 check green.
+- [x] **S8 - Review.** Two passes, mechanical and domain, written separately. No blocker. The
+      poker lens found what the mechanical one could not: the price substitution is
+      one-directional, 949 of 959 opener moves going up, so the chart hands back the range
+      solved for a *larger* open than the one faced, and the report's distance histogram says
+      how far without ever saying which way. Also that the thin tail belongs to this corpus
+      rather than to the abstraction, that the key admits raise sizes no legal action produces
+      because nothing checks the minimum raise, and that nearest-in-big-blinds is the wrong
+      metric for a quantity hero answers as a ratio - latent until phase 14 commits a second
+      price at one location. Two report defects found and not fixed, both in Known limitations.
+      Three alignment items filed. Evidence: stage 8 check green.
+- [x] **S9 - Audit packet.** 279 lines under the 500 cap. Checklist of 26 rows, the
+      before-and-after keys with the four-bet that could not be written at all, all three
+      checksums with the middle line as the actual proof, the census split by whether the
+      opener or a later raise moved, the restatement in three columns so Phase 11's effect and
+      this phase's stay separate, both sweeps the contract asks for by name, thirteen decision
+      outcomes, and the two-opening-prices number a reader recomputes from a committed JSON
+      file with no code.
+      Picked up by a session that had not run stages 1 to 8, so every figure was checked
+      against a committed report rather than recalled; the stage-9 review records two that were
+      wrong on first write, a checksum digit and an undercounted sweep, both corrected.
+      Three of the four inherited backlog entries were still `deferred` here, two stages from
+      closeout, and they were the phase's three headline deliverables. Settled, and
+      `BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE` amended with the evidence that the check it
+      asks for would not have fired on an `active` phase anyway. Evidence: stage 9 check green.
 - [ ] **S10 - Closeout and tag.** Phase completed, plan filed, `phase-12-complete` tagged,
       task idle, tree clean. Evidence: stage 10 check green.
 
@@ -180,7 +197,44 @@ Regenerated reports this phase is expected to move, none of them hand-edited:
 
 ## Outcome
 
-Fill this in before completing the gate.
+The vocabulary widened and the play did not change, which is the phase working as designed
+rather than a disappointment. A raise entry carries its raise-to size in big blinds, a
+position may act more than once, and the committed artifact was re-derived under the new keys
+with the ranges proved unmoved by stripping the sizes back out and reproducing the pre-phase
+weights checksum exactly. 36 spots before, 36 after. Expressible six-handed 100bb spots go
+from 1,949 to 18,773 with limps, enumerated rather than quoted, which corrected two roadmap
+figures on the way.
+
+No agreement rate moved, and that is the result. Under ruling 8 and Taylor's 2026-08-20
+extension of it to every raise, a price the tree does not hold normalises back to the cell the
+coarse key already hit, so the bot answers the same question the same way. What the finer key
+bought is the measurement: 969 of 2,758 answered corpus decisions were answered at a price
+they were not asked at, and 949 of the 959 moved opens moved *upward*, so the bot is handed the
+range solved for a larger open than the one it faces. That bias was unmeasurable before this
+phase and is now a committed number.
+
+The corpus inventory lost its catch-all row: 0 refusals name no spot, the 19 that did are now
+repeated-position keys a chart phase can fill, and the total held at 290 because this phase
+added no coverage. Distinct refused spots went 78 to 159, which is more actionable rather than
+worse, since each row now names a real price.
+
+Five stage-6 and stage-7 blockers, none an implementation defect: frozen tests from phases 03
+to 09 that predated the sized key, a test population wider than its own claim, a fact-drift
+check policing a finished phase's audit packet, a source card whose headroom counts a directory
+it does not own, and a canary that survived because the test aimed at its rule was passing off
+a neighbouring one. The last is the phase's best argument for `check_gate_bite`, stated as a
+result rather than a principle.
+
+What the phase deliberately did not do: no new solve, no chart derived from the phase 10
+export, no second-orbit cell committed, no table-state field widened, and no committed audit
+packet edited. Those are phases 13 and 14.
+
+Two report defects ship as stated limitations rather than fixed, both found by this phase's own
+stage-8 review: the substitution census cannot be reconciled by the non-coding reader the
+contract asks for, because 969 decisions carried 1,025 substitutions and nothing says a
+decision can carry two; and the opening-price table aggregates positions with different solved
+prices, so `asked 2.5 -> answered 3.5` reads as a bug. Both fixes are one caption and one line
+inside a builder file, out of the audit task's scope by design.
 
 ## Next Agent Bootstrap
 

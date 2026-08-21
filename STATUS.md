@@ -1,7 +1,7 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `phase-12-canary-repair`
+Current task: `phase-12-audit-packet`
 Task mode: `implementation`
 Active phase: `12`
 Completed phases: `12`
