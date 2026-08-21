@@ -10,6 +10,7 @@ from poker_training_bot.strategy.contract import (
     DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
     SeatAction,
+    SeatState,
     StrategyDecision,
     StrategyProtocol,
     StrategyQuery,
@@ -18,6 +19,19 @@ from poker_training_bot.strategy.contract import (
 )
 from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 from poker_training_bot.strategy.reference import CheckFoldStrategy
+
+
+def seats(*rows: tuple[int, int, int]) -> tuple[SeatState, ...]:
+    """Per-seat records from `(seat, this street's chips, this hand's chips)` triples.
+
+    The two quantities carry the engine's own names, so one vocabulary spans the engine
+    and the query. Neither is ever recovered by subtracting one query field from
+    another: that identity was wrong the moment `to_call` became the capped price.
+    """
+    return tuple(
+        SeatState(seat=seat, street_bet=street, committed_total=total, folded=False, all_in=False)
+        for seat, street, total in rows
+    )
 
 
 def make_query(**overrides: Any) -> StrategyQuery:
@@ -30,9 +44,12 @@ def make_query(**overrides: Any) -> StrategyQuery:
         "board": ("2c", "7h", "Ts"),
         "legal_actions": ("fold", "call", "raise"),
         "to_call": 20,
-        "street_bet": 20,
+        "current_bet": 20,
         "min_raise_target": 40,
         "pot": 60,
+        # 40 and 20 sum to the pot exactly, which is what the query now checks rather
+        # than trusting. Hero has nothing in on this street and owes the whole 20.
+        "seat_states": seats((0, 20, 40), (1, 0, 20)),
         "stacks": ((0, 980), (1, 940)),
         "blinds": (5, 10),
     }
@@ -51,34 +68,51 @@ def _audit_line_for(outcome: StrategyDecision | StrategyRefusal) -> str:
 
 
 def _uncovered_spot_query() -> StrategyQuery:
-    """A six-handed 100bb four-bet spot, which the committed charts do not hold.
+    """A six-handed 100bb five-bet spot, which the committed charts do not hold.
 
     Phase 05 committed opens, responses to a single open, an opener facing a three-bet, and
     the big blind against a small-blind limp. A third raise is past all of those, so the
     lookup misses and the refusal has a spot key to name.
+
+    Everybody starts on 10,000, so the table is flat at 100bb and the depth checks pass
+    the spot through to the chart rather than refusing on the table shape. Seat 1 opens to
+    250, seat 2 three-bets to 800, seat 1 four-bets to 2,150 and seat 2 five-bets to 3,500,
+    which is a legal ladder: each raise is at least the last increment. The old fixture
+    raised 2,150 to 2,200, an under-raise no legal preflop street produces, and stated a
+    pot no seat had paid for.
     """
-    seats = (0, 1, 2, 3, 4, 5)
-    big_blind = 100
-    full = 100 * big_blind
+    contributed = {1: 2150, 2: 3500, 4: 50, 5: 100}
+    still_in = {1, 2}
+    full = 10_000
     return StrategyQuery(
-        hand_id="four-bet",
+        hand_id="five-bet",
         street="preflop",
         seat=1,
         button_seat=3,
         hole_cards=("As", "Ah"),
         board=(),
         legal_actions=("fold", "call", "raise"),
-        to_call=2200,
-        street_bet=2200,
-        min_raise_target=4400,
-        pot=3000,
-        stacks=tuple((seat, full - (2200 if seat == 2 else 0)) for seat in seats),
-        blinds=(50, big_blind),
+        to_call=1350,
+        current_bet=3500,
+        min_raise_target=4850,
+        pot=sum(contributed.values()),
+        seat_states=tuple(
+            SeatState(
+                seat=seat,
+                street_bet=contributed.get(seat, 0),
+                committed_total=contributed.get(seat, 0),
+                folded=seat not in still_in,
+                all_in=False,
+            )
+            for seat in range(6)
+        ),
+        stacks=tuple((seat, full - contributed.get(seat, 0)) for seat in range(6)),
+        blinds=(50, 100),
         preflop_actions=(
             SeatAction(1, "raise", 250),
             SeatAction(2, "raise", 800),
             SeatAction(1, "raise", 2150),
-            SeatAction(2, "raise", 2200),
+            SeatAction(2, "raise", 3500),
         ),
     )
 
@@ -87,6 +121,10 @@ def make_free_query(**overrides: Any) -> StrategyQuery:
     fields: dict[str, Any] = {
         "legal_actions": ("check", "bet"),
         "to_call": 0,
+        # Nobody has bet this street, so the level is nothing and the 60 in the middle
+        # is what the two seats brought from the street before.
+        "current_bet": 0,
+        "seat_states": seats((0, 0, 40), (1, 0, 20)),
     }
     fields.update(overrides)
     return make_query(**fields)
@@ -160,7 +198,7 @@ class TestStrategyQueryValidation:
         describe that set would be a query that lies about the game. It is the one
         validation Phase 11's contract permits removing, and it is named there.
         """
-        query = make_query(legal_actions=("check", "fold"), to_call=0)
+        query = make_free_query(legal_actions=("check", "fold"))
         assert set(query.legal_actions) == {"check", "fold"}
 
     def test_rejects_check_with_positive_to_call(self) -> None:
@@ -258,12 +296,15 @@ class TestDecisionAuditRecord:
         expected = (
             '{"outcome":{"action":"call","amount":null,"code":"x","kind":"decision"},'
             '"query":{"blinds":[5,10],"board":["2c","7h","Ts"],"button_seat":0,'
-            '"hand_id":"h1","hole_cards":["As","Kd"],'
+            '"current_bet":20,"hand_id":"h1","hole_cards":["As","Kd"],'
             '"legal_actions":["fold","call","raise"],"min_raise_target":40,"pot":60,'
-            '"preflop_actions":[],'
-            '"seat":1,"stacks":{"0":980,"1":940},"street":"flop","street_bet":20,'
+            '"preflop_actions":[],"seat":1,'
+            '"seat_states":{'
+            '"0":{"all_in":false,"committed_total":40,"folded":false,"street_bet":20},'
+            '"1":{"all_in":false,"committed_total":20,"folded":false,"street_bet":0}},'
+            '"stacks":{"0":980,"1":940},"street":"flop",'
             '"to_call":20},'
-            '"schema_version":2,"strategy_id":"reference-check-fold",'
+            '"schema_version":3,"strategy_id":"reference-check-fold",'
             '"strategy_version":1}'
         )
         assert make_record().to_json_line() == expected
@@ -272,16 +313,16 @@ class TestDecisionAuditRecord:
         with pytest.raises(ValueError, match="below the minimum unless all-in"):
             make_record(outcome=StrategyDecision("raise", 25, "x"))
         # Hero's own contribution to the street plus hero's stack, per Phase 11
-        # (DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE). The query carries street_bet 20 and
-        # to_call 20, so hero has put in nothing and the target is the stack itself. The
-        # old form added the whole level and was too high by exactly the price to call.
-        all_in_target = (20 - 20) + 940
+        # (DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE), and since Phase 13 read straight off
+        # hero's own seat record rather than reconstructed from two other query fields.
+        # Hero has nothing in on this street, so the target is the stack itself.
+        all_in_target = 0 + 940
         record = make_record(outcome=StrategyDecision("raise", all_in_target, "x"))
         assert '"amount":940' in record.to_json_line()
 
     def test_rejects_raise_amount_above_all_in_maximum(self) -> None:
         with pytest.raises(ValueError, match="exceeds the acting seat's all-in maximum"):
-            make_record(outcome=StrategyDecision("raise", (20 - 20) + 940 + 1, "x"))
+            make_record(outcome=StrategyDecision("raise", 0 + 940 + 1, "x"))
 
     def test_records_to_jsonl_has_trailing_newline(self) -> None:
         record = make_record()

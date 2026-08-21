@@ -635,3 +635,87 @@ mutations:
     must_fail:
       - pytest_spot_vocabulary
       - pytest
+
+  # Phase 13 canaries, authored at stage 4 before any implementation exists. Every `find`
+  # below is therefore a specification the stage 6 builder must produce verbatim, the same
+  # way phase 12's were: a canary written after the code can only describe what was already
+  # written, which is how phases 08, 09 and 10 each ended up with no canary for the one
+  # behaviour their phase existed to add.
+
+  - id: the-pot-stops-having-to-reconcile
+    description: >-
+      A query whose stated pot disagrees with what the seats actually put in is accepted
+      again. This is the phase's exhaustive check, chips in equal chips out, and it is the
+      one rule that catches a producer whose arithmetic silently does not work. Without it
+      every downstream depth and blind-structure figure rests on a pot nobody verified.
+    file: src/poker_training_bot/strategy/contract.py
+    find: "if self.pot != contributed_total:"
+    replace: "if False and self.pot != contributed_total:"
+    must_fail:
+      - pytest_table_state
+      - pytest
+
+  - id: a-capped-hero-may-raise-again
+    description: >-
+      The guard rejecting a query that offers raise or bet while to_call equals hero's whole
+      stack is removed. The engine never produces such a query, so nothing downstream notices
+      until the all-in ceiling accepts a raise hero cannot make, which is the exact hole the
+      2026-08-20 capped-to_call ruling was found to have left open.
+    file: src/poker_training_bot/strategy/contract.py
+    find: "if self.to_call == hero_stack and aggressive:"
+    replace: "if False and self.to_call == hero_stack and aggressive:"
+    must_fail:
+      - pytest_table_state
+      - pytest
+
+  - id: hero-depth-is-derived-by-subtraction-again
+    description: >-
+      Hero's starting depth goes back to being recovered as the bet level minus the price to
+      call rather than read from hero's own recorded contribution. Under the capped ruling
+      that identity collapses to the bet level itself for any capped hero, deriving 30bb
+      where the truth is 25bb, silently and with no refusal. Phase 14 publishes chart numbers
+      through this path. `generate_table_state_report` is named below because the report
+      validates its own worked depth against hero's recorded contribution and exits non-zero
+      when the two disagree, the way phase 12's `_validate_census` fails the gate on a census
+      that does not add up. A report that renders whatever number it is handed exits 0 however
+      wrong the number is, and would leave this mutation alive.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "hero_start = stacks[query.seat] + hero.street_bet"
+    replace: "hero_start = stacks[query.seat] + (query.current_bet - query.to_call)"
+    must_fail:
+      - pytest_table_state
+      - generate_table_state_report
+      - pytest
+
+  - id: a-folded-seat-makes-the-table-ragged
+    description: >-
+      The flat-table test stops excluding seats that have already folded, so a folded short
+      seat refuses a spot it cannot affect a single chip of. Effective stack is pairwise and
+      against seats that can still act, so this is the regression the fix introduces if
+      nobody is looking, and it is the case a stricter check gets wrong first.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "if state.folded:"
+    replace: "if False:"
+    must_fail:
+      - pytest_table_state
+      - pytest
+
+  - id: an-absorbed-straddle-goes-unseen
+    description: >-
+      The minimum-raise-target signal is dropped, leaving only reconstruction and the
+      unraised-level test. Those two catch an ante and an unacted straddle; neither can see a
+      straddler who has already called to the level, because that seat holds exactly what an
+      ordinary caller holds. That is the case the deleted pot bound also missed, so without
+      this signal the phase's headline detection is no better than what it replaced.
+      `generate_table_state_report` is named below because the report reconciles its straddle
+      census against the minimum-raise prediction the detector used and exits non-zero when the
+      two disagree, the way phase 12's `_validate_census` fails the gate on a census that does
+      not add up. A report that renders whatever it is handed exits 0 with the straddled pot
+      silently missing from its count, and would leave this mutation alive.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "if query.min_raise_target != predicted_min_raise:"
+    replace: "if False and query.min_raise_target != predicted_min_raise:"
+    must_fail:
+      - pytest_table_state
+      - generate_table_state_report
+      - pytest

@@ -1,13 +1,13 @@
-task_id: PHASE_13_CONTRACT
+task_id: PHASE_13_TESTS
 active_phase: "13"
-task_mode: contract-update
-base_commit: 41ec07a3bcc918312e4c1600a3b842cf9f944a82
+task_mode: implementation
+base_commit: bf05ca43ed3f894f85c58008232cfa90223405b6
 approved_scope:
-  - docs/phase_contracts/PHASE_13_TABLE_STATE.md
-  - docs/phase_contracts/PHASE_03_STRATEGY_CONTRACT.md
-  - docs/phase_contracts/PHASE_06_POSTFLOP_FALLBACK.md
+  - tests/**
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - scripts/run_verify.py
   - reports/phase_audits/reviews/PHASE_13_TABLE_STATE/**
-  - reports/phase_audits/decisions/PHASE_13_TABLE_STATE_DECISIONS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -860,3 +860,31 @@ scope_change_log:
       Still contract-update mode and still no source, test, artifact or gate file in scope.
       The loop driver reads the Reversibility line of each item at stage 3 to decide whether
       the phase must stop for a human, so the list has to exist before any test is authored.
+  - date: 2026-08-21
+    reason: >-
+      Phase 13 stage 4 authors the tests before any implementation exists, so the task moves to
+      implementation mode and approved_scope becomes tests/**, the mutation canaries, the freeze
+      lock those tests are recorded in, and scripts/run_verify.py for registering the two command
+      IDs the contract declares. check_repo_consistency demands a registered pytest_* command
+      name a real test file holding at least one test, and run_full_quality_gate demands a
+      mutation naming it, so registration and canaries land in the same task as the tests.
+      The three contract files and the decision list leave scope: contract edits are forbidden in
+      implementation mode and the decision list is settled, including Taylor's ruling on decision
+      6. No source file is in scope; the tests must fail on assertions against code that does not
+      do this yet, which is the whole point of the stage.
+      Stage 4 also owns the migration of frozen tests in completed phases, because phases 11 and
+      12 both deferred it and both paid a separate repair task at stage 6.
+  - date: 2026-08-21
+    reason: >-
+      base_commit moves from the lane's branch point to bf05ca4, the stage 3 commit, because
+      stage 4 narrows scope and check_scope measures the diff from base_commit. Left where it
+      was, the contract and the decision list read as out of scope for a task that legitimately
+      changed them at stages 1 to 3 under their own entries. Same move phase 05 made at its
+      freeze, and the earlier work stays reviewable in its own commits.
+      tests/test_postflop_fallback.py was at exactly 700 lines before this phase, and the
+      required per-seat field on both its query builders pushed it to 718 against the cap. It is
+      split on a mechanical property, the companion holding everything that never calls the
+      fallback's decide loop, so no fixture is duplicated: 592 and 185 lines, 26 and 11 tests,
+      37 before and 37 after with the name set diffed rather than the count. The new file is
+      registered on the existing pytest_postflop_fallback command, which is why
+      scripts/run_verify.py is in scope for more than this phase's own two command IDs.

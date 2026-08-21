@@ -116,6 +116,99 @@ to an independent read-only reviewer rather than to the coordinator.
       completed, tag, idle.
 - [ ] S11 Advance. Policy says `auto_advance: true` for phase 13.
 
+## Coordinator rulings during the build
+
+These are integration decisions too small for the decision list and too load-bearing to leave to
+whichever worker reaches them first. They are recorded here rather than in the decision list
+because the task is in implementation mode and that list is settled.
+
+**2026-08-21, the per-seat record's container and class names.** Raised by the frozen-test
+migration worker, who noticed decisions 1, 2, 5 and 14 fix the record's own fields
+(`street_bet`, `committed_total`, `folded`, `all_in`) and name neither the container on
+`StrategyQuery` nor the class. Ruled: `seat_states: tuple[SeatState, ...]`, one entry per seat
+in `stacks`, sorted ascending by seat.
+
+Rejected `contributions` and `SeatContribution`, which is the better read of the contract's own
+noun, because the record carries `folded` and `all_in` and those are not contributions. A field
+named for less than it carries is the exact defect this phase exists to end, and repeating it in
+the fix would be worse than the original. Rejected a bare `seats` container because it reads as
+the seat numbers, and the query already keys `stacks`, `seat` and `button_seat` by seat integer.
+`SeatState` is deliberately a near-twin of the engine's `PlayerState` minus name, hole cards and
+stack, which is decision 2's one-vocabulary argument carried to the container; the name differs
+because the query is seat-oriented where the engine is player-oriented.
+
+All three stage 4 workers were given the ruling at once so none had to coordinate with the
+others.
+
+**2026-08-21, where an ante sits, correcting decision 3.** Raised by the same worker, which
+found decision 3 ("preflop, each seat's street contribution must equal its hand contribution")
+and decision 10 ("the ante probe gives every seat an ante inside its hand contribution") cannot
+both hold. Ruled on the poker rather than on the rule count: an ante is dead money, it goes into
+the pot, and it does not count toward what a seat owes, so putting it in the street figure would
+make an anted seat owe less to call than an unanted one at the same level. The ante lives in
+`committed_total` only. The rule is therefore not equality but `committed_total >= street_bet`
+on every street, with the difference being that seat's dead money; the only impossible direction
+is a seat holding more this street than over the whole hand.
+
+This improves the phase rather than patching it. Preflop, `committed_total - street_bet` is
+forced dead money by arithmetic the query already carries, on a live seat and a folded one
+alike, and it can never be absorbed the way a straddle can. So decision 8's ante signal becomes
+that difference: uniform across seats is an ante, non-uniform is a dead blind and takes the kept
+residual code. The strategy-side worker reached the same uniformity reading independently.
+
+**This makes a clause in the phase 13 contract false.** Line 75 says the two figures "coincide"
+preflop. Contract edits are forbidden in implementation mode, and the phase 13 contract is at
+exactly 300 lines so it cannot take an added amendment either. The fix is a reword inside the
+existing line budget, folded into the `contract-update` task this phase already owes for
+`ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP`, which must run before the phase tags.
+
+**2026-08-21, how `seat_states` serializes.** The two workers defaulted differently. Ruled: a
+seat-keyed mapping, `{"0": {...}}`, with the inner object carrying `street_bet`,
+`committed_total`, `folded` and `all_in` and not repeating the seat. It mirrors `stacks`, the
+field it is validated seat-for-seat against, and a test pins that the two key sets are
+identical. A list of objects would store the seat twice, which is where drift starts.
+
+**2026-08-21, a requirement carried to the stage 6 builder.** The rewritten `StrategyQuery`
+class docstring must contain the phrase "current bet level" and must name both `current_bet` and
+the per-seat `street_bet`. A migrated frozen test in `tests/test_engine_fidelity.py` asserts it,
+and the point of the rename is that one name now has one meaning.
+
+**2026-08-21, lane L1 died mid-task.** The worker authoring `tests/test_table_state.py` was
+terminated by an API error while applying the naming ruling. The file it had written was
+complete and parsed, so the coordinator finished the rename and then owned that file for the
+ante correction above. Recorded because the Delegation Plan says L1 is a worker lane and it was
+not, for the last edits.
+
+## What stage 4 specified for the stage 6 builder
+
+The tests are the specification, and so are the five canaries in `verification/mutations.yml`.
+Each canary's `find` string must occur exactly once in the built code or `check_gate_bite` fails
+at stage 7, so these identifiers are not suggestions:
+
+- `contributed_total`, the sum the pot is validated against, in `strategy/contract.py`, used as
+  `if self.pot != contributed_total:`
+- `hero_stack` and `aggressive` in the capped-hero guard, used as
+  `if self.to_call == hero_stack and aggressive:`
+- `hero_start = stacks[query.seat] + hero.street_bet` in `_table_depth_bb`
+- `if state.folded:` as the live-seat filter in the flat-table test
+- `predicted_min_raise` in the straddle detector, used as
+  `if query.min_raise_target != predicted_min_raise:`
+
+The builder must also keep the phrase "current bet level" in the `StrategyQuery` class docstring
+and name both `current_bet` and the per-seat `street_bet` there, because a migrated frozen test
+in `tests/test_engine_fidelity.py` asserts it.
+
+**`generate_table_state_report.py` must validate its own figures and exit non-zero when they do
+not hold.** Two canaries name it in `must_fail`, and `check_gate_bite` requires every command it
+names to fail with the mutation applied, so a report that merely prints whatever it is handed
+would leave both surviving. Phase 12 set the pattern with `_validate_census`, which fails the
+gate when the census splits do not reconcile. Here the two figures that must be self-checked are
+hero's derived depth, which has to agree with hero's own recorded contribution rather than with
+the bet level minus the price, and the straddle census, which has to reconcile against the
+minimum-raise prediction the detector used. This is the stage 4 reviewer's sixth blocker and it
+is a real requirement rather than a bookkeeping fix: a report nobody can break is a report
+nobody has tested.
+
 ## Verification
 
 Command IDs this phase adds: `pytest_table_state`, `generate_table_state_report`.
