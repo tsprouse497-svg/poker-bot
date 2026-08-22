@@ -15,6 +15,7 @@ approved_scope:
   - scripts/generate_strategy_query_report.py
   - scripts/generate_engine_fidelity_report.py
   - reports/phase_audits/reviews/PHASE_13_TABLE_STATE/**
+  - reports/phase_audits/PHASE_13_TABLE_STATE.md
   - verification/mutations.yml
   - reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md
   - reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md
@@ -941,3 +942,8 @@ scope_change_log:
       11 packet cites both by name, so it now sends a reader to tests that do not exist. Nothing
       mechanical catches that: run_full_quality_gate.py checks backlog ids in reports/, not test
       names.
+  - date: 2026-08-22
+    reason: >-
+      Phase 13 stage 9 writes the audit packet, so reports/phase_audits/PHASE_13_TABLE_STATE.md
+      joins approved_scope. The three older packets already in scope are there for the
+      StrategyQuery.street_bet rename; this is the phase's own packet and nothing else needs it.

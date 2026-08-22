@@ -225,7 +225,11 @@ told not to re-report them, so what follows is what those five did not cover.
 
 ## Alignment
 
-Filed in `backlog.yml` rather than left here, as the loop requires.
+Filed in `backlog.yml` rather than left here, as the loop requires. Every bullet below names the
+entry it lives in, so a reader can follow each one to a record. Three of them were prose in this
+section when it was first written and were filed afterwards, in the stage-9 pass that audited
+whether this phase closed the items filed against it - which is itself the finding that the claim
+in this sentence is worth checking rather than trusting.
 
 - `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE` (phase 14) - the blocker above, with
   its measurement. The fix needs the artifact to declare its blind structure first.
@@ -257,24 +261,42 @@ Filed in `backlog.yml` rather than left here, as the loop requires.
 - **Appended to `REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL`** - the pairwise-detail finding
   above, for the reason given there.
 
-- **The loop adds no canary for a fix landed after stage 4.** Raised by the mechanical lens.
-  `verification/mutations.yml` is authored before implementation by design, which is right; the
-  consequence is that every fix found at stage 6 or 8 arrives with whatever coverage happened to
-  exist. This phase alone produced three instances - the stage-6 extremal-seat hole, and both
-  earlier-pass fixes in this note - and each was closed only because a reviewer asked for a canary
-  by hand. It is loop-process work, not phase 13's.
+- `LOOP-ADDS-NO-CANARY-FOR-A-FIX-FOUND-AFTER-STAGE-4` (contract-update) - the loop adds no canary
+  for a fix landed after stage 4. Raised by the mechanical lens. `verification/mutations.yml` is
+  authored before implementation by design, which is right; the consequence is that every fix found
+  at stage 6 or 8 arrives with whatever coverage happened to exist. This phase alone produced three
+  instances - the stage-6 extremal-seat hole, and both earlier-pass fixes in this note - and each
+  was closed only because a reviewer asked for a canary by hand. It is loop-process work, not phase
+  13's. The entry also carries the `docs/LOOP.md` edit that belongs with it: the "Known gaps"
+  section opens "Four things this machinery cannot catch" and should say five. That edit is
+  deliberately not made here - `docs/**` is not in this task's `approved_scope`, and widening scope
+  during `implementation` mode for a documentation change is the wrong trade - so the instruction
+  travels in the backlog entry to whoever runs the task.
 
-- **`preflop_actions` was validated as a bag of seats rather than as an action sequence.** Raised
-  by the mechanical lens as the shared root of the boundary finding and decision 15's
-  "sharpest false-positive channel": the query accepted a history no betting round can produce,
-  and three consumers each reconstructed their own inconsistent defence against it. The boundary
-  rule closes it for this class, and the general point belongs beside
-  `SEAT-STATE-MARKERS-AGREE-WITH-NOTHING`, since the answer is one validation rule rather than
-  three patches.
+- **Appended to `SEAT-STATE-MARKERS-AGREE-WITH-NOTHING`** - `preflop_actions` was validated as a
+  bag of seats rather than as an action sequence. Raised by the mechanical lens as the shared root
+  of the boundary finding and decision 15's "sharpest false-positive channel": the query accepted a
+  history no betting round can produce, and three consumers each reconstructed their own
+  inconsistent defence against it. The boundary rule closes it for this class, and the general
+  point belongs beside that entry's unvalidated `folded` and `all_in` markers, since the answer is
+  one validation rule rather than three patches. The append was made in the stage-9 pass; this
+  bullet previously read as though it had already happened, and it had not.
 
-- **Unfalsifiable guards inside report validators recur here.** Raised by the mechanical lens:
-  three found in this one file across two stages. A cheap mechanical check exists - a validator
-  whose predicate is provable from the types of its inputs - but building it is not phase 13's.
+- `REPORT-VALIDATORS-CAN-HOLD-GUARDS-THAT-CANNOT-FAIL` (contract-update) - unfalsifiable guards
+  inside report validators recur here. Raised by the mechanical lens: three found in this one file
+  at this stage, after one at stage 6. A cheap mechanical check exists - a validator whose
+  predicate is provable from the types of its inputs - but building it is not phase 13's.
+
+- **Appended to `TABLE-STATE-REPORT-RENDERER-HAS-NO-SIZE-CAP`** - the file-size pattern, re-measured
+  in the stage-9 pass. The renderer is 1,889 lines, grown this round by the blind-structure
+  measurement, `one_key_two_tables`, `validate_bound_coverage`, `validate_residual_seat` and the
+  two-dead-blinds census probe - every one of them a check that makes a published claim
+  falsifiable, and every one of them landing in the only file with room. On the capped side,
+  `preflop_chart.py` is now at exactly 500 of 500, so the next edit to it reddens
+  `check_file_sizes` before it is reviewed. That is the same trap as
+  `ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP`, one source file and one contract, both found in
+  this phase. What the entry now asks to be ruled alongside the `scripts/` limit is a warning band,
+  so a file arrives at its cap as a scheduled split rather than mid-fix.
 
 ## The verification round
 
