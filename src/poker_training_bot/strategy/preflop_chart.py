@@ -204,7 +204,8 @@ class PreflopChartStrategy:
         amounts = set(forced.values())
         if len(forced) == len(query.seat_states) and len(amounts) == 1:
             return StrategyRefusal(REFUSE_ANTE, (("ante", str(amounts.pop())),))
-        seat, chips = min(forced.items())
+        # Most chips, ties to the lowest chair: a figure the seating decides is not evidence.
+        seat, chips = max(forced.items(), key=lambda pair: (pair[1], -pair[0]))
         return StrategyRefusal(
             REFUSE_BLIND_STRUCTURE, (("seat", str(seat)), ("forced_chips", str(chips)))
         )

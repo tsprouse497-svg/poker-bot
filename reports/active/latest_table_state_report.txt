@@ -13,21 +13,33 @@ capped at what hero can actually pay, and wrong afterwards for every hero whose 
 stack is the price. The query now carries, for every seat, what it has put in on this
 street and over the hand, and whether it has folded or is all-in.
 
-What that buys, in one sentence: a table this bot's charts cannot describe is now seen
-and refused for what it is, rather than answered as something else. It buys no new
-answers. A short opponent, a deep opponent, a straddle and an ante each get their own
-refusal, because they are different tables and a chart solved for six flat
-hundred-big-blind stacks is not solved for any of them. One class of table escapes that
-sentence and is still answered as something else - a straddled pot with two or more
-recorded raises - and the closing section says so in full.
+What that buys, in one sentence: a table whose STACK DEPTHS or whose FORCED MONEY this
+bot's charts cannot describe is now seen and refused for what it is, rather than
+answered as something else. It buys no new answers. A short opponent, a deep opponent, a
+straddle and an ante each get their own refusal, because they are different tables and a
+chart solved for six flat hundred-big-blind stacks is not solved for any of them.
+
+That sentence names the two things this phase looks at rather than claiming the table as
+a whole, because two classes of table escape it and are still answered as something
+else. A straddled pot with two or more recorded raises is invisible to every signal
+here. And the ratio between the two blinds is compared with nothing at all: the
+committed artifact declares a table size and a stack depth and declares no blind
+structure, so $1/$3 and $2/$5 - the structures this bot's own home games are dealt at -
+reach the same cells as 50/100 and come back with the same weights, at prices to call
+eleven points of pot odds apart. The closing section measures both, and this command
+re-measures each of them before it will print either.
 
 What would make this command fail rather than print. Hero's depth is re-derived here
 from hero's own recorded contribution and compared against the depth the strategy acted
 on, and they have to agree on a table where taking the depth from the price would give a
 different answer. The straddle census is reconciled against the minimum raise the two
 declared blinds predict, and a pot whose minimum raise disagrees with that prediction
-has to be counted as straddled. The corpus figures are checked against what they were
-before this phase. Any of those failing exits non-zero and writes nothing.
+has to be counted as straddled. Every pot the deleted arithmetic bound refused has to
+come out of the replacement as holding forced money of some kind, and a refusal that
+names a seat has to name the seat the seat states say it should - both recomputed here
+rather than asked of the rule that chose them. The corpus figures are checked against
+what they were before this phase. Any of those failing exits non-zero and writes
+nothing.
 
 ## One table state, before and after
 
@@ -245,11 +257,20 @@ about a pot where a short stack simply shoved.
 
 ## The straddle census, reconciled against the minimum raise
 
-Nine constructed pots, each with what is truly in it stated first and what the three
+10 constructed pots, each with what is truly in it stated first and what the three
 signals made of it second. The reconciliation is one rule: a pot whose minimum raise
 disagrees with what the declared blinds and the recorded raises predict is straddled,
 and has to be counted as straddled. It is checked in both directions, because a detector
 that called every pot straddled would satisfy half of it by itself.
+
+The row marked `the old bound` is the arithmetic rule this phase deleted, run again on
+the same pot. It is printed beside the replacement's answer because a reader needs to
+see that the replacement did not lose what the bound covered, and it is compared rather
+than merely printed: every pot the bound refused has to come out of the replacement as
+holding forced money of some kind, or this command exits non-zero. That is narrower than
+the contract's criterion, which is about every pot and rests on a frozen test; what it
+adds is that these rows cannot quietly stop supporting the sentence they are printed
+under.
 
   a 200 straddle already called to the level
     what is truly in it     straddled
@@ -315,6 +336,23 @@ that called every pot straddled would satisfy half of it by itself.
     still the big blind; not an ante, because an ante is uniform. This is the residual
     the kept code exists for.
 
+  two dead blinds of different sizes
+    what is truly in it     forced money of no named kind
+    what the signals said   forced money of no named kind
+    minimum raise offered   200
+    minimum raise predicted no raise yet, so no prediction
+    the old bound           refused (pot 300 over its bound of 150)
+    the chart's answer      refused  preflop-chart:blind-structure-not-representable  (seat 1, forced_chips 100)
+    The lojack owes 50 and the hijack owes 100, and both folded. Which of the two the
+    refusal names is the whole of this row, and it is the only pot in this report where
+    more than one seat holds unexplained money in different amounts - the ante row above
+    has six such seats and they are all equal, which is what makes it an ante rather
+    than this. The seat reported is the hijack, because it is the one holding the most,
+    and the dead-blind row above cannot show that: with one unexplained seat, naming the
+    most forced chips and naming the lowest chair are the same answer. Here they are
+    seat 1 and seat 0, so the published detail says which rule produced it and the check
+    below can fail.
+
   a straddle equal to the big blind, already called
     what is truly in it     straddled, and invisible to all three signals
     what the signals said   no forced money
@@ -349,25 +387,34 @@ that called every pot straddled would satisfy half of it by itself.
   the census
     straddled                                       counted  3   truly  3
     anted                                           counted  1   truly  1
-    forced money of no named kind                   counted  1   truly  1
+    forced money of no named kind                   counted  2   truly  2
     no forced money                                 counted  4   truly  3
     straddled, and invisible to all three signals   counted  0   truly  1
 
-The four counted classes account for all 9 pots, and the straddle count equals the
+The four counted classes account for all 10 pots, and the straddle count equals the
 number of pots holding a straddle the signals can see. The absorbed straddle is one of
 them, and it is counted through a minimum raise that disagrees with the prediction: that
 is the assertion this command exits non-zero on.
 
 One row deliberately does not match, and the difference is part of what is still missed:
-four pots are counted as holding no forced money where only three hold none. The fourth
-is the big-blind-sized straddle, which is counted clean because nothing in the money,
-the level or the minimum raise distinguishes it from a limp. It is printed as a straddle
-in the truth column so that the gap is a number rather than a sentence. Both figures on
-the last row are read off the same tally as every row above rather than written in: the
+4 pots are counted as holding no forced money where only 3 hold none. The odd one out is
+the big-blind-sized straddle, which is counted clean because nothing in the money, the
+level or the minimum raise distinguishes it from a limp. It is printed as a straddle in
+the truth column so that the gap is a number rather than a sentence. Both figures on the
+last row are read off the same tally as every row above rather than written in: the
 detector has no such class to return, so its count is zero, and this command exits
 non-zero unless every pot in that row is counted as holding no forced money at all. The
 row is the smaller of the two residuals; the larger one is in the closing section and no
 probe here can carry it.
+
+One more thing above is checked rather than printed. Where a refusal names a seat - the
+two rows holding a dead blind - the seat it names is recomputed here from the
+contributions, not asked of the rule that chose it, and it has to be the seat holding
+the most chips its own actions do not explain, ties to the lowest chair. A rule that
+simply named the lowest chair would agree on every pot with one such seat, so a row
+where the two answers differ has to exist or that check could not fail either. The
+two-dead-blinds row is it: the most forced chips are in seat 1 and the lowest chair
+holding any is seat 0.
 
 ## The corpus counts, as a checked regression proof
 
@@ -511,28 +558,42 @@ have to agree.
 
 Over a 2.5bb open the smallest legal re-raise is 4bb: the level plus the larger of the
 previous increment and one big blind. A re-raise to 3bb is not a legal action and the
-key space writes it down anyway:
+key space writes it down anyway - and writes the same string for a button that was
+simply all-in for 300, which is legal and is a different table:
 
-    the key it renders   t6/d100/BB/CO:raise@2.5,BTN:raise@3
+    the key the lookup asked about   t6/d100/BB/CO:raise@2.5,BTN:raise@3
 
-Does the query's new state close it? Not in the key, and not in the query either. The
-recorded raise-to amounts and the two declared blinds do reconstruct what the minimum
-raise should be, and that reconstruction now mirrors the engine exactly: the minimum
-starts at the big blind and a recorded raise moves it only when its increment is at
-least the minimum already standing. An incomplete raise therefore predicts the same 450
-the engine offers, so nothing about it disagrees and nothing about it is refused as
-forced money:
+That string is read off the lookup the under-raise table actually reached rather than
+composed here, and only one of the two tables ever reaches one. The button all-in for
+300 sat down with 300, which is three big blinds against hero's hundred, so that table
+is not one flat depth and it is refused before any key is built:
 
-    the same table, asked   refused  preflop-chart:lookup:spot-not-covered  (spot_key t6/d100/BB/CO:raise@2.5,BTN:raise@3, table_size 6, stack_depth_bb 100, hand_class AA)
+    the recorded under-raise   refused  preflop-chart:lookup:spot-not-covered  (spot_key t6/d100/BB/CO:raise@2.5,BTN:raise@3, table_size 6, stack_depth_bb 100, hand_class AA)
+    the short all-in for 300   refused  preflop-chart:a-live-seat-is-shorter-than-hero  (seat 3, starting_chips 300, stack_depth_bb 3)
 
-The refusal is a coverage miss, which is what this table honestly is. An earlier draft
-of the straddle signal walked the raises with no floor on the increment, so it predicted
-350 against the engine's 450 and refused this pot as holding a straddle - a false
-statement about the game, in a pot where a short stack simply shoved. Flooring the walk
-removes that and hides no straddle, because a straddle perturbs only the first increment
-and that increment is always a full raise. What remains is that an under-raise is now
-fail-closed only by coverage: this cell happens to be unsolved, and nothing here refuses
-the price for being illegal.
+So the merge lives in the key space and not in what this strategy does with these two
+tables, and the difference is worth stating rather than eliding: a claim that both
+tables render one key would be false of the second, which renders nothing. This command
+refuses to publish that key unless the two tables still agree on every one of the four
+things a key is made of, the first still reaches the chart, and the second is still
+refused for holding a live seat shorter than hero.
+
+Does the query's new state close the under-raise itself? Not in the key, and not in the
+query either. The recorded raise-to amounts and the two declared blinds do reconstruct
+what the minimum raise should be, and that reconstruction now mirrors the engine
+exactly: the minimum starts at the big blind and a recorded raise moves it only when its
+increment is at least the minimum already standing. An incomplete raise therefore
+predicts the same 450 the engine offers, so nothing about it disagrees and nothing about
+it is refused as forced money. Its refusal above is a chart-coverage miss and nothing
+more, which is what this table honestly is.
+
+An earlier draft of the straddle signal walked the raises with no floor on the
+increment, so it predicted 350 against the engine's 450 and refused this pot as holding
+a straddle - a false statement about the game, in a pot where a short stack simply
+shoved. Flooring the walk removes that and hides no straddle, because a straddle
+perturbs only the first increment and that increment is always a full raise. What
+remains is that an under-raise is now fail-closed only by coverage: this cell happens to
+be unsolved, and nothing here refuses the price for being illegal.
 
 What it costs on committed data: 0 of the 1386 corpus decisions that face a raise carry
 a recorded raise below the legal minimum, out of 3048 decisions in all. Every raise in
@@ -548,23 +609,45 @@ rather than done.
 ### A call entry carries no record of being all-in for less
 
 Two different tables at the same price: on one the button called the full 250 out of a
-hundred big blinds, on the other it was all-in for 120. The key is the same string:
+hundred big blinds, on the other it was all-in for 120. Their recorded histories are
+identical - fold, fold, a raise to 250, a call - and so is every other thing a spot key
+is made of, so the vocabulary has one string for both:
 
-    the key both render   t6/d100/BB/CO:raise@2.5,BTN:call
+    the key the lookup asked about   t6/d100/BB/CO:raise@2.5,BTN:call
 
-This one the query does now close, from the side that matters in play. A seat all-in for
-less than the level has, by definition, put in everything it sat down with, so it is a
-shorter seat, and the table is no longer flat:
+One of the two renders it, and that is this finding closing rather than the
+demonstration failing. The full call reaches the chart and the lookup asks about that
+key. The short all-in does not get that far: a seat all-in for less than the level has,
+by definition, put in everything it sat down with, so it is a shorter seat, and the
+table is no longer flat.
 
     the full call        refused  preflop-chart:lookup:spot-not-covered  (spot_key t6/d100/BB/CO:raise@2.5,BTN:call, table_size 6, stack_depth_bb 100, hand_class AA)
     the short all-in     refused  preflop-chart:a-live-seat-is-shorter-than-hero  (seat 3, starting_chips 120, stack_depth_bb 1.2)
 
-So a live query carrying a short all-in call never reaches the chart at all, which means
+Those two lines are not two answers to one question, which is the whole of what the
+query bought here. The first is a chart-coverage refusal and names the cell nobody has
+solved. The second names a seat and the depth it holds, and is reached before any key
+exists at all. So a live query carrying a short all-in call never renders that key, and
 the two tables cannot be answered from one cell any more. What remains open is the key
 space itself: anything that works from keys rather than from a table - a committed
-artifact, a self-play enumeration, `decide_spot` - still merges them. On committed data
-that costs 0 of the 178 corpus decisions whose history holds a call, since every corpus
-all-in is for the exact level.
+artifact, a self-play enumeration, `decide_spot` - still merges them, and there the
+merge is total, because nothing in a key says how deep the caller was. On committed data
+that costs 0 of the 178 corpus decisions whose history holds a call.
+
+That zero is weaker than it reads, and the weaker reading is the true one. It says no
+corpus call is tagged all-in at all - not that every corpus all-in is for the exact
+level, which is the claim this paragraph used to end on. The count asks two things of a
+recorded call, that the seat is marked all-in and that its street figure is below the
+level, and only the first is doing any work: measured over the corpus, none of the 183
+recorded call entries comes from a seat the record marks all-in, and the whole corpus
+carries 10 all-in seat-states across 18,288. Loosening the second test from
+below-the-level to at-or-below-the-level leaves the count at zero, which is what it is
+for a check to be insensitive to its own comparison. So the zero is a fact about how the
+converter tags a call rather than about the sizes of anything, and a corpus that began
+recording all-in calls could move it whatever the levels did. The regression is still
+worth keeping - same shape as the table-shape zeros above, a committed number a changed
+replay or converter can move - but it is not the statement about levels it was written
+up as.
 
 What a key would have to carry: the same marker, on a call. What leaving it open costs
 is not a wrong answer today but a wrong denominator later - the first artifact built
@@ -636,6 +719,50 @@ once the straddler raises, the straddle's trace is genuinely destroyed, the only
 that recovers it is a declared blind structure on the query - the format change this
 phase is scoped out of - and any guard written without one over-refuses ordinary
 unstraddled tables.
+
+
+**The ratio between the two blinds is compared with nothing, so four different games
+reach one cell and come back with one answer.** The committed artifact declares a table
+size and a stack depth. It does not declare a blind structure, and nothing in this repo
+- not the chart, not the lookup, not one of the checks this phase added - compares the
+small blind against half the big one. Below is hero in the small blind facing a 2.5bb
+button open at four structures, with everything a spot key is made of held still: six
+seats, every one a hundred big blinds deep, one recorded raise. The whole canonical hand
+class list was asked at each, all 169 of them, and the last column counts the ones whose
+weights differ from the first row's.
+
+  structure  blinds      hero pays    in bb  the pot    in bb  pot odds classes moving
+  ------------------------------------------------------------------------------------
+  $0.50/$1   50/100            200   2.0000      400   4.0000    33.33%       baseline
+  $1/$3      100/300           650   2.1667     1150   3.8333    36.11%       0 of 169
+  $2/$5      200/500          1050   2.1000     1950   3.9000    35.00%       0 of 169
+  $5/$5      500/500           750   1.5000     2250   4.5000    25.00%       0 of 169
+
+The price hero is offered swings 11.1 points of pot odds across those rows - 25.00% at
+$5/$5 against 36.11% at $1/$3 - because the small blind is a different fraction of the
+big blind in each of them, and hero is the seat that posted it. Not one hand class
+responds. All four ask the chart about the same key, `t6/d100/SB/BTN:raise@2.5`, because
+a key has nowhere to write the ratio down, and the artifact behind that key has nowhere
+to declare what ratio it was solved at.
+
+What that costs is not a corner case. This bot is pointed at home games, and $1/$3 and
+$2/$5 are what home and live games are dealt at; $1/$2, the structure whose ratio
+matches the chart's, is the exception rather than the rule. Whether the right ranges
+genuinely differ between those games is a solver question this repo cannot answer from
+here, and this report does not claim they do. What is measured is that they cannot
+differ, because nothing looks: the same eleven-point spread that would change a marginal
+call into a marginal fold at the table changes nothing here.
+
+Not fixable in this phase, and filed as
+`BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE`. Refusing on the ratio would
+mean hardcoding into the code a property the artifact does not declare - which is the
+reconstruction-from-an-undeclared-source defect this phase exists to end, in a new
+place. The fix is a declared blind structure on the artifact and on the query, which is
+the same format change the straddle residual above waits on and the same one this phase
+is scoped out of. This command re-measures the four rows before printing them: each has
+to still reach a chart cell, the four prices have to still differ, and if any hand class
+ever does answer differently the command exits non-zero, because this section would then
+be describing a defect that is fixed.
 
 **A straddle equal to the big blind, once its poster has acted, is invisible for a
 second and simpler reason.** It moves no level, it predicts exactly what a limp

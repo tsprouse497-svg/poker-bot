@@ -1195,6 +1195,39 @@ items:
       Filed against phase 14 rather than fixed in phase 12 because changing the metric changes
       which cell a price reaches, and phase 12's committed keys are what phase 14 is measured
       against. Found by the phase 12 stage-8 poker review.
+
+      **This entry is filed the wrong way round, and the phase 13 stage-8 poker review measured
+      it.** Reading it, the defect is a choice of metric that is latent because no location holds
+      two candidates. Reading the code, the absence of a second candidate is not what makes it
+      latent - it is what makes it LIVE. `normalise` applies no bound of any kind, so with one
+      candidate per line every asked price collapses to the solved one however far away it is.
+      The metric question is genuinely latent. The missing tolerance is not, and it is reachable
+      on the flattest, most ordinary table this bot will ever see.
+
+      Measured on a flat unstraddled six-handed 100bb table at 50/100, hero in the big blind.
+      Twelve hand classes answered identically, hand for hand and weight for weight, against a
+      2.5bb, a 4bb and a 5bb open. Against the 5bb open hero pays 400 into 650 for 38.1% pot
+      odds out of position, from a cell solved for a hero paying 27.3%; 76s calls. Against a 20bb
+      open it inverts outright: 76s still calls at 46.9% pot odds and AA REFUSES, and the aces
+      refuse only because the charted 13.5bb three-bet falls below the minimum re-raise over a
+      20bb open. That is a refusal by arithmetic accident. Nothing refuses the price itself, so
+      every hand the cell calls or folds is answered whatever was bet.
+
+      The raise size is wrong in the same direction. The three-bet is a fixed 13.5bb whatever the
+      open was: 5.40x over a 2.5bb open, 3.38x over 4bb, 2.70x over 5bb, and 1.93x over a 7bb
+      open, where the minimum legal re-raise is 13.0bb - so the bot min-three-bets aces. The
+      corpus hides all of it, because only 3 substituted raises moved more than 3.00bb and 1,010
+      of 1,025 moved toward the tighter range.
+
+      Two consequences for whoever picks this up. First, the fix that matters is a BOUND that
+      refuses a price too far from any solved one, and it is worth more than the metric change
+      this entry was filed for - fail-closed is the house rule everywhere else in the chart path
+      and this is the one place a price silently substitutes without limit. Second, and this is
+      why phase 13's stage-8 review raised it at all: phase 13 spent itself refusing a table
+      where one live opponent is off by a single chip, in the same tree where the bot calls off
+      19bb with 76s because an open price was snapped by a factor of eight. The strictness is
+      pointed at the wrong end of the game. A 5bb open is the standard open in exactly the home
+      games phase 13's own contract says this bot is pointed at.
   - id: RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL
     status: deferred
     phase: "14"
@@ -1424,3 +1457,202 @@ items:
       built on reconstructing each seat's holding from the DECLARED blinds - a declaration that
       cannot describe the game is a reconstruction that starts from the wrong number. Same
       declared-blind-structure work as BLIND-STRUCTURE-VARIANTS.
+  - id: ALL-IN-SEATS-COUNT-AS-SEATS-THAT-CAN-ACT
+    status: deferred
+    phase: strategy
+    title: The flat-table check compares all-in seats, while every prose justification for it says it should not
+    reason: >-
+      `_table_depth_bb` excludes only seats marked `folded`, so a seat that is all-in is compared
+      against hero's depth as though it could still act. Its own docstring justifies the rule as
+      "effective stack is pairwise and against seats that can still act", decision 6 of the phase
+      13 record justifies the folded exemption in the same words, and the engine defines a seat
+      that can act as not folded, not all-in, and holding chips. Three statements, one behaviour,
+      and they disagree.
+      Measured: 50/100 six-handed, a 20bb seat shoves, two 100bb seats call, hero is the big
+      blind at 100bb. The refusal is `a-live-seat-is-shorter-than-hero (seat 2, starting_chips
+      2000, stack_depth_bb 20)`. It calls an all-in seat a live seat, and the stated reason for
+      choosing the shortest seat - that it caps hero's effective stack and is the number a future
+      tolerance would be set against - is false here: hero's effective stack against the two
+      seats that can still act is 100bb, and the 20bb reported caps nothing hero can still choose
+      to risk. A covered short all-in pins the reported depth to a dead stack permanently.
+      It reaches committed evidence. On `phase02-three-way-side-pot` from seat 0's chair the
+      reported deeper seat is seat 2, which is all-in; excluding all-in seats would name live
+      seat 1 at 10bb instead. That row is the phase's single behavioural change in a committed
+      report.
+      **Not a request to exempt all-in seats.** A short all-in genuinely un-flattens the table
+      and refusing is right poker. What is wrong is that the reported number is not an effective
+      stack, and whoever re-rules decision 6 will set a tolerance against it. Fixing it means
+      ruling what "which seats count" means and saying it once, which is decision-record work
+      rather than an implementation edit. Found by the phase 13 stage-8 poker review.
+  - id: STRADDLE-REFUSAL-DOES-NOT-SAY-WHICH-GAME-IT-IS
+    status: deferred
+    phase: strategy
+    title: A straddle refusal reports the detector's arithmetic instead of the game being played
+    reason: >-
+      One straddle produces two disjoint detail vocabularies depending on which signal caught it:
+      `bet_level` and `big_blind` in an unraised pot, `min_raise_target` and `predicted_min_raise`
+      after a raise. The second describes the DETECTOR rather than the table. Neither reports what
+      decides the poker, which for a 200 straddle at 50/100 is that the table is a 100/200 game
+      with 50bb stacks. A work-list reader cannot group the two rows and cannot tell which depth a
+      chart phase would have to solve.
+      The phase also nowhere records the distinction a strong player uses constantly, and it is
+      the thing that turns this from a labelling complaint into a work list. A BIG BLIND straddle
+      is a pure blind-level change: the order is unchanged, the straddler still acts last preflop
+      and first postflop, so 50/100 with a 200 big-blind straddle IS a 100/200 game at 50bb with
+      an undersized small blind, and it would be answerable from a `d50` artifact nobody has
+      solved yet. A UTG or button straddle is a blind-level change PLUS a position permutation -
+      at six-max a lojack straddle makes the preflop order HJ, CO, BTN, SB, BB, LJ, so the
+      straddler holds the big blind's preflop slot and the lojack's postflop slot, and no
+      relabelling of an existing chart covers it. One is a depth problem and the other is a new
+      solve. Phase 13 merges both under one code, one detail shape and one sentence, which is true
+      and teaches nothing. Found by the phase 13 stage-8 poker review.
+  - id: REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL
+    status: deferred
+    phase: simulator
+    title: The refusal inventory keys on the whole detail tuple, so exact per-seat chips shatter it into singletons
+    reason: >-
+      `SimulationResult.refusal_inventory` groups rows on the refusal code plus the ENTIRE detail
+      tuple, with `hand_class` lifted out. That worked while the detail was a low-cardinality
+      spot key. Phase 13's stage-6 fix gave all three depth codes `seat`, `starting_chips` and
+      `stack_depth_bb`, rendered exactly, for the good reason that whoever re-rules decision 6
+      needs the numbers - and at a real table every hero stack is distinct, so
+      `stack-depth-not-a-whole-big-blind` yields one singleton row per distinct chip count, each
+      rendering as `(no expressible spot)` with a count of 1. The row that used to say "go solve
+      `t6/d100/BB/CO:raise@2.5`" is gone.
+      This is the repo's most useful artifact degrading: the inventory is described as the work
+      list for whatever chart phase comes next, ordered by how many hands reached each spot, and
+      a list of singletons ordered by a count that is always 1 is not a work list. Both committed
+      inventories are byte-identical today, which is exactly why nothing caught it - the flat
+      corpus and the flat-stack simulator cannot produce a depth refusal at all.
+      The fix that made refusals informative for the re-ruling is the same one that made them
+      useless for grouping, so the answer is not to undo either: the inventory needs a per-code
+      grouping key rather than the whole detail tuple. It lives in `simulator/measure.py`, which
+      phase 13 has no business in. Found by the phase 13 stage-8 poker review.
+
+      **The same detail tuple is also INCOMPLETE, and the two faults have one fix.** A second
+      stage-8 poker reader found that `_depth_refusal` names only the villain: `seat`,
+      `starting_chips` and `stack_depth_bb` for the offending seat, with hero's own depth
+      nowhere in the detail for either `a-live-seat-is-shorter-than-hero` or
+      `table-is-not-one-flat-stack-depth`. Measured:
+      `a-live-seat-is-shorter-than-hero (seat 2, starting_chips 2000, stack_depth_bb 20)`.
+      Effective stack is `min(hero, villain)` and a tolerance is a ratio or a difference, so both
+      need both numbers. The stated purpose of this detail is that whoever re-rules decision 6
+      needs a figure that cannot be backfilled - and half of it cannot be backfilled either: a
+      20bb opponent against a 100bb hero and a 20bb opponent against a 25bb hero are one row
+      today and are different tables.
+      Recorded here rather than fixed in phase 13 because the two findings pull opposite ways on
+      the same tuple. Adding `hero_starting_chips` and `hero_stack_depth_bb` is additive and
+      changes no refusal code, but at a real table it also makes every row a singleton harder,
+      so fixing the completeness half alone deepens the fragmentation half. The single design
+      that answers both is a per-code grouping key plus a complete pairwise detail, ruled once.
+  - id: ANTE-WITH-A-SHORT-ALL-IN-CALLER-TAKES-THE-RESIDUAL
+    status: deferred
+    phase: strategy
+    title: A uniformly anted table is named after one seat's ante as soon as somebody calls all-in for less
+    reason: >-
+      The ante branch classifies forced money as an ante only when every seat holds the same
+      unexplained amount. A seat that calls all-in for less than the level is below its predicted
+      contribution, so it drops out of the unexplained set entirely, the seat count no longer
+      matches, and a table where all six seats posted the same ante is refused as
+      `blind-structure-not-representable` named after one seat's ten chips.
+      Measured: 50/100 six-handed with a 10 ante from every seat, the cutoff opens to 250, and a
+      200-chip stack calls all-in for 190. An all-in RAISER survives and still reports
+      `pot-holds-an-ante (ante 10)`; it is specifically the sub-level call that breaks it. Antes
+      plus a short all-in caller is the commonest shape in tournament poker, so this trigger is
+      far more common than the big-blind-ante case filed as
+      BIG-BLIND-ANTE-CLASSIFIES-AS-THE-RESIDUAL, and it has the same root: uniformity across
+      every seat is too strong a test for "this is an ante". Found by the phase 13 stage-8 poker
+      review.
+  - id: BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE
+    status: deferred
+    phase: "14"
+    title: The committed artifact does not declare its blind structure, and nothing compares the table's ratio against it
+    reason: >-
+      `data/artifacts/preflop/six_max_nl25_100bb.json` declares `table_size` and
+      `stack_depth_bb` and says nothing about the blinds it was solved at. `StrategyQuery.blinds`
+      carries the real ratio and no consumer reads it for that purpose: `contract.py` validates
+      only `0 < sb <= bb`, `SimulationConfig` the same, `data_pipeline/corpus.py` accepts any two
+      positive blinds, and no comparison of `small_blind` against `big_blind / 2` exists anywhere
+      in `src/` or `scripts/`.
+      Measured, hero in the small blind facing a 2.5bb button open, all 169 canonical hand
+      classes through `weights_for`. At 50/100 hero pays 2.000bb into 4.000bb for 33.3% pot odds.
+      At $1/$3 hero pays 2.167bb into 3.833bb for 36.1%; at $2/$5, 2.100bb into 3.900bb for
+      35.0%; at $5/$5, 1.500bb into 4.500bb for 25.0%. Zero of 169 hand classes moved a single
+      weight in any of the three, and zero refused. An 11-point swing in the price hero is
+      offered, and not one weight responds to it.
+      These are the target games. The contract names home games twice and the report says "common
+      in the home games this bot is pointed at" about the straddle. $1/$3 and $2/$5 are the
+      dominant live and home structures and $1/$1, $2/$2 and $5/$5 are ordinary home
+      configurations; $1/$2, the only common structure with sb = 0.5bb, is the exception rather
+      than the rule. `corpus.py` would parse a $1/$3 history today without complaint and every
+      agreement rate computed from it would be graded against a half-blind solve with nothing
+      anywhere saying so.
+      It is also this phase's own standard applied inconsistently: phase 13 refuses a table where
+      one live opponent's starting stack differs by a single chip, an effect of exactly zero, and
+      answers a $5/$5 game where the small blind's dead money is doubled and hero's continuing
+      price moves by a third. The small blind's extra half a big blind is forced money the format
+      does not declare, which is the same sentence the ante refusal rests on.
+      **Filed against phase 14 rather than fixed in phase 13, and the reason is the phase's own
+      thesis.** The check is cheap and needs no format change - the blinds are already on the
+      query. What is missing is the other operand: the ratio the artifact was solved at is not
+      recorded anywhere, so any check written today would hardcode a reconstruction of an
+      undeclared property of a committed artifact, which is precisely the defect phase 13 exists
+      to end appearing inside the phase that ends it. The fix is to make the artifact declare its
+      blind structure and then compare, which is artifact work. Phase 13's honest half was done:
+      the report's headline claim is narrowed and the measurement above is on the page. Found by
+      the phase 13 stage-8 poker review.
+  - id: COVERING-STACK-REFUSES-WITH-NO-POKER-CONTENT
+    status: deferred
+    phase: strategy
+    title: The deeper branch of the flat-table test refuses tables a strong player would play from the 100bb chart
+    reason: >-
+      Effective stack is pairwise and is the minimum, so when hero holds exactly 100bb and every
+      live opponent covers hero, hero's effective stack against each of them is exactly 100bb and
+      `d100` - the only chart this repo holds - is the correct chart. The bot refuses.
+      Measured at 50/100 with hero pinned at exactly 100bb, the only answerable depth, over 4,000
+      six-handed tables with the other five stacks drawn uniformly from 40bb to 300bb, all live:
+      3,997 tables (99.9%) refuse `table-is-not-one-flat-stack-depth` and 3 (0.1%) refuse
+      `a-live-seat-is-shorter-than-hero`. Of the total, 1,046 (26.1%) are tables where EVERY live
+      opponent covers hero - the chart is right and the bot refuses. Villains at 100.01bb against
+      a 100bb hero is enough: `table-is-not-one-flat-stack-depth (seat 2, starting_chips 10001,
+      stack_depth_bb 100.01)`. Villains at 300bb returns the same code.
+      So better than one table in four, among those where hero is on-chart, is refused for a fact
+      about the game that changes nothing hero can do. The other branch has real poker content -
+      a 20bb seat behind genuinely changes hero's ranges - and the phase has the two backwards in
+      weight: the branch with no content fires first and swallows almost everything, and the
+      branch decision 6 was created for is measured at 0.1% here. This is a different claim from
+      the stage-6 note's decision-7 finding, which argued about ordering and about which depth
+      reaches the inventory; the claim here is that the deeper branch should not be a refusal at
+      all, because a covering stack is not a table shape but the ordinary condition of every real
+      cash game.
+      Deferred rather than fixed because Taylor ruled decision 6 at exact equality on 2026-08-21
+      and frozen tests pin it, so reversing it is a task with `tests/**` reopened. What the record
+      should carry is what he was actually asked: one question covering two cases with opposite
+      poker content, whose stated alternative was framed entirely around an opponent "short enough
+      to change the price hero is being offered". The covering case was never put to him, and the
+      deeper check inherited exact equality by default from a pre-existing rule rather than by
+      ruling. Whoever re-rules decision 6 should rule the covering case separately, and the
+      natural answer is that it does not refuse. Found by the phase 13 stage-8 poker review.
+  - id: LIVE-BLIND-LEVELS-MAKE-ORDINARY-OPENS-UNRENDERABLE
+    status: deferred
+    phase: "14"
+    title: The only price guard in the chart path fires on a divisibility accident rather than on poker
+    reason: >-
+      `PreflopChartStrategy._size_bb` refuses a raise-to that is not an exact hundredth of a big
+      blind, which is a property of the blind level rather than of the poker. At 50/100 it never
+      fires. Measured with hero in the big blind and the cutoff opening, in a $1/$3 game where
+      100bb is $300: $6 (2.000bb), $9 (3.000bb), $12 (4.000bb) and $15 (5.000bb) all render
+      exactly and are answered, each substituted down to the solved 2.5bb cell, while $10
+      (3.333bb) and $20 (6.667bb) are refused
+      `raise-price-not-a-whole-hundredth-of-a-big-blind`. $10 is the standard open in a live $1/$3
+      game. It is refused, while $15 - a strictly worse fit to the 2.5bb cell - is answered by
+      snapping the price down by a factor of two. In a $2/$5 game, where 500 divides more of the
+      plausible opens, every open from 3bb to 6bb renders exactly and nothing refuses at all.
+      So the one guard in the chart path that does fail closed on price is gated on whether
+      `open_chips / (100 * bb)` terminates in two decimal places, and at exactly the stakes where
+      opens are largest and most varied it fires effectively at random, uncorrelated with how far
+      the asked price is from any solved one. It should be replaced by, or subordinated to, a
+      bound on the substitution distance - which is the fix the addendum to
+      NORMALISER-MEASURES-DISTANCE-IN-BIG-BLINDS already argues is worth more than the metric
+      change that entry was filed for. The two are the same fix seen from two sides and should be
+      taken together. Found by the phase 13 stage-8 poker review.

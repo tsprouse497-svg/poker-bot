@@ -1,7 +1,8 @@
 """Write the table-state report a human reads, and fail rather than publish a bad figure.
 
 Rendering, plus the constructed tables the rendering is about. Every number below is
-measured in `poker_training_bot.table_state.measures`, which raises rather than returning a
+measured in `poker_training_bot.table_state.measures` and checked in
+`poker_training_bot.table_state.checks`, which raises rather than returning a
 figure it cannot stand behind, so a report that gets written is a report whose measurements
 held. Two mutation canaries name this command in `must_fail`: one puts hero's depth back to
 being taken from the price it is being offered, the other drops the minimum-raise signal
@@ -18,6 +19,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Sequence
+from fractions import Fraction
 from textwrap import fill
 
 try:
@@ -31,16 +33,23 @@ from poker_training_bot.data_pipeline.comparison import _query_for  # noqa: E402
 from poker_training_bot.hand_history import load_hand_history_file  # noqa: E402
 from poker_training_bot.hand_history.replay import DecisionPoint, replay_hand  # noqa: E402
 from poker_training_bot.poker_core.positions import position_for_seat  # noqa: E402
-from poker_training_bot.solver_artifacts.lookup import ChartHit  # noqa: E402
-from poker_training_bot.solver_artifacts.schema import PreflopAction  # noqa: E402
+from poker_training_bot.solver_artifacts.lookup import ChartHit, ChartMiss  # noqa: E402
 from poker_training_bot.strategy.contract import (  # noqa: E402
     SeatAction,
     SeatState,
     StrategyQuery,
     StrategyRefusal,
 )
-from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy  # noqa: E402
+from poker_training_bot.strategy.preflop_chart import (  # noqa: E402
+    REFUSE_BLIND_STRUCTURE,
+    REFUSE_SHORT_LIVE_SEAT,
+    PreflopChartStrategy,
+)
 from poker_training_bot.table_state import measures  # noqa: E402
+from poker_training_bot.table_state.checks import validate  # noqa: E402
+from poker_training_bot.table_state.forced_money import (  # noqa: E402
+    unexplained_contributions,
+)
 from poker_training_bot.table_state.measures import (  # noqa: E402
     ANTED,
     CLEAN,
@@ -323,6 +332,26 @@ def under_raise_table() -> StrategyQuery:
     )
 
 
+def short_all_in_raise_table() -> StrategyQuery:
+    """The button was all-in for 300 over the same 250 open, which the history records as a raise.
+
+    The other half of the under-raise pair, constructed rather than described. It carries the
+    same recorded history as `under_raise_table` - a raise to 250 and a raise to 300 - so the
+    vocabulary writes one string for both, and the only thing separating them is what the button
+    sat down with. The engine's minimum is 450 here as it is there: an incomplete raise does not
+    reset the increment.
+    """
+    return table(
+        "BB",
+        {"SB": SMALL_BLIND, "BB": BIG_BLIND, "CO": OPEN_TO, "BTN": 300},
+        starting={"BTN": 300},
+        current_bet=300,
+        min_raise_target=450,
+        history=(dropped("LJ"), dropped("HJ"), raised("CO", OPEN_TO), raised("BTN", 300)),
+        folded=("LJ", "HJ"),
+    )
+
+
 def full_call_table() -> StrategyQuery:
     """The button called the full 250 out of a 100bb stack."""
     return table(
@@ -486,6 +515,17 @@ def straddle_probes() -> tuple[tuple[StraddleProbe, str], ...]:
         history=(dropped("LJ"),),
         folded=("LJ",),
     )
+    # Two seats returning to the table post before the button reaches them and both fold: the
+    # lojack owes the small blind, the hijack owes the big one. Two unexplained seats holding
+    # DIFFERENT amounts, which is what makes the seat the refusal names a measurable claim
+    # rather than a coincidence - `dead_blind` above has one such seat, so on it every rule for
+    # choosing among them gives the same answer.
+    two_dead_blinds = table(
+        "CO",
+        {"SB": SMALL_BLIND, "BB": BIG_BLIND, "LJ": SMALL_BLIND, "HJ": BIG_BLIND},
+        history=(dropped("LJ"), dropped("HJ")),
+        folded=("LJ", "HJ"),
+    )
     absorbed_big_blind_straddle = table(
         "HJ",
         {"SB": SMALL_BLIND, "BB": BIG_BLIND, "LJ": BIG_BLIND},
@@ -554,6 +594,18 @@ def straddle_probes() -> tuple[tuple[StraddleProbe, str], ...]:
             " residual the kept code exists for.",
         ),
         (
+            StraddleProbe("two dead blinds of different sizes", RESIDUAL, two_dead_blinds),
+            "The lojack owes 50 and the hijack owes 100, and both folded. Which of the two the"
+            " refusal names is the whole of this row, and it is the only pot in this report"
+            " where more than one seat holds unexplained money in different amounts - the ante"
+            " row above has six such seats and they are all equal, which is what makes it an"
+            " ante rather than this. The seat reported is the hijack, because it is the one"
+            " holding the most, and the dead-blind row above cannot show that: with one"
+            " unexplained seat, naming the most forced chips and naming the lowest chair are"
+            " the same answer. Here they are seat 1 and seat 0, so the published detail says"
+            " which rule produced it and the check below can fail.",
+        ),
+        (
             StraddleProbe(
                 "a straddle equal to the big blind, already called",
                 INVISIBLE,
@@ -612,6 +664,299 @@ def outcome_line(strategy: PreflopChartStrategy, query: StrategyQuery) -> str:
         return f"refused  {outcome.code}" + (f"  ({detail})" if detail else "")
     amount = "" if outcome.amount is None else f" to {outcome.amount}"
     return f"{outcome.action}{amount}  {outcome.code}"
+
+
+# --------------------------------------------------------------------------- #
+# The checks this file owns, beside the ones in `measures`
+# --------------------------------------------------------------------------- #
+
+
+def one_key_two_tables(
+    strategy: PreflopChartStrategy, answered: StrategyQuery, refused: StrategyQuery
+) -> str:
+    """The one key a pair of tables renders, taken from the lookup that actually happened.
+
+    What is checked is the pair, rather than the two English labels a caller writes beside it. A
+    spot key is four things - table size, hero's depth, hero's position, and the sized action
+    sequence in front of hero - and these two tables agree on every one of them, so the
+    vocabulary has one string for both. The string itself is read off the lookup rather than
+    composed here, because a second derivation of "what spot is this" can drift from the one the
+    strategy used.
+
+    Only one of the pair ever gets that far, and that asymmetry is the finding closing rather
+    than a flaw in the demonstration: the other table holds a seat that put in everything it sat
+    down with, which is a live seat shorter than hero, and it is refused at the depth check
+    before any key is built. Both halves are asserted here, so a change that let the short table
+    through, or that stopped the other one reaching the chart, fails this command rather than
+    publishing a merged key that nothing renders.
+    """
+    if (
+        answered.preflop_actions != refused.preflop_actions
+        or answered.blinds != refused.blinds
+        or tuple(seat for seat, _ in answered.stacks) != tuple(seat for seat, _ in refused.stacks)
+        or answered.seat != refused.seat
+        or answered.button_seat != refused.button_seat
+        or measures.hero_start(answered) != measures.hero_start(refused)
+    ):
+        raise TableStateReportError(
+            "the two tables this key is claimed to merge disagree on one of the four things a"
+            " spot key is made of, so the vocabulary does not write one string for both of them"
+        )
+    found = strategy.chart_lookup(answered)
+    if not isinstance(found, ChartHit | ChartMiss) or not found.spot_key:
+        raise TableStateReportError(
+            "the table this report says renders a key no longer reaches one, so there is no key"
+            f" here to be merged: the lookup came back {found}"
+        )
+    reached = strategy.chart_lookup(refused)
+    if reached is not None:
+        raise TableStateReportError(
+            "the short table this report says is refused before any key is built reached the"
+            f" chart and asked about {reached}"
+        )
+    outcome = strategy.decide(refused)
+    if not isinstance(outcome, StrategyRefusal) or outcome.code != REFUSE_SHORT_LIVE_SEAT:
+        raise TableStateReportError(
+            "the short table this report says is refused for holding a live seat shorter than"
+            f" hero is answered {outcome_line(strategy, refused)} instead"
+        )
+    return found.spot_key
+
+
+def validate_bound_coverage(
+    strategy: PreflopChartStrategy, probes: Sequence[tuple[StraddleProbe, str]]
+) -> None:
+    """Every pot the deleted bound refused is still refused by something.
+
+    The census prints the deleted bound's verdict beside the replacement's on every row, and two
+    columns side by side read as a comparison whether or not anything compares them. This is the
+    comparison. The contract deletes the bound only once its replacement refuses every pot the
+    bound refused, and that rested on one frozen test covering two pots; the implication the two
+    columns already carry is that a pot the bound refused cannot come out of the replacement as
+    holding no forced money at all.
+
+    It is not the whole of the criterion, which is about every pot rather than about these ones:
+    what it adds is that a probe where the replacement loses coverage stops the report from
+    publishing under a claim its own table contradicts. The antecedent has to be met somewhere
+    or the implication is vacuous, so a census in which the bound refuses nothing fails too.
+
+    Recorded rather than fixed, because a reader deserves to know how much this one is worth: on
+    the probe table as it stands it is SHADOWED and cannot fail. `_validate_straddle_census` runs
+    first, from `validate`, and pins every probe's verdict to the `truth` its own row declares, so
+    `refused by the bound implies not CLEAN` follows from that check plus two hardcoded columns of
+    the same static table - the bound's verdict and the declared truth are both data, and no row
+    declares CLEAN under a bound that refuses it. Shadowed is not the same as tautological, and
+    the difference was measured: with the census check disabled this one does fire. So it is
+    falsifiable, by a probe-table data edit, and it is kept for exactly that - it is the check
+    that survives if the census's declared truths are ever loosened, or if a row lands whose two
+    columns disagree. Deliberately not strengthened into something that fails on today's table:
+    the criterion it stands for is about every pot rather than about these ten, and a stronger
+    rule here would only be a stronger claim about the ten.
+    """
+    refused_by_the_bound = 0
+    for probe, _ in probes:
+        if not bound_verdict(probe.query).startswith("refused"):
+            continue
+        refused_by_the_bound += 1
+        verdict = measures.forced_money_verdict(strategy, probe.query)
+        if verdict == CLEAN:
+            raise TableStateReportError(
+                f"{probe.label}: the deleted bound refused this pot and the replacement counts it"
+                f" as {verdict!r}, so deleting the bound lost coverage rather than replacing it"
+            )
+    if not refused_by_the_bound:
+        raise TableStateReportError(
+            "the deleted bound refuses no pot in this census, so nothing here could show the"
+            " replacement covering it"
+        )
+
+
+def validate_residual_seat(
+    strategy: PreflopChartStrategy, probes: Sequence[tuple[StraddleProbe, str]]
+) -> None:
+    """Which seat a residual refusal names, recomputed here from the seat states.
+
+    The refusal names the seat holding the MOST chips its own actions do not explain, ties to the
+    lowest chair, because a figure the seating decides is not evidence. Nothing in `tests/**`
+    can tell that rule from naming the lowest chair outright, and this phase has already been
+    caught once by exactly that: a selection rule reverted with every test still green. So the
+    expected seat is recomputed below from the contributions rather than asked of the rule, and
+    a census with no row where the two answers differ fails as well, since on a pot with one
+    unexplained seat every rule for choosing among them gives the same answer and the check
+    could not fail.
+    """
+    distinguishing = 0
+    named = 0
+    for probe, _ in probes:
+        query = probe.query
+        outcome = strategy.decide(query)
+        if not isinstance(outcome, StrategyRefusal) or outcome.code != REFUSE_BLIND_STRUCTURE:
+            continue
+        named += 1
+        forced = unexplained_contributions(
+            tuple(seat for seat, _ in query.stacks),
+            query.button_seat,
+            query.blinds,
+            query.preflop_actions,
+            {state.seat: state.committed_total for state in query.seat_states},
+        )
+        if not forced:
+            raise TableStateReportError(
+                f"{probe.label}: the strategy refused this pot for holding forced money of no"
+                " named kind, and recomputing it from the seat states finds none"
+            )
+        seat, chips = max(forced.items(), key=lambda pair: (pair[1], -pair[0]))
+        if outcome.named("seat") != str(seat) or outcome.named("forced_chips") != str(chips):
+            raise TableStateReportError(
+                f"{probe.label}: the seats holding chips their own actions do not explain are"
+                f" {dict(sorted(forced.items()))}, so the one holding the most is seat {seat} with"
+                f" {chips}, and the refusal names seat {outcome.named('seat')} with"
+                f" {outcome.named('forced_chips')} chips"
+            )
+        distinguishing += seat != min(forced)
+    if not named or not distinguishing:
+        raise TableStateReportError(
+            "the seat a residual refusal names is pinned only on a pot where a second seat holds"
+            " a different amount of money its own actions do not explain, and of the"
+            f" {named} pots refused as holding forced money of no named kind,"
+            f" {distinguishing} are such a pot"
+        )
+
+
+# --------------------------------------------------------------------------- #
+# The blind structure, which nothing anywhere checks
+# --------------------------------------------------------------------------- #
+
+# The structures this measurement runs over: the one the committed chart was solved at, and the
+# three a live or home game is actually dealt at. Chips at a hundred to the dollar.
+BLIND_STRUCTURES = (
+    ("$0.50/$1", SMALL_BLIND, BIG_BLIND),
+    ("$1/$3", 100, 300),
+    ("$2/$5", 200, 500),
+    ("$5/$5", 500, 500),
+)
+RANKS = "AKQJT98765432"
+
+
+def canonical_holdings() -> tuple[tuple[str, str], ...]:
+    """One holding per canonical preflop hand class: 13 pairs, 78 suited, 78 offsuit."""
+    holdings: list[tuple[str, str]] = []
+    for index, high in enumerate(RANKS):
+        holdings.append((high + "s", high + "h"))
+        for low in RANKS[index + 1 :]:
+            holdings.append((high + "s", low + "s"))
+            holdings.append((high + "s", low + "h"))
+    return tuple(holdings)
+
+
+def small_blind_facing_a_button_open(
+    small_blind: int, big_blind: int, hole_cards: tuple[str, str]
+) -> StrategyQuery:
+    """Hero in the small blind facing a 2.5bb button open, at whatever blinds are handed in.
+
+    Built here rather than through `table`, which is fixed at the 50/100 the rest of this report
+    uses, and the whole of this measurement is what happens when that moves. Everything a spot
+    key is made of is held still: six seats, every one of them a hundred big blinds deep, hero in
+    the small blind, one recorded raise to two and a half big blinds. Only the ratio between the
+    two blinds changes, and with it the price hero is being offered.
+    """
+    open_to = round(Fraction(5, 2) * big_blind)
+    sat_down = 100 * big_blind
+    hero_seat = seat_of("SB")
+    paid = {hero_seat: small_blind, seat_of("BB"): big_blind, seat_of("BTN"): open_to}
+    folded_seats = {seat_of(name) for name in ("LJ", "HJ", "CO")}
+    return StrategyQuery(
+        hand_id="blind-structure",
+        street="preflop",
+        seat=hero_seat,
+        button_seat=BUTTON,
+        hole_cards=hole_cards,
+        board=(),
+        legal_actions=("fold", "call", "raise"),
+        to_call=open_to - small_blind,
+        current_bet=open_to,
+        min_raise_target=open_to + (open_to - big_blind),
+        pot=sum(paid.values()),
+        stacks=tuple((seat, sat_down - paid.get(seat, 0)) for seat in SEATS),
+        seat_states=tuple(
+            SeatState(
+                seat=seat,
+                street_bet=paid.get(seat, 0),
+                committed_total=paid.get(seat, 0),
+                folded=seat in folded_seats,
+                all_in=False,
+            )
+            for seat in SEATS
+        ),
+        blinds=(small_blind, big_blind),
+        preflop_actions=(
+            dropped("LJ"),
+            dropped("HJ"),
+            dropped("CO"),
+            SeatAction(seat_of("BTN"), "raise", open_to),
+        ),
+    )
+
+
+def blind_structure_rows(
+    strategy: PreflopChartStrategy,
+) -> tuple[tuple[str, StrategyQuery, int, str], ...]:
+    """One row per blind structure: the table, and how many of the 169 hand classes move.
+
+    The claim being measured is that the committed artifact declares a table size and a stack
+    depth and does NOT declare a blind structure, and that nothing anywhere compares the small
+    blind against half the big one - so four games offering hero four different prices reach one
+    cell and come back with one answer. Measured over every canonical hand class rather than a
+    sample, because "no weight responds" is the whole claim and one hand that did would refute it.
+
+    Refused rather than published if it stops holding, both ways round. Every structure has to
+    still reach a chart cell, or the demonstration is about a refusal instead; the prices have to
+    genuinely differ, or the rows prove nothing; and if any weight ever does respond, this
+    section is describing a defect that has been fixed and has to be rewritten rather than
+    reprinted.
+    """
+    holdings = canonical_holdings()
+    if len(holdings) != 169:
+        raise TableStateReportError(
+            f"the canonical preflop hand classes number 169 and this enumeration holds"
+            f" {len(holdings)}"
+        )
+    rows: list[tuple[str, StrategyQuery, int, str]] = []
+    baseline: dict[tuple[str, str], object] | None = None
+    for label, small_blind, big_blind in BLIND_STRUCTURES:
+        answers = {
+            cards: strategy.weights_for(
+                small_blind_facing_a_button_open(small_blind, big_blind, cards)
+            )
+            for cards in holdings
+        }
+        query = small_blind_facing_a_button_open(small_blind, big_blind, holdings[0])
+        found = strategy.chart_lookup(query)
+        if not isinstance(found, ChartHit):
+            raise TableStateReportError(
+                f"{label} no longer reaches a chart cell at all, so this section is measuring a"
+                f" refusal rather than an answer: the lookup came back {found}"
+            )
+        differing = 0 if baseline is None else sum(1 for c in holdings if answers[c] != baseline[c])
+        if differing:
+            raise TableStateReportError(
+                f"{differing} of {len(holdings)} hand classes now answer differently at {label}"
+                " than at the structure the chart was solved for, so the blind ratio is read"
+                " somewhere and this section is describing a defect that is fixed"
+            )
+        baseline = answers if baseline is None else baseline
+        rows.append((label, query, differing, found.spot_key))
+    if len({row[3] for row in rows}) != 1:
+        raise TableStateReportError(
+            "the four blind structures no longer reach one spot key, so something distinguishes"
+            f" them: {sorted({row[3] for row in rows})}"
+        )
+    if len({Fraction(row[1].to_call, row[1].blinds[1]) for row in rows}) != len(rows):
+        raise TableStateReportError(
+            "two of the blind structures offer hero the same price in big blinds, so the rows"
+            " below do not show four different games reaching one cell"
+        )
+    return tuple(rows)
 
 
 # --------------------------------------------------------------------------- #
@@ -675,13 +1020,24 @@ def header_lines(strategy: PreflopChartStrategy) -> list[str]:
         ),
         "",
         *wrapped(
-            "What that buys, in one sentence: a table this bot's charts cannot describe is now"
-            " seen and refused for what it is, rather than answered as something else. It buys"
-            " no new answers. A short opponent, a deep opponent, a straddle and an ante each"
-            " get their own refusal, because they are different tables and a chart solved for"
-            " six flat hundred-big-blind stacks is not solved for any of them. One class of"
-            " table escapes that sentence and is still answered as something else - a straddled"
-            " pot with two or more recorded raises - and the closing section says so in full."
+            "What that buys, in one sentence: a table whose STACK DEPTHS or whose FORCED MONEY"
+            " this bot's charts cannot describe is now seen and refused for what it is, rather"
+            " than answered as something else. It buys no new answers. A short opponent, a deep"
+            " opponent, a straddle and an ante each get their own refusal, because they are"
+            " different tables and a chart solved for six flat hundred-big-blind stacks is not"
+            " solved for any of them."
+        ),
+        "",
+        *wrapped(
+            "That sentence names the two things this phase looks at rather than claiming the"
+            " table as a whole, because two classes of table escape it and are still answered as"
+            " something else. A straddled pot with two or more recorded raises is invisible to"
+            " every signal here. And the ratio between the two blinds is compared with nothing at"
+            " all: the committed artifact declares a table size and a stack depth and declares no"
+            " blind structure, so $1/$3 and $2/$5 - the structures this bot's own home games are"
+            " dealt at - reach the same cells as 50/100 and come back with the same weights, at"
+            " prices to call eleven points of pot odds apart. The closing section measures both,"
+            " and this command re-measures each of them before it will print either."
         ),
         "",
         *wrapped(
@@ -690,9 +1046,12 @@ def header_lines(strategy: PreflopChartStrategy) -> list[str]:
             " strategy acted on, and they have to agree on a table where taking the depth from"
             " the price would give a different answer. The straddle census is reconciled"
             " against the minimum raise the two declared blinds predict, and a pot whose"
-            " minimum raise disagrees with that prediction has to be counted as straddled. The"
-            " corpus figures are checked against what they were before this phase. Any of those"
-            " failing exits non-zero and writes nothing."
+            " minimum raise disagrees with that prediction has to be counted as straddled. Every"
+            " pot the deleted arithmetic bound refused has to come out of the replacement as"
+            " holding forced money of some kind, and a refusal that names a seat has to name the"
+            " seat the seat states say it should - both recomputed here rather than asked of the"
+            " rule that chose them. The corpus figures are checked against what they were before"
+            " this phase. Any of those failing exits non-zero and writes nothing."
         ),
     ]
 
@@ -888,12 +1247,23 @@ def census_lines(
         "## The straddle census, reconciled against the minimum raise",
         "",
         *wrapped(
-            "Nine constructed pots, each with what is truly in it stated first and what the"
-            " three signals made of it second. The reconciliation is one rule: a pot whose"
+            f"{len(probes)} constructed pots, each with what is truly in it stated first and what"
+            " the three signals made of it second. The reconciliation is one rule: a pot whose"
             " minimum raise disagrees with what the declared blinds and the recorded raises"
             " predict is straddled, and has to be counted as straddled. It is checked in both"
             " directions, because a detector that called every pot straddled would satisfy half"
             " of it by itself."
+        ),
+        "",
+        *wrapped(
+            "The row marked `the old bound` is the arithmetic rule this phase deleted, run again"
+            " on the same pot. It is printed beside the replacement's answer because a reader"
+            " needs to see that the replacement did not lose what the bound covered, and it is"
+            " compared rather than merely printed: every pot the bound refused has to come out"
+            " of the replacement as holding forced money of some kind, or this command exits"
+            " non-zero. That is narrower than the contract's criterion, which is about every pot"
+            " and rests on a frozen test; what it adds is that these rows cannot quietly stop"
+            " supporting the sentence they are printed under."
         ),
         "",
     ]
@@ -929,8 +1299,10 @@ def census_lines(
     lines.extend(
         wrapped(
             "One row deliberately does not match, and the difference is part of what is still"
-            " missed: four pots are counted as holding no forced money where only three hold"
-            " none. The fourth is the big-blind-sized straddle, which is counted clean because"
+            f" missed: {counts[CLEAN]} pots are counted as holding no forced money where only"
+            f" {sum(1 for probe, _ in probes if probe.truth == CLEAN)} hold"
+            " none. The odd one out is the big-blind-sized straddle, which is counted clean"
+            " because"
             " nothing in the money, the level or the minimum raise distinguishes it from a limp."
             " It is printed as a straddle in the truth column so that the gap is a number rather"
             " than a sentence. Both figures on the last row are read off the same tally as every"
@@ -938,6 +1310,19 @@ def census_lines(
             " count is zero, and this command exits non-zero unless every pot in that row is"
             " counted as holding no forced money at all. The row is the smaller of the two"
             " residuals; the larger one is in the closing section and no probe here can carry it."
+        )
+    )
+    lines.append("")
+    lines.extend(
+        wrapped(
+            "One more thing above is checked rather than printed. Where a refusal names a seat -"
+            " the two rows holding a dead blind - the seat it names is recomputed here from the"
+            " contributions, not asked of the rule that chose it, and it has to be the seat"
+            " holding the most chips its own actions do not explain, ties to the lowest chair."
+            " A rule that simply named the lowest chair would agree on every pot with one such"
+            " seat, so a row where the two answers differ has to exist or that check could not"
+            " fail either. The two-dead-blinds row is it: the most forced chips are in seat 1 and"
+            " the lowest chair holding any is seat 0."
         )
     )
     return lines
@@ -1083,20 +1468,11 @@ def handoff_lines(
     strategy: PreflopChartStrategy, counts: CorpusCounts
 ) -> list[str]:
     under_raise = under_raise_table()
+    short_raise = short_all_in_raise_table()
     full_call = full_call_table()
     short_call = short_all_in_call_table()
-    under_key = measures.merged_key(
-        "a re-raise to 3bb that no legal action produces",
-        "a short all-in raise to 3bb",
-        "BB",
-        (PreflopAction("CO", "raise", 2.5), PreflopAction("BTN", "raise", 3.0)),
-    )
-    call_key = measures.merged_key(
-        "the button called the full 250",
-        "the button was all-in for 120",
-        "BB",
-        (PreflopAction("CO", "raise", 2.5), PreflopAction("BTN", "call")),
-    )
+    under_key = one_key_two_tables(strategy, under_raise, short_raise)
+    call_key = one_key_two_tables(strategy, full_call, short_call)
     return [
         "## The two findings Phase 12 handed on, measured",
         "",
@@ -1105,25 +1481,44 @@ def handoff_lines(
         *wrapped(
             "Over a 2.5bb open the smallest legal re-raise is 4bb: the level plus the larger of"
             " the previous increment and one big blind. A re-raise to 3bb is not a legal action"
-            " and the key space writes it down anyway:"
+            " and the key space writes it down anyway - and writes the same string for a button"
+            " that was simply all-in for 300, which is legal and is a different table:"
         ),
         "",
-        f"    the key it renders   {under_key}",
+        f"    the key the lookup asked about   {under_key}",
         "",
         *wrapped(
-            "Does the query's new state close it? Not in the key, and not in the query either."
-            " The recorded raise-to amounts and the two declared blinds do reconstruct what the"
-            " minimum raise should be, and that reconstruction now mirrors the engine exactly:"
-            " the minimum starts at the big blind and a recorded raise moves it only when its"
-            " increment is at least the minimum already standing. An incomplete raise therefore"
-            " predicts the same 450 the engine offers, so nothing about it disagrees and nothing"
-            " about it is refused as forced money:"
+            "That string is read off the lookup the under-raise table actually reached rather"
+            " than composed here, and only one of the two tables ever reaches one. The button"
+            " all-in for 300 sat down with 300, which is three big blinds against hero's hundred,"
+            " so that table is not one flat depth and it is refused before any key is built:"
         ),
         "",
-        f"    the same table, asked   {outcome_line(strategy, under_raise)}",
+        f"    the recorded under-raise   {outcome_line(strategy, under_raise)}",
+        f"    the short all-in for 300   {outcome_line(strategy, short_raise)}",
         "",
         *wrapped(
-            "The refusal is a coverage miss, which is what this table honestly is. An earlier"
+            "So the merge lives in the key space and not in what this strategy does with these"
+            " two tables, and the difference is worth stating rather than eliding: a claim that"
+            " both tables render one key would be false of the second, which renders nothing."
+            " This command refuses to publish that key unless the two tables still agree on every"
+            " one of the four things a key is made of, the first still reaches the chart, and the"
+            " second is still refused for holding a live seat shorter than hero."
+        ),
+        "",
+        *wrapped(
+            "Does the query's new state close the under-raise itself? Not in the key, and not in"
+            " the query either. The recorded raise-to amounts and the two declared blinds do"
+            " reconstruct what the minimum raise should be, and that reconstruction now mirrors"
+            " the engine exactly: the minimum starts at the big blind and a recorded raise moves"
+            " it only when its increment is at least the minimum already standing. An incomplete"
+            " raise therefore predicts the same 450 the engine offers, so nothing about it"
+            " disagrees and nothing about it is refused as forced money. Its refusal above is a"
+            " chart-coverage miss and nothing more, which is what this table honestly is."
+        ),
+        "",
+        *wrapped(
+            "An earlier"
             " draft of the straddle signal walked the raises with no floor on the increment, so"
             " it predicted 350 against the engine's 450 and refused this pot as holding a"
             " straddle - a false statement about the game, in a pot where a short stack simply"
@@ -1154,29 +1549,53 @@ def handoff_lines(
         "",
         *wrapped(
             "Two different tables at the same price: on one the button called the full 250 out"
-            " of a hundred big blinds, on the other it was all-in for 120. The key is the same"
-            " string:"
+            " of a hundred big blinds, on the other it was all-in for 120. Their recorded"
+            " histories are identical - fold, fold, a raise to 250, a call - and so is every"
+            " other thing a spot key is made of, so the vocabulary has one string for both:"
         ),
         "",
-        f"    the key both render   {call_key}",
+        f"    the key the lookup asked about   {call_key}",
         "",
         *wrapped(
-            "This one the query does now close, from the side that matters in play. A seat"
-            " all-in for less than the level has, by definition, put in everything it sat down"
-            " with, so it is a shorter seat, and the table is no longer flat:"
+            "One of the two renders it, and that is this finding closing rather than the"
+            " demonstration failing. The full call reaches the chart and the lookup asks about"
+            " that key. The short all-in does not get that far: a seat all-in for less than the"
+            " level has, by definition, put in everything it sat down with, so it is a shorter"
+            " seat, and the table is no longer flat."
         ),
         "",
         f"    the full call        {outcome_line(strategy, full_call)}",
         f"    the short all-in     {outcome_line(strategy, short_call)}",
         "",
         *wrapped(
-            "So a live query carrying a short all-in call never reaches the chart at all, which"
-            " means the two tables cannot be answered from one cell any more. What remains open"
-            " is the key space itself: anything that works from keys rather than from a table -"
-            " a committed artifact, a self-play enumeration, `decide_spot` - still merges them."
+            "Those two lines are not two answers to one question, which is the whole of what the"
+            " query bought here. The first is a chart-coverage refusal and names the cell nobody"
+            " has solved. The second names a seat and the depth it holds, and is reached before"
+            " any key exists at all. So a live query carrying a short all-in call never renders"
+            " that key, and the two tables cannot be answered from one cell any more. What"
+            " remains open is the key space itself: anything that works from keys rather than"
+            " from a table - a committed artifact, a self-play enumeration, `decide_spot` -"
+            " still merges them, and there the merge is total, because nothing in a key says how"
+            " deep the caller was."
             f" On committed data that costs {counts.short_all_in_calls} of the"
-            f" {counts.with_a_recorded_call} corpus decisions whose history holds a call, since"
-            " every corpus all-in is for the exact level."
+            f" {counts.with_a_recorded_call} corpus decisions whose history holds a call."
+        ),
+        "",
+        *wrapped(
+            "That zero is weaker than it reads, and the weaker reading is the true one. It says"
+            " no corpus call is tagged all-in at all - not that every corpus all-in is for the"
+            " exact level, which is the claim this paragraph used to end on. The count asks two"
+            " things of a recorded call, that the seat is marked all-in and that its street"
+            " figure is below the level, and only the first is doing any work: measured over the"
+            " corpus, none of the 183 recorded call entries comes from a seat the record marks"
+            " all-in, and the whole corpus carries 10 all-in seat-states across 18,288."
+            " Loosening the second test from below-the-level to at-or-below-the-level leaves the"
+            " count at zero, which is what it is for a check to be insensitive to its own"
+            " comparison. So the zero is a fact about how the converter tags a call rather than"
+            " about the sizes of anything, and a corpus that began recording all-in calls could"
+            " move it whatever the levels did. The regression is still worth keeping - same"
+            " shape as the table-shape zeros above, a committed number a changed replay or"
+            " converter can move - but it is not the statement about levels it was written up as."
         ),
         "",
         *wrapped(
@@ -1186,6 +1605,92 @@ def handoff_lines(
             " nothing would say so."
         ),
     ]
+
+
+def blind_structure_lines(strategy: PreflopChartStrategy) -> list[str]:
+    """The blind ratio nothing checks, measured over every canonical hand class.
+
+    The second of the two exceptions the report's headline sentence names, and the one this
+    phase closes least: the straddle residual at least ends in a refusal for most pots, while
+    this ends in an answer every time and says nothing about itself.
+    """
+    rows = blind_structure_rows(strategy)
+    odds = {
+        label: Fraction(query.to_call, query.pot + query.to_call) for label, query, _, _ in rows
+    }
+    ordered = sorted(rows, key=lambda row: odds[row[0]])
+    cheapest, dearest = ordered[0], ordered[-1]
+    swing = (odds[dearest[0]] - odds[cheapest[0]]) * 100
+    header = (
+        f"  {'structure':<11}{'blinds':<11}{'hero pays':>10}{'in bb':>9}"
+        f"{'the pot':>9}{'in bb':>9}{'pot odds':>10}{'classes moving':>15}"
+    )
+    lines = [
+        *wrapped(
+            "**The ratio between the two blinds is compared with nothing, so four different games"
+            " reach one cell and come back with one answer.** The committed artifact declares a"
+            " table size and a stack depth. It does not declare a blind structure, and nothing in"
+            " this repo - not the chart, not the lookup, not one of the checks this phase added -"
+            " compares the small blind against half the big one. Below is hero in the small blind"
+            " facing a 2.5bb button open at four structures, with everything a spot key is made of"
+            " held still: six seats, every one a hundred big blinds deep, one recorded raise. The"
+            f" whole canonical hand class list was asked at each, all {len(canonical_holdings())}"
+            " of them, and the last column counts the ones whose weights differ from the first"
+            " row's."
+        ),
+        "",
+        header,
+        "  " + "-" * (len(header) - 2),
+    ]
+    for index, (label, query, differing, _) in enumerate(rows):
+        small_blind, big_blind = query.blinds
+        moved = "baseline" if index == 0 else f"{differing} of {len(canonical_holdings())}"
+        lines.append(
+            f"  {label:<11}{f'{small_blind}/{big_blind}':<11}{query.to_call:>10}"
+            f"{float(Fraction(query.to_call, big_blind)):>9.4f}{query.pot:>9}"
+            f"{float(Fraction(query.pot, big_blind)):>9.4f}"
+            f"{float(odds[label]) * 100:>9.2f}%{moved:>15}"
+        )
+    lines.append("")
+    lines.extend(
+        wrapped(
+            f"The price hero is offered swings {float(swing):.1f} points of pot odds across those"
+            f" rows - {float(odds[cheapest[0]]) * 100:.2f}% at {cheapest[0]} against"
+            f" {float(odds[dearest[0]]) * 100:.2f}% at {dearest[0]} - because the small blind is"
+            " a different fraction of the big blind in each of them, and hero is the seat that"
+            " posted it. Not one hand class responds. All four ask the chart about the same key,"
+            f" `{rows[0][3]}`, because a key has nowhere to write the ratio down, and the artifact"
+            " behind that key has nowhere to declare what ratio it was solved at."
+        )
+    )
+    lines.append("")
+    lines.extend(
+        wrapped(
+            "What that costs is not a corner case. This bot is pointed at home games, and $1/$3"
+            " and $2/$5 are what home and live games are dealt at; $1/$2, the structure whose"
+            " ratio matches the chart's, is the exception rather than the rule. Whether the right"
+            " ranges genuinely differ between those games is a solver question this repo cannot"
+            " answer from here, and this report does not claim they do. What is measured is that"
+            " they cannot differ, because nothing looks: the same eleven-point spread that would"
+            " change a marginal call into a marginal fold at the table changes nothing here."
+        )
+    )
+    lines.append("")
+    lines.extend(
+        wrapped(
+            "Not fixable in this phase, and filed as"
+            " `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE`. Refusing on the ratio"
+            " would mean hardcoding into the code a property the artifact does not declare -"
+            " which is the reconstruction-from-an-undeclared-source defect this phase exists to"
+            " end, in a new place. The fix is a declared blind structure on the artifact and on"
+            " the query, which is the same format change the straddle residual above waits on and"
+            " the same one this phase is scoped out of. This command re-measures the four rows"
+            " before printing them: each has to still reach a chart cell, the four prices have to"
+            " still differ, and if any hand class ever does answer differently the command exits"
+            " non-zero, because this section would then be describing a defect that is fixed."
+        )
+    )
+    return lines
 
 
 def limitations_lines(strategy: PreflopChartStrategy) -> list[str]:
@@ -1276,6 +1781,9 @@ def limitations_lines(strategy: PreflopChartStrategy) -> list[str]:
             " without one over-refuses ordinary unstraddled tables."
         ),
         "",
+        "",
+        *blind_structure_lines(strategy),
+        "",
         *wrapped(
             "**A straddle equal to the big blind, once its poster has acted, is invisible for a"
             " second and simpler reason.** It moves no level, it predicts exactly what a limp"
@@ -1329,12 +1837,17 @@ def render() -> str:
     census = straddle_probes()
     moving = moving_fixture_probes()
     corpus = measures.measure_corpus(strategy)
-    measures.validate(
+    validate(
         strategy,
         [probe for probe, _ in depth] + list(moving),
         [probe for probe, _ in census],
         corpus,
     )
+    # Two checks on the census that `checks` does not make: that the deleted bound's column
+    # supports the sentence it is printed under, and that a residual refusal names the seat
+    # holding the most unexplained chips rather than the lowest chair.
+    validate_bound_coverage(strategy, census)
+    validate_residual_seat(strategy, census)
     absorbed = absorbed_straddle_table()
     if absorbed.pot >= deleted_bound(absorbed):
         raise TableStateReportError(

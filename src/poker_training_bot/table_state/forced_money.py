@@ -6,6 +6,12 @@ comparison against what the seats actually hold lives in the strategy that has t
 for it, and the prediction lives here so a report can reconcile its own census against the
 same arithmetic the detector used rather than against a second copy of it.
 
+Both walks below move the level to each recorded raise-to with no clamp on the direction,
+and that is safe rather than optimistic: `StrategyQuery` refuses a raise-to at or below the
+standing level, so a sequence that would drop the level cannot reach this module. Clamping
+one here instead would launder an impossible history into a plausible pot and answer it,
+which is the failure this module's whole fail-closed argument is against.
+
 Two predictions, and neither follows from the other. Contributions catch money a seat never
 chose to put in, which is every ante and every straddle whose poster has not yet acted, on
 a folded seat as readily as on a live one. The minimum raise target catches the straddle

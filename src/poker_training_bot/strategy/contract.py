@@ -11,15 +11,11 @@ from typing import Any, Protocol, runtime_checkable
 # defect `DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS` already records once.
 DECISION_AUDIT_SCHEMA_VERSION = 3
 
-_STREET_BOARD_SIZES = {
-    "preflop": 0,
-    "flop": 3,
-    "turn": 4,
-    "river": 5,
-}
+_STREET_BOARD_SIZES = {"preflop": 0, "flop": 3, "turn": 4, "river": 5}
 
 _ACTION_NAMES = ("fold", "check", "call", "bet", "raise")
 _AMOUNT_ACTIONS = frozenset({"bet", "raise"})
+_PREFLOP_HISTORY_ACTIONS = ("fold", "check", "call", "raise")
 
 _CARD_RANKS = frozenset("23456789TJQKA")
 _CARD_SUITS = frozenset("cdhs")
@@ -28,9 +24,6 @@ _CARD_SUITS = frozenset("cdhs")
 def _validate_card_text(card: str, context: str) -> None:
     if len(card) != 2 or card[0] not in _CARD_RANKS or card[1] not in _CARD_SUITS:
         raise ValueError(f"{context} contains invalid card text: {card!r}")
-
-
-_PREFLOP_HISTORY_ACTIONS = ("fold", "check", "call", "raise")
 
 
 @dataclass(frozen=True)
@@ -262,9 +255,18 @@ class StrategyQuery:
             raise ValueError("small blind cannot exceed big blind")
         if not isinstance(self.preflop_actions, tuple):
             raise ValueError(
-                "preflop_actions must be a tuple, got"
-                f" {type(self.preflop_actions).__name__}"
+                f"preflop_actions must be a tuple, got {type(self.preflop_actions).__name__}"
             )
+        # The level a preflop street stands at, walked the way every consumer walks it: it starts
+        # at the big blind and a raise moves it to its own raise-to. A raise-to at or below the
+        # standing level is not a raise, and no betting round produces one - the engine records a
+        # shove for less than the level as a call. Both walks in `table_state.forced_money` take
+        # the level from this same sequence, so a sub-level entry would DROP the level there and
+        # corrupt every increment after it, which those walks then report as a straddle or as
+        # unexplained forced money: two poker claims about a pot that holds nothing forced at all.
+        # Refused here, where the record is built, rather than clamped in each walk, because a
+        # clamp launders an impossible history into a plausible one and then answers it.
+        level = big_blind
         for entry in self.preflop_actions:
             if not isinstance(entry, SeatAction):
                 raise ValueError(f"preflop_actions entries must be SeatAction, got {entry!r}")
@@ -272,6 +274,14 @@ class StrategyQuery:
                 raise ValueError(
                     f"preflop_actions names seat {entry.seat}, which is not at the table"
                 )
+            if entry.action == "raise" and entry.amount is not None:
+                if entry.amount <= level:
+                    raise ValueError(
+                        f"preflop_actions records seat {entry.seat} raising to {entry.amount},"
+                        f" which does not exceed the standing level of {level};"
+                        " no betting round produces that"
+                    )
+                level = entry.amount
 
     def to_payload(self) -> dict[str, Any]:
         return {
@@ -421,9 +431,8 @@ def _outcome_payload(outcome: StrategyDecision | StrategyRefusal) -> dict[str, A
             "code": outcome.code,
         }
         if outcome.detail:
-            # Only when there is something to say, so an exact answer and a substituted
-            # one differ in the bytes rather than in a field that is always present and
-            # usually empty.
+            # Only when there is something to say, so an exact answer and a substituted one
+            # differ in the bytes rather than in a field that is always present and usually empty.
             decision["detail"] = [list(entry) for entry in outcome.detail]
         return decision
     if isinstance(outcome, StrategyRefusal):
@@ -457,27 +466,20 @@ class DecisionAuditRecord:
             raise ValueError(f"unsupported outcome type: {type(self.outcome).__name__}")
         if isinstance(self.outcome, StrategyDecision):
             if self.outcome.action not in self.query.legal_actions:
-                raise ValueError(
-                    f"decision action {self.outcome.action!r} is not in legal_actions"
-                )
+                raise ValueError(f"decision action {self.outcome.action!r} is not in legal_actions")
             if self.outcome.action in _AMOUNT_ACTIONS:
                 stacks = dict(self.query.stacks)
-                # Hero's own recorded contribution to the street plus what is left behind
-                # it, read off hero's seat record. The chart's old ceiling used the street's
-                # whole level and accepted raises hero could not make.
+                # Hero's own recorded street contribution plus what is behind it, from hero's seat
+                # record. The old ceiling used the whole level and took raises hero could not make.
                 hero = next(s for s in self.query.seat_states if s.seat == self.query.seat)
                 max_target = hero.street_bet + stacks[self.query.seat]
                 amount = self.outcome.amount
                 if amount is None:
                     raise ValueError(f"{self.outcome.action} requires an amount")
                 if amount > max_target:
-                    raise ValueError(
-                        "decision amount exceeds the acting seat's all-in maximum"
-                    )
+                    raise ValueError("decision amount exceeds the acting seat's all-in maximum")
                 if amount < self.query.min_raise_target and amount != max_target:
-                    raise ValueError(
-                        "decision amount is below the minimum unless all-in"
-                    )
+                    raise ValueError("decision amount is below the minimum unless all-in")
 
     def to_json_line(self) -> str:
         payload = {
