@@ -13,14 +13,14 @@ Every completed phase or package must satisfy:
 - Generated `STATUS.md`, `docs/PHASE_LEDGER.md`, and `docs/BACKLOG.md` current.
 - Active ExecPlan includes a pre-implementation `Delegation Plan` with lanes,
   owners, expected outputs, and status, or a concrete no-delegation exception.
-- Worker subagents handled implementation by default where available, with any
-  coordinator implementation exception recorded in the ExecPlan.
+- Worker subagents handled implementation by default, with any coordinator
+  implementation exception recorded in the ExecPlan as a reason about the work.
 - Active ExecPlan outcome or retrospective filled in.
 - No forbidden scope changes.
 - Backlog updated for deferred work.
-- Independent read-only subagent review completed where available.
-- Phase audit packet records review findings, or the concrete reason a subagent
-  review could not run plus self-review notes.
+- Independent read-only subagent review completed.
+- Phase audit packet records the independent reviewer's findings; a coordinator
+  pass over its own work does not satisfy this line.
 - If Taylor performs human review, the phase audit packet records the human
   sign-off verdict and keeps a source-code-free spot-check path where practical.
 - ExecPlan moved from `docs/exec_plans/active/` to `docs/exec_plans/completed/`.

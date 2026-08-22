@@ -1015,7 +1015,7 @@ items:
       the label is a one-line edit to a check script, which is why it is mentioned here rather
       than filed as its own entry.
   - id: FROZEN-TESTS-PREDATE-THE-SIZED-SPOT-KEY
-    status: deferred
+    status: done
     phase: "12"
     title: Frozen tests of phases 03 to 09 build v1-shaped actions
     reason: >-
@@ -1028,8 +1028,13 @@ items:
       earlier ones, which is the same miss phase 11 made and repaired in its own task.
       tests/** and verification/freeze.lock are out of the builder's scope by design, so
       this needs its own task with the builder files out of scope instead.
+      Closed by dd52b5b, which repaired all 34 failures and 3 collection errors in its own
+      task with the builder files out of scope, exactly as this entry asked. Marked done on
+      2026-08-22, having sat deferred against a completed phase since the tag; its sibling
+      SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE is genuinely still open,
+      because d31d3ef re-settled that number and left the design problem standing.
   - id: SQUEEZE-REFUSAL-COUNT-INCLUDES-A-SECOND-ORBIT-ROW
-    status: deferred
+    status: done
     phase: "12"
     title: A frozen phase 12 test counts a population the phase deliberately grows
     reason: >-
@@ -1041,6 +1046,9 @@ items:
       a filter that requires one. The claim the test makes is right and its population is
       a superset of the one the claim is about; the repair is to exclude repeated-position
       keys, and it belongs with the frozen-test task rather than in the builder's hands.
+      Closed by dd52b5b alongside the frozen-test repair: the filter now excludes
+      repeated-position keys and the test's own docstring says why. Marked done on 2026-08-22,
+      having sat deferred against a completed phase since the tag.
   - id: FACT-DRIFT-CANNOT-EXEMPT-A-HISTORICAL-AUDIT-PACKET
     status: done
     phase: "12"
@@ -1144,3 +1152,45 @@ items:
       because the fix is a rule about where a cross-cutting defect is filed when several lanes
       are open, not a check that can be written before that rule exists. Found by the phase 12
       stage-8 review, which is also the review that caused the duplicate.
+
+  - id: DELEGATION-EXCEPTION-IS-NEVER-CHECKED
+    status: deferred
+    phase: contract-update
+    title: Nothing checks a delegation exception, and nothing can tell a review from a self-review
+    reason: >-
+      Four holes in one place, found by the independent review of delegation-rule-update.
+      First, scripts/check_execplan_delegation.py has_no_delegation_exception returns no errors -
+      skipping all six required Delegation Plan fields at once - as soon as a
+      "- No-delegation exception:" line carries any text that is not a placeholder. It proves a
+      reason was written, never that it is true or that it is about the work. The reason it
+      accepted most often through phases 05 to 12 was that subagents were unavailable in this
+      operator's sessions, which was never true. The ExecPlan that announced the new rule
+      passes through that same short-circuit, which is the cleanest demonstration available.
+      Second, tests/test_execplan_delegation.py:45 pins the retired sentence as valid:
+      test_execplan_delegation_plan_accepts_concrete_exception asserts that
+      "subagent spawning is unavailable in this session." validates, and its name calls that
+      concrete. It is live, gate-run and in verification/freeze.lock, so it is not a historical
+      record that may be left alone - AGENTS.md now says that exact sentence does not qualify
+      while a frozen test says the machinery accepts it. Repairing it needs tests/** in scope
+      and a re-freeze, which is why this is named here rather than discovered mid-task.
+      Third, no check anywhere can tell an independent review from a self-review.
+      loop_stage.validate_review checks three headings and unresolved blockers, and check_review
+      additionally greps for "mechanical" and "domain"; neither has any concept of who wrote the
+      note. AGENTS.md steps 9 and 10 now require a reviewer who did not write the work, and that
+      requirement is enforced by reading and nothing else.
+      Fourth, PLACEHOLDER_VALUES still carries the template's former wording as a literal string.
+      delegation-rule-update reworded docs/exec_plans/TEMPLATE.md onto the "state " prefix that
+      five of its six sibling fields already use, so the literal is now dead rather than
+      load-bearing, and it should be dropped so the template's wording and the checker's
+      placeholder set stop being coupled at all.
+      A direction for the first fix, from the same review. Falsifiability is the wrong bar and
+      was tried and rejected here: the retired excuse was perfectly falsifiable and nobody
+      checked it, while most honest reasons not to open a lane are economic claims about a
+      counterfactual that will never run. AGENTS.md's own pattern for a judgement is to declare
+      a class from a fixed vocabulary and let a second reader contest the label - blocker,
+      non-blocker, alignment; frozen-into-data, runtime-reversible. A small closed set of
+      exception classes the author picks from, contestable by the reviewer, is the shape that
+      fits this file. Note also that "concrete" in AGENTS.md step 4 and DEFINITION_OF_DONE.md
+      and "not a placeholder string" in the checker are already two different bars for one line.
+      Filed as contract-update because the first fix is a rule about what an exception may say
+      and the rest are implementation that follows it.

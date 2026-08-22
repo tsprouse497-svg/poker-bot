@@ -1,8 +1,12 @@
-task_id: null
+task_id: delegation-rule-update
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: contract-update
+base_commit: 12469b11dd9562020f6325b3c74fe54b4c5354cc
+approved_scope:
+  - AGENTS.md
+  - docs/DEFINITION_OF_DONE.md
+  - docs/LOOP.md
+  - docs/exec_plans/TEMPLATE.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -834,3 +838,26 @@ scope_change_log:
       to the code. No frozen test asserts a Census field or a census line's wording; the one
       test over this section asserts the words 'substitution' and 'open' and the figure 72 are
       present, all of which survive.
+  - date: 2026-08-22
+    reason: >-
+      Taylor ruled on 2026-08-22 that spawning a subagent is always permitted - not required,
+      but never unavailable. AGENTS.md, docs/DEFINITION_OF_DONE.md, docs/LOOP.md and
+      docs/exec_plans/TEMPLATE.md all state the opposite premise in their delegation and
+      independent-review rules, and all four are semantic process wording, so this is
+      contract-update rather than maintenance.
+      TEMPLATE.md was approved explicitly rather than left to ride docs/exec_plans/** through
+      standing scope. The independent review was right that it is neither task metadata nor a
+      generated output, and routing a deliberate rule change around the approval list is the
+      one thing a contract-update task should not do.
+      An earlier draft of this entry claimed the template's "- No-delegation exception:" line
+      could not be reworded, because scripts/check_execplan_delegation.py matches its wording in
+      PLACEHOLDER_VALUES as a literal. That was half right and the conclusion was wrong:
+      is_placeholder_value also matches the "list " and "state " prefixes, which five of the six
+      sibling fields in the same file already use, so the line was reworded onto "state " and is
+      still detected as an unfilled placeholder. The dead literal, the one-sentence exemption of
+      all six required fields, a frozen test that pins the retired sentence as valid, and the
+      absence of any check that can tell an independent review from a self-review are filed
+      together as DELEGATION-EXCEPTION-IS-NEVER-CHECKED.
+      Two phase 12 backlog entries closed by dd52b5b are flipped to done through standing
+      scope, because leaving a false `deferred` claim standing in a file this task edits is
+      the exact trap the repo has now hit three times.

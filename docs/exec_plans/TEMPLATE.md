@@ -26,7 +26,11 @@ Complete this before implementation begins.
 
 If no implementation work is delegated, replace these fields with:
 
-- No-delegation exception: concrete reason implementation is coordinator-owned.
+- No-delegation exception: state why this particular work does not suit a lane,
+  never why the session could not delegate.
+
+The exception covers implementation only. An independent read-only review is owed
+either way, and no wording here exempts a plan from it.
 
 ## Slices
 

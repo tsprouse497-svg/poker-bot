@@ -60,6 +60,14 @@ Never raise the cap to fit an amendment.
 5. Reset `CURRENT_TASK.yml` to `idle` (`task_id: null`, `active_phase: null`, `task_mode: idle`, `approved_scope: []`, `base_commit: null`). Keep `standing_scope` and `forbidden_scope` unchanged; the closeout edits themselves pass scope only through `standing_scope`.
 6. Run the gate again and commit the closeout.
 
+## Subagents
+
+Spawning a subagent is always permitted, and their absence is never a reason for anything. A session that genuinely cannot spawn one has a blocker to report, not an exception to record.
+
+Permitted is not required, and that applies to implementation. Work may be coordinator-owned where the ExecPlan says why *that work* does not suit a lane. A statement about the session rather than about the work does not qualify.
+
+It does not apply to review. The agent that wrote something is never the only one that judges it, and there is no wording that buys an exemption, because discretion here is what failed: phases 05 through 12 recorded subagent delegation as switched off in this operator's sessions and self-certified every independent review on that basis. Those records stay exactly as written - a packet is a snapshot of what a phase believed - and this section is the correction, not a licence to edit them.
+
 ## Coordinator Workflow
 
 When asked to start a phase or package, enter coordinator mode:
@@ -69,11 +77,11 @@ When asked to start a phase or package, enter coordinator mode:
 3. Act as PM/coordinator: own scope, sequencing, delegation, integration, verification, and closeout.
 4. Before implementation, add a `Delegation Plan` section to the active ExecPlan with lanes, owners, expected outputs, and status. If no work is delegated, record a concrete no-delegation exception before implementation.
 5. Break the phase into small internal slices.
-6. Delegate implementation to worker subagents by default where subagents are available. The coordinator implements only when the ExecPlan records why delegation is unavailable or unsuitable.
+6. Delegate implementation to worker subagents by default. The coordinator implements only when the ExecPlan records why this particular work does not suit a lane.
 7. Update the ExecPlan after meaningful slices.
 8. Run verification and required reports.
-9. Spawn a read-only independent review subagent when subagents are available, before completing the gate and at every loop stage that owes a review.
-10. Record the independent review findings in the audit packet. If no subagent can be spawned, record the concrete reason and perform self-review.
+9. Spawn a read-only independent review subagent before completing the gate and at every loop stage that owes a review. The reviewer must not be whoever wrote the work.
+10. Record the independent review findings in the audit packet. A coordinator's own pass over its own work is not one of these and never stands in for one.
 11. Stop only for a blocker, prohibited scope, or completed gate.
 
 ## Autonomous Loop

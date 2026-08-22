@@ -171,6 +171,7 @@ The reviewers are the only guard: the one stage 4 owes before the freeze, and th
 Range and strategy quality has no oracle in this repo beyond a committed solver export.
 Every shape property is satisfied by ranges that are uniformly wrong.
 
-Every layer of the loop is the same base model: contract author, test author, builder, and both reviewers.
-A shared misunderstanding is invisible to all of them at once.
-That is why decision lists are written in poker English rather than in code, so a human's domain knowledge has somewhere to bite.
+Every layer of the loop can be the same agent: contract author, test author, builder, and both reviewers.
+A shared misunderstanding is then invisible to all of them at once, and through phase 12 that is what happened, because every review was written by whoever wrote the work it judged.
+Separate agents narrow it, and a reviewer on a different model narrows it further, which is what the review stages are now for.
+Neither removes a shared prior, so decision lists are still written in poker English rather than in code, and a human's domain knowledge is still the last guard.
