@@ -71,7 +71,7 @@ items:
       the test that pins it had to be rewritten at stage 7 because it was passing off a
       neighbouring rule. And the depth check is table-wide rather than per-seat, so a
       five-bet to 100 is admitted at 100bb because the deepest seat could pay it, which
-      waits on `ASYMMETRIC-EFFECTIVE-STACKS` at proposed phase 13.
+      waits on `ASYMMETRIC-EFFECTIVE-STACKS` at proposed phase 14.
 
       Expressible six-handed 100bb spots go from 1,949 to 18,773 with limps, enumerated
       rather than quoted. Vocabulary only: nothing here commits a second-orbit chart cell,
@@ -118,7 +118,9 @@ items:
       ALL-IN-SEATS-COUNT-AS-SEATS-THAT-CAN-ACT; and REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL,
       which is the work list degrading under the exact per-seat detail the refusal now carries.
       SECOND-ORBIT-PREFLOP-SPOTS closed at phase 12 naming this entry as what its own table-wide
-      depth check waits on, and that is still true. Solving the spots this would express also needs
+      depth check waits on, and the dependency is unchanged; the phase number in that sentence is
+      not. It said proposed phase 13 and now says phase 14, corrected when this entry moved, so
+      the two sides of the cross-reference name the same phase rather than one each. Solving the spots this would express also needs
       data the repo does not have, which is CORPUS-CANNOT-EXPRESS-A-TABLE-SHAPE, and depths beyond
       the one committed solve, which is CHART-COVERAGE-EXPANSION and STACK-DEPTH-BUCKETS.
       As filed: stack_depth_bb is one table-wide number, so hero at 100bb facing a 35bb opener
@@ -868,8 +870,10 @@ items:
       old name is absent from the field list rather than that the new one is present,
       test_the_payload_names_the_bet_level_current_bet_and_no_longer_street_bet,
       test_the_decision_audit_schema_version_moved_because_the_payload_did and
-      test_a_record_at_the_old_schema_version_is_rejected. The frozen tests of four completed
-      phases were migrated in the same task that changed the shape they assert against, at stage 4
+      test_a_record_at_the_old_schema_version_is_rejected. The frozen tests of five completed
+      phases were migrated - test_strategy_contract, test_full_table_preflop,
+      test_postflop_fallback, test_engine_fidelity and test_spot_vocabulary_downstream, being
+      phases 03, 05, 06, 11 and 12 - in the same task that changed the shape they assert against, at stage 4
       and before the freeze, rather than being repaired afterwards as phases 11 and 12 each had to.
 
       Two things this closing does not close, stated here because done beside them reads wrong at
@@ -1098,14 +1102,44 @@ items:
       never compares an item's phase against that phase's status in phase_status.yml. An item
       filed against a completed phase that still says deferred is a self-contradiction the gate
       has no way to reach.
-      It is not specific to phase 11. Every phase from here closes the same way, because
-      AGENTS.md's Task Closeout does not tell a phase to settle the backlog items it just fixed
-      either - the process rule is missing before the check is. That ordering is why this is
-      filed as contract-update rather than as tooling: something has to say what the rule is
-      before a check enforces it, and the same closeout probably owes the reverse direction too,
-      since an item marked done whose phase is still future is the same contradiction mirrored.
-      A deferred item filed against a future or non-phase label stays perfectly legal, which is
-      most of this file.
+      It is not specific to phase 11, and it is no longer one instance. There are four, across
+      three phases. Phase 11 left six. Phase 12 left the three entries that were its own headline
+      deliverables - RAISE-SIZE-IN-SPOT-KEY, SECOND-ORBIT-PREFLOP-SPOTS and
+      PHASE-11-MOVED-NUMBERS-AWAIT-REMEASUREMENT - and was caught at stage 9 the same way phase 11
+      was, by somebody reading the backlog beside the audit packet. Phase 12 then did it a second
+      time with the items filed against it after the tag: FROZEN-TESTS-PREDATE-THE-SIZED-SPOT-KEY
+      and SQUEEZE-REFUSAL-COUNT-INCLUDES-A-SECOND-ORBIT-ROW both sat deferred against a completed
+      phase until 2026-08-22, when a peer session closed them on main against dd52b5b. And phase 13
+      filed five items against itself and had all five still at deferred when it reached stage 9;
+      that too was caught by a peer session rather than by any check. Three of the five closed and
+      two did not - ASYMMETRIC-EFFECTIVE-STACKS and BLIND-STRUCTURE-VARIANTS moved to phase 14 -
+      and telling those apart took an audit of each entry against the code, because the phase's own
+      description of itself claimed all five as settled. So the check being absent is not the only
+      cost: the work of settling an item is not mechanical either, and nothing in the closeout says
+      who does it.
+      The same phase 13 stage-9 pass found the mirrored defect one level up. A stage-8 review note
+      asserted that three of its alignment items had been filed in backlog.yml, and they had not
+      been; one of them was an append to an existing entry, SEAT-STATE-MARKERS-AGREE-WITH-NOTHING,
+      that was never made, and the bullet read as though it already had. That is the same shape as
+      this entry - a claim about the record that nothing checks against the record - and whatever
+      rule closes this one should be written wide enough to reach a review note's filing claims as
+      well as a phase's own items.
+      Live instances at this commit, verified rather than asserted: phase_status.yml has phase 12
+      completed, and on this branch FROZEN-TESTS-PREDATE-THE-SIZED-SPOT-KEY,
+      SQUEEZE-REFUSAL-COUNT-INCLUDES-A-SECOND-ORBIT-ROW and
+      SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE all still read deferred against
+      it. Two of those three are stale rather than open: this branch is behind main, where the
+      first two were marked done on 2026-08-22. Only the third is genuinely open there, because
+      d31d3ef re-settled its number and left the design problem standing. A reader on main should
+      expect one live instance and a reader here three, which is itself worth noticing - the
+      contradiction this entry describes can also be manufactured by a branch that has not merged.
+      Every phase from here closes the same way, because AGENTS.md's Task Closeout does not tell a
+      phase to settle the backlog items it just fixed either - the process rule is missing before
+      the check is. That ordering is why this is filed as contract-update rather than as tooling:
+      something has to say what the rule is before a check enforces it, and the same closeout
+      probably owes the reverse direction too, since an item marked done whose phase is still
+      future is the same contradiction mirrored. A deferred item filed against a future or
+      non-phase label stays perfectly legal, which is most of this file.
       Found by MAINT-23, which did the bookkeeping and deliberately did not write the check,
       because a gate check added in the same commit as the correction it would have caught is a
       check reviewing its own motivation.
@@ -1931,3 +1965,35 @@ items:
       from a static table in the same module. It is repo-tooling work rather than any phase's, and
       it belongs beside check_gate_bite, whose job is the same one from the other end - proving a
       check can fail. Raised by the phase 13 stage-8 mechanical review.
+  - id: CONTRACT-UPDATE-IS-THE-LABEL-OF-LAST-RESORT
+    status: deferred
+    phase: contract-update
+    title: contract-update is the catch-all label for loop and tooling work, so it no longer predicts what a task involves
+    reason: >-
+      A backlog item must name either a phase in phase_status.yml or one of the labels in
+      NON_PHASE_LABELS in scripts/quality_checks.py. That set is charts, contract-update, engine,
+      sample-comparison, samples, simulator, strategy and v2. There is no tooling value and no
+      process value in it, so work on the loop driver, the check scripts and the report machinery
+      has nowhere of its own to go, and it has been going to contract-update. The label is forced
+      rather than chosen.
+      Five entries carry it now that are not contract edits.
+      MUTATION-DRILL-CHECKOUT-DESTROYS-UNCOMMITTED-WORK and
+      TABLE-STATE-REPORT-RENDERER-HAS-NO-SIZE-CAP are both about repo machinery.
+      BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE is half a process rule and half a gate check.
+      LOOP-ADDS-NO-CANARY-FOR-A-FIX-FOUND-AFTER-STAGE-4 is scripts/loop_stage.py work by its own
+      description. REPORT-VALIDATORS-CAN-HOLD-GUARDS-THAT-CANNOT-FAIL says of itself that it is
+      repo-tooling work and belongs beside check_gate_bite.
+      What that costs is downstream and easy to miss, because nothing about it is wrong today.
+      Whoever schedules a contract-update task reads the label as "edits to documents under
+      docs/phase_contracts/, which need contract-update mode and no implementation" and will find
+      a queue that is half check-script work needing a different mode, a different reviewer and a
+      different definition of done. A label that does not predict what the task involves is worse
+      than no label, because the scheduling decision is made from it.
+      The fix is a ruling rather than a patch: either NON_PHASE_LABELS gains tooling and process
+      and the misfiled entries are re-tagged, or the label is redefined to mean what it has come
+      to mean and the check's own comment - "work that belongs to a subsystem rather than to a
+      numbered phase" - is rewritten to say so. Both are semantic, and one of them changes a
+      constant every existing item is validated against.
+      This entry is filed under contract-update, which is probably the only legal home for it and
+      is the point rather than an accident: the sixth instance of the defect is the entry
+      describing it. Raised by the phase 13 stage-9 review.

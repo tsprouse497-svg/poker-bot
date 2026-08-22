@@ -14,12 +14,11 @@ This phase changed what the bot is told about the table, and changed nothing abo
 hands it plays where the table is the one the charts were solved for.
 It commits no artifact, no chart, and no new sample.
 
-Before this phase the strategy was handed the pot, what each seat currently held, and hero's
-price to call. It was never told what any seat had *put in* - hero's own chips included - so
-hero's stack depth was worked backwards out of the price hero was being offered. That
-subtraction was exact until Taylor ruled on 2026-08-20 that the price is capped at what hero
-can actually pay, and it has been wrong ever since for every hero whose whole stack is the
-price: it hands back the street's bet level instead of the depth.
+Before this phase the strategy was handed the pot, what each seat held, and hero's price to
+call - never what any seat had *put in*, hero's own chips included, so hero's depth was worked
+backwards out of the price. That subtraction was exact until Taylor ruled on 2026-08-20 that
+the price is capped at what hero can pay, and has been wrong since for every hero whose whole
+stack is the price: it hands back the street's bet level instead of the depth.
 
 The query now carries, for every seat at the table, what that seat put in on this street,
 what it put in over the hand, whether it has folded, and whether it is all-in.
@@ -36,7 +35,7 @@ with two or more raises in it, and any game whose blinds are not in the chart's 
 Both are measured in the report and filed forward. The second was found by an independent
 reviewer at stage 8 and is the largest single finding of the phase.
 
-### One paragraph per backlog entry closed
+### One paragraph per backlog entry, and which of the five actually closed
 
 **`PER-SEAT-CONTRIBUTIONS-IN-QUERY`.** `StrategyQuery` carries `seat_states`, one record per
 seat in `stacks`, each holding `street_bet`, `committed_total`, `folded` and `all_in` - the
@@ -51,20 +50,20 @@ was found to be missing: a hero all-in for the call cannot raise, and until now 
 validated cleanly. The repo's two different all-in ceilings became one, both expressed from
 hero's own recorded contribution.
 
-**`ASYMMETRIC-EFFECTIVE-STACKS`.** Each seat's starting stack is recomputed as what it holds
-plus what it put in, so a short opponent and an opponent who has already invested stop being
-the same picture. The flat-table test now runs in both directions and over live seats only:
-a shallower live seat gets its own refusal code, and a folded seat never makes the table
-ragged whatever it holds. The refusal names the extreme offending seat and the depth it
-holds, so a future tolerance can be set against real data.
+**`ASYMMETRIC-EFFECTIVE-STACKS` - did not close; still `deferred`, now against phase 14.**
+Each seat's starting stack is recomputed as what it holds plus what it put in, so a short
+opponent and one who has already invested stop being the same picture. The flat-table test
+runs in both directions over live seats only: a shallower live seat gets its own refusal code,
+a folded seat never makes the table ragged whatever it holds, and the refusal names the
+extreme offending seat and the depth it holds, so a tolerance can be set against real data.
 
-**`BLIND-STRUCTURE-VARIANTS`.** The arithmetic pot bound that guessed at forced money is
-deleted and replaced by three exact signals: what each seat holds against what the declared
-blinds and its own actions predict, an unraised pot whose level is not the big blind, and a
-minimum raise target that disagrees with the one the blinds and the recorded raises predict.
-A straddle and an ante now get separate codes, because they change the correct ranges
-differently. The residual is stated rather than hidden, and it is larger than the contract
-expected: see the limitations.
+**`BLIND-STRUCTURE-VARIANTS` - did not close either; still `deferred`, now against phase 14.**
+The arithmetic pot bound that guessed at forced money is deleted and replaced by three exact
+signals: what each seat holds against what the declared blinds and its own actions predict, an
+unraised pot whose level is not the big blind, and a minimum raise target that disagrees with
+the one the blinds and the recorded raises predict. A straddle and an ante get separate codes,
+because they change the correct ranges differently. The residual is stated rather than hidden,
+and it is larger than the contract expected: see the limitations.
 
 **`STRATEGY-QUERY-STREET-BET-NAME`.** The query's `street_bet` is now `current_bet`, matching
 `BettingRoundState.current_bet`, and `street_bet` survives only as the per-seat name it has
@@ -153,11 +152,11 @@ rather than copied from the report.
 - `reports/active/latest_preflop_strategy_report.txt` - regenerated; the straddle and ante probes now refuse under their own codes
 - `latest_engine_fidelity_report.txt`, `latest_decision_audit.jsonl`, `latest_postflop_decision_audit.jsonl` - regenerated at schema version 3
 
-The report is self-checking rather than descriptive. It re-derives hero's depth from hero's
-own contribution and compares it against the depth the strategy acted on; reconciles the
-straddle census against the minimum raise the blinds predict; recomputes which seat a refusal
-should name from the seat states rather than asking the rule that chose it; and re-measures
-both residuals. Any of those failing exits non-zero and writes nothing.
+The report is self-checking rather than descriptive. It re-derives hero's depth from hero's own
+contribution and compares it against the depth the strategy acted on; reconciles the straddle
+census against the minimum raise the blinds predict; recomputes which seat a refusal should
+name from the seat states rather than asking the rule that chose it; and re-measures both
+residuals. Any of those failing exits non-zero and writes nothing.
 
 ## One table state, seat by seat
 
@@ -199,19 +198,17 @@ reconstruction, and this phase's own report adds a seventh file with three more 
 | Engine fidelity report | `scripts/generate_engine_fidelity_report.py:145, 252` | literal fixtures, each seat stating its own chips. The third pre-phase site now delegates to the second |
 | Table-state report | `scripts/generate_table_state_report.py:137, 280, 868` | new; constructions, labelled as such in the report |
 
-One producer shipped a forbidden reconstruction and the stage-6 mechanical reviewer caught
-it: the engine fidelity fixtures derived villain's contribution as the pot minus hero's -
-the defect this phase exists to end, appearing inside the phase that ends it. It produced a
-table no hand reaches. Fixed, and the docstring now says why.
+One producer shipped a forbidden reconstruction and the stage-6 mechanical reviewer caught it:
+the engine fidelity fixtures derived villain's contribution as the pot minus hero's - the
+defect this phase exists to end, inside the phase that ends it. Fixed; the docstring says why.
 
 ## The corpus counts, as a checked regression proof
 
 All 499 committed corpus hands are six seats at 10,000 chips, no antes, blinds of exactly 50
 and 100. The coordinator re-derived that at stage 6 from the raw PHH bodies in
-`data/samples/public_corpus/corpus_hands.jsonl` rather than from any normalized form, finding
-exactly one distinct value for each of the three. So every table-shape count is zero before
-anything is measured, and a number here that moves is a defect rather than a finding.
-Re-measured for this packet by walking the corpus independently of the report:
+`data/samples/public_corpus/corpus_hands.jsonl`, not any normalized form, finding one distinct
+value for each. So every table-shape count is zero before anything is measured, and a number
+that moves here is a defect. Re-measured by walking the corpus independently of the report:
 
     hands compared                                            499
     preflop decision points                                  3048
@@ -231,11 +228,10 @@ Re-measured for this packet by walking the corpus independently of the report:
 
 Agreement did not move: Pluribus 439 of 456, humans 2155 of 2302, unchanged from the Phase 12
 packet on the same 499 and 3,048. The 10 capped decisions are the population the ruling is
-about, and the corpus cannot exercise the defect at all, because every seat starts at exactly
-100bb so a shove is never for more than hero itself sat down with. That is why the divergence
-in the report is a construction. What none of this establishes, and the ExecPlan says so:
-that those bytes are the dataset they claim to come from. The gate has no network, and
-`docs/CORPUS_COMPARISON_LIMITS.md` already records the same gap for Phase 08.
+about, and the corpus cannot exercise the defect at all: every seat starts at exactly 100bb, so
+a shove is never for more than hero sat down with, and the report's divergence is a
+construction. What none of this establishes, and the ExecPlan says so: that those bytes are the
+dataset they claim to come from. `docs/CORPUS_COMPARISON_LIMITS.md` records the Phase 08 gap.
 
 ## Decision outcomes
 
@@ -260,14 +256,14 @@ One, decision 6, was `frozen-into-data` and halted the loop for Taylor, who rule
 | 13 | runtime | schema version 3 | Verified: every record in both committed audit files reads `"schema_version": 3` |
 | 14 | runtime | carry an `all_in` marker | Turns the Phase 12 call handoff from a restatement into a measured work list |
 | 15 | runtime | `min_raise_target` is a signal, not validated | Re-examined at stage 8 and left alone. The boundary fix that round landed adds no rule about this field and needs nothing the query lacks postflop, so the two are orthogonal; the stage-8 note records the reasoning rather than implying it |
-| 16 | runtime | three new codes, and the old one kept and narrowed | Sixteen codes in the inventory. The kept code is reachable and published, which is what the regression expectation asks for |
+| 16 | runtime | three new codes, and the old one kept and narrowed | The strategy's own inventory is the eleven `REFUSE_*` codes in `preflop_chart.py`, up from eight; the six `lookup:` codes it re-emits are a separate set. Decision 16's "thirteen" counts neither and no set reproduces it, so this row states what is greppable instead. The kept code is reachable and published, which is what the regression expectation asks for |
 
 ## Review findings
 
 Read-only reviews were written at stages 1, 2, 3, 4, 6 and 8. **Subagents were authorized for
-this phase (Taylor, 2026-08-21), which is a change from phases 10, 11 and 12 - all three
-self-reviewed at every stage, and the Phase 12 packet names that as its weak link.** Every
-review here went to an independent reader who did not write the code.
+this phase (Taylor, 2026-08-21), a change from phases 10, 11 and 12 - all three self-reviewed
+at every stage, and the Phase 12 packet names that as its weak link.** Every review here went
+to an independent reader who did not write the code.
 
 - **Stage 1, two reviewers, six blockers.** The straddle mechanism the first draft specified
   could not detect the straddle the same draft required, because a straddler who has called
@@ -305,14 +301,13 @@ review here went to an independent reader who did not write the code.
   evidence, including a worked example one commit from being permanent in the mutation
   registry, wrong in the direction that made the fix look better supported than it was.
 
-An earlier stage-8 poker pass ran and never wrote its note, leaving its findings in the tree
-as four backlog filings and two source fixes. Those findings are kept and the correction is
-recorded at the head of the stage-8 note, because a review whose only record is its own diff
-is not reviewable - and one of its two fixes turned out to be half a fix that the mechanical
-lens then caught. That was the round's most consequential finding: `preflop_actions` accepted
-a betting sequence no street can produce, the half-fix clamped one of two walks and traded
-one false poker claim for another, clamping both proved fail-open, and it was fixed at the
-boundary instead so the record cannot construct at all.
+An earlier stage-8 poker pass ran and never wrote its note, leaving its findings in the tree as
+four backlog filings and two source fixes. They are kept and the correction sits at the head of
+the stage-8 note, because a review whose only record is its own diff is not reviewable - and
+one of its fixes was half a fix the mechanical lens then caught. That was the round's most
+consequential finding: `preflop_actions` accepted a betting sequence no street can produce, the
+half-fix clamped one of two walks and traded one false poker claim for another, clamping both
+proved fail-open, and it was fixed at the boundary so the record cannot construct at all.
 
 ### The blocker, and why it was not fixed
 
@@ -344,50 +339,54 @@ its own validator, and the finding is filed as
 not claim the correct ranges differ; it states that they cannot differ here, because nothing
 looks.
 
-Recorded because a review that lists only hits is not calibrated: the mechanical lens found
-no case where committed code produces a wrong answer on an input the engine or the replay can
-produce, and the poker lens found no refusal that is wrong poker in the short-stack
-direction, which is the direction decision 6 exists for.
+Recorded because a review that lists only hits is not calibrated: the mechanical lens found no
+committed code giving a wrong answer on an input the engine or replay can produce, and the
+poker lens found no refusal wrong in the short-stack direction, which decision 6 exists for.
 
 ## Known limitations and deferred items
 
 **This phase must not be tagged until `ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` has run
 as its own `contract-update` task.** `PHASE_11_ENGINE_FIDELITY.md` sits at exactly 300 of 300
 lines, `AGENTS.md` forbids raising the cap, and the answer is a rewrite folding its
-amendments into the criteria they amend. That task now owes **seven** edits rather than one.
+amendments into the criteria they amend. That task now owes **nine** edits rather than one.
 Four are named in the ExecPlan:
 
-1. The Phase 11 contract rewrite the backlog item is filed for. It names `street_bet` in
-   three criteria this phase renamed, and separately asserts that the preflop chart's raise
-   cap is its own all-in target, which decision 11 makes false.
+1. The Phase 11 contract rewrite the backlog item is filed for. It names `street_bet` in five
+   acceptance criteria (`:133, :140, :161, :166, :222`), a heading (`:132`) and a Scope bullet
+   (`:33`). Two are more than a rename: `:166` asserts the preflop chart's raise cap is its own
+   all-in target, which decision 11 makes false, and `:161` states the all-in maximum as
+   `(street_bet - to_call) + stack`. Under the capped `to_call` ruling that is a false formula
+   rather than a misnamed one - the code is `hero.street_bet + stacks[seat]`, and
+   `current_bet - to_call` is the subtraction this contract's forbidden shortcuts bar from any
+   comment, docstring or report. Rewritten as a rename, it would ship the false formula.
 2. The reword of this contract's line saying the two per-seat figures "coincide" preflop,
    which the ante ruling made false.
 3. The reword of this contract's straddle criterion, which says the minimum raise targets
    disagree "by exactly the straddle". Over a 200 straddle at a 100 big blind the gap is 100,
-   so it is the straddle less the big blind. The contract's own worked numbers, 1,000 against
-   1,100, are right; only the sentence describing them is wrong.
+   the straddle less the big blind. Its worked numbers, 1,000 against 1,100, are right.
 4. The correction of decision 6's stated cost, which says two of the three
    `phase02-three-way-side-pot` decisions change refusal code. All three change. The report
    and the regenerated postflop fallback report both say three.
 
-Three more, found while writing this packet, from checking the phase's own documents against
-what the stage-8 fix round changed:
+Five more, found by checking the phase's own documents against stages 8 and 9:
 
-5. **This contract's Scope section still carries the un-narrowed claim.** It says "what this
-   phase buys is that a table the chart cannot describe is now seen and refused rather than
-   answered as something else". The stage-8 blocker falsifies that as written, and so does
-   `STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`. The report's headline was narrowed to "stack
-   depths or forced money" for exactly this reason; the contract could not be, because
-   contract edits are forbidden in implementation mode and it sits at 300 of 300 lines.
+5. **This contract's Scope still carries the un-narrowed claim** - "a table the chart cannot
+   describe is now seen and refused rather than answered as something else". The stage-8
+   blocker falsifies it, and so does `STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`. The report's
+   headline was narrowed to "stack depths or forced money" for this reason; the contract could
+   not be, being at 300 of 300 lines with contract edits forbidden in implementation mode.
 6. **Decision 3's own text is stale.** It still reads "Preflop, each seat's street
-   contribution must equal its hand contribution", which the build's ante ruling replaced
-   with `committed_total >= street_bet`. The ruling is recorded in the ExecPlan and the
-   decision record was never corrected.
+   contribution must equal its hand contribution", which the build's ante ruling replaced with
+   `committed_total >= street_bet`. Recorded in the ExecPlan, never corrected in the record.
 7. **Optional, at the editor's judgment.** The stage-8 note offers decision 15 a
-   `Correcting...` paragraph in the style decision 16 already uses, to foreclose a literal
-   reading that stretches "does not validate it beyond the existing positivity rule" from
-   one field to the min-raise story generally. Needs `reports/phase_audits/decisions/` in
-   scope, which this task does not have.
+   `Correcting...` paragraph in decision 16's style, foreclosing a literal reading that
+   stretches "does not validate it beyond the existing positivity rule" past its one field.
+8. **This contract's Scope says all five entries it is written against are `phase: "13"`.**
+   Three are; `ASYMMETRIC-EFFECTIVE-STACKS` and `BLIND-STRUCTURE-VARIANTS` now read
+   `phase: "14"`. It is the sentence a future reader uses to find them.
+9. **Decision 8's stated cost is stale the way decision 3's is.** It names only a big-blind
+   straddle and a straddler who acted with no raise, and omits
+   `STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`, this phase's headline residual.
 
 **The five backlog entries this contract is written against are now settled, and how they got
 settled is the finding.** Each was audited against the code rather than against the phase's own
@@ -399,26 +398,25 @@ and now read `deferred` against phase 14: `ASYMMETRIC-EFFECTIVE-STACKS` and
 
 The distinction that decided both is the one a reader skimming the summary would get wrong.
 This phase MEASURES table state and REFUSES what the charts cannot describe, which is not the
-same as putting a thing into the artifact format or a chart spot key, and both deferred entries
-ask for the latter. `ASYMMETRIC-EFFECTIVE-STACKS` is titled "Per-seat effective stack depth in
-chart spots" and the phase's whole diff to `spot_key.py` is docstring-only;
-`BLIND-STRUCTURE-VARIANTS` is titled "Antes and straddles in the artifact format" and the
-committed artifact has no match for `blind_structure`, `straddle` or `ante`. Six other entries
-name those two as what they wait on, so a `done` would have silently retargeted six open items.
+same as putting a thing into the artifact format or a spot key, and both deferred entries ask
+for the latter. `ASYMMETRIC-EFFECTIVE-STACKS` is titled "Per-seat effective stack depth in
+chart spots" and the diff to `spot_key.py` is docstring-only; `BLIND-STRUCTURE-VARIANTS` is
+titled "Antes and straddles in the artifact format" and the artifact has no match for
+`blind_structure`, `straddle` or `ante`. Six other entries name those two as what they wait
+on, so a `done` would have silently retargeted six open items.
 
 **It very nearly closed with them unsettled, and no check would have said so** - a peer session
 caught it, not the gate. `backlog_errors` in `scripts/quality_checks.py` never compares an
 item's `phase` against that phase's status in `phase_status.yml`, which is
-`BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE`; its count should now read four phases rather than
-the one it argues from. The same pass found three alignment items the stage-8 note asserted
-were filed and were not. Both misses are one shape: a claim about the record that nothing
-checks against the record.
+`BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE`; that entry now argues from phase 13 as well as
+phase 11. The same pass found three alignment items the stage-8 note asserted were filed and
+were not. Both misses are one shape: a claim about the record that nothing checks against it.
 
-**The two residuals, restated.** A straddled pot with two or more recorded raises is
-*answered* with the wrong range rather than mis-coded, because a straddle perturbs only the
-first increment and past one raise the prediction is a difference of two recorded amounts.
-And four different games reach one cell. Both wait on the same format change - a declared
-blind structure on the artifact and on the query - which is a chart phase.
+**The two residuals, restated.** A straddled pot with two or more recorded raises is *answered*
+with the wrong range rather than mis-coded, because a straddle perturbs only the first
+increment and past one raise the prediction is a difference of two recorded amounts. And four
+games reach one cell. Both wait on the same format change - a declared blind structure on the
+artifact and on the query - which is a chart phase.
 
 **Smaller residuals.** A straddle equal to the big blind, once its poster has acted, is
 invisible to all three signals and is counted as such in the census truth column rather than
@@ -432,13 +430,13 @@ pattern; its own title and figures are stale, saying 1,135 lines.
 
 **What a spot key would have to carry for the two Phase 12 findings.** For the under-raise, a
 marker on each raise entry saying whether it was a legal full raise or an all-in for less,
-because without it an under-raise and a short all-in render one string and any cell filled
-from it mixes two prices. For the short call, the same marker on a call entry. Both are
-spot-key format changes this phase is scoped out of. What leaving them open costs is not a
-wrong answer today - it is a wrong denominator later, when the first artifact built from real
-hands fills one cell from two different tables and nothing says so.
+because without it an under-raise and a short all-in render one string and any cell filled from
+it mixes two prices. For the short call, the same marker on a call entry. Both are format
+changes this phase is scoped out of. What leaving them open costs is not a wrong answer today -
+it is a wrong denominator later, when the first artifact built from real hands fills one cell
+from two different tables and nothing says so.
 
-**The twenty-one backlog entries this phase filed,** by the phase each is assigned to. Ids
+**The twenty-four backlog entries this phase filed,** by the phase each is assigned to. Ids
 are copied from `backlog.yml` rather than written from memory; a fabricated one already
 failed the backlog-integrity check once in this phase.
 
@@ -455,11 +453,15 @@ refused; 1,046 of 4,000 sampled tables), `DEPTH-CHECK-ORDER-HIDES-THE-SHORT-OPPO
 `QUERY-CANNOT-EXPRESS-A-DEAD-BLIND`, `SIDE-POTS-NOT-EXPRESSIBLE-ON-THE-QUERY`.
 
 *Elsewhere:* `CORPUS-CANNOT-EXPRESS-A-TABLE-SHAPE` (samples),
-`REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL` (simulator), and five `contract-update`
+`REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL` (simulator), and eight `contract-update`
 items - `ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP`,
 `SPOT-KEY-LEGAL-ORDER-OVERCLAIM-IN-PHASE-12-CONTRACT`,
 `DECISION-LIST-HAS-NO-FIXED-PLACE-FOR-A-RULING`, `TABLE-STATE-REPORT-RENDERER-HAS-NO-SIZE-CAP`,
-`MUTATION-DRILL-CHECKOUT-DESTROYS-UNCOMMITTED-WORK`.
+`MUTATION-DRILL-CHECKOUT-DESTROYS-UNCOMMITTED-WORK`,
+`LOOP-ADDS-NO-CANARY-FOR-A-FIX-FOUND-AFTER-STAGE-4`,
+`REPORT-VALIDATORS-CAN-HOLD-GUARDS-THAT-CANNOT-FAIL`,
+`CONTRACT-UPDATE-IS-THE-LABEL-OF-LAST-RESORT`. The last three were filed after the gate, two by
+the stage-8 verifier and one by the stage-9 review.
 
 One is already `done`: `STRADDLE-SIGNAL-MISREADS-A-SHORT-ALL-IN-RAISE`, filed as a deferred
 alignment item during the build and then fixed, after the poker reviewer showed the argument
@@ -469,8 +471,8 @@ for deferring it was wrong. Its wrong reason is kept on the record.
 
 **The number the report picks: the pot of 260, at seat 1's decision in
 `phase02-three-way-side-pot`.** It is printed in the third seat table of the moving-fixture
-section, and it is the only table in the report read off a committed file rather than
-constructed. Open `data/samples/normalized_hands.json`, find the hand whose `hand_id` is
+section, one of the three tables in the report read off a committed file rather than
+constructed - all three are this fixture, and the report's other three are constructions. Open `data/samples/normalized_hands.json`, find the hand whose `hand_id` is
 `phase02-three-way-side-pot`, and in its `preflop` street read the `amount` of every action
 listed before seat 1's own `call`. A blind post and a raise record the total that seat then
 has in front of it; a call records what that seat added. Add them:

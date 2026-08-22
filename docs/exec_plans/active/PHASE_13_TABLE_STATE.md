@@ -8,10 +8,13 @@ Loop pointer: `verification/loop_runs/13.yml`. Driver: `uv run python scripts/lo
 ## Objective
 
 Take phase 13 from a skeleton contract to a tagged green gate across the full derived verify
-gate plus `check_gate_bite`, closing or restating the five `phase: "13"` entries in
-`backlog.yml`: `PER-SEAT-CONTRIBUTIONS-IN-QUERY`, `STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS`,
-`ASYMMETRIC-EFFECTIVE-STACKS`, `BLIND-STRUCTURE-VARIANTS`, and
-`STRATEGY-QUERY-STREET-BET-NAME`.
+gate plus `check_gate_bite`, closing or restating the five entries in `backlog.yml` that stood
+against `phase: "13"` when this plan was written. They did not land the same way. Three closed
+and read `done` against phase 13: `PER-SEAT-CONTRIBUTIONS-IN-QUERY`,
+`STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS` and `STRATEGY-QUERY-STREET-BET-NAME`. Two did not, and
+read `deferred` against `phase: "14"`: `ASYMMETRIC-EFFECTIVE-STACKS` and
+`BLIND-STRUCTURE-VARIANTS`, whose titles both ask for a change to the artifact format or the spot
+key, which this phase is scoped out of.
 
 The phase changes the runtime query and what the strategy can see through it. It commits no
 artifact, no chart, and no sample, and it does not touch the spot key.
