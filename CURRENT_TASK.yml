@@ -1,12 +1,8 @@
-task_id: delegation-rule-update
+task_id: null
 active_phase: null
-task_mode: contract-update
-base_commit: 12469b11dd9562020f6325b3c74fe54b4c5354cc
-approved_scope:
-  - AGENTS.md
-  - docs/DEFINITION_OF_DONE.md
-  - docs/LOOP.md
-  - docs/exec_plans/TEMPLATE.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
