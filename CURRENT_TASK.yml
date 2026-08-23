@@ -4,6 +4,7 @@ task_mode: contract-update
 base_commit: 28e302d728de6d188bd75d1633d09b58f304b862
 approved_scope:
   - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+  - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -975,3 +976,12 @@ scope_change_log:
       review notes. No source, test, artifact, or gate file is in scope at this stage, and the
       committed artifact under data/artifacts/** stays out of scope until a later stage opens it
       under its own entry.
+  - date: 2026-08-23
+    reason: >-
+      Phase 14 stage 2 writes the judgment-call list, so
+      reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md joins approved_scope.
+      Still contract-update mode and still no source, test, artifact or gate file in scope. The
+      loop driver reads each item's reversibility class at stage 3 to decide whether the phase
+      must stop for a human, and this phase's central call - which subset of the solved tree
+      becomes the chart the bot plays - is frozen-into-data, so the list has to exist before any
+      test is authored.
