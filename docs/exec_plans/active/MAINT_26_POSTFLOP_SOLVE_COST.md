@@ -56,8 +56,16 @@ one lane may hold it at a time, and every other lane is designed to need nothing
 - Worker lanes: RECON reads the GTOpen Rust source for the postflop request and response types
   and proves them against the live server; DRIVER authors the measurement script against the
   shapes RECON returns; MATRIX designs the measurement set and the form of the cost model with no
-  server access at all; MEASURE runs the calibration and then the matrix, holding the server
+  server access at all; VERIFY, added once MATRIX returned claims read out of Rust and never run,
+  tries to refute them; MEASURE runs the calibration and then the matrix, holding the server
   alone; REVIEW-MECH and REVIEW-DOMAIN read the finished work independently of each other.
+
+VERIFY was not in the original six and is the lane that earned its place. MATRIX argued from the
+source that a flop solve already contains the turn and river subgames beneath it, which would make
+the ratios behind a ruling a human already took wrong. Accepting that on one agent's reading would
+have written a correction into the record on the same kind of evidence that produced the error
+being corrected. VERIFY ported the tree builder, validated the port byte-exact against the running
+server, confirmed the mechanism, and then refuted MATRIX's own arithmetic in two other places.
 - Ownership: RECON owns no repo file and returns findings only. DRIVER owns
   `scripts/measure_postflop_solve_cost.py`. MATRIX owns no file and returns a design. MEASURE owns
   `reports/active/latest_postflop_solve_cost.txt` and is the sole holder of `127.0.0.1:3737` while
@@ -69,8 +77,10 @@ one lane may hold it at a time, and every other lane is designed to need nothing
   preflop lines, and the per-unit form the numbers must be reported in. MEASURE returns the raw
   timings, peak memory, and the determinism diff. Reviewers return notes classified as blocker,
   non-blocker, or alignment item.
-- Status: RECON dispatched; DRIVER blocked on RECON; MATRIX dispatched; MEASURE blocked on DRIVER;
-  both review lanes blocked on MEASURE.
+- Status: RECON completed; MATRIX completed; VERIFY completed, a seventh lane added mid-task to
+  refute MATRIX's source-only claims before they entered the record; DRIVER completed after one
+  connection failure and a resume; MEASURE running the build sweep and the two calibration
+  probes; both review lanes blocked on MEASURE.
 - Integration order: RECON and MATRIX run concurrently because neither writes a file and only one
   touches the server. DRIVER follows RECON. MEASURE follows DRIVER and runs alone, calibrating at
   a loose exploitability target first so the matrix is sized against a known order of magnitude
