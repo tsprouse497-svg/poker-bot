@@ -345,48 +345,46 @@ poker lens found no refusal wrong in the short-stack direction, which decision 6
 
 ## Known limitations and deferred items
 
-**This phase must not be tagged until `ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` has run
-as its own `contract-update` task.** `PHASE_11_ENGINE_FIDELITY.md` sits at exactly 300 of 300
-lines, `AGENTS.md` forbids raising the cap, and the answer is a rewrite folding its
-amendments into the criteria they amend. That task now owes **nine** edits rather than one.
-Four are named in the ExecPlan:
+**`ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` has now run as its own `contract-update`
+task, which this phase's contract required before it could tag.** `PHASE_11_ENGINE_FIDELITY.md`
+was at exactly 300 of 300 lines and `AGENTS.md` forbids raising the cap, so it took a rewrite
+folding its appended amendments into the criteria they amend rather than an amendment it had no
+room for. It is now 283 lines with every acceptance criterion intact; this contract is 290.
+Both have headroom, which was the point: a document at its cap turns every later one-line
+correction into a refactor.
 
-1. The Phase 11 contract rewrite the backlog item is filed for. It names `street_bet` in five
-   acceptance criteria (`:133, :140, :161, :166, :222`), a heading (`:132`) and a Scope bullet
-   (`:33`). Two are more than a rename: `:166` asserts the preflop chart's raise cap is its own
-   all-in target, which decision 11 makes false, and `:161` states the all-in maximum as
-   `(street_bet - to_call) + stack`. Under the capped `to_call` ruling that is a false formula
-   rather than a misnamed one - the code is `hero.street_bet + stacks[seat]`, and
-   `current_bet - to_call` is the subtraction this contract's forbidden shortcuts bar from any
-   comment, docstring or report. Rewritten as a rename, it would ship the false formula.
-2. The reword of this contract's line saying the two per-seat figures "coincide" preflop,
-   which the ante ruling made false.
-3. The reword of this contract's straddle criterion, which says the minimum raise targets
-   disagree "by exactly the straddle". Over a 200 straddle at a 100 big blind the gap is 100,
-   the straddle less the big blind. Its worked numbers, 1,000 against 1,100, are right.
-4. The correction of decision 6's stated cost, which says two of the three
-   `phase02-three-way-side-pot` decisions change refusal code. All three change. The report
-   and the regenerated postflop fallback report both say three.
+**The debt was thirteen edits, not the nine this section listed.** That number is the lesson
+worth keeping. The list was assembled from the ExecPlan's four, plus five found by checking the
+phase's documents at stages 8 and 9 - and the executor found four more while doing the work:
+an eighth `street_bet` site inside an amendment body the list of seven missed, a line stating
+the old all-in ceiling was "too loose by exactly `to_call`" which the capped ruling made false
+in the same way as its neighbour, decision 1 carrying the same dead preflop-equality invariant
+as decision 3, and this contract's own claim that Phase 11 names the field "in three criteria"
+when it was more. Every list of stale statements this phase produced was itself incomplete, at
+every stage that produced one.
 
-Five more, found by checking the phase's own documents against stages 8 and 9:
+What the task corrected, in one line each: the query-level `street_bet` sites across five
+acceptance criteria, a heading and a Scope bullet; the all-in ceiling, restated as the quantity
+rather than as `(street_bet - to_call) + stack`, which under the capped ruling is a false
+formula and is also the subtraction this contract's forbidden shortcuts bar from any comment,
+docstring or report; the claim that the chart's raise cap is that same ceiling, when it is
+higher by what hero still owes; this contract's "coincide" line, which the ante ruling replaced
+with `committed_total >= street_bet`; its straddle criterion, where the gap is the straddle less
+the big blind rather than the straddle; its un-narrowed Scope claim, now naming both escapes by
+id; its statement that all five backlog entries read `phase: "13"`, when two now read `"14"`;
+decision 6's stated cost, where all three `phase02-three-way-side-pot` decisions change refusal
+code rather than two; decision 8's, which omitted this phase's headline residual; and decisions
+1 and 3's dead invariant. Decision 15 took the optional `Correcting...` paragraph.
 
-5. **This contract's Scope still carries the un-narrowed claim** - "a table the chart cannot
-   describe is now seen and refused rather than answered as something else". The stage-8
-   blocker falsifies it, and so does `STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`. The report's
-   headline was narrowed to "stack depths or forced money" for this reason; the contract could
-   not be, being at 300 of 300 lines with contract edits forbidden in implementation mode.
-6. **Decision 3's own text is stale.** It still reads "Preflop, each seat's street
-   contribution must equal its hand contribution", which the build's ante ruling replaced with
-   `committed_total >= street_bet`. Recorded in the ExecPlan, never corrected in the record.
-7. **Optional, at the editor's judgment.** The stage-8 note offers decision 15 a
-   `Correcting...` paragraph in decision 16's style, foreclosing a literal reading that
-   stretches "does not validate it beyond the existing positivity rule" past its one field.
-8. **This contract's Scope says all five entries it is written against are `phase: "13"`.**
-   Three are; `ASYMMETRIC-EFFECTIVE-STACKS` and `BLIND-STRUCTURE-VARIANTS` now read
-   `phase: "14"`. It is the sentence a future reader uses to find them.
-9. **Decision 8's stated cost is stale the way decision 3's is.** It names only a big-blind
-   straddle and a straddler who acted with no raise, and omits
-   `STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`, this phase's headline residual.
+**And it missed three, which is why that entry closes on a review rather than on this section.**
+An independent review found the identity still standing in three documents the task had open: this
+contract's two-ceilings criterion, decision 11 of the decision list, and
+`ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` itself. All three now state the gap as what hero
+still owes to match the level, uncapped and therefore not `to_call` for a capped hero: 100 in, a
+level of 300 and 150 behind gives `to_call` 150 and a gap of 200. Seven more statements survive
+outside any of these scopes - frozen tests, a `preflop_chart.py` comment, the canary description, a
+generated report - as `SUBTRACTION-IDENTITY-SURVIVES-IN-FROZEN-TESTS-AND-CODE`, and the rewrite's
+own claim about what the tree holds today is `COMPLETED-CONTRACT-ASSERTS-THE-CURRENT-TREE`.
 
 **The five backlog entries this contract is written against are now settled, and how they got
 settled is the finding.** Each was audited against the code rather than against the phase's own

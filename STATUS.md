@@ -1,8 +1,8 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `PHASE_13_BUILD`
-Task mode: `implementation`
+Current task: `ENGINE_FIDELITY_CONTRACT_REWRITE`
+Task mode: `contract-update`
 Active phase: `13`
 Completed phases: `13`
 

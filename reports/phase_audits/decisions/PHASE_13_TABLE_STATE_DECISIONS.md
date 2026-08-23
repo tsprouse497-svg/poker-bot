@@ -90,18 +90,23 @@ Default: **both the street contribution and the hand contribution, per seat.**
 Options: street-and-hand | street-only | hand-only
 Answer: [street-and-hand]
 
-*Street only.* Enough for the bet level and enough for every preflop question, because preflop
-the two coincide. It fails the moment a postflop caller wants the pot to reconcile, since the
-pot is made of hand contributions and the street figure resets to zero at every street. The
-engine already carries both for the same reason.
+*Street only.* Enough for the bet level. This list first added "and enough for every preflop
+question, because preflop the two coincide": **that is wrong, and decision 3 is where it was
+caught.** An ante sits in the hand contribution and never in the street one, so an anted preflop
+street carries a gap between the two by construction - and that gap is the ante signal decision
+8's reconstruction reads, which street-only would make unreadable. Street-only also fails the
+moment a postflop caller wants the pot to reconcile, since the pot is made of hand contributions
+and the street figure resets to zero at every street. The engine already carries both for the
+same reason.
 
 *Hand only.* Reconciles the pot and derives every starting stack, and cannot say what a seat
 owes to be square with the current bet, which is the quantity every legality rule is written
 against.
 
-The cost the default accepts: two fields where a preflop-only phase needs one, and a preflop
-invariant (they are equal) that no rule enforces, so a producer can set them inconsistently
-preflop and nothing notices. Decision 3 is where that gets caught.
+The cost the default accepts: two fields where a preflop-only phase needs one, and a per-seat
+relation between them that only one rule enforces, so a producer can set the two inconsistently and
+nothing else notices. Decision 3 is where that gets caught, and where the relation turned out to be
+`committed_total >= street_bet` rather than the preflop equality this list first assumed.
 
 ## 2. What the per-seat fields are called
 
@@ -130,10 +135,19 @@ per-seat `street_bet` as the old field for a moment.
 Reversibility: runtime-reversible
 
 Default: **`pot` must equal the sum of the per-seat hand contributions, exactly, or the query
-is rejected.** Preflop, each seat's street contribution must equal its hand contribution.
+is rejected.** Per seat, and on every street, `committed_total >= street_bet`.
 
 Options: exact-equality | equality-with-a-dead-money-field | advisory-warning
 Answer: [exact-equality]
+
+Correcting the default's second sentence, which first read that preflop each seat's street
+contribution must equal its hand contribution: **that equality is wrong, and the build replaced it
+with `committed_total >= street_bet`.** An ante is dead money. It sits in the hand contribution,
+never in the street contribution, and it never reduces what a seat owes to be square with the bet,
+so an anted preflop street carries a gap between the two figures by construction - and that gap is
+the ante signal decision 8's reconstruction reads. Requiring equality would have made an anted
+query inexpressible, which is the opposite of what this phase is for. The rule on `pot` above is
+unaffected: the pot is still the exact sum of the hand contributions.
 
 *A dead-money field.* Would admit rake taken preflop, a forfeited dead blind, and the postflop
 fallback enumeration's 100 unattributed chips. It is also a hole exactly the size of the defect
@@ -230,11 +244,16 @@ at 50, 100 and 200 chips with 5/10 blinds, and the postflop fallback report driv
 its preflop decision points through `PreflopChartStrategy`. They refuse today with
 `lookup:no-artifact-for-table-size`, because the current derivation makes every seat present as
 20bb and the three-handed table has no artifact. Once starting stacks are recomputed from
-contributions, the depth check fires first and two of the three change code, with the deep seat
-taking the new shorter-live-seat code. So the committed postflop fallback report changes and
-this fixture is the phase's only live evidence that decision 6 fires at all. That strengthens
-the ruling rather than weakening it, and the report says so rather than the packet claiming
-nothing moved.
+contributions, the depth check fires first and **all three change code.** Measured at stage 6:
+seat 2 holds 200 chips and is the only seat with nothing deeper than it, so it takes the new
+`preflop-chart:a-live-seat-is-shorter-than-hero`; seats 0 and 1 each have a deeper live seat, and
+decision 7 puts the deeper check ahead of the shorter one, so both take
+`preflop-chart:table-is-not-one-flat-stack-depth`. This paragraph first estimated two of the
+three, before decision 7's ordering was worked through against the fixture; the correction is
+measurement rather than a change of rule, and the table-state report and the committed postflop
+fallback report both say three. So the committed postflop fallback report changes and this fixture
+is the phase's only live evidence that decision 6 fires at all. That strengthens the ruling rather
+than weakening it, and the report says so rather than the packet claiming nothing moved.
 
 This is the decision with the largest behavioural reach in the phase, and the honest statement
 of its cost is that **it refuses essentially every real table.** Committed data cannot show
@@ -306,9 +325,19 @@ phase is scoped out of. It also has no producer: nothing in the repo can emit a 
 so the field would be set only by fixtures.
 
 The cost the default accepts: three rules where one would be nicer, and a residual the phase
-has to name. A straddle equal to the big blind is invisible to all three, and so is one in a
-pot where the straddler has acted and no raise has happened, which cannot occur in a legal
-preflop street but is expressible as a query.
+has to name. Two parts of it are edge cases. A straddle equal to the big blind is invisible to all
+three signals, and so is one in a pot where the straddler has acted and no raise has happened,
+which cannot occur in a legal preflop street but is expressible as a query.
+
+The third part is neither an edge case nor was it listed here, and it is this phase's headline
+residual: **a straddled pot carrying two or more recorded raises is invisible to all three signals
+as well, and it occurs in a perfectly legal preflop street.** The third signal predicts the minimum
+raise from the declared blinds and the recorded raise-to amounts, and a straddle perturbs only the
+first increment; past one raise the prediction is a difference of two recorded amounts and the
+straddle cancels out of it. Such a pot is answered with the unstraddled range rather than mis-coded,
+which is worse than the two edge cases above. Both stage 6 reviewers found it independently, it was
+ruled unfixable without a declared blind structure on the artifact and the query, and it is filed
+as `STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`.
 
 ## 9. Where the postflop enumeration's unattributed chips go
 
@@ -365,11 +394,13 @@ already uses, expressed from the new field rather than by subtraction.
 Options: audit-ceiling | chart-ceiling | leave-them-different
 Answer: [audit-ceiling]
 
-`PreflopChartStrategy._raise_amount` caps at the bet level plus hero's stack, which is too high
-by exactly `to_call` for a hero who has already invested this street. The audit's is the correct
-arithmetic and it is the one that already rejects an illegal amount, so moving the chart to it
-is a bug fix rather than a preference. Leaving them different is what the Phase 11 contract
-asserts is fine, and it is wrong.
+`PreflopChartStrategy._raise_amount` caps at the bet level plus hero's stack, which for a hero
+who has already invested this street is too high by what hero still owes to match the level.
+That quantity is uncapped, so it is not `to_call` for exactly the hero this clause names once
+that hero is capped: 100 in, a level of 300 and 150 behind gives `to_call` 150 and a gap of 200.
+The audit's is the correct arithmetic and it is the one that already rejects an illegal amount,
+so moving the chart to it is a bug fix rather than a preference. Leaving them different is what
+the Phase 11 contract asserts is fine, and it is wrong.
 
 The cost the default accepts: the chart can now return a smaller raise than it used to for a
 hero who has posted a blind or already raised. That is the correct amount, and it is a
@@ -470,6 +501,14 @@ a report producer that computes `min_raise_target` carelessly makes the strategy
 straddle. The mitigation is that both rewritten producers derive it from the same reconstruction
 the detector uses, and a test asserts an unstraddled pot at every price the probes cover reports
 no straddle.
+
+Correcting a literal reading of the default's own wording: **"does not validate it beyond the
+existing positivity rule" is about the `min_raise_target` field as supplied, at the point of
+construction, and nothing wider.** It is not a statement that the min-raise story goes unchecked.
+The detector reconstructs the target from the declared blinds and the recorded raise-to amounts and
+refuses on a disagreement, the report's straddle census reconciles against that same
+reconstruction, and the test named above pins the no-false-positive direction. What is unvalidated
+is only the incoming field, which is the producer-bug channel this decision exists to name.
 
 ## 16. What the new refusal codes are called
 

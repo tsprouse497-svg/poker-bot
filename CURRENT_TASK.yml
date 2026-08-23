@@ -1,25 +1,13 @@
-task_id: PHASE_13_BUILD
+task_id: ENGINE_FIDELITY_CONTRACT_REWRITE
 active_phase: "13"
-task_mode: implementation
-base_commit: 80ca70d9748f884a39400a455ea346bf4399ac90
+task_mode: contract-update
+base_commit: 53038140e72592ad0fc4209e0eed9c86c494f973
 approved_scope:
-  - src/poker_training_bot/strategy/contract.py
-  - src/poker_training_bot/strategy/preflop_chart.py
-  - src/poker_training_bot/simulator/table.py
-  - src/poker_training_bot/data_pipeline/comparison.py
-  - src/poker_training_bot/solver_artifacts/spot_key.py
-  - src/poker_training_bot/table_state/**
-  - scripts/generate_table_state_report.py
-  - scripts/generate_preflop_strategy_report.py
-  - scripts/generate_postflop_fallback_report.py
-  - scripts/generate_strategy_query_report.py
-  - scripts/generate_engine_fidelity_report.py
-  - reports/phase_audits/reviews/PHASE_13_TABLE_STATE/**
+  - docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
+  - docs/phase_contracts/PHASE_13_TABLE_STATE.md
+  - reports/phase_audits/decisions/PHASE_13_TABLE_STATE_DECISIONS.md
   - reports/phase_audits/PHASE_13_TABLE_STATE.md
-  - verification/mutations.yml
-  - reports/phase_audits/PHASE_03_STRATEGY_CONTRACT.md
-  - reports/phase_audits/PHASE_06_POSTFLOP_FALLBACK.md
-  - reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md
+  - reports/phase_audits/reviews/PHASE_13_TABLE_STATE/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -947,3 +935,16 @@ scope_change_log:
       Phase 13 stage 9 writes the audit packet, so reports/phase_audits/PHASE_13_TABLE_STATE.md
       joins approved_scope. The three older packets already in scope are there for the
       StrategyQuery.street_bet rename; this is the phase's own packet and nothing else needs it.
+  - date: 2026-08-22
+    reason: >-
+      ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP runs as its own contract-update task, which
+      phase 13's contract requires before the phase may tag. PHASE_11_ENGINE_FIDELITY.md is at
+      exactly 300 of 300 lines so it takes a rewrite rather than an amendment; the phase 13
+      contract and the phase 13 decision record carry the other stale statements the stage 8
+      and stage 9 reviews found. No source, test, or gate file is in scope.
+  - date: 2026-08-22
+    reason: >-
+      The audit packet states this contract-update task's debt as nine edits and describes it as
+      not yet run. Both are only correctable once the task has run, and it turned out to owe
+      thirteen. The packet and this task's review note join approved_scope so the record can be
+      closed in the same commit that creates the fact it records.

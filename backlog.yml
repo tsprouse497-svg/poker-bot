@@ -245,11 +245,42 @@ items:
       BLIND-STRUCTURE-VARIANTS needs data first, and bounded ingestion of one player's own
       hands is the ruled route to it.
   - id: ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP
-    status: deferred
+    status: done
     phase: contract-update
     title: The Phase 11 contract is 300 of 300 lines and owes an amendment it cannot take
     reason: >-
-      docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md sits at exactly the 300-line cap in
+      Closed by the ENGINE_FIDELITY_CONTRACT_REWRITE contract-update task, evidenced in
+      reports/phase_audits/PHASE_13_TABLE_STATE.md. docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
+      was rewritten rather than amended, folding its appended amendments into the criteria they
+      amend, and landed at 283 lines from 300 with no criterion dropped: 39 acceptance bullets
+      before and after, 32 of them byte-identical, every other section unchanged in count, and only
+      three Scope bullets and one Non-goal reworded. Measured with check_contracts.section_bullets,
+      which is the repo's own definition of a contract bullet.
+
+      The debt was thirteen edits, not the nine listed here and at stage 1. Four more surfaced while
+      the work was being done: an eighth query-level street_bet site inside an amendment body, a
+      line calling the old all-in ceiling too loose by exactly to_call, decision 1 of the phase 13
+      decision list carrying the same dead preflop-equality invariant as decision 3, and this
+      entry's own count of three acceptance criteria naming the field when it was more. Every list
+      of stale statements the phase produced was itself incomplete.
+
+      The arithmetic this entry states is part of what was struck. Taylor's ruling of 2026-08-20
+      caps to_call at hero's remaining stack, and once capped the two ceilings do not differ by
+      to_call. The chart capped at the street's bet level plus hero's stack and DecisionAuditRecord
+      at hero's own street contribution plus that stack, so the gap is the bet level less hero's
+      contribution - what hero still owes to match the level, which is uncapped. For a capped hero
+      they are different numbers: 100 in, a level of 300, 150 behind gives to_call 150 and a gap of
+      200. The Phase 11 contract now states the gap as that quantity rather than as to_call, which
+      is what makes the criterion survive the cap.
+
+      Closed on an independent review rather than on the task's own report. The task struck the
+      identity from the Phase 11 contract and left it standing in three more documents it had open:
+      the phase 13 contract's own two-ceilings criterion, decision 11 of the phase 13 decision list,
+      and this entry. All three are corrected in the same change that closes this, which is why the
+      entry does not close on the report that missed them. What still carries the identity is out of
+      that task's scope and filed as SUBTRACTION-IDENTITY-SURVIVES-IN-FROZEN-TESTS-AND-CODE.
+
+      As filed: docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md sits at exactly the 300-line cap in
       scripts/check_file_sizes.py. It names StrategyQuery.street_bet in three acceptance
       criteria, which phase 13 renames under STRATEGY-QUERY-STREET-BET-NAME, and it asserts
       that the preflop chart's raise cap is its own all-in target, which is already false:
@@ -916,8 +947,9 @@ items:
       ceiling accepted a raise hero cannot make, and it was widened to `bet` because a seat with
       nothing behind cannot bet either. The two ceilings in the repo became one: the preflop chart
       capped at the street's bet level plus hero's stack and DecisionAuditRecord at hero's
-      contribution plus hero's stack, differing by exactly to_call, and both are now expressed from
-      hero's recorded contribution. And the derivation the ruling measured as wrong is gone -
+      contribution plus hero's stack, so the chart's was higher by what hero still owed to match the
+      level - an uncapped quantity, which under this entry's own ruling to_call is not - and both
+      are now expressed from hero's recorded contribution. And the derivation the ruling measured as wrong is gone -
       `_table_depth_bb` reads hero's contribution off seat_states, so the hero with 150 behind who
       has posted 100 into a level of 300 derives 25bb where it used to derive 30. Pinned by
       test_a_price_above_hero_s_stack_is_rejected_because_hero_cannot_pay_it,
@@ -1997,3 +2029,66 @@ items:
       This entry is filed under contract-update, which is probably the only legal home for it and
       is the point rather than an accident: the sixth instance of the defect is the entry
       describing it. Raised by the phase 13 stage-9 review.
+  - id: SUBTRACTION-IDENTITY-SURVIVES-IN-FROZEN-TESTS-AND-CODE
+    status: deferred
+    phase: "14"
+    title: The dead to_call subtraction identity is still stated in a frozen test name, a code comment, a canary and a report
+    reason: >-
+      Taylor's ruling of 2026-08-20 capped to_call at hero's remaining stack, which makes the two
+      all-in ceilings differ by the bet level less hero's own street contribution - what hero still
+      owes to match the level, which is uncapped - rather than by to_call. The two coincide only for
+      a hero who is not capped. The Phase 13 contract's forbidden shortcuts say the subtraction
+      identity must not be reintroduced anywhere, including in a comment, a docstring or a report,
+      and seven statements of it survive outside the scope of the task that struck it from the four
+      documents it could reach.
+      Three are in frozen tests, and the arithmetic in every body is sound; it is only the prose
+      that generalises. tests/test_table_state.py:565 is named
+      test_the_two_ceilings_differ_by_exactly_the_price_to_call, and its fixture leaves hero
+      uncapped, so the assertion is a legitimate pin under a name that states the false identity -
+      and a frozen test name is what the next reader quotes. tests/test_table_state.py:544, the
+      class docstring above it, says the two ceilings differ "by exactly to_call".
+      tests/test_table_state_strategy.py:406 says the chart's is "too high by exactly to_call for a
+      hero who has already invested this street", which names precisely the population the identity
+      fails for.
+      Two are in shipped text a reader acts on. src/poker_training_bot/strategy/preflop_chart.py:340
+      comments that the street's level is "too high by to_call" for a hero who has acted - the
+      comment sits four lines from the fix and is the same claim the fix disproves.
+      scripts/generate_engine_fidelity_report.py:326 prints "the ceiling was the street's bet level
+      plus hero's stack, which is too high by exactly the price to call" into
+      reports/active/latest_engine_fidelity_report.txt:86, so the identity is regenerated into a
+      committed report by a gate command.
+      One is process. verification/mutations.yml:537, the description of the
+      all-in-ceiling-loose-by-the-price-to-call-again canary, states the same thing about the
+      mutated ceiling. The canary id carries it too, and re-pointing it at stage 6 kept the wording.
+      And one is a roadmap claim in present tense about a closed defect: docs/V2_ROADMAP.md:116 says
+      "the decision audit's all-in ceiling is too loose by exactly the price to call
+      (DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE)", which phase 11 fixed and phase 13 restated.
+      Filed against phase 14 rather than 13 because tests/ is frozen and out of the builder's scope
+      by design, so the test half needs a task with the tests reopened, and phase 14 is the next
+      phase that opens preflop_chart.py. It is one sweep rather than seven fixes: strike the
+      identity and state the gap as the quantity, which is the wording the Phase 11 contract already
+      uses. Raised by the independent review of the ENGINE_FIDELITY_CONTRACT_REWRITE task.
+  - id: COMPLETED-CONTRACT-ASSERTS-THE-CURRENT-TREE
+    status: deferred
+    phase: contract-update
+    title: A completed contract now makes a claim about today's code and nothing checks it
+    reason: >-
+      The Phase 11 contract rewrite closed its all-in ceiling criterion with "Phase 13 ruled the
+      audit's arithmetic correct and moved the chart onto it, so the repo now holds one all-in
+      ceiling - hero's recorded street contribution plus hero's stack - at both sites"
+      (docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md:164-167). It is true and verifiable today.
+      It is also a completed, tagged contract asserting the state of the working tree rather than
+      what its own phase shipped, and it goes stale the moment phase 14 or anything later edits
+      src/poker_training_bot/strategy/preflop_chart.py.
+      Nothing reports it. check_contracts validates structure, frontmatter and criteria specificity;
+      the fact-drift check in run_full_quality_gate policies registered numbers, and MAINT-25 ruled
+      that a completed audit packet is a historical snapshot the drift check must leave alone.
+      A contract is not a packet - it is the standing definition of done for a phase - but no check
+      distinguishes a criterion stating what the phase delivered from one stating what the tree
+      currently contains, and only the second can rot.
+      This is alignment rather than a defect: the sentence is the honest way to fold an amendment
+      into the criterion it amends, which is what AGENTS.md asks a rewrite to do, and forbidding it
+      would push the same content back into an appended amendment. The ruling wanted is which of the
+      two a completed contract may say, and if both, what carries the date. contract-update is the
+      forced label rather than the chosen one; see CONTRACT-UPDATE-IS-THE-LABEL-OF-LAST-RESORT.
+      Raised by the independent review of the ENGINE_FIDELITY_CONTRACT_REWRITE task.
