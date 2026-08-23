@@ -1294,6 +1294,23 @@ items:
       what a phase is scoped to: docs/V2_ROADMAP.md in two places, and the artifact-size section
       of docs/V2_RULING_MITIGATIONS.md. Phase 12's report publishes the measured pair, which is
       what makes this a correction owed rather than an open question.
+
+      Answered at phase 14 stage 1, and the answer is not an error in the enumeration. The
+      variation nobody tried is the entry cap. Enumerating with at most five recorded entries gives
+      1,691 with limps and 848 without, exactly; at six, where the single-orbit vocabulary
+      saturates, it gives 1,949 and 977. The published pair is a truncation of the same rule rather
+      than a different rule, and 1,949 / 977 is the complete single-orbit figure. The correction
+      owed is therefore narrower than this entry assumed: the roadmap's numbers are right for a
+      bound it does not state.
+      Two things follow that the document edits should carry. The v2 vocabulary does not saturate
+      at all - 18,773 / 9,389 at six entries and still growing at eight - so there is no complete
+      v2 count, only a count per cap. And a count is meaningless without a price ladder: with sizes
+      free, one shape alone admits 10,000 keys, since spot_key accepts every raise-to from 0.01 to
+      100 in hundredths. Any criterion phrased as "N expressible spots" has to name both the cap
+      and the ladder.
+      The 12 MB artifact estimate this entry worries about is superseded regardless. Phase 14
+      measured what committing the export actually costs and it is 71 to 407 MiB depending on
+      filtering, against a 20 MB cap - see ARTIFACT-SIZE-LIMIT-VERSUS-SOLVE-COVERAGE.
   - id: LOOP-STAGE-4-RED-WINDOW-HIDES-ASSERTIONS
     status: done
     phase: contract-update
@@ -2234,3 +2251,113 @@ items:
       and "not a placeholder string" in the checker are already two different bars for one line.
       Filed as contract-update because the first fix is a rule about what an exception may say
       and the rest are implementation that follows it.
+  - id: SOLVER-CONVERGENCE-IS-NOT-UNIFORM-OVER-THE-TREE
+    status: deferred
+    phase: "14"
+    title: A summed best-response target says nothing about accuracy at a low-mass node
+    reason: >-
+      GTOpen's solve target is a best-response gap in big blinds summed over the whole tree, so a
+      0.01bb target constrains nothing at a node carrying negligible mass. The committed export
+      achieved 0.0062bb against that target and is still unconverged at depth.
+      Measured over the eleven grids the export publishes, using the two dominance relations that
+      hold in every preflop spot (a higher pair at least as often as a lower pair, a suited hand at
+      least as often as the offsuit hand of the same two ranks): one violation across the ten
+      shallow reference nodes, 42 at the single deep four-bet node. That node has HJ facing a
+      lojack four-bet to 22.5 folding JJ 97 percent, TT outright, 99 outright and KJs outright,
+      while calling 76s outright and 87s 94 percent, at 64 to 100 percent arriving reach. Hero is
+      adding 14.5 to a pot of 32 and needs 31 percent; JJ has it comfortably and 76s barely.
+      Phase 10's human verdict read the shallow grids, which are the clean ones. Nothing in the
+      capture records per-node convergence, so a later reader cannot tell a trained cell from an
+      untrained one, and phase 14's selection rule has to reconstruct it from reach.
+      What is wanted is a rule for every future solve capture: a per-node convergence or reach
+      statement recorded alongside the tree-wide number, so the question "is this cell trained" has
+      an answer in the data rather than in an argument. Raised by the independent poker review of
+      the phase 14 contract at stage 1.
+  - id: CHART-CELLS-SHOULD-CARRY-ARRIVING-REACH
+    status: deferred
+    phase: "14"
+    title: The artifact cannot distinguish a trained cell from one the solver never visited
+    reason: >-
+      src/poker_training_bot/solver_artifacts/schema.py has no per-cell field for arriving reach or
+      any equivalent. A cell the solver trained on 40 percent of hero's range and a cell it reached
+      with almost nothing serialize identically, so the chart hands both back with the same
+      confidence and the strategy has no way to refuse the second.
+      That is the same information a refusal already carries. The bot refuses a spot it has no
+      ranges for; it cannot refuse a cell it has no training for, because the artifact does not
+      record the difference.
+      It matters most at the cutover: phase 14's selection rule exists precisely because deep nodes
+      are unconverged, and a reach field would let the rule be expressed in the artifact rather than
+      applied once at conversion time and then forgotten. Filed separately from the rule because a
+      schema field is a format change and the rule is not.
+      Raised by the independent poker review of the phase 14 contract at stage 1.
+  - id: AGREEMENT-RATE-NEEDS-A-DENOMINATOR-POLICY
+    status: deferred
+    phase: "14"
+    title: Nonzero-weight agreement makes a noisier chart score higher
+    reason: >-
+      classify_observed_action in src/poker_training_bot/data_pipeline/comparison.py scores
+      agreement as the chart giving the observed action nonzero weight, not as a matching draw. The
+      metric is therefore monotone in how mixed the chart is: a chart that plays every action at
+      one percent agrees with everything, and a pure chart disagrees whenever the human deviated.
+      The repo has no stated rule about that, and the two rates it publishes - agreement and the
+      stricter sampled-action match - are reported side by side without a policy saying which one
+      answers which question.
+      This is not an argument for the stricter rate. Against human professionals, who are not an
+      oracle, a mixed strategy disagreeing with a single observed action is often correct. What is
+      missing is the stated rule for when each rate is the right denominator, written once, rather
+      than a phase choosing per report.
+      Raised by the independent poker review of the phase 14 contract at stage 1.
+  - id: ARTIFACT-SIZE-LIMIT-VERSUS-SOLVE-COVERAGE
+    status: deferred
+    phase: contract-update
+    title: The 20 MB artifacts cap and "commit the whole tree" collide on every future solve
+    reason: >-
+      Phase 10 ruled data/artifacts at 20 MB and committed the whole solved tree unfiltered,
+      deliberately, so that no filtering rule would be frozen at capture time. Phase 14 then found
+      the two cannot both hold. Committing all 38,828 export nodes as chart spots measures 272 MiB
+      at the retired chart's own 7,346 bytes per spot, 131 MiB compacted, 407 MiB with all 169 hand
+      classes kept per node as a GTOpen node carries them, and 71 MiB with each spot filtered to
+      hero's arriving range. Every version is over the cap by between 4.5x and 26x, against roughly
+      2,100 spots of headroom. Compression is not available: import_preflop_artifacts globs *.json
+      and reads text.
+      Phase 14 resolves it for itself with a selection rule ruled on reach. The general question is
+      not phase 14's to answer: every later solve - another depth, another table size, another
+      price - hits the same wall, and the repo will either rediscover it per phase or rule it once.
+      The available answers are to raise the cap with a stated basis, to split the artifact per
+      spot or per family so a re-solve produces a reviewable diff, to store solves outside
+      data/artifacts with only derived charts inside it, or to accept that the committed chart is
+      always a selection and to standardise how the selection is recorded.
+      Raised by the independent poker review of the phase 14 contract at stage 1.
+  - id: CORPUS-LIMITS-DOC-STILL-SAYS-KEYS-CARRY-NO-SIZE
+    status: deferred
+    phase: contract-update
+    title: A limits document states a limitation phase 12 removed
+    reason: >-
+      docs/CORPUS_COMPARISON_LIMITS.md says "Spot keys carry no size at all, so a 2.25bb open and a
+      4bb open are the same cell to the lookup", and adds that until RAISE-SIZE-IN-SPOT-KEY lands
+      every rate there is computed across prices the chart cannot tell apart. Phase 12 landed that
+      entry: a raise entry now carries its raise-to in big blinds, and the abstraction moved into
+      the lookup where it is measured and reported.
+      The document was touched the same day phase 12 merged and the sentence was not updated, so a
+      reader arriving at the repo's own statement of what the corpus comparison cannot do is told a
+      limitation that no longer exists, next to ones that do. The replacement is not silence: the
+      prices still abstract to the solved price, which is a real and measured limitation with a
+      different shape, and phase 12 published the census for it.
+      Raised by the independent review of the phase 14 contract at stage 1.
+  - id: LIMPED-DECISION-POINT-COUNT-HAS-NO-DEFINITION
+    status: deferred
+    phase: "14"
+    title: The limped-pot cost is quoted as 12 rows and 21 points and no file says how they were counted
+    reason: >-
+      CHART-CANNOT-ANSWER-A-LIMPED-POT states the accepted cost of the phase 10 limps ruling as
+      "the twelve limped rows of the corpus refusal inventory" and "21 of 3,048 corpus decision
+      points". The figure is repeated in the phase 10 contract, the phase 10 audit packet and the
+      decision list, and it is the number phase 14 restates as its permanent cost.
+      No file states the rule that produced it. Recounting the committed corpus refusal inventory
+      under the obvious definition - the first recorded action in the spot key is a call - gives 15
+      rows and 22 decision points, not 12 and 21. The difference is small and the direction is
+      against the ruling rather than for it, so this is a provenance defect rather than a poker one.
+      Phase 14 publishes its own count with the definition it counted by, which settles it going
+      forward. This entry is what the old number needs: either the definition that reproduces
+      12 and 21, or a correction of the three documents that quote it.
+      Raised by the independent review of the phase 14 contract at stage 1.
