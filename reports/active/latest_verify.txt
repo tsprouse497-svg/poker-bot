@@ -1,7 +1,7 @@
 Latest Verify Report
 ====================
 
-All passed: False
+All passed: True
 
 - PASS generate_status: Regenerate STATUS.md
 - PASS generate_phase_ledger: Regenerate phase ledger
@@ -37,7 +37,7 @@ All passed: False
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness
 - PASS check_contracts: Validate phase contracts
-- FAIL check_scope: Validate task scope
+- PASS check_scope: Validate task scope
 - PASS check_execplan_delegation: Validate active ExecPlan delegation plan
 - PASS check_repo_consistency: Cross-check phase status, ExecPlan location, gate commands, and the phase graph
 - PASS check_test_freeze: Check tests match verification/freeze.lock
