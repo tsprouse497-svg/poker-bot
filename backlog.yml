@@ -71,7 +71,7 @@ items:
       the test that pins it had to be rewritten at stage 7 because it was passing off a
       neighbouring rule. And the depth check is table-wide rather than per-seat, so a
       five-bet to 100 is admitted at 100bb because the deepest seat could pay it, which
-      waits on `ASYMMETRIC-EFFECTIVE-STACKS` at proposed phase 13.
+      waits on `ASYMMETRIC-EFFECTIVE-STACKS` at proposed phase 14.
 
       Expressible six-handed 100bb spots go from 1,949 to 18,773 with limps, enumerated
       rather than quoted. Vocabulary only: nothing here commits a second-orbit chart cell,
@@ -91,14 +91,205 @@ items:
       problem without introducing the heuristic. Bucketing itself stays deferred.
   - id: ASYMMETRIC-EFFECTIVE-STACKS
     status: deferred
-    phase: "13"
+    phase: "14"
     title: Per-seat effective stack depth in chart spots
-    reason: stack_depth_bb is one table-wide number, so hero at 100bb facing a 35bb opener cannot be expressed or queried; a caller must pick one number and silently answers a different question.
+    reason: >-
+      Half of this closed in phase 13 and the half the title names did not, so it moves to phase 14
+      rather than closing with it.
+      What closed is the silent wrong answer. `PreflopChartStrategy` now recomputes every seat's
+      starting stack as what it holds plus what it put in, runs the flat-table test in both
+      directions over live seats only, and gives a seat shallower than hero its own refusal code
+      naming the seat and the depth it holds. Before phase 13 only a deeper seat refused: hero at
+      100bb facing a 35bb opener was invisible and was answered at hero's depth. It now refuses as
+      a-live-seat-is-shorter-than-hero, and a villain who merely has chips in the pot no longer
+      reads as short. Pinned by test_a_live_seat_shallower_than_hero_refuses_with_its_own_code,
+      test_each_depth_refusal_names_the_seat_and_the_depth_it_holds and
+      test_a_seat_that_looks_short_only_because_it_has_invested_does_not_refuse.
+      What did not close is expression, which is the whole of this entry's title. stack_depth_bb is
+      still one table-wide integer on the artifact and one field on a spot key; phase 13's diff to
+      solver_artifacts/spot_key.py is docstring-only, and its contract names per-seat depth in a
+      key as a format change it is scoped out of. So the asymmetric table is now seen and refused
+      for what it is, and is still not askable. That is the deliverable phase 13 claimed and it is
+      not this entry's bar.
+      Three consequences of the refusal rule are filed separately and should be read with whoever
+      picks this up, because a key format that carries per-seat depth is the thing that would make
+      two of them moot: COVERING-STACK-REFUSES-WITH-NO-POKER-CONTENT, which measures that better
+      than one on-chart table in four is refused for a fact that changes nothing hero can do;
+      ALL-IN-SEATS-COUNT-AS-SEATS-THAT-CAN-ACT; and REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL,
+      which is the work list degrading under the exact per-seat detail the refusal now carries.
+      SECOND-ORBIT-PREFLOP-SPOTS closed at phase 12 naming this entry as what its own table-wide
+      depth check waits on, and the dependency is unchanged; the phase number in that sentence is
+      not. It said proposed phase 13 and now says phase 14, corrected when this entry moved, so
+      the two sides of the cross-reference name the same phase rather than one each. Solving the spots this would express also needs
+      data the repo does not have, which is CORPUS-CANNOT-EXPRESS-A-TABLE-SHAPE, and depths beyond
+      the one committed solve, which is CHART-COVERAGE-EXPANSION and STACK-DEPTH-BUCKETS.
+      As filed: stack_depth_bb is one table-wide number, so hero at 100bb facing a 35bb opener
+      cannot be expressed or queried; a caller must pick one number and silently answers a
+      different question.
   - id: BLIND-STRUCTURE-VARIANTS
     status: deferred
-    phase: "13"
+    phase: "14"
     title: Antes and straddles in the artifact format
-    reason: The artifact declares no blind structure, so a straddled or anted pot reads as an ordinary one even though both materially change correct preflop ranges. Common in the home-game context this bot targets.
+    reason: >-
+      Detection landed in phase 13. Representation - which is what this entry asks for and what its
+      title names - landed nothing, so it moves to phase 14 rather than closing with 13.
+      What closed is the reading. `PreflopChartStrategy` now reconstructs what each seat should
+      hold from the two declared blinds and its own recorded actions, and refuses on three signals:
+      an unraised pot whose level is not the big blind, a minimum raise target disagreeing with the
+      one the declared blinds predict, and a seat holding more than the reconstruction explains. A
+      straddle and an ante get separate codes and separate detail, and the generous pot bound that
+      preceded them was deleted only after a test showed the replacement refuses every pot the
+      bound refused. Pinned by
+      test_an_ante_is_found_because_every_seat_holds_more_than_the_blinds_predict,
+      test_an_unraised_pot_above_the_big_blind_is_a_straddle,
+      test_a_straddler_who_has_called_to_the_level_is_caught_by_the_minimum_raise_target and
+      test_every_pot_the_deleted_arithmetic_bound_refused_still_refuses.
+      What did not close is that the format still cannot say what game is being dealt.
+      data/artifacts/preflop/six_max_nl25_100bb.json declares a table size and a stack depth and no
+      blind structure; phase 13 added no field to it and its contract names that as a non-goal.
+      Phase 13's own committed evidence says three times that the format is the missing piece, and
+      those sentences are the bar for closing this entry. From the table-state report on the
+      straddle residual - "the only thing that recovers it is a declared blind structure on the
+      query - the format change this phase is scoped out of". From the same report on the blind
+      ratio - "The fix is a declared blind structure on the artifact and on the query, which is the
+      same format change the straddle residual above waits on and the same one this phase is scoped
+      out of". And from QUERY-CANNOT-EXPRESS-A-DEAD-BLIND - "Same declared-blind-structure work as
+      BLIND-STRUCTURE-VARIANTS".
+      There is a third layer under those two, and it is the one that decides whether the other two
+      ever get exercised. The recording format cannot hold the structure either.
+      `hand_history.schema.BlindStructure` is exactly small_blind and big_blind, both positive
+      integers, and its __post_init__ rejects small_blind greater than big_blind. So a straddle
+      cannot be RECORDED at all - it is not that a straddled hand is read wrong, it is that a
+      straddled hand cannot be written down - and an ante has nowhere to live in the record. Equal
+      blinds do construct, which makes it sharper rather than softer: a $5/$5 home game is
+      perfectly recordable and is then answered from a chart solved at a ratio nothing declares.
+      Three layers of one defect: the history cannot record the structure, the artifact does not
+      declare the structure it was solved at, and nothing compares the two.
+      The phase 15 consequence is the one to schedule against. The drill's leak report runs over a
+      player's own exported home-game history, which is where straddles are common by definition, so
+      a straddled hand never reaches the report to be refused - it fails at ingestion or is
+      normalised into something it is not. Refusing correctly at the strategy layer, which is what
+      phase 13 bought, does nothing for a hand the parser cannot accept.
+      What now blocks on this entry: STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE,
+      BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE, QUERY-CANNOT-EXPRESS-A-DEAD-BLIND and
+      STRADDLE-REFUSAL-DOES-NOT-SAY-WHICH-GAME-IT-IS all name a declared blind structure as their
+      fix. BIG-BLIND-ANTE-CLASSIFIES-AS-THE-RESIDUAL and
+      ANTE-WITH-A-SHORT-ALL-IN-CALLER-TAKES-THE-RESIDUAL are the ante half misclassifying under the
+      detector that stands in for the declaration. CORPUS-CANNOT-EXPRESS-A-TABLE-SHAPE is why none
+      of it can be measured against committed data today.
+      As filed: The artifact declares no blind structure, so a straddled or anted pot reads as an
+      ordinary one even though both materially change correct preflop ranges. Common in the
+      home-game context this bot targets.
+  - id: DECISION-LIST-HAS-NO-FIXED-PLACE-FOR-A-RULING
+    status: deferred
+    phase: contract-update
+    title: A decision list has no convention for where a human ruling is recorded
+    reason: >-
+      Phase 12 put its ruling in a top-level "Ruled by Taylor" section before any decision
+      body; phase 13 first put its ruling inside the decision it answered. Both are legible
+      alone and neither is the convention, so a document can hold an answered question whose
+      header and body still read as open, which is what the independent stage 3 reviewer
+      found in phase 13 before it was corrected. The loop driver only reads the Answer
+      bracket, so nothing mechanical notices. docs/LOOP.md or docs/exec_plans/TEMPLATE.md
+      should name one place, and the natural one is both: a summary section at the head and
+      the full record beside the item it settles.
+  - id: QUERY-CANNOT-EXPRESS-RAKE-OR-DEAD-MONEY
+    status: deferred
+    phase: strategy
+    title: A pot holding chips no seat contributed cannot be expressed as a StrategyQuery
+    reason: >-
+      Phase 13 decision 3 rules that pot must equal the sum of the per-seat hand
+      contributions exactly, with no dead-money field, because a dead-money field is a hole
+      the size of the defect the rule exists to catch: any producer whose arithmetic does not
+      work can put the difference there and pass. The deliberate cost is that rake taken
+      preflop, a forfeited dead blind, and any other unattributed chips make a hand
+      inexpressible as a query at all. That is a hard stop for later ingestion of real online
+      hands, and it is a query-format change to lift rather than a validation to relax, so
+      whoever takes that ingestion owns deciding where those chips sit. Filed because the
+      alternative is a paragraph in a decision list nobody reads again when the ingestion
+      phase starts. Charts in this repo are rake-free by ruling, which is why the stop costs
+      nothing today.
+  - id: SIDE-POTS-NOT-EXPRESSIBLE-ON-THE-QUERY
+    status: deferred
+    phase: strategy
+    title: The query carries one undivided pot, so a short all-in has no side pot
+    reason: >-
+      Per-seat contributions, a capped to_call, and phase 13's refusal on a live seat
+      shallower than hero are exactly the state in which a side pot exists, and StrategyQuery
+      still carries pot as one scalar. Hero's real price and pot odds against the main pot are
+      not recoverable even with contributions in hand. Phase 13 hides the question rather than
+      answering it, because decision 6 refuses every asymmetric table, which is precisely why
+      it will be missed when decision 6 is re-ruled. Whoever loosens that rule owns deciding
+      whether pot becomes a list of pots or the refusal survives for the all-in case alone.
+      Found by the independent stage 2 reviewer.
+  - id: CORPUS-CANNOT-EXPRESS-A-TABLE-SHAPE
+    status: deferred
+    phase: samples
+    title: Nothing in this repo can produce an asymmetric, straddled, or anted table
+    reason: >-
+      Measured at phase 13 stage 1 over all 499 committed corpus hands: starting_stacks is
+      [10000] x 6 in 499 of 499, antes is all zeros in 499 of 499, and blinds_or_straddles is
+      [50, 100, 0, 0, 0, 0] in 499 of 499. data_pipeline/corpus.py rejects at parse time any
+      hand that does not post exactly two positive blinds in the first two seats, the engine
+      posts only two blinds and knows no ante, and simulator/config.py forces one starting
+      stack for every seat. So every table-shape number phase 13 could report against the
+      corpus is structurally zero before anything is measured, and the detection that phase
+      builds is exercised almost entirely by synthetic fixtures with no producer behind them.
+      Two independent reviewers found this at phase 13 stage 1. One exception, found at stage
+      3 and worth keeping: data/samples/normalized_hands.json holds phase02-three-way-side-pot
+      at 50, 100 and 200 chips, the only unequal table committed anywhere, and the postflop
+      fallback report drives its three preflop decision points through PreflopChartStrategy.
+      It is three-handed so it never reaches the six-max chart, but it does reach the depth
+      check, which makes it the sole live evidence that a per-seat depth rule fires at all.
+      Whatever schedules ASYMMETRIC-EFFECTIVE-STACKS or the format half of
+      BLIND-STRUCTURE-VARIANTS needs data first, and bounded ingestion of one player's own
+      hands is the ruled route to it.
+  - id: ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP
+    status: done
+    phase: contract-update
+    title: The Phase 11 contract is 300 of 300 lines and owes an amendment it cannot take
+    reason: >-
+      Closed by the ENGINE_FIDELITY_CONTRACT_REWRITE contract-update task, evidenced in
+      reports/phase_audits/PHASE_13_TABLE_STATE.md. docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md
+      was rewritten rather than amended, folding its appended amendments into the criteria they
+      amend, and landed at 283 lines from 300 with no criterion dropped: 39 acceptance bullets
+      before and after, 32 of them byte-identical, every other section unchanged in count, and only
+      three Scope bullets and one Non-goal reworded. Measured with check_contracts.section_bullets,
+      which is the repo's own definition of a contract bullet.
+
+      The debt was thirteen edits, not the nine listed here and at stage 1. Four more surfaced while
+      the work was being done: an eighth query-level street_bet site inside an amendment body, a
+      line calling the old all-in ceiling too loose by exactly to_call, decision 1 of the phase 13
+      decision list carrying the same dead preflop-equality invariant as decision 3, and this
+      entry's own count of three acceptance criteria naming the field when it was more. Every list
+      of stale statements the phase produced was itself incomplete.
+
+      The arithmetic this entry states is part of what was struck. Taylor's ruling of 2026-08-20
+      caps to_call at hero's remaining stack, and once capped the two ceilings do not differ by
+      to_call. The chart capped at the street's bet level plus hero's stack and DecisionAuditRecord
+      at hero's own street contribution plus that stack, so the gap is the bet level less hero's
+      contribution - what hero still owes to match the level, which is uncapped. For a capped hero
+      they are different numbers: 100 in, a level of 300, 150 behind gives to_call 150 and a gap of
+      200. The Phase 11 contract now states the gap as that quantity rather than as to_call, which
+      is what makes the criterion survive the cap.
+
+      Closed on an independent review rather than on the task's own report. The task struck the
+      identity from the Phase 11 contract and left it standing in three more documents it had open:
+      the phase 13 contract's own two-ceilings criterion, decision 11 of the phase 13 decision list,
+      and this entry. All three are corrected in the same change that closes this, which is why the
+      entry does not close on the report that missed them. What still carries the identity is out of
+      that task's scope and filed as SUBTRACTION-IDENTITY-SURVIVES-IN-FROZEN-TESTS-AND-CODE.
+
+      As filed: docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md sits at exactly the 300-line cap in
+      scripts/check_file_sizes.py. It names StrategyQuery.street_bet in three acceptance
+      criteria, which phase 13 renames under STRATEGY-QUERY-STREET-BET-NAME, and it asserts
+      that the preflop chart's raise cap is its own all-in target, which is already false:
+      the chart caps at street_bet plus stack while DecisionAuditRecord caps at street_bet
+      minus to_call plus stack, differing by exactly to_call. AGENTS.md forbids raising the
+      cap to fit an amendment and rules that a contract at the cap is due for a rewrite
+      folding its amendments into the criteria they amend, as its own contract-update task.
+      That rewrite is what is owed. No check reports a contract sitting at the cap while it
+      owes an amendment, which is why phase 13 stage 1 is the first place it surfaced.
   - id: CONTRACT-CRITERIA-BACKFILL
     status: deferred
     phase: contract-update
@@ -110,10 +301,45 @@ items:
     title: More chart depths and spot classes beyond six-max 100bb first-two-decisions
     reason: Phase 05 commits one six-max 100bb solution covering opens, spots facing a single open, the opener facing a three-bet, and the big blind facing a limp. Other depths and the squeeze and cold four-bet classes are already representable and already indexed by depth, so they are additive data rather than format work; every uncovered spot refuses meanwhile.
   - id: PER-SEAT-CONTRIBUTIONS-IN-QUERY
-    status: deferred
+    status: done
     phase: "13"
     title: Carry each seat's committed chips on StrategyQuery
-    reason: StrategyQuery gives current stacks, the pot, and the price to call, but not what each seat has put in. Nobody's own contribution is recoverable, hero's included - street_bet minus to_call was thought to give hero's, and under the 2026-08-20 ruling that to_call is the capped price it does not (STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS). That blocks three things the preflop strategy currently approximates or misses. A short villain is indistinguishable from one who has already invested (ASYMMETRIC-EFFECTIVE-STACKS). A straddle is only detectable while the pot stays smaller than the blinds plus one full bet per voluntary action, so a straddled pot with several callers can slip through. An ante is only detectable by the same bound. Adding per-seat contributions makes all three exact rather than bounded, and is the same shape of fix as adding the preflop action history was.
+    reason: >-
+      Closed by phase 13, evidenced in reports/phase_audits/PHASE_13_TABLE_STATE.md.
+      `StrategyQuery.seat_states` carries a `SeatState` per seated player - `street_bet`,
+      `committed_total`, `folded` and `all_in`, under the engine's own names for them - with no
+      default, one entry for every seat in `stacks` including folded ones, and `pot` validated as
+      the sum of the hand figures rather than trusted. Hero's own contribution is now read off
+      that record everywhere it was previously recovered as `street_bet` minus `to_call`: in
+      `PreflopChartStrategy._table_depth_bb` and in the all-in ceiling on `DecisionAuditRecord`.
+      Pinned by test_the_contributions_field_has_no_default_so_no_producer_can_skip_it,
+      test_a_seated_player_with_no_contribution_entry_is_rejected,
+      test_a_pot_holding_chips_no_seat_contributed_is_rejected and
+      test_hero_s_contribution_is_carried_rather_than_recovered_from_the_price, guarded by
+      test_a_folded_seat_keeps_the_chips_it_already_put_in and
+      test_preflop_a_seat_may_hold_more_over_the_hand_than_on_the_street, and made to bite by the
+      the-pot-stops-having-to-reconcile and hero-depth-is-derived-by-subtraction-again canaries.
+
+      The exactness this bought is not total, and the residuals are filed by id rather than left
+      in the closing line. A straddle whose poster has raised twice is still absorbed and still
+      answered, which is STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE. A uniform ante misclassifies as
+      soon as one seat calls all-in for less, which is
+      ANTE-WITH-A-SHORT-ALL-IN-CALLER-TAKES-THE-RESIDUAL. The pot is still one undivided scalar,
+      so the side pot that a capped price and a short live seat imply is not expressible, which is
+      SIDE-POTS-NOT-EXPRESSIBLE-ON-THE-QUERY. And the reconciliation this entry asked for makes a
+      pot holding chips no seat contributed inexpressible by ruling rather than by oversight,
+      which is QUERY-CANNOT-EXPRESS-RAKE-OR-DEAD-MONEY.
+
+      As filed: StrategyQuery gives current stacks, the pot, and the price to call, but not what
+      each seat has put in. Nobody's own contribution is recoverable, hero's included - street_bet
+      minus to_call was thought to give hero's, and under the 2026-08-20 ruling that to_call is the
+      capped price it does not (STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS). That blocks three things
+      the preflop strategy currently approximates or misses. A short villain is indistinguishable
+      from one who has already invested (ASYMMETRIC-EFFECTIVE-STACKS). A straddle is only
+      detectable while the pot stays smaller than the blinds plus one full bet per voluntary
+      action, so a straddled pot with several callers can slip through. An ante is only detectable
+      by the same bound. Adding per-seat contributions makes all three exact rather than bounded,
+      and is the same shape of fix as adding the preflop action history was.
   - id: RAISE-SIZE-IN-SPOT-KEY
     status: done
     phase: "12"
@@ -485,6 +711,13 @@ items:
       thresholds as frozen-into-data to force the stop, which works and is a stretch of the
       class. The fix is a third class, or an explicit rule that a threshold graded against
       external data counts as frozen; either way it is loop machinery and not phase work.
+      Phase 13 is the third instance and the first with no workaround: phase 12 could flag a
+      reversible call for a human only because policy gave it auto_advance false, and phase
+      13 has auto_advance true, so a flag with no mechanism behind it reaches nobody. It was
+      settled by reading docs/LOOP.md in full rather than by stretching anything: the class
+      says "committed artifact or fixture", and a behaviour default a contract requires a
+      frozen test to pin is a fixture. That reading covers phase 10's five thresholds too,
+      so the fix may be a documentation clarification rather than a third class.
   - id: GTOPEN-NOTES-OMIT-REALIZATION
     status: deferred
     phase: contract-update
@@ -652,11 +885,38 @@ items:
       reviews directory joins standing_scope, or stage 10 stops owing a note, or the closeout
       writes its note before resetting to idle. It belongs to whoever owns loop_stage.py.
   - id: STRATEGY-QUERY-STREET-BET-NAME
-    status: deferred
+    status: done
     phase: "13"
     title: StrategyQuery.street_bet is named for the reading it does not carry
     reason: >-
-      The field holds the street's current bet level, and its name reads as hero's own bet
+      Closed by phase 13, evidenced in reports/phase_audits/PHASE_13_TABLE_STATE.md.
+      `StrategyQuery.street_bet` is now `current_bet`, the name `BettingRoundState` already uses
+      for the same quantity, so the only `street_bet` left in the tree is the engine's own
+      per-seat one and the `SeatState` field that mirrors it. No alias was kept, because an alias
+      is how a rename leaves two vocabularies instead of ending one. The serialized payload key
+      moved with the field, so DECISION_AUDIT_SCHEMA_VERSION went 2 to 3 and both committed audit
+      files were regenerated by their gate commands rather than hand-edited; a record at the old
+      version is rejected. Pinned by
+      test_the_query_names_the_bet_level_current_bet_and_carries_contributions, which asserts the
+      old name is absent from the field list rather than that the new one is present,
+      test_the_payload_names_the_bet_level_current_bet_and_no_longer_street_bet,
+      test_the_decision_audit_schema_version_moved_because_the_payload_did and
+      test_a_record_at_the_old_schema_version_is_rejected. The frozen tests of five completed
+      phases were migrated - test_strategy_contract, test_full_table_preflop,
+      test_postflop_fallback, test_engine_fidelity and test_spot_vocabulary_downstream, being
+      phases 03, 05, 06, 11 and 12 - in the same task that changed the shape they assert against, at stage 4
+      and before the freeze, rather than being repaired afterwards as phases 11 and 12 each had to.
+
+      Two things this closing does not close, stated here because done beside them reads wrong at
+      a glance. The Phase 03 contract took the two-line amendment; the Phase 11 contract names the
+      field in three acceptance criteria and cannot take one, because it sits at exactly the
+      300-line cap - that rewrite is ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP and phase 13 does
+      not tag until it has run. And the schema version moved here for the payload shape, which is
+      not the same as the version-spanning question filed as
+      DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS: that entry asks what version 1 covered,
+      and nothing here answers it retroactively.
+
+      As filed: The field holds the street's current bet level, and its name reads as hero's own bet
       this street, which is the wrong reading and is the one a producer already took. Phase
       11 documented the meaning, added a street_bet >= to_call guard, and corrected the one
       wrong producer, but left the name, because a rename touches eight producers, the
@@ -669,11 +929,49 @@ items:
       Recorded as decision 4 of PHASE_11_ENGINE_FIDELITY_DECISIONS.md. Proposed phase 13 is
       the phase that already opens the query and the Phase 03 contract.
   - id: STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS
-    status: deferred
+    status: done
     phase: "13"
     title: to_call is capped at hero's stack by two producers and uncapped by three
     reason: >-
-      RULED by Taylor on 2026-08-20: to_call is what hero would actually pay, capped at hero's
+      Closed by phase 13, evidenced in reports/phase_audits/PHASE_13_TABLE_STATE.md. Taylor's
+      ruling of 2026-08-20 is applied rather than restated. `to_call` is capped at hero's
+      remaining stack at every producer - simulator/table.py, data_pipeline/comparison.py and the
+      enumeration site in generate_postflop_fallback_report.py were all brought over to the form
+      the two capped ones already used - and the cap is now enforced at the boundary as well, so a
+      query carrying the level owed rather than the price payable cannot construct at all. That is
+      more than the entry asked for: a sweep can be re-broken by the next producer, a constructor
+      rule cannot.
+
+      The guard the ruling was found to be missing exists. A query offering `raise` or `bet` while
+      `to_call` equals hero's stack is rejected, which closes the only route by which the all-in
+      ceiling accepted a raise hero cannot make, and it was widened to `bet` because a seat with
+      nothing behind cannot bet either. The two ceilings in the repo became one: the preflop chart
+      capped at the street's bet level plus hero's stack and DecisionAuditRecord at hero's
+      contribution plus hero's stack, so the chart's was higher by what hero still owed to match the
+      level - an uncapped quantity, which under this entry's own ruling to_call is not - and both
+      are now expressed from hero's recorded contribution. And the derivation the ruling measured as wrong is gone -
+      `_table_depth_bb` reads hero's contribution off seat_states, so the hero with 150 behind who
+      has posted 100 into a level of 300 derives 25bb where it used to derive 30. Pinned by
+      test_a_price_above_hero_s_stack_is_rejected_because_hero_cannot_pay_it,
+      test_a_hero_all_in_for_the_call_cannot_be_offered_a_raise,
+      test_the_depth_the_contribution_gives_is_25bb_and_the_subtraction_gives_30bb and
+      test_the_two_ceilings_differ_by_exactly_the_price_to_call, guarded against over-refusal by
+      test_a_hero_all_in_for_the_call_is_still_expressible,
+      test_a_seat_with_nothing_behind_may_still_be_offered_a_check and
+      test_a_hero_with_chips_behind_the_call_keeps_its_raise, and made to bite by the
+      a-capped-hero-may-raise-again canary. Phase 06's contract took the two-line amendment
+      restating its short hero as to_call equal to stack, since 0 < stack < to_call is
+      unsatisfiable under the ruling. The two capped records in latest_decision_audit.jsonl needed
+      no repair, as the entry predicted; they were rewritten only by the schema-version move.
+
+      What the ruling created and this phase did not answer: a capped price, per-seat
+      contributions and a refusal on a live seat shallower than hero are exactly the state in which
+      a side pot exists, and the query still carries one undivided pot. That is
+      SIDE-POTS-NOT-EXPRESSIBLE-ON-THE-QUERY. The closing of
+      DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE named this guard as the thing that would make its own
+      ceiling airtight, and it now exists.
+
+      As filed: RULED by Taylor on 2026-08-20: to_call is what hero would actually pay, capped at hero's
       remaining stack. The two capped producers are therefore right and the three uncapped ones
       are the ones to change - generate_strategy_query_report.py and the sample-replay site in
       generate_postflop_fallback_report.py already cap; simulator/table.py, comparison.py and the
@@ -836,14 +1134,44 @@ items:
       never compares an item's phase against that phase's status in phase_status.yml. An item
       filed against a completed phase that still says deferred is a self-contradiction the gate
       has no way to reach.
-      It is not specific to phase 11. Every phase from here closes the same way, because
-      AGENTS.md's Task Closeout does not tell a phase to settle the backlog items it just fixed
-      either - the process rule is missing before the check is. That ordering is why this is
-      filed as contract-update rather than as tooling: something has to say what the rule is
-      before a check enforces it, and the same closeout probably owes the reverse direction too,
-      since an item marked done whose phase is still future is the same contradiction mirrored.
-      A deferred item filed against a future or non-phase label stays perfectly legal, which is
-      most of this file.
+      It is not specific to phase 11, and it is no longer one instance. There are four, across
+      three phases. Phase 11 left six. Phase 12 left the three entries that were its own headline
+      deliverables - RAISE-SIZE-IN-SPOT-KEY, SECOND-ORBIT-PREFLOP-SPOTS and
+      PHASE-11-MOVED-NUMBERS-AWAIT-REMEASUREMENT - and was caught at stage 9 the same way phase 11
+      was, by somebody reading the backlog beside the audit packet. Phase 12 then did it a second
+      time with the items filed against it after the tag: FROZEN-TESTS-PREDATE-THE-SIZED-SPOT-KEY
+      and SQUEEZE-REFUSAL-COUNT-INCLUDES-A-SECOND-ORBIT-ROW both sat deferred against a completed
+      phase until 2026-08-22, when a peer session closed them on main against dd52b5b. And phase 13
+      filed five items against itself and had all five still at deferred when it reached stage 9;
+      that too was caught by a peer session rather than by any check. Three of the five closed and
+      two did not - ASYMMETRIC-EFFECTIVE-STACKS and BLIND-STRUCTURE-VARIANTS moved to phase 14 -
+      and telling those apart took an audit of each entry against the code, because the phase's own
+      description of itself claimed all five as settled. So the check being absent is not the only
+      cost: the work of settling an item is not mechanical either, and nothing in the closeout says
+      who does it.
+      The same phase 13 stage-9 pass found the mirrored defect one level up. A stage-8 review note
+      asserted that three of its alignment items had been filed in backlog.yml, and they had not
+      been; one of them was an append to an existing entry, SEAT-STATE-MARKERS-AGREE-WITH-NOTHING,
+      that was never made, and the bullet read as though it already had. That is the same shape as
+      this entry - a claim about the record that nothing checks against the record - and whatever
+      rule closes this one should be written wide enough to reach a review note's filing claims as
+      well as a phase's own items.
+      Live instances at this commit, verified rather than asserted: phase_status.yml has phase 12
+      completed, and on this branch FROZEN-TESTS-PREDATE-THE-SIZED-SPOT-KEY,
+      SQUEEZE-REFUSAL-COUNT-INCLUDES-A-SECOND-ORBIT-ROW and
+      SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE all still read deferred against
+      it. Two of those three are stale rather than open: this branch is behind main, where the
+      first two were marked done on 2026-08-22. Only the third is genuinely open there, because
+      d31d3ef re-settled its number and left the design problem standing. A reader on main should
+      expect one live instance and a reader here three, which is itself worth noticing - the
+      contradiction this entry describes can also be manufactured by a branch that has not merged.
+      Every phase from here closes the same way, because AGENTS.md's Task Closeout does not tell a
+      phase to settle the backlog items it just fixed either - the process rule is missing before
+      the check is. That ordering is why this is filed as contract-update rather than as tooling:
+      something has to say what the rule is before a check enforces it, and the same closeout
+      probably owes the reverse direction too, since an item marked done whose phase is still
+      future is the same contradiction mirrored. A deferred item filed against a future or
+      non-phase label stays perfectly legal, which is most of this file.
       Found by MAINT-23, which did the bookkeeping and deliberately did not write the check,
       because a gate check added in the same commit as the correction it would have caught is a
       check reviewing its own motivation.
@@ -1117,6 +1445,39 @@ items:
       Filed against phase 14 rather than fixed in phase 12 because changing the metric changes
       which cell a price reaches, and phase 12's committed keys are what phase 14 is measured
       against. Found by the phase 12 stage-8 poker review.
+
+      **This entry is filed the wrong way round, and the phase 13 stage-8 poker review measured
+      it.** Reading it, the defect is a choice of metric that is latent because no location holds
+      two candidates. Reading the code, the absence of a second candidate is not what makes it
+      latent - it is what makes it LIVE. `normalise` applies no bound of any kind, so with one
+      candidate per line every asked price collapses to the solved one however far away it is.
+      The metric question is genuinely latent. The missing tolerance is not, and it is reachable
+      on the flattest, most ordinary table this bot will ever see.
+
+      Measured on a flat unstraddled six-handed 100bb table at 50/100, hero in the big blind.
+      Twelve hand classes answered identically, hand for hand and weight for weight, against a
+      2.5bb, a 4bb and a 5bb open. Against the 5bb open hero pays 400 into 650 for 38.1% pot
+      odds out of position, from a cell solved for a hero paying 27.3%; 76s calls. Against a 20bb
+      open it inverts outright: 76s still calls at 46.9% pot odds and AA REFUSES, and the aces
+      refuse only because the charted 13.5bb three-bet falls below the minimum re-raise over a
+      20bb open. That is a refusal by arithmetic accident. Nothing refuses the price itself, so
+      every hand the cell calls or folds is answered whatever was bet.
+
+      The raise size is wrong in the same direction. The three-bet is a fixed 13.5bb whatever the
+      open was: 5.40x over a 2.5bb open, 3.38x over 4bb, 2.70x over 5bb, and 1.93x over a 7bb
+      open, where the minimum legal re-raise is 13.0bb - so the bot min-three-bets aces. The
+      corpus hides all of it, because only 3 substituted raises moved more than 3.00bb and 1,010
+      of 1,025 moved toward the tighter range.
+
+      Two consequences for whoever picks this up. First, the fix that matters is a BOUND that
+      refuses a price too far from any solved one, and it is worth more than the metric change
+      this entry was filed for - fail-closed is the house rule everywhere else in the chart path
+      and this is the one place a price silently substitutes without limit. Second, and this is
+      why phase 13's stage-8 review raised it at all: phase 13 spent itself refusing a table
+      where one live opponent is off by a single chip, in the same tree where the bot calls off
+      19bb with 76s because an open price was snapped by a factor of eight. The strictness is
+      pointed at the wrong end of the game. A 5bb open is the standard open in exactly the home
+      games phase 13's own contract says this bot is pointed at.
   - id: RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL
     status: deferred
     phase: "14"
@@ -1152,7 +1513,686 @@ items:
       because the fix is a rule about where a cross-cutting defect is filed when several lanes
       are open, not a check that can be written before that rule exists. Found by the phase 12
       stage-8 review, which is also the review that caused the duplicate.
+  - id: STRADDLE-SIGNAL-MISREADS-A-SHORT-ALL-IN-RAISE
+    status: done
+    phase: "13"
+    title: The straddle detector's minimum-raise prediction reads a short all-in raise as a straddle
+    reason: >-
+      Closed inside phase 13, at stage 6, after being filed as deferred earlier in the same
+      stage. The defect was real: the third straddle signal walked the recorded raises with no
+      floor on the increment, and a history records a short all-in as an ordinary raise, so a
+      seat shoving for less than a full raise predicted a smaller minimum than the engine offers
+      and the strategy announced a straddle in a pot where nothing was forced. Worked case at
+      50/100: the lojack opens to 250, a 300-chip stack shoves to 300, the engine correctly holds
+      the minimum raise at 150 and offers 450, the unfloored walk predicted 350, and the bot said
+      `pot-holds-a-straddle` about a 3bb shove.
+      This entry first recorded it as deferred, on the builder's reasoning that flooring the
+      increment would also hide a genuine straddle of exactly one big blind and that the right
+      floor waited on MIN-RAISE-OVER-AN-INCOMPLETE-ALL-IN-BET. **That reasoning was wrong and the
+      stage-6 poker review showed why.** A straddle perturbs only the FIRST increment, and that
+      increment is a full raise measured from a level above the declared big blind, so it is never
+      below the floor - flooring therefore detects every straddle the unfloored walk detected and
+      costs nothing. The walk now mirrors `BettingRoundState.apply` exactly: the minimum starts at
+      the big blind and a recorded raise updates it only when its own increment is at least the
+      minimum standing.
+      Verified rather than argued: the floored walk reproduces every minimum-raise target the
+      frozen phase 13 tests pin, including both straddle detections at 1,100 against an offered
+      1,000, the unstraddled negative control agreeing at 1,100, the three-bet table at 1,350 and
+      the substituted-price probe at 350. The short-shove case now predicts 450 and agrees. It was
+      unreachable on committed data - 0 of 515 preflop raises across the 499 corpus hands has an
+      increment below the running minimum - which is why no test caught it and why an independent
+      reviewer had to.
+      Recorded as done rather than deleted, because the wrong reason is the useful part: an
+      unreachable defect with a plausible argument for leaving it is exactly what a review is for.
+  - id: MUTATION-DRILL-CHECKOUT-DESTROYS-UNCOMMITTED-WORK
+    status: deferred
+    phase: contract-update
+    title: Restoring a hand-applied mutation with git checkout throws away the uncommitted build
+    reason: >-
+      The loop requires a builder to prove a canary bites, which means applying the mutation
+      by hand and restoring the file afterwards. The obvious restore is
+      `git checkout -- <file>`, and on a file that is modified against HEAD - which is every
+      file a builder has just written - that restores the pre-phase version rather than the
+      pre-mutation one, silently discarding the work being verified. Phase 13 hit it twice
+      across two lanes and both workers noticed in time by taking a checksummed scratch copy
+      instead.
+      Nothing in the repo says so. docs/LOOP.md describes the drill without naming the
+      hazard, and no check can catch it because the destroyed state was never committed. The
+      fix is a rule in docs/LOOP.md, or a helper that snapshots and restores, and either is
+      loop-driver territory a phase task must not reach. Filed as contract-update on the
+      LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS precedent.
+  - id: TABLE-STATE-REPORT-RENDERER-HAS-NO-SIZE-CAP
+    status: deferred
+    phase: contract-update
+    title: The report renderers under scripts/ are capped by nothing and one is now 1889 lines
+    reason: >-
+      check_file_sizes caps src/**/*.py at 500 lines, tests at 700, contracts at 300 and
+      several document classes besides, and covers scripts/ with nothing at all. Phase 13's
+      generate_table_state_report.py is 1,889 lines, larger than any module in the repo by a
+      factor of nearly four, and it got there legitimately: the module/render split the cap
+      forces put the measurement and its validators under table_state/, and everything the cap
+      did not reach went into the script.
+      So the cap did not prevent a large file, it chose which file would be large, and the
+      one it chose is the one nothing measures. The same pressure will recur at every phase
+      that owes a human-readable report - phase 08 already split comparison.py for it. The
+      answer is a limit on scripts/**/*.py with a number somebody rules on, which is
+      check-script territory a phase task must not reach. Found by the phase 13 stage-6
+      report builder, which flagged its own module as one line from the cap.
+      Sharpened by the stage-6 review across three fix rounds, because the pattern is worse than a
+      single tight file. Round two paid for a new validator by moving a probe set out of
+      measures.py into the uncapped script, buying 26 lines and spending 27 - so the module the
+      relocation was meant to relieve ended at 500 of 500 while preflop_chart.py fell back to 499.
+      Two consecutive fix rounds each ended with one of the two files exactly at the cap. The cap
+      is not preventing large files, it is choosing which file grows, and it keeps choosing the
+      one nothing measures: the renderer went 1,135 to 1,195 to 1,372 lines over the same rounds.
+      Any further work on this report has to start by paying a line for a line in a file with no
+      headroom, which is the point at which a reviewer stops being able to tell a trimmed docstring
+      from a lost argument - and one round of trimming already dropped half of a stated residual
+      out of the code, caught only because a reviewer read every removed line.
 
+      **Re-measured after stage 8, and both halves of the pattern got worse.** The renderer is now
+      1,889 lines - 1,135 to 1,195 to 1,372 to 1,889 across four rounds - grown by the stage-8
+      round adding the four-structure blind-structure measurement and its validator,
+      one_key_two_tables replacing a demonstration that verified a pair of English labels,
+      validate_bound_coverage, validate_residual_seat, and a census probe carrying two dead blinds
+      of different sizes so the residual-seat rule has something that distinguishes it. Every one
+      of those is a check that makes a published claim falsifiable, which is the work this repo
+      most wants done, and every one of them landed in the file nothing measures because that is
+      the only file with room.
+      The capped side is now pinned rather than merely tight. measures.py had to be split at stage
+      8 when the fix round pushed it to 613 and contract.py to 515; they sit at 340, 338 and 498.
+      But src/poker_training_bot/strategy/preflop_chart.py is at exactly 500 of 500, so the next
+      edit to it, however small, reddens check_file_sizes before it is reviewed. That is the same
+      trap as ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP, where PHASE_11_ENGINE_FIDELITY.md sits
+      at exactly 300 of 300 and therefore cannot take the two-line amendment it owes - two files in
+      one repo now converting any future one-line fix into a refactor, one source and one contract,
+      found in the same phase.
+      So the ruling this entry asks for is wider than a number for scripts/**/*.py. A cap that only
+      fails after the fact punishes the correction rather than the growth, and AGENTS.md forbids
+      raising a cap to fit an amendment, which is the right rule and is exactly what leaves a file
+      at the cap with nowhere to go. What is worth ruling alongside the scripts/ limit is a warning
+      band - a check that reports a file within some margin of its cap while there is still room to
+      act - so that a file arrives at its cap as a scheduled split rather than as a surprise in the
+      middle of a fix. Still check-script territory a phase task must not reach.
+  - id: STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE
+    status: deferred
+    phase: strategy
+    title: A straddled pot with two or more recorded raises reaches the chart and is answered
+    reason: >-
+      Phase 13's third straddle signal compares the minimum raise the query offers against the
+      one the declared blinds and the recorded raise-to amounts predict. That prediction is the
+      final level plus the last increment, and a straddle perturbs only the FIRST increment, so
+      past one raise the prediction is a difference of two recorded amounts and is identical
+      straddled or not. Signal 1 cannot help, because a raiser's predicted contribution is its
+      own raise-to amount and that absorbs any forced money it posted earlier; signal 2 is
+      absorbed the moment the straddler acts. So signal 3 fires only on single-raise pots, which
+      is what every fixture and probe for it happens to be.
+      The consequence is worse than a mis-coded refusal, and it is the one place phase 13's
+      headline claim does not hold. Constructed on committed code with no mutation: 50/100
+      declared, a straddle to 200, a raise to 500, a three-bet to 2700, and `chart_lookup`
+      returns a ChartHit while `weights_for` hands back the UNSTRADDLED range through a price
+      substitution. That is answering a straddled spot by reaching for a neighbouring cell,
+      which the phase 13 contract names as a forbidden shortcut.
+      Not fixable inside phase 13's vocabulary, and this is the reason rather than an excuse: the
+      straddle's trace is genuinely destroyed once its poster raises, and the only thing that
+      recovers it is a declared blind structure on the query, which decision 8 considered and
+      declined as the format change the phase is scoped out of. Any guard written without it
+      over-refuses ordinary unstraddled tables. Found independently by both phase 13 stage-6
+      reviewers; the mechanical one produced the ChartHit.
+  - id: SEAT-STATE-MARKERS-AGREE-WITH-NOTHING
+    status: deferred
+    phase: strategy
+    title: The per-seat folded and all-in markers are validated by nothing and cross-checked against nothing
+    reason: >-
+      Decision 5 put an explicit folded marker on the query rather than deriving it, and decision
+      14 put an all_in marker beside it, both on the reasoning that deriving either is wrong at
+      the edges. Both arguments hold. What neither decision provided is a check: `SeatState.all_in`
+      is read by no decision path at all, and `folded` is read only by the live-seat filter, so a
+      producer that sets either wrongly is caught by nothing.
+      Decision 5 saw half of this and said so - the pot reconciliation cannot catch a mis-set
+      folded marker, because a folded seat's chips are in the pot either way - and concluded that
+      over-refusing is the safer failure. That is true and it is not the same as being checked.
+      The markers can also disagree with the rest of the query without objection: an all-in seat
+      with chips behind, a folded seat that the recorded action history shows still acting, a seat
+      marked neither that has nothing behind and owes nothing. Each is expressible today.
+      Closing it means cross-validating the markers against `stacks` and against
+      `preflop_actions`, which is query-validation work rather than poker work. Found by the phase
+      13 stage-6 mechanical review.
+
+      **The same root, found again at stage 8, on the field beside them.** `preflop_actions` was
+      validated as a bag of seats rather than as an action sequence: entries had to be SeatActions
+      naming seats at the table, and nothing checked that the sequence was one a betting round can
+      produce. Three consumers each then reconstructed their own inconsistent defence against the
+      histories that got through, which is how a raise-to below the standing level corrupted both
+      level walks in table_state/forced_money.py and made the strategy announce a straddle, and
+      then a residual, about a pot with nothing forced in it. Phase 13 closed that one class at the
+      boundary - the query now walks the level through preflop_actions and refuses a raise-to that
+      does not exceed it - and the general point is the one filed here: a query field validated for
+      well-formedness but not for reachability pushes the real check out to every consumer, and the
+      folded and all_in markers are the same shape of hole with no boundary rule yet. The answer is
+      one validation rule on the query rather than three patches, and it should be ruled once
+      across the markers and the history together. Raised by the phase 13 stage-8 mechanical review
+      and appended here, which is where that note said it belonged.
+  - id: SPOT-KEY-LEGAL-ORDER-OVERCLAIM-IN-PHASE-12-CONTRACT
+    status: deferred
+    phase: contract-update
+    title: A completed Phase 12 acceptance criterion still claims the spot key validates a legal preflop order
+    reason: >-
+      Phase 13 corrected `spot_key`'s docstring, which claimed the module validates a "legal
+      preflop order" when the check behind it verifies the action order and that hero is still to
+      act, and never verifies a price: it applies no minimum-raise rule, carries one table-wide
+      depth rather than a per-seat one, and cannot tell a short all-in call from a full call.
+      Correcting only the docstring leaves `docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md:105`
+      asserting the stronger claim, and a contract outranks a docstring for the next reader.
+      The phase 13 contract anticipated exactly this and offered two ways out - amend the Phase 12
+      contract, or file the mismatch by id. Amending a completed contract needs contract-update
+      mode, which an implementation task may not enter, so this is the filed alternative rather
+      than an oversight. Found by the phase 13 stage-6 mechanical review, which noticed the
+      contract's own alternative had been taken by neither route.
+  - id: BIG-BLIND-ANTE-CLASSIFIES-AS-THE-RESIDUAL
+    status: deferred
+    phase: strategy
+    title: A big-blind ante is refused as unrepresentable rather than as an ante
+    reason: >-
+      Phase 13 reads forced money as an ante when every seat carries the same unexplained amount,
+      and as the kept residual `blind-structure-not-representable` otherwise. A big-blind ante -
+      one seat posting the whole ante for the table, which is the standard modern tournament
+      structure - therefore lands in the residual. The arithmetic is right: a 50/100 game with a
+      100 big-blind ante gives 250 in the middle and hero still owes the full 100, which is what
+      a real room gives. Only the classification is wrong, and decision 16's whole argument for
+      two codes is that an ante and a straddle change the correct ranges differently. A five-of-six
+      ante, one seat sitting out, lands in the residual for the same reason.
+      Recorded as not fixable in phase 13 rather than missed. A single-seat ante and a folded
+      seat's dead blind are indistinguishable from the query alone - both are one seat holding
+      unexplained money - and a frozen phase 13 test pins the dead-blind case to the residual code.
+      Telling them apart needs the declared blind structure decision 8 declined, the same field
+      STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE waits on. Found by the phase 13 stage-6 poker review.
+  - id: DEPTH-CHECK-ORDER-HIDES-THE-SHORT-OPPONENT
+    status: deferred
+    phase: strategy
+    title: Deeper-before-shallower means the depth a re-ruling needs is recorded in under one spot in eleven
+    reason: >-
+      Decision 7 checks a live seat DEEPER than hero before a live seat SHALLOWER, and its stated
+      reason is compatibility: deeper is the check that already existed and keeping its precedence
+      means no spot changes which code it refuses with. In poker the two are not comparable.
+      Effective stack is the minimum of hero and villain, so a live opponent deeper than hero
+      barely moves hero's correct preflop range in a cash game, while a live opponent shorter than
+      hero changes it completely. The order puts the near-harmless condition in front of the
+      decisive one.
+      Measured over 4,000 plausible live 1/2 tables with whole-dollar stacks from 30 to 600:
+      `table-is-not-one-flat-stack-depth` fires 40.3 percent of the time and
+      `a-live-seat-is-shorter-than-hero` 8.8 percent. With five opponents somebody is almost
+      always deeper, so the code decision 6 exists to create only fires when hero happens to be
+      the deepest player at the table. The shortest live opponent's depth is the one number a
+      tolerance band would have to be set against, and it therefore reaches the refusal inventory
+      in fewer than one spot in eleven - which is a problem for whoever re-rules decision 6, since
+      the inventory is the evidence that re-ruling was meant to rest on.
+      Re-ordering is a re-ruling of decision 7 and so belongs to a contract-update task with the
+      decision record open, not to an implementation edit. Found by the phase 13 stage-6 poker
+      review.
+  - id: QUERY-CANNOT-EXPRESS-A-DEAD-BLIND
+    status: deferred
+    phase: strategy
+    title: StrategyQuery carries two live blinds and cannot say a blind is dead or partial
+    reason: >-
+      `StrategyQuery.blinds` is a two-tuple of positive amounts with the small no larger than the
+      big, so a dead big blind, a partial live blind, and a game running more than two blinds are
+      all inexpressible. Phase 13's stage-6 poker review set out to ask what the straddle and ante
+      detection does with a dead big blind and could not put the case in front of the detector at
+      all, which is a gap in what the query can SAY rather than a defect in what the detection
+      does with it.
+      The nearest expressible thing is extra unexplained money on one seat, which reaches the kept
+      residual code, so nothing is currently answered wrongly. It matters because a dead blind is
+      ordinary in the home games this bot is pointed at, and because the phase 13 detection is
+      built on reconstructing each seat's holding from the DECLARED blinds - a declaration that
+      cannot describe the game is a reconstruction that starts from the wrong number. Same
+      declared-blind-structure work as BLIND-STRUCTURE-VARIANTS.
+  - id: ALL-IN-SEATS-COUNT-AS-SEATS-THAT-CAN-ACT
+    status: deferred
+    phase: strategy
+    title: The flat-table check compares all-in seats, while every prose justification for it says it should not
+    reason: >-
+      `_table_depth_bb` excludes only seats marked `folded`, so a seat that is all-in is compared
+      against hero's depth as though it could still act. Its own docstring justifies the rule as
+      "effective stack is pairwise and against seats that can still act", decision 6 of the phase
+      13 record justifies the folded exemption in the same words, and the engine defines a seat
+      that can act as not folded, not all-in, and holding chips. Three statements, one behaviour,
+      and they disagree.
+      Measured: 50/100 six-handed, a 20bb seat shoves, two 100bb seats call, hero is the big
+      blind at 100bb. The refusal is `a-live-seat-is-shorter-than-hero (seat 2, starting_chips
+      2000, stack_depth_bb 20)`. It calls an all-in seat a live seat, and the stated reason for
+      choosing the shortest seat - that it caps hero's effective stack and is the number a future
+      tolerance would be set against - is false here: hero's effective stack against the two
+      seats that can still act is 100bb, and the 20bb reported caps nothing hero can still choose
+      to risk. A covered short all-in pins the reported depth to a dead stack permanently.
+      It reaches committed evidence. On `phase02-three-way-side-pot` from seat 0's chair the
+      reported deeper seat is seat 2, which is all-in; excluding all-in seats would name live
+      seat 1 at 10bb instead. That row is the phase's single behavioural change in a committed
+      report.
+      **Not a request to exempt all-in seats.** A short all-in genuinely un-flattens the table
+      and refusing is right poker. What is wrong is that the reported number is not an effective
+      stack, and whoever re-rules decision 6 will set a tolerance against it. Fixing it means
+      ruling what "which seats count" means and saying it once, which is decision-record work
+      rather than an implementation edit. Found by the phase 13 stage-8 poker review.
+  - id: STRADDLE-REFUSAL-DOES-NOT-SAY-WHICH-GAME-IT-IS
+    status: deferred
+    phase: strategy
+    title: A straddle refusal reports the detector's arithmetic instead of the game being played
+    reason: >-
+      One straddle produces two disjoint detail vocabularies depending on which signal caught it:
+      `bet_level` and `big_blind` in an unraised pot, `min_raise_target` and `predicted_min_raise`
+      after a raise. The second describes the DETECTOR rather than the table. Neither reports what
+      decides the poker, which for a 200 straddle at 50/100 is that the table is a 100/200 game
+      with 50bb stacks. A work-list reader cannot group the two rows and cannot tell which depth a
+      chart phase would have to solve.
+      The phase also nowhere records the distinction a strong player uses constantly, and it is
+      the thing that turns this from a labelling complaint into a work list. A BIG BLIND straddle
+      is a pure blind-level change: the order is unchanged, the straddler still acts last preflop
+      and first postflop, so 50/100 with a 200 big-blind straddle IS a 100/200 game at 50bb with
+      an undersized small blind, and it would be answerable from a `d50` artifact nobody has
+      solved yet. A UTG or button straddle is a blind-level change PLUS a position permutation -
+      at six-max a lojack straddle makes the preflop order HJ, CO, BTN, SB, BB, LJ, so the
+      straddler holds the big blind's preflop slot and the lojack's postflop slot, and no
+      relabelling of an existing chart covers it. One is a depth problem and the other is a new
+      solve. Phase 13 merges both under one code, one detail shape and one sentence, which is true
+      and teaches nothing. Found by the phase 13 stage-8 poker review.
+  - id: REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL
+    status: deferred
+    phase: simulator
+    title: The refusal inventory keys on the whole detail tuple, so exact per-seat chips shatter it into singletons
+    reason: >-
+      `SimulationResult.refusal_inventory` groups rows on the refusal code plus the ENTIRE detail
+      tuple, with `hand_class` lifted out. That worked while the detail was a low-cardinality
+      spot key. Phase 13's stage-6 fix gave all three depth codes `seat`, `starting_chips` and
+      `stack_depth_bb`, rendered exactly, for the good reason that whoever re-rules decision 6
+      needs the numbers - and at a real table every hero stack is distinct, so
+      `stack-depth-not-a-whole-big-blind` yields one singleton row per distinct chip count, each
+      rendering as `(no expressible spot)` with a count of 1. The row that used to say "go solve
+      `t6/d100/BB/CO:raise@2.5`" is gone.
+      This is the repo's most useful artifact degrading: the inventory is described as the work
+      list for whatever chart phase comes next, ordered by how many hands reached each spot, and
+      a list of singletons ordered by a count that is always 1 is not a work list. Both committed
+      inventories are byte-identical today, which is exactly why nothing caught it - the flat
+      corpus and the flat-stack simulator cannot produce a depth refusal at all.
+      The fix that made refusals informative for the re-ruling is the same one that made them
+      useless for grouping, so the answer is not to undo either: the inventory needs a per-code
+      grouping key rather than the whole detail tuple. It lives in `simulator/measure.py`, which
+      phase 13 has no business in. Found by the phase 13 stage-8 poker review.
+
+      **The same detail tuple is also INCOMPLETE, and the two faults have one fix.** A second
+      stage-8 poker reader found that `_depth_refusal` names only the villain: `seat`,
+      `starting_chips` and `stack_depth_bb` for the offending seat, with hero's own depth
+      nowhere in the detail for either `a-live-seat-is-shorter-than-hero` or
+      `table-is-not-one-flat-stack-depth`. Measured:
+      `a-live-seat-is-shorter-than-hero (seat 2, starting_chips 2000, stack_depth_bb 20)`.
+      Effective stack is `min(hero, villain)` and a tolerance is a ratio or a difference, so both
+      need both numbers. The stated purpose of this detail is that whoever re-rules decision 6
+      needs a figure that cannot be backfilled - and half of it cannot be backfilled either: a
+      20bb opponent against a 100bb hero and a 20bb opponent against a 25bb hero are one row
+      today and are different tables.
+      Recorded here rather than fixed in phase 13 because the two findings pull opposite ways on
+      the same tuple. Adding `hero_starting_chips` and `hero_stack_depth_bb` is additive and
+      changes no refusal code, but at a real table it also makes every row a singleton harder,
+      so fixing the completeness half alone deepens the fragmentation half. The single design
+      that answers both is a per-code grouping key plus a complete pairwise detail, ruled once.
+  - id: ANTE-WITH-A-SHORT-ALL-IN-CALLER-TAKES-THE-RESIDUAL
+    status: deferred
+    phase: strategy
+    title: A uniformly anted table is named after one seat's ante as soon as somebody calls all-in for less
+    reason: >-
+      The ante branch classifies forced money as an ante only when every seat holds the same
+      unexplained amount. A seat that calls all-in for less than the level is below its predicted
+      contribution, so it drops out of the unexplained set entirely, the seat count no longer
+      matches, and a table where all six seats posted the same ante is refused as
+      `blind-structure-not-representable` named after one seat's ten chips.
+      Measured: 50/100 six-handed with a 10 ante from every seat, the cutoff opens to 250, and a
+      200-chip stack calls all-in for 190. An all-in RAISER survives and still reports
+      `pot-holds-an-ante (ante 10)`; it is specifically the sub-level call that breaks it. Antes
+      plus a short all-in caller is the commonest shape in tournament poker, so this trigger is
+      far more common than the big-blind-ante case filed as
+      BIG-BLIND-ANTE-CLASSIFIES-AS-THE-RESIDUAL, and it has the same root: uniformity across
+      every seat is too strong a test for "this is an ante". Found by the phase 13 stage-8 poker
+      review.
+  - id: BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE
+    status: deferred
+    phase: "14"
+    title: The committed artifact does not declare its blind structure, and nothing compares the table's ratio against it
+    reason: >-
+      `data/artifacts/preflop/six_max_nl25_100bb.json` declares `table_size` and
+      `stack_depth_bb` and says nothing about the blinds it was solved at. `StrategyQuery.blinds`
+      carries the real ratio and no consumer reads it for that purpose: `contract.py` validates
+      only `0 < sb <= bb`, `SimulationConfig` the same, `data_pipeline/corpus.py` accepts any two
+      positive blinds, and no comparison of `small_blind` against `big_blind / 2` exists anywhere
+      in `src/` or `scripts/`.
+      Measured, hero in the small blind facing a 2.5bb button open, all 169 canonical hand
+      classes through `weights_for`. At 50/100 hero pays 2.000bb into 4.000bb for 33.3% pot odds.
+      At $1/$3 hero pays 2.167bb into 3.833bb for 36.1%; at $2/$5, 2.100bb into 3.900bb for
+      35.0%; at $5/$5, 1.500bb into 4.500bb for 25.0%. Zero of 169 hand classes moved a single
+      weight in any of the three, and zero refused. An 11-point swing in the price hero is
+      offered, and not one weight responds to it.
+      These are the target games. The contract names home games twice and the report says "common
+      in the home games this bot is pointed at" about the straddle. $1/$3 and $2/$5 are the
+      dominant live and home structures and $1/$1, $2/$2 and $5/$5 are ordinary home
+      configurations; $1/$2, the only common structure with sb = 0.5bb, is the exception rather
+      than the rule. `corpus.py` would parse a $1/$3 history today without complaint and every
+      agreement rate computed from it would be graded against a half-blind solve with nothing
+      anywhere saying so.
+      It is also this phase's own standard applied inconsistently: phase 13 refuses a table where
+      one live opponent's starting stack differs by a single chip, an effect of exactly zero, and
+      answers a $5/$5 game where the small blind's dead money is doubled and hero's continuing
+      price moves by a third. The small blind's extra half a big blind is forced money the format
+      does not declare, which is the same sentence the ante refusal rests on.
+      **Filed against phase 14 rather than fixed in phase 13, and the reason is the phase's own
+      thesis.** The check is cheap and needs no format change - the blinds are already on the
+      query. What is missing is the other operand: the ratio the artifact was solved at is not
+      recorded anywhere, so any check written today would hardcode a reconstruction of an
+      undeclared property of a committed artifact, which is precisely the defect phase 13 exists
+      to end appearing inside the phase that ends it. The fix is to make the artifact declare its
+      blind structure and then compare, which is artifact work. Phase 13's honest half was done:
+      the report's headline claim is narrowed and the measurement above is on the page. Found by
+      the phase 13 stage-8 poker review.
+      One layer below this, and recorded here so the fix is not scoped to the artifact alone:
+      `hand_history.schema.BlindStructure` is exactly small_blind and big_blind and rejects a small
+      blind above the big one, so the recording format cannot hold a straddle or an ante either -
+      but $5/$5 does construct, which is why the game this entry measures is recordable and then
+      silently answered. Filed in full under BLIND-STRUCTURE-VARIANTS.
+  - id: COVERING-STACK-REFUSES-WITH-NO-POKER-CONTENT
+    status: deferred
+    phase: strategy
+    title: The deeper branch of the flat-table test refuses tables a strong player would play from the 100bb chart
+    reason: >-
+      Effective stack is pairwise and is the minimum, so when hero holds exactly 100bb and every
+      live opponent covers hero, hero's effective stack against each of them is exactly 100bb and
+      `d100` - the only chart this repo holds - is the correct chart. The bot refuses.
+      Measured at 50/100 with hero pinned at exactly 100bb, the only answerable depth, over 4,000
+      six-handed tables with the other five stacks drawn uniformly from 40bb to 300bb, all live:
+      3,997 tables (99.9%) refuse `table-is-not-one-flat-stack-depth` and 3 (0.1%) refuse
+      `a-live-seat-is-shorter-than-hero`. Of the total, 1,046 (26.1%) are tables where EVERY live
+      opponent covers hero - the chart is right and the bot refuses. Villains at 100.01bb against
+      a 100bb hero is enough: `table-is-not-one-flat-stack-depth (seat 2, starting_chips 10001,
+      stack_depth_bb 100.01)`. Villains at 300bb returns the same code.
+      So better than one table in four, among those where hero is on-chart, is refused for a fact
+      about the game that changes nothing hero can do. The other branch has real poker content -
+      a 20bb seat behind genuinely changes hero's ranges - and the phase has the two backwards in
+      weight: the branch with no content fires first and swallows almost everything, and the
+      branch decision 6 was created for is measured at 0.1% here. This is a different claim from
+      the stage-6 note's decision-7 finding, which argued about ordering and about which depth
+      reaches the inventory; the claim here is that the deeper branch should not be a refusal at
+      all, because a covering stack is not a table shape but the ordinary condition of every real
+      cash game.
+      Deferred rather than fixed because Taylor ruled decision 6 at exact equality on 2026-08-21
+      and frozen tests pin it, so reversing it is a task with `tests/**` reopened. What the record
+      should carry is what he was actually asked: one question covering two cases with opposite
+      poker content, whose stated alternative was framed entirely around an opponent "short enough
+      to change the price hero is being offered". The covering case was never put to him, and the
+      deeper check inherited exact equality by default from a pre-existing rule rather than by
+      ruling. Whoever re-rules decision 6 should rule the covering case separately, and the
+      natural answer is that it does not refuse. Found by the phase 13 stage-8 poker review.
+  - id: LIVE-BLIND-LEVELS-MAKE-ORDINARY-OPENS-UNRENDERABLE
+    status: deferred
+    phase: "14"
+    title: The only price guard in the chart path fires on a divisibility accident rather than on poker
+    reason: >-
+      `PreflopChartStrategy._size_bb` refuses a raise-to that is not an exact hundredth of a big
+      blind, which is a property of the blind level rather than of the poker. At 50/100 it never
+      fires. Measured with hero in the big blind and the cutoff opening, in a $1/$3 game where
+      100bb is $300: $6 (2.000bb), $9 (3.000bb), $12 (4.000bb) and $15 (5.000bb) all render
+      exactly and are answered, each substituted down to the solved 2.5bb cell, while $10
+      (3.333bb) and $20 (6.667bb) are refused
+      `raise-price-not-a-whole-hundredth-of-a-big-blind`. $10 is the standard open in a live $1/$3
+      game. It is refused, while $15 - a strictly worse fit to the 2.5bb cell - is answered by
+      snapping the price down by a factor of two. In a $2/$5 game, where 500 divides more of the
+      plausible opens, every open from 3bb to 6bb renders exactly and nothing refuses at all.
+      So the one guard in the chart path that does fail closed on price is gated on whether
+      `open_chips / (100 * bb)` terminates in two decimal places, and at exactly the stakes where
+      opens are largest and most varied it fires effectively at random, uncorrelated with how far
+      the asked price is from any solved one. It should be replaced by, or subordinated to, a
+      bound on the substitution distance - which is the fix the addendum to
+      NORMALISER-MEASURES-DISTANCE-IN-BIG-BLINDS already argues is worth more than the metric
+      change that entry was filed for. The two are the same fix seen from two sides and should be
+      taken together. Found by the phase 13 stage-8 poker review.
+  - id: LOOP-ADDS-NO-CANARY-FOR-A-FIX-FOUND-AFTER-STAGE-4
+    status: deferred
+    phase: contract-update
+    title: Mutation canaries are frozen before the fixes they would have to cover exist
+    reason: >-
+      verification/mutations.yml is authored at stage 4, before any implementation, and that is
+      right: a canary written after the code it mutates is a canary written to pass. The
+      consequence nobody planned for is that every fix found at stage 6 or stage 8 arrives with
+      whatever coverage happened to already exist, and check_gate_bite therefore proves nothing
+      about behaviour added after the freeze. A green gate plus a biting canary set reads as
+      "every committed behaviour is proved to matter", and for post-stage-4 fixes it is not that
+      claim at all.
+      Phase 13 produced three instances in one phase. The stage-6 extremal-seat hole reverted green
+      across all 954 tests. Both of the earlier stage-8 pass's fixes did too - one of them, the
+      residual-seat rule, was guarded only by a report validator that no canary named, so reverting
+      the fix and dropping the validator together left the entire gate green while the report
+      published a false seat. Each was closed only because a reviewer asked for a canary by hand,
+      and the fourth reviewer's whole brief that round was this failure mode because the phase had
+      already produced it twice. Three saves by attention is not a check.
+      Where the fix lives is loop-driver territory a phase task must not reach: either the loop
+      gains a stage that re-opens mutations.yml for behaviour added after the freeze, with the same
+      "prove it bites in both directions" requirement, or every stage-6 and stage-8 behavioural fix
+      owes a named canary before its review can close.
+      Whoever takes this also owes a documentation edit, recorded here because phase 13 is not
+      widening scope to docs/** for it. docs/LOOP.md has a "Known gaps" section opening "Four
+      things this machinery cannot catch, kept here rather than in a commit message." It should
+      become five, and this entry is the fifth: the four listed gaps are all about a check that
+      cannot see something, and this one is about a check whose coverage is frozen before the thing
+      it should cover is written. Raised by the phase 13 stage-8 mechanical review.
+  - id: REPORT-VALIDATORS-CAN-HOLD-GUARDS-THAT-CANNOT-FAIL
+    status: deferred
+    phase: contract-update
+    title: A validator guarding a published claim can be unfalsifiable, and nothing mechanical says so
+    reason: >-
+      This repo's report generators refuse to publish unless their own validators pass, which is
+      the mechanism that makes a published number a checked claim rather than a printed one. A
+      validator whose predicate is provable from the types or the construction of its inputs looks
+      identical to a real one and asserts nothing, so the claim beside it is decoration while
+      reading as evidence - and it is worse than no validator, because the next reader stops
+      looking.
+      Measured in phase 13, in one file, across two stages. Stage 6 found one. Stage 8 found three
+      more in scripts/generate_table_state_report.py: `under_raises > facing_a_raise` and
+      `short_all_in_calls > with_a_recorded_call` both hold pointwise by construction, because the
+      predicate that increments each numerator requires the entry its denominator counts, and the
+      census `accounted == len(probes)` compared a .get with a default over four names against a
+      total it could not miss. All three were strengthened rather than deleted - the comparisons
+      became the zeros the prose already claimed, and the census check became one that enumerates
+      every refusal code the strategy declares and fails on any code in neither the verdict map nor
+      an explicit exemption - but each was caught by a human reading the predicate.
+      Four instances in one file in one phase is a class, not a run of bad luck, and the check is
+      cheap in principle: flag a validator whose comparison is decidable from its inputs' types or
+      from a static table in the same module. It is repo-tooling work rather than any phase's, and
+      it belongs beside check_gate_bite, whose job is the same one from the other end - proving a
+      check can fail. Raised by the phase 13 stage-8 mechanical review.
+  - id: CONTRACT-UPDATE-IS-THE-LABEL-OF-LAST-RESORT
+    status: deferred
+    phase: contract-update
+    title: contract-update is the catch-all label for loop and tooling work, so it no longer predicts what a task involves
+    reason: >-
+      A backlog item must name either a phase in phase_status.yml or one of the labels in
+      NON_PHASE_LABELS in scripts/quality_checks.py. That set is charts, contract-update, engine,
+      sample-comparison, samples, simulator, strategy and v2. There is no tooling value and no
+      process value in it, so work on the loop driver, the check scripts and the report machinery
+      has nowhere of its own to go, and it has been going to contract-update. The label is forced
+      rather than chosen.
+      Five entries carry it now that are not contract edits.
+      MUTATION-DRILL-CHECKOUT-DESTROYS-UNCOMMITTED-WORK and
+      TABLE-STATE-REPORT-RENDERER-HAS-NO-SIZE-CAP are both about repo machinery.
+      BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE is half a process rule and half a gate check.
+      LOOP-ADDS-NO-CANARY-FOR-A-FIX-FOUND-AFTER-STAGE-4 is scripts/loop_stage.py work by its own
+      description. REPORT-VALIDATORS-CAN-HOLD-GUARDS-THAT-CANNOT-FAIL says of itself that it is
+      repo-tooling work and belongs beside check_gate_bite.
+      What that costs is downstream and easy to miss, because nothing about it is wrong today.
+      Whoever schedules a contract-update task reads the label as "edits to documents under
+      docs/phase_contracts/, which need contract-update mode and no implementation" and will find
+      a queue that is half check-script work needing a different mode, a different reviewer and a
+      different definition of done. A label that does not predict what the task involves is worse
+      than no label, because the scheduling decision is made from it.
+      The fix is a ruling rather than a patch: either NON_PHASE_LABELS gains tooling and process
+      and the misfiled entries are re-tagged, or the label is redefined to mean what it has come
+      to mean and the check's own comment - "work that belongs to a subsystem rather than to a
+      numbered phase" - is rewritten to say so. Both are semantic, and one of them changes a
+      constant every existing item is validated against.
+      This entry is filed under contract-update, which is probably the only legal home for it and
+      is the point rather than an accident: the sixth instance of the defect is the entry
+      describing it. Raised by the phase 13 stage-9 review.
+  - id: SUBTRACTION-IDENTITY-SURVIVES-IN-FROZEN-TESTS-AND-CODE
+    status: deferred
+    phase: "14"
+    title: The dead to_call subtraction identity is still stated in a frozen test name, a code comment, a canary and a report
+    reason: >-
+      Taylor's ruling of 2026-08-20 capped to_call at hero's remaining stack, which makes the two
+      all-in ceilings differ by the bet level less hero's own street contribution - what hero still
+      owes to match the level, which is uncapped - rather than by to_call. The two coincide only for
+      a hero who is not capped. The Phase 13 contract's forbidden shortcuts say the subtraction
+      identity must not be reintroduced anywhere, including in a comment, a docstring or a report,
+      and seven statements of it survive outside the scope of the task that struck it from the four
+      documents it could reach.
+      Three are in frozen tests, and the arithmetic in every body is sound; it is only the prose
+      that generalises. tests/test_table_state.py:565 is named
+      test_the_two_ceilings_differ_by_exactly_the_price_to_call, and its fixture leaves hero
+      uncapped, so the assertion is a legitimate pin under a name that states the false identity -
+      and a frozen test name is what the next reader quotes. tests/test_table_state.py:544, the
+      class docstring above it, says the two ceilings differ "by exactly to_call".
+      tests/test_table_state_strategy.py:406 says the chart's is "too high by exactly to_call for a
+      hero who has already invested this street", which names precisely the population the identity
+      fails for.
+      Two are in shipped text a reader acts on. src/poker_training_bot/strategy/preflop_chart.py:340
+      comments that the street's level is "too high by to_call" for a hero who has acted - the
+      comment sits four lines from the fix and is the same claim the fix disproves.
+      scripts/generate_engine_fidelity_report.py:326 prints "the ceiling was the street's bet level
+      plus hero's stack, which is too high by exactly the price to call" into
+      reports/active/latest_engine_fidelity_report.txt:86, so the identity is regenerated into a
+      committed report by a gate command.
+      One is process. verification/mutations.yml:537, the description of the
+      all-in-ceiling-loose-by-the-price-to-call-again canary, states the same thing about the
+      mutated ceiling. The canary id carries it too, and re-pointing it at stage 6 kept the wording.
+      And one is a roadmap claim in present tense about a closed defect: docs/V2_ROADMAP.md:116 says
+      "the decision audit's all-in ceiling is too loose by exactly the price to call
+      (DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE)", which phase 11 fixed and phase 13 restated.
+      Filed against phase 14 rather than 13 because tests/ is frozen and out of the builder's scope
+      by design, so the test half needs a task with the tests reopened, and phase 14 is the next
+      phase that opens preflop_chart.py. It is one sweep rather than seven fixes: strike the
+      identity and state the gap as the quantity, which is the wording the Phase 11 contract already
+      uses. Raised by the independent review of the ENGINE_FIDELITY_CONTRACT_REWRITE task.
+  - id: COMPLETED-CONTRACT-ASSERTS-THE-CURRENT-TREE
+    status: deferred
+    phase: contract-update
+    title: A completed contract now makes a claim about today's code and nothing checks it
+    reason: >-
+      The Phase 11 contract rewrite closed its all-in ceiling criterion with "Phase 13 ruled the
+      audit's arithmetic correct and moved the chart onto it, so the repo now holds one all-in
+      ceiling - hero's recorded street contribution plus hero's stack - at both sites"
+      (docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md:164-167). It is true and verifiable today.
+      It is also a completed, tagged contract asserting the state of the working tree rather than
+      what its own phase shipped, and it goes stale the moment phase 14 or anything later edits
+      src/poker_training_bot/strategy/preflop_chart.py.
+      Nothing reports it. check_contracts validates structure, frontmatter and criteria specificity;
+      the fact-drift check in run_full_quality_gate policies registered numbers, and MAINT-25 ruled
+      that a completed audit packet is a historical snapshot the drift check must leave alone.
+      A contract is not a packet - it is the standing definition of done for a phase - but no check
+      distinguishes a criterion stating what the phase delivered from one stating what the tree
+      currently contains, and only the second can rot.
+      This is alignment rather than a defect: the sentence is the honest way to fold an amendment
+      into the criterion it amends, which is what AGENTS.md asks a rewrite to do, and forbidding it
+      would push the same content back into an appended amendment. The ruling wanted is which of the
+      two a completed contract may say, and if both, what carries the date. contract-update is the
+      forced label rather than the chosen one; see CONTRACT-UPDATE-IS-THE-LABEL-OF-LAST-RESORT.
+      Raised by the independent review of the ENGINE_FIDELITY_CONTRACT_REWRITE task.
+  - id: STRADDLE-RESIDUAL-BOUNDARY-IS-STATED-WIDER-THAN-MEASURED
+    status: deferred
+    phase: "14"
+    title: Four artifacts say the straddle is invisible past one raise when it survives a short one
+    reason: >-
+      The residual phase 13 named as its headline is stated one raise too early. The straddle
+      cancels out of the minimum-raise prediction only when every raise after the first is a full
+      raise, because a short all-in raise does not move the minimum and the walk that predicts it
+      floors the increment exactly as BettingRoundState.apply does.
+      Measured on the committed functions rather than argued. At 50/100 with a 200 straddle, an
+      open to 600 and a short all-in to 800: the straddled table's own walk holds min_raise at 400
+      and offers 1,200, while predicted_min_raise_target(100, [600, 800]) returns 1,300. The gap is
+      100, the straddle less the big blind, so the pot still refuses pot-holds-a-straddle. With two
+      full raises - 600 then 1,500 - both walks return 2,400 and the pot is genuinely invisible,
+      which is the case stage 6 measured and generalised too far.
+      Four artifacts carry the wide wording: the module docstring of
+      src/poker_training_bot/table_state/forced_money.py, the signal-3 comment block in
+      src/poker_training_bot/strategy/preflop_chart.py, decision 8 of
+      reports/phase_audits/decisions/PHASE_13_TABLE_STATE_DECISIONS.md, and the
+      STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE entry above. The error is in the conservative
+      direction - the phase claims to miss more than it misses - which is why it is alignment rather
+      than a blocker. One sweep restating the boundary as "every raise after the first is a full
+      raise" settles all four. Filed against phase 14 because it is the next phase to open
+      preflop_chart.py, and because tests/ is frozen for phase 13.
+      Raised by the independent stage-10 review of phase 13.
+  - id: FORCED-MONEY-SIGNALS-ARE-NUMBERED-THREE-WAYS
+    status: deferred
+    phase: "14"
+    title: Signal 3 means a different rule depending on which file the reader arrived from
+    reason: >-
+      The three forced-money signals are listed in three different orders. The code numbers them
+      level, then minimum-raise disagreement, then unexplained contributions
+      (src/poker_training_bot/strategy/preflop_chart.py). The frozen tests walk them contributions,
+      level, minimum-raise (tests/test_table_state_strategy.py). The phase 13 contract lists them in
+      a third order. Nothing is wrong in any one file, and every one of them says "signal 3" in
+      prose, so a reader carrying the phrase between two files reads it as a different rule.
+      The fire order itself is ruled and is not in question: the two straddle signals fire before
+      unexplained money is classified, which the coordinator derived from the stage 4 fixtures and
+      recorded in the phase 13 ExecPlan. What is missing is one canonical numbering that the code,
+      the tests and the contract all use, or the removal of the numbers in favour of names.
+      Raised by the independent stage-10 review of phase 13.
+  - id: CONTRACT-SCOPE-ENUMERATES-RESIDUALS-WITH-NOTHING-CHECKING-THE-COUNT
+    status: deferred
+    phase: contract-update
+    title: A contract's closed list of escapes and its packet's list of them disagreed by one
+    reason: >-
+      The phase 13 contract's Scope asserts a closed list of the table shapes that escape its
+      refusal claim, and the phase 13 audit packet keeps its own list of residuals in two tiers.
+      Nothing compares the two. They disagreed by one until the stage-10 review found it: the
+      contract said two escapes where the packet's "Smaller residuals" paragraph named a third, a
+      big-blind-sized straddle whose poster has acted, which reaches the chart and is answered.
+      A closed enumeration in a standing definition of done is exactly the kind of claim that rots,
+      and the repo has no check for it. check_contracts validates structure, frontmatter and
+      criteria specificity; it does not know that a sentence beginning "Two classes escape that" is
+      a count of something enumerated elsewhere. Same shape as
+      COMPLETED-CONTRACT-ASSERTS-THE-CURRENT-TREE, on the residual side rather than the tree side.
+      Raised by the independent stage-10 review of phase 13.
+  - id: FORCED-MONEY-DOCSTRING-DROPS-THE-STRADDLE-POSTER-PRECONDITION
+    status: deferred
+    phase: "14"
+    title: The module docstring states the big-blind-sized straddle case without its precondition
+    reason: >-
+      src/poker_training_bot/table_state/forced_money.py says a straddle equal to the big blind
+      "moves no level, predicts what a limp predicts, and shifts no minimum, so an unraised pot
+      holding one reads exactly as the limped pot it cannot be told from." That is true only once
+      the poster has acted. Before it acts, its posted chips are unattributed by the declared
+      blinds: unexplained_contributions with actions=() and seat 0 holding 100 at 50/100 returns
+      {0: 100}, and the pot is refused blind-structure-not-representable rather than answered.
+      The same over-general sentence was struck from decision 8 of the phase 13 decision list and
+      from the phase 13 contract's Scope by the stage-10 review, which could not reach src/ because
+      a contract-update task may not edit code. This is the last copy.
+      Raised by the independent stage-10 review of phase 13.
+  - id: PHASE-AUDIT-PACKET-AT-ITS-LINE-CAP
+    status: deferred
+    phase: contract-update
+    title: A completed phase's packet is at its 500-line cap with no rewrite rule to fall back on
+    reason: >-
+      reports/phase_audits/PHASE_13_TABLE_STATE.md is 499 of the 500-line cap in
+      scripts/check_file_sizes.py. Adding the stage-10 review's required paragraph to it needed
+      about 120 lines of surrounding prose rewrapped from ~88 to ~98 characters, which produced a
+      250-line diff to carry 8 lines of new content and made the change harder to review than the
+      content warranted.
+      AGENTS.md rules what to do when a contract reaches its cap - rewrite it, folding appended
+      amendments into the criteria they amend - and ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP is
+      that rule being used. There is no equivalent rule for a packet, and a packet is worse placed
+      to take one: MAINT-25 ruled a completed packet a historical snapshot, so folding and rewriting
+      it is closer to falsifying it than to tidying it. Nothing reports a packet approaching its cap
+      either, so the next phase finds out at the moment it owes a correction.
+      The ruling wanted is which: raise the packet cap, split a packet into a summary and an
+      evidence appendix, or accept that a completed packet takes corrections by pointer to the
+      ExecPlan rather than in place. Phase 13 took the third route for the detail and the first
+      eight lines in place.
+      Raised by the independent stage-10 review of phase 13.
   - id: DELEGATION-EXCEPTION-IS-NEVER-CHECKED
     status: deferred
     phase: contract-update

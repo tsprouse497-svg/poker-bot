@@ -1,18 +1,18 @@
 """A preflop strategy that answers only from committed charts.
 
 The whole design is a refusal machine with a chart bolted on. Every step below can
-say "no", and none of them can say "probably": an uncovered spot, an unfamiliar
-blind structure, a stack depth no artifact holds, a hand class the chart omits, a
-weight tie, or a missing raise size each produce an explicit refusal carrying the
-code of whatever was actually absent. That is the point. A training bot that
-guesses in the spots it was not given is worse than one that admits the gap,
-because the guesses are indistinguishable from the knowledge.
+say "no", and none of them can say "probably": an uncovered spot, a straddle, an ante,
+a table that is not one flat depth, a stack depth no artifact holds, a hand class the
+chart omits, a weight tie, or a missing raise size each produce an explicit refusal
+naming what was absent. A training bot that guesses in the spots it was not given is
+worse than one that admits the gap, because the guesses are indistinguishable from
+the knowledge.
 
-The one derivation that matters is the spot key, and it is derived rather than
-spelled: game state gives table size, stack depth, hero's position from the button,
-and the action sequence in front of hero, and `schema.spot_key` turns those into the
-same string the importer stamped on the artifact. That shared function is what makes
-a spot that imports reachable from a real hand.
+The one derivation that matters is the spot key, and it is derived rather than spelled:
+game state gives table size, stack depth, hero's position from the button and the action
+sequence in front of hero, and `schema.spot_key` turns those into the same string the
+importer stamped on the artifact. That shared function is what makes a spot that imports
+reachable from a real hand.
 """
 
 from __future__ import annotations
@@ -37,16 +37,23 @@ from poker_training_bot.strategy.contract import (
     StrategyRefusal,
 )
 from poker_training_bot.strategy.preflop_sizing import PreflopSizingTable
-
-ARTIFACT_DIR = (
-    Path(__file__).resolve().parents[3] / "data" / "artifacts" / "preflop"
+from poker_training_bot.table_state.forced_money import (
+    predicted_min_raise_target,
+    unexplained_contributions,
 )
+
+ARTIFACT_DIR = Path(__file__).resolve().parents[3] / "data" / "artifacts" / "preflop"
 
 CODE_PREFIX = "preflop-chart"
 REFUSE_NOT_PREFLOP = f"{CODE_PREFIX}:not-preflop"
+# The residual, not a retirement: forced money the three signals cannot classify as a
+# straddle or an ante, which is a dead blind and whatever else nobody has named yet.
 REFUSE_BLIND_STRUCTURE = f"{CODE_PREFIX}:blind-structure-not-representable"
+REFUSE_STRADDLE = f"{CODE_PREFIX}:pot-holds-a-straddle"
+REFUSE_ANTE = f"{CODE_PREFIX}:pot-holds-an-ante"
 REFUSE_RAGGED_DEPTH = f"{CODE_PREFIX}:stack-depth-not-a-whole-big-blind"
 REFUSE_UNEVEN_TABLE = f"{CODE_PREFIX}:table-is-not-one-flat-stack-depth"
+REFUSE_SHORT_LIVE_SEAT = f"{CODE_PREFIX}:a-live-seat-is-shorter-than-hero"
 REFUSE_ILLEGAL = f"{CODE_PREFIX}:charted-action-not-legal-here"
 REFUSE_NO_SIZING = f"{CODE_PREFIX}:no-committed-raise-size"
 REFUSE_SIZE_BELOW_MINIMUM = f"{CODE_PREFIX}:committed-size-below-minimum-raise"
@@ -61,10 +68,10 @@ _SPOT_ACTIONS = frozenset({"call", "raise"})
 def _size_bb(amount: int | None, big_blind: int) -> float | None:
     """A raise-to in chips as a raise-to in big blinds, or None if it is not exact.
 
-    Exact arithmetic rather than float division, so the answer depends on the numbers
-    and not on how a binary fraction happened to land. At the 50/100 blinds of every
-    committed sample and every simulator profile this is always exact; a game whose
-    blind level makes it inexact refuses, which is the fail-closed direction.
+    Exact arithmetic rather than float division, so the answer depends on the numbers and
+    not on how a binary fraction happened to land. At the 50/100 blinds of every committed
+    sample and every simulator profile it is always exact; a blind level that makes it
+    inexact refuses, which is the fail-closed direction.
     """
     if amount is None or big_blind <= 0:
         return None
@@ -106,15 +113,14 @@ class PreflopChartStrategy:
     def collapse(self, weights: tuple[tuple[str, float], ...], seed: str = "") -> str | None:
         """Draw one action from a mixed strategy, in proportion to its weights.
 
-        Not the highest weight. Folding is a single bucket while continuing splits
-        across calling and raising, so a plurality rule folds hands the chart
-        continues with more than half the time, and only ever in that direction. It
-        measured 13 points of extra folding against three-bets, which is past the
-        price at which a pure bluff auto-profits.
+        Not the highest weight. Folding is a single bucket while continuing splits across
+        calling and raising, so a plurality rule folds hands the chart continues with more
+        than half the time, and only ever in that direction. It measured 13 points of extra
+        folding against three-bets, past the price at which a pure bluff auto-profits.
 
-        The draw is deterministic in its seed, so a hand decides the same way on
-        every run and a replay is a replay. Weights come in the artifact's fixed
-        action order, so the cumulative walk below is stable.
+        The draw is deterministic in its seed, so a hand decides the same way on every run
+        and a replay is a replay. Weights come in the artifact's fixed action order, so the
+        cumulative walk below is stable.
         """
         positive = [(action, weight) for action, weight in weights if weight > 0.0]
         if not positive:
@@ -136,78 +142,156 @@ class PreflopChartStrategy:
     def _seed(self, query: StrategyQuery, spot_key_text: str, hand_class_text: str) -> str:
         """What the draw is a function of.
 
-        The hand is in it, because a seed of spot and hand class alone would freeze
-        every mixed cell to one action forever, which is the plurality rule wearing
-        a hash. The raw cards are not, because two queries that canonicalize to the
-        same hand class have to draw the same action.
+        The hand is in it, because a seed of spot and hand class alone would freeze every
+        mixed cell to one action forever, which is the plurality rule wearing a hash. The raw
+        cards are not, because two queries that canonicalize to one hand class must draw alike.
         """
         return f"{query.hand_id}|{query.seat}|{spot_key_text}|{hand_class_text}"
 
     # -- spot derivation --------------------------------------------------- #
 
-    def _blind_structure_is_representable(self, query: StrategyQuery) -> bool:
-        """Reject a pot the artifact format cannot describe.
+    def _forced_money_refusal(self, query: StrategyQuery) -> StrategyRefusal | None:
+        """Name the forced money in the pot, or None if the declared blinds explain it all.
 
-        The format declares two blinds and nothing else, so a straddle or an ante
-        reads as an ordinary pot while changing the correct ranges. The test is
-        arithmetic rather than positional: work out the largest pot the blinds and
-        the recorded voluntary actions could possibly have built, and refuse
-        anything bigger, because the excess is money the format cannot name.
+        The format declares two blinds and nothing else, so a straddle or an ante reads as an
+        ordinary pot while changing the correct ranges. Three signals, none subsuming another,
+        replacing a pot bound that was generous by construction. The two straddle signals fire
+        before unexplained money is classified, because a straddler's own chips are unexplained
+        too and classifying first would file a straddled pot under the residual code.
 
-        Nobody can have put in more than the current bet, so the bound is the two
-        blinds plus one full bet for each voluntary action. It is deliberately
-        generous, which makes a false refusal unlikely and leaves the check working
-        at every seat rather than only at the first one to act. An earlier version
-        only looked at hero's first decision and so accepted a straddled pot from
-        the moment anyone raised, which in a straddled game is always.
+        1. An unraised pot whose level is not the big blind is straddled: what moved the level
+           is forced money collecting a price, which an ante does not.
+        2. After a raise, the minimum the table offers disagrees with the one the declared
+           blinds and the recorded raise-to amounts predict, by the straddle less the big
+           blind. The only signal that sees a straddler who has already called to the level,
+           since that seat holds exactly what an ordinary caller holds.
+        3. What is left holding more than reconstruction predicts. Uniform across every seat
+           is an ante - dead money buying nothing off the price, so it shows as the gap between
+           a seat's hand figure and its street figure - and anything else keeps the residual.
+
+        **The residual is written out in `table_state.forced_money`, and it is larger than a
+        big-blind-sized straddle.** Signal 2 can only fire on a pot with one recorded raise, so
+        a straddled pot with two of them reaches the chart and is answered with the unstraddled
+        range for that spot: `STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`.
         """
-        small_blind, big_blind = query.blinds
-        raised = any(entry.action == "raise" for entry in query.preflop_actions)
-        if not raised and query.street_bet != big_blind:
-            return False
-        voluntary = sum(
-            1 for entry in query.preflop_actions if entry.action in _SPOT_ACTIONS
+        _, big_blind = query.blinds
+        # None means nothing has raised, so the level itself is the only straddle it can show.
+        predicted_min_raise = predicted_min_raise_target(big_blind, query.preflop_actions)
+        if predicted_min_raise is None:
+            if query.current_bet != big_blind:
+                return StrategyRefusal(
+                    REFUSE_STRADDLE,
+                    (("bet_level", str(query.current_bet)), ("big_blind", str(big_blind))),
+                )
+        else:
+            if query.min_raise_target != predicted_min_raise:
+                return StrategyRefusal(
+                    REFUSE_STRADDLE,
+                    (
+                        ("min_raise_target", str(query.min_raise_target)),
+                        ("predicted_min_raise", str(predicted_min_raise)),
+                    ),
+                )
+        forced = unexplained_contributions(
+            tuple(seat for seat, _ in query.stacks),
+            query.button_seat,
+            query.blinds,
+            query.preflop_actions,
+            {state.seat: state.committed_total for state in query.seat_states},
         )
-        largest_explainable = small_blind + big_blind + voluntary * query.street_bet
-        return query.pot <= largest_explainable
+        if not forced:
+            return None
+        amounts = set(forced.values())
+        if len(forced) == len(query.seat_states) and len(amounts) == 1:
+            return StrategyRefusal(REFUSE_ANTE, (("ante", str(amounts.pop())),))
+        # Most chips, ties to the lowest chair: a figure the seating decides is not evidence.
+        seat, chips = max(forced.items(), key=lambda pair: (pair[1], -pair[0]))
+        return StrategyRefusal(
+            REFUSE_BLIND_STRUCTURE, (("seat", str(seat)), ("forced_chips", str(chips)))
+        )
 
-    def _table_depth_bb(self, query: StrategyQuery) -> tuple[int | None, str | None]:
-        """Hero's starting depth in big blinds, or None when it is not usable.
+    def _depth_refusal(
+        self, code: str, seat: int, starting: int, big_blind: int
+    ) -> StrategyRefusal:
+        """A depth refusal that says which seat was off and by how much.
 
-        Measured from hero, not from the deepest seat. Hero's own contribution is
-        exact - what hero owes plus what hero has left is what hero started with -
-        so this is the one depth in the query that can be derived rather than
-        guessed. An earlier version took the largest stack at the table, which meant
-        a twelve-big-blind hero opened a hundred-big-blind range as long as one
-        untouched seat sat behind, an unbounded tolerance band on a decision ruled
-        exact-only.
+        In `_miss_detail`'s vocabulary - `seat` and `stack_depth_bb`, both strings, with
+        `starting_chips` beside them in the game's own units. A count of refusals is not a work
+        list, and whoever re-rules decision 6 once real table state arrives needs the seat and
+        the depth it holds, which cannot be backfilled. All three depth codes carry it, the
+        ragged one included: that one fires first and so swallows the majority of live tables,
+        and the commonest case is the one a re-ruling can least afford to have no data for.
+        There the depth is by definition not a whole number of big blinds - that is the content
+        of the refusal - so it is rendered exactly rather than rounded into a whole one.
+        """
+        depth = format((Decimal(starting) / Decimal(big_blind)).normalize(), "f")
+        return StrategyRefusal(
+            code,
+            (("seat", str(seat)), ("starting_chips", str(starting)), ("stack_depth_bb", depth)),
+        )
 
-        A seat holding more than hero started with cannot happen if everyone bought
-        in the same, so it means the table is not the flat structure the artifact
-        describes and the answer is a refusal with its own code, because "your table
-        is not flat" and "your depth is ragged" are different problems.
+    def _table_depth_bb(self, query: StrategyQuery) -> tuple[int | None, StrategyRefusal | None]:
+        """Hero's starting depth in big blinds, or the refusal naming why there is none.
 
-        A seat holding *less* than hero is invisible here: a short villain and a
-        villain who has already put money in look identical from a query that
-        carries no per-seat contributions. That gap is `ASYMMETRIC-EFFECTIVE-STACKS`.
+        Measured from hero, not from the deepest seat: reading the largest stack let a
+        twelve-big-blind hero open a hundred-big-blind range whenever one untouched seat sat
+        behind - an unbounded tolerance band on a decision ruled exact-only.
+
+        Hero's own contribution is *read* off `seat_states` rather than recovered as
+        `current_bet - to_call`. That subtraction was exact until `to_call` was capped at what
+        hero can actually pay, and it is now wrong for exactly the capped population: a hero who
+        put 100 into a level of 300 out of a 150 stack started with 250, where the subtraction
+        says 300. Hero's street figure rather than its hand figure, because the two differ only
+        by dead money, which preflop is forced money the check above has already refused.
+
+        Every other seat's starting stack is recomputed the same way, so a short villain and an
+        already-invested villain stop being the same picture: the cutoff three-betting to 8bb out
+        of 100 holds 92 and is not short. Both directions refuse, each with its own code, because
+        "somebody is deep" and "somebody is short" are different tables. Only live seats are
+        compared: effective stack is pairwise and against seats that can still act, so a folded
+        40bb seat cannot change a chip of hero's decision.
+
+        The order is decision 7 - hero's raggedness, then a deeper live seat, then a shallower one
+        - because a hero with no whole depth has nothing for the others to be measured against.
+        First match wins, so at a ragged table hero's own raggedness masks every shape behind it
+        and the inventory under-counts asymmetric tables in the games where they are commonest.
+
+        Which branch fires is decision 7's; which seat that branch NAMES is poker. The shallower
+        branch names the SHORTEST live seat, because that stack caps hero's effective one and is
+        why a hundred-big-blind chart is wrong here: against 90bb it is still 100bb poker,
+        against 20bb it is a different game. The deeper branch names the deepest, read the other
+        way. Ties go to the lowest seat, so the answer stays deterministic. Naming the first
+        offender in seat order made the reported depth depend on the seating instead: the same
+        two stacks in swapped chairs reported 90bb and 20bb.
         """
         _, big_blind = query.blinds
         stacks = dict(query.stacks)
-        hero_start = stacks[query.seat] + (query.street_bet - query.to_call)
+        hero = next(state for state in query.seat_states if state.seat == query.seat)
+        hero_start = stacks[query.seat] + hero.street_bet
         if hero_start <= 0 or hero_start % big_blind:
-            return None, REFUSE_RAGGED_DEPTH
-        if any(stack > hero_start for stack in stacks.values()):
-            return None, REFUSE_UNEVEN_TABLE
+            return None, self._depth_refusal(REFUSE_RAGGED_DEPTH, query.seat, hero_start, big_blind)
+        live: list[tuple[int, int]] = []
+        for state in query.seat_states:
+            if state.folded:
+                continue
+            live.append((stacks[state.seat] + state.committed_total, state.seat))
+        # Starting stack first in the pair, so the lowest seat breaks a tie in both
+        # directions: plain tuple order gives it going down, and a negated seat going up.
+        deep = max(live, default=None, key=lambda pair: (pair[0], -pair[1]))
+        short = min(live, default=None)
+        if deep is not None and deep[0] > hero_start:
+            return None, self._depth_refusal(REFUSE_UNEVEN_TABLE, deep[1], deep[0], big_blind)
+        if short is not None and short[0] < hero_start:
+            return None, self._depth_refusal(REFUSE_SHORT_LIVE_SEAT, short[1], short[0], big_blind)
         return hero_start // big_blind, None
 
     def _action_sequence(self, query: StrategyQuery) -> tuple[PreflopAction, ...] | None:
         """The sized action sequence in front of hero, or None if a price will not fit.
 
-        A raise-to in chips becomes a raise-to in big blinds, which is the unit the key
-        is written in because chips do not survive a change of blind level. The
-        division is exact or it is refused: rounding a price into the neighbouring
-        hundredth would put a decision in a cell it was not asked about, and it is the
-        same reason `render_size_bb` rejects rather than rounds.
+        A raise-to in chips becomes a raise-to in big blinds, which is the unit the key is
+        written in because chips do not survive a change of blind level. The division is
+        exact or it is refused: rounding a price into the neighbouring hundredth would put a
+        decision in a cell it was not asked about, which is why `render_size_bb` rejects too.
         """
         seats = tuple(seat for seat, _ in query.stacks)
         _, big_blind = query.blinds
@@ -249,9 +333,11 @@ class PreflopChartStrategy:
         if amount_bb is None:
             return None, REFUSE_NO_SIZING
         stacks = dict(query.stacks)
-        all_in_target = query.street_bet + stacks[query.seat]
-        # Capping at all-in is not a guess: you cannot raise to more than you have,
-        # and the decision audit rejects an amount above it.
+        hero = next(state for state in query.seat_states if state.seat == query.seat)
+        all_in_target = hero.street_bet + stacks[query.seat]
+        # Capping at all-in is not a guess: you cannot raise to more than you have. Hero's own
+        # contribution rather than the street's level - the same number for a hero who has not
+        # acted, too high by `to_call` for one who has, which the audit refuses to record.
         amount = min(round(amount_bb * big_blind), all_in_target)
         if amount < query.min_raise_target and amount < all_in_target:
             return None, REFUSE_SIZE_BELOW_MINIMUM
@@ -261,17 +347,15 @@ class PreflopChartStrategy:
     def _miss_detail(chart_query: ChartQuery, found: ChartMiss) -> tuple[tuple[str, str], ...]:
         """What the chart was asked for, so a refusal names a cell somebody can fill.
 
-        The spot key is the one the lookup itself used, carried out on the miss rather
-        than re-derived here. Re-deriving would give the repo two answers to "what spot
-        is this" that could drift, and the drift would be invisible in the worst
-        direction: since phase 12 the lookup asks about a normalised price, so a refusal
-        re-deriving the key would send somebody to fill a cell the lookup never asked
-        about.
+        The spot key is the one the lookup itself used, carried out on the miss rather than
+        re-derived here. Re-deriving would give the repo two answers to "what spot is this",
+        and the drift would be invisible in the worst direction: since phase 12 the lookup
+        asks about a normalised price, so a refusal re-deriving the key would send somebody
+        to fill a cell the lookup never asked about.
 
-        The key is absent when the position and action sequence do not describe a spot
-        the vocabulary can express at all - a different miss from a spot that is
-        expressible and uncovered - so it is reported only when it exists, and its
-        absence is itself the information.
+        The key is absent when the position and action sequence do not describe a spot the
+        vocabulary can express at all - a different miss from a spot that is expressible and
+        uncovered - so it is reported only when it exists, and its absence is the information.
         """
         detail: list[tuple[str, str]] = [
             ("table_size", str(chart_query.table_size)),
@@ -287,11 +371,12 @@ class PreflopChartStrategy:
     def decide(self, query: StrategyQuery) -> StrategyDecision | StrategyRefusal:
         if query.street != "preflop":
             return StrategyRefusal(REFUSE_NOT_PREFLOP)
-        if not self._blind_structure_is_representable(query):
-            return StrategyRefusal(REFUSE_BLIND_STRUCTURE)
+        forced_money = self._forced_money_refusal(query)
+        if forced_money is not None:
+            return forced_money
         depth_bb, depth_refusal = self._table_depth_bb(query)
         if depth_bb is None:
-            return StrategyRefusal(depth_refusal or REFUSE_RAGGED_DEPTH)
+            return depth_refusal or StrategyRefusal(REFUSE_RAGGED_DEPTH)
 
         chart_query = self._chart_query(query, depth_bb)
         if chart_query is None:
@@ -325,30 +410,28 @@ class PreflopChartStrategy:
             "raise", amount, self._rationale("raise", found.action_weights), detail
         )
 
-    def weights_for(
-        self, query: StrategyQuery
-    ) -> tuple[tuple[str, float], ...] | StrategyRefusal:
+    def weights_for(self, query: StrategyQuery) -> tuple[tuple[str, float], ...] | StrategyRefusal:
         """The chart's own action weights for a query, before any collapse.
 
-        Read-only and additive. It exists because "did this player's action agree
-        with the chart" is a question about the distribution, not about the single
-        action `decide` draws from it: a chart that raises three times in ten does
-        not disagree with a fold, and scoring a mixed cell action-for-action makes a
-        correct chart look wrong in proportion to how mixed it is.
+        Read-only and additive. It exists because "did this player's action agree with the
+        chart" is a question about the distribution, not about the single action `decide`
+        draws from it: a chart that raises three times in ten does not disagree with a fold,
+        and scoring a mixed cell action-for-action makes a correct chart look wrong in
+        proportion to how mixed it is.
 
-        The alternative was parsing the weight vector back out of the rationale
-        string `decide` returns, or rebuilding the chart query somewhere else. The
-        first couples a caller to a private format; the second gives the repo two
-        derivations of "what spot is this" that can drift apart invisibly. Sharing
-        `_chart_query` keeps exactly one.
+        The alternative was parsing the weight vector back out of the rationale string
+        `decide` returns, or rebuilding the chart query somewhere else. The first couples a
+        caller to a private format; the second gives the repo two derivations of "what spot
+        is this" that can drift apart invisibly. Sharing `_chart_query` keeps exactly one.
         """
         if query.street != "preflop":
             return StrategyRefusal(REFUSE_NOT_PREFLOP)
-        if not self._blind_structure_is_representable(query):
-            return StrategyRefusal(REFUSE_BLIND_STRUCTURE)
+        forced_money = self._forced_money_refusal(query)
+        if forced_money is not None:
+            return forced_money
         depth_bb, depth_refusal = self._table_depth_bb(query)
         if depth_bb is None:
-            return StrategyRefusal(depth_refusal or REFUSE_RAGGED_DEPTH)
+            return depth_refusal or StrategyRefusal(REFUSE_RAGGED_DEPTH)
         chart_query = self._chart_query(query, depth_bb)
         if chart_query is None:
             return StrategyRefusal(REFUSE_UNREPRESENTABLE_PRICE)
@@ -362,21 +445,21 @@ class PreflopChartStrategy:
     def chart_lookup(self, query: StrategyQuery) -> ChartHit | ChartMiss | None:
         """The raw lookup outcome for a query, or None if it never reached the chart.
 
-        Read-only and additive, and it exists for the same reason `weights_for` does.
-        The substitution census asks what the *lookup* did - which key it asked about
-        and which prices it moved to get there - and that is a different question from
-        what `decide` drew out of the answer. The alternative is parsing the numbers
-        back out of a decision's detail strings, which couples a caller to a format,
-        or rebuilding the chart query somewhere else, which gives the repo two
-        derivations of "what spot is this" that can drift apart invisibly.
+        Read-only and additive, and it exists for the reason `weights_for` sets out against its
+        own pair of alternatives, which are not the pair `weights_for` names: parsing the numbers
+        back out of a decision's detail strings couples a caller to a private format, and
+        rebuilding the chart query here gives the repo two derivations of "what spot is this"
+        that can drift apart invisibly. The substitution census asks what the *lookup* did -
+        which key it asked about and which prices it moved to get there - which is a different
+        question from what `decide` drew out of the answer.
 
-        None means the query was refused before a chart was consulted at all: not
-        preflop, a pot the format cannot describe, a depth that is not whole. Those
-        have no key and no substitutions because no lookup happened.
+        None means the query was refused before a chart was consulted at all: not preflop, a
+        pot the format cannot describe, a depth that is not whole. Those have no key and no
+        substitutions because no lookup happened.
         """
         if query.street != "preflop":
             return None
-        if not self._blind_structure_is_representable(query):
+        if self._forced_money_refusal(query) is not None:
             return None
         depth_bb, _ = self._table_depth_bb(query)
         if depth_bb is None:
@@ -391,10 +474,9 @@ class PreflopChartStrategy:
     ) -> StrategyDecision | StrategyRefusal:
         """Decide from a chart key directly, with no chips and no legality.
 
-        Coverage and legality are different questions, and mixing them hides both.
-        This answers "does the chart resolve here", which is what an enumeration over
-        every committed spot is actually asking; `decide` answers "is that action
-        legal in this hand", which needs a real query.
+        Coverage and legality are different questions and mixing them hides both. This answers
+        "does the chart resolve here", which is what an enumeration over every committed spot
+        asks; `decide` answers "is that action legal in this hand", which needs a real query.
         """
         artifact = None
         for candidate in self.library.artifacts:

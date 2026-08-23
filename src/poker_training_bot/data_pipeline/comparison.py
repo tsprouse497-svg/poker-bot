@@ -39,7 +39,12 @@ from poker_training_bot.hand_history.replay import DecisionPoint, replay_hand
 from poker_training_bot.hand_history.schema import HistoryActionKind, StreetName
 from poker_training_bot.poker_core.positions import seat_positions
 from poker_training_bot.solver_artifacts.lookup import ChartMiss
-from poker_training_bot.strategy.contract import SeatAction, StrategyQuery, StrategyRefusal
+from poker_training_bot.strategy.contract import (
+    SeatAction,
+    SeatState,
+    StrategyQuery,
+    StrategyRefusal,
+)
 from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 
 AGREE = "agree"
@@ -330,9 +335,8 @@ def _query_for(point: DecisionPoint, hole_cards: tuple[str, str]) -> StrategyQue
         return None
     state = point.turn.round
     hero = state.player(point.seat)
-    stacks = tuple(
-        (player.seat, player.stack) for player in sorted(state.players, key=lambda p: p.seat)
-    )
+    seated = sorted(state.players, key=lambda player: player.seat)
+    stacks = tuple((player.seat, player.stack) for player in seated)
     legal = tuple(kind.value for kind in point.legal_actions)
     seen: list[SeatAction] = []
     for action in point.hand.streets[0].actions:
@@ -360,13 +364,26 @@ def _query_for(point: DecisionPoint, hole_cards: tuple[str, str]) -> StrategyQue
         hole_cards=hole_cards,
         board=(),
         legal_actions=legal,
-        to_call=max(0, state.current_bet - hero.street_bet),
-        # The street's bet level rather than hero's own contribution to it, which is
-        # the reading `_table_depth_bb` needs to recover hero's starting depth.
-        street_bet=state.current_bet,
+        # The price hero can actually pay, capped at what hero holds.
+        to_call=min(max(0, state.current_bet - hero.street_bet), hero.stack),
+        # The street's bet level. What hero itself put in is carried on hero's own seat
+        # record below and read from there, never worked back out of the level and the
+        # capped price. Every per-seat figure is `PlayerState`'s own, under the engine's
+        # own four names, so the replayed hand is reported rather than reconstructed.
+        current_bet=state.current_bet,
         min_raise_target=state.current_bet + state.min_raise,
-        pot=sum(player.committed_total for player in state.players),
+        pot=sum(player.committed_total for player in seated),
         stacks=stacks,
+        seat_states=tuple(
+            SeatState(
+                seat=player.seat,
+                street_bet=player.street_bet,
+                committed_total=player.committed_total,
+                folded=player.folded,
+                all_in=player.all_in,
+            )
+            for player in seated
+        ),
         blinds=(point.hand.blinds.small_blind, point.hand.blinds.big_blind),
         preflop_actions=tuple(seen),
     )
@@ -400,7 +417,7 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
             player = names[point.seat]
             population = MACHINE_PLAYER if player == MACHINE_PLAYER else HUMAN_POPULATION
             big_blind = point.hand.blinds.big_blind
-            price_faced_bb = round(query.street_bet / big_blind, 2)
+            price_faced_bb = round(query.current_bet / big_blind, 2)
             raises_faced = sum(1 for entry in query.preflop_actions if entry.action == "raise")
             price_band = price_band_for(price_faced_bb, raises_faced)
             if isinstance(outcome, StrategyRefusal):

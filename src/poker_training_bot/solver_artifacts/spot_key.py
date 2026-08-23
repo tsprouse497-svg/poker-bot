@@ -16,10 +16,29 @@ came before it and the same spot would key two ways. A call entry carries no siz
 pays the level the preceding raise already states, and in a limped pot it pays the big
 blind the key's own prefix implies.
 
-A position may act more than once. What bounds the vocabulary is whether the sequence is
-a legal preflop order and whether its raises can be paid at the stated depth, not a
-number of orbits somebody imagined. That is why the size in the key is not only a finer
-index: it is what lets the key reject a five-bet to 300bb in a 100bb game at all.
+A position may act more than once. What bounds the vocabulary is the *order* - whether the
+ring can still have each of these positions acting, and whether hero has a decision left -
+together with whether the raises fit the stated depth, rather than a number of orbits
+somebody imagined. That is why the size in the key is not only a finer index: it is what
+lets the key reject a five-bet to 300bb in a 100bb game at all.
+
+What the checks below do **not** verify, stated because a docstring stronger than its check
+is how the next reader stops looking. They never ask whether a *price* is legal. A raise has
+only to exceed the one before it, so an under-raise no betting round produces still has a
+key; the depth test is table-wide rather than per-seat, so a raise no single seat could pay
+is admitted whenever the stated depth could; and a call carries no all-in marker, so a short
+all-in call and a full call are one spot. Phase 12 left all three deliberately, because the
+key holds one table-wide depth and no per-seat stacks, and so cannot tell an under-raise
+from a legal short all-in at all.
+
+What still waits is the key space itself rather than the query. Since phase 13 a live query
+carries what every seat put in, so an asymmetric table is refused before a key is built, and a
+short all-in caller - which by definition has put in everything it sat down with - refuses as
+a seat shorter than hero rather than reaching this module at all. Anything working from keys
+instead of from a table still merges both pairs: an imported artifact, a self-play
+enumeration, `decide_spot`. Closing that is a change to the key format - a marker on each
+raise and call entry saying whether it was a full action or an all-in for less - and it is
+deferred rather than done. The table-state report measures what it costs on committed data.
 """
 
 from __future__ import annotations
@@ -276,9 +295,11 @@ def spot_key(
 
     The sequence must describe a spot where hero is actually the player to act.
     A well-formed string is not enough: `t6/d100/CO/BTN:raise@2.5` reads fine but
-    cannot happen, because the button acts after the cutoff. Keys that no real
-    preflop situation produces are rejected, so the key space stays canonical
-    rather than merely parseable.
+    cannot happen, because the button acts after the cutoff. What is rejected is an
+    order no ring produces and a raise the stated depth cannot pay; the prices
+    themselves are only checked for increasing, so the key space is canonical in
+    who acted and when, not in whether every price was legal. The module docstring
+    says which prices get through.
     """
     positions = _validate_table_size(table_size)
     _validate_stack_depth(stack_depth_bb)

@@ -1,7 +1,9 @@
 """Postflop fallback tests, written from the contract before the implementation existed.
 
 What this file pins is the one thing a continuity device has to be: total, legal, and
-never inventing an investment. Three properties carry most of the weight.
+never inventing an investment. It owns the harness the pair shares - the engine-derived
+betting shapes, the named card scenarios, and the query builders - and every test of what
+`PostflopFallbackStrategy.decide` returns.
 
 `TestTotalityAndLegality` proves coverage by enumeration rather than by sampling, and the
 shapes it enumerates are read out of the engine's own `legal_actions` rather than listed
@@ -9,14 +11,12 @@ here, so the sweep follows the engine if the engine changes. Legality is not ass
 eye: every decision goes through the Phase 03 `DecisionAuditRecord`, which rejects an
 action outside `legal_actions`, an amount above all-in, and one below the minimum raise.
 
-`TestUnbeatableFunction` covers the only place this bot puts money in postflop, as named
-cards a reviewer can check by hand. Two bars are pinned there: a tie is not a loss, so a
-hand every holding chops calls; and the turn claim has to survive every river card rather
-than only the board as it stands.
-
-`TestComposite` pins that the composite adds no decision of its own: for every query in
-the enumeration its outcome is the outcome its component returns when asked directly, and
-a preflop chart refusal comes back as a refusal carrying its original code.
+Everything in the pair that never calls `decide` lives in the companion,
+`tests/test_postflop_fallback_components.py`, which imports this harness rather than
+copying it: the outcome-code vocabulary, the `hand_cannot_lose` predicate the single
+postflop call rests on, and the `CompositeStrategy` this strategy is a component of. That
+line is what lets the companion need none of the fixtures defined here. Both files run
+under `pytest_postflop_fallback`.
 """
 
 from __future__ import annotations
@@ -29,12 +29,11 @@ import pytest
 from poker_training_bot.poker_core.cards import Card
 from poker_training_bot.poker_core.engine import BettingRoundState, PlayerState
 from poker_training_bot.poker_core.positions import position_for_seat
-from poker_training_bot.strategy.composite import CompositeStrategy
 from poker_training_bot.strategy.contract import (
     DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
+    SeatState,
     StrategyDecision,
-    StrategyProtocol,
     StrategyQuery,
     StrategyRefusal,
 )
@@ -59,7 +58,6 @@ VILLAIN_SEAT = 0
 VILLAIN_STACK = 500
 
 FALLBACK_PREFIX = "postflop-fallback:"
-CHART_PREFIX = "preflop-chart:"
 
 
 @dataclass(frozen=True)
@@ -77,12 +75,15 @@ class Shape:
 
     @property
     def to_call(self) -> int:
-        return self.current_bet - self.hero_street_bet
+        """Capped at hero's stack, so the price is what hero would actually pay."""
+        return min(self.current_bet - self.hero_street_bet, self.hero_stack)
 
     @property
     def hero_is_short(self) -> bool:
-        """Hero's whole remaining stack is less than the price to call."""
-        return 0 < self.hero_stack < self.to_call
+        """The price to call takes hero's whole remaining stack. Phase 06 wrote this as
+        `0 < stack < to_call`, which the cap makes unsatisfiable: a price hero can
+        actually pay never exceeds the stack. Same hero, restated."""
+        return 0 < self.hero_stack == self.to_call
 
 
 def _engine_shapes() -> tuple[Shape, ...]:
@@ -210,9 +211,15 @@ def query(shape: Shape, street: str, scenario: Scenario, **overrides: Any) -> St
         "board": scenario.board_for(street),
         "legal_actions": shape.actions,
         "to_call": shape.to_call,
-        "street_bet": shape.current_bet,
+        "current_bet": shape.current_bet,
         "min_raise_target": shape.current_bet + MIN_RAISE,
         "pot": 100 + shape.current_bet + shape.hero_street_bet,
+        # The 100 belonged to nobody and a pot is now the sum of what the seats put in,
+        # so it is villain's money from an earlier street: a real hand, not a constant.
+        "seat_states": (
+            SeatState(VILLAIN_SEAT, shape.current_bet, 100 + shape.current_bet, False, False),
+            SeatState(HERO_SEAT, shape.hero_street_bet, shape.hero_street_bet, False, False),
+        ),
         "stacks": ((VILLAIN_SEAT, VILLAIN_STACK), (HERO_SEAT, shape.hero_stack)),
         "blinds": (SMALL_BLIND, BIG_BLIND),
     }
@@ -242,11 +249,13 @@ def preflop_seat_of(position: str) -> int:
     raise AssertionError(f"no seat holds {position}")
 
 
-def preflop_query(hole_cards: tuple[str, ...] = ("As", "Ah"), **overrides: Any) -> StrategyQuery:
-    """An unopened six-handed 100bb preflop spot the committed charts cover."""
+def preflop_query(
+    hole_cards: tuple[str, ...] = ("As", "Ah"), depth_bb: int = 100, **overrides: Any
+) -> StrategyQuery:
+    """An unopened six-handed preflop spot, 100bb by default, which the charts cover."""
     hero = preflop_seat_of("LJ")
     posted = {preflop_seat_of("SB"): PREFLOP_SB, preflop_seat_of("BB"): PREFLOP_BB}
-    full = 100 * PREFLOP_BB
+    full = depth_bb * PREFLOP_BB
     fields: dict[str, Any] = {
         "hand_id": "preflop-hand",
         "street": "preflop",
@@ -256,19 +265,18 @@ def preflop_query(hole_cards: tuple[str, ...] = ("As", "Ah"), **overrides: Any) 
         "board": (),
         "legal_actions": ("fold", "call", "raise"),
         "to_call": PREFLOP_BB,
-        "street_bet": PREFLOP_BB,
+        "current_bet": PREFLOP_BB,
         "min_raise_target": 2 * PREFLOP_BB,
         "pot": PREFLOP_SB + PREFLOP_BB,
+        "seat_states": tuple(
+            SeatState(seat, posted.get(seat, 0), posted.get(seat, 0), False, False)
+            for seat in PREFLOP_SEATS
+        ),
         "stacks": tuple((seat, full - posted.get(seat, 0)) for seat in PREFLOP_SEATS),
         "blinds": (PREFLOP_SB, PREFLOP_BB),
     }
     fields.update(overrides)
     return StrategyQuery(**fields)
-
-
-def uncovered_preflop_query() -> StrategyQuery:
-    """A 40bb table: no committed chart holds that depth, so the chart refuses."""
-    return preflop_query(stacks=tuple((seat, 40 * PREFLOP_BB) for seat in PREFLOP_SEATS))
 
 
 def decision(outcome: Any) -> StrategyDecision:
@@ -297,30 +305,9 @@ def fallback() -> PostflopFallbackStrategy:
 
 
 @pytest.fixture(scope="module")
-def composite() -> CompositeStrategy:
-    return CompositeStrategy.from_repo()
-
-
-@pytest.fixture(scope="module")
 def enumerated(fallback) -> tuple[tuple[StrategyQuery, Any], ...]:
     """Every engine-legal postflop shape, at every street, decided once."""
     return tuple((request, fallback.decide(request)) for request in enumeration_queries())
-
-
-class TestOutcomeCodes:
-    # Every outcome names the component that produced it, so an audit line can be
-    # attributed without reading code.
-    def test_every_code_names_the_fallback(self) -> None:
-        codes = (
-            REFUSE_NOT_POSTFLOP,
-            CODE_CHECK,
-            CODE_CALL_UNBEATABLE,
-            CODE_FOLD_ON_THE_FLOP,
-            CODE_FOLD_CAN_LOSE,
-        )
-
-        assert all(code.startswith(FALLBACK_PREFIX) for code in codes)
-        assert len(set(codes)) == len(codes)
 
 
 class TestStreetRouting:
@@ -487,9 +474,9 @@ class TestFacingABet:
         assert decision(fallback.decide(query(shape, "turn", TURN_BREAKS))).action == "fold"
         assert decision(fallback.decide(query(shape, "river", TURN_BREAKS))).action == "call"
 
-    # The enumeration must include a hero whose whole remaining stack is less than
-    # the price to call, and that hero still gets a legal decision.
-    def test_a_hero_all_in_for_less_than_the_price_to_call_still_decides(
+    # The enumeration must include a hero whose whole remaining stack is the price to
+    # call - Phase 06's stack-below-the-price, restated - and that hero still decides.
+    def test_a_hero_all_in_for_the_whole_price_to_call_still_decides(
         self, fallback
     ) -> None:
         shape = shape_with("fold", "call")
@@ -506,47 +493,6 @@ class TestFacingABet:
 
             assert outcome.action == expected, street
             audit(fallback, request, outcome)
-
-
-# The worked examples, each with the one-line reason for its verdict. Table-driven so the
-# reason travels with the cards and is also the assertion message, and so adding a street
-# or a hand is a row rather than a copied test. The full argument for each, spelled out at
-# length for a non-coding reviewer, is in the committed fallback report.
-UNBEATABLE_EXAMPLES = (
-    (NUTS, "river", True, "royal flush in clubs; a tie needs Ac Kc and hero holds both"),
-    (QUAD_ACES, "river", True, "quad aces holding the fourth ace; the board makes no flush"),
-    (CHOP_ONLY, "river", True, "quad nines and the ace kicker all on board: everyone chops"),
-    (BOARD_NUTS, "river", True, "the board is a royal flush, so the whole table chops"),
-    (BEATABLE, "river", False, "nut flush, and 6d 5d makes 2d 3d 4d 5d 6d: one combo is enough"),
-    (NUTS, "turn", True, "royal flush already made, so no river card can beat or tie it"),
-    (TURN_BREAKS, "turn", False, "nothing beats the straight yet, but a club river makes a flush"),
-    (TURN_BREAKS, "river", True, "the club missed, so nothing beats the straight any more"),
-)
-
-
-class TestUnbeatableFunction:
-    """Worked examples, written so a reviewer can check them against the cards."""
-
-    @pytest.mark.parametrize(("scenario", "street", "expected", "why"), UNBEATABLE_EXAMPLES)
-    def test_a_worked_example_decides_the_way_its_reason_says(
-        self, scenario, street, expected, why
-    ) -> None:
-        cards = f"{' '.join(scenario.hole_cards)} on {' '.join(scenario.board_for(street))}"
-
-        assert hand_cannot_lose(scenario.hole_cards, scenario.board_for(street)) is expected, (
-            f"{street}, {cards}: {why}"
-        )
-
-    # The claim is decidable on a turn or a river board and nowhere else, so a flop
-    # board or a malformed one is an error rather than a guess.
-    def test_a_board_that_is_not_a_turn_or_a_river_raises(self) -> None:
-        for board in (
-            (),
-            ("Qc", "Jc", "Tc"),
-            ("Qc", "Jc", "Tc", "2d", "3h", "4h"),
-        ):
-            with pytest.raises(ValueError):
-                hand_cannot_lose(("Ad", "Kd"), board)
 
 
 class TestTotalityAndLegality:
@@ -644,57 +590,3 @@ class TestInvarianceAndDeterminism:
 
         assert fresh == fallback
         assert fresh.decide(request) == fallback.decide(request)
-
-
-class TestComposite:
-    def test_it_satisfies_the_strategy_protocol(self, composite) -> None:
-        assert isinstance(composite, StrategyProtocol)
-        assert composite.strategy_id
-        assert composite.strategy_version > 0
-
-    # One place decides which component owns a street.
-    def test_component_for_routes_preflop_to_the_chart_and_the_rest_to_the_fallback(
-        self, composite
-    ) -> None:
-        assert composite.component_for("preflop") == "preflop-chart"
-        for street in POSTFLOP_STREETS:
-            assert composite.component_for(street) == "postflop-fallback"
-
-    def test_a_preflop_query_is_answered_by_the_chart(self, composite) -> None:
-        outcome = decision(composite.decide(preflop_query()))
-
-        assert outcome.code.startswith(CHART_PREFIX)
-
-    def test_postflop_queries_are_answered_by_the_fallback(self, composite) -> None:
-        for street in POSTFLOP_STREETS:
-            free = query(shape_with("fold", "check", "bet"), street, WEAK)
-            assert decision(composite.decide(free)).code.startswith(FALLBACK_PREFIX), street
-
-    # A preflop chart refusal passes through carrying its original reason code; a passive
-    # action would erase the coverage signal Phases 04 and 05 were built to produce.
-    def test_a_preflop_chart_refusal_passes_through_unchanged(self, composite) -> None:
-        request = uncovered_preflop_query()
-
-        outcome = refusal(composite.decide(request))
-
-        assert outcome.code.startswith(CHART_PREFIX)
-        assert outcome == composite.preflop.decide(request)
-
-    def test_a_preflop_chart_refusal_never_becomes_an_action(self, composite) -> None:
-        outcome = composite.decide(uncovered_preflop_query())
-
-        assert not isinstance(outcome, StrategyDecision), outcome
-
-    # The composite adds no decision of its own: asserted over the enumeration
-    # rather than by inspection.
-    def test_its_outcome_is_always_its_components_outcome(self, composite) -> None:
-        for request in enumeration_queries():
-            assert composite.decide(request) == composite.postflop.decide(request)
-        for request in (preflop_query(), preflop_query(hole_cards=("7d", "2c"))):
-            assert composite.decide(request) == composite.preflop.decide(request)
-
-    def test_every_outcome_names_the_component_that_produced_it(self, composite) -> None:
-        for request in enumeration_queries():
-            assert composite.decide(request).code.startswith(FALLBACK_PREFIX)
-        for request in (preflop_query(), uncovered_preflop_query()):
-            assert composite.decide(request).code.startswith(CHART_PREFIX)

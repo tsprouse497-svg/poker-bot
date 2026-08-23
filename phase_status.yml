@@ -69,7 +69,7 @@ phases:
     audit_packet: reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md
   - phase_id: "13"
     title: "Table-State Fidelity"
-    status: future
+    status: completed
     contract: docs/phase_contracts/PHASE_13_TABLE_STATE.md
     audit_packet: reports/phase_audits/PHASE_13_TABLE_STATE.md
   - phase_id: "14"

@@ -1,0 +1,800 @@
+Table-state fidelity report
+===========================
+
+Strategy: preflop-chart v1
+Charts: GTO Wizard 6-max 100bb NL25 rake
+Command: generate_table_state_report
+
+What changed. The decision context handed to the strategy used to say what the pot was,
+what each seat held, and what hero had to pay - and not what any seat had put in.
+Nobody's own contribution was recoverable, hero's included, so hero's stack depth was
+worked back out of the price hero was being offered. That was exact until the price was
+capped at what hero can actually pay, and wrong afterwards for every hero whose whole
+stack is the price. The query now carries, for every seat, what it has put in on this
+street and over the hand, and whether it has folded or is all-in.
+
+What that buys, in one sentence: a table whose STACK DEPTHS or whose FORCED MONEY this
+bot's charts cannot describe is now seen and refused for what it is, rather than
+answered as something else. It buys no new answers. A short opponent, a deep opponent, a
+straddle and an ante each get their own refusal, because they are different tables and a
+chart solved for six flat hundred-big-blind stacks is not solved for any of them.
+
+That sentence names the two things this phase looks at rather than claiming the table as
+a whole, because two classes of table escape it and are still answered as something
+else. A straddled pot with two or more recorded raises is invisible to every signal
+here. And the ratio between the two blinds is compared with nothing at all: the
+committed artifact declares a table size and a stack depth and declares no blind
+structure, so $1/$3 and $2/$5 - the structures this bot's own home games are dealt at -
+reach the same cells as 50/100 and come back with the same weights, at prices to call
+eleven points of pot odds apart. The closing section measures both, and this command
+re-measures each of them before it will print either.
+
+What would make this command fail rather than print. Hero's depth is re-derived here
+from hero's own recorded contribution and compared against the depth the strategy acted
+on, and they have to agree on a table where taking the depth from the price would give a
+different answer. The straddle census is reconciled against the minimum raise the two
+declared blinds predict, and a pot whose minimum raise disagrees with that prediction
+has to be counted as straddled. Every pot the deleted arithmetic bound refused has to
+come out of the replacement as holding forced money of some kind, and a refusal that
+names a seat has to name the seat the seat states say it should - both recomputed here
+rather than asked of the rule that chose them. The corpus figures are checked against
+what they were before this phase. Any of those failing exits non-zero and writes
+nothing.
+
+## One table state, before and after
+
+A six-handed 50/100 game. Everyone sat down with 10,000 chips, which is a hundred big
+blinds. Hero is the lojack and opened to 250; the hijack and the button folded; the
+cutoff three-bet to 800; hero is deciding. This is a construction, not a hand out of any
+file.
+
+What the strategy used to be told about it:
+
+    the pot                    1200
+    the bet level              800
+    hero's price to call       550
+    what each seat holds       0:9750, 1:10000, 2:9200, 3:10000, 4:9950, 5:9900
+    what each seat put in      (nothing said)
+
+Hero's own 250 is not in that list. It had to be recovered from the price hero was being
+offered, and every other seat's contribution was simply unavailable. A seat holding
+9,200 was indistinguishable from a seat that had bought in for 9,200, so the cutoff's
+three-bet and a genuinely short opponent looked the same.
+
+What it is told now, seat by seat:
+
+  seat  position   sat down with put in, street  put in, hand  holds now   status
+  -------------------------------------------------------------------------------
+  0     LJ                 10000            250           250       9750     live
+  1     HJ                 10000              0             0      10000   folded
+  2     CO                 10000            800           800       9200     live
+  3     BTN                10000              0             0      10000   folded
+  4     SB                 10000             50            50       9950     live
+  5     BB                 10000            100           100       9900     live
+  -------------------------------------------------------------------------------
+  in the pot                                             1200
+
+  Chips in equal chips out: the seats put in 1200 and the pot says 1200. A query whose
+  stated pot is not the sum of the hand figures above is rejected rather than answered,
+  folded seats included, because a folded seat's chips are in the pot and dropping them
+  is how a pot stops reconciling.
+
+Hero's depth is now read rather than reconstructed: hero holds 9750 and its own record
+says it put in 250, so hero sat down with 10000, which is 100 big blinds. Every other
+seat is recomputed the same way, so the cutoff shows as a 100bb seat that has invested
+rather than as a 92bb seat.
+
+  the chart's answer:  raise to 2150  preflop-chart:weighted-draw:raise[raise=1]
+
+The table is flat, hero's depth is a whole number of big blinds, the committed chart
+holds the cell, and the answer is capped at what hero can actually raise to: hero's own
+250 plus the 9,750 behind it.
+
+## The depth the chart derived against the depth that is true
+
+Hero's stack depth decides which chart is consulted, so a wrong depth is not a wrong
+label - it is an answer taken from a different game. The column marked 'true' is hero's
+own record: what hero holds plus what hero put in. The column marked 'from the price' is
+the number the pre-phase derivation returned for a hero whose whole stack is the price
+to call, which is the bet level itself. Where those two differ, everything the chart
+said rested on the wrong one.
+
+  a flat table, hero facing a three-bet
+    hero sat down with 10000 at blinds of 50/100
+    depth, true                 100bb
+    depth, taken from the price 100bb, agreeing
+    the table shape             flat at 100bb
+    the chart answered          raise to 2150  preflop-chart:weighted-draw:raise[raise=1]
+    Nobody is short. Hero holds 97.5bb and the three-bettor holds 92bb, and neither is a
+    shallow seat: both sat down with 100bb and the difference is money already in the
+    pot. This is the table the chart is allowed to answer.
+
+  the worked example: a capped hero at 5/10
+    hero sat down with 250 at blinds of 5/10
+    depth, true                 25bb
+    depth, taken from the price 30bb
+    the table shape             seat 2 is deeper than hero, holding 30bb
+    the chart answered          refused  preflop-chart:table-is-not-one-flat-stack-depth  (seat 2, starting_chips 300, stack_depth_bb 30)
+    Hero holds 150, has 100 in, and the price is 150, which is everything hero has. Hero
+    started with 250 and is 25bb deep. The street's bet level is 300, which is 30bb, and
+    that is what the pre-phase derivation returned here. The button is genuinely deeper,
+    so this table refuses, and it refuses naming the button.
+
+  a hero who bought in short
+    hero sat down with 5000 at blinds of 50/100
+    depth, true                 50bb
+    depth, taken from the price 50bb, agreeing
+    the table shape             seat 1 is deeper than hero, holding 100bb
+    the chart answered          refused  preflop-chart:table-is-not-one-flat-stack-depth  (seat 1, starting_chips 10000, stack_depth_bb 100)
+    Hero sat down with 50bb at a table of 100bb seats. It does not refuse because hero's
+    own depth is odd - 50bb is a whole number of big blinds - but because a live seat is
+    deeper by construction, so the table is not one flat depth. A hero who bought in
+    short and a hero who is merely short on this street read as one sentence and are
+    not. This row is a construction and not a reachable state: hero's own open stands in
+    front of it with nobody having acted since, which no betting round produces. It is
+    written that way so that the only thing separating it from the flat table above is
+    what hero sat down with.
+
+  a folded seat holding 19.5bb
+    hero sat down with 10000 at blinds of 50/100
+    depth, true                 100bb
+    depth, taken from the price 100bb, agreeing
+    the table shape             flat at 100bb
+    the chart answered          raise to 1350  preflop-chart:weighted-draw:raise[raise=1]
+    The small blind bought in for 20bb, posted, and folded. Its chips stay in the pot
+    and in the reconciliation, and it cannot change a chip of hero's decision, because
+    effective stack is pairwise and against seats that can still act. This table is flat
+    and gets answered.
+
+  two live seats shorter than hero, at 90bb and 20bb
+    hero sat down with 10000 at blinds of 50/100
+    depth, true                 100bb
+    depth, taken from the price 100bb, agreeing
+    the table shape             seat 2 is shorter than hero, holding 20bb
+    the chart answered          refused  preflop-chart:a-live-seat-is-shorter-than-hero  (seat 2, starting_chips 2000, stack_depth_bb 20)
+    Which of the two the refusal names is the whole of this row. The hijack is shorter
+    than hero and comes first in seat order; the cutoff is shorter still. The seat
+    reported is the cutoff, because the shortest live stack is the one that caps hero's
+    effective stack and is the number a future tolerance would have to be set against:
+    90bb against 100bb is still 100bb poker, and 20bb is a different game. Reporting the
+    first offender in seat order instead would make the recorded depth depend on the
+    seating - the same two stacks in swapped chairs would report 90bb here and 20bb from
+    the other side of the table. This row is the one place in the report where the two
+    rules give different answers, so it is what stops the check below from being a check
+    that cannot fail.
+
+  a ragged hero hiding a 200bb seat
+    hero sat down with 10050 at blinds of 50/100
+    depth, true                 100.5bb
+    depth, taken from the price 100.5bb, agreeing
+    the table shape             hero's own depth is not a whole big blind
+    the chart answered          refused  preflop-chart:stack-depth-not-a-whole-big-blind  (seat 0, starting_chips 10050, stack_depth_bb 100.5)
+    Hero sat down with 10,050 chips, which is 100.5 big blinds, and the cutoff sat down
+    with 200bb. Only the raggedness is reported. This is what judgment call 7 costs, and
+    it is stated rather than fixed.
+
+Every row above was checked before it was printed: the shape the contributions imply is
+the shape the strategy acted on, and no refusal names hero as deeper or shorter than
+hero. At least one row has to be a hero whose whole stack is the price and whose true
+depth is not the bet level, or the check could not fail and the report would be
+decoration. The seat each depth refusal names is checked too, against the extreme live
+seat recomputed from the seat states rather than taken from either copy of the selection
+rule - and because two copies that agree with each other prove nothing about which seat
+is right, a row where the extreme seat is not the first one in seat order has to exist
+in each direction, or that check could not fail either. The 90bb-and-20bb row above
+supplies the shorter direction; `phase02-three-way-side-pot`, further down, supplies the
+deeper one from its 50-chip chair.
+
+## The straddled pot that used to slip through the deleted bound
+
+50/100 with a 200 straddle. The cutoff opened to 600, the straddler and the big blind
+called, the small blind folded, and the button is deciding. This is the pot named in
+`PER-SEAT-CONTRIBUTIONS-IN-QUERY`, and it is common in the home games this bot is
+pointed at.
+
+  seat  position   sat down with put in, street  put in, hand  holds now   status
+  -------------------------------------------------------------------------------
+  0     LJ                 10000            600           600       9400     live
+  1     HJ                 10000              0             0      10000   folded
+  2     CO                 10000            600           600       9400     live
+  3     BTN                10000              0             0      10000     live
+  4     SB                 10000             50            50       9950   folded
+  5     BB                 10000            600           600       9400     live
+  -------------------------------------------------------------------------------
+  in the pot                                             1850
+
+  Chips in equal chips out: the seats put in 1850 and the pot says 1850. A query whose
+  stated pot is not the sum of the hand figures above is rejected rather than answered,
+  folded seats included, because a folded seat's chips are in the pot and dropping them
+  is how a pot stops reconciling.
+
+The rule this phase deleted worked out the largest pot two blinds and the recorded
+actions could explain, and refused anything bigger. Its number here:
+
+    the deleted bound allowed   1950
+    this pot is                 1850
+    so the old rule             admitted (pot 1850 at or under its bound of 1950)
+
+The money cannot give it away either. An unstraddled pot at the same price produces the
+same 50/600/600/600, so per-seat contributions do not help here and the straddler,
+having already called to the level, holds exactly what an ordinary caller holds. What
+differs is the price of a re-raise:
+
+    the table offers a minimum raise to      1000
+    two blinds and a raise to 600 predict    1100
+    the gap                                  100
+
+The gap is the straddle less the big blind, because the opener's raise was measured from
+the 200 in front of it rather than from the 100 the format declares. That gap is the
+only trace the straddle leaves, and it is what this pot is now refused on:
+
+  the chart's answer:  refused  preflop-chart:pot-holds-a-straddle  (min_raise_target 1000, predicted_min_raise 1100)
+
+### The whole signal is one field a producer supplies, and that cuts both ways
+
+Because the trace is the minimum raise and nothing else, the answer here depends
+entirely on one number whoever built the query put in it. That is the sharpest
+false-positive channel this phase opens, so it is demonstrated rather than described.
+The two tables below are the same table - the same six seats, the same 50/600/600/600
+contributions, the same 600 level, the same recorded history, the same everything -
+except for `min_raise_target`:
+
+    min_raise_target 1000   refused  preflop-chart:pot-holds-a-straddle  (min_raise_target 1000, predicted_min_raise 1100)
+    min_raise_target 1100   refused  preflop-chart:lookup:unrepresentable-spot  (table_size 6, stack_depth_bb 100, hand_class AA)
+
+1100 is what two declared blinds and a recorded raise to 600 predict; 1000 is what a
+table with a 200 straddle in it actually offers. One field moves and the strategy stops
+saying anything about forced money at all. So a producer that computes that field
+carelessly makes the strategy state something false about the game: wrong in one
+direction it announces a straddle in a pot that holds none, wrong in the other it misses
+the straddle that is there, and nothing downstream can tell either from the truth,
+because the field *is* the evidence. That is why `predicted_min_raise_target` mirrors
+the engine's own walk line for line rather than approximating it, and why the
+under-raise table further down states the 450 this repo's engine offers rather than the
+400 an approximation gives: an earlier draft of the signal predicted 350 against the
+engine's 450 and refused that pot as holding a straddle, which is a false statement
+about a pot where a short stack simply shoved.
+
+## The straddle census, reconciled against the minimum raise
+
+10 constructed pots, each with what is truly in it stated first and what the three
+signals made of it second. The reconciliation is one rule: a pot whose minimum raise
+disagrees with what the declared blinds and the recorded raises predict is straddled,
+and has to be counted as straddled. It is checked in both directions, because a detector
+that called every pot straddled would satisfy half of it by itself.
+
+The row marked `the old bound` is the arithmetic rule this phase deleted, run again on
+the same pot. It is printed beside the replacement's answer because a reader needs to
+see that the replacement did not lose what the bound covered, and it is compared rather
+than merely printed: every pot the bound refused has to come out of the replacement as
+holding forced money of some kind, or this command exits non-zero. That is narrower than
+the contract's criterion, which is about every pot and rests on a frozen test; what it
+adds is that these rows cannot quietly stop supporting the sentence they are printed
+under.
+
+  a 200 straddle already called to the level
+    what is truly in it     straddled
+    what the signals said   straddled
+    minimum raise offered   1000
+    minimum raise predicted 1100
+    the old bound           admitted (pot 1850 at or under its bound of 1950)
+    the chart's answer      refused  preflop-chart:pot-holds-a-straddle  (min_raise_target 1000, predicted_min_raise 1100)
+    The pot the deleted bound admitted. Nothing about the chips gives it away and only
+    the minimum raise does.
+
+  the same pot at the same price, unstraddled
+    what is truly in it     no forced money
+    what the signals said   no forced money
+    minimum raise offered   1100
+    minimum raise predicted 1100
+    the old bound           admitted (pot 1850 at or under its bound of 1950)
+    the chart's answer      refused  preflop-chart:lookup:unrepresentable-spot  (table_size 6, stack_depth_bb 100, hand_class AA)
+    The negative control. One field differs from the row above, and the answer has to
+    differ with it. It still refuses - two callers behind the raiser with the button yet
+    to act is not a sequence the key space can write - but it is not refused as forced
+    money, which is the claim being made here.
+
+  a 200 straddle in an unraised pot
+    what is truly in it     straddled
+    what the signals said   straddled
+    minimum raise offered   400
+    minimum raise predicted no raise yet, so no prediction
+    the old bound           refused (the level is not the big blind)
+    the chart's answer      refused  preflop-chart:pot-holds-a-straddle  (bet_level 200, big_blind 100)
+    Nothing has raised, so the level can only be the big blind, and it is 200.
+
+  a 200 button straddle, raised to 600
+    what is truly in it     straddled
+    what the signals said   straddled
+    minimum raise offered   1000
+    minimum raise predicted 1100
+    the old bound           refused (pot 950 over its bound of 750)
+    the chart's answer      refused  preflop-chart:pot-holds-a-straddle  (min_raise_target 1000, predicted_min_raise 1100)
+    The straddler has not acted, so its 200 is unexplained money too. The order is
+    ruled: the straddle signals fire first, so this is named a straddle rather than
+    filed under the residual code.
+
+  a 10-chip ante from every seat
+    what is truly in it     anted
+    what the signals said   anted
+    minimum raise offered   200
+    minimum raise predicted no raise yet, so no prediction
+    the old bound           refused (pot 210 over its bound of 150)
+    the chart's answer      refused  preflop-chart:pot-holds-an-ante  (ante 10)
+    Dead money, uniform across the table. It is in each seat's hand figure and not in
+    its street figure, so hero still owes the full big blind: an ante buys nothing off
+    the price.
+
+  a dead blind on a seat that has folded
+    what is truly in it     forced money of no named kind
+    what the signals said   forced money of no named kind
+    minimum raise offered   200
+    minimum raise predicted no raise yet, so no prediction
+    the old bound           refused (pot 250 over its bound of 150)
+    the chart's answer      refused  preflop-chart:blind-structure-not-representable  (seat 0, forced_chips 100)
+    The lojack posted on sitting down and folded. Not a straddle, because the level is
+    still the big blind; not an ante, because an ante is uniform. This is the residual
+    the kept code exists for.
+
+  two dead blinds of different sizes
+    what is truly in it     forced money of no named kind
+    what the signals said   forced money of no named kind
+    minimum raise offered   200
+    minimum raise predicted no raise yet, so no prediction
+    the old bound           refused (pot 300 over its bound of 150)
+    the chart's answer      refused  preflop-chart:blind-structure-not-representable  (seat 1, forced_chips 100)
+    The lojack owes 50 and the hijack owes 100, and both folded. Which of the two the
+    refusal names is the whole of this row, and it is the only pot in this report where
+    more than one seat holds unexplained money in different amounts - the ante row above
+    has six such seats and they are all equal, which is what makes it an ante rather
+    than this. The seat reported is the hijack, because it is the one holding the most,
+    and the dead-blind row above cannot show that: with one unexplained seat, naming the
+    most forced chips and naming the lowest chair are the same answer. Here they are
+    seat 1 and seat 0, so the published detail says which rule produced it and the check
+    below can fail.
+
+  a straddle equal to the big blind, already called
+    what is truly in it     straddled, and invisible to all three signals
+    what the signals said   no forced money
+    minimum raise offered   200
+    minimum raise predicted no raise yet, so no prediction
+    the old bound           admitted (pot 250 at or under its bound of 250)
+    the chart's answer      refused  preflop-chart:lookup:spot-not-covered  (spot_key t6/d100/HJ/LJ:call, table_size 6, stack_depth_bb 100, hand_class AA)
+    The residual all three signals miss. It moves no level, predicts what a limp
+    predicts, and shifts no minimum, so it is answered as the limped pot it is
+    indistinguishable from. Reported rather than claimed as covered.
+
+  a small blind completing to 100
+    what is truly in it     no forced money
+    what the signals said   no forced money
+    minimum raise offered   200
+    minimum raise predicted no raise yet, so no prediction
+    the old bound           admitted (pot 200 at or under its bound of 250)
+    the chart's answer      raise to 350  preflop-chart:weighted-draw:raise[raise=1]
+    The commonest pot in a home game. Reconstruction is against the blinds *and* each
+    seat's own recorded actions, or this would read as an anted table.
+
+  an ordinary 2.5bb cutoff open
+    what is truly in it     no forced money
+    what the signals said   no forced money
+    minimum raise offered   400
+    minimum raise predicted 400
+    the old bound           admitted (pot 400 at or under its bound of 400)
+    the chart's answer      raise to 1350  preflop-chart:weighted-draw:raise[raise=1]
+    The most ordinary spot the chart holds. A signal firing here would replace a bound
+    that over-refused with a rule that over-refuses differently.
+
+  the census
+    straddled                                       counted  3   truly  3
+    anted                                           counted  1   truly  1
+    forced money of no named kind                   counted  2   truly  2
+    no forced money                                 counted  4   truly  3
+    straddled, and invisible to all three signals   counted  0   truly  1
+
+The four counted classes account for all 10 pots, and the straddle count equals the
+number of pots holding a straddle the signals can see. The absorbed straddle is one of
+them, and it is counted through a minimum raise that disagrees with the prediction: that
+is the assertion this command exits non-zero on.
+
+One row deliberately does not match, and the difference is part of what is still missed:
+4 pots are counted as holding no forced money where only 3 hold none. The odd one out is
+the big-blind-sized straddle, which is counted clean because nothing in the money, the
+level or the minimum raise distinguishes it from a limp. It is printed as a straddle in
+the truth column so that the gap is a number rather than a sentence. Both figures on the
+last row are read off the same tally as every row above rather than written in: the
+detector has no such class to return, so its count is zero, and this command exits
+non-zero unless every pot in that row is counted as holding no forced money at all. The
+row is the smaller of the two residuals; the larger one is in the closing section and no
+probe here can carry it.
+
+One more thing above is checked rather than printed. Where a refusal names a seat - the
+two rows holding a dead blind - the seat it names is recomputed here from the
+contributions, not asked of the rule that chose it, and it has to be the seat holding
+the most chips its own actions do not explain, ties to the lowest chair. A rule that
+simply named the lowest chair would agree on every pot with one such seat, so a row
+where the two answers differ has to exist or that check could not fail either. The
+two-dead-blinds row is it: the most forced chips are in seat 1 and the lowest chair
+holding any is seat 0.
+
+## The corpus counts, as a checked regression proof
+
+All 499 committed corpus hands are six seats at 10,000 chips, with no ante and blinds of
+exactly 50 and 100. Not one unequal stack, not one straddle, not one ante. So every
+table-shape count below is zero before anything is measured, and it is printed rather
+than omitted for one reason: a number here that moves is a defect, not a discovery.
+
+  hands compared                     499
+  preflop decision points            3048
+  refusals                           290
+
+  preflop-chart:stack-depth-not-a-whole-big-blind         0
+  preflop-chart:table-is-not-one-flat-stack-depth         0
+  preflop-chart:a-live-seat-is-shorter-than-hero          0
+  preflop-chart:pot-holds-a-straddle                      0
+  preflop-chart:pot-holds-an-ante                         0
+  preflop-chart:blind-structure-not-representable         0
+
+The refusals the corpus does produce are all about chart coverage rather than table
+shape, and they are unchanged by this phase:
+
+  preflop-chart:lookup:hand-class-not-covered             7
+  preflop-chart:lookup:spot-not-covered                 283
+
+One live corpus number is worth reading twice. 10 of 3048 decisions price hero at its
+whole stack, which is the population the capped-price ruling is about and the population
+the deleted depth derivation was wrong for. In 0 of them does the bet level differ from
+what hero sat down with - because every corpus seat starts with exactly 100bb, so a
+shove can never be for more than hero itself started with. The corpus therefore has the
+population and cannot exercise the defect, which is why the divergence above is
+constructed.
+
+## The one committed fixture that moves
+
+`data/samples/normalized_hands.json` holds `phase02-three-way-side-pot`: three seats
+with 50, 100 and 200 chips at blinds of 5 and 10. The button shoved 200, the 50-chip
+seat called all-in, the 100-chip seat called all-in. This is the only committed hand
+where the shorter-seat rule has anything to bite on, and it is the phase's only live
+evidence that the rule fires at all.
+
+Before this phase all three of its preflop decisions refused with
+`preflop-chart:lookup:no-artifact-for-table-size`. Hero's depth came out as 20bb at
+every one of them, and the flat-table test compared what each seat *held* against that,
+so a seat holding less was invisible and the table read as flat. The refusal then came
+from there being no three-handed chart, which is true and is not what is wrong with the
+table.
+
+  phase02-three-way-side-pot, seat 2 to act
+
+  seat  position   sat down with put in, street  put in, hand  holds now   status
+  -------------------------------------------------------------------------------
+  0     SB                    50              5             5         45     live
+  1     BB                   100             10            10         90     live
+  2     BTN                  200              0             0        200     live
+  -------------------------------------------------------------------------------
+  in the pot                                               15
+
+  Chips in equal chips out: the seats put in 15 and the pot says 15. A query whose
+  stated pot is not the sum of the hand figures above is rejected rather than answered,
+  folded seats included, because a folded seat's chips are in the pot and dropping them
+  is how a pot stops reconciling.
+
+    hero's depth, true      20bb
+    before this phase       preflop-chart:lookup:no-artifact-for-table-size
+    now                     refused  preflop-chart:a-live-seat-is-shorter-than-hero  (seat 0, starting_chips 50, stack_depth_bb 5)
+
+  phase02-three-way-side-pot, seat 0 to act
+
+  seat  position   sat down with put in, street  put in, hand  holds now   status
+  -------------------------------------------------------------------------------
+  0     SB                    50              5             5         45     live
+  1     BB                   100             10            10         90     live
+  2     BTN                  200            200           200          0   all-in
+  -------------------------------------------------------------------------------
+  in the pot                                              215
+
+  Chips in equal chips out: the seats put in 215 and the pot says 215. A query whose
+  stated pot is not the sum of the hand figures above is rejected rather than answered,
+  folded seats included, because a folded seat's chips are in the pot and dropping them
+  is how a pot stops reconciling.
+
+    hero's depth, true      5bb
+    before this phase       preflop-chart:lookup:no-artifact-for-table-size
+    now                     refused  preflop-chart:table-is-not-one-flat-stack-depth  (seat 2, starting_chips 200, stack_depth_bb 20)
+
+  phase02-three-way-side-pot, seat 1 to act
+
+  seat  position   sat down with put in, street  put in, hand  holds now   status
+  -------------------------------------------------------------------------------
+  0     SB                    50             50            50          0   all-in
+  1     BB                   100             10            10         90     live
+  2     BTN                  200            200           200          0   all-in
+  -------------------------------------------------------------------------------
+  in the pot                                              260
+
+  Chips in equal chips out: the seats put in 260 and the pot says 260. A query whose
+  stated pot is not the sum of the hand figures above is rejected rather than answered,
+  folded seats included, because a folded seat's chips are in the pot and dropping them
+  is how a pot stops reconciling.
+
+    hero's depth, true      10bb
+    before this phase       preflop-chart:lookup:no-artifact-for-table-size
+    now                     refused  preflop-chart:table-is-not-one-flat-stack-depth  (seat 2, starting_chips 200, stack_depth_bb 20)
+
+All three decisions change code, and the deep seat takes the new shorter-live-seat code:
+from the button's chair two live seats are genuinely shorter, and from the two short
+chairs a live seat is genuinely deeper. This hand is also the committed evidence that a
+depth refusal names the extreme offending seat rather than the first one it meets. From
+the 50-chip chair two live seats are deeper, holding 100 and 200, and the seat reported
+is the 200 - the deepest - so this row would read 10bb rather than 20bb under a rule
+that stopped at the first offender in seat order. It is the only row in COMMITTED DATA
+where the two rules differ, and it covers the deeper direction only; the shorter
+direction is pinned by the constructed 90bb-and-20bb probe in the depth section above,
+which is why the validator demands a distinguishing row in each direction rather than
+one. The committed postflop fallback report is regenerated with these codes rather than
+hand-edited, and the decision record's estimate that two of the three would move is
+corrected here to three.
+
+## A number in this report you can recompute by hand
+
+The pot of 260 printed above for seat 1 of `phase02-three-way-side-pot` comes out of the
+file itself, and the arithmetic is four numbers long.
+
+  1. Open `data/samples/normalized_hands.json`.
+  2. Find the hand whose `hand_id` is `phase02-three-way-side-pot`.
+  3. In its `preflop` street, read the `amount` of every action listed before seat 1's
+  own `call`.
+  4. A blind post and a raise record the total that seat then has in front of it; a call
+  records what that seat added. Add them:
+
+       5 + 10 + 200 + 45 = 260
+
+That is the pot this report prints for that decision, and this command checks the
+addition against the replayed query before writing anything: the file and the replay
+have to agree.
+
+## The two findings Phase 12 handed on, measured
+
+### A spot key admits a re-raise no legal action produces
+
+Over a 2.5bb open the smallest legal re-raise is 4bb: the level plus the larger of the
+previous increment and one big blind. A re-raise to 3bb is not a legal action and the
+key space writes it down anyway - and writes the same string for a button that was
+simply all-in for 300, which is legal and is a different table:
+
+    the key the lookup asked about   t6/d100/BB/CO:raise@2.5,BTN:raise@3
+
+That string is read off the lookup the under-raise table actually reached rather than
+composed here, and only one of the two tables ever reaches one. The button all-in for
+300 sat down with 300, which is three big blinds against hero's hundred, so that table
+is not one flat depth and it is refused before any key is built:
+
+    the recorded under-raise   refused  preflop-chart:lookup:spot-not-covered  (spot_key t6/d100/BB/CO:raise@2.5,BTN:raise@3, table_size 6, stack_depth_bb 100, hand_class AA)
+    the short all-in for 300   refused  preflop-chart:a-live-seat-is-shorter-than-hero  (seat 3, starting_chips 300, stack_depth_bb 3)
+
+So the merge lives in the key space and not in what this strategy does with these two
+tables, and the difference is worth stating rather than eliding: a claim that both
+tables render one key would be false of the second, which renders nothing. This command
+refuses to publish that key unless the two tables still agree on every one of the four
+things a key is made of, the first still reaches the chart, and the second is still
+refused for holding a live seat shorter than hero.
+
+Does the query's new state close the under-raise itself? Not in the key, and not in the
+query either. The recorded raise-to amounts and the two declared blinds do reconstruct
+what the minimum raise should be, and that reconstruction now mirrors the engine
+exactly: the minimum starts at the big blind and a recorded raise moves it only when its
+increment is at least the minimum already standing. An incomplete raise therefore
+predicts the same 450 the engine offers, so nothing about it disagrees and nothing about
+it is refused as forced money. Its refusal above is a chart-coverage miss and nothing
+more, which is what this table honestly is.
+
+An earlier draft of the straddle signal walked the raises with no floor on the
+increment, so it predicted 350 against the engine's 450 and refused this pot as holding
+a straddle - a false statement about the game, in a pot where a short stack simply
+shoved. Flooring the walk removes that and hides no straddle, because a straddle
+perturbs only the first increment and that increment is always a full raise. What
+remains is that an under-raise is now fail-closed only by coverage: this cell happens to
+be unsolved, and nothing here refuses the price for being illegal.
+
+What it costs on committed data: 0 of the 1386 corpus decisions that face a raise carry
+a recorded raise below the legal minimum, out of 3048 decisions in all. Every raise in
+the corpus is a full legal raise, so the permissive key space costs nothing measurable
+today and stays structurally open.
+
+What a key would have to carry to close it: a marker on each raise entry saying whether
+it was a legal full raise or an all-in for less. Without that, an under-raise and a
+short all-in render one string, and any cell filled from that string mixes two prices.
+That is a spot-key format change, which this phase is scoped out of, and it is filed
+rather than done.
+
+### A call entry carries no record of being all-in for less
+
+Two different tables at the same price: on one the button called the full 250 out of a
+hundred big blinds, on the other it was all-in for 120. Their recorded histories are
+identical - fold, fold, a raise to 250, a call - and so is every other thing a spot key
+is made of, so the vocabulary has one string for both:
+
+    the key the lookup asked about   t6/d100/BB/CO:raise@2.5,BTN:call
+
+One of the two renders it, and that is this finding closing rather than the
+demonstration failing. The full call reaches the chart and the lookup asks about that
+key. The short all-in does not get that far: a seat all-in for less than the level has,
+by definition, put in everything it sat down with, so it is a shorter seat, and the
+table is no longer flat.
+
+    the full call        refused  preflop-chart:lookup:spot-not-covered  (spot_key t6/d100/BB/CO:raise@2.5,BTN:call, table_size 6, stack_depth_bb 100, hand_class AA)
+    the short all-in     refused  preflop-chart:a-live-seat-is-shorter-than-hero  (seat 3, starting_chips 120, stack_depth_bb 1.2)
+
+Those two lines are not two answers to one question, which is the whole of what the
+query bought here. The first is a chart-coverage refusal and names the cell nobody has
+solved. The second names a seat and the depth it holds, and is reached before any key
+exists at all. So a live query carrying a short all-in call never renders that key, and
+the two tables cannot be answered from one cell any more. What remains open is the key
+space itself: anything that works from keys rather than from a table - a committed
+artifact, a self-play enumeration, `decide_spot` - still merges them, and there the
+merge is total, because nothing in a key says how deep the caller was. On committed data
+that costs 0 of the 178 corpus decisions whose history holds a call.
+
+That zero is weaker than it reads, and the weaker reading is the true one. It says no
+corpus call is tagged all-in at all - not that every corpus all-in is for the exact
+level, which is the claim this paragraph used to end on. The count asks two things of a
+recorded call, that the seat is marked all-in and that its street figure is below the
+level, and only the first is doing any work: measured over the corpus, none of the 183
+recorded call entries comes from a seat the record marks all-in, and the whole corpus
+carries 10 all-in seat-states across 18,288. Loosening the second test from
+below-the-level to at-or-below-the-level leaves the count at zero, which is what it is
+for a check to be insensitive to its own comparison. So the zero is a fact about how the
+converter tags a call rather than about the sizes of anything, and a corpus that began
+recording all-in calls could move it whatever the levels did. The regression is still
+worth keeping - same shape as the table-shape zeros above, a committed number a changed
+replay or converter can move - but it is not the statement about levels it was written
+up as.
+
+What a key would have to carry: the same marker, on a call. What leaving it open costs
+is not a wrong answer today but a wrong denominator later - the first artifact built
+from real hands would fill one cell from two different tables and nothing would say so.
+
+## What this still misses, and what it costs
+
+**A straddled pot with two or more recorded raises is invisible to all three signals,
+and it is answered rather than refused.** This is the largest thing this phase misses
+and the one place the claim at the top of this report does not hold, so it is stated
+first. The minimum-raise signal is the only one that can see a straddle whose poster has
+acted, and what it compares is the minimum the table offers against the final level plus
+the last increment. A straddle perturbs only the FIRST increment. From the second
+recorded raise onward the prediction is a difference of two recorded raise-to amounts,
+which comes out identical whether the pot is straddled or not, so the signal fires only
+on single-raise pots - which is what every probe in the census above happens to be. The
+other two signals cannot cover it: a raiser's predicted contribution is its own raise-to
+amount, which absorbs any forced money that seat posted earlier, and an unraised level
+cannot be read once the straddler has acted.
+
+What that costs is worse than a refusal under the wrong code. Such a table reaches the
+chart, hits a cell, and is answered with the range solved for the UNSTRADDLED spot,
+which is answering a straddled pot by reaching for a neighbouring cell - the thing this
+phase set out to stop. Below is that table, built on this code with no mutation, and
+built so that an ordinary betting round produces it: 50/100 with the BIG BLIND
+straddling to 200, the lojack and hijack folding, the cutoff opening to 500, the button
+and small blind folding, the big blind three-betting to 1,350, and the cutoff deciding.
+A straddler has to act last in the first orbit, which is where the big blind already
+acts, so nothing here is out of turn and no seat is asked for a decision it would never
+be asked for.
+
+  seat  position   sat down with put in, street  put in, hand  holds now   status
+  -------------------------------------------------------------------------------
+  0     LJ                 10000              0             0      10000   folded
+  1     HJ                 10000              0             0      10000   folded
+  2     CO                 10000            500           500       9500     live
+  3     BTN                10000              0             0      10000   folded
+  4     SB                 10000             50            50       9950   folded
+  5     BB                 10000           1350          1350       8650     live
+  -------------------------------------------------------------------------------
+  in the pot                                             1900
+
+  Chips in equal chips out: the seats put in 1900 and the pot says 1900. A query whose
+  stated pot is not the sum of the hand figures above is rejected rather than answered,
+  folded seats included, because a folded seat's chips are in the pot and dropping them
+  is how a pot stops reconciling.
+
+Every price is legal at that table's own minimums, and every seat holds exactly what its
+own actions explain, because the straddler's 200 is absorbed into the 1,350 it raised
+to. So reconstruction is silent, the level is not readable behind two raises, and the
+one signal left agrees with the table exactly:
+
+    the table offers a minimum raise to      2200
+    two blinds and those two raises predict  2200
+    the key the lookup asked about           t6/d100/CO/CO:raise@2.5,BB:raise@13.5
+    what it says it had to move to get there price_substitution_0 5->2.5
+    the weights it answered from             call=0.0029, raise=0.9971
+    the chart's answer                       raise to 2850  preflop-chart:weighted-draw:raise[call=0.0029,raise=0.9971]
+
+Those weights are the range solved for a 2.5bb cutoff open three-bet to 13.5bb at 50/100
+with nothing forced in the pot, which is a different game from the one being played. The
+answer's only provenance field says a price was substituted; not one field on it says
+the pot holds forced money, because nothing in this phase can tell that it does. The
+report checks both halves of that before printing them: the pot has to still reach a
+chart cell, and the census has to still count it as holding no forced money at all, or
+this command exits non-zero and the admission is out of date. Filed as
+`STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`, and not fixable in this phase's vocabulary:
+once the straddler raises, the straddle's trace is genuinely destroyed, the only thing
+that recovers it is a declared blind structure on the query - the format change this
+phase is scoped out of - and any guard written without one over-refuses ordinary
+unstraddled tables.
+
+
+**The ratio between the two blinds is compared with nothing, so four different games
+reach one cell and come back with one answer.** The committed artifact declares a table
+size and a stack depth. It does not declare a blind structure, and nothing in this repo
+- not the chart, not the lookup, not one of the checks this phase added - compares the
+small blind against half the big one. Below is hero in the small blind facing a 2.5bb
+button open at four structures, with everything a spot key is made of held still: six
+seats, every one a hundred big blinds deep, one recorded raise. The whole canonical hand
+class list was asked at each, all 169 of them, and the last column counts the ones whose
+weights differ from the first row's.
+
+  structure  blinds      hero pays    in bb  the pot    in bb  pot odds classes moving
+  ------------------------------------------------------------------------------------
+  $0.50/$1   50/100            200   2.0000      400   4.0000    33.33%       baseline
+  $1/$3      100/300           650   2.1667     1150   3.8333    36.11%       0 of 169
+  $2/$5      200/500          1050   2.1000     1950   3.9000    35.00%       0 of 169
+  $5/$5      500/500           750   1.5000     2250   4.5000    25.00%       0 of 169
+
+The price hero is offered swings 11.1 points of pot odds across those rows - 25.00% at
+$5/$5 against 36.11% at $1/$3 - because the small blind is a different fraction of the
+big blind in each of them, and hero is the seat that posted it. Not one hand class
+responds. All four ask the chart about the same key, `t6/d100/SB/BTN:raise@2.5`, because
+a key has nowhere to write the ratio down, and the artifact behind that key has nowhere
+to declare what ratio it was solved at.
+
+What that costs is not a corner case. This bot is pointed at home games, and $1/$3 and
+$2/$5 are what home and live games are dealt at; $1/$2, the structure whose ratio
+matches the chart's, is the exception rather than the rule. Whether the right ranges
+genuinely differ between those games is a solver question this repo cannot answer from
+here, and this report does not claim they do. What is measured is that they cannot
+differ, because nothing looks: the same eleven-point spread that would change a marginal
+call into a marginal fold at the table changes nothing here.
+
+Not fixable in this phase, and filed as
+`BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE`. Refusing on the ratio would
+mean hardcoding into the code a property the artifact does not declare - which is the
+reconstruction-from-an-undeclared-source defect this phase exists to end, in a new
+place. The fix is a declared blind structure on the artifact and on the query, which is
+the same format change the straddle residual above waits on and the same one this phase
+is scoped out of. This command re-measures the four rows before printing them: each has
+to still reach a chart cell, the four prices have to still differ, and if any hand class
+ever does answer differently the command exits non-zero, because this section would then
+be describing a defect that is fixed.
+
+**A straddle equal to the big blind, once its poster has acted, is invisible for a
+second and simpler reason.** It moves no level, it predicts exactly what a limp
+predicts, and it shifts no minimum raise. The census above carries it as a row and
+counts it as undetected rather than leaving it out. A straddle in a pot where the
+straddler has acted and nothing has raised is the same blind spot; it cannot happen in a
+legal preflop street, where the straddler acts last and its call ends the round, but it
+can be written as a query.
+
+**A ragged hero hides every table shape behind it.** The checks fire in a ruled order -
+hero's own depth first, then a live seat deeper, then a live seat shorter - and the
+first match wins. At a real table where no stack is a whole number of big blinds, hero's
+own raggedness is what gets reported, so the refusal inventory will under-count
+asymmetric tables in exactly the games where they are commonest. That is judgment call
+7's accepted cost, stated here rather than fixed: reporting all findings instead of the
+first would change the shape of a refusal, which carries one code.
+
+**Refusing on any difference at all refuses almost every real table.** A live opponent
+whose starting stack differs from hero's by one chip is enough. That was ruled
+deliberately on 2026-08-21, on the reading that the alternatives need a tolerance nobody
+in this repo can derive yet, and the refusal names the seat and the depth it holds so
+that whoever re-rules it has data to do it with. Which seat is chosen is chosen for that
+reader: the shortest live seat when one is shorter, because the shortest live stack caps
+hero's effective one and is the number a tolerance would have to be set against - a 90bb
+opponent is still 100bb poker and a 20bb opponent is a different game. Reporting
+whichever offending seat came first in seat order instead made the recorded depth depend
+on the seating.
+
+**Where a pot in this report is a construction rather than data.** Every table in this
+report except the `phase02-three-way-side-pot` section is constructed here to make one
+claim legible; none of them is read off a committed file. Separately, the postflop
+fallback report's enumeration now attributes its hundred otherwise unowned chips to
+villain's earlier street, so its pot is a claim about how the hand got here rather than
+a measurement - a reviewer reading it as data would be misled, and that report says so
+too.

@@ -5,21 +5,17 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
-# Version 2 carries the raise-to amount on each recorded preflop action and lets a
-# decision carry structured detail. Version 1 bytes and version 2 bytes would otherwise
-# be indistinguishable at an unchanged version number, which is the defect
-# `DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS` already records once.
-DECISION_AUDIT_SCHEMA_VERSION = 2
+# Version 3 carries each seat's own contributions and its folded and all-in markers, and
+# renames the bet-level key from `street_bet` to `current_bet`. Version 2 bytes and version 3
+# bytes would otherwise be indistinguishable at an unchanged version number, which is the
+# defect `DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS` already records once.
+DECISION_AUDIT_SCHEMA_VERSION = 3
 
-_STREET_BOARD_SIZES = {
-    "preflop": 0,
-    "flop": 3,
-    "turn": 4,
-    "river": 5,
-}
+_STREET_BOARD_SIZES = {"preflop": 0, "flop": 3, "turn": 4, "river": 5}
 
 _ACTION_NAMES = ("fold", "check", "call", "bet", "raise")
 _AMOUNT_ACTIONS = frozenset({"bet", "raise"})
+_PREFLOP_HISTORY_ACTIONS = ("fold", "check", "call", "raise")
 
 _CARD_RANKS = frozenset("23456789TJQKA")
 _CARD_SUITS = frozenset("cdhs")
@@ -28,9 +24,6 @@ _CARD_SUITS = frozenset("cdhs")
 def _validate_card_text(card: str, context: str) -> None:
     if len(card) != 2 or card[0] not in _CARD_RANKS or card[1] not in _CARD_SUITS:
         raise ValueError(f"{context} contains invalid card text: {card!r}")
-
-
-_PREFLOP_HISTORY_ACTIONS = ("fold", "check", "call", "raise")
 
 
 @dataclass(frozen=True)
@@ -80,26 +73,64 @@ class SeatAction:
 
 
 @dataclass(frozen=True)
+class SeatState:
+    """One seated player's chips and status, under the engine's own four names.
+
+    `PlayerState` already tracks exactly these quantities under exactly these names, so the
+    repo holds one vocabulary instead of a translation at the boundary. `street_bet` is this
+    seat's own share of the street's `current_bet`; `committed_total` is what it has put in
+    over the whole hand, which is what the pot is made of. Neither takes a default, because
+    a default is how a producer that never learned about the field still constructs.
+
+    `folded` and `all_in` are carried rather than derived: a folded seat's chips stay in the
+    pot, so no arithmetic tells it from a live one, and a zero stack means all-in, all-in on
+    an earlier street, or a seat that sat down with nothing.
+    """
+
+    seat: int
+    street_bet: int
+    committed_total: int
+    folded: bool = False
+    all_in: bool = False
+
+    def __post_init__(self) -> None:
+        for name in ("seat", "street_bet", "committed_total"):
+            value = getattr(self, name)
+            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                raise ValueError(f"{name} must be a non-negative integer, got {value!r}")
+        if self.committed_total < self.street_bet:
+            # The one direction no street allows. The other is that seat's dead money, which
+            # is what an ante is, so equality is not required even preflop. It belongs here
+            # rather than on the query: a record that cannot exist should not construct.
+            raise ValueError(
+                f"seat_state for seat {self.seat} holds {self.street_bet} on this street"
+                f" and {self.committed_total} over the hand, which cannot happen"
+            )
+
+
+@dataclass(frozen=True)
 class StrategyQuery:
     """Plain-data decision context handed to a strategy.
 
     Cards are text strings such as "As" so the query serializes cleanly.
 
-    `street_bet` is the street's **current bet level** - the amount a seat must have in
-    front of it to be square with the action - and not hero's own contribution to it.
-    Hero's own contribution is recoverable as `street_bet` minus `to_call`. The
-    distinction is written here because it was not written anywhere, which is how
-    `STREET-BET-MEANING-AMBIGUOUS` happened: two consumers read the field two ways, and
-    one report generator passed hero's contribution, so replayed hands reached the chart
-    with a mis-derived stack depth and refused for the wrong reason.
+    `current_bet` is the street's **current bet level** - the amount a seat must have in
+    front of it to be square with the action. The per-seat `street_bet` on `seat_states` is
+    one seat's own share of that level, under the engine's own name for it. Until this field
+    was renamed one name carried both readings, which is how `STREET-BET-MEANING-AMBIGUOUS`
+    happened: two consumers read it two ways and hands reached the chart mis-derived.
 
-    `preflop_actions` is the history the price to call cannot express. A strategy
-    reading a committed chart has to know whether it faces an open, a three-bet, or
-    a limp, and `to_call` plus `stacks` cannot distinguish those: several different
-    histories produce identical numbers. Defaults to empty, which means the action
-    folded to hero. Each recorded raise carries the amount it raised to, because a
-    spot key that distinguishes a 2.25bb open from a 2.5bb one cannot be derived from
-    a history that does not hold the price.
+    `seat_states` says what every seated player has put in, on this street and over the hand,
+    and whether it has folded or is all-in. Required with no default: a field a producer may
+    omit is one the depth derivation guesses behind. `pot` is validated against it rather
+    than trusted, and hero's own contribution is read out of it rather than reconstructed,
+    because the capped-`to_call` ruling of 2026-08-20 made every reconstruction wrong.
+
+    `preflop_actions` is the history the price to call cannot express: a strategy reading a
+    committed chart has to know whether it faces an open, a three-bet or a limp, and `to_call`
+    plus `stacks` cannot distinguish those. Defaults to empty, meaning the action folded to
+    hero. Each recorded raise carries the amount it raised to, because a spot key telling a
+    2.25bb open from a 2.5bb one cannot come from a history without the price in it.
     """
 
     hand_id: str
@@ -110,10 +141,11 @@ class StrategyQuery:
     board: tuple[str, ...]
     legal_actions: tuple[str, ...]
     to_call: int
-    street_bet: int
+    current_bet: int
     min_raise_target: int
     pot: int
     stacks: tuple[tuple[int, int], ...]
+    seat_states: tuple[SeatState, ...]
     blinds: tuple[int, int]
     preflop_actions: tuple[SeatAction, ...] = ()
 
@@ -154,17 +186,14 @@ class StrategyQuery:
         # game. Phase 11's contract names this as the single validation it may remove.
         if self.to_call < 0:
             raise ValueError("to_call cannot be negative")
-        if self.street_bet < 0:
-            raise ValueError("street_bet cannot be negative")
-        if self.street_bet < self.to_call:
-            # The price to call cannot exceed the level being called. A producer passing
-            # hero's own contribution trips this whenever hero has put in less than half
-            # the level - which is most producers most of the time, but not the heads-up
-            # small blind, who has put in exactly half. It narrows the defect; the
-            # documented meaning above is what closes it.
+        if self.current_bet < 0:
+            raise ValueError("current_bet cannot be negative")
+        if self.current_bet < self.to_call:
+            # The price to call cannot exceed the level being called, so a producer passing
+            # one seat's own share as the level trips this whenever that share is the smaller.
             raise ValueError(
-                f"street_bet {self.street_bet} is below to_call {self.to_call};"
-                " street_bet is the street's current bet level, not hero's own contribution"
+                f"current_bet {self.current_bet} is below to_call {self.to_call};"
+                " current_bet is the street's bet level, not one seat's share of it"
             )
         if (self.to_call == 0) != ("check" in self.legal_actions):
             raise ValueError("check must be legal exactly when to_call is zero")
@@ -181,8 +210,44 @@ class StrategyQuery:
             if previous_seat is not None and stack_seat <= previous_seat:
                 raise ValueError("stacks must be sorted by seat without duplicates")
             previous_seat = stack_seat
-        if self.seat not in {stack_seat for stack_seat, _ in self.stacks}:
+        seated = {stack_seat for stack_seat, _ in self.stacks}
+        if self.seat not in seated:
             raise ValueError("stacks must include the acting seat")
+        hero_stack = dict(self.stacks)[self.seat]
+        if self.to_call > hero_stack:
+            raise ValueError(
+                f"to_call {self.to_call} exceeds hero's stack of {hero_stack};"
+                " to_call is the price hero can actually pay, capped at what hero holds"
+            )
+        aggressive = tuple(name for name in self.legal_actions if name in _AMOUNT_ACTIONS)
+        if self.to_call == hero_stack and aggressive:
+            # Hero is all-in for the call and has nothing left to put in behind it. At a
+            # price of zero this is the seat with an empty stack, which cannot bet either.
+            raise ValueError(
+                f"hero holds {hero_stack} and owes {self.to_call}, so it is all-in for the"
+                f" call; {' and '.join(aggressive)} cannot be offered"
+            )
+        if not isinstance(self.seat_states, tuple):
+            raise ValueError(f"seat_states must be a tuple, got {type(self.seat_states).__name__}")
+        contributed_total = 0
+        previous_state_seat: int | None = None
+        for state in self.seat_states:
+            if not isinstance(state, SeatState):
+                raise ValueError(f"seat_states entries must be SeatState, got {state!r}")
+            if previous_state_seat is not None and state.seat <= previous_state_seat:
+                raise ValueError("seat_states must be sorted by seat without duplicates")
+            previous_state_seat = state.seat
+            contributed_total += state.committed_total
+        if {state.seat for state in self.seat_states} != seated:
+            raise ValueError(
+                "seat_states needs exactly one entry per seat in stacks, got"
+                f" {sorted(state.seat for state in self.seat_states)} against {sorted(seated)}"
+            )
+        if self.pot != contributed_total:
+            raise ValueError(
+                f"pot {self.pot} is not the {contributed_total} the seats put in;"
+                " chips in must equal chips out, and dropping a folded seat is how that stops"
+            )
         small_blind, big_blind = self.blinds
         if small_blind <= 0:
             raise ValueError("small blind must be positive")
@@ -190,10 +255,18 @@ class StrategyQuery:
             raise ValueError("small blind cannot exceed big blind")
         if not isinstance(self.preflop_actions, tuple):
             raise ValueError(
-                "preflop_actions must be a tuple, got"
-                f" {type(self.preflop_actions).__name__}"
+                f"preflop_actions must be a tuple, got {type(self.preflop_actions).__name__}"
             )
-        seated = {stack_seat for stack_seat, _ in self.stacks}
+        # The level a preflop street stands at, walked the way every consumer walks it: it starts
+        # at the big blind and a raise moves it to its own raise-to. A raise-to at or below the
+        # standing level is not a raise, and no betting round produces one - the engine records a
+        # shove for less than the level as a call. Both walks in `table_state.forced_money` take
+        # the level from this same sequence, so a sub-level entry would DROP the level there and
+        # corrupt every increment after it, which those walks then report as a straddle or as
+        # unexplained forced money: two poker claims about a pot that holds nothing forced at all.
+        # Refused here, where the record is built, rather than clamped in each walk, because a
+        # clamp launders an impossible history into a plausible one and then answers it.
+        level = big_blind
         for entry in self.preflop_actions:
             if not isinstance(entry, SeatAction):
                 raise ValueError(f"preflop_actions entries must be SeatAction, got {entry!r}")
@@ -201,6 +274,14 @@ class StrategyQuery:
                 raise ValueError(
                     f"preflop_actions names seat {entry.seat}, which is not at the table"
                 )
+            if entry.action == "raise" and entry.amount is not None:
+                if entry.amount <= level:
+                    raise ValueError(
+                        f"preflop_actions records seat {entry.seat} raising to {entry.amount},"
+                        f" which does not exceed the standing level of {level};"
+                        " no betting round produces that"
+                    )
+                level = entry.amount
 
     def to_payload(self) -> dict[str, Any]:
         return {
@@ -212,10 +293,21 @@ class StrategyQuery:
             "board": list(self.board),
             "legal_actions": list(self.legal_actions),
             "to_call": self.to_call,
-            "street_bet": self.street_bet,
+            "current_bet": self.current_bet,
             "min_raise_target": self.min_raise_target,
             "pot": self.pot,
             "stacks": {str(seat): stack for seat, stack in self.stacks},
+            # Keyed by seat exactly as `stacks` is, the field it is validated against seat
+            # for seat. The inner object does not repeat the seat: that is where drift starts.
+            "seat_states": {
+                str(state.seat): {
+                    "street_bet": state.street_bet,
+                    "committed_total": state.committed_total,
+                    "folded": state.folded,
+                    "all_in": state.all_in,
+                }
+                for state in self.seat_states
+            },
             "blinds": list(self.blinds),
             "preflop_actions": [entry.to_payload() for entry in self.preflop_actions],
         }
@@ -339,9 +431,8 @@ def _outcome_payload(outcome: StrategyDecision | StrategyRefusal) -> dict[str, A
             "code": outcome.code,
         }
         if outcome.detail:
-            # Only when there is something to say, so an exact answer and a substituted
-            # one differ in the bytes rather than in a field that is always present and
-            # usually empty.
+            # Only when there is something to say, so an exact answer and a substituted one
+            # differ in the bytes rather than in a field that is always present and usually empty.
             decision["detail"] = [list(entry) for entry in outcome.detail]
         return decision
     if isinstance(outcome, StrategyRefusal):
@@ -375,27 +466,20 @@ class DecisionAuditRecord:
             raise ValueError(f"unsupported outcome type: {type(self.outcome).__name__}")
         if isinstance(self.outcome, StrategyDecision):
             if self.outcome.action not in self.query.legal_actions:
-                raise ValueError(
-                    f"decision action {self.outcome.action!r} is not in legal_actions"
-                )
+                raise ValueError(f"decision action {self.outcome.action!r} is not in legal_actions")
             if self.outcome.action in _AMOUNT_ACTIONS:
                 stacks = dict(self.query.stacks)
-                # Hero's own contribution to the street plus what is left behind it. The
-                # old form used the street's whole level, which is too high by exactly the
-                # price to call, so the legality proof several contracts lean on accepted
-                # raises hero could not make.
-                max_target = (self.query.street_bet - self.query.to_call) + stacks[self.query.seat]
+                # Hero's own recorded street contribution plus what is behind it, from hero's seat
+                # record. The old ceiling used the whole level and took raises hero could not make.
+                hero = next(s for s in self.query.seat_states if s.seat == self.query.seat)
+                max_target = hero.street_bet + stacks[self.query.seat]
                 amount = self.outcome.amount
                 if amount is None:
                     raise ValueError(f"{self.outcome.action} requires an amount")
                 if amount > max_target:
-                    raise ValueError(
-                        "decision amount exceeds the acting seat's all-in maximum"
-                    )
+                    raise ValueError("decision amount exceeds the acting seat's all-in maximum")
                 if amount < self.query.min_raise_target and amount != max_target:
-                    raise ValueError(
-                        "decision amount is below the minimum unless all-in"
-                    )
+                    raise ValueError("decision amount is below the minimum unless all-in")
 
     def to_json_line(self) -> str:
         payload = {

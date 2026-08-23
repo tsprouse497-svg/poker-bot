@@ -31,6 +31,7 @@ from poker_training_bot.poker_core.order import TurnState  # noqa: E402
 from poker_training_bot.strategy.contract import (  # noqa: E402
     DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
+    SeatState,
     StrategyDecision,
     StrategyQuery,
 )
@@ -42,6 +43,50 @@ from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy  # no
 REPORT_OUTPUT = REPO_ROOT / "reports" / "active" / "latest_engine_fidelity_report.txt"
 
 _HOLE_TEXTS = ("As", "Ah", "Ks", "Kh", "Qs", "Qh", "Js", "Jh", "Ts", "Th", "9s", "9h")
+
+# What each seat put in before the flop every literal query below describes. It is a
+# construction rather than a replayed hand, so both seats state their own contribution and the
+# pot is what those add up to.
+_BEFORE_THIS_STREET = 20
+_VILLAIN_SEAT = 0
+_HERO_SEAT = 1
+
+
+def _seats(hero_street_bet: int, villain_street_bet: int) -> tuple[SeatState, ...]:
+    """Two seat records, each stating what that seat itself put in.
+
+    Hero's own chips on the street are stated by the caller, never worked back out of the
+    bet level and the price to call: that arithmetic is wrong wherever the price is capped
+    at what hero holds, and the point of the per-seat record is that nobody recomputes it.
+    Villain's are stated the same way, rather than taken as whatever is left of a stated pot
+    once hero's are subtracted off it - deriving one seat's contribution from the pot is the
+    shortcut this whole phase exists to end, and here it also produced a table no hand
+    reaches: villain read as holding 40 against hero's 20 with both live and both square on
+    the street. Both seats put `_BEFORE_THIS_STREET` in before the flop, this street's bets
+    sit on top of that, and `pot_of` adds the two up. Neither seat has folded and neither is
+    all-in - both stacks below are positive and both are stated rather than read off a zero.
+    """
+    return (
+        SeatState(
+            seat=_VILLAIN_SEAT,
+            street_bet=villain_street_bet,
+            committed_total=_BEFORE_THIS_STREET + villain_street_bet,
+            folded=False,
+            all_in=False,
+        ),
+        SeatState(
+            seat=_HERO_SEAT,
+            street_bet=hero_street_bet,
+            committed_total=_BEFORE_THIS_STREET + hero_street_bet,
+            folded=False,
+            all_in=False,
+        ),
+    )
+
+
+def pot_of(seats: tuple[SeatState, ...]) -> int:
+    """The pot as the sum of what the seats put in, which is the only direction that holds."""
+    return sum(state.committed_total for state in seats)
 
 
 def _player(seat: int, stack: int, bet: int = 0) -> PlayerState:
@@ -89,6 +134,8 @@ def _free_fold_section() -> list[str]:
 def _no_free_folds_section() -> list[str]:
     fallback = PostflopFallbackStrategy()
     lines: list[str] = []
+    # Hero has matched the level of 20, which is why the price is nothing.
+    seats = _seats(hero_street_bet=20, villain_street_bet=20)
     for street, board in (
         ("flop", ("2c", "7h", "Ts")),
         ("turn", ("2c", "7h", "Ts", "4d")),
@@ -98,16 +145,19 @@ def _no_free_folds_section() -> list[str]:
             StrategyQuery(
                 hand_id="engine-fidelity-report",
                 street=street,
-                seat=1,
-                button_seat=0,
+                seat=_HERO_SEAT,
+                button_seat=_VILLAIN_SEAT,
                 hole_cards=("As", "Kd"),
                 board=board,
                 legal_actions=("fold", "check", "bet"),
                 to_call=0,
-                street_bet=20,
+                current_bet=20,
+                # The level plus one big bet of 20, which is what the minimum raise is
+                # while no raise has been made on the street.
                 min_raise_target=40,
-                pot=60,
-                stacks=((0, 980), (1, 940)),
+                pot=pot_of(seats),
+                seat_states=seats,
+                stacks=((_VILLAIN_SEAT, 980), (_HERO_SEAT, 940)),
                 blinds=(5, 10),
             )
         )
@@ -185,20 +235,34 @@ def _reopening_section() -> list[str]:
     return lines
 
 
-def _query_for(street_bet: int, to_call: int, stack: int) -> StrategyQuery:
+def _query_for(
+    current_bet: int,
+    to_call: int,
+    stack: int,
+    hero_street_bet: int,
+    legal_actions: tuple[str, ...] = ("fold", "call", "raise"),
+) -> StrategyQuery:
+    """One flop query, with hero's own chips on the street stated by the caller.
+
+    `min_raise_target` is the bet level plus one big bet of 20, the engine's own
+    derivation on a street nothing has raised yet, and `pot` is what the two seat
+    records add up to rather than a total stated beside them.
+    """
+    seats = _seats(hero_street_bet, villain_street_bet=current_bet)
     return StrategyQuery(
         hand_id="engine-fidelity-report",
         street="flop",
-        seat=1,
-        button_seat=0,
+        seat=_HERO_SEAT,
+        button_seat=_VILLAIN_SEAT,
         hole_cards=("As", "Kd"),
         board=("2c", "7h", "Ts"),
-        legal_actions=("fold", "call", "raise"),
+        legal_actions=legal_actions,
         to_call=to_call,
-        street_bet=street_bet,
-        min_raise_target=street_bet + 20,
-        pot=60,
-        stacks=((0, 980), (1, stack)),
+        current_bet=current_bet,
+        min_raise_target=current_bet + 20,
+        pot=pot_of(seats),
+        seat_states=seats,
+        stacks=((_VILLAIN_SEAT, 980), (_HERO_SEAT, stack)),
         blinds=(5, 10),
     )
 
@@ -206,38 +270,42 @@ def _query_for(street_bet: int, to_call: int, stack: int) -> StrategyQuery:
 def _street_bet_section() -> list[str]:
     rejected = ""
     try:
-        _query_for(street_bet=10, to_call=20, stack=100)
+        _query_for(current_bet=10, to_call=20, stack=100, hero_street_bet=0)
     except ValueError as error:
         rejected = str(error)
     return [
-        "3. street_bet means the street's bet level  (STREET-BET-MEANING-AMBIGUOUS)",
+        "3. The bet level has one name and one meaning  (STREET-BET-MEANING-AMBIGUOUS)",
         "",
         "   Was:  the field carried no statement of which of two readings it held, and",
         "         scripts/generate_strategy_query_report.py passed hero's own contribution",
         "         while every other producer passed the street's level.",
         "   Now:  the meaning is written on StrategyQuery, the one producer is corrected,",
-        "         and a query whose street_bet is below its to_call is rejected.",
+        "         and a query whose bet level is below its to_call is rejected. Phase 13",
+        "         finished the job by renaming the field to current_bet and giving every",
+        "         seat its own street_bet beside it, so the two readings no longer share a",
+        "         name and hero's own chips are read off hero's seat record rather than",
+        "         computed from anything.",
         "",
-        "   Worked example. Heads-up, blinds 5 and 10, the small blind acts preflop. Hero",
-        "   has put in 5, the level is 10, the price to call is 5.",
-        "     the wrong reading passed 5, and the chart derived hero's starting stack as",
-        "       stacks[seat] + (5 - 5), which is the stack itself, and refused with",
-        "       preflop-chart:blind-structure-not-representable",
-        "     the right reading passes 10, and the chart refuses with",
+        "   Worked example, as Phase 11 recorded it. Heads-up, blinds 5 and 10, the small",
+        "   blind acts preflop. Hero has put in 5, the level is 10, the price to call is 5.",
+        "     the wrong reading passed 5 as the level, and the chart refused with",
+        "       preflop-chart:blind-structure-not-representable, blaming the blind",
+        "       structure for a table it had mis-read",
+        "     the right reading passes 10, and the chart refused with",
         "       preflop-chart:lookup:no-artifact-for-table-size, which is the true miss:",
         "       a two-handed table against a six-handed chart",
         "",
-        "   The guard, and its measured limit. A query with street_bet 10 and to_call 20 is",
-        f"   rejected: {rejected}",
+        "   The guard, and its measured limit. A query with a bet level of 10 and a price",
+        f"   to call of 20 is rejected: {rejected}",
         "   It catches a producer passing hero's contribution only when hero has put in",
         "   less than half the level, so it misses the heads-up small blind, who has put in",
-        "   exactly half. Filed as STRATEGY-QUERY-STREET-BET-NAME.",
+        "   exactly half. That producer class is what the Phase 13 rename removes.",
         "",
     ]
 
 
 def _ceiling_section() -> list[str]:
-    query = _query_for(street_bet=20, to_call=20, stack=100)
+    query = _query_for(current_bet=20, to_call=20, stack=100, hero_street_bet=0)
     accepted, rejected = [], []
     for amount in (100, 101, 120):
         try:
@@ -256,10 +324,11 @@ def _ceiling_section() -> list[str]:
         "",
         "   Was:  the ceiling was the street's bet level plus hero's stack, which is too",
         "         high by exactly the price to call.",
-        "   Now:  it is hero's own contribution to the street plus hero's stack.",
+        "   Now:  it is hero's own contribution to the street plus hero's stack, read off",
+        "         hero's own seat record.",
         "",
-        "   Worked example. Street bet 20, price to call 20, stack 100. Hero has put in",
-        "   20 minus 20, which is nothing, so hero's all-in raise target is 100.",
+        "   Worked example. Bet level 20, price to call 20, stack 100. Hero's seat record",
+        "   says it has nothing in on this street, so its all-in raise target is 100.",
         f"     accepted: {accepted}",
         f"     rejected: {rejected}",
         "   The old ceiling accepted a raise to 120 and only rejected 121.",
@@ -293,20 +362,9 @@ def _fail_closed_section() -> list[str]:
 
 
 def _query_for_legal(legal: tuple[str, ...]) -> StrategyQuery:
-    return StrategyQuery(
-        hand_id="engine-fidelity-report",
-        street="flop",
-        seat=1,
-        button_seat=0,
-        hole_cards=("As", "Kd"),
-        board=("2c", "7h", "Ts"),
-        legal_actions=legal,
-        to_call=20,
-        street_bet=20,
-        min_raise_target=40,
-        pot=60,
-        stacks=((0, 980), (1, 940)),
-        blinds=(5, 10),
+    """The same flop spot as `_query_for`, with the legal-action set varied instead."""
+    return _query_for(
+        current_bet=20, to_call=20, stack=940, hero_street_bet=0, legal_actions=legal
     )
 
 
@@ -336,7 +394,7 @@ def _moved_numbers_section() -> list[str]:
         "   them, by decision 9. A fix phase that grades its own fixes puts a moved number",
         "   and a mistaken one in the same commit.",
         "",
-        "     latest_decision_audit.jsonl        street_bet changes on every preflop record",
+        "     latest_decision_audit.jsonl        the bet-level key changes on every preflop",
         "                                        where hero had not matched the level",
         "     Phase 08 agreement rates           measured through the uncorrected query and",
         "                                        the uncorrected replayer",

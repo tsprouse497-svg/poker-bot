@@ -33,6 +33,7 @@ from poker_training_bot.strategy.contract import (
     DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
     SeatAction,
+    SeatState,
     StrategyDecision,
     StrategyQuery,
     StrategyRefusal,
@@ -61,35 +62,52 @@ def seat_of(position: str) -> int:
     raise AssertionError(f"no seat holds {position}")
 
 
-def stacks(committed: dict[int, int] | None = None) -> tuple[tuple[int, int], ...]:
-    """Current stacks for a six-handed 100bb table, minus what each seat put in."""
+def stacks(
+    committed: dict[int, int] | None = None, ante: int = 0, depth_bb: int = DEPTH_BB
+) -> tuple[tuple[int, int], ...]:
+    """Current stacks for a six-handed table, minus everything each seat has put in."""
     paid = dict(committed or {})
     paid.setdefault(seat_of("SB"), SMALL_BLIND)
     paid.setdefault(seat_of("BB"), BIG_BLIND)
-    full = DEPTH_BB * BIG_BLIND
-    return tuple((seat, full - paid.get(seat, 0)) for seat in SEATS)
+    full = depth_bb * BIG_BLIND
+    return tuple((seat, full - paid.get(seat, 0) - ante) for seat in SEATS)
 
 
 def query(
     hero_position: str,
     history: tuple[SeatAction, ...] = (),
     hole_cards: tuple[str, str] = ("As", "Ks"),
+    forced: dict[int, int] | None = None,
+    ante: int = 0,
     **overrides,
 ) -> StrategyQuery:
-    """A preflop query for hero, defaulting to an unopened pot."""
+    """A preflop query for hero, defaulting to an unopened, unstraddled, unanted pot.
+
+    `forced` seats chips no recorded action explains, which is what a straddle is; `ante`
+    is dead money every seat posted. Both are real chips on real seats, not an override of
+    the pot or the level, because a pot that does not reconcile seat by seat is now
+    rejected. An ante buys no part of the level, so it sits in `committed_total` alone.
+    """
     hero = seat_of(hero_position)
-    committed = {seat_of("SB"): SMALL_BLIND, seat_of("BB"): BIG_BLIND}
-    street_bet = BIG_BLIND
+    committed = {seat_of("SB"): SMALL_BLIND, seat_of("BB"): BIG_BLIND, **(forced or {})}
+    # A straddle raises the level a voluntary action is measured against, so the ladder
+    # starts there. The detector knows only the declared blinds, which is the disagreement.
+    current_bet = max(BIG_BLIND, *committed.values())
+    min_raise_target = 2 * current_bet
     for entry in history:
         if entry.action == "raise":
-            # The level is what the raise says it is, rather than a ladder this helper
-            # invents, so the price the query states and the price the key carries are one
-            # number instead of two that can disagree.
-            street_bet = entry.amount or street_bet
-            committed[entry.seat] = street_bet
+            # The level is what the raise says it is, so the price the query states and
+            # the price the key carries are one number rather than two that can disagree.
+            amount = entry.amount or current_bet
+            min_raise_target = amount + max(amount - current_bet, BIG_BLIND)
+            current_bet = amount
+            committed[entry.seat] = current_bet
         elif entry.action == "call":
-            committed[entry.seat] = street_bet
-    to_call = max(street_bet - committed.get(hero, 0), 0)
+            committed[entry.seat] = current_bet
+    # Capped at what hero can actually pay, per Taylor's ruling of 2026-08-20.
+    hero_stack = DEPTH_BB * BIG_BLIND - committed.get(hero, 0) - ante
+    to_call = min(max(current_bet - committed.get(hero, 0), 0), hero_stack)
+    gone = tuple(entry.seat for entry in history if entry.action == "fold")
     fields = {
         "hand_id": "h1",
         "street": "preflop",
@@ -99,10 +117,14 @@ def query(
         "board": (),
         "legal_actions": ("fold", "call", "raise") if to_call else ("check", "raise"),
         "to_call": to_call,
-        "street_bet": street_bet,
-        "min_raise_target": street_bet * 2,
-        "pot": sum(committed.values()),
-        "stacks": stacks(committed),
+        "current_bet": current_bet,
+        "min_raise_target": min_raise_target,
+        "pot": sum(committed.values()) + len(SEATS) * ante,
+        "seat_states": tuple(
+            SeatState(s, committed.get(s, 0), committed.get(s, 0) + ante, s in gone, False)
+            for s in SEATS
+        ),
+        "stacks": stacks(committed, ante),
         "blinds": (SMALL_BLIND, BIG_BLIND),
         "preflop_actions": history,
     }
@@ -364,20 +386,30 @@ class TestDecisions:
 
 class TestRefusals:
     def test_an_uncovered_stack_depth_refuses(self, strategy) -> None:
-        shallow = tuple((seat, 40 * BIG_BLIND) for seat in SEATS)
-        outcome = strategy.decide(query("LJ", stacks=shallow, pot=SMALL_BLIND + BIG_BLIND))
+        """A flat 40bb table, so the depth is the only thing missing. A starting stack is
+        now what a seat holds plus what it has put in, so the old fixture - 4,000 in front
+        of a small blind that had posted 50 - refuses on its shape before the chart is
+        ever asked about the depth."""
+        outcome = strategy.decide(query("LJ", stacks=stacks(depth_bb=40)))
 
         assert "depth" in refusal(outcome).code
 
     def test_a_straddled_pot_refuses_rather_than_reading_as_ordinary(self, strategy) -> None:
-        outcome = strategy.decide(query("LJ", street_bet=2 * BIG_BLIND, to_call=2 * BIG_BLIND))
+        """The straddler's chips are in the pot and the level is two big blinds. Nobody
+        has raised, so a level above the big blind is a straddle and nothing else, and the
+        refusal names which forced-money structure it found rather than calling a straddle
+        and an ante alike "some blind structure I cannot represent"."""
+        outcome = strategy.decide(query("HJ", forced={seat_of("LJ"): 2 * BIG_BLIND}))
 
-        assert "blind-structure" in refusal(outcome).code
+        assert refusal(outcome).code.endswith("pot-holds-a-straddle")
 
     def test_an_anted_pot_refuses(self, strategy) -> None:
-        outcome = strategy.decide(query("LJ", pot=SMALL_BLIND + BIG_BLIND + 6 * 10))
+        """Every seat antes 10, which sits in its hand total and not its street total. The
+        old fixture overrode the pot alone, which is now a pot holding chips no seat paid
+        for and does not construct at all."""
+        outcome = strategy.decide(query("LJ", ante=10))
 
-        assert "blind-structure" in refusal(outcome).code
+        assert refusal(outcome).code.endswith("pot-holds-an-ante")
 
     def test_a_second_orbit_spot_refuses(self, strategy) -> None:
         """Phase 12 gave it a key; the committed chart still holds no cell for it.
@@ -411,10 +443,7 @@ class TestRefusals:
         unbounded tolerance band on a decision ruled exact-only.
         """
         hero = seat_of("LJ")
-        short = tuple(
-            (seat, 12 * BIG_BLIND if seat == hero else stack)
-            for seat, stack in stacks()
-        )
+        short = tuple((s, 12 * BIG_BLIND if s == hero else v) for s, v in stacks())
 
         outcome = refusal(strategy.decide(query("LJ", stacks=short)))
 
@@ -428,27 +457,31 @@ class TestRefusals:
         assert outcome.code.endswith("stack-depth-not-a-whole-big-blind")
 
     def test_an_anted_pot_refuses_at_every_seat_not_just_the_first(self, strategy) -> None:
-        """Folds are recorded, so checking only an empty history covered one seat."""
-        outcome = strategy.decide(
-            query("HJ", history=(folded("LJ"),), pot=SMALL_BLIND + BIG_BLIND + 60)
-        )
+        """Folds are recorded, so checking only an empty history covered one seat.
 
-        assert "blind-structure" in refusal(outcome).code
+        A folded seat's ante is still in the pot and in its hand total, which is why the
+        per-seat gap catches it where a reconstruction from the seats still playing does
+        not."""
+        outcome = strategy.decide(query("HJ", history=(folded("LJ"),), ante=10))
+
+        assert refusal(outcome).code.endswith("pot-holds-an-ante")
 
     def test_a_straddled_pot_refuses_after_someone_raises(self, strategy) -> None:
-        """The guard used to stop looking the moment anything raised."""
+        """The guard used to stop looking the moment anything raised.
+
+        The hard case, and the one the deleted pot bound admitted: the straddler has been
+        raised over, so its chips look exactly like an ordinary caller's and no comparison
+        of contributions sees it. The minimum raise target gives it away - measured from
+        the 200 straddle a raise to 600 leaves 1,000, unstraddled it would leave 1,100."""
         outcome = strategy.decide(
             query(
                 "BB",
-                history=(raised("LJ"),),
-                street_bet=6 * BIG_BLIND,
-                to_call=5 * BIG_BLIND,
-                min_raise_target=11 * BIG_BLIND,
-                pot=SMALL_BLIND + BIG_BLIND + 2 * BIG_BLIND + 6 * BIG_BLIND,
+                history=(raised("HJ", 6 * BIG_BLIND), folded("CO"), folded("BTN"), folded("SB")),
+                forced={seat_of("LJ"): 2 * BIG_BLIND},
             )
         )
 
-        assert "blind-structure" in refusal(outcome).code
+        assert refusal(outcome).code.endswith("pot-holds-a-straddle")
 
     def test_a_charted_action_that_is_not_legal_here_refuses(self, strategy) -> None:
         outcome = strategy.decide(
@@ -475,8 +508,7 @@ class TestRefusals:
         assert "below-minimum-raise" in refusal(outcome).code
 
     def test_every_refusal_names_the_coverage_that_was_missing(self, strategy) -> None:
-        shallow = tuple((seat, 40 * BIG_BLIND) for seat in SEATS)
-        outcome = refusal(strategy.decide(query("LJ", stacks=shallow, pot=SMALL_BLIND + BIG_BLIND)))
+        outcome = refusal(strategy.decide(query("LJ", stacks=stacks(depth_bb=40))))
 
         assert outcome.code.startswith("preflop-chart:")
 

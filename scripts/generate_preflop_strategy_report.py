@@ -28,6 +28,7 @@ from poker_training_bot.poker_core.positions import table_positions  # noqa: E40
 from poker_training_bot.solver_artifacts.schema import PreflopAction, spot_key  # noqa: E402
 from poker_training_bot.strategy.contract import (  # noqa: E402
     SeatAction,
+    SeatState,
     StrategyDecision,
     StrategyQuery,
 )
@@ -42,6 +43,16 @@ BIG_BLIND = 100
 SMALL_BLIND = 50
 SEATS = (0, 1, 2, 3, 4, 5)
 BUTTON = 3
+# What every seat sits down with, in big blinds, unless a probe asks for another depth.
+FULL_DEPTH_BB = 100
+# The seat that posts the straddle probe's forced two big blinds, and the size of it. A
+# straddle is a forced post: it lifts the level the way a blind does, and no recorded
+# action explains the chips, which is what makes the pot describe a straddled table.
+STRADDLE_SEAT_POSITION = "LJ"
+STRADDLE_BB = 2
+# The ante probe's per-seat ante. Dead money: it goes into the pot and buys nothing off
+# the price, so it lives in each seat's hand total and never in its street figure.
+ANTE = 10
 SAMPLE_HANDS = ("AA", "AKs", "AJo", "76s", "72o")
 SAMPLE_SPOTS = (
     "t6/d100/LJ/rfi",
@@ -61,27 +72,54 @@ def seat_of(position: str) -> int:
 
 
 def refusal_probe(
-    label: str, preflop_actions: tuple[SeatAction, ...] = (), **overrides
+    label: str,
+    preflop_actions: tuple[SeatAction, ...] = (),
+    *,
+    straddle: bool = False,
+    ante: int = 0,
+    depth_bb: int = FULL_DEPTH_BB,
+    **overrides,
 ) -> tuple[str, StrategyQuery]:
-    """One probe query, with its chips derived from the actions rather than fixed.
+    """One probe query, with its chips derived from the forced posts and the actions.
 
     Since a recorded raise carries the amount it raised to, a probe that states an
     open and a bet level independently can state two different opens. So the level,
-    the price to call, the pot, and the stacks are all walked out of the recorded
-    actions here, and a probe that wants an unrepresentable pot - a straddle, an ante -
-    overrides exactly the field that makes it one.
+    the price to call, the pot, the per-seat records and the stacks are all walked out of
+    the forced posts and the recorded actions here. A probe that wants a table the chart
+    cannot describe asks for the forced money or the depth that makes it one, rather than
+    overriding a single number and leaving the rest of the table disagreeing with it.
+
+    A straddle is a forced post by a seat that never acted for it, so it lifts the level
+    the way a blind does and nothing in the history explains the chips. An ante is dead
+    money: it is in the pot and it buys nothing off the price, so it sits in each seat's
+    hand total and never in its street figure. Putting it in the street figure would make
+    an anted seat owe less to call than an unanted one at the same level.
     """
     hero = seat_of(overrides.pop("hero", "LJ"))
     committed = {seat_of("SB"): SMALL_BLIND, seat_of("BB"): BIG_BLIND}
     level = BIG_BLIND
     min_raise = BIG_BLIND
+    if straddle:
+        committed[seat_of(STRADDLE_SEAT_POSITION)] = STRADDLE_BB * BIG_BLIND
+        level = max(level, STRADDLE_BB * BIG_BLIND)
+    folded: set[int] = set()
     for entry in preflop_actions:
         if entry.action == "raise":
+            # The engine holds the minimum raise at the largest raise made on the street
+            # so far, and at one big blind until something raises. `min_raise_target`
+            # below is the level plus that, which is the engine's own derivation:
+            # computing it any other way makes the strategy report a straddle the table
+            # does not hold, because a disagreement with the predicted minimum is exactly
+            # the signal that catches a straddler who has already called to the level.
             min_raise = max(min_raise, (entry.amount or 0) - level)
             level = entry.amount or level
             committed[entry.seat] = level
         elif entry.action == "call":
             committed[entry.seat] = level
+        elif entry.action == "fold":
+            folded.add(entry.seat)
+    sat_down = depth_bb * BIG_BLIND
+    hero_stack = sat_down - committed.get(hero, 0) - ante
     fields = {
         "hand_id": "probe",
         "street": "preflop",
@@ -90,11 +128,28 @@ def refusal_probe(
         "hole_cards": ("As", "Ks"),
         "board": (),
         "legal_actions": ("fold", "call", "raise"),
-        "to_call": level - committed.get(hero, 0),
-        "street_bet": level,
+        # The price hero can actually pay, capped at what hero holds.
+        "to_call": min(level - committed.get(hero, 0), hero_stack),
+        "current_bet": level,
         "min_raise_target": level + min_raise,
-        "pot": sum(committed.values()),
-        "stacks": tuple((seat, 100 * BIG_BLIND - committed.get(seat, 0)) for seat in SEATS),
+        "pot": sum(committed.values()) + ante * len(SEATS),
+        "stacks": tuple(
+            (seat, sat_down - committed.get(seat, 0) - ante) for seat in SEATS
+        ),
+        "seat_states": tuple(
+            SeatState(
+                seat=seat,
+                street_bet=committed.get(seat, 0),
+                committed_total=committed.get(seat, 0) + ante,
+                folded=seat in folded,
+                # No probe seats an all-in player: every seat sits down at least forty big
+                # blinds deep and the largest recorded raise leaves chips behind it. Stated
+                # rather than read off a zero stack, which cannot tell a seat that is
+                # all-in from one that sat down with nothing.
+                all_in=False,
+            )
+            for seat in SEATS
+        ),
         "blinds": (SMALL_BLIND, BIG_BLIND),
         "preflop_actions": preflop_actions,
     }
@@ -103,7 +158,6 @@ def refusal_probe(
 
 
 def probes() -> list[tuple[str, StrategyQuery]]:
-    shallow = tuple((seat, 40 * BIG_BLIND) for seat in SEATS)
     return [
         refusal_probe("covered: lojack opens", hero="LJ"),
         refusal_probe(
@@ -116,9 +170,13 @@ def probes() -> list[tuple[str, StrategyQuery]]:
             hero="BB",
             preflop_actions=(SeatAction(seat_of("CO"), "raise", 225),),
         ),
-        refusal_probe("uncovered: forty big blinds deep", stacks=shallow),
-        refusal_probe("uncovered: straddled pot", street_bet=2 * BIG_BLIND),
-        refusal_probe("uncovered: anted pot", pot=SMALL_BLIND + BIG_BLIND + 60),
+        # A whole table forty big blinds deep, so the depth is what the chart is missing.
+        # Overriding the stacks alone would leave the two blinds having sat down deeper
+        # than everybody else, and the refusal would be about the ragged table instead.
+        refusal_probe("uncovered: forty big blinds deep", depth_bb=40),
+        # The lojack posts two big blinds it never acted for, and hero is behind it.
+        refusal_probe("uncovered: straddled pot", hero="HJ", straddle=True),
+        refusal_probe("uncovered: anted pot", ante=ANTE),
         refusal_probe(
             "uncovered: squeeze after an open and a cold call",
             hero="BTN",

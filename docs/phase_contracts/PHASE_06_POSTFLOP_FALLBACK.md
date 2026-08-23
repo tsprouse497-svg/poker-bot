@@ -108,6 +108,8 @@ It is limited to the work named by this contract and the active ExecPlan.
 - The enumeration covers every postflop legal-action set the engine's own
   `legal_actions` can produce, in both the free and the facing-a-bet shapes, and
   includes a hero whose whole remaining stack is less than the price to call.
+  Amended by Phase 13 (`STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS`): `to_call` is capped at
+  hero's stack, so that hero is one whose stack equals the price to call rather than trails it.
 - Every returned decision is legal, and legality is proved by routing each
   decision through the Phase 03 `DecisionAuditRecord`, which rejects an action
   outside `legal_actions`, an amount above all-in, and an amount below the

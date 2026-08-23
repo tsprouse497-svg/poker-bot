@@ -22,7 +22,7 @@ from poker_training_bot.poker_core.cards import Card, card_texts, standard_deck
 from poker_training_bot.poker_core.engine import BettingRoundState, PlayerState
 from poker_training_bot.poker_core.order import TurnState
 from poker_training_bot.simulator.config import SimulationConfig
-from poker_training_bot.strategy.contract import SeatAction, StrategyQuery
+from poker_training_bot.strategy.contract import SeatAction, SeatState, StrategyQuery
 
 _STREET_SLICES = {
     StreetName.PREFLOP: slice(0, 0),
@@ -139,15 +139,22 @@ def build_query(
 ) -> StrategyQuery:
     """The Phase 03 decision context for one seat, built from live engine state.
 
-    `street_bet` is the street's current bet level rather than hero's own contribution to it,
-    which is the reading `PreflopChartStrategy._table_depth_bb` needs in order to recover
-    hero's starting depth as `stacks[seat] + (street_bet - to_call)`.
-    `STREET-BET-MEANING-AMBIGUOUS` in `backlog.yml` records that the Phase 03 report
-    generator still passes the other one.
+    `current_bet` is the street's current bet level. What hero itself has put in is carried
+    on hero's own `seat_states` entry and read from there rather than worked back out of the
+    level and the price: `to_call` is capped at what hero holds, so nothing computed from
+    those two is hero's contribution.
+
+    Every per-seat figure is `PlayerState`'s own - `street_bet`, `committed_total`, `folded`
+    and `all_in`, under the same four names - so nothing here is a reconstruction of what the
+    engine already recorded. `pot` is the sum of those hand totals by construction.
+
+    `min_raise_target` is the level plus `min_raise`, which the engine holds at the size of
+    the last full bet or raise and at one big blind until something raises.
     """
     state = turn.round
     player = state.player(seat)
     hero = dealt.hole_cards[seat]
+    seated = sorted(state.players, key=lambda other: other.seat)
     return StrategyQuery(
         hand_id=hand_id,
         street=street.value,
@@ -156,12 +163,20 @@ def build_query(
         hole_cards=(str(hero[0]), str(hero[1])),
         board=tuple(card_texts(board)),
         legal_actions=tuple(kind.value for kind in turn.legal_actions(seat)),
-        to_call=max(0, state.current_bet - player.street_bet),
-        street_bet=state.current_bet,
+        to_call=min(max(0, state.current_bet - player.street_bet), player.stack),
+        current_bet=state.current_bet,
         min_raise_target=state.current_bet + state.min_raise,
-        pot=sum(other.committed_total for other in state.players),
-        stacks=tuple(
-            (other.seat, other.stack) for other in sorted(state.players, key=lambda p: p.seat)
+        pot=sum(other.committed_total for other in seated),
+        stacks=tuple((other.seat, other.stack) for other in seated),
+        seat_states=tuple(
+            SeatState(
+                seat=other.seat,
+                street_bet=other.street_bet,
+                committed_total=other.committed_total,
+                folded=other.folded,
+                all_in=other.all_in,
+            )
+            for other in seated
         ),
         blinds=config.blinds,
         preflop_actions=history,

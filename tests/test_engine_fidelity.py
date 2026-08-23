@@ -38,6 +38,7 @@ from poker_training_bot.poker_core.order import TurnState
 from poker_training_bot.strategy.contract import (
     DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
+    SeatState,
     StrategyDecision,
     StrategyQuery,
     StrategyRefusal,
@@ -71,6 +72,11 @@ def make_round(stacks: tuple[int, ...], current_bet: int = 0, min_raise: int = 2
     )
 
 
+def seats(*rows: tuple[int, int, int]) -> tuple[SeatState, ...]:
+    """Per-seat records from `(seat, this street's chips, this hand's chips)` triples."""
+    return tuple(SeatState(s, street, total, False, False) for s, street, total in rows)
+
+
 def make_query(**overrides) -> StrategyQuery:
     fields = {
         "hand_id": "phase11",
@@ -81,14 +87,22 @@ def make_query(**overrides) -> StrategyQuery:
         "board": ("2c", "7h", "Ts"),
         "legal_actions": ("fold", "call", "raise"),
         "to_call": 20,
-        "street_bet": 20,
+        "current_bet": 20,
         "min_raise_target": 40,
         "pot": 60,
+        # Summing to the pot exactly, and stating hero's nothing rather than deriving it.
+        "seat_states": seats((0, 20, 40), (1, 0, 20)),
         "stacks": ((0, 980), (1, 940)),
         "blinds": (5, 10),
     }
     fields.update(overrides)
     return StrategyQuery(**fields)
+
+
+def free_query(**overrides) -> StrategyQuery:
+    """Nothing bet on this street: the level is zero and so is the price."""
+    free = {"to_call": 0, "current_bet": 0, "seat_states": seats((0, 0, 40), (1, 0, 20))}
+    return make_query(**(free | overrides))
 
 
 # --------------------------------------------------------------------------- #
@@ -180,7 +194,7 @@ class TestFoldIsLegalWhenCheckingIsFree:
 class TestTheQueryDescribesAFreeFold:
     def test_check_and_fold_together_is_a_valid_query(self) -> None:
         """The engine now produces this set, and a query that refuses it lies."""
-        query = make_query(legal_actions=("fold", "check", "raise"), to_call=0)
+        query = free_query(legal_actions=("fold", "check", "raise"))
         assert query.legal_actions == ("fold", "check", "raise")
 
     # -- not over-applied -- #
@@ -265,14 +279,14 @@ class TestNoShippedStrategyFoldsWhenCheckingIsFree:
         ):
             for legal in (("fold", "check", "bet"), ("fold", "check", "raise")):
                 outcome = fallback.decide(
-                    make_query(street=street, board=board, legal_actions=legal, to_call=0)
+                    free_query(street=street, board=board, legal_actions=legal)
                 )
                 assert isinstance(outcome, StrategyDecision)
                 assert outcome.action == "check", (street, legal)
 
     def test_the_reference_strategy_checks_when_free(self) -> None:
         outcome = CheckFoldStrategy().decide(
-            make_query(legal_actions=("fold", "check", "bet"), to_call=0)
+            free_query(legal_actions=("fold", "check", "bet"))
         )
         assert isinstance(outcome, StrategyDecision)
         assert outcome.action == "check"
@@ -434,14 +448,18 @@ class TestBettingReopensWhenShortAllInsAccumulate:
 
 class TestStreetBetHasOneMeaning:
     def test_the_query_documents_which_reading_it_carries(self) -> None:
-        """The field had two readings because nothing in the repo said which was meant."""
+        """Two readings, and since Phase 13 two names, so the claim is about both: the doc
+        says `current_bet` is the street's level and the per-seat `street_bet` is one
+        seat's own share of it. Nothing in the repo said which was meant before.
+        """
         doc = StrategyQuery.__doc__ or ""
         assert "current bet level" in doc
+        assert "current_bet" in doc
         assert "street_bet" in doc
 
-    def test_a_street_bet_below_the_price_to_call_is_rejected(self) -> None:
-        with pytest.raises(ValueError, match="street_bet"):
-            make_query(street_bet=10, to_call=20)
+    def test_a_current_bet_below_the_price_to_call_is_rejected(self) -> None:
+        with pytest.raises(ValueError, match="current_bet"):
+            make_query(current_bet=10, to_call=20)
 
     def test_the_query_report_generator_writes_the_street_level(self) -> None:
         """Read out of what the generator actually wrote, not out of its source text.
@@ -468,17 +486,18 @@ class TestStreetBetHasOneMeaning:
             # Preflop the street's bet level is never below the big blind, because the big
             # blind posted it. Hero's own contribution can be - the small blind's is half
             # of it - so this separates the two readings on the record that matters.
-            assert query["street_bet"] >= query["blinds"][1], query["hand_id"]
+            assert query["current_bet"] >= query["blinds"][1], query["hand_id"]
 
     # -- not over-applied -- #
 
-    def test_a_street_bet_equal_to_the_price_to_call_is_accepted(self) -> None:
-        assert make_query(street_bet=20, to_call=20).street_bet == 20
+    def test_a_current_bet_equal_to_the_price_to_call_is_accepted(self) -> None:
+        assert make_query(current_bet=20, to_call=20).current_bet == 20
 
-    def test_a_free_spot_may_carry_a_positive_street_bet(self) -> None:
+    def test_a_free_spot_may_carry_a_positive_current_bet(self) -> None:
         """Hero has matched the level, so the price is zero and the level is not."""
-        query = make_query(legal_actions=("fold", "check", "raise"), to_call=0, street_bet=20)
-        assert query.street_bet == 20
+        query = free_query(legal_actions=("fold", "check", "raise"), current_bet=20,
+                           seat_states=seats((0, 20, 40), (1, 20, 20)))
+        assert query.current_bet == 20
 
 
 # --------------------------------------------------------------------------- #
@@ -497,27 +516,28 @@ def _record(query: StrategyQuery, outcome: StrategyDecision) -> DecisionAuditRec
 
 
 class TestTheAllInCeilingIsWhatHeroCanRaiseTo:
-    """Street bet 20, price to call 20, stack 100.
+    """Current bet 20, hero's own street contribution nothing, stack 100.
 
-    Hero has put in 20 minus 20, which is nothing, so hero's all-in raise target is 100.
-    The old ceiling was 20 plus 100 and accepted a raise to 120 - too loose by exactly the
-    price to call.
+    Hero's all-in raise target is therefore 100. The old ceiling was 20 plus 100 and
+    accepted a raise to 120 - too loose by exactly the price to call. Since Phase 13 it is
+    read off hero's seat record, not reconstructed by an identity the cap made false.
     """
 
     def test_a_raise_above_the_corrected_ceiling_is_rejected(self) -> None:
-        query = make_query(street_bet=20, to_call=20, stacks=((0, 980), (1, 100)))
+        query = make_query(current_bet=20, to_call=20, stacks=((0, 980), (1, 100)))
         with pytest.raises(ValueError, match="all-in maximum"):
             _record(query, StrategyDecision("raise", 120, "phase11:too-big"))
 
     def test_the_old_ceiling_is_no_longer_the_boundary(self) -> None:
-        query = make_query(street_bet=20, to_call=20, stacks=((0, 980), (1, 100)))
+        query = make_query(current_bet=20, to_call=20, stacks=((0, 980), (1, 100)))
         with pytest.raises(ValueError, match="all-in maximum"):
             _record(query, StrategyDecision("raise", 101, "phase11:one-over"))
 
     def test_hero_who_has_already_invested_keeps_the_higher_ceiling(self) -> None:
-        """Street bet 30, price to call 10: hero put in 20, so the target is 20 plus 100."""
+        """Hero's seat record says 20 in on this street, so the target is 20 plus 100."""
         query = make_query(
-            street_bet=30, to_call=10, min_raise_target=40, stacks=((0, 980), (1, 100))
+            current_bet=30, to_call=10, min_raise_target=40,
+            seat_states=seats((0, 30, 40), (1, 20, 20)), stacks=((0, 980), (1, 100)),
         )
         record = _record(query, StrategyDecision("raise", 120, "phase11:all-in"))
         assert record.outcome.amount == 120
@@ -527,12 +547,12 @@ class TestTheAllInCeilingIsWhatHeroCanRaiseTo:
     # -- not over-applied -- #
 
     def test_a_raise_exactly_at_the_corrected_target_is_accepted(self) -> None:
-        query = make_query(street_bet=20, to_call=20, stacks=((0, 980), (1, 100)))
+        query = make_query(current_bet=20, to_call=20, stacks=((0, 980), (1, 100)))
         record = _record(query, StrategyDecision("raise", 100, "phase11:all-in"))
         assert record.outcome.amount == 100
 
     def test_a_raise_below_the_minimum_is_still_rejected_unless_all_in(self) -> None:
-        query = make_query(street_bet=20, to_call=20, stacks=((0, 980), (1, 500)))
+        query = make_query(current_bet=20, to_call=20, stacks=((0, 980), (1, 500)))
         with pytest.raises(ValueError, match="below the minimum"):
             _record(query, StrategyDecision("raise", 30, "phase11:too-small"))
 
@@ -556,6 +576,7 @@ class TestTheAllInCeilingIsWhatHeroCanRaiseTo:
                 if outcome["kind"] != "decision":
                     continue
                 query = payload["query"]
+                states = sorted(query["seat_states"].items())
                 rebuilt = StrategyQuery(
                     hand_id=query["hand_id"],
                     street=query["street"],
@@ -565,12 +586,11 @@ class TestTheAllInCeilingIsWhatHeroCanRaiseTo:
                     board=tuple(query["board"]),
                     legal_actions=tuple(query["legal_actions"]),
                     to_call=query["to_call"],
-                    street_bet=query["street_bet"],
+                    current_bet=query["current_bet"],
                     min_raise_target=query["min_raise_target"],
                     pot=query["pot"],
-                    stacks=tuple(
-                        (int(seat), stack) for seat, stack in sorted(query["stacks"].items())
-                    ),
+                    seat_states=tuple(SeatState(int(s), **f) for s, f in states),
+                    stacks=tuple((int(s), v) for s, v in sorted(query["stacks"].items())),
                     blinds=tuple(query["blinds"]),
                 )
                 _record(

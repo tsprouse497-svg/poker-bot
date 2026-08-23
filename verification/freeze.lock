@@ -9,13 +9,13 @@ files:
     sha256: 8c65b24ff3c00beb2e87abfa0d53caf5741c3fbf20be5ad215227a6847cf5e0a
     test_functions: 9
   tests/test_engine_fidelity.py:
-    sha256: 808121a20053a8cdef598e672035f1615822ea5d7d0e093801b5c3013870d4ff
+    sha256: b9640c23fe9111f099d7f0758d045300bfefbd1ace9fb3671604606f11a20333
     test_functions: 52
   tests/test_execplan_delegation.py:
     sha256: a37a70f01787f099ece26466747fb9ba575eb01fcddfe0fd65b3985472cb7ed0
     test_functions: 10
   tests/test_full_table_preflop.py:
-    sha256: b154f1d9019bc330e76d6fbfae4414216000db0de7e8925c450d6ee0c3e76ace
+    sha256: f37be099d2d837d2157823b5ce635328fc511e2ca30fbc14bfddae97906bbd94
     test_functions: 55
   tests/test_hand_history.py:
     sha256: 9d431bf4ffbaedeb940f907fd5fe0929b3d0d6cdf2f3f11fc2e0eb0d5459497c
@@ -33,8 +33,11 @@ files:
     sha256: a11a3e8b94dcb37033e366fa55c13ae6007c8f75318f315a69b3e4e9041953b2
     test_functions: 9
   tests/test_postflop_fallback.py:
-    sha256: e6764a1fcdadfd5565a4e2a5babf75fe16f1aa78bfad6d29bbdb907945216daf
-    test_functions: 37
+    sha256: 607cb5dd906000ce77f3c3f8ecf4866a2b9a779e46afbca2cde6d71db7008727
+    test_functions: 26
+  tests/test_postflop_fallback_components.py:
+    sha256: 635c166f2a39f8a07f87776da14db9d5076b283f45c48bb94e274026d2c5a036
+    test_functions: 11
   tests/test_preflop_artifacts.py:
     sha256: 18ebf4b0ab4f707417acf4892120df380de87095479b770c0a0c6b9d5a7adb70
     test_functions: 35
@@ -69,10 +72,16 @@ files:
     sha256: 7e23f3e826a20aedc2cccf7712773cd1c0fbc2af1060601b9c9b7a0f4daeef91
     test_functions: 31
   tests/test_spot_vocabulary_downstream.py:
-    sha256: 8ec13a4633a701144772f434935363b1c0dfb231a6d946a0ea7e42684f2202d3
+    sha256: a4e26258571bc1631cc895221ceb610b65ab6b3458d28fca90c4ff2fbbd14eae
     test_functions: 31
   tests/test_strategy_contract.py:
-    sha256: 8f71d8f5b14ebf3ce80a57b5cf7a53809af0877fa2e946367ee98bb5abea822d
+    sha256: 1ff7aa3d0d4862873f1dde55943e95bf3aa2d8fac5a5fde5325b37ee0422b5f3
     test_functions: 59
+  tests/test_table_state.py:
+    sha256: da9d1bea8666de93c7c8509375b2b1762216cce3d3d7f30ffa0799e9e1a2942e
+    test_functions: 46
+  tests/test_table_state_strategy.py:
+    sha256: ccbf41beeff2f9896ed227df359f1fcc6e59e271df77547d8c88085ada23a7ce
+    test_functions: 20
 schema_version: 1
-test_function_floor: 709
+test_function_floor: 775

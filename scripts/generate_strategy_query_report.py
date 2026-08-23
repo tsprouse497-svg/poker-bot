@@ -12,6 +12,8 @@ from poker_training_bot.poker_core.cards import card_texts
 from poker_training_bot.strategy.contract import (
     DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
+    SeatAction,
+    SeatState,
     StrategyDecision,
     StrategyQuery,
     records_to_jsonl,
@@ -23,17 +25,53 @@ AUDIT_OUTPUT = REPO_ROOT / "reports" / "active" / "latest_decision_audit.jsonl"
 REPORT_OUTPUT = REPO_ROOT / "reports" / "active" / "latest_strategy_query_report.txt"
 
 
-def build_query(point: DecisionPoint, hole_cards: tuple[str, str]) -> StrategyQuery:
+def preflop_history(points: list[DecisionPoint], index: int) -> tuple[SeatAction, ...]:
+    """The preflop actions in front of this decision point.
+
+    Passing nothing is not neutral: an empty history is the positive claim that the action
+    folded to hero, so a decision facing a raise used to carry a query saying its pot was
+    unopened. Nothing downstream of this command reads it - the reference strategy checks and
+    folds, and no chart is consulted - so no count in this report moves. The audit lines it
+    writes are committed evidence, though, and a query that misdescribes the pot it came from
+    is evidence of the wrong thing.
+
+    A preflop point sees only what came before it. A postflop point sees the whole preflop
+    orbit, which is the real context: a chart derives a spot key from it, and a query carrying
+    a truncated one is a different query than the hand produced. Blind posts are forced rather
+    than chosen, so the replayer never offers them as decision points and `SeatAction` has no
+    name for them. A raise carries the amount it raised to, which is what `HistoryAction`
+    holds for a raise and for nothing else.
+    """
+    earlier = points[:index] if points[index].street.value == "preflop" else points
+    return tuple(
+        SeatAction(
+            point.seat,
+            point.action.kind.value,
+            point.action.amount if point.action.kind.value == "raise" else None,
+        )
+        for point in earlier
+        if point.street.value == "preflop"
+    )
+
+
+def build_query(
+    point: DecisionPoint, hole_cards: tuple[str, str], history: tuple[SeatAction, ...] = ()
+) -> StrategyQuery:
     """Build the query for one recorded decision point.
 
-    `street_bet` is the street's current bet level, not hero's own contribution to it.
+    `current_bet` is the street's current bet level, not hero's own contribution to it.
     This generator passed the contribution until Phase 11, which is
-    `STREET-BET-MEANING-AMBIGUOUS`: the chart derives hero's starting depth as
-    `stacks[seat] + (street_bet - to_call)`, so the wrong reading mis-derives the depth
-    and the refusal blames the blind structure for what is really a table-size miss.
+    `STREET-BET-MEANING-AMBIGUOUS`. Hero's own contribution is now carried on hero's seat
+    record and read from there rather than worked back out of the level and the price,
+    which the cap on `to_call` made impossible to do correctly.
+
+    Every per-seat figure comes off the replayer's own `PlayerState` under the engine's
+    four names, and `pot` is the sum of those hand totals rather than a second number
+    stated beside them.
     """
     state = point.turn.round
     player = state.player(point.seat)
+    seated = sorted(state.players, key=lambda entry: entry.seat)
     return StrategyQuery(
         hand_id=point.hand.hand_id,
         street=point.street.value,
@@ -43,14 +81,22 @@ def build_query(point: DecisionPoint, hole_cards: tuple[str, str]) -> StrategyQu
         board=tuple(card_texts(point.board)),
         legal_actions=tuple(kind.value for kind in point.legal_actions),
         to_call=min(max(0, state.current_bet - player.street_bet), player.stack),
-        street_bet=state.current_bet,
+        current_bet=state.current_bet,
         min_raise_target=state.current_bet + state.min_raise,
-        pot=point.pot,
-        stacks=tuple(
-            (seat_player.seat, seat_player.stack)
-            for seat_player in sorted(state.players, key=lambda entry: entry.seat)
+        pot=sum(entry.committed_total for entry in seated),
+        stacks=tuple((entry.seat, entry.stack) for entry in seated),
+        seat_states=tuple(
+            SeatState(
+                seat=entry.seat,
+                street_bet=entry.street_bet,
+                committed_total=entry.committed_total,
+                folded=entry.folded,
+                all_in=entry.all_in,
+            )
+            for entry in seated
         ),
         blinds=(point.hand.blinds.small_blind, point.hand.blinds.big_blind),
+        preflop_actions=history,
     )
 
 
@@ -73,11 +119,11 @@ def render_reports() -> tuple[str, str]:
             entry.seat: tuple(card_texts(entry.hole_cards)) for entry in hand.showdown
         }
         queried = skipped = refusals = agreements = 0
-        for point in points:
+        for index, point in enumerate(points):
             if point.seat not in hole_cards:
                 skipped += 1
                 continue
-            query = build_query(point, hole_cards[point.seat])
+            query = build_query(point, hole_cards[point.seat], preflop_history(points, index))
             outcome = strategy.decide(query)
             records.append(
                 DecisionAuditRecord(

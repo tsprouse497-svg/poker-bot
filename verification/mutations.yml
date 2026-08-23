@@ -537,9 +537,14 @@ mutations:
       stack, which is too high by exactly the price to call. No shipped strategy produces a
       raise in the gap, so a green gate proves nothing about the legality claim several
       contracts lean on.
+      Re-pointed at phase 13 stage 6, claim unchanged. Decision 11 rewrote the line this
+      canary targets: the ceiling now reads hero's own recorded contribution off `seat_states`
+      rather than subtracting `to_call` from the bet level, and the query's bet level is
+      called `current_bet`. A find string that no longer occurs is a canary that cannot bite,
+      which would have retired a phase 11 legality claim by accident behind a green gate.
     file: src/poker_training_bot/strategy/contract.py
-    find: "                max_target = (self.query.street_bet - self.query.to_call) + stacks[self.query.seat]"
-    replace: "                max_target = self.query.street_bet + stacks[self.query.seat]"
+    find: "                max_target = hero.street_bet + stacks[self.query.seat]"
+    replace: "                max_target = self.query.current_bet + stacks[self.query.seat]"
     must_fail:
       - pytest_engine_fidelity
       - pytest
@@ -634,4 +639,248 @@ mutations:
     replace: "if False and entry.position in folded:"
     must_fail:
       - pytest_spot_vocabulary
+      - pytest
+
+  # Phase 13 canaries, authored at stage 4 before any implementation exists. Every `find`
+  # below is therefore a specification the stage 6 builder must produce verbatim, the same
+  # way phase 12's were: a canary written after the code can only describe what was already
+  # written, which is how phases 08, 09 and 10 each ended up with no canary for the one
+  # behaviour their phase existed to add.
+
+  - id: the-pot-stops-having-to-reconcile
+    description: >-
+      A query whose stated pot disagrees with what the seats actually put in is accepted
+      again. This is the phase's exhaustive check, chips in equal chips out, and it is the
+      one rule that catches a producer whose arithmetic silently does not work. Without it
+      every downstream depth and blind-structure figure rests on a pot nobody verified.
+    file: src/poker_training_bot/strategy/contract.py
+    find: "if self.pot != contributed_total:"
+    replace: "if False and self.pot != contributed_total:"
+    must_fail:
+      - pytest_table_state
+      - pytest
+
+  - id: a-capped-hero-may-raise-again
+    description: >-
+      The guard rejecting a query that offers raise or bet while to_call equals hero's whole
+      stack is removed. The engine never produces such a query, so nothing downstream notices
+      until the all-in ceiling accepts a raise hero cannot make, which is the exact hole the
+      2026-08-20 capped-to_call ruling was found to have left open.
+    file: src/poker_training_bot/strategy/contract.py
+    find: "if self.to_call == hero_stack and aggressive:"
+    replace: "if False and self.to_call == hero_stack and aggressive:"
+    must_fail:
+      - pytest_table_state
+      - pytest
+
+  - id: hero-depth-is-derived-by-subtraction-again
+    description: >-
+      Hero's starting depth goes back to being recovered as the bet level minus the price to
+      call rather than read from hero's own recorded contribution. Under the capped ruling
+      that identity collapses to the bet level itself for any capped hero, deriving 30bb
+      where the truth is 25bb, silently and with no refusal. Phase 14 publishes chart numbers
+      through this path. `generate_table_state_report` is named below because the report
+      validates its own worked depth against hero's recorded contribution and exits non-zero
+      when the two disagree, the way phase 12's `_validate_census` fails the gate on a census
+      that does not add up. A report that renders whatever number it is handed exits 0 however
+      wrong the number is, and would leave this mutation alive.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "hero_start = stacks[query.seat] + hero.street_bet"
+    replace: "hero_start = stacks[query.seat] + (query.current_bet - query.to_call)"
+    must_fail:
+      - pytest_table_state
+      - generate_table_state_report
+      - pytest
+
+  - id: a-folded-seat-makes-the-table-ragged
+    description: >-
+      The flat-table test stops excluding seats that have already folded, so a folded short
+      seat refuses a spot it cannot affect a single chip of. Effective stack is pairwise and
+      against seats that can still act, so this is the regression the fix introduces if
+      nobody is looking, and it is the case a stricter check gets wrong first.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "if state.folded:"
+    replace: "if False:"
+    must_fail:
+      - pytest_table_state
+      - pytest
+
+  - id: an-absorbed-straddle-goes-unseen
+    description: >-
+      The minimum-raise-target signal is dropped, leaving only reconstruction and the
+      unraised-level test. Those two catch an ante and an unacted straddle; neither can see a
+      straddler who has already called to the level, because that seat holds exactly what an
+      ordinary caller holds. That is the case the deleted pot bound also missed, so without
+      this signal the phase's headline detection is no better than what it replaced.
+      `generate_table_state_report` is named below because the report reconciles its straddle
+      census against the minimum-raise prediction the detector used and exits non-zero when the
+      two disagree, the way phase 12's `_validate_census` fails the gate on a census that does
+      not add up. A report that renders whatever it is handed exits 0 with the straddled pot
+      silently missing from its count, and would leave this mutation alive.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "if query.min_raise_target != predicted_min_raise:"
+    replace: "if False and query.min_raise_target != predicted_min_raise:"
+    must_fail:
+      - pytest_table_state
+      - generate_table_state_report
+      - pytest
+
+  - id: the-depth-refusal-names-the-first-offender-in-seat-order
+    description: >-
+      The deeper branch goes back to naming whichever live seat deeper than hero comes first in
+      seat order rather than the deepest one. Decision 6 refuses any difference at all and keeps
+      the seat and the depth it holds as the evidence whoever re-rules it will work from, and
+      evidence that moves with the seating is not evidence: the same two stacks in swapped chairs
+      report 90bb and 20bb. `pytest` is named below but is NOT what notices this, and saying so is
+      the point rather than a hedge: all 66 frozen phase 13 tests pass under this mutation, because
+      no frozen test puts two live seats on the same side of hero, so first-in-seat-order and
+      deepest agree in every one of them. `pytest` still goes red, but only through
+      `test_every_mutation_applies_exactly_once_to_its_file`, which is a fact about this registry
+      rather than about the behaviour - the same trivially-true mechanism several sibling entries
+      lean on, named honestly here instead of being passed off as coverage.
+      `generate_table_state_report` is what actually has to fail, and it does so through two
+      different checks in `_validate_depth_probes` depending on how the rule is broken. Change the
+      strategy alone, as this mutation does, and the rule that kills it is the one comparing the
+      strategy against the report's second copy: they stop agreeing on the committed hand
+      `phase02-three-way-side-pot`, where from the 50-chip chair the first deeper live seat holds
+      100 and the deepest holds 200, so the mutation would publish 10bb for a table that is 20bb.
+      Change BOTH copies the same way and that rule is silent, and what kills it instead is the
+      rule recomputing the extreme offending seat from the seat states and asking neither copy.
+      Verified by hand: reverting both copies in both directions leaves every test green and the
+      report exits non-zero anyway.
+      That second rule is why this canary exists at all. Two agreeing copies of a rule cannot show
+      the rule is right, and a validator that only compares them is the repo's most-repeated
+      defect - a check that cannot fail - sitting inside the fix for a blocker.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "deep = max(live, default=None, key=lambda pair: (pair[0], -pair[1]))"
+    replace: "deep = next((pair for pair in live if pair[0] > hero_start), None)"
+    must_fail:
+      - generate_table_state_report
+      - pytest
+
+  - id: the-short-seat-refusal-names-the-first-offender-in-seat-order
+    description: >-
+      The same defect in the other direction: the shorter branch goes back to naming whichever
+      live seat shorter than hero comes first in seat order rather than the shortest one.
+      A separate entry rather than a second `find` on the same one, because the two directions
+      are not equally load-bearing and one canary would have left that invisible. This is the
+      direction the phase ADDED - `a-live-seat-is-shorter-than-hero` did not exist before it -
+      and it is the direction that matters most in poker, since effective stack is the minimum of
+      hero and villain, so a live seat shorter than hero is what makes a hundred-big-blind chart
+      the wrong chart while a deeper one barely moves the correct range. The number whoever
+      re-rules decision 6 will set a tolerance against is the SHORTEST live opponent's depth, and
+      under the mutation that number is whatever the seating happens to put first.
+      Committed data cannot kill this one, which is why the phase constructed a probe that can:
+      the deeper direction has `phase02-three-way-side-pot`, and the shorter direction has the
+      report's own two-live-seats-shorter-than-hero table at 90bb and 20bb, where first-in-order
+      holds 9,000 and the shortest holds 2,000. `_validate_depth_probes` refuses to publish unless
+      a distinguishing row exists in EACH direction, so neither branch can be quietly reverted
+      behind a probe set that covers only the other one. As with its sibling, all 66 frozen phase
+      13 tests pass under this mutation and `pytest` goes red only through the registry check.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "short = min(live, default=None)"
+    replace: "short = next((pair for pair in live if pair[0] < hero_start), None)"
+    must_fail:
+      - generate_table_state_report
+      - pytest
+
+  - id: the-residual-refusal-names-the-lowest-chair
+    description: >-
+      The third extremal-seat rule, and the one the two entries above do not reach: the
+      blind-structure refusal goes back to naming whichever seat holding unexplained money sits
+      in the lowest chair, rather than the seat holding the most of it. Same defect, same shape,
+      different reader - the depth refusal's evidence is a depth and this one's is a seat and a
+      number of chips, and both are what whoever re-rules decision 6 will work from. Evidence
+      that moves with the seating is not evidence. Reverted, the report publishes
+      `(seat 0, forced_chips 50)` for a pot whose truth is `(seat 1, forced_chips 100)`, in the
+      same census row whose prose says the seat reported is the one holding the most, so the
+      table would contradict the sentence printed beside it.
+      `pytest_table_state` is deliberately not named below, and that is a finding rather than an
+      omission: measured, all 66 frozen phase 13 tests pass under this mutation, because no
+      frozen test builds a pot where two seats hold DIFFERENT amounts of unexplained money, and
+      on a pot with one such seat the lowest chair and the most forced chips are the same answer.
+      `pytest` still goes red, but only through
+      `test_every_mutation_applies_exactly_once_to_its_file`, which is a fact about this registry
+      rather than about the behaviour - the same mechanism its two siblings above lean on, named
+      honestly here instead of being passed off as coverage.
+      `generate_table_state_report` is what actually has to fail, and it does so through
+      `validate_residual_seat`, which recomputes the seat from the contributions rather than
+      asking the rule. The pot that kills it is the report's own `two dead blinds of different
+      sizes`, where the lojack owes 50 and the hijack owes 100: the only pot in the census where
+      more than one seat holds unexplained money in unequal amounts, which is also why that check
+      refuses to publish a census holding no such pot at all.
+      Recomputing rather than comparing is the whole point, and it is verified by hand: the
+      report carries a second copy of the selection rule, and reverting BOTH copies the same way
+      still exits non-zero. Not through the seat comparison, which then agrees with itself, but
+      through the rule demanding a pot where the two answers differ, which under the revert is 0
+      of the 2 pots refused as holding forced money of no named kind. Two agreeing copies of a
+      rule cannot show the rule is right.
+    file: src/poker_training_bot/strategy/preflop_chart.py
+    find: "seat, chips = max(forced.items(), key=lambda pair: (pair[1], -pair[0]))"
+    replace: "seat, chips = min(forced.items())"
+    must_fail:
+      - generate_table_state_report
+      - pytest
+
+  - id: an-impossible-raise-sequence-still-constructs
+    description: >-
+      `preflop_actions` goes back to accepting a betting sequence no street can produce: a
+      raise-to at or below the standing level. Nothing raises, and the damage is downstream,
+      because both walks in `table_state/forced_money.py` start their level at the declared big
+      blind and move it to each recorded raise-to, so a sub-level entry DROPS the level and every
+      increment measured after it is measured from the wrong number.
+      Measured, at 50/100 six-handed with the button at seat 3 and the history `LJ fold, HJ raise
+      250, CO raise 200, BTN call, SB fold, BB call` against the 400 the table offers as a minimum
+      raise: `predicted_min_raise_target` walks 100 -> 250 -> 200 and predicts 350, so the pot is
+      refused as `pot-holds-a-straddle` with the disagreement as its evidence.
+      `predicted_contributions` predicts {1: 250, 2: 200, 3: 200, 5: 200} where the three seats
+      that paid the real level of 250 each hold 250, so 50 chips at each of seats 2, 3 and 5 read
+      as money nobody chose to put in, and with the straddle signal quieted the same pot is
+      refused as `blind-structure-not-representable` naming one of them for 50 chips. Both are
+      statements about forced money in a pot that holds none.
+      `BettingRoundState.apply` in `poker_core/engine.py`
+      rejects a sub-level raise and records a shove for less than the level as a call, so no live
+      producer in this repo can emit one: it arrives only from a report producer computing a
+      history by hand, which is exactly what the constructed tables in
+      `scripts/generate_table_state_report.py` are.
+      The alternative considered and rejected was clamping the level inside the walks. A clamp in
+      `predicted_min_raise_target` alone converts the false straddle into a false blind-structure
+      refusal, and a clamp in both fails OPEN: it launders the impossible history into a pot the
+      walks find nothing wrong with, and one that the key space can write is then answered.
+      Measured with both walks clamped, on the shortest history that goes backwards - a lone `LJ
+      raise to 80` under a declared big blind of 100, which is a sub-level raise-to whose ACTION
+      ORDER is perfectly ordinary. The clamped minimum-raise walk holds the level at 100 and
+      predicts the 200 the table offers, the clamped contributions walk leaves nothing
+      unexplained, so both forced-money signals fall silent, the spot key builder renders the
+      0.8bb raise as the nearest priced open it holds - `t6/d100/BB/LJ:raise@2.5`, price
+      substitution 0.8 -> 2.5 - and the chart answers `raise`. An impossible history is answered
+      with the range for a 2.5bb open.
+      The six-action history above is NOT what demonstrates that, and saying so is the point
+      rather than a hedge: measured under the same clamps it reaches the chart and is refused
+      there, by the key space rather than by the money -
+      `preflop-chart:lookup:unrepresentable-spot`, `BB facing ['HJ:raise@2.5', 'CO:raise@2',
+      'BTN:call', 'BB:call'] has no spot key; no legal preflop order produces it`. Its two callers
+      behind a raiser with the button still to act is a shape no legal street produces whatever
+      the level does, so the key space refuses it on the order alone and the clamp's damage is
+      invisible behind that. What that history shows is the UNCLAMPED cost, which is the case
+      above: the false straddle, and the false blind structure once the straddle signal is
+      quieted. The record is refused where it is built instead.
+      `pytest_table_state` is deliberately not named below, and that is a finding rather than an
+      omission: all 66 frozen phase 13 tests pass with this rule present or absent, because the
+      tests were frozen at stage 5 and the defect was found at stage 8, so not one of them
+      constructs a sequence that goes backwards. `pytest` still goes red, but only through
+      `test_every_mutation_applies_exactly_once_to_its_file`, which is a fact about this registry
+      rather than about the behaviour - the same mechanism several sibling entries above lean on,
+      named honestly here rather than passed off as coverage.
+      `generate_table_state_report` is what actually has to fail, and it does so through
+      `_validate_impossible_history_is_refused` in `table_state/checks.py`, which rebuilds one
+      of the report's own straddle probes with a sub-level raise via `dataclasses.replace` - that
+      re-runs `__post_init__` on the frozen dataclass - and refuses to publish if the query
+      constructs. A report that renders whatever it is handed exits 0 with the rule gone, and
+      would leave this mutation alive.
+    file: src/poker_training_bot/strategy/contract.py
+    find: "if entry.amount <= level:"
+    replace: "if False and entry.amount <= level:"
+    must_fail:
+      - generate_table_state_report
       - pytest

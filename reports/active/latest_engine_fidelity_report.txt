@@ -53,37 +53,42 @@ contract, because the old behaviour is no longer in the tree to measure.
    A seat barred from raising may still call and may still fold:
      at 19, seat 0 is offered ['fold', 'call']
 
-3. street_bet means the street's bet level  (STREET-BET-MEANING-AMBIGUOUS)
+3. The bet level has one name and one meaning  (STREET-BET-MEANING-AMBIGUOUS)
 
    Was:  the field carried no statement of which of two readings it held, and
          scripts/generate_strategy_query_report.py passed hero's own contribution
          while every other producer passed the street's level.
    Now:  the meaning is written on StrategyQuery, the one producer is corrected,
-         and a query whose street_bet is below its to_call is rejected.
+         and a query whose bet level is below its to_call is rejected. Phase 13
+         finished the job by renaming the field to current_bet and giving every
+         seat its own street_bet beside it, so the two readings no longer share a
+         name and hero's own chips are read off hero's seat record rather than
+         computed from anything.
 
-   Worked example. Heads-up, blinds 5 and 10, the small blind acts preflop. Hero
-   has put in 5, the level is 10, the price to call is 5.
-     the wrong reading passed 5, and the chart derived hero's starting stack as
-       stacks[seat] + (5 - 5), which is the stack itself, and refused with
-       preflop-chart:blind-structure-not-representable
-     the right reading passes 10, and the chart refuses with
+   Worked example, as Phase 11 recorded it. Heads-up, blinds 5 and 10, the small
+   blind acts preflop. Hero has put in 5, the level is 10, the price to call is 5.
+     the wrong reading passed 5 as the level, and the chart refused with
+       preflop-chart:blind-structure-not-representable, blaming the blind
+       structure for a table it had mis-read
+     the right reading passes 10, and the chart refused with
        preflop-chart:lookup:no-artifact-for-table-size, which is the true miss:
        a two-handed table against a six-handed chart
 
-   The guard, and its measured limit. A query with street_bet 10 and to_call 20 is
-   rejected: street_bet 10 is below to_call 20; street_bet is the street's current bet level, not hero's own contribution
+   The guard, and its measured limit. A query with a bet level of 10 and a price
+   to call of 20 is rejected: current_bet 10 is below to_call 20; current_bet is the street's bet level, not one seat's share of it
    It catches a producer passing hero's contribution only when hero has put in
    less than half the level, so it misses the heads-up small blind, who has put in
-   exactly half. Filed as STRATEGY-QUERY-STREET-BET-NAME.
+   exactly half. That producer class is what the Phase 13 rename removes.
 
 4. The all-in ceiling is what hero can raise to  (DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE)
 
    Was:  the ceiling was the street's bet level plus hero's stack, which is too
          high by exactly the price to call.
-   Now:  it is hero's own contribution to the street plus hero's stack.
+   Now:  it is hero's own contribution to the street plus hero's stack, read off
+         hero's own seat record.
 
-   Worked example. Street bet 20, price to call 20, stack 100. Hero has put in
-   20 minus 20, which is nothing, so hero's all-in raise target is 100.
+   Worked example. Bet level 20, price to call 20, stack 100. Hero's seat record
+   says it has nothing in on this street, so its all-in raise target is 100.
      accepted: [100]
      rejected: [101, 120]
    The old ceiling accepted a raise to 120 and only rejected 121.
@@ -115,7 +120,7 @@ What these fixes move, and who re-measures it
    them, by decision 9. A fix phase that grades its own fixes puts a moved number
    and a mistaken one in the same commit.
 
-     latest_decision_audit.jsonl        street_bet changes on every preflop record
+     latest_decision_audit.jsonl        the bet-level key changes on every preflop
                                         where hero had not matched the level
      Phase 08 agreement rates           measured through the uncorrected query and
                                         the uncorrected replayer

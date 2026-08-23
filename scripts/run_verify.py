@@ -189,7 +189,13 @@ COMMANDS = {
         "Generate preflop strategy coverage and frequency report",
     ),
     "pytest_postflop_fallback": CommandSpec(
-        uv_python_command() + ["-m", "pytest", "tests/test_postflop_fallback.py"],
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_postflop_fallback.py",
+            "tests/test_postflop_fallback_components.py",
+        ],
         "Run postflop fallback and composite strategy tests",
     ),
     "generate_postflop_fallback_report": CommandSpec(
@@ -257,6 +263,20 @@ COMMANDS = {
     "generate_spot_vocabulary_report": CommandSpec(
         uv_python_command() + ["scripts/generate_spot_vocabulary_report.py"],
         "Generate the spot vocabulary report, key mapping, and price substitution census",
+    ),
+    "pytest_table_state": CommandSpec(
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_table_state.py",
+            "tests/test_table_state_strategy.py",
+        ],
+        "Run the per-seat contribution query and table-shape strategy tests",
+    ),
+    "generate_table_state_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_table_state_report.py"],
+        "Generate the table-state report: pot reconciliation, depth, and blind structure",
     ),
     "ruff_check": CommandSpec(
         ruff_command(),

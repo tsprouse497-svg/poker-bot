@@ -15,7 +15,7 @@ The surface this file pins:
   chips, which is the unit the hand history already uses.
 - `contract.StrategyDecision(action, amount, code, detail=())`: ordered pairs, the
   same shape `StrategyRefusal.detail` already has.
-- `contract.DECISION_AUDIT_SCHEMA_VERSION == 2`.
+- `contract.DECISION_AUDIT_SCHEMA_VERSION == 3` (Phase 13 moved it again).
 - `vocabulary_report.render_spot_vocabulary_report() -> str`.
 """
 
@@ -210,10 +210,11 @@ def test_a_decision_with_nothing_to_add_carries_no_detail() -> None:
 
 
 def test_the_decision_audit_schema_version_moved() -> None:
-    """The payload gained a field, so version 1 bytes and version 2 bytes would
-    otherwise be indistinguishable, which is
-    DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS repeated knowingly."""
-    assert contract_module.DECISION_AUDIT_SCHEMA_VERSION == 2
+    """The payload keeps changing shape, and the version has to keep up or two shapes
+    share one number, which is DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS.
+    Phase 12 moved it to 2 for the raise-to amount; Phase 13 moves it to 3, because the
+    payload gained per-seat states and renamed the bet-level key to `current_bet`."""
+    assert contract_module.DECISION_AUDIT_SCHEMA_VERSION == 3
 
 
 # --------------------------------------------------------------------------- #
@@ -318,6 +319,10 @@ def test_the_refusal_total_did_not_fall(comparison) -> None:
 def test_the_strategy_reports_a_substituted_price_on_its_decision(strategy) -> None:
     """The cheapest possible measurement of what ruling 8 costs in play, and it has to
     be on the answer or no report can split on it."""
+    # Seats 0 and 1 folded, CO raised to 225, hero is the button. The three contributions
+    # sum to the stated pot exactly, and every seat started on 10,000, so the table is
+    # flat at 100bb and the spot reaches the chart rather than refusing on its shape.
+    contributed = {2: 225, 4: 50, 5: 100}
     query = contract_module.StrategyQuery(
         hand_id="h1",
         street="preflop",
@@ -327,9 +332,19 @@ def test_the_strategy_reports_a_substituted_price_on_its_decision(strategy) -> N
         board=(),
         legal_actions=("fold", "call", "raise"),
         to_call=225,
-        street_bet=225,
+        current_bet=225,
         min_raise_target=350,
         pot=375,
+        seat_states=tuple(
+            contract_module.SeatState(
+                seat=seat,
+                street_bet=contributed.get(seat, 0),
+                committed_total=contributed.get(seat, 0),
+                folded=seat in (0, 1),
+                all_in=False,
+            )
+            for seat in range(6)
+        ),
         stacks=((0, 10000), (1, 10000), (2, 9775), (3, 10000), (4, 9950), (5, 9900)),
         blinds=(50, 100),
         preflop_actions=(contract_module.SeatAction(2, "raise", 225),),

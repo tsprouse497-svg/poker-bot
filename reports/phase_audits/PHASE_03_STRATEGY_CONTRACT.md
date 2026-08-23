@@ -99,6 +99,13 @@ commit:
    enforcement gained direct regression tests (out-of-turn, open round,
    action on an all-in runout); query `to_call` is capped by the acting
    seat's stack.
+
+   > Pointer added 2026-08-21 by Phase 13. The `street_bet` query field named above is now
+   > `StrategyQuery.current_bet`, and `street_bet` is the per-seat name on the new
+   > `seat_states` record. The all-in maximum this phase added is now expressed from hero's
+   > own recorded contribution rather than from the bet level. This packet keeps the names it
+   > shipped with, because it is dated evidence rather than a document tracking the current
+   > tree; see `reports/phase_audits/PHASE_13_TABLE_STATE.md`.
 4. Accepted as documented conventions: a short all-in blind keeps the call
    price at the full blind level (documented in `docs/HAND_HISTORY_SCHEMA.md`),
    and folds while checking is free remain rejected (backlog item
