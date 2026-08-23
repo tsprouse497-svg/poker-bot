@@ -2092,3 +2092,96 @@ items:
       two a completed contract may say, and if both, what carries the date. contract-update is the
       forced label rather than the chosen one; see CONTRACT-UPDATE-IS-THE-LABEL-OF-LAST-RESORT.
       Raised by the independent review of the ENGINE_FIDELITY_CONTRACT_REWRITE task.
+  - id: STRADDLE-RESIDUAL-BOUNDARY-IS-STATED-WIDER-THAN-MEASURED
+    status: deferred
+    phase: "14"
+    title: Four artifacts say the straddle is invisible past one raise when it survives a short one
+    reason: >-
+      The residual phase 13 named as its headline is stated one raise too early. The straddle
+      cancels out of the minimum-raise prediction only when every raise after the first is a full
+      raise, because a short all-in raise does not move the minimum and the walk that predicts it
+      floors the increment exactly as BettingRoundState.apply does.
+      Measured on the committed functions rather than argued. At 50/100 with a 200 straddle, an
+      open to 600 and a short all-in to 800: the straddled table's own walk holds min_raise at 400
+      and offers 1,200, while predicted_min_raise_target(100, [600, 800]) returns 1,300. The gap is
+      100, the straddle less the big blind, so the pot still refuses pot-holds-a-straddle. With two
+      full raises - 600 then 1,500 - both walks return 2,400 and the pot is genuinely invisible,
+      which is the case stage 6 measured and generalised too far.
+      Four artifacts carry the wide wording: the module docstring of
+      src/poker_training_bot/table_state/forced_money.py, the signal-3 comment block in
+      src/poker_training_bot/strategy/preflop_chart.py, decision 8 of
+      reports/phase_audits/decisions/PHASE_13_TABLE_STATE_DECISIONS.md, and the
+      STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE entry above. The error is in the conservative
+      direction - the phase claims to miss more than it misses - which is why it is alignment rather
+      than a blocker. One sweep restating the boundary as "every raise after the first is a full
+      raise" settles all four. Filed against phase 14 because it is the next phase to open
+      preflop_chart.py, and because tests/ is frozen for phase 13.
+      Raised by the independent stage-10 review of phase 13.
+  - id: FORCED-MONEY-SIGNALS-ARE-NUMBERED-THREE-WAYS
+    status: deferred
+    phase: "14"
+    title: Signal 3 means a different rule depending on which file the reader arrived from
+    reason: >-
+      The three forced-money signals are listed in three different orders. The code numbers them
+      level, then minimum-raise disagreement, then unexplained contributions
+      (src/poker_training_bot/strategy/preflop_chart.py). The frozen tests walk them contributions,
+      level, minimum-raise (tests/test_table_state_strategy.py). The phase 13 contract lists them in
+      a third order. Nothing is wrong in any one file, and every one of them says "signal 3" in
+      prose, so a reader carrying the phrase between two files reads it as a different rule.
+      The fire order itself is ruled and is not in question: the two straddle signals fire before
+      unexplained money is classified, which the coordinator derived from the stage 4 fixtures and
+      recorded in the phase 13 ExecPlan. What is missing is one canonical numbering that the code,
+      the tests and the contract all use, or the removal of the numbers in favour of names.
+      Raised by the independent stage-10 review of phase 13.
+  - id: CONTRACT-SCOPE-ENUMERATES-RESIDUALS-WITH-NOTHING-CHECKING-THE-COUNT
+    status: deferred
+    phase: contract-update
+    title: A contract's closed list of escapes and its packet's list of them disagreed by one
+    reason: >-
+      The phase 13 contract's Scope asserts a closed list of the table shapes that escape its
+      refusal claim, and the phase 13 audit packet keeps its own list of residuals in two tiers.
+      Nothing compares the two. They disagreed by one until the stage-10 review found it: the
+      contract said two escapes where the packet's "Smaller residuals" paragraph named a third, a
+      big-blind-sized straddle whose poster has acted, which reaches the chart and is answered.
+      A closed enumeration in a standing definition of done is exactly the kind of claim that rots,
+      and the repo has no check for it. check_contracts validates structure, frontmatter and
+      criteria specificity; it does not know that a sentence beginning "Two classes escape that" is
+      a count of something enumerated elsewhere. Same shape as
+      COMPLETED-CONTRACT-ASSERTS-THE-CURRENT-TREE, on the residual side rather than the tree side.
+      Raised by the independent stage-10 review of phase 13.
+  - id: FORCED-MONEY-DOCSTRING-DROPS-THE-STRADDLE-POSTER-PRECONDITION
+    status: deferred
+    phase: "14"
+    title: The module docstring states the big-blind-sized straddle case without its precondition
+    reason: >-
+      src/poker_training_bot/table_state/forced_money.py says a straddle equal to the big blind
+      "moves no level, predicts what a limp predicts, and shifts no minimum, so an unraised pot
+      holding one reads exactly as the limped pot it cannot be told from." That is true only once
+      the poster has acted. Before it acts, its posted chips are unattributed by the declared
+      blinds: unexplained_contributions with actions=() and seat 0 holding 100 at 50/100 returns
+      {0: 100}, and the pot is refused blind-structure-not-representable rather than answered.
+      The same over-general sentence was struck from decision 8 of the phase 13 decision list and
+      from the phase 13 contract's Scope by the stage-10 review, which could not reach src/ because
+      a contract-update task may not edit code. This is the last copy.
+      Raised by the independent stage-10 review of phase 13.
+  - id: PHASE-AUDIT-PACKET-AT-ITS-LINE-CAP
+    status: deferred
+    phase: contract-update
+    title: A completed phase's packet is at its 500-line cap with no rewrite rule to fall back on
+    reason: >-
+      reports/phase_audits/PHASE_13_TABLE_STATE.md is 499 of the 500-line cap in
+      scripts/check_file_sizes.py. Adding the stage-10 review's required paragraph to it needed
+      about 120 lines of surrounding prose rewrapped from ~88 to ~98 characters, which produced a
+      250-line diff to carry 8 lines of new content and made the change harder to review than the
+      content warranted.
+      AGENTS.md rules what to do when a contract reaches its cap - rewrite it, folding appended
+      amendments into the criteria they amend - and ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP is
+      that rule being used. There is no equivalent rule for a packet, and a packet is worse placed
+      to take one: MAINT-25 ruled a completed packet a historical snapshot, so folding and rewriting
+      it is closer to falsifying it than to tidying it. Nothing reports a packet approaching its cap
+      either, so the next phase finds out at the moment it owes a correction.
+      The ruling wanted is which: raise the packet cap, split a packet into a summary and an
+      evidence appendix, or accept that a completed packet takes corrections by pointer to the
+      ExecPlan rather than in place. Phase 13 took the third route for the detail and the first
+      eight lines in place.
+      Raised by the independent stage-10 review of phase 13.

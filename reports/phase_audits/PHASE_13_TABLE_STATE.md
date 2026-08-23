@@ -10,30 +10,29 @@ Written for a reviewer who does not read code.
 
 ## Summary in plain language
 
-This phase changed what the bot is told about the table, and changed nothing about which
-hands it plays where the table is the one the charts were solved for.
-It commits no artifact, no chart, and no new sample.
+This phase changed what the bot is told about the table, and changed nothing about which hands it plays
+where the table is the one the charts were solved for. It commits no artifact, no chart, and no new
+sample.
 
-Before this phase the strategy was handed the pot, what each seat held, and hero's price to
-call - never what any seat had *put in*, hero's own chips included, so hero's depth was worked
-backwards out of the price. That subtraction was exact until Taylor ruled on 2026-08-20 that
-the price is capped at what hero can pay, and has been wrong since for every hero whose whole
-stack is the price: it hands back the street's bet level instead of the depth.
+Before this phase the strategy was handed the pot, what each seat held, and hero's price to call - never
+what any seat had *put in*, hero's own chips included, so hero's depth was worked backwards out of the
+price. That subtraction was exact until Taylor ruled on 2026-08-20 that the price is capped at what hero
+can pay, and has been wrong since for every hero whose whole stack is the price: it hands back the
+street's bet level instead of the depth.
 
-The query now carries, for every seat at the table, what that seat put in on this street,
-what it put in over the hand, whether it has folded, and whether it is all-in.
-The pot must equal what those seats put in or the query is rejected outright.
-From that the bot recomputes what every seat sat down with, and it refuses a table whose
-stack depths or whose forced money the committed charts cannot describe: a live opponent
-shorter than hero, a live opponent deeper than hero, a straddle, an ante.
+The query now carries, for every seat at the table, what that seat put in on this street, what it put in
+over the hand, whether it has folded, and whether it is all-in. The pot must equal what those seats put
+in or the query is rejected outright. From that the bot recomputes what every seat sat down with, and it
+refuses a table whose stack depths or whose forced money the committed charts cannot describe: a live
+opponent shorter than hero, a live opponent deeper than hero, a straddle, an ante.
 
-**The honest headline is that this buys no new answers.** Every table it now sees is a table
-it now refuses, with a code that says which shape is missing. Making those spots answerable
-needs a solve, which is a chart phase. **The second is that the claim does not cover the
-whole table.** Two classes still escape and are answered as something else: a straddled pot
-with two or more raises in it, and any game whose blinds are not in the chart's own ratio.
-Both are measured in the report and filed forward. The second was found by an independent
-reviewer at stage 8 and is the largest single finding of the phase.
+**The honest headline is that this buys no new answers.** Every table it now sees is a table it now
+refuses, with a code that says which shape is missing. Making those spots answerable needs a solve, which
+is a chart phase. **The second is that the claim does not cover the whole table.** Three classes still
+escape and are answered as something else: a straddled pot with two or more raises in it, a straddle
+equal to the big blind once its poster has acted, and any game whose blinds are not in the chart's own
+ratio. All three are measured in the report and filed or named forward. The blind-ratio one was found by
+an independent reviewer at stage 8 and is the largest single finding of the phase.
 
 ### One paragraph per backlog entry, and which of the five actually closed
 
@@ -328,111 +327,113 @@ opponent's stack differs by a single chip, an effect of exactly zero, and answer
 game where the small blind's dead money is doubled. $1/$3 and $2/$5 are the dominant live and
 home structures, and the contract names home games twice.
 
-**Ruled unfixable in scope, and the honest half done instead.** The check is cheap; the
-missing operand is not. The ratio the artifact was solved at is recorded nowhere, so a check
-written today would hardcode a reconstruction of an undeclared property of a committed
-artifact - precisely the defect this phase exists to end, appearing inside the phase that
-ends it. `data/artifacts/**` is out of scope and a loop halt condition. So the report's
-headline claim was narrowed to name both escapes, the four-row measurement is published with
-its own validator, and the finding is filed as
-`BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE` against phase 14. The report does
-not claim the correct ranges differ; it states that they cannot differ here, because nothing
-looks.
+**Ruled unfixable in scope, and the honest half done instead.** The check is cheap; the missing operand
+is not. The ratio the artifact was solved at is recorded nowhere, so a check written today would
+hardcode a reconstruction of an undeclared property of a committed artifact - precisely the defect this
+phase exists to end, appearing inside the phase that ends it. `data/artifacts/**` is out of scope and a
+loop halt condition. So the report's headline claim was narrowed to name both escapes, the four-row
+measurement is published with its own validator, and the finding is filed as
+`BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE` against phase 14. The report does not claim
+the correct ranges differ; it states that they cannot differ here, because nothing looks.
 
-Recorded because a review that lists only hits is not calibrated: the mechanical lens found no
-committed code giving a wrong answer on an input the engine or replay can produce, and the
-poker lens found no refusal wrong in the short-stack direction, which decision 6 exists for.
+Recorded because a review that lists only hits is not calibrated: the mechanical lens found no committed
+code giving a wrong answer on an input the engine or replay can produce, and the poker lens found no
+refusal wrong in the short-stack direction, which decision 6 exists for.
 
 ## Known limitations and deferred items
 
-**`ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` has now run as its own `contract-update`
-task, which this phase's contract required before it could tag.** `PHASE_11_ENGINE_FIDELITY.md`
-was at exactly 300 of 300 lines and `AGENTS.md` forbids raising the cap, so it took a rewrite
-folding its appended amendments into the criteria they amend rather than an amendment it had no
-room for. It is now 283 lines with every acceptance criterion intact; this contract is 290.
-Both have headroom, which was the point: a document at its cap turns every later one-line
-correction into a refactor.
+**`ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` has now run as its own `contract-update` task,
+which this phase's contract required before it could tag.** `PHASE_11_ENGINE_FIDELITY.md` was at
+exactly 300 of 300 lines and `AGENTS.md` forbids raising the cap, so it took a rewrite folding its
+appended amendments into the criteria they amend rather than an amendment it had no room for. It is
+now 283 lines with every acceptance criterion intact; this contract is 295. Both have headroom,
+which was the point: a document at its cap turns every later one-line correction into a refactor.
 
-**The debt was thirteen edits, not the nine this section listed.** That number is the lesson
-worth keeping. The list was assembled from the ExecPlan's four, plus five found by checking the
-phase's documents at stages 8 and 9 - and the executor found four more while doing the work:
-an eighth `street_bet` site inside an amendment body the list of seven missed, a line stating
-the old all-in ceiling was "too loose by exactly `to_call`" which the capped ruling made false
-in the same way as its neighbour, decision 1 carrying the same dead preflop-equality invariant
-as decision 3, and this contract's own claim that Phase 11 names the field "in three criteria"
-when it was more. Every list of stale statements this phase produced was itself incomplete, at
-every stage that produced one.
+**The debt was thirteen edits, not the nine this section listed.** The list was assembled from the
+ExecPlan's four, plus five found by checking the phase's documents at stages 8 and 9 - and the
+executor found four more while doing the work: an eighth `street_bet` site inside an amendment body
+the list of seven missed, a line stating the old all-in ceiling was "too loose by exactly
+`to_call`" which the capped ruling made false in the same way as its neighbour, decision 1 carrying
+the same dead preflop-equality invariant as decision 3, and this contract's own claim that Phase 11
+names the field "in three criteria" when it was more. Every list of stale statements this phase
+produced was itself incomplete, at every stage that produced one.
 
-What the task corrected, in one line each: the query-level `street_bet` sites across five
-acceptance criteria, a heading and a Scope bullet; the all-in ceiling, restated as the quantity
-rather than as `(street_bet - to_call) + stack`, which under the capped ruling is a false
-formula and is also the subtraction this contract's forbidden shortcuts bar from any comment,
-docstring or report; the claim that the chart's raise cap is that same ceiling, when it is
-higher by what hero still owes; this contract's "coincide" line, which the ante ruling replaced
-with `committed_total >= street_bet`; its straddle criterion, where the gap is the straddle less
-the big blind rather than the straddle; its un-narrowed Scope claim, now naming both escapes by
-id; its statement that all five backlog entries read `phase: "13"`, when two now read `"14"`;
-decision 6's stated cost, where all three `phase02-three-way-side-pot` decisions change refusal
-code rather than two; decision 8's, which omitted this phase's headline residual; and decisions
-1 and 3's dead invariant. Decision 15 took the optional `Correcting...` paragraph.
+What the task corrected, in one line each: the query-level `street_bet` sites across five acceptance
+criteria, a heading and a Scope bullet; the all-in ceiling, restated as the quantity rather than as
+`(street_bet - to_call) + stack`, which under the capped ruling is a false formula and is also the
+subtraction this contract's forbidden shortcuts bar from any comment, docstring or report; the claim
+that the chart's raise cap is that same ceiling, when it is higher by what hero still owes; this
+contract's "coincide" line, which the ante ruling replaced with `committed_total >= street_bet`; its
+straddle criterion, where the gap is the straddle less the big blind rather than the straddle; its
+un-narrowed Scope claim, now naming its escapes by id; its statement that all five backlog entries
+read `phase: "13"`, when two now read `"14"`; decision 6's stated cost, where all three
+`phase02-three-way-side-pot` decisions change refusal code rather than two; decision 8's, which
+omitted this phase's headline residual; and decisions 1 and 3's dead invariant. Decision 15 took the
+optional `Correcting...` paragraph.
 
-**And it missed three, which is why that entry closes on a review rather than on this section.**
-An independent review found the identity still standing in three documents the task had open: this
+**And it missed three, which is why that entry closes on a review rather than on this section.** An
+independent review found the identity still standing in three documents the task had open: this
 contract's two-ceilings criterion, decision 11 of the decision list, and
-`ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` itself. All three now state the gap as what hero
-still owes to match the level, uncapped and therefore not `to_call` for a capped hero: 100 in, a
-level of 300 and 150 behind gives `to_call` 150 and a gap of 200. Seven more statements survive
-outside any of these scopes - frozen tests, a `preflop_chart.py` comment, the canary description, a
-generated report - as `SUBTRACTION-IDENTITY-SURVIVES-IN-FROZEN-TESTS-AND-CODE`, and the rewrite's
-own claim about what the tree holds today is `COMPLETED-CONTRACT-ASSERTS-THE-CURRENT-TREE`.
+`ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` itself. All three now state the gap as what hero still
+owes to match the level, uncapped and therefore not `to_call` for a capped hero: 100 in, a level of
+300 and 150 behind gives `to_call` 150 and a gap of 200. Seven more statements survive outside any
+of these scopes - frozen tests, a `preflop_chart.py` comment, the canary description, a generated
+report - as `SUBTRACTION-IDENTITY-SURVIVES-IN-FROZEN-TESTS-AND-CODE`, and the rewrite's own claim
+about what the tree holds today is `COMPLETED-CONTRACT-ASSERTS-THE-CURRENT-TREE`.
 
-**The five backlog entries this contract is written against are now settled, and how they got
-settled is the finding.** Each was audited against the code rather than against the phase's own
-description of itself, and the five did not land the same way. Three closed and read
-`status: done` against phase 13: `PER-SEAT-CONTRIBUTIONS-IN-QUERY`,
-`STRATEGY-QUERY-STREET-BET-NAME` and `STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS`. Two did not
-and now read `deferred` against phase 14: `ASYMMETRIC-EFFECTIVE-STACKS` and
-`BLIND-STRUCTURE-VARIANTS`.
+**Then a stage-10 review found a fourth round, content arriving at the closeout rather than at the
+stage that owned it.** Five edits, each measured against the code rather than read, with the working
+in the ExecPlan: this contract's gap line, now preflop dead money of which an ante is the case the
+phase classifies; its straddle criterion, where signal 3's arithmetic holds after a *full* first
+raise; its evidence criterion, reworded to the house form; its Scope escape count, two to three; and
+decision 8's first edge case, which had dropped the precondition that a big-blind-sized straddle is
+invisible only once its poster has acted. They land here because `contract-update` is the only mode
+that may edit a contract, and stages 1, 2 and 6 could not have made them without it.
 
-The distinction that decided both is the one a reader skimming the summary would get wrong.
-This phase MEASURES table state and REFUSES what the charts cannot describe, which is not the
-same as putting a thing into the artifact format or a spot key, and both deferred entries ask
-for the latter. `ASYMMETRIC-EFFECTIVE-STACKS` is titled "Per-seat effective stack depth in
-chart spots" and the diff to `spot_key.py` is docstring-only; `BLIND-STRUCTURE-VARIANTS` is
-titled "Antes and straddles in the artifact format" and the artifact has no match for
-`blind_structure`, `straddle` or `ante`. Six other entries name those two as what they wait
-on, so a `done` would have silently retargeted six open items.
+**The five backlog entries this contract is written against are now settled, and how they got settled
+is the finding.** Each was audited against the code rather than against the phase's own description of
+itself, and the five did not land the same way. Three closed and read `status: done` against phase 13:
+`PER-SEAT-CONTRIBUTIONS-IN-QUERY`, `STRATEGY-QUERY-STREET-BET-NAME` and
+`STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS`. Two did not and now read `deferred` against phase 14:
+`ASYMMETRIC-EFFECTIVE-STACKS` and `BLIND-STRUCTURE-VARIANTS`.
 
-**It very nearly closed with them unsettled, and no check would have said so** - a peer session
-caught it, not the gate. `backlog_errors` in `scripts/quality_checks.py` never compares an
-item's `phase` against that phase's status in `phase_status.yml`, which is
-`BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE`; that entry now argues from phase 13 as well as
-phase 11. The same pass found three alignment items the stage-8 note asserted were filed and
-were not. Both misses are one shape: a claim about the record that nothing checks against it.
+The distinction that decided both is the one a reader skimming the summary would get wrong. This phase
+MEASURES table state and REFUSES what the charts cannot describe, which is not the same as putting a
+thing into the artifact format or a spot key, and both deferred entries ask for the latter.
+`ASYMMETRIC-EFFECTIVE-STACKS` is titled "Per-seat effective stack depth in chart spots" and the diff to
+`spot_key.py` is docstring-only; `BLIND-STRUCTURE-VARIANTS` is titled "Antes and straddles in the
+artifact format" and the artifact has no match for `blind_structure`, `straddle` or `ante`. Six other
+entries name those two as what they wait on, so a `done` would have silently retargeted six open items.
 
-**The two residuals, restated.** A straddled pot with two or more recorded raises is *answered*
-with the wrong range rather than mis-coded, because a straddle perturbs only the first
-increment and past one raise the prediction is a difference of two recorded amounts. And four
-games reach one cell. Both wait on the same format change - a declared blind structure on the
-artifact and on the query - which is a chart phase.
+**It very nearly closed with them unsettled, and no check would have said so** - a peer session caught
+it, not the gate. `backlog_errors` in `scripts/quality_checks.py` never compares an item's `phase`
+against that phase's status in `phase_status.yml`, which is `BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE`;
+that entry now argues from phase 13 as well as phase 11. The same pass found three alignment items the
+stage-8 note asserted were filed and were not. Both misses are one shape: a claim about the record that
+nothing checks against it.
 
-**Smaller residuals.** A straddle equal to the big blind, once its poster has acted, is
-invisible to all three signals and is counted as such in the census truth column rather than
-omitted. A ragged hero masks every table shape behind it. Refusing on any difference at all
-refuses almost every real table once live state arrives.
+**The two residuals, restated.** A straddled pot with two or more recorded raises is *answered* with the
+wrong range rather than mis-coded, because a straddle perturbs only the first increment and past one
+raise the prediction is a difference of two recorded amounts. And four games reach one cell. Both wait
+on the same format change - a declared blind structure on the artifact and on the query - which is a
+chart phase.
 
-**Line caps.** `preflop_chart.py` now sits at exactly 500 of 500, so the next edit to it
-forces a split, and `scripts/generate_table_state_report.py` is 1,889 lines against a
-`scripts/` cap of nothing at all. `TABLE-STATE-REPORT-RENDERER-HAS-NO-SIZE-CAP` records the
-pattern; its own title and figures are stale, saying 1,135 lines.
+**Smaller residuals.** A straddle equal to the big blind, once its poster has acted, is invisible to
+all three signals and is counted as such in the census truth column rather than omitted. A ragged hero
+masks every table shape behind it. Refusing on any difference at all refuses almost every real table
+once live state arrives.
 
-**What a spot key would have to carry for the two Phase 12 findings.** For the under-raise, a
-marker on each raise entry saying whether it was a legal full raise or an all-in for less,
-because without it an under-raise and a short all-in render one string and any cell filled from
-it mixes two prices. For the short call, the same marker on a call entry. Both are format
-changes this phase is scoped out of. What leaving them open costs is not a wrong answer today -
-it is a wrong denominator later, when the first artifact built from real hands fills one cell
-from two different tables and nothing says so.
+**Line caps.** `preflop_chart.py` now sits at exactly 500 of 500, so the next edit to it forces a
+split, and `scripts/generate_table_state_report.py` is 1,889 lines against a `scripts/` cap of nothing
+at all. `TABLE-STATE-REPORT-RENDERER-HAS-NO-SIZE-CAP` records the pattern; its own title and figures
+are stale, saying 1,135 lines.
+
+**What a spot key would have to carry for the two Phase 12 findings.** For the under-raise, a marker on
+each raise entry saying whether it was a legal full raise or an all-in for less, because without it an
+under-raise and a short all-in render one string and any cell filled from it mixes two prices. For the
+short call, the same marker on a call entry. Both are format changes this phase is scoped out of. What
+leaving them open costs is not a wrong answer today - it is a wrong denominator later, when the first
+artifact built from real hands fills one cell from two different tables and nothing says so.
 
 **The twenty-four backlog entries this phase filed,** by the phase each is assigned to. Ids
 are copied from `backlog.yml` rather than written from memory; a fabricated one already

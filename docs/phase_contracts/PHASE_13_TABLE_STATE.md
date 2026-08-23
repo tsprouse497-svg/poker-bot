@@ -39,10 +39,12 @@ This phase commits no artifact, no chart, and no new sample. It changes the runt
 the strategy can see through it. The chart's vocabulary is untouched: a spot key still carries one
 table-wide depth and declares no blind structure, so what this phase buys is that a table whose
 stack depths or whose forced money this bot's charts cannot describe is seen and refused rather
-than answered as something else. Two classes escape that: a straddled pot with two or more
-recorded raises, `STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`, and a game whose blinds are not in
-the chart's own ratio, `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE`. Both are still
-answered as something else. Making them answerable is a chart phase and needs a solve.
+than answered as something else. Three classes escape that: a straddled pot with two or more
+recorded raises, `STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE`; a straddle equal to the big blind
+whose poster has acted, which raises no bet level and leaves no chips unexplained; and a game
+whose blinds are not in the chart's own ratio,
+`BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE`. All three are still answered as
+something else. Making them answerable is a chart phase and needs a solve.
 
 Where the evidence comes from, settled before any criterion below is read. All 499 committed
 corpus hands are six seats at 10,000 chips, zero antes, and blinds of exactly 50 and 100; the
@@ -74,8 +76,9 @@ Phase 13 is limited to the work named by this contract and the active ExecPlan.
 - `StrategyQuery` carries, per seat, the chips that seat has put in on the current street and the
   chips it has put in over the hand so far. Both, because the street figure is what a bet level is
   measured against and the hand figure is what the pot is made of. They do not coincide preflop:
-  the rule is `committed_total >= street_bet`, and the gap is an ante, which sits only in the hand
-  figure and never reduces what a seat owes.
+  the rule is `committed_total >= street_bet`, and the gap is preflop dead money, of which an ante
+  is the case this phase classifies. Dead money sits only in the hand figure and never reduces
+  what a seat owes; a gap alone does not settle which kind it is.
 - The two names match the engine's own, which already tracks exactly these two quantities on
   `PlayerState`. One vocabulary across the engine and the query, or the next reader repeats
   `STREET-BET-MEANING-AMBIGUOUS` in a new place.
@@ -155,11 +158,11 @@ Phase 13 is limited to the work named by this contract and the active ExecPlan.
   to the level holds exactly what an ordinary caller holds, so the straddle is absorbed and no
   comparison of contributions can see it. Two further signals are therefore required. An
   unraised pot whose bet level is not the big blind is straddled, which is the whole of the
-  limped case. And after a raise, the minimum raise target the query carries disagrees with the
-  one the declared blinds and the recorded raise-to amounts predict, by the straddle less the big
-  blind, since the first raise is measured from the straddle: over a 200 straddle a raise to 600
-  leaves a minimum of 1000 where the same price in an unstraddled 50/100 game leaves 1100. The
-  phase pins that arithmetic and states the residual all three signals together still miss.
+  limped case. And after a full first raise, the minimum raise target the query carries disagrees
+  with the one the declared blinds and the recorded raise-to amounts predict, by the straddle less
+  the big blind, since the first raise is measured from the straddle: over a 200 straddle a raise
+  to 600 leaves a minimum of 1000 where the same price in an unstraddled 50/100 game leaves 1100.
+  The phase pins that arithmetic and states the residual all three signals together still miss.
 - The two are told apart rather than merged. A straddle raises the bet level a voluntary action
   is measured against; an ante does not, and they change the correct ranges differently, so
   each gets its own refusal code and detail instead of one "unrepresentable pot".
@@ -217,10 +220,11 @@ Phase 13 is limited to the work named by this contract and the active ExecPlan.
   contract asserting it, so the phase either amends Phase 12 or files the mismatch by id.
 
 ### Evidence, reports, and gate
-- The report shows a non-coding reviewer one table state before and after, the pot reconciled seat
-  by seat, the depth the chart derived against the depth that is true, the straddled pot that used
-  to slip through the bound, and the corpus counts for every claim above. At least one number in it
-  is recomputable by hand from a committed file, and the audit packet says which and how.
+- The report shows a non-coding reviewer, without reading code: one table state before and
+  after with the pot reconciled seat by seat, the depth the chart derived against the depth
+  that is true, the straddled pot that used to slip through the bound, and the corpus counts
+  for every claim above. At least one number in it is recomputable by hand from a committed
+  file, and the audit packet says which and how.
 - Both new command IDs are declared here, registered in `COMMANDS` in
   `scripts/run_verify.py`, and pass through `scripts/run_verify.py`.
 - Both new command IDs carry a mutation canary in `verification/mutations.yml`, authored

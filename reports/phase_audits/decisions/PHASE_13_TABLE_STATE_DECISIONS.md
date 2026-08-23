@@ -325,11 +325,18 @@ phase is scoped out of. It also has no producer: nothing in the repo can emit a 
 so the field would be set only by fixtures.
 
 The cost the default accepts: three rules where one would be nicer, and a residual the phase
-has to name. Two parts of it are edge cases. A straddle equal to the big blind is invisible to all
-three signals, and so is one in a pot where the straddler has acted and no raise has happened,
-which cannot occur in a legal preflop street but is expressible as a query.
+has to name. One part of it is an edge case: a straddle equal to the big blind, *once its poster
+has acted*, is invisible to all three signals - it raises no bet level, and a poster who has
+called to the level holds exactly what its own recorded actions explain. The precondition is
+load-bearing in both directions. Before the poster acts, its posted chips are unexplained and the
+pot is refused `blind-structure-not-representable`, so the invisibility is not a property of the
+straddle's size alone. And an earlier draft of this line generalised the invisibility to any
+straddle whose poster has acted with nothing raised, which the stage-10 reviewer measured false:
+signal 1 tests the bet level against the declared big blind and does not care who has acted, so a
+200 straddle at 50/100 whose poster has already called is refused `pot-holds-a-straddle
+(bet_level 200, big_blind 100)`. Only a straddle sized at the big blind clears signal 1 at all.
 
-The third part is neither an edge case nor was it listed here, and it is this phase's headline
+The other part is neither an edge case nor was it listed here, and it is this phase's headline
 residual: **a straddled pot carrying two or more recorded raises is invisible to all three signals
 as well, and it occurs in a perfectly legal preflop street.** The third signal predicts the minimum
 raise from the declared blinds and the recorded raise-to amounts, and a straddle perturbs only the

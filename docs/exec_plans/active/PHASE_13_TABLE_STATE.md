@@ -111,12 +111,16 @@ to an independent read-only reviewer rather than to the coordinator.
       entries were filed from their findings. Evidence: the contract at 299 of 300 lines with
       every backlog citation resolving, `check_contracts`, `check_file_sizes`, `check_scope`
       and `check_execplan_delegation` green, and the stage-1 review note.
-- [ ] S1a Prerequisite, outside this phase's task. `ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP`
-      is a `contract-update` task of its own: `PHASE_11_ENGINE_FIDELITY.md` is at 300 of 300
-      lines, names `street_bet` in three criteria that this phase renames, and asserts an
-      all-in-ceiling claim this phase makes false. `AGENTS.md` forbids raising the cap and
-      rules the answer is a rewrite folding its amendments into the criteria they amend. This
-      phase must not tag before that task has run.
+- [x] S1a Prerequisite, outside this phase's task, run at stage 10 because a contract may only
+      be edited in `contract-update` mode. `ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` was a
+      `contract-update` task of its own: `PHASE_11_ENGINE_FIDELITY.md` was at 300 of 300 lines,
+      named `street_bet` in criteria this phase renames, and asserted an all-in-ceiling claim
+      this phase makes false. `AGENTS.md` forbids raising the cap and rules the answer is a
+      rewrite folding amendments into the criteria they amend. Done: 283 lines from 300, all 39
+      acceptance bullets intact and 32 byte-identical, measured with
+      `check_contracts.section_bullets`. The debt was thirteen edits rather than the nine listed,
+      and the task's own independent review found it had left the struck arithmetic identity
+      standing in three documents it had open, including the backlog entry that spawned it.
 - [x] S2 Decisions. Sixteen calls recorded with a reversibility class before any code, one of
       them `frozen-into-data`. The independent reviewer found four blockers, all resolved:
       the field names and shape, whether the query carries street and hand contributions or
@@ -134,12 +138,15 @@ to an independent read-only reviewer rather than to the coordinator.
       IDs run clean, all five phase canaries and the re-pointed phase 11 canary occur verbatim,
       `check_scope`, `check_file_sizes` and the full quality gate green. Two independent
       reviewers read the stage diff, one mechanical and one on the poker.
-- [ ] S7 Gate. Full `scripts/run_verify.py` plus `check_gate_bite`.
-- [ ] S8 Review. Two independent reviewers, mechanical and domain.
-- [ ] S9 Audit. Packet with the corpus counts, the producer sweep, and one hand-recomputable
-      number.
-- [ ] S10 Closeout. Backlog entries settled to `done` or restated, ExecPlan filed, phase
-      completed, tag, idle.
+- [x] S7 Gate. 45 commands green through `scripts/run_verify.py` with the canaries biting under
+      `check_gate_bite`.
+- [x] S8 Review. Two independent reviewers, mechanical and domain, closed over a verification
+      round.
+- [x] S9 Audit. Packet with the corpus counts, the producer sweep, and one hand-recomputable
+      number. The stage-9 reviewer re-derived every number rather than reading it; all of it
+      reproduced and every blocker was a list disagreeing with the file it claimed to copy.
+- [x] S10 Closeout. Backlog entries settled to `done` or restated, five alignment items filed
+      from the stage-10 review, ExecPlan filed, phase completed, tag, idle.
 - [ ] S11 Advance. Policy says `auto_advance: true` for phase 13.
 
 ## Coordinator rulings during the build
@@ -373,6 +380,59 @@ What it does not establish, and the packet must say so: that those bytes are the
 claim to come from. The gate has no network by design, so the provenance claim stays unchecked
 here exactly as `docs/CORPUS_COMPARISON_LIMITS.md` already records for phase 08.
 
+## The fourth fix round, at closeout, and why content arrives there
+
+Stage 10 is bookkeeping by the driver's own question, and this phase's stage 10 carried content,
+because S1a - the `ENGINE_FIDELITY_CONTRACT_REWRITE` task - is a `contract-update` task nested
+inside the closeout, and `contract-update` is the only mode that may edit a contract. The stage-1,
+stage-2 and stage-6 findings that needed a contract edit could not be made when they were found.
+They queued here. The stage-10 reviewer read the whole task diff against that question and found
+three blockers; all three are fixed and the note is
+`reports/phase_audits/reviews/PHASE_13_TABLE_STATE/stage-10-closeout.md`.
+
+Five edits landed, each measured against the committed code rather than argued:
+
+1. **The contract's gap line** (stage 1's clause, falsified by stage 6's ante ruling). It said the
+   gap between `committed_total` and `street_bet` "is an ante". It is preflop dead money, of which
+   an ante is the case this phase classifies - uniform across seats is an ante, non-uniform takes
+   the residual code - and a gap alone does not settle which. The old wording made the classifier's
+   own distinction disappear into a definition.
+2. **The straddle criterion's "after a full first raise"** (stage 6's floor fix). Signal 3's
+   arithmetic - the disagreement is the straddle less the big blind - holds for a full first raise.
+   The branch itself fires on any recorded raise, and after a short first raise it still refuses but
+   by a different amount. Verified: at 50/100 with a 200 straddle and an all-in to 250 the table
+   offers 350 and `predicted_min_raise_target(100, [250])` returns 400.
+3. **The evidence criterion**, reworded to the house form the Phase 12 contract uses. No claim
+   changed; the report already carries the seat-by-seat reconciliation it now reads as demanding.
+4. **The Scope escape count, two to three.** The contract enumerated the escapes as a closed list
+   and missed the big-blind-sized straddle whose poster has acted, which the packet's own "Smaller
+   residuals" paragraph already named. Filed the shape as
+   `CONTRACT-SCOPE-ENUMERATES-RESIDUALS-WITH-NOTHING-CHECKING-THE-COUNT`.
+5. **Decision 8's first edge case.** An earlier draft generalised the big-blind-sized straddle's
+   invisibility to any straddle whose poster has acted; the stage-10 reviewer measured that false,
+   and the correction then dropped the other half. Both halves are now stated and both were run:
+   with `blinds=(50,100)`, `button=3` and seat 0 holding 100, `unexplained_contributions` with no
+   recorded actions returns `{0: 100}` and the pot is refused `blind-structure-not-representable`;
+   with `SeatAction(0, "call")` it returns `{}` and the pot is answered. And a 200 straddle whose
+   poster has called returns `{0: 100, 5: 100}` but is refused `pot-holds-a-straddle` first, because
+   the level signal fires before unexplained money is classified. So only a straddle sized at the
+   big blind clears signal 1 at all, and only after its poster acts.
+
+The reviewer also measured the residual one raise wider than it is. The straddle cancels out of
+signal 3 only when every raise after the first is a *full* raise: at 50/100 over a 200 straddle,
+an open to 600 then a short all-in to 800 leaves the table offering 1,200 against a prediction of
+1,300, so the pot still refuses. Two full raises - 600 then 1,500 - agree at 2,400 and the pot is
+genuinely invisible. The wide wording sits in four artifacts including code this task may not
+touch, and the error is in the conservative direction, so it is
+`STRADDLE-RESIDUAL-BOUNDARY-IS-STATED-WIDER-THAN-MEASURED` against phase 14 rather than a fix here.
+
+Making room for the packet paragraph cost more than the paragraph. The packet stood at 498 of 500,
+so about 120 lines of surrounding prose were rewrapped from ~88 to ~98 characters to buy 8 lines,
+producing a 250-line diff. Every rewrapped paragraph is word-for-word what it was apart from the
+five changes above and a stale contract line count. Filed as `PHASE-AUDIT-PACKET-AT-ITS-LINE-CAP`,
+because a completed packet has no rewrite rule to fall back on the way a contract does, and nothing
+reports one approaching its cap.
+
 ## Verification
 
 Command IDs this phase adds: `pytest_table_state`, `generate_table_state_report`.
@@ -384,11 +444,22 @@ it is removed.
 
 ## Outcome
 
-Not yet complete. Stage 1 finished: the contract carries real criteria, Phase 03 and Phase 06
-are amended, and Phase 11's amendment is filed as its own task because its contract is at the
-line cap.
+Complete. The phase closes on a green gate with `check_gate_bite` proving the canaries bite, and
+the closeout commit that follows it carries the tag `phase-13-complete`, sets phase 13 `completed`,
+resets `CURRENT_TASK.yml` to idle and files this plan under `docs/exec_plans/completed/`. Two
+commits rather than one because `check_execplan_delegation` requires an active plan while a task is
+open and `check_scope` measures an idle task's diff against HEAD, so the closeout can only move
+files the standing scope already covers. Every stage that produced a diff owes and has an
+independent read-only review note under `reports/phase_audits/reviews/PHASE_13_TABLE_STATE/`,
+stages 1, 2, 3, 4, 6, 8, 9 and 10, and no blocker is left open in any of them.
 
-What the two stage-1 reviewers changed, since it is more than editing. The corpus turns out to
+What it bought, stated as the packet states it: no new answers. Every table the query can now see
+is a table the strategy now refuses with a code naming the missing shape, and three classes still
+escape and are answered as something else - a straddled pot past a full second raise, a straddle
+sized at the big blind once its poster has acted, and a game whose blinds are not in the chart's
+own ratio. All three are filed forward, the last of them as the phase's largest single finding.
+
+What stage 1 finished, kept because the reviews changed more than the wording. The corpus turns out to
 be one flat structure in all 499 hands, with no ante and no straddle and no unequal stack, so
 every table-shape number the first draft promised was structurally zero; the contract now names
 constructed fixtures as the discovery surface and the corpus as a zero-delta regression proof.
@@ -407,62 +478,37 @@ Ask the driver and do only what it names, then `--advance`:
 
     uv run python scripts/loop_stage.py --phase 13 [--advance]
 
-**Current state: stages 0 to 5 are complete and committed. The loop sits at stage 6, the
-build.** `task_mode: implementation`, `base_commit` `80ca70d`, phase 13 `active` in
-`phase_status.yml`, tree clean. The two red commands the driver names, `pytest_table_state` and
-`generate_table_state_report`, are red because the implementation does not exist yet. That is
-the expected state, not a failure to repair.
+**Current state: the phase is complete.** The closeout commit tags `phase-13-complete`, sets phase
+13 `completed` in `phase_status.yml`, resets `CURRENT_TASK.yml` to idle and files this plan under
+`docs/exec_plans/completed/`. There is no further work in this lane. Nothing here needs continuing;
+what follows is what the next phase should carry out of it.
 
-Read before doing anything: this whole plan, especially `Coordinator rulings during the build`
-and `What stage 4 specified for the stage 6 builder`; then
-`docs/phase_contracts/PHASE_13_TABLE_STATE.md`; then
-`reports/phase_audits/decisions/PHASE_13_TABLE_STATE_DECISIONS.md`, where decision 6 is ruled by
-Taylor and frozen. The five stage review notes under
-`reports/phase_audits/reviews/PHASE_13_TABLE_STATE/` record what was already caught and fixed,
-so a finding that appears there is settled rather than new.
+Phase 14 is the next lane, and it is the phase most of this one's residuals were filed against.
+Its policy entry is `auto_advance: false`, so it stops for Taylor at stage 11 and its
+`frozen-into-data` decisions stop earlier: it commits the chart the bot plays, which is where a
+wrong range becomes the reference for everything after it.
 
-The tests are the specification and they are frozen. `tests/test_table_state.py` and
-`tests/test_table_state_strategy.py` hold 66 tests, all red. `tests/**`,
-`verification/**` and `scripts/run_verify.py` are out of `approved_scope` and
-`check_scope.py` enforces it: an implementer may read the tests and must never write to them. A
-test that looks wrong is a halt and a review finding, never an edit.
+What phase 14 inherits by id, all in `backlog.yml`:
 
-Build in the integration order the Delegation Plan sets out, delegating to workers and running
-the phase's own commands after each merge: L1 the query shape alone first, since every other
-lane needs the field to exist; then L2 the producers and L3 the strategy in parallel on disjoint
-files; then L4 the rename across the whole tree alone; then L5 the report once its numbers are
-real. Full gate only after L5.
+- `ASYMMETRIC-EFFECTIVE-STACKS` and `BLIND-STRUCTURE-VARIANTS` - the two entries this phase was
+  written against and did not close. Both ask for a change to the artifact format or the spot key,
+  which this phase was scoped out of, and six other entries wait on them.
+- `STRADDLE-INVISIBLE-AFTER-A-SECOND-RAISE` and
+  `STRADDLE-RESIDUAL-BOUNDARY-IS-STATED-WIDER-THAN-MEASURED` - the headline residual and the fact
+  that it is stated one raise too early. Both need a declared blind structure to fix properly.
+- `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE` - the largest single finding of this
+  phase. The ratio the committed artifact was solved at is recorded nowhere, so nothing can compare
+  a table's blinds against it.
+- `SUBTRACTION-IDENTITY-SURVIVES-IN-FROZEN-TESTS-AND-CODE`,
+  `FORCED-MONEY-DOCSTRING-DROPS-THE-STRADDLE-POSTER-PRECONDITION` and
+  `FORCED-MONEY-SIGNALS-ARE-NUMBERED-THREE-WAYS` - three sweeps through
+  `strategy/preflop_chart.py`, `table_state/forced_money.py` and the frozen tests, which phase 14
+  is the next phase to open.
 
-Five things that will bite if they are not carried forward.
-
-1. The five canaries in `verification/mutations.yml` name `find` strings the build must produce
-   verbatim, listed above. `check_gate_bite` fails at stage 7 otherwise.
-2. `generate_table_state_report.py` must validate its own figures and exit non-zero when they do
-   not hold, because two canaries name it in `must_fail`.
-3. An ante lives in `committed_total` only and never reduces what a seat owes. The gap between
-   the two per-seat figures is the ante signal.
-4. A folded seat never makes the table ragged, whatever it holds.
-5. This phase does not tag until `ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP` has run as its
-   own `contract-update` task. That task now owes four edits rather than one, and they are
-   listed here because a debt named in passing is a debt the next agent misses:
-   - the Phase 11 contract rewrite the backlog item is filed for;
-   - the reword of this contract's line saying the two per-seat figures "coincide" preflop,
-     which the ante ruling made false;
-   - the reword of this contract's straddle criterion, which says the minimum-raise targets
-     disagree "by exactly the straddle". Over a 200 straddle at a 100 big blind the gap is 100,
-     so it is the straddle less the big blind. The contract's own worked numbers, 1,000 against
-     1,100, are right; only the sentence describing them is wrong. Found by the stage 6 report
-     builder;
-   - the correction of decision 6's stated cost. It says two of the three
-     `phase02-three-way-side-pot` decisions change refusal code. Measured at stage 6, all three
-     change: seat 2 takes `a-live-seat-is-shorter-than-hero` and seats 0 and 1 take
-     `table-is-not-one-flat-stack-depth`. The committed postflop fallback report agrees. The
-     table-state report states three and says the estimate is corrected, so the live evidence is
-     right and only the decision record is stale.
-
-The spot key stays out of scope on purpose: phase 14 re-keys anyway and re-keying re-seeds every
-mixed cell (`RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`), so paying that cost twice buys one result.
-
-Subagents are authorized for this phase and every stage review has gone to an independent
-reader. Two workers died mid-task on API errors during stage 4, so verify a worker's output
-against the artifact rather than against its own report.
+Three process lessons this phase paid for, worth carrying rather than rediscovering. Every list of
+stale statements this phase produced was itself incomplete, at every stage that produced one, so
+audit against the tree rather than against a list. A blocker fix that nothing can catch is this
+repo's most-repeated defect arriving inside the remedy - stage 6's round two found one and closed
+it two ways. And subagents were authorized here and every stage review went to an independent
+reader, which is what phases 10 to 12 skipped and paid for; two workers died mid-task on API
+errors during stage 4, so verify a worker's output against the artifact rather than its report.
