@@ -47,20 +47,41 @@ Forbidden, and worth naming because the neighbouring work is tempting:
 
 ## Delegation Plan
 
-- No-delegation exception: the binding resource is one GTOpen server on one machine, and the
-  deliverable is the timing of solves run against it. Concurrent lanes would contend for that
-  server and contaminate the very numbers being measured, so splitting the work across lanes
-  costs accuracy and buys no parallelism. The driver itself is one file modelled directly on
-  `scripts/extract_gtopen_preflop.py`, which four HTTP calls already describe.
+An earlier draft of this section carried a no-delegation exception, on the grounds that one
+GTOpen server cannot be shared. Taylor asked for worker lanes on 2026-08-23, and the exception is
+withdrawn rather than quietly left standing beside work that contradicts it. The constraint it
+named is real and survives as the rule below: the solver is a single-writer resource, so exactly
+one lane may hold it at a time, and every other lane is designed to need nothing from it.
 
-The exception covers implementation only. An independent read-only reviewer is owed before the
-gate commit regardless, and the handoff is stated here so it is not invented later.
-
+- Worker lanes: RECON reads the GTOpen Rust source for the postflop request and response types
+  and proves them against the live server; DRIVER authors the measurement script against the
+  shapes RECON returns; MATRIX designs the measurement set and the form of the cost model with no
+  server access at all; MEASURE runs the calibration and then the matrix, holding the server
+  alone; REVIEW-MECH and REVIEW-DOMAIN read the finished work independently of each other.
+- Ownership: RECON owns no repo file and returns findings only. DRIVER owns
+  `scripts/measure_postflop_solve_cost.py`. MATRIX owns no file and returns a design. MEASURE owns
+  `reports/active/latest_postflop_solve_cost.txt` and is the sole holder of `127.0.0.1:3737` while
+  it runs. The coordinator owns `docs/GTOPEN_SOLVER_NOTES.md`, `backlog.yml`, and this plan.
+  Nobody but the coordinator writes `CURRENT_TASK.yml`.
+- Expected outputs: RECON returns the exact accepted JSON bodies for `/api/spot`, `/api/solve`,
+  `/api/status` and `/api/node`, with the source paths that prove them. DRIVER returns the script
+  plus the commands it ran. MATRIX returns the flop set with the reason each texture is in it, the
+  preflop lines, and the per-unit form the numbers must be reported in. MEASURE returns the raw
+  timings, peak memory, and the determinism diff. Reviewers return notes classified as blocker,
+  non-blocker, or alignment item.
+- Status: RECON dispatched; DRIVER blocked on RECON; MATRIX dispatched; MEASURE blocked on DRIVER;
+  both review lanes blocked on MEASURE.
+- Integration order: RECON and MATRIX run concurrently because neither writes a file and only one
+  touches the server. DRIVER follows RECON. MEASURE follows DRIVER and runs alone, calibrating at
+  a loose exploitability target first so the matrix is sized against a known order of magnitude
+  rather than launched blind at study quality. The coordinator writes the notes from MEASURE's
+  numbers, and only then are the reviewers spawned.
 - Review handoff: a reader who did not run the solves checks three things. That every number in
   `docs/GTOPEN_SOLVER_NOTES.md` carries the hardware it was measured on and is stated as a
   per-unit cost rather than a total. That no extrapolation to 1,755 flops or to any preflop-line
   count is presented as measured when it is multiplied. And that nothing in the diff commits a
-  solve output, touches `phase_status.yml`, or reads as phase 16 having begun.
+  solve output, touches `phase_status.yml`, or reads as phase 16 having begun. Neither reviewer
+  sees the other's notes, and neither wrote any of the work being judged.
 
 ## Slices
 
