@@ -1,8 +1,10 @@
-task_id: null
+task_id: MAINT-26
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 7ad2030449fa30a090182afb735d2111760f77a6
+approved_scope:
+  - scripts/measure_postflop_solve_cost.py
+  - docs/GTOPEN_SOLVER_NOTES.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -857,3 +859,12 @@ scope_change_log:
       Two phase 12 backlog entries closed by dd52b5b are flipped to done through standing
       scope, because leaving a false `deferred` claim standing in a file this task edits is
       the exact trap the repo has now hit three times.
+  - date: 2026-08-23
+    reason: >-
+      MAINT-26 measures what a real postflop solve costs, because every count phase 16 is
+      planned against rests on a ratio rather than a timing. docs/GTOPEN_SOLVER_NOTES.md
+      carries the "Not verified" list this closes, and scripts/measure_postflop_solve_cost.py
+      is the offline driver that produces the numbers. Neither is read by the gate, the same
+      way scripts/extract_gtopen_preflop.py is not, so the gate still passes on a machine with
+      no GTOpen server. No chart data is committed and no phase status moves: this is not
+      phase 16 and must not be mistaken for it.
