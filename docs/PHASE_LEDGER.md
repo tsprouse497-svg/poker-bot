@@ -16,7 +16,7 @@
 | 11 | Engine And Query Fidelity | completed | `docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md` | `reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md` |
 | 12 | Spot Vocabulary V2 | completed | `docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md` | `reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md` |
 | 13 | Table-State Fidelity | completed | `docs/phase_contracts/PHASE_13_TABLE_STATE.md` | `reports/phase_audits/PHASE_13_TABLE_STATE.md` |
-| 14 | Chart Cutover | future | `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` | `reports/phase_audits/PHASE_14_CHART_CUTOVER.md` |
+| 14 | Chart Cutover | active | `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` | `reports/phase_audits/PHASE_14_CHART_CUTOVER.md` |
 | 15 | The Drill | future | `docs/phase_contracts/PHASE_15_DRILL.md` | `reports/phase_audits/PHASE_15_DRILL.md` |
 | 16 | Postflop That Can Bet | future | `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` | `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` |
 

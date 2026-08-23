@@ -1,9 +1,9 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `none (idle)`
-Task mode: `idle`
-Active phase: `none`
+Current task: `PHASE_14_CHART_CUTOVER`
+Task mode: `contract-update`
+Active phase: `14`
 Completed phases: `14`
 
 ## Phase Snapshot
@@ -24,7 +24,7 @@ Completed phases: `14`
 | 11 | completed | `docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md` | `reports/phase_audits/PHASE_11_ENGINE_FIDELITY.md` |
 | 12 | completed | `docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md` | `reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md` |
 | 13 | completed | `docs/phase_contracts/PHASE_13_TABLE_STATE.md` | `reports/phase_audits/PHASE_13_TABLE_STATE.md` |
-| 14 | future | `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` | `reports/phase_audits/PHASE_14_CHART_CUTOVER.md` |
+| 14 | active | `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` | `reports/phase_audits/PHASE_14_CHART_CUTOVER.md` |
 | 15 | future | `docs/phase_contracts/PHASE_15_DRILL.md` | `reports/phase_audits/PHASE_15_DRILL.md` |
 | 16 | future | `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` | `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` |
 

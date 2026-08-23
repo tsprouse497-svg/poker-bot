@@ -1,8 +1,10 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE_14_CHART_CUTOVER
+active_phase: "14"
+task_mode: contract-update
+base_commit: 28e302d728de6d188bd75d1633d09b58f304b862
+approved_scope:
+  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+  - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -966,3 +968,10 @@ scope_change_log:
       Two phase 12 backlog entries closed by dd52b5b are flipped to done through standing
       scope, because leaving a false `deferred` claim standing in a file this task edits is
       the exact trap the repo has now hit three times.
+  - date: 2026-08-23
+    reason: >-
+      Phase 14 stage 1 is contract-update. docs/phase_contracts/PHASE_14_CHART_CUTOVER.md is a
+      skeleton carrying only boilerplate criteria, so it is approved along with the stage's own
+      review notes. No source, test, artifact, or gate file is in scope at this stage, and the
+      committed artifact under data/artifacts/** stays out of scope until a later stage opens it
+      under its own entry.

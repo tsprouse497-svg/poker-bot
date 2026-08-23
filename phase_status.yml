@@ -74,7 +74,7 @@ phases:
     audit_packet: reports/phase_audits/PHASE_13_TABLE_STATE.md
   - phase_id: "14"
     title: "Chart Cutover"
-    status: future
+    status: active
     contract: docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
     audit_packet: reports/phase_audits/PHASE_14_CHART_CUTOVER.md
   - phase_id: "15"
