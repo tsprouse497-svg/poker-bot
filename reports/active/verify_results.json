@@ -1,6 +1,6 @@
 {
-  "all_passed": false,
-  "generated_at_epoch": 1787503571,
+  "all_passed": true,
+  "generated_at_epoch": 1787504775,
   "results": [
     {
       "command": [
@@ -11,7 +11,7 @@
       ],
       "command_id": "generate_status",
       "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.057,
+      "duration_seconds": 0.061,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -41,7 +41,7 @@
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.066,
+      "duration_seconds": 0.069,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -58,7 +58,7 @@
       ],
       "command_id": "pytest_poker_core",
       "description": "Run poker-core tests",
-      "duration_seconds": 0.143,
+      "duration_seconds": 0.136,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -73,7 +73,7 @@
       ],
       "command_id": "generate_golden_hand_report",
       "description": "Generate golden-hand replay report",
-      "duration_seconds": 0.034,
+      "duration_seconds": 0.036,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -90,7 +90,7 @@
       ],
       "command_id": "pytest_hand_history",
       "description": "Run hand-history tests",
-      "duration_seconds": 0.109,
+      "duration_seconds": 0.106,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -105,7 +105,7 @@
       ],
       "command_id": "generate_hand_history_replay_report",
       "description": "Generate normalized hand-history replay report",
-      "duration_seconds": 0.037,
+      "duration_seconds": 0.039,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -123,11 +123,11 @@
       ],
       "command_id": "pytest_strategy_contract",
       "description": "Run strategy-contract and turn-order tests",
-      "duration_seconds": 0.148,
+      "duration_seconds": 0.141,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 80 items\n\ntests/test_strategy_contract.py ........................................ [ 50%]\n...................                                                      [ 73%]\ntests/test_action_order.py .....................                         [100%]\n\n============================== 80 passed in 0.06s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 80 items\n\ntests/test_strategy_contract.py ........................................ [ 50%]\n...................                                                      [ 73%]\ntests/test_action_order.py .....................                         [100%]\n\n============================== 80 passed in 0.05s ==============================\n"
     },
     {
       "command": [
@@ -138,7 +138,7 @@
       ],
       "command_id": "generate_strategy_query_report",
       "description": "Generate strategy query report and decision audit",
-      "duration_seconds": 0.039,
+      "duration_seconds": 0.04,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -158,7 +158,7 @@
       ],
       "command_id": "pytest_preflop_artifacts",
       "description": "Run preflop position, artifact, and chart-lookup tests",
-      "duration_seconds": 0.326,
+      "duration_seconds": 0.338,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -173,7 +173,7 @@
       ],
       "command_id": "generate_preflop_chart_report",
       "description": "Generate preflop chart coverage report",
-      "duration_seconds": 0.053,
+      "duration_seconds": 0.055,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -190,7 +190,7 @@
       ],
       "command_id": "pytest_full_table_preflop",
       "description": "Run full-table preflop strategy tests",
-      "duration_seconds": 0.402,
+      "duration_seconds": 0.4,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -205,7 +205,7 @@
       ],
       "command_id": "generate_preflop_strategy_report",
       "description": "Generate preflop strategy coverage and frequency report",
-      "duration_seconds": 0.184,
+      "duration_seconds": 0.188,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -223,11 +223,11 @@
       ],
       "command_id": "pytest_postflop_fallback",
       "description": "Run postflop fallback and composite strategy tests",
-      "duration_seconds": 4.158,
+      "duration_seconds": 4.181,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_postflop_fallback.py ..........................               [ 59%]\ntests/test_postflop_fallback_components.py ..................            [100%]\n\n============================== 44 passed in 4.07s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_postflop_fallback.py ..........................               [ 59%]\ntests/test_postflop_fallback_components.py ..................            [100%]\n\n============================== 44 passed in 4.09s ==============================\n"
     },
     {
       "command": [
@@ -238,7 +238,7 @@
       ],
       "command_id": "generate_postflop_fallback_report",
       "description": "Generate postflop fallback enumeration report and decision audit",
-      "duration_seconds": 10.261,
+      "duration_seconds": 10.195,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -255,11 +255,11 @@
       ],
       "command_id": "pytest_simulator",
       "description": "Run offline simulator and profile tests",
-      "duration_seconds": 0.34,
+      "duration_seconds": 0.39,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_simulator.py ............................................     [100%]\n\n============================== 44 passed in 0.25s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_simulator.py ............................................     [100%]\n\n============================== 44 passed in 0.26s ==============================\n"
     },
     {
       "command": [
@@ -270,7 +270,7 @@
       ],
       "command_id": "generate_profile_comparison_report",
       "description": "Generate the bot/profile comparison report",
-      "duration_seconds": 0.517,
+      "duration_seconds": 0.532,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -288,11 +288,11 @@
       ],
       "command_id": "pytest_sample_comparison",
       "description": "Run public-corpus ingestion and player comparison tests",
-      "duration_seconds": 2.127,
+      "duration_seconds": 2.149,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 53 items\n\ntests/test_sample_comparison.py ........................................ [ 75%]\n.......                                                                  [ 88%]\ntests/test_sample_comparison_report.py ......                            [100%]\n\n============================== 53 passed in 1.99s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 53 items\n\ntests/test_sample_comparison.py ........................................ [ 75%]\n.......                                                                  [ 88%]\ntests/test_sample_comparison_report.py ......                            [100%]\n\n============================== 53 passed in 2.00s ==============================\n"
     },
     {
       "command": [
@@ -303,7 +303,7 @@
       ],
       "command_id": "generate_sample_comparison_report",
       "description": "Generate the real-hand comparison report and its refusal inventory",
-      "duration_seconds": 0.43,
+      "duration_seconds": 0.435,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -320,11 +320,11 @@
       ],
       "command_id": "pytest_quality_hardening",
       "description": "Run quality, drift, and phase-gate hardening tests",
-      "duration_seconds": 2.297,
-      "passed": false,
-      "returncode": 1,
+      "duration_seconds": 2.353,
+      "passed": true,
+      "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 26 items\n\ntests/test_quality_hardening.py ..................F......F               [100%]\n\n=================================== FAILURES ===================================\n__________ test_every_completed_phase_in_this_repo_agrees_with_itself __________\n\n    def test_every_completed_phase_in_this_repo_agrees_with_itself() -> None:\n>       assert phase_record_errors(_phase_status(), REPO_ROOT, _git_tags()) == []\nE       assert ['phase 13 is...es not exist'] == []\nE         \nE         Left contains one more item: \"phase 13 is completed but tag 'phase-13-complete' does not exist\"\nE         Use -v to get more diff\n\ntests/test_quality_hardening.py:348: AssertionError\n____________ test_the_quality_gate_command_passes_against_this_repo ____________\n\n    def test_the_quality_gate_command_passes_against_this_repo() -> None:\n        \"\"\"The end-to-end claim, run as the gate runs it.\"\"\"\n        proc = subprocess.run(\n            [sys.executable, str(Path(\"scripts\") / \"run_full_quality_gate.py\")],\n            cwd=REPO_ROOT,\n            capture_output=True,\n            text=True,\n            check=False,\n        )\n    \n>       assert proc.returncode == 0, proc.stdout + proc.stderr\nE       AssertionError: Quality And Drift Report\nE         ========================\nE         \nE         Four checks, each with what it covers and what it does not. The second half of\nE         each entry matters as much as the result: a check that passed is not a promise\nE         about everything it did not look at, and this repo has already shipped three\nE         wrong numbers and a decorative gate command past a green run.\nE         \nE         PASS  mutation coverage\nE               covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\nE               does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\nE         \nE         PASS  fact drift\nE               covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\nE               does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\nE         \nE         PASS  backlog integrity\nE               covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\nE               does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\nE         \nE         FAIL  phase record agreement\nE               covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\nE               does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\nE               ! phase 13 is completed but tag 'phase-13-complete' does not exist\nE         \nE         \nE         wrote reports/active/latest_quality_report.txt\nE         quality gate failed: phase record agreement\nE         \nE       assert 1 == 0\nE        +  where 1 = CompletedProcess(args=['/Users/taylorsprouse/projects/poker-bot-worktrees/phase-13/.venv/bin/python3', 'scripts/run_fu...t exist\\n\\n\\nwrote reports/active/latest_quality_report.txt\\n\", stderr='quality gate failed: phase record agreement\\n').returncode\n\ntests/test_quality_hardening.py:403: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_quality_hardening.py::test_every_completed_phase_in_this_repo_agrees_with_itself\nFAILED tests/test_quality_hardening.py::test_the_quality_gate_command_passes_against_this_repo\n========================= 2 failed, 24 passed in 2.14s =========================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 26 items\n\ntests/test_quality_hardening.py ..........................               [100%]\n\n============================== 26 passed in 2.16s ==============================\n"
     },
     {
       "command": [
@@ -335,11 +335,11 @@
       ],
       "command_id": "run_full_quality_gate",
       "description": "Run the quality checks and write the quality report",
-      "duration_seconds": 0.876,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "quality gate failed: phase record agreement\n",
-      "stdout": "Quality And Drift Report\n========================\n\nFour checks, each with what it covers and what it does not. The second half of\neach entry matters as much as the result: a check that passed is not a promise\nabout everything it did not look at, and this repo has already shipped three\nwrong numbers and a decorative gate command past a green run.\n\nPASS  mutation coverage\n      covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\n      does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\n\nPASS  fact drift\n      covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\n      does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\n\nPASS  backlog integrity\n      covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\n      does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\n\nFAIL  phase record agreement\n      covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\n      does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\n      ! phase 13 is completed but tag 'phase-13-complete' does not exist\n\n\nwrote reports/active/latest_quality_report.txt\n"
+      "duration_seconds": 0.909,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "Quality And Drift Report\n========================\n\nFour checks, each with what it covers and what it does not. The second half of\neach entry matters as much as the result: a check that passed is not a promise\nabout everything it did not look at, and this repo has already shipped three\nwrong numbers and a decorative gate command past a green run.\n\nPASS  mutation coverage\n      covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\n      does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\n\nPASS  fact drift\n      covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\n      does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\n\nPASS  backlog integrity\n      covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\n      does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\n\nPASS  phase record agreement\n      covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\n      does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\n\n\nwrote reports/active/latest_quality_report.txt\n"
     },
     {
       "command": [
@@ -353,11 +353,11 @@
       ],
       "command_id": "pytest_solver_export",
       "description": "Run GTOpen solver export, source-card, and expectations tests",
-      "duration_seconds": 1.945,
+      "duration_seconds": 2.004,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 74 items\n\ntests/test_solver_export.py ............................................ [ 59%]\n...........                                                              [ 74%]\ntests/test_solver_expectations.py ...................                    [100%]\n\n============================== 74 passed in 1.84s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 74 items\n\ntests/test_solver_export.py ............................................ [ 59%]\n...........                                                              [ 74%]\ntests/test_solver_expectations.py ...................                    [100%]\n\n============================== 74 passed in 1.89s ==============================\n"
     },
     {
       "command": [
@@ -368,7 +368,7 @@
       ],
       "command_id": "check_solver_export_expectations",
       "description": "Recompute the solver export's two orderings and check its source card against it",
-      "duration_seconds": 1.822,
+      "duration_seconds": 1.842,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -383,7 +383,7 @@
       ],
       "command_id": "generate_solver_export_report",
       "description": "Generate the solver export range-grid and comparison report",
-      "duration_seconds": 1.907,
+      "duration_seconds": 1.869,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -400,11 +400,11 @@
       ],
       "command_id": "pytest_engine_fidelity",
       "description": "Run the engine and strategy-query fidelity tests",
-      "duration_seconds": 0.256,
+      "duration_seconds": 0.279,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 52 items\n\ntests/test_engine_fidelity.py .......................................... [ 80%]\n..........                                                               [100%]\n\n============================== 52 passed in 0.16s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 52 items\n\ntests/test_engine_fidelity.py .......................................... [ 80%]\n..........                                                               [100%]\n\n============================== 52 passed in 0.18s ==============================\n"
     },
     {
       "command": [
@@ -415,7 +415,7 @@
       ],
       "command_id": "generate_engine_fidelity_report",
       "description": "Generate the engine and query fidelity before/after report",
-      "duration_seconds": 0.069,
+      "duration_seconds": 0.072,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -433,7 +433,7 @@
       ],
       "command_id": "pytest_spot_vocabulary",
       "description": "Run the sizing-aware and second-orbit spot vocabulary tests",
-      "duration_seconds": 1.765,
+      "duration_seconds": 1.77,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -448,7 +448,7 @@
       ],
       "command_id": "generate_spot_vocabulary_report",
       "description": "Generate the spot vocabulary report, key mapping, and price substitution census",
-      "duration_seconds": 1.212,
+      "duration_seconds": 1.228,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -466,7 +466,7 @@
       ],
       "command_id": "pytest_table_state",
       "description": "Run the per-seat contribution query and table-shape strategy tests",
-      "duration_seconds": 0.156,
+      "duration_seconds": 0.157,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -481,7 +481,7 @@
       ],
       "command_id": "generate_table_state_report",
       "description": "Generate the table-state report: pot reconciliation, depth, and blind structure",
-      "duration_seconds": 0.451,
+      "duration_seconds": 0.439,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -497,7 +497,7 @@
       ],
       "command_id": "check_generated_status",
       "description": "Check generated STATUS.md freshness",
-      "duration_seconds": 0.053,
+      "duration_seconds": 0.052,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -529,7 +529,7 @@
       ],
       "command_id": "check_generated_backlog",
       "description": "Check generated backlog freshness",
-      "duration_seconds": 0.064,
+      "duration_seconds": 0.063,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -559,7 +559,7 @@
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.11,
+      "duration_seconds": 0.107,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -574,7 +574,7 @@
       ],
       "command_id": "check_execplan_delegation",
       "description": "Validate active ExecPlan delegation plan",
-      "duration_seconds": 0.049,
+      "duration_seconds": 0.047,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -589,7 +589,7 @@
       ],
       "command_id": "check_repo_consistency",
       "description": "Cross-check phase status, ExecPlan location, gate commands, and the phase graph",
-      "duration_seconds": 0.084,
+      "duration_seconds": 0.088,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -620,7 +620,7 @@
       ],
       "command_id": "check_file_sizes",
       "description": "Validate file-size limits",
-      "duration_seconds": 0.038,
+      "duration_seconds": 0.039,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -637,7 +637,7 @@
       ],
       "command_id": "pytest_loop_fleet",
       "description": "Run parallel-loop eligibility, lane discovery, and pause board tests",
-      "duration_seconds": 0.174,
+      "duration_seconds": 0.178,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -653,7 +653,7 @@
       ],
       "command_id": "import_smoke",
       "description": "Import package smoke test",
-      "duration_seconds": 0.021,
+      "duration_seconds": 0.022,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -686,11 +686,11 @@
       ],
       "command_id": "pytest",
       "description": "Run tests",
-      "duration_seconds": 14.316,
-      "passed": false,
-      "returncode": 1,
+      "duration_seconds": 14.488,
+      "passed": true,
+      "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 954 items\n\ntests/test_action_order.py .....................                         [  2%]\ntests/test_check_scope.py .............                                  [  3%]\ntests/test_command_registry.py .........                                 [  4%]\ntests/test_engine_fidelity.py .......................................... [  8%]\n..........                                                               [  9%]\ntests/test_execplan_delegation.py ..........                             [ 11%]\ntests/test_full_table_preflop.py ....................................... [ 15%]\n................                                                         [ 16%]\ntests/test_hand_history.py ..................                            [ 18%]\ntests/test_import_smoke.py .                                             [ 18%]\ntests/test_loop_fleet.py ..................................              [ 22%]\ntests/test_loop_machinery.py ........................................... [ 26%]\n................                                                         [ 28%]\ntests/test_poker_core.py .........                                       [ 29%]\ntests/test_postflop_fallback.py ..........................               [ 32%]\ntests/test_postflop_fallback_components.py ..................            [ 34%]\ntests/test_preflop_artifacts.py ........................................ [ 38%]\n...........................................                              [ 42%]\ntests/test_preflop_committed_charts.py ........................          [ 45%]\ntests/test_preflop_lookup.py ...............................             [ 48%]\ntests/test_preflop_positions.py ........................................ [ 52%]\n............................................................             [ 59%]\ntests/test_quality_hardening.py ..................F......F               [ 61%]\ntests/test_sample_comparison.py ........................................ [ 65%]\n.......                                                                  [ 66%]\ntests/test_sample_comparison_report.py ......                            [ 67%]\ntests/test_simulator.py ............................................     [ 71%]\ntests/test_solver_expectations.py ...................                    [ 73%]\ntests/test_solver_export.py ............................................ [ 78%]\n...........                                                              [ 79%]\ntests/test_spot_vocabulary.py ......................................     [ 83%]\ntests/test_spot_vocabulary_downstream.py ............................... [ 86%]\n                                                                         [ 86%]\ntests/test_strategy_contract.py ........................................ [ 91%]\n...................                                                      [ 93%]\ntests/test_table_state.py .............................................. [ 97%]\n                                                                         [ 97%]\ntests/test_table_state_strategy.py ....................                  [100%]\n\n=================================== FAILURES ===================================\n__________ test_every_completed_phase_in_this_repo_agrees_with_itself __________\n\n    def test_every_completed_phase_in_this_repo_agrees_with_itself() -> None:\n>       assert phase_record_errors(_phase_status(), REPO_ROOT, _git_tags()) == []\nE       assert ['phase 13 is...es not exist'] == []\nE         \nE         Left contains one more item: \"phase 13 is completed but tag 'phase-13-complete' does not exist\"\nE         Use -v to get more diff\n\ntests/test_quality_hardening.py:348: AssertionError\n____________ test_the_quality_gate_command_passes_against_this_repo ____________\n\n    def test_the_quality_gate_command_passes_against_this_repo() -> None:\n        \"\"\"The end-to-end claim, run as the gate runs it.\"\"\"\n        proc = subprocess.run(\n            [sys.executable, str(Path(\"scripts\") / \"run_full_quality_gate.py\")],\n            cwd=REPO_ROOT,\n            capture_output=True,\n            text=True,\n            check=False,\n        )\n    \n>       assert proc.returncode == 0, proc.stdout + proc.stderr\nE       AssertionError: Quality And Drift Report\nE         ========================\nE         \nE         Four checks, each with what it covers and what it does not. The second half of\nE         each entry matters as much as the result: a check that passed is not a promise\nE         about everything it did not look at, and this repo has already shipped three\nE         wrong numbers and a decorative gate command past a green run.\nE         \nE         PASS  mutation coverage\nE               covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\nE               does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\nE         \nE         PASS  fact drift\nE               covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\nE               does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\nE         \nE         PASS  backlog integrity\nE               covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\nE               does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\nE         \nE         FAIL  phase record agreement\nE               covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\nE               does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\nE               ! phase 13 is completed but tag 'phase-13-complete' does not exist\nE         \nE         \nE         wrote reports/active/latest_quality_report.txt\nE         quality gate failed: phase record agreement\nE         \nE       assert 1 == 0\nE        +  where 1 = CompletedProcess(args=['/Users/taylorsprouse/projects/poker-bot-worktrees/phase-13/.venv/bin/python3', 'scripts/run_fu...t exist\\n\\n\\nwrote reports/active/latest_quality_report.txt\\n\", stderr='quality gate failed: phase record agreement\\n').returncode\n\ntests/test_quality_hardening.py:403: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_quality_hardening.py::test_every_completed_phase_in_this_repo_agrees_with_itself\nFAILED tests/test_quality_hardening.py::test_the_quality_gate_command_passes_against_this_repo\n======================== 2 failed, 952 passed in 14.17s ========================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-13\nconfigfile: pyproject.toml\ncollected 954 items\n\ntests/test_action_order.py .....................                         [  2%]\ntests/test_check_scope.py .............                                  [  3%]\ntests/test_command_registry.py .........                                 [  4%]\ntests/test_engine_fidelity.py .......................................... [  8%]\n..........                                                               [  9%]\ntests/test_execplan_delegation.py ..........                             [ 11%]\ntests/test_full_table_preflop.py ....................................... [ 15%]\n................                                                         [ 16%]\ntests/test_hand_history.py ..................                            [ 18%]\ntests/test_import_smoke.py .                                             [ 18%]\ntests/test_loop_fleet.py ..................................              [ 22%]\ntests/test_loop_machinery.py ........................................... [ 26%]\n................                                                         [ 28%]\ntests/test_poker_core.py .........                                       [ 29%]\ntests/test_postflop_fallback.py ..........................               [ 32%]\ntests/test_postflop_fallback_components.py ..................            [ 34%]\ntests/test_preflop_artifacts.py ........................................ [ 38%]\n...........................................                              [ 42%]\ntests/test_preflop_committed_charts.py ........................          [ 45%]\ntests/test_preflop_lookup.py ...............................             [ 48%]\ntests/test_preflop_positions.py ........................................ [ 52%]\n............................................................             [ 59%]\ntests/test_quality_hardening.py ..........................               [ 61%]\ntests/test_sample_comparison.py ........................................ [ 65%]\n.......                                                                  [ 66%]\ntests/test_sample_comparison_report.py ......                            [ 67%]\ntests/test_simulator.py ............................................     [ 71%]\ntests/test_solver_expectations.py ...................                    [ 73%]\ntests/test_solver_export.py ............................................ [ 78%]\n...........                                                              [ 79%]\ntests/test_spot_vocabulary.py ......................................     [ 83%]\ntests/test_spot_vocabulary_downstream.py ............................... [ 86%]\n                                                                         [ 86%]\ntests/test_strategy_contract.py ........................................ [ 91%]\n...................                                                      [ 93%]\ntests/test_table_state.py .............................................. [ 97%]\n                                                                         [ 97%]\ntests/test_table_state_strategy.py ....................                  [100%]\n\n============================= 954 passed in 14.35s =============================\n"
     },
     {
       "command": [
@@ -701,11 +701,11 @@
       ],
       "command_id": "check_gate_bite",
       "description": "Prove committed mutations make the gate fail",
-      "duration_seconds": 967.138,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "after restoring 'positions-late-labels-swapped', 'pytest' is still failing: restore src/poker_training_bot/poker_core/positions.py with git checkout before trusting this run\nafter restoring 'quality-fact-drift-accepts-a-rewritten-sentence', 'pytest_quality_hardening' is still failing: restore scripts/quality_checks.py with git checkout before trusting this run\nafter restoring 'loop-review-trigger-never-fires', 'pytest' is still failing: restore scripts/loop_stage.py with git checkout before trusting this run\nafter restoring 'loop-blocker-stops-blocking', 'pytest' is still failing: restore scripts/loop_stage.py with git checkout before trusting this run\nafter restoring 'contract-id-mismatch-goes-unreported', 'pytest' is still failing: restore scripts/check_contracts.py with git checkout before trusting this run\nafter restoring 'live-mutation-passes-the-gate', 'pytest' is still failing: restore scripts/check_scope.py with git checkout before trusting this run\nafter restoring 'unmerged-dependency-counts-as-done', 'pytest' is still failing: restore scripts/loop_fleet.py with git checkout before trusting this run\nafter restoring 'finished-lane-occupies-a-lane-forever', 'pytest' is still failing: restore scripts/loop_fleet.py with git checkout before trusting this run\nafter restoring 'dependency-cycle-goes-unreported', 'pytest' is still failing: restore scripts/check_repo_consistency.py with git checkout before trusting this run\nafter restoring 'worktree-lock-collapses-to-the-repo-root', 'pytest' is still failing: restore scripts/loop_stage.py with git checkout before trusting this run\nafter restoring 'solver-export-hand-index-uses-the-grid-ordering', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/gtopen_export.py with git checkout before trusting this run\nafter restoring 'solver-export-aggregates-ignore-the-arriving-range', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/gtopen_export.py with git checkout before trusting this run\nafter restoring 'free-fold-taken-off-the-table-again', 'pytest' is still failing: restore src/poker_training_bot/poker_core/engine.py with git checkout before trusting this run\nafter restoring 'reopening-measured-against-the-preceding-bet-again', 'pytest' is still failing: restore src/poker_training_bot/poker_core/order.py with git checkout before trusting this run\nafter restoring 'all-in-ceiling-loose-by-the-price-to-call-again', 'pytest' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'fail-closed-can-invest-again', 'pytest' is still failing: restore src/poker_training_bot/strategy/postflop_fallback.py with git checkout before trusting this run\nafter restoring 'under-sized-all-in-bet-becomes-the-reference-level', 'pytest' is still failing: restore src/poker_training_bot/poker_core/order.py with git checkout before trusting this run\nafter restoring 'spot-key-drops-the-raise-size', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/spot_key.py with git checkout before trusting this run\nafter restoring 'price-substitution-not-recorded', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/lookup.py with git checkout before trusting this run\nafter restoring 'a-flat-re-raise-is-accepted', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/spot_key.py with git checkout before trusting this run\nafter restoring 'a-folded-seat-may-act-again', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/spot_key.py with git checkout before trusting this run\nafter restoring 'the-pot-stops-having-to-reconcile', 'pytest' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'a-capped-hero-may-raise-again', 'pytest' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'hero-depth-is-derived-by-subtraction-again', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'a-folded-seat-makes-the-table-ragged', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'an-absorbed-straddle-goes-unseen', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'the-depth-refusal-names-the-first-offender-in-seat-order', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'the-short-seat-refusal-names-the-first-offender-in-seat-order', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'the-residual-refusal-names-the-lowest-chair', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'an-impossible-raise-sequence-still-constructs', 'pytest' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\n",
-      "stdout": ""
+      "duration_seconds": 983.919,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "gate bites: 58 mutations all caught\n"
     },
     {
       "command": [
@@ -718,7 +718,7 @@
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.057,
+      "duration_seconds": 0.072,
       "passed": true,
       "returncode": 0,
       "stderr": "",
