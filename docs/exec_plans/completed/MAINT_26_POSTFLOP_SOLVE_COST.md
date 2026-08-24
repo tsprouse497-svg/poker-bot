@@ -281,9 +281,22 @@ closed entries in the notes' "Not verified" list.
 
 ## Outcome
 
-Not yet complete. Opened 2026-08-23. Measurement closed 2026-08-24 at five matrix cells by
-Taylor's ruling. All seven slices are done, both independent reviews are in with every blocker
-resolved, and the gate is green. Closeout is what remains.
+Complete. Opened 2026-08-23, closed 2026-08-24. Measurement was closed at five of twelve matrix
+cells by Taylor's ruling. All seven slices are done, both independent reviews are in with every
+blocker resolved, and the gate is green at 43 pass.
+
+What the task set out to get, it got. One postflop solve is now a measured cost rather than a
+guess: per-unit figures that rescale to another box, peak memory as its own axis, an iteration
+budget with its bracket, and byte-identical determinism. The two entries this task existed to
+close in the notes' "Not verified" list are closed, and six more are open there that nobody had
+written down before.
+
+Three results were worth more than the timings. A flop-rooted tree already contains and iterates
+its turn and river subgames, so the depth ratios phase 16 was planned against ran the wrong way by
+two orders of magnitude. Suit isomorphism is worth more than recorded, and is forfeit entirely if
+either range carries one suit-specific weight. And the cheapest way to fit a big tree is to floor
+the range, not to drop a bet size - a 2.0x memory cut with the action-node count unchanged, which
+is the opposite of the advice the first draft gave.
 
 Worth recording about the shape of the work rather than its result: the gate had been red on this
 branch for five commits before anyone ran it, on a two-word naming collision that cost seconds to

@@ -1,10 +1,8 @@
-task_id: MAINT-26
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 7ad2030449fa30a090182afb735d2111760f77a6
-approved_scope:
-  - scripts/measure_postflop_solve_cost.py
-  - docs/GTOPEN_SOLVER_NOTES.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
