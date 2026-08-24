@@ -1,11 +1,13 @@
 task_id: PHASE_14_CHART_CUTOVER
 active_phase: "14"
-task_mode: contract-update
-base_commit: ab6a078663ce5cfc3e525af6dc144c0f0545b125
+task_mode: implementation
+base_commit: e03d2507829339c072ccc64a4a4c1ef437e5faf2
 approved_scope:
-  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
-  - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
+  - tests/**
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - scripts/run_verify.py
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -1023,3 +1025,22 @@ scope_change_log:
       base_commit moves to the stage-4 halt commit so the diff is measured from there rather
       than from the stage-3 close, which would read the whole committed stage-4 test suite as
       out-of-scope work by a contract-update task.
+  - date: 2026-08-24
+    reason: >-
+      Back to implementation mode to bring the stage-4 tests in line with the rulings the
+      contract-update just recorded. The contract and the decision record leave approved_scope
+      again, which is the point: check_scope.py is what stops a builder editing the specification
+      it is measured against, and the two blockers that needed a human are now answered in the
+      files that govern them.
+      Three test changes follow from the rulings and nothing else is opened: the monotonicity test
+      moves from a per-cell gate to a per-cell measurement plus a band-and-row aggregate gate, the
+      jam-pricing tests move to a sizing table holding every size a spot offers with its weight,
+      and the sizing invariant becomes two-directional because 3,865 committed spots offer hero no
+      raise at all. Three findings the stage-4 review deferred into this same pass ride with them,
+      because they touch the same files and a second edit round on a file at its line cap is how an
+      authoring error gets in: the aggregate-frequency check against the export, the small-blind
+      ordering stated two ways across two files, and the report's monotonicity section becoming a
+      published measurement.
+      base_commit moves to the contract-update commit so the diff is measured from it rather than
+      from the stage-4 halt, which would read the ruled contract edits as out-of-scope work by an
+      implementation task.
