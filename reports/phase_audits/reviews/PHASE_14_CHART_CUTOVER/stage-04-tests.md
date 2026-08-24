@@ -16,8 +16,8 @@ blocker independently before acting on it, because a reviewer's report is not ev
 
 ## Blocker
 
-- **Decision 10's monotonicity criterion cannot be satisfied at the ruled reach floor, and the
-  number the contract rests on is a measurement of something else.** Found by the poker reviewer,
+- `[resolved]` **Decision 10's monotonicity criterion cannot be satisfied at the ruled reach floor,
+  and the number the contract rests on is a measurement of something else.** Found by the poker reviewer,
   re-measured by the coordinator: over the 5,626 nodes decision 1's 2 percent floor selects, the
   two relations at decision 10's ruled one-point tolerance give **1,938 violating nodes and 8,962
   violations**. Restricted to the 351 nodes where hero's whole range arrives - the shallow tree, on
@@ -50,8 +50,17 @@ blocker independently before acting on it, because a reviewer's report is not ev
   is measured rather than guessed. The general lesson is filed as
   `SHALLOW-TREE-CONVERGENCE-WAS-NEVER-MEASURED-BEYOND-ELEVEN-NODES`.
 
-- **Decision 6 priced the jam only where it was hero's sole aggressive option, and a frozen test
-  would settle the rest by omission.** Found by the poker reviewer, re-measured by the coordinator.
+  **Resolved 2026-08-24.** Taylor read the grids in GTOpen and ruled the splits correct: among
+  near-indifferent hands every split has the same EV, so the frequency carries no information and a
+  per-cell dominance gate rejects correct play. That is decision 2's ship-as-solved branch, so the
+  re-solve is permitted and no longer required. Decision 10 is re-ruled to measure the relations per
+  cell and publish them, and to gate the same dominance over pair bands and suited rows, where
+  indifference cancels. Both are in the contract and the decision record as of this commit. The
+  finding stands as recorded: the count was never a property of the shallow tree, and what the
+  reviewer caught was a number three documents had quoted forward without a method.
+
+- `[resolved]` **Decision 6 priced the jam only where it was hero's sole aggressive option, and a
+  frozen test would settle the rest by omission.** Found by the poker reviewer, re-measured by the coordinator.
   At the **313** committed spots where the solve offers both a named raise and a jam, **60.6 percent
   of hero's aggressive volume over his arriving range is the shove**. It is the majority at **177**
   spots, at least 80 percent at **136**, and at **35** spots the named raise carries no weight at
@@ -63,6 +72,17 @@ blocker independently before acting on it, because a reviewer's report is not ev
   currently generalises past its ruling in a comment. `frozen-into-data`, so held for Taylor. The
   schema limit underneath it, which survives whichever way he rules, is filed as
   `CHART-CANNOT-EXPRESS-TWO-RAISE-SIZES-AT-ONE-SPOT`.
+
+  **Resolved 2026-08-24.** Taylor extended decision 6: the sizing table holds every size a spot
+  offers with the weight hero gives each, on the reasoning that multiple preflop sizings are better
+  play in some spots anyway. No re-solve is implied - the tree already offers both prices at those
+  313 spots - and the spot key is untouched, since a key states what hero faces rather than what
+  hero does, which keeps it clear of `RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`. The same amendment
+  corrects the original item's false claim that no committed spot would be absent from the sizing
+  table; 3,865 of the 5,626 offer hero only fold and call. Solving *additional* 3, 4 and 5-bet
+  sizes stays out of scope and is what the backlog entry now carries: measured through GTOpen's own
+  estimator, a second re-raise multiplier takes the tree from 38,828 action nodes to 260,136 and a
+  third to 606,378, so the artifact byte cap binds long before the solver does.
 
 - `[resolved]` **Six exact measurements of the 300-iteration export were frozen in a file whose
   sibling mandates replacing that export.** Found by the mechanical reviewer, all six verified

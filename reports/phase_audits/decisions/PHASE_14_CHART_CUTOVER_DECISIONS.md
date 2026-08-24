@@ -239,7 +239,22 @@ If 44 moves to roughly 100 percent it was convergence and the chart is clean. If
 and it ships as solved with that recorded. Nobody hand-edits a cell in either branch and the
 artifact stays purely derived, which was the cost the smoothing option asked for.
 
-**This ruling has a consequence the phase must carry.** A re-solve produces a *new export*, and
+**Re-ruled by Taylor on 2026-08-24, onto this item's own third option.** Stage 4 measured the
+monotonicity rule over the whole selected set rather than over the eleven grids the export
+publishes, and found 1,938 violating nodes of 5,626 - 36 of them among the 351 where hero's whole
+range arrives, so not a deep-tail effect. Taylor read the grids in GTOpen and ruled that the
+solver's split among near-indifferent hands is its considered answer: at the small blind facing a
+button open it plays 22 at 99.94 percent, 33 at 16.20, 44 at 0.07 and 55 at 99.83, and when hands
+are indifferent the EV of any split between them is the same, so the individual cells carry no
+information and only the aggregate does. That is `ship-as-solved`, which this item already listed.
+
+The argument recorded above for re-solving is not withdrawn and was not wrong on its own terms -
+44 does dominate 33 in an open-fold decision. What it missed is that dominance constrains EV, not
+frequency, and a solver at indifference is free to put the frequency anywhere. The re-solve is
+therefore permitted and no longer required; the contract's re-solve criteria apply only if one is
+run. Decision 10 carries the consequence for what is gated.
+
+**The consequence a re-solve would carry, if one is run.** A re-solve produces a *new export*, and
 phase 10's human verdict, its determinism proof and its byte-identical claim all attach to the
 300-iteration one. So the phase owes: the same determinism check the old export passed, the two
 orderings re-asserted, and a published diff of what moved between the two solves. If anything
@@ -367,10 +382,39 @@ Answer: [price-the-jam-at-the-stack]
 
 **Ruled by Taylor, 2026-08-23: price the jam at the stack.** A shove is recorded as a raise to
 hero's whole stack, so the chart answers both what to do and how much, and the size is true rather
-than absent. `build_sizings` gains an entry for every such spot, and the note that a spot absent
-from the sizing table has no size stays true because none of these will be absent. Rejected:
-committing sizeless, which would train "raise, no idea how much"; and excluding them, which drops
-real spots the reach filter would otherwise keep.
+than absent. `build_sizings` gains an entry for every such spot. Rejected: committing sizeless,
+which would train "raise, no idea how much"; and excluding them, which drops real spots the reach
+filter would otherwise keep.
+
+**Extended by Taylor on 2026-08-24, after stage 4 measured the case this item never asked about.**
+The question above is about the 4,257 nodes offering a jam and *no* named raise. It says nothing
+about the nodes offering **both**, and the inherited collapse rule silently takes the named raise
+there. Measured over the committed selection: 313 spots offer both, and over hero's arriving range
+**60.6 percent of his aggressive volume at them is the shove** - the majority at 177, at least 80
+percent at 136, and 100 percent at 35, where the named raise to 22.5 carries no weight at all. So
+one price per spot teaches a 22.5bb raise on 136 decisions the solve plays as a stack-off.
+
+**The ruling: the sizing table holds every size a spot offers, with the weight hero gives each.**
+Taylor's reason, in his words, is that multiple preflop sizings are better play in some spots
+anyway, so the chart should be able to hold them. No re-solve is required and none is implied: the
+tree already offers both prices at those 313 spots, and this is the artifact learning to record
+what was already solved. The spot key is untouched, because a key states what hero *faces* rather
+than what hero does - which is what keeps this out of `RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`.
+
+Also corrected here, because this item's original wording asserted it: "a spot absent from the
+sizing table has no size stays true because none of these will be absent" is false. **3,865 of the
+5,626 committed spots offer hero only fold and call**, so they carry no raise weight and correctly
+have no entry. The invariant is two-directional instead - every spot with a positive raise weight
+has an entry, and every spot without an entry has no raise weight - and both sets are non-empty.
+
+What stays out of scope, and is filed rather than done: solving *additional* 3-bet, 4-bet and
+5-bet sizes so the tree offers a real choice rather than a raise-or-shove pair. Measured on this
+machine through GTOpen's own estimator, a second re-raise multiplier takes the tree from 38,828
+action nodes and 112 MB to **260,136 nodes and 754 MB**, a third to 606,378 and 1,758 MB, and two
+sizes at `max_raises: 5` to 2,884 MB, which the solver refuses outright. The solver is not the
+binding constraint; the 20 MB artifact cap downstream is. That is phase-10-shaped work with its
+own human verdict on the ranges, and it is what `CHART-CANNOT-EXPRESS-TWO-RAISE-SIZES-AT-ONE-SPOT`
+becomes once the schema half lands.
 
 ## 7. Where the old-versus-new comparison reads the retired chart from
 
@@ -472,6 +516,33 @@ tolerance.
 The interaction with decision 2 is now benign: the re-solve is expected to remove the one
 violation this rule names, so the rule's job at stage 6 is to prove that rather than to send cells
 to be rewritten.
+
+**Re-ruled by Taylor on 2026-08-24: the relations are measured per cell but gated on aggregates.**
+The sentence above is the one this phase got most wrong, and it is worth saying why rather than
+just replacing it. "The one violation this rule names" was never a property of the shallow tree.
+It was a property of the eleven range grids the export publishes, which is what phase 10's human
+verdict read and what every later document quoted forward without a method. Measured over the
+whole selected set at this item's own ruled tolerance: **1,938 violating nodes of 5,626, and 36 of
+the 351 nodes where hero's whole range arrives.** The families nobody had looked at - cold calls
+and multiway pots - are where it concentrates.
+
+Taylor read those grids and ruled the splits correct: among near-indifferent hands a solver may
+put the frequency anywhere, because every split has the same EV, so a per-cell dominance gate
+rejects correct play. The tolerance and the adjacency choice above are unchanged and still
+describe what gets *measured*; what changes is that the per-cell result is published for a reader
+rather than gating the artifact.
+
+What gates instead is the same dominance taken over **groups**, where indifference cancels: the
+combo-weighted play frequency of each pair band and each suited row, over hero's arriving range,
+must be at least that of the band or row below. That keeps a real check - a transposed hand index
+or a mis-assigned actor still fails it - without asserting a per-cell order the solve does not owe.
+
+Two things this ruling does not settle, recorded so nobody reads them as settled. It was given
+against the pair ladder, and 6,990 of the violations are suited-versus-offsuit, where the offsuit
+twin is played *more* systematically across whole rows rather than in isolated cells - the same
+indifference argument covers it, but nobody has read those grids. And it makes
+`NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL` sharper, because one more property
+moves from gated to printed.
 
 ## 11. Which rate the closing conclusion is read off
 

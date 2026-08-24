@@ -2622,3 +2622,21 @@ items:
       rule is stated four times and owned nowhere, and once the files are frozen, correcting it is
       four coordinated edits across four frozen files. It belongs in one place the tests import,
       which is a `tests/` refactor and therefore its own task after the phase closes.
+  - id: CHART-CUTOVER-CONTRACT-IS-AT-ITS-LINE-CAP
+    status: deferred
+    phase: contract-update
+    title: The phase 14 contract sits at exactly 300 of 300 lines and cannot take another amendment
+    reason: >-
+      Recorded when the 2026-08-24 rulings were written into it. The amendments for decisions 2, 6
+      and 10 only fitted because three passages were compressed in place and one - the Scope
+      paragraph arguing that the dropped nodes are also the unconverged ones - was rewritten
+      because the measurement had made it false. That is a rewrite done under amendment pressure,
+      which AGENTS.md says is exactly what should not happen mid-amendment.
+      The contract is now at the cap, so the next correction has nowhere to go. AGENTS.md rules
+      that a contract at the cap is due for a rewrite folding its amendments into the criteria they
+      amend, as its own contract-update task, and forbids raising the cap to fit an amendment.
+      Phase 11 hit this and paid it as ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP, whose rewrite
+      landed at 283 lines from 300 with no criterion dropped, so the precedent and the method both
+      exist. Phase 14 should not tag until this has run, on that precedent.
+      No check reports a contract sitting at the cap while it owes an amendment, which is the same
+      gap phase 13 stage 1 found the first time and which is why this is filed by hand again.
