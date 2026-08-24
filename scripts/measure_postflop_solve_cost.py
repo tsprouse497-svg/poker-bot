@@ -67,6 +67,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+from collections import Counter
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
@@ -1119,10 +1120,22 @@ def render_solve_block(view: dict) -> list[str]:
     return lines
 
 
+FLOP_TEXTURES = ("rainbow", "two-tone", "monotone")
+
+
 def board_texture(board: str) -> str:
-    """Suit texture of a board, read off the cards rather than trusted from the row's label."""
-    suits = {board[i + 1] for i in range(0, len(board) - 1, 2)}
-    return {1: "monotone", 2: "two-tone"}.get(len(suits), "rainbow")
+    """Suit texture of a board, read off the cards rather than trusted from the row's label.
+
+    Rainbow, two-tone and monotone are a three-card vocabulary and do not survive being
+    stretched: a two-flush turn has three distinct suits and is not rainbow in any sense a
+    reader would accept. So a 4 or 5 card board reports its suit multiset instead of
+    borrowing a name that would misdescribe it, and the flop names stay exact.
+    """
+    suits = [board[i + 1] for i in range(0, len(board) - 1, 2)]
+    if len(suits) == 3:
+        return {1: "monotone", 2: "two-tone"}.get(len(set(suits)), "rainbow")
+    counts = sorted(Counter(suits).values(), reverse=True)
+    return "suits " + "-".join(str(count) for count in counts)
 
 
 def render_aggregate(rows: list[dict]) -> list[str]:
@@ -1151,33 +1164,87 @@ def render_aggregate(rows: list[dict]) -> list[str]:
         "- these are per-unit costs pooled across different spots, which is the only thing that"
         " can be pooled; pooling wall clocks across spots would mean nothing"
     )
-    lines += render_texture_coverage(usable)
+    targets = sorted(
+        {row["solve"]["target_exploit_pct"] for row in usable if row.get("solve")}
+    )
+    if len(targets) > 1:
+        lines.append(
+            "- WARNING: these rows do not share one target, they span"
+            f" {', '.join(f'{t:g}%' for t in targets)} of pot. Iterations to target and every"
+            " figure derived from them are not comparable across different targets, so this"
+            " block should be read per target and not as one pool"
+        )
+    elif targets:
+        lines.append(f"- every pooled row targets {targets[0]:g}% of the starting pot")
+    lines += render_texture_coverage(usable, rows)
     return lines
 
 
-def render_texture_coverage(usable: list[dict]) -> list[str]:
+def texture_ratios(rows: list[dict]) -> dict[tuple[str, str], list[float]]:
+    """Per-iteration cost ratios between textures, measured only where nothing else varies.
+
+    A ratio is worth quoting only from rows that share a tree size, a bet menu and an
+    iteration count, because then texture is the one thing left that differs. Rows are
+    grouped on exactly that and every cross-texture pair inside a group is emitted, so the
+    caller sees the spread between groups rather than one number with no error bar.
+    Cap-bound rows are wanted here: a fixed-iteration probe is the cleanest comparison there
+    is, and excluding it would leave the ratio resting on whichever spots happened to converge.
+    """
+    groups: dict[tuple, dict[str, float]] = {}
+    for row in rows:
+        solve, tree, unit = row.get("solve"), row.get("tree"), row.get("per_unit") or {}
+        cost = unit.get("seconds_per_iteration")
+        if not solve or not tree or cost is None:
+            continue
+        key = (tree["action_nodes"], row.get("menu_sha256"), solve["run_iterations"])
+        groups.setdefault(key, {})[board_texture(tree["board"])] = cost
+    ratios: dict[tuple[str, str], list[float]] = {}
+    for costs in groups.values():
+        for dearer in costs:
+            for cheaper in costs:
+                if dearer != cheaper and costs[cheaper] > 0:
+                    ratios.setdefault((dearer, cheaper), []).append(
+                        costs[dearer] / costs[cheaper]
+                    )
+    return ratios
+
+
+def render_texture_coverage(usable: list[dict], rows: list[dict]) -> list[str]:
     """Name the textures the pooled figures rest on, because texture is the largest cost driver.
 
-    The iso rows measure the same line and the same action-node count on three boards and split
-    by a factor of 3.2, so an aggregate that happens to exclude a texture is not a mean of all
-    flops. Derived from the rows rather than stated, so it stays true as cells are added.
+    An aggregate that happens to exclude a texture is not a mean over flops, and the ratios
+    below say how far off it is. Everything here is derived from the rows, including the
+    ratios, so it stays true as cells are added rather than freezing today's numbers into a
+    sentence that quietly goes stale.
     """
-    present = {board_texture(row["tree"]["board"]) for row in usable if row.get("tree")}
-    if not present:
+    textures = [board_texture(row["tree"]["board"]) for row in usable if row.get("tree")]
+    if not textures:
         return []
-    missing = [t for t in ("rainbow", "two-tone", "monotone") if t not in present]
-    counts = ", ".join(
-        f"{t} {sum(1 for row in usable if board_texture(row['tree']['board']) == t)}"
-        for t in ("rainbow", "two-tone", "monotone")
-    )
+    counted = Counter(textures)
+    missing = [name for name in FLOP_TEXTURES if name not in counted]
+    counts = ", ".join(f"{name} {counted.get(name, 0)}" for name in FLOP_TEXTURES)
+    extra = sorted(name for name in counted if name not in FLOP_TEXTURES)
+    if extra:
+        counts += ", " + ", ".join(f"{name} {counted[name]}" for name in extra)
     lines = [f"- texture coverage of the pooled rows: {counts}"]
-    if missing:
-        lines.append(
-            f"- NOT MEASURED at this target: {', '.join(missing)}. Any figure for those textures"
-            " taken from this block is scaled from the iso rows rather than measured, and"
-            " rainbow is the expensive end: the iso rows put it at about 1.54x a two-tone and"
-            " 3.24x a monotone per iteration on an identical tree"
-        )
+    if not missing:
+        return lines
+    lines.append(
+        f"- NOT MEASURED at this target: {', '.join(missing)}. A figure for those textures taken"
+        " from this block is scaled rather than measured"
+    )
+    for (dearer, cheaper), seen in sorted(texture_ratios(rows).items()):
+        if dearer in missing and cheaper in counted:
+            spread = (
+                f"{min(seen):.2f}x"
+                if len(seen) == 1
+                else f"{min(seen):.2f}x to {max(seen):.2f}x"
+            )
+            lines.append(
+                f"- measured scaling for that: one {dearer} iteration costs {spread} a"
+                f" {cheaper} one, from {len(seen)} group(s) of rows sharing a tree size, a menu"
+                " and an iteration count, so texture is the only thing left differing"
+            )
     return lines
 
 

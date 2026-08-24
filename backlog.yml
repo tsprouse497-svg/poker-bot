@@ -1331,3 +1331,65 @@ items:
       from the backlog side. Filed as contract-update, which is where this repo files repo
       tooling and process defects, alongside the other checks that do not check what they
       claim.
+  - id: SOLVER-EVIDENCE-REPORTS-HAVE-NO-REGENERATION-CHECK
+    status: deferred
+    phase: contract-update
+    title: Committed solver measurement reports are evidence no gate command can see
+    reason: >-
+      reports/active/latest_postflop_solve_cost.txt is 2,900 lines of committed evidence that the
+      gate can never regenerate, because regenerating it needs a running GTOpen server and the
+      gate must pass on a machine with none. Every other generated document in the repo has a
+      matching check that recomputes it and fails on drift, and this one has nothing. A hand
+      edited row, a stale rendering, or a rendered figure that disagrees with the row JSON it
+      was rendered from is invisible to all 43 gate commands.
+      The fix is available and cheap, which is what makes the gap worth filing. The report is
+      self-describing: each row is emitted as a JSON line and each shared value as an appendix
+      line, and the loader plus the renderer reproduce the whole body from those lines alone
+      with no server involved. A check that reloads the committed file, re-renders it, and
+      compares everything below the generated-at and current-machine header lines would be
+      gate-runnable offline and would catch exactly the drift nothing currently can. Phase 14 and
+      phase 16 will both add solve-derived reports and would inherit the same blind spot.
+      Found by the independent mechanical review of MAINT-26 and filed as an alignment item,
+      because it is a rule about how solver evidence is committed rather than anything one
+      measurement task can settle.
+  - id: EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP
+    status: deferred
+    phase: "14"
+    title: The preflop export's ranges carry indifference artifacts and unfloored residue
+    reason: >-
+      The committed preflop export's conditional ranges are a faithful record of what the solver
+      produced and are not yet fit to be a postflop input. Two problems, both measured during
+      MAINT-26.
+      Indifference artifacts. The three-bet range holds 22 at 0.9994 next to 44 at 0.0007 and 33
+      at 0.162. The preflop solve was indifferent among small pairs and picked one arbitrarily,
+      which is correct behaviour for a solver and wrong as a range somebody studies. A chart
+      built on it shows 22 playing differently from 44 in a three-bet pot for no strategic
+      reason.
+      Unfloored residue. The single-raised out-of-position range spans almost the whole grid at
+      weights far below the resolution of any target anybody solves to. Flooring both ranges at
+      0.01 leaves the action-node count identical and cuts the arena from 21,663 MB to 10,881 MB,
+      hands from 1131v679 to 360v559. So the residue costs a factor of two in memory and buys
+      nothing.
+      The conditioning step has a constraint that rules out the obvious fix: per-combo weights
+      break the solver's suit symmetry, and one unequal combo inside a class collapses the
+      isomorphism group to the identity and forfeits the whole saving on every non-rainbow
+      board. So the floor and any smoothing have to be applied at class level, uniformly across
+      the combos of a class. Filed against phase 14 because that phase re-keys the chart and is
+      where a conditioning step belongs; phase 16 consumes the result.
+  - id: ROADMAP-CLAIMS-NO-SOLVE-WAS-EVER-TIMED
+    status: deferred
+    phase: contract-update
+    title: The roadmap still says no solve has been timed to a real exploitability target
+    reason: >-
+      docs/V2_ROADMAP.md states that no solve in this repo has been timed to a real
+      exploitability target, so affordability at any depth is unmeasured. MAINT-26 timed exactly
+      that on 2026-08-23 and 2026-08-24: seven solves reached GTOpen's own 0.3%-of-pot study
+      quality target, with per-unit costs, peak memory and a determinism result, all recorded in
+      reports/active/latest_postflop_solve_cost.txt and summarised in
+      docs/GTOPEN_SOLVER_NOTES.md.
+      The neighbouring item about inverted depth ratios covers the wrong compute numbers in that
+      same file and in the phase 16 decision record, but not this sentence, which is a different
+      error: not a wrong figure but a claim that no figure exists. A reader who takes it at face
+      value will re-plan around an unmeasured cost that has been measured. Filed separately so
+      the roadmap edit catches both, and as contract-update because both documents are
+      contract-shaped and MAINT-26 is not a contract task.

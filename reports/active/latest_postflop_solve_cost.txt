@@ -1,10 +1,10 @@
 Postflop Solve Cost Report
 ==========================
 
-Generated at: 2026-08-24T15:19:35Z
+Generated at: 2026-08-24T16:26:39Z
 Solver: GTOpen at http://127.0.0.1:3737, commit 4aee435bdeb1
 Machine: Apple M4, 10 physical / 10 logical cores, 34.4 GB RAM, macOS-15.7.7-arm64-arm-64bit-Mach-O
-Free RAM at generation: 11.1 GB; power: battery (the CPU throttles; treat this row as a slower machine)
+Free RAM at generation: 9.6 GB; power: battery (the CPU throttles; treat this row as a slower machine)
 
 How to read this
 ----------------
@@ -551,8 +551,11 @@ Aggregate over the 7 of 30 rows that reached their target; 23 excluded as cap-bo
 - seconds_per_iteration: min 0.85247, median 1.37873, max 3.28073
 - peak resident MB: min 3951.1, max 10864.9
 - these are per-unit costs pooled across different spots, which is the only thing that can be pooled; pooling wall clocks across spots would mean nothing
+- every pooled row targets 0.3% of the starting pot
 - texture coverage of the pooled rows: rainbow 0, two-tone 1, monotone 6
-- NOT MEASURED at this target: rainbow. Any figure for those textures taken from this block is scaled from the iso rows rather than measured, and rainbow is the expensive end: the iso rows put it at about 1.54x a two-tone and 3.24x a monotone per iteration on an identical tree
+- NOT MEASURED at this target: rainbow. A figure for those textures taken from this block is scaled rather than measured
+- measured scaling for that: one rainbow iteration costs 3.05x to 3.22x over 2 groups a monotone one, on rows sharing a tree size, menu and iteration count
+- measured scaling for that: one rainbow iteration costs 1.46x to 1.52x over 2 groups a two-tone one, on rows sharing a tree size, menu and iteration count
 
 ### probe1-lineB-3bp-Kc7c2c-monotone-high
 

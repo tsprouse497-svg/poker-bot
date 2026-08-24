@@ -104,14 +104,21 @@ server, confirmed the mechanism, and then refuted MATRIX's own arithmetic in two
 ## Slices
 
 - [x] **Confirm the postflop routes against a running server.** Build one spot, solve it to a
-  loose target, read one node back. Evidence: the request and response shapes recorded in the
-  notes, in the same style the preflop config surface is already recorded. This is the part that
-  can fail early and cheaply, and everything below assumes it passed.
+  loose target, read one node back. Evidence: the four routes named in the notes as driven end
+  to end, plus every row's own posted `config` body with the server's `echo_matched` beside it,
+  which is stronger proof of an accepted shape than prose would be. The notes carry no postflop
+  request body in the style the preflop config surface is recorded, which is what this slice
+  first asked for; the rows carry it 30 times over instead. This is the part that can fail
+  early and cheaply, and everything below assumes it passed.
 - [x] **Write the driver.** Takes both ranges, pot, stacks and sizes for one preflop line out of
   the committed export, plus a board and an exploitability target. Returns wall-clock to target,
-  iterations, peak resident memory, the solved payload's size on disk, and the machine spec.
+  iterations, peak resident memory, and the machine spec.
   Evidence: one recorded run.
-- [ ] **Measure across textures and lines.** Exploitability at GTOpen's stated study-quality
+  This slice originally also promised the solved payload's size on disk. It was never measured
+  and the promise is struck here rather than left reading as satisfied, because artifact size
+  is one of the grounds the flop-only ruling rests on and a reader of this plan would think it
+  had been closed. It is now an entry in the notes' "Not verified" list instead.
+- [x] **Measure across textures and lines.** Exploitability at GTOpen's stated study-quality
   0.3% of pot. Texture varies deliberately, because the notes already record isomorphism gains of
   about 1.4x on two-tone flops and 2.2x on monotone, so texture is a variance driver rather than
   noise and a single flop's timing would be a mean nobody can use. At least one single-raised pot
@@ -152,7 +159,9 @@ server, confirmed the mechanism, and then refuted MATRIX's own arithmetic in two
   measurement did not reach: rainbow at study quality, turn and river roots, the batch
   reports, and the solver's own memory guard. The section on postflop is retitled, since
   "none of it was run" stopped being true.
-- [ ] **Independent read-only review**, per the handoff above, before the gate commit.
+- [x] **Independent read-only review**, per the handoff above, before the gate commit.
+  Two reviewers, four blockers between them, all resolved. Findings recorded under Review
+  Findings below, which is this task's audit record since a maintenance task has no packet.
 
 ## Decisions
 
@@ -166,6 +175,95 @@ server, confirmed the mechanism, and then refuted MATRIX's own arithmetic in two
   The per-unit costs, the peak memory and the convergence shape are what the task owed, and all
   three are measured on real study-quality solves. The figure that must not be stated flat is a
   per-flop mean over all textures, and the report's aggregate now names the textures it rests on.
+
+## Review Findings
+
+Two independent read-only reviewers, spawned 2026-08-24 after the gate was green and the write-up
+committed. Neither wrote any of the work under review and neither saw the other's notes. MECH was
+given an evidentiary lens: re-derive every published number from the report's own rows and check
+the diff against forbidden scope. DOMAIN was given the poker and the solver: read GTOpen's Rust
+source and judge whether a phase 16 planner would be misled.
+
+The split paid for itself. They agreed independently on four defects, which is what makes those
+four trustworthy rather than one reviewer's opinion: the isomorphism ratio rests on a probe whose
+own drift reading was +79.5%, the memory rule was one observation dressed as a law, the arena
+refusal was the measuring script's policy and not an observed failure, and the timing spread was
+attributed to heat when the rows say it was accumulated process state. Everything else each found,
+the other missed entirely.
+
+MECH raised 1 blocker, 12 non-blockers, 1 alignment item, and confirmed every published figure
+reproduces from the rows. DOMAIN raised 3 blockers, 10 non-blockers, 2 alignment items, and
+confirmed the tree-depth correction, the isomorphism mechanism, the exploitability metric and the
+pot arithmetic against the Rust source.
+
+### Blockers, all resolved
+
+- **The header claimed execution over content that was never executed.** Rewriting the postflop
+  section dropped the carve-out that had kept README-sourced claims separate from run ones, so the
+  file asserted end-to-end execution of routes its own "Not verified" list said were never called.
+  That is the exact failure the section exists to prevent, committed in the opposite direction.
+  Resolved: the section now separates "driven end to end" from "read from the README, never
+  executed" as two explicit lists, and the header names the distinction.
+- **The isomorphism saving was stated unconditionally and is all-or-nothing.** A suit permutation
+  is admitted only if it maps every combo to an equal-weight combo in the same range, so a single
+  suit-specific entry collapses the group to the identity and forfeits the entire saving on every
+  non-rainbow board. Every measurement assumed class-uniform ranges without saying so. Resolved:
+  the precondition is stated where the saving is, citing
+  `ISOMORPHISM-FACTORS-MISREAD-AS-SPEEDUPS`.
+- **A third bias of the same magnitude was missing, and the notes recommended the worse of two
+  memory levers.** The ranges carry most of the grid at negligible weight; flooring both at 0.01
+  leaves the action-node count identical and halves the arena, while the notes offered only
+  "reduce turn and river to a single bet size", which costs a real bet size. Resolved: flooring is
+  now named as the first lever with the measured figures, and the bias paragraph lists three
+  effects and says which direction wins.
+- **Strategy convergence was unmeasured and unlisted.** Exploitability was the only thing
+  targeted, and frequencies on indifferent hands settle later - which this document already says
+  for preflop. Both determinism runs stopped at 240 iterations, so byte-identical output proves
+  reproducibility of one computation, not that the strategy has converged. A planner would have
+  read "220 to 260 iterations reaches study quality" as "240 iterations yields committable chart
+  data". Resolved: it is now the first entry in "Not verified".
+
+### Non-blockers taken
+
+Both reviewers' numeric corrections were verified against the rows before being applied, and two
+were checked by recomputation because they contradicted what the write-up claimed: the convergence
+exponent flattens from about 1.74 toward 1.0 rather than steepening, so the stated mechanism for
+the short-window bias was inverted; and flooring the range does cut the arena by 2.0x with the
+action-node count unchanged. Also taken: the texture ratios are now derived by the report from
+rows sharing a tree size, menu and iteration count rather than frozen into a string literal; the
+exact orbit factors are quoted as the transferable number with the measurements as their noisy
+realisation; the per-action-node-per-hand figure leads, since a bare seconds-per-iteration carries
+whatever tree it was measured on and does not rescale; iteration count is no longer claimed
+texture-independent, because monotone reached target at 240 where two-tone needed 260 on the same
+ranks and menu; the percent-of-pot target is noted as 2.9x tighter in chips on the deeper line;
+`board_texture` no longer calls a two-flush turn "rainbow"; the aggregate states the target its
+rows share and warns if they ever do not; the coverage entry names paired, ace-high and
+disconnected boards rather than reducing the gap to "no rainbow"; and the exploitability figure is
+qualified as a bound against an opponent confined to the same bet menu.
+
+Three self-state defects in this plan were also real and are fixed: slice 3 was left unchecked
+while the Outcome said slices 1 to 6 were done, slice 2 promised a payload size on disk that was
+never measured, and the bootstrap still handed the next agent a determinism command for work
+already finished.
+
+### Alignment items filed
+
+Long-term drift neither reviewer's task could fix, filed rather than left in a note:
+
+- `SOLVER-EVIDENCE-REPORTS-HAVE-NO-REGENERATION-CHECK` - the measurement report is committed
+  evidence no gate command can regenerate or diff, and the offline fix is available.
+- `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` - the export's ranges carry indifference
+  artifacts and unfloored residue, and the conditioning has to be class-level or it breaks suit
+  symmetry.
+- `ROADMAP-CLAIMS-NO-SOLVE-WAS-EVER-TIMED` - the roadmap still says no solve was ever timed to a
+  real exploitability target, which this task disproved.
+
+### Not taken
+
+DOMAIN's reading that the measured menu is "well below typical study configs" is recorded in the
+notes as a qualification on the 3.7 GB figure rather than as a defect. The menu was pinned
+deliberately so texture and line were the only variables, and widening it is a phase 16 decision
+with a human ruling attached, not a correction to a measurement.
 
 ## Verification
 
@@ -184,8 +282,14 @@ closed entries in the notes' "Not verified" list.
 ## Outcome
 
 Not yet complete. Opened 2026-08-23. Measurement closed 2026-08-24 at five matrix cells by
-Taylor's ruling. Slices 1 to 6 are done and the gate is green. Two independent read-only
-reviews and the closeout are what remain.
+Taylor's ruling. All seven slices are done, both independent reviews are in with every blocker
+resolved, and the gate is green. Closeout is what remains.
+
+Worth recording about the shape of the work rather than its result: the gate had been red on this
+branch for five commits before anyone ran it, on a two-word naming collision that cost seconds to
+fix, and the two reviews then found four defects apiece that the other missed entirely. Neither
+the measurement nor the write-up was short of care. What was missing was running the checks that
+already existed and letting somebody who had not written it read it.
 
 ## Next Agent Bootstrap
 
@@ -199,24 +303,19 @@ integrates after it, and rebases onto the result if `main` has moved.
 This is not a loop phase, so `scripts/loop_stage.py` does not drive it. Work the slices above in
 order.
 
-State: slices 1 and 2 are done and slice 3 is closed short by ruling. The driver exists and
-works, `reports/active/latest_postflop_solve_cost.txt` holds 52 rows - 24 builds, 28 solves - of
-which five reached the 0.3%-of-pot target. Four findings are already filed to `backlog.yml`. The
-GTOpen server may still be up at `127.0.0.1:3737` holding a killed cell six; a determinism run
-should start from a freshly restarted server, because the report states about itself that peak
-resident is a high-water mark over everything that process has ever held.
+State: slices 1 to 6 are done and the gate is green. `reports/active/latest_postflop_solve_cost.txt`
+holds 55 rows - 24 builds, 30 solves and a determinism pair - of which seven reached the
+0.3%-of-pot target. Seven findings are filed to `backlog.yml`. The cost model is written into
+`docs/GTOPEN_SOLVER_NOTES.md`.
 
-Do not resume matrix cells six through twelve. That was asked and answered on 2026-08-24; see
-Decisions. Adding cells is not wrong, it is simply not this task's remaining work, and a later
-task that wants rainbow coverage should re-invoke the driver rather than reopen this one.
+Both independent reviews are done and their findings are recorded under Review Findings below.
+Every blocker is resolved. What remains is closeout only: move this plan to
+`docs/exec_plans/completed/`, reset `CURRENT_TASK.yml` to idle, run the gate, commit.
 
-What is left, in order: the determinism row (slice 4), the cost model written into the "Not
-verified" list in `docs/GTOPEN_SOLVER_NOTES.md` (slices 5 and 6), then two independent read-only
-reviewers per the handoff above (slice 7), then the gate and closeout.
+Do not resume matrix cells six through twelve, and do not re-run the determinism solve. Both were
+asked and answered; see Decisions. A later task wanting rainbow coverage should re-invoke the
+driver rather than reopen this one.
 
-Next command, one repeat of a cell already solved, on a freshly restarted server:
+Next command:
 
-    uv run python scripts/measure_postflop_solve_cost.py --determinism --report ...
-
-Read `--help` for the spot flags, and match them to the `matrix-02` row's config in the report so
-the diff is taken against a solve that is already recorded.
+    uv run python scripts/run_verify.py
