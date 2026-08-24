@@ -1,5 +1,14 @@
 auto_advance: false
-loop: running
+halt_reason: 'Stage 4 tests are authored and committed but must not be frozen: two
+  independent reviews found blockers that move frozen-into-data rulings. Decision
+  10''s monotonicity criterion is unsatisfiable at the ruled 2 percent reach floor
+  (1,938 violating nodes and 8,962 violations over 5,626 committed nodes; 36 nodes
+  and 541 violations even where hero''s whole range arrives) because the contract''s
+  ''one violation in the shallow tree'' measures the eleven published grids rather
+  than the shallow tree. And decision 6 priced the jam only where it was hero''s sole
+  aggressive option, leaving 313 spots where the shove is 60.6 percent of hero''s
+  aggressive volume priced at the named raise. Evidence in reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-tests.md.'
+loop: halted
 phase_id: '14'
 schema_version: 1
 stage: 4
