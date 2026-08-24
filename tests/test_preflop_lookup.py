@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from poker_training_bot.poker_core.positions import table_positions
+from poker_training_bot.solver_artifacts import schema as schema_module
 from poker_training_bot.solver_artifacts.hand_classes import hand_class_grid_index
 from poker_training_bot.solver_artifacts.lookup import (
     LIBRARY_DUPLICATE_SPOT,
@@ -36,6 +37,13 @@ from poker_training_bot.solver_artifacts.schema import (
     spot_key,
     weights_checksum,
 )
+
+# `BlindStructure` is reached through the module rather than imported by name, and the
+# reason is the whole of `LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS`. Stage 6 adds the
+# name; a `from ... import BlindStructure` fails collection today, so pytest would never
+# run a single assertion in this file and the migration below would freeze at stage 5
+# having never executed. Through the module it is an `AttributeError` inside the fixture
+# that needs it, and every test that does not build an artifact still reports honestly.
 
 RFI_SPOT = "t6/d100/CO/rfi"
 VS_OPEN_SPOT = "t6/d100/BB/CO:raise@2.5"
@@ -95,6 +103,13 @@ def make_artifact(
         )
     structure = tuple(action_weights)
     distinct = {name_ for _, classes in structure for name_, _ in classes}
+    # Schema 2's per-cell reach, filled for exactly the cells the fixture declares. These
+    # spots are all first-orbit, so hero's whole range arrives and 10,000 basis points is
+    # the honest value rather than a placeholder.
+    reach = tuple(
+        (spot_id, tuple((name_, 10_000) for name_, _ in classes))
+        for spot_id, classes in structure
+    )
     return PreflopArtifact(
         artifact_schema_version=ARTIFACT_SCHEMA_VERSION,
         source=ArtifactSource(
@@ -104,8 +119,10 @@ def make_artifact(
         table_size=table_size,
         stack_depth_bb=stack_depth_bb,
         positions=table_positions(table_size),
+        blind_structure=schema_module.BlindStructure(0.5, 1.0, 0.0),
         spots=tuple(definitions),
         action_weights=structure,
+        arriving_reach_bp=reach,
         audit_fields=ArtifactAuditFields(
             weights_sha256=weights_checksum(structure),
             spot_count=len(definitions),
@@ -153,6 +170,21 @@ def miss(outcome: ChartHit | ChartMiss) -> ChartMiss:
 def test_spot_key_constants_match_the_derived_keys() -> None:
     assert spot_key(6, 100, "CO", FOLDED_TO_HERO) == RFI_SPOT
     assert spot_key(6, 100, "BB", CO_OPEN) == VS_OPEN_SPOT
+
+
+def test_an_artifact_declares_its_blinds_and_its_per_cell_reach() -> None:
+    """Decisions 4 and 5, which share the schema 2 bump.
+
+    Without the blinds a chart solved at 0.5/1 answers a 1/3 game and nothing notices;
+    without the reach a cell the solver trained and one it barely visited read alike,
+    which is the same information a refusal carries and the chart could not express.
+    """
+    artifact = make_artifact()
+
+    assert artifact.blind_structure == schema_module.BlindStructure(0.5, 1.0, 0.0)
+    assert artifact.reach_bp_for(RFI_SPOT, "AA") == 10_000
+    assert artifact.reach_bp_for(RFI_SPOT, "T9s") is None
+    assert artifact.reach_bp_for("t6/d100/SB/rfi", "AA") is None
 
 
 def test_rfi_hit_returns_the_artifact_weights_unchanged() -> None:

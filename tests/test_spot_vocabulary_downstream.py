@@ -49,6 +49,21 @@ def call_by(position: str) -> object:
     return schema_module.PreflopAction(position, "call")
 
 
+def solved_line(library, hero: str, *raisers: str) -> tuple:
+    """`hero`'s line where each seat raises at the price the chart solved there.
+
+    Phase 14 replaced the chart under this file, and it shares no three-bet price with the
+    one these tests were authored against. Each raising point offers the named raise and
+    the all-in decision 6 prices at hero's whole stack, so the named raise is the smaller.
+    """
+    sequence: list = []
+    for raiser in raisers:
+        prices = library.solved_prices_bb(TABLE, DEPTH, hero, tuple(sequence), raiser)
+        assert prices, (hero, raiser, tuple(sequence))
+        sequence.append(schema_module.PreflopAction(raiser, "raise", min(prices)))
+    return tuple(sequence)
+
+
 @pytest.fixture(scope="module")
 def library() -> PreflopChartLibrary:
     return PreflopChartLibrary.from_directory(ARTIFACT_DIR)
@@ -103,45 +118,79 @@ def test_an_exact_price_records_no_substitution(library) -> None:
 def test_a_three_bet_at_an_unsolved_price_is_answered_too(library) -> None:
     """Taylor ruled on 2026-08-20 that three-bets have to be accommodated.
 
-    Of the 79 three-bet decisions in the corpus the chart holds a cell for, 72 faced a
-    price the tree does not hold and 7 did not.
+    Of the 79 three-bet decisions in the corpus the phase 12 chart held a cell for, 72
+    faced a price the tree does not hold and 7 did not. The rake-free solve three-bets to
+    a different price and holds far more of these cells, so the count moves and the
+    property does not.
     """
-    found = library.lookup(
-        query_facing("LJ", raise_to("LJ", 2.5), raise_to("BTN", 6.25))
-    )
+    solved = solved_line(library, "LJ", "LJ", "BTN")
+    three_bet = solved[1].size_bb
+    cheap = round(three_bet * 0.78, 2)
+
+    found = library.lookup(query_facing("LJ", solved[0], raise_to("BTN", cheap)))
+
     assert isinstance(found, ChartHit)
-    assert found.spot_key == "t6/d100/LJ/LJ:raise@2.5,BTN:raise@8"
-    assert found.price_substitutions == ((1, 6.25, 8.0),)
+    assert found.spot_key == schema_module.spot_key(TABLE, DEPTH, "LJ", solved)
+    assert found.price_substitutions == ((1, cheap, three_bet),)
 
 
 def test_both_prices_normalise_independently(library) -> None:
     """A cheap open and a cheap three-bet in the same sequence."""
+    solved = solved_line(library, "LJ", "LJ", "BTN")
+    open_to, three_bet = solved[0].size_bb, solved[1].size_bb
+    cheap_open = round(open_to * 0.9, 2)
+    cheap_three_bet = round(three_bet * 0.78, 2)
+
     found = library.lookup(
-        query_facing("LJ", raise_to("LJ", 2.25), raise_to("BTN", 6.25))
+        query_facing("LJ", raise_to("LJ", cheap_open), raise_to("BTN", cheap_three_bet))
     )
+
     assert isinstance(found, ChartHit)
-    assert found.spot_key == "t6/d100/LJ/LJ:raise@2.5,BTN:raise@8"
-    assert found.price_substitutions == ((0, 2.25, 2.5), (1, 6.25, 8.0))
+    assert found.spot_key == schema_module.spot_key(TABLE, DEPTH, "LJ", solved)
+    assert found.price_substitutions == (
+        (0, cheap_open, open_to),
+        (1, cheap_three_bet, three_bet),
+    )
 
 
 def test_the_solved_prices_come_from_the_loaded_keys_not_from_a_constant(library) -> None:
-    """The small blind opens to 3.5 and everyone else to 2.5, so one constant is
-    already wrong today rather than only after some future solve."""
-    from_sb = library.lookup(query_facing("BB", raise_to("SB", 2.25)))
-    from_lj = library.lookup(query_facing("BB", raise_to("LJ", 2.25)))
-    assert isinstance(from_sb, ChartHit) and isinstance(from_lj, ChartHit)
-    assert from_sb.spot_key == "t6/d100/BB/SB:raise@3.5"
-    assert from_lj.spot_key == "t6/d100/BB/LJ:raise@2.5"
+    """Authored when the tree carried two opening prices - the small blind opened to 3.5
+    and everyone else to 2.5 - so a single constant was already wrong.
+
+    The rake-free solve opens everyone to 2.5, so that instance is gone. The claim is not:
+    the candidate set still varies with where in the tree the raise sits, and it varies
+    further now, because the same sequence carries an opening price, a three-bet price and
+    a four-bet price that no one constant can serve. A normaliser reading a constant
+    answers a four-bet at the opening price and hits a cell nobody solved.
+    """
+    ladder = solved_line(library, "BB", "CO", "BB", "CO")
+    prices = [entry.size_bb for entry in ladder]
+
+    assert len(set(prices)) == 3
+    assert prices[0] < prices[1] < prices[2]
+    for index, entry in enumerate(ladder):
+        offered = library.solved_prices_bb(TABLE, DEPTH, "BB", ladder[:index], entry.position)
+
+        assert entry.size_bb in offered, index
+        assert prices[0] not in offered or index == 0, index
 
 
 def test_normalising_a_price_is_not_finding_a_nearest_spot(library) -> None:
-    """A squeeze is expressible and uncovered, and it still refuses at any price.
-    This is the line between the ruled abstraction and heuristic guessing."""
-    found = library.lookup(
-        query_facing("BTN", raise_to("HJ", 2.5), raise_to("CO", 8.0))
-    )
+    """The line between the ruled abstraction and heuristic guessing.
+
+    Authored on a squeeze, which the phase 12 chart did not hold. The rake-free solve does
+    hold squeezes, so the instance moves to the one spot that is structurally uncovered
+    rather than merely under the reach floor: nobody limps in a `limp: false` tree, and
+    the neighbouring sequence a nearest-spot matcher would reach for - the small blind
+    raising instead of calling - is covered at full reach.
+    """
+    found = library.lookup(query_facing("BB", call_by("SB")))
+
     assert not isinstance(found, ChartHit)
     assert found.code == lookup_module.MISS_SPOT_NOT_COVERED
+    neighbour = library.lookup(query_facing("BB", *solved_line(library, "BB", "SB")))
+
+    assert isinstance(neighbour, ChartHit)
 
 
 def test_an_uncovered_table_size_still_refuses(library) -> None:
@@ -248,12 +297,12 @@ def test_every_inventory_row_names_a_spot_a_chart_phase_could_fill(comparison) -
         assert entry.spot_key.startswith("t6/d100/")
 
 
-def test_the_second_orbit_rows_arrive_as_uncovered_rather_than_inexpressible(
-    comparison,
-) -> None:
-    """The same 19 decision points, now naming four-bet-or-beyond keys. They are not
-    answered: this phase adds no coverage, and that is CHART-COVERAGE-EXPANSION at
-    proposed phase 14."""
+def test_the_second_orbit_rows_are_no_longer_all_refused(comparison) -> None:
+    """Phase 12 gave these 19 decision points a key and left them uncovered, because it
+    added no coverage. That was `CHART-COVERAGE-EXPANSION` at proposed phase 14, and this
+    is phase 14: the solved tree holds four-bets and the reach floor keeps the ones real
+    players reach, so the count has to fall. Not asserted to reach zero, because a
+    four-bet line under the reach floor is still an honest refusal."""
     second_orbit = [
         entry
         for entry in comparison.refusal_inventory
@@ -262,7 +311,7 @@ def test_the_second_orbit_rows_arrive_as_uncovered_rather_than_inexpressible(
             for position in ("LJ", "HJ", "CO", "BTN", "SB", "BB")
         )
     ]
-    assert sum(entry.count for entry in second_orbit) == 19
+    assert sum(entry.count for entry in second_orbit) < 19
 
 
 def test_the_corpus_keeps_its_sample(comparison) -> None:
@@ -278,19 +327,17 @@ def test_every_refusal_names_a_spot_key(comparison) -> None:
     assert keyless == []
 
 
-def test_the_squeeze_refusals_are_untouched(comparison) -> None:
-    """The falsifiable form of what the three-bet ruling does *not* buy.
+def test_the_squeeze_refusals_are_answered_rather_than_normalised_away(comparison) -> None:
+    """Phase 12 pinned this at 132 as the falsifiable form of what price normalisation
+    does *not* buy: 125 of them were a squeeze or a cold four-bet, expressible and
+    uncovered, and normalising a price is not finding a nearest spot, so the count could
+    not move.
 
-    132 refusals face a two-raise sequence in which every position acts once, and 125 of
-    those are a squeeze or a cold four-bet: expressible today, uncovered today, and
-    uncovered after this phase. Normalising a price is not finding a nearest spot, so
-    this count must not move.
-
-    Repeated-position sequences are excluded because this phase grows that population on
-    purpose: as authored, the filter also caught the one limped second-orbit decision in
-    the sample, which had no key at the branch point and so was invisible to a filter
-    requiring one. Counting it would make a guard against nearest-spot matching fail for
-    the second orbit finally having a key, which is the opposite of what it guards.
+    Phase 14 moves it by covering the cells rather than by matching a neighbour, which is
+    the one way it was allowed to move. Cold calls are in the solved tree - only limps
+    left it - so the squeeze family is answered now. The guard against nearest-spot
+    matching moves to `test_normalising_a_price_is_not_finding_a_nearest_spot`, where the
+    uncovered spot is structural rather than a count.
     """
     positions = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
     two_raise = [
@@ -301,14 +348,30 @@ def test_the_squeeze_refusals_are_untouched(comparison) -> None:
         and row.spot_key.split("/")[-1].count(":raise") == 2
         and not any(row.spot_key.count(f"{position}:") > 1 for position in positions)
     ]
-    assert len(two_raise) == 132
+    assert len(two_raise) < 132
 
 
-def test_the_refusal_total_did_not_fall(comparison) -> None:
-    """This phase adds no chart coverage, so a drop is a finding to explain rather
-    than a win to report. 290 is the count at the branch point."""
+def test_the_refusal_total_fell_and_the_limped_points_are_what_is_left(comparison) -> None:
+    """Phase 12 pinned 290 because it added no coverage and a drop would have been a
+    finding. Phase 14 adds thousands of spots, so the number has to fall, and the
+    direction is the assertion rather than the value, which the report publishes by
+    reason code.
+
+    What must not fall to zero is the limped population. Every decision whose first
+    recorded action is a call arrives at a spot the solved tree does not hold at any reach
+    floor, and `CHART-CANNOT-ANSWER-A-LIMPED-POT` is restated on that count rather than
+    closed. Both halves are asserted, because the drop alone would also be satisfied by a
+    chart that quietly answered a limp from a neighbouring cell.
+    """
     refused = [row for row in comparison.rows if row.refusal is not None]
-    assert len(refused) == 290
+    limped = [
+        row
+        for row in refused
+        if row.spot_key and row.spot_key.split("/")[-1].split(",")[0].endswith(":call")
+    ]
+
+    assert len(refused) < 290
+    assert limped
 
 
 # --------------------------------------------------------------------------- #
@@ -382,21 +445,46 @@ def test_the_report_publishes_the_measured_spot_counts(report) -> None:
     assert "977" in report
 
 
-def test_the_report_carries_the_price_substitution_census(report) -> None:
+def report_figure(report: str, label: str) -> int:
+    """The number the report prints on the line beginning `label`."""
+    line = next(row for row in report.splitlines() if row.strip().startswith(label))
+    return int(line.split()[-1])
+
+
+def test_the_report_carries_the_price_substitution_census(report, comparison) -> None:
     """Split by whether the substituted raise was the open or a later one, so the cost
     of ruling 8 stays separable from the cost of extending it past the open.
 
-    72 is the number the extension buys: three-bet decisions the chart can answer that
-    faced a price the tree does not hold.
+    Phase 12 pinned 72 here, the three-bet decisions the extension buys, and the cutover
+    moves that count. Recomputed from the rows rather than loosened to a keyword: a
+    substring test on "substitution" and "open" cannot fail while the section heading
+    exists, so it would have read as coverage of a split nothing checked. The split is
+    recomputable because `ComparisonRow.price_substitutions` carries the raise index on
+    every row, and index 0 is the open by construction.
     """
-    lowered = report.lower()
-    assert "substitution" in lowered
-    assert "open" in lowered
-    assert "72" in report
+    answered = [row for row in comparison.rows if row.refusal is None]
+    moved = [row.price_substitutions for row in answered if row.price_substitutions]
+    opener = sum(1 for subs in moved if any(index == 0 for index, _, _ in subs))
+    later = sum(1 for subs in moved if any(index > 0 for index, _, _ in subs))
+    both = sum(
+        1
+        for subs in moved
+        if any(i == 0 for i, _, _ in subs) and any(i > 0 for i, _, _ in subs)
+    )
+
+    assert opener and later, "one side of the split is empty, so it separates nothing"
+    assert report_figure(report, "the opener's price was moved") == opener
+    assert report_figure(report, "a later raise's price was moved") == later
+    assert report_figure(report, "both, counted once in each line above") == both
 
 
-def test_the_report_states_that_the_refusal_total_did_not_fall(report) -> None:
-    assert "290" in report
+def test_the_report_states_the_refusal_total_it_measured(report, comparison) -> None:
+    """Phase 12 asserted 290, the count at its branch point. The cutover moves it, so
+    what is pinned is that the report prints the total this run measured rather than one
+    carried over from the phase before it."""
+    refused = sum(1 for row in comparison.rows if row.refusal is not None)
+
+    assert f"{refused:,}" in report or str(refused) in report
 
 
 def test_the_report_restates_the_phase_eleven_numbers_with_a_cause(report) -> None:

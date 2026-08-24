@@ -6,14 +6,12 @@ that a folded seat cannot make a table ragged, and the three straddle signals ar
 written. So this file is red on purpose and the shape test at the top of it is the one
 that reports the red as an assertion rather than as a broken import.
 
-Two halves, both of the strategy rather than of the query. The first is per-seat depth:
-a seat's starting stack is what it holds plus what it has put in, the flat-table test
-runs in both directions over the seats still live in the hand, and the order the checks
-fire in is ruled. The second is forced money: three signals, each pinned on a table
-where it is the only one that can see anything.
-
-What this file does not cover, because `tests/test_table_state.py` was authored beside
-it and covers them: `StrategyQuery` validation, the pot reconciliation, the
+Two halves, both of the strategy rather than of the query. The first is per-seat depth: a
+seat's starting stack is what it holds plus what it has put in, the flat-table test runs
+in both directions over the seats still live, and the order the checks fire in is ruled.
+The second is forced money: three signals, each pinned on a table where it is the only one
+that can see anything. What this file does not cover, because `tests/test_table_state.py`
+was authored beside it and does: `StrategyQuery` validation, the pot reconciliation, the
 decision-audit schema version, and the all-in ceiling.
 
 Two readings this file fixes, because a stage 6 builder needs them fixed and neither the
@@ -22,18 +20,21 @@ contract nor the decision list writes them down:
 - Forced money classifies as an ante when every seat carries the same unexplained
   amount. Unexplained money that is not uniform, and that neither straddle signal
   claims, is the residual `preflop-chart:blind-structure-not-representable` keeps.
-  A seat's unexplained money is measured against `committed_total`, so preflop an ante
-  shows up as a uniform gap between that and `street_bet`: it is in the pot and it buys
-  nothing off the price, which is the coordinator's ruling and what the fixtures build.
+  It is measured against `committed_total`, so preflop an ante is a uniform gap between
+  that and `street_bet`: in the pot, buying nothing off the price, per the ruling.
 - A refusal that names a seat does it in the vocabulary `_miss_detail` already uses:
   `seat` for the seat number and `stack_depth_bb` for the depth it holds.
 """
 
 from __future__ import annotations
 
+from functools import cache
+
 import pytest
 
 from poker_training_bot.poker_core.positions import position_for_seat
+from poker_training_bot.solver_artifacts.lookup import PreflopChartLibrary
+from poker_training_bot.solver_artifacts.schema import PreflopAction, spot_key
 from poker_training_bot.strategy import contract as contract_module
 from poker_training_bot.strategy import preflop_chart as preflop_chart_module
 from poker_training_bot.strategy.contract import (
@@ -42,7 +43,7 @@ from poker_training_bot.strategy.contract import (
     StrategyQuery,
     StrategyRefusal,
 )
-from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
+from poker_training_bot.strategy.preflop_chart import ARTIFACT_DIR, PreflopChartStrategy
 from poker_training_bot.strategy.preflop_sizing import PreflopSizingTable
 
 SMALL_BLIND = 50
@@ -61,10 +62,21 @@ REFUSE_BLIND_STRUCTURE = "preflop-chart:blind-structure-not-representable"
 FORCED_MONEY_CODES = frozenset({REFUSE_STRADDLE, REFUSE_ANTE, REFUSE_BLIND_STRUCTURE})
 DEPTH_CODES = frozenset({REFUSE_RAGGED_DEPTH, REFUSE_UNEVEN_TABLE, REFUSE_SHORT_LIVE_SEAT})
 
-# The prices the committed six-max 100bb solve actually plays at, in chips.
-OPEN_TO = int(2.5 * BIG_BLIND)
-THREE_BET_TO = int(8.0 * BIG_BLIND)
-THREE_BET_SPOT = "t6/d100/LJ/LJ:raise@2.5,CO:raise@8"
+
+@cache
+def solved() -> tuple[int, int, str]:
+    """The open in chips, the three-bet in chips, and the three-bet spot key, read out of
+    the artifact because this file was authored against a chart that three-bet to 8 and the
+    solve three-bets to 7.5. Each raising point offers the named raise and an all-in, so the
+    named raise is the smaller. Behind a call rather than at module scope for the reason
+    `seat_state` gives below: mid-cutover a module-scope read fails collection and takes
+    every assertion here with it."""
+    library = PreflopChartLibrary.from_directory(ARTIFACT_DIR)
+    open_bb = min(library.solved_prices_bb(6, 100, "LJ", (), "LJ"))
+    opened = (PreflopAction("LJ", "raise", open_bb),)
+    three_bet_bb = min(library.solved_prices_bb(6, 100, "LJ", opened, "CO"))
+    key = spot_key(6, 100, "LJ", (*opened, PreflopAction("CO", "raise", three_bet_bb)))
+    return int(open_bb * BIG_BLIND), int(three_bet_bb * BIG_BLIND), key
 
 
 def seat_of(position: str) -> int:
@@ -79,16 +91,15 @@ def seat_state(
 ):
     """One `SeatState`, or a TypeError saying which field phase 13 has not added yet.
 
-    Resolved off the module rather than imported at the top so that this file collects
-    and runs today: an ImportError at collection would report the whole file as broken,
-    where the point of stage 4 is a red that says which behaviour is missing.
+    Resolved off the module rather than imported at the top so that this file collects and
+    runs today: an ImportError at collection reports the whole file as broken, where the
+    point of stage 4 is a red that says which behaviour is missing.
 
     `contributed` is what the seat has put in toward the level, which preflop is both its
-    street figure and its hand figure. `dead` is money that is in the pot and buys nothing
-    off the price, which is what an ante is, so it lands in `committed_total` alone. The
-    coordinator ruled that; putting it in the street figure would make an anted seat owe
-    less to call than an unanted one at the same level, and the gap between the two
-    figures is exactly the signal the ante detection reads.
+    street figure and its hand figure. `dead` is money in the pot that buys nothing off the
+    price, which is what an ante is, so it lands in `committed_total` alone per the ruling:
+    in the street figure it would make an anted seat owe less to call than an unanted one,
+    and the gap between the two figures is the signal the ante detection reads.
     """
     factory = getattr(contract_module, "SeatState", None)
     if factory is None:
@@ -173,7 +184,8 @@ def table_query(
     return StrategyQuery(**fields)
 
 
-def raised(position: str, amount: int = OPEN_TO) -> SeatAction:
+def raised(position: str, amount: int | None = None) -> SeatAction:
+    amount = solved()[0] if amount is None else amount
     return SeatAction(seat_of(position), "raise", amount)
 
 
@@ -196,25 +208,25 @@ def strategy() -> PreflopChartStrategy:
 
 
 def three_bet_table() -> StrategyQuery:
-    """Hero opened to 2.5bb, the cutoff three-bet to 8bb, and hero is deciding.
+    """Hero opened, the cutoff three-bet at the solved price, and hero is deciding.
 
-    Every seat sat down with 100bb, so the table is flat and the committed chart holds
-    the cell. What it is not is flat in *held* chips: hero put in 250 and holds 9,750,
-    which is 97.5bb, the cutoff put in 800 and holds 9,200, which is 92bb, and the blinds
-    hold 99.5bb and 99bb. Two of this phase's claims are the same fixture read twice,
-    which is why it is written once.
+    Every seat sat down with 100bb, so the table is flat and the chart holds the cell.
+    What it is not is flat in *held* chips: hero holds 97.5bb, the cutoff holds less
+    again, and the blinds hold 99.5bb and 99bb. Two of this phase's claims are the same
+    fixture read twice, which is why it is written once.
     """
+    open_to, three_bet_to, _ = solved()
     return table_query(
         "LJ",
         contributed={
             seat_of("SB"): SMALL_BLIND,
             seat_of("BB"): BIG_BLIND,
-            seat_of("LJ"): OPEN_TO,
-            seat_of("CO"): THREE_BET_TO,
+            seat_of("LJ"): open_to,
+            seat_of("CO"): three_bet_to,
         },
-        current_bet=THREE_BET_TO,
-        min_raise_target=THREE_BET_TO + (THREE_BET_TO - OPEN_TO),
-        history=(raised("LJ", OPEN_TO), raised("CO", THREE_BET_TO)),
+        current_bet=three_bet_to,
+        min_raise_target=three_bet_to + (three_bet_to - open_to),
+        history=(raised("LJ", open_to), raised("CO", three_bet_to)),
         folded=("HJ", "BTN"),
         hole_cards=("As", "Ah"),
     )
@@ -300,9 +312,9 @@ class TestPerSeatDepth:
     ) -> None:
         """The whole reason starting stacks are recomputed rather than read.
 
-        The cutoff holds 92bb against hero's 97.5bb, and neither of them sat down with a
-        chip less than 100bb. The cutoff is not short, it is three-betting, and a check
-        reading held chips would refuse the most ordinary spot in the chart.
+        The cutoff holds less than hero's 97.5bb and neither sat down with a chip under
+        100bb. The cutoff is not short, it is three-betting, and a check reading held
+        chips would refuse the most ordinary raised spot in the chart.
         """
         outcome = strategy.decide(three_bet_table())
 
@@ -313,14 +325,13 @@ class TestPerSeatDepth:
     ) -> None:
         """Pinned on the key the lookup asked about rather than on the answer.
 
-        Hero holds 9,750 chips, which is not a whole big blind at all, and started with
-        100bb. Asserting only that a decision came back would pass against a chart that
-        happened to cover the held figure too.
+        Hero holds 9,750 chips, not a whole big blind, and started with 100bb. Asserting
+        only that a decision came back would pass against a chart covering it too.
         """
         found = strategy.chart_lookup(three_bet_table())
 
         assert found is not None
-        assert found.spot_key == THREE_BET_SPOT
+        assert found.spot_key == solved()[2]
 
     def test_a_folded_seat_shallower_than_hero_does_not_make_the_table_ragged(
         self, strategy
@@ -389,10 +400,8 @@ class TestPerSeatDepth:
         self, strategy
     ) -> None:
         """The sentence that reads as the same one as the test two above and is not.
-
-        Hero short *on the street* at a flat-start table is answered. Hero short because
-        he sat down short is a table with five seats deeper, and refuses as that.
-        """
+        Hero short *on the street* at a flat-start table is answered; hero short because
+        he sat down short is a table with five seats deeper, and refuses as that."""
         bought_in_short = {seat: FULL_STACK for seat in SEATS}
         bought_in_short[seat_of("LJ")] = 40 * BIG_BLIND
 
@@ -403,28 +412,24 @@ class TestPerSeatDepth:
 
 class TestTheChartCapsWhereTheAuditDoes:
     """Decision 11. `PreflopChartStrategy` caps a raise at the bet level plus hero's stack
-    and `DecisionAuditRecord` at hero's own contribution plus hero's stack, too high by
-    exactly `to_call` for a hero who has already invested this street. The chart moves."""
+    and `DecisionAuditRecord` at hero's contribution plus hero's stack, too high by exactly
+    `to_call` for a hero who has invested this street. The chart moves."""
 
     def test_the_chart_caps_a_raise_at_what_hero_started_the_hand_with(
         self, strategy
     ) -> None:
         """The public path, on the only hero the two ceilings disagree about.
 
-        The committed sizing table tops out at 28.5bb against a 100bb hero, so no spot in
-        it can reach either ceiling and no fixture built from it can tell the two apart.
         Only the sizing is replaced, by a price no stack could pay; the library, the spot
-        key and the query are the real ones, and the cap is what is left doing the work.
-
+        key and the query are the real ones and the cap is what is left doing the work.
         Hero opened to 250 and holds 9,750, so hero started with 10,000 and cannot raise
-        to a chip more. The formula this phase deletes caps at the bet level plus the
-        stack, 800 + 9,750 = 10,550, which is 550 more than hero has ever had and is the
-        amount `DecisionAuditRecord` already refuses to record.
+        to a chip more, while the deleted formula caps at the level plus the stack - more
+        than hero has ever had, and what `DecisionAuditRecord` already refuses to record.
         """
         unpayable = PreflopSizingTable(
             source_name="stage-4 fixture",
             source_kind="fixture",
-            raise_to_bb={THREE_BET_SPOT: 150.0},
+            raise_to_bb={solved()[2]: 150.0},
         )
         capped = PreflopChartStrategy(library=strategy.library, sizing=unpayable)
 
@@ -442,14 +447,12 @@ class TestForcedMoney:
     ) -> None:
         """Signal one, reconstruction, on the case it was written for.
 
-        Nobody has acted, so the declared blinds predict 50 and 100 and nothing else.
-        Every seat has ten chips in the pot beyond that. Uniform unexplained money is an
-        ante, and it takes the ante code because an ante does not raise the level a
-        voluntary action is measured against, and the two change the ranges differently.
-
-        The ante is in each seat's hand figure and not in its street figure, so hero owes
-        the full big blind and the ten chips are visible only as the gap between the two.
-        A fixture that discounted the price would pin an ante buying ten chips off it.
+        Nobody has acted, so the declared blinds predict 50 and 100 and nothing else, and
+        every seat has ten chips in beyond that. Uniform unexplained money is an ante, and
+        it takes the ante code because an ante does not raise the level a voluntary action
+        is measured against. It sits in each seat's hand figure and not its street figure,
+        so hero owes the full big blind and the ten chips show only as the gap between the
+        two; a fixture that discounted the price would pin an ante buying chips off it.
         """
         query = table_query("LJ", ante=10)
 
@@ -486,18 +489,15 @@ class TestForcedMoney:
     ) -> None:
         """Signal three, on the worked case the deleted pot bound admits.
 
-        50/100 with a 200 straddle, an open to 600, the straddler and the big blind
-        calling, the small blind folding. The pot is 1,850 where the old bound allowed
-        1,950, so it slipped through. The contributions are 50/600/600/600, which is
-        exactly what an unstraddled pot at the same price produces, so reconstruction is
-        blind here and so is the unraised-level rule. What is left is the price of a
-        re-raise: the first raise was measured from the straddle rather than from the
-        big blind, so the minimum is 1000 where two declared blinds and a recorded raise
-        to 600 predict 1100.
-
-        The pot shape is the one named in `PER-SEAT-CONTRIBUTIONS-IN-QUERY`. Hero is the
-        seat still to act, which a straddled betting order does not literally produce -
-        the claim under test is the arithmetic, and the query is expressible either way.
+        50/100 with a 200 straddle, an open to 600, the straddler and the big blind calling,
+        the small blind folding. The pot is 1,850 where the old bound allowed 1,950, so it
+        slipped through, and the contributions 50/600/600/600 are exactly what an
+        unstraddled pot at the same price produces - so reconstruction is blind here and so
+        is the unraised-level rule. What is left is the price of a re-raise: the first raise
+        was measured from the straddle, so the minimum is 1000 where two declared blinds and
+        a recorded raise to 600 predict 1100. The pot shape is
+        `PER-SEAT-CONTRIBUTIONS-IN-QUERY`. Hero is the seat still to act, which a straddled
+        order does not literally produce - the claim under test is the arithmetic.
         """
         contributed = {
             seat_of("SB"): SMALL_BLIND,
@@ -642,6 +642,10 @@ class TestForcedMoney:
         The small blind holds 100 where its blind alone predicts 50, and the extra fifty
         is a call it is recorded as making. Comparing against the blinds and nothing
         else would call the most common pot in a home game an anted one.
+
+        Since the cutover the chart holds no limped spot, so this refuses - which is why
+        the code is read rather than the outcome counted: a limped pot must refuse for
+        want of a cell, never for forced money.
         """
         contributed = {seat_of("SB"): BIG_BLIND, seat_of("BB"): BIG_BLIND}
 
@@ -661,7 +665,9 @@ class TestForcedMoney:
             )
         )
 
-        assert isinstance(outcome, StrategyDecision), outcome
+        assert isinstance(outcome, StrategyRefusal), outcome
+        assert outcome.code not in FORCED_MONEY_CODES
+        assert outcome.code.endswith("spot-not-covered")
 
     def test_an_ordinary_raised_pot_at_a_charted_price_is_answered_rather_than_called_straddled(
         self, strategy
@@ -672,19 +678,20 @@ class TestForcedMoney:
         spot the chart holds. A signal firing here replaces a bound that over-refused
         with a rule that over-refuses differently.
         """
+        open_to = solved()[0]
         contributed = {
             seat_of("SB"): SMALL_BLIND,
             seat_of("BB"): BIG_BLIND,
-            seat_of("CO"): OPEN_TO,
+            seat_of("CO"): open_to,
         }
 
         outcome = strategy.decide(
             table_query(
                 "BB",
                 contributed=contributed,
-                current_bet=OPEN_TO,
-                min_raise_target=OPEN_TO + (OPEN_TO - BIG_BLIND),
-                history=(dropped("LJ"), dropped("HJ"), raised("CO", OPEN_TO)),
+                current_bet=open_to,
+                min_raise_target=open_to + (open_to - BIG_BLIND),
+                history=(dropped("LJ"), dropped("HJ"), raised("CO", open_to)),
                 folded=("LJ", "HJ"),
                 hole_cards=("As", "Ah"),
             )

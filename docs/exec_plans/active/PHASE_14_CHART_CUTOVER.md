@@ -86,8 +86,12 @@ Approved at stage 1 (`contract-update`), which is where this plan is written:
 Expected at later stages, each needing its own `scope_change_log` entry when it is opened:
 
 - stage 2: `reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md`
-- stage 4: the phase's own test file, `verification/mutations.yml`, `scripts/run_verify.py`
-  (command registration only)
+- stage 4: `tests/**`, `verification/mutations.yml`, `verification/freeze.lock`, and
+  `scripts/run_verify.py` (command registration only). `tests/**` as a whole rather than this
+  phase's own three files, because the contract's regression expectation requires every frozen
+  test of a completed phase that asserts against the chart's contents to be migrated here, before
+  the freeze, rather than repaired afterwards - which phases 11 and 12 each deferred and each paid
+  a separate repair task for.
 - stage 6: `scripts/convert_preflop_export.py` and whatever module the conversion grows into,
   the report generator this phase declares, and `data/artifacts/preflop/**` - the one stage in
   this phase's life where the committed artifact is writable
@@ -116,9 +120,13 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
   L1 also returns the enumeration as data rather than as prose, because every later lane's
   denominators come from it. L4 returns the measurement with its prediction stated before the
   numbers.
-- Status: none dispatched. Stage 1 is coordinator work by construction - a contract is a single
-  document and splitting its authorship produces a document with two voices and no owner - and
-  two independent read-only reviewers read it before stage 2 opens.
+- Status: stages 1 to 3 were coordinator work by construction - a contract, a decision list and a
+  human gate are each a single document, and splitting their authorship produces a document with
+  two voices and no owner - and two independent read-only reviewers read the contract before
+  stage 2 opened. Stage 4 is the first delegated stage. Four lanes ran concurrently on disjoint
+  files: three authoring one new test file each, and a fourth migrating the frozen tests of
+  completed phases that the cutover makes false. The coordinator kept `CURRENT_TASK.yml`, the
+  command registration, `verification/mutations.yml`, this plan and the review.
 - Integration order: L1 first and alone, because the census and the reach distribution are what
   the selection rule is ruled against at stage 3 and what every other lane counts against. Then
   L2, then L3 in parallel with L2 once the artifact's shape is fixed, then L4 last, because the
@@ -139,10 +147,34 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
       blockers between them and neither had seen the other's work; all are resolved in the
       contract and the two that could not be are filed. The phase's centre moved as a result,
       from converting the export to selecting from it.
-- [ ] S2 Decisions. Every judgment call recorded with a reversibility class before any code.
-- [ ] S3 Human gate. The `frozen-into-data` calls go to Taylor. This phase commits the ranges,
-      so more of its list is frozen than any phase since 10.
-- [ ] S4 Tests. Authored before implementation and frozen at stage 5.
+- [x] S2 Decisions. Thirteen judgment calls recorded with a reversibility class before any code,
+      eight of them `frozen-into-data` against phase 13's one, because this phase commits the
+      ranges every later phase is measured against. The stage-2 reviewer overturned one item that
+      had answered itself: the export offers a jam and no named raise at 4,257 nodes where the
+      GTO Wizard source had zero, so the inherited collapse rule had been ruled against a source
+      where the case never arose.
+- [x] S3 Human gate. Cleared 23 to 24 August. All eight `frozen-into-data` items ruled, five
+      `runtime-reversible` items proceeding on their recorded defaults. Decision 1 stands as plain
+      reach-at-2-percent with no depth floor. Decision 2 went round twice, because Taylor first
+      put back the hypothesis that 72.81 percent is the solver's real answer rather than an
+      unfinished cell, and the ruling rests on the argument that it is not. None of the thirteen
+      is reopened by any later stage.
+- [ ] S4 Tests. Authored before implementation, and **held short of the freeze on two blockers**.
+      Four lanes wrote three new test files and migrated thirteen frozen files of completed phases.
+      Two independent reviewers, mechanical and poker, found five blockers between them and neither
+      had seen the other's work; three are resolved in the tests and the canaries, and two need a
+      human because they move `frozen-into-data` rulings. The poker reviewer's finding is the
+      phase's centre: decision 10's monotonicity criterion cannot be satisfied at the ruled reach
+      floor, and the "one violation in the shallow tree" it rests on is a measurement of the eleven
+      grids the export publishes rather than of the shallow tree.
+- Paused: two stage-4 blockers move `frozen-into-data` rulings and are with Taylor. First, whether
+      the permitted re-solve moves ahead of the test freeze, since decision 10's two relations give
+      1,938 violating nodes and 8,962 violations over the 5,626 committed nodes - 36 nodes and 541
+      violations even where hero's whole range arrives - against a contract that expects one.
+      Second, whether decision 6 is reopened to price hero's raise by where his aggressive weight
+      actually sits, since at the 313 spots offering both a named raise and a jam the shove is 60.6
+      percent of that weight, the majority at 177 of them and all of it at 35. Full evidence in
+      `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-tests.md`.
 - [ ] S5 Freeze.
 - [ ] S6 Build. The walk and its census, the converter, the artifact, the retirement of the old
       chart, the sizings, the comparison rerun. The expectations file is external and is not
@@ -199,18 +231,31 @@ Ask the driver and do only what it names, then `--advance`:
 
     uv run python scripts/loop_stage.py --phase 14 [--advance]
 
-**Current state: stage 1 is done and committed. The loop sits at stage 2, the decision list.**
-`task_mode: contract-update`, `base_commit` `28e302d`, phase 14 `active` in `phase_status.yml`.
-The contract carries real criteria and the stage-1 review note is under
-`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/`. Stage 2 adds the decision list to
-`approved_scope` under its own `scope_change_log` entry and writes it before any code.
+**Current state: stages 1 to 3 are done and committed. The loop sits at stage 4, the tests.**
+`task_mode: implementation`, `base_commit` `b834bdc` (the stage-3 close), phase 14 `active` in
+`phase_status.yml`. The contract carries real criteria, all thirteen judgment calls are ruled, and
+the stage-1, stage-2 and stage-3 review notes are under
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/`.
 
-`check_repo_consistency` is red from here until stage 4, saying phase 14 declares
+The contract and the decision record left `approved_scope` at stage 4, which is the point:
+`check_scope.py` is what mechanically enforces the rule that implementation mode may not edit the
+contract it is measured against. Do not reopen any of the thirteen rulings.
+
+`check_repo_consistency` was red from stage 1 until stage 4, saying phase 14 declares
 `pytest_derived_chart` and `generate_derived_chart_report` and neither is registered in
-`scripts/run_verify.py`. That is the expected state of a phase between declaring its commands and
-registering them, not a failure to repair: registration lands at stage 4 alongside the tests those
-commands run, because `check_repo_consistency` also demands a registered `pytest_*` command name a
-real test file holding at least one test.
+`scripts/run_verify.py`. Stage 4 registered both, which is where registration belongs: the same
+check demands a registered `pytest_*` command name a real test file holding at least one test, so
+it cannot land before the tests do.
+
+**Everything below is red on purpose until stage 6.** The phase's own three test files are red
+because the modules they import do not exist; the migrated tests of completed phases are red
+because the artifact has not been rebuilt; eight canaries in `verification/mutations.yml` name
+`find` strings the builder has not written yet, so `test_every_mutation_applies_exactly_once_to_its_file`
+is red too. None of that is a defect to repair. What would be a defect is a red from a broken test
+file - a syntax error, a typo, a fixture that raises - and stage 4's own check cannot see one,
+because it accepts a `ModuleNotFoundError` as a legitimate red. `LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS`
+is that gap, and phase 10 paid two separate repair tasks to it, which is why every lane at this
+stage ran `ruff --no-cache` and read its own pytest output rather than trusting the driver.
 
 Read before doing anything: this plan, then `docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md`
 and `reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md`, where the config
@@ -234,6 +279,84 @@ Six things that will bite if they are not carried forward.
 5. `PREFLOP_ACTIONS` in the artifact schema is `fold, check, call, raise` and the export's action
    kinds are `fold, call, raise, jam`. The jam has no home, so hero's raise offers collapse the
    way the existing converter already collapses them, and the sizes go to the sizing table.
+   Decision 6 settled where the price comes from: a shove is a raise **to hero's whole stack**,
+   and `build_sizings` gains an entry for every one of the 4,257 jam-only spots the filter keeps.
+   Committing them sizeless was the option that was rejected, and the note that a spot absent from
+   the sizing table has no size stays true only because none of these will be absent.
 6. `docs/CORPUS_COMPARISON_LIMITS.md` carries a sentence saying spot keys hold no size, which
    phase 12 made false. It is out of this stage's scope and is filed as
    `CORPUS-LIMITS-DOC-STILL-SAYS-KEYS-CARRY-NO-SIZE`.
+
+## What stage 4 froze as a specification for stage 6
+
+Tests authored before an implementation are a specification, and so are the canaries. Both were
+written against names the builder has to produce, on the phase 11, 12 and 13 precedent: a canary
+written after the code can only describe what was already written, which is how phases 08, 09 and
+10 each ended up with no canary for the one behaviour their phase existed to add. A `find` string
+that does not occur at stage 6 is the builder having drifted, not the canary being wrong.
+
+Five of the eight canaries target `chart_derivation.py`, one `schema.py`, and two the report
+generator. Two were re-aimed at stage 4 after an independent mechanical review, and both would
+otherwise have failed silently rather than loudly, which is worth recording because it is the
+failure mode a canary is least able to report about itself. The jam-pricing canary named
+`scripts/convert_preflop_export.py` while the frozen tests put the collapse rule in the `src/`
+module, and `check_gate_bite` requires the find string to occur exactly once in the file it names,
+so stage 7 would have halted on zero occurrences. The blind-structure canary replaced a line in
+`PreflopArtifact.to_payload()` and would have bitten only if the derived payload happened to be
+assembled through it; the one committed test that exercises `to_payload` round-trips it, so both
+dumps would have carried the same wrong structure and agreed with each other.
+
+**New module `solver_artifacts/chart_derivation.py`.** `REACH_FLOOR_BP = 200` is decision 1's
+ruled 2 percent in basis points. `node_reach_bp` is the plain mean over the 169 hand classes of a
+node's `reach_bp`; that definition is what reproduces the table decision 1 was ruled against, and
+it was verified on this branch to give 891 / 1,424 / 3,296 / 5,626 / 9,407 / 13,575 nodes at the
+20, 10, 5, 2, 1 and 0.5 percent floors. `node_action_sequence` walks a node's path into a
+`PreflopAction` sequence, taking each action's actor from the **parent** node's `actor_pos` and
+dropping folds. `census(export)` returns a `NodeCensus` of committed, excluded and inexpressible
+counts summing to the source card's own node count. Verified on the committed export: all 38,828
+nodes derive a valid key, 38,828 distinct, zero collisions, and the 2 percent floor keeps 5,626
+of them with all five opening spots surviving.
+
+**Reason codes in `lookup.py`**, which is decision 8's ruling that a reader meets one vocabulary
+rather than two: `DERIVATION_BELOW_REACH_FLOOR`, `DERIVATION_NO_LEGAL_SPOT_KEY`, and the two
+closed tuples over them. The inexpressible bucket publishes at zero, which is a result rather
+than an omission.
+
+**Schema at version 2**, carrying `BlindStructure` (decision 4) and `arriving_reach_bp` per cell
+(decision 5), plus the rule that a spot with an empty `action_sequence` may not carry a positive
+`call` weight. That last one is `CHART-HERO-MUST-NEVER-LIMP`, and it closes on the schema rather
+than on a measurement: the export enforces it by construction, but that is a property of the data
+and this phase owns the schema.
+
+**Paths.** The artifact becomes `data/artifacts/preflop/six_max_100bb_rakefree.json` with its
+sizings alongside; `six_max_nl25_100bb.json` and its sizing table are deleted; the expectations
+file and the GTO Wizard source it came from stay untouched, because a reference regenerated from
+what it checks cannot fail.
+
+**What the cutover does to coverage, measured rather than assumed.** The kept chart holds exactly
+four raise prices - 2.5, 7.5, 22.5 and 100 - so none of the retired chart's 3.5, 8, 11 or 13.5
+survives, which is the 17-of-36 non-collision the contract cites. Gained: the big blind facing a
+four-bet (14.5 percent reach) and the squeeze after an open and a cold call (full reach), both of
+which the committed tests currently assert are uncovered. Lost: the limped pot, which is absent
+from the tree at any floor because the solve is `limp: false`, so `t6/d100/BB/SB:call` moves from
+covered to refused. That is the accepted cost of phase 10's human gate, filed as
+`CHART-CANNOT-ANSWER-A-LIMPED-POT`, and stage 4 migrated the tests to assert the refusal rather
+than deleting the claim.
+
+## What stage 6 will have to face that stage 4 could not settle
+
+Two things are known to be waiting and neither is a reason to stop now.
+
+**The byte budget is not proven.** Decision 1's 10.3 MiB was measured without a reach field,
+without a blind structure, without the jam sizings and against the 300-iteration export. The
+decision record is explicit that 10.3 MiB is a floor rather than an estimate and that stage 6
+measures the real figure before committing anything. If the 2 percent floor no longer fits under
+15.9 MiB, the contract's own rule applies: exceeding the cap is a halt and a decision for Taylor,
+not a quiet re-tightening of the floor to whatever fits. Decision 1 was ruled as a predicate
+precisely so that arithmetic cannot move it.
+
+**The registered facts will drift.** `scripts/repo_facts.py` computes ten facts from the
+committed chart and pins them into live documents, and the cutover moves several of them. That is
+`quality_checks`'s fact-drift check doing its job rather than a failure, but it is check-script
+territory a phase task may not reach, so it is likely to need its own maintenance task between
+stage 6 commits, on the MAINT-24 and MAINT-25 precedent.

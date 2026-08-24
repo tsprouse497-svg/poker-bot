@@ -140,7 +140,11 @@ def test_the_captured_payload_came_from_a_solve_at_the_ruled_config() -> None:
     assert payload["config_posted"] == RULED_CONFIG
     assert re.fullmatch(r"[0-9a-f]{40}", payload["solver"]["commit"])
     assert payload["solve_status"]["state"] == "done"
-    assert payload["solve_status"]["gap_total"] < SOLVE_TARGET_GAP_BB
+    # Measured against the target this capture was actually given rather than against
+    # today's module constant, because phase 14's decision 2 lowers the constant for the
+    # permitted re-solve and a fixture captured before that still came from the ruled
+    # config. The claim is unchanged: the capture converged to the target it was set.
+    assert payload["solve_status"]["gap_total"] < payload["solve_request"]["target_gap"]
     assert payload["solve_request"]["iterations"] == SOLVE_ITERATION_CAP
 
 

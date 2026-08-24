@@ -39,7 +39,11 @@ from poker_training_bot.simulator.run import (
     SimulationResult,
     run_simulation,
 )
-from poker_training_bot.strategy.contract import DecisionAuditRecord, StrategyDecision
+from poker_training_bot.strategy.contract import (
+    DecisionAuditRecord,
+    StrategyDecision,
+    StrategyQuery,
+)
 
 SEED = 20260812
 SEATS = 6
@@ -47,14 +51,27 @@ SMALL_BLIND = 50
 BIG_BLIND = 100
 STARTING_STACK = 100 * BIG_BLIND
 
-# One full orbit is six hands, so every count that has to come out even needs a
-# multiple of six. Six orbits, because of the anti-vacuity guard below rather than
-# the coverage assertions: the run has to actually reach a refusal or every
-# "for each refused hand" assertion in this file passes on an empty list. At roughly
-# one refusal in five hands a twelve-hand run contains none about six percent of the
-# time, and phase 12's re-keying re-seeded every mixed draw and landed on exactly
-# that. Thirty-six hands holds eight refusals here, which is margin rather than luck,
-# and the run still costs a fraction of a second.
+# One full orbit is six hands, so every count that has to come out even needs a multiple
+# of six. Six orbits is the realistic run, and it is deliberately no longer sized to reach
+# a refusal.
+#
+# Measured on the committed export before the freeze: the cutover takes the chart from 36
+# spots to every line the sizing table can build, and the per-hand probability of reaching
+# a spot outside it falls from about one in five to 0.00046 - one hand in roughly 2,200.
+# The method: every self-play seat reads the chart and prices raises from the sizing table,
+# so each line they produce is a path in the export tree; walk that tree carrying arrival
+# probability and sum the probability of the first node under the 2 percent reach floor on
+# each path. A 200,000-hand Monte Carlo over the same tree agrees at 0.00046, the leak from
+# zero-reach nodes is 2e-17, and the same walk reproduces today's measured 0.21.
+#
+# That drop is not a defect. It is the reach floor working: the nodes decision 1 drops are
+# exactly the nodes nobody reaches, which is the poker argument the floor was ruled on.
+#
+# So no run length rescues the anti-vacuity guard. One refusal needs 1,506 hands for a coin
+# flip and 10,009 for 99 percent, and going from 36 hands to 120 buys three percentage
+# points of luck rather than a guarantee - a constant chosen to make a guard pass. The
+# guard moves to `limped` below, where a refusal is certain by construction, and this run
+# keeps the coverage, conservation and determinism assertions.
 ORBIT = SEATS
 RUN_HANDS = 6 * ORBIT
 
@@ -88,6 +105,42 @@ def floor() -> SimulationResult:
     return run_simulation(floor_config())
 
 
+class AlwaysCalls:
+    """One seat that limps, so the chart is asked something it structurally cannot answer.
+
+    Not a strategy anybody ships. It exists because the refusal path has to be reached
+    deterministically rather than by a lucky seed: the ruled solve is `limp: false` and the
+    non-goals forbid re-solving with limps, so a spot whose first recorded action is a call
+    has no node at any reach floor and never will. Every other seat is the real composite,
+    and the refusal this produces is `lookup:spot-not-covered` - the code that matters -
+    rather than a table-shape refusal, which `SimulationConfig` rejects at setup before a
+    hand is dealt and which would refuse before a spot key was ever built.
+    """
+
+    strategy_id = "test-always-calls"
+    strategy_version = 1
+
+    def decide(self, query: StrategyQuery) -> StrategyDecision:
+        if query.to_call:
+            return StrategyDecision("call", None, "test:limps")
+        return StrategyDecision("check", None, "test:checks")
+
+
+def limped_config(**overrides) -> SimulationConfig:
+    """Five composite seats and one limper, at the table the chart does cover.
+
+    The seating is the only thing that differs from `config`, so this run measures the
+    chart meeting a spot it has no cell for rather than a table it refuses on sight.
+    """
+    seated = (Profile("limper", AlwaysCalls()), *seat_profiles("self-play", SEATS)[1:])
+    return config(profiles=seated, **overrides)
+
+
+@pytest.fixture(scope="module")
+def limped() -> SimulationResult:
+    return run_simulation(limped_config())
+
+
 class TestEveryHandReachesATerminalState:
     # No hand ends by exhaustion, exception, or timeout.
     def test_every_hand_has_a_terminal_outcome(self, self_play) -> None:
@@ -101,8 +154,8 @@ class TestEveryHandReachesATerminalState:
         assert outcomes["showdown"] > 0, outcomes
         assert outcomes["uncontested"] > 0, outcomes
 
-    def test_a_refused_hand_names_the_refusal_that_ended_it(self, self_play) -> None:
-        for hand in self_play.hands:
+    def test_a_refused_hand_names_the_refusal_that_ended_it(self, limped) -> None:
+        for hand in limped.hands:
             if hand.outcome == "refused":
                 assert hand.refusal_code, hand.hand_id
             else:
@@ -111,24 +164,48 @@ class TestEveryHandReachesATerminalState:
     # Judgment call 4, pinned so that it is pinned. Every other refusal assertion in this
     # file is written as "for each refused hand, ...", which passes perfectly when no hand
     # is refused - so converting a refusal into a fold was invisible to all of them, and a
-    # mutation canary proved it. This is the anti-vacuity guard: the seeded self-play run
-    # must actually reach spots the committed charts do not cover, and must report them as
-    # refusals rather than as folds.
+    # mutation canary proved it. This is the anti-vacuity guard.
     #
-    # It is deliberately coupled to the chart's coverage. If a future artifact covers every
-    # spot this run reaches, this test starts failing, and that failure is the correct
-    # signal: it means the refusal path is no longer exercised here and the canary needs a
-    # new home, not that the assertion was wrong.
+    # It used to hang on the self-play run and on that run reaching a refusal by luck. The
+    # cutover makes that luck one hand in 2,200, so it hangs on `limped` instead, where one
+    # seat calls and the chart has no limped cell at any reach floor. The coupling to
+    # coverage is gone on purpose: a guard that fails when coverage improves reports the
+    # wrong thing, and a guard that needs 10,009 hands to fire is not a guard.
     def test_the_run_actually_reaches_refusals_rather_than_folding_through_them(
-        self, self_play
+        self, limped
     ) -> None:
-        refused = [hand for hand in self_play.hands if hand.outcome == "refused"]
+        refused = [hand for hand in limped.hands if hand.outcome == "refused"]
 
         assert refused, "no hand was refused, so every refusal assertion here is vacuous"
         assert all(hand.refusal_code for hand in refused)
         assert all(set(hand.stack_deltas.values()) == {0} for hand in refused)
-        assert sum(self_play.refusal_counts().values()) == len(refused)
+        assert sum(limped.refusal_counts().values()) == len(refused)
 
+    def test_the_refusal_is_the_missing_cell_rather_than_a_table_the_chart_declines(
+        self, limped
+    ) -> None:
+        """Which code the deterministic driver exercises, stated rather than assumed.
+
+        `lookup:spot-not-covered` is the one that matters: it names a cell somebody could
+        fill. The table-shape codes - an uncovered depth or table size - are exercised by
+        `TestWhatTheRunIsAllowedToClaim`, which asserts `SimulationConfig` rejects them at
+        setup, so no simulated hand can ever carry one.
+        """
+        refused = [hand for hand in limped.hands if hand.outcome == "refused"]
+        limps = [
+            hand
+            for hand in refused
+            if dict(hand.refusal_detail)
+            .get("spot_key", "")
+            .split("/")[-1]
+            .split(",")[0]
+            .endswith(":call")
+        ]
+
+        assert refused
+        assert limps, "the limper produced no limped spot, so the driver is not the limp"
+        for hand in refused:
+            assert hand.refusal_code.endswith("spot-not-covered"), hand.refusal_code
 
 class TestChipConservation:
     # Asserted per hand, because an aggregate that nets to zero can hide two errors
@@ -157,8 +234,8 @@ class TestChipConservation:
 
     # Judgment call 4: a refusal voids the hand, so nothing moves and conservation
     # holds trivially rather than by an accounting fix.
-    def test_a_refused_hand_moves_no_chips_at_all(self, self_play) -> None:
-        for hand in self_play.hands:
+    def test_a_refused_hand_moves_no_chips_at_all(self, limped) -> None:
+        for hand in limped.hands:
             if hand.outcome == "refused":
                 assert set(hand.stack_deltas.values()) == {0}, hand.hand_id
                 assert hand.pot_awarded == 0, hand.hand_id
@@ -431,8 +508,8 @@ class TestRefusalsAreActionable:
     earlier gap survived.
     """
 
-    def test_a_refused_hand_keeps_every_action_taken_before_the_refusal(self, self_play) -> None:
-        refused = [hand for hand in self_play.hands if hand.outcome == "refused"]
+    def test_a_refused_hand_keeps_every_action_taken_before_the_refusal(self, limped) -> None:
+        refused = [hand for hand in limped.hands if hand.outcome == "refused"]
 
         assert refused, "no hand was refused, so this assertion is vacuous"
         assert any(hand.decisions for hand in refused), "no refusal followed a real action"
@@ -443,8 +520,8 @@ class TestRefusalsAreActionable:
             # per decision the simulator actually applied before the refusal.
             assert recorded == len(hand.decisions) + 2, hand.hand_id
 
-    def test_a_refusal_names_the_spot_the_chart_could_not_answer(self, self_play) -> None:
-        refused = [hand for hand in self_play.hands if hand.outcome == "refused"]
+    def test_a_refusal_names_the_spot_the_chart_could_not_answer(self, limped) -> None:
+        refused = [hand for hand in limped.hands if hand.outcome == "refused"]
 
         assert refused, "no hand was refused, so this assertion is vacuous"
         for hand in refused:
@@ -453,23 +530,23 @@ class TestRefusalsAreActionable:
             assert named.get("hand_class"), hand.hand_id
             assert named.get("table_size") == str(SEATS), hand.hand_id
 
-    def test_the_inventory_accounts_for_every_refused_hand(self, self_play) -> None:
-        inventory = self_play.refusal_inventory()
-        refused = sum(1 for hand in self_play.hands if hand.outcome == "refused")
+    def test_the_inventory_accounts_for_every_refused_hand(self, limped) -> None:
+        inventory = limped.refusal_inventory()
+        refused = sum(1 for hand in limped.hands if hand.outcome == "refused")
 
         assert refused > 0
         assert sum(spot.hands for spot in inventory) == refused
 
     def test_the_inventory_is_ordered_by_how_many_hands_reached_each_spot(
-        self, self_play
+        self, limped
     ) -> None:
-        counts = [spot.hands for spot in self_play.refusal_inventory()]
+        counts = [spot.hands for spot in limped.refusal_inventory()]
 
         assert counts == sorted(counts, reverse=True)
 
     def test_the_inventory_is_stable_across_runs(self) -> None:
         """Byte-stability is what makes its diff a record of coverage improving."""
-        first = run_simulation(config()).refusal_inventory()
-        second = run_simulation(config()).refusal_inventory()
+        first = run_simulation(limped_config()).refusal_inventory()
+        second = run_simulation(limped_config()).refusal_inventory()
 
         assert first == second

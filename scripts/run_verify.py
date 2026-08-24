@@ -278,6 +278,21 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_table_state_report.py"],
         "Generate the table-state report: pot reconciliation, depth, and blind structure",
     ),
+    "pytest_derived_chart": CommandSpec(
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_derived_chart.py",
+            "tests/test_chart_derivation.py",
+            "tests/test_derived_chart_report.py",
+        ],
+        "Run the derived-chart selection, conversion, artifact, and report tests",
+    ),
+    "generate_derived_chart_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_derived_chart_report.py"],
+        "Generate the derived preflop chart report and the closing corpus measurement",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",

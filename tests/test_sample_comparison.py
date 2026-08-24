@@ -528,10 +528,10 @@ def test_no_human_decision_is_counted_in_the_machine_population(comparison) -> N
 def test_no_rate_can_be_asked_for_without_naming_a_population(comparison) -> None:
     """The pooled rate has no way to be spelled, which is the only durable version.
 
-    Judgment call 7 forbids averaging the machine with the humans, and the first
-    version of the action split broke that rule while fixing something else - it
-    filtered on the action and nothing more. A convention would have been broken the
-    same way again; a required argument cannot be.
+    Judgment call 7 forbids averaging the machine with the humans, and the first version of
+    the action split broke that rule while fixing something else: it filtered on the action
+    and nothing more. A convention would have been broken the same way again; a required
+    argument cannot be.
     """
     with pytest.raises(TypeError):
         comparison.agreement_within(action="call")
@@ -552,11 +552,8 @@ def test_every_decision_carries_the_position_it_was_taken_from(sample, compariso
 
 
 def test_the_position_split_partitions_the_population_it_splits(comparison) -> None:
-    """Every scored decision lands in exactly one seat's cell, and none lands twice.
-
-    This is what makes the table readable as a breakdown rather than as six
-    overlapping views of the same number.
-    """
+    """Every scored decision lands in exactly one seat's cell and none lands twice, which
+    is what makes the table a breakdown rather than six overlapping views of one number."""
     for population in comparison.populations:
         whole = comparison.agreement(population)
         by_position = [
@@ -571,10 +568,20 @@ def test_the_position_split_partitions_the_population_it_splits(comparison) -> N
 def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> None:
     """The finding this split exists for, pinned so it cannot quietly stop being true.
 
-    Calls are where the chart and real players part company, and the gap is not spread
-    across the table: it is the big blind, which is also the seat the chart refuses
-    most often. Both halves of that are asserted, because either one alone reads as a
-    smaller problem than it is.
+    Calls are where the chart and real players part company, and phase 08 found the gap
+    was not spread across the table: it was the big blind, which was also the seat the
+    chart refused most often, above one decision in five. Both halves were asserted,
+    because either one alone reads as a smaller problem than it is.
+
+    The cutover moves both, and in opposite directions. It covers the big blind against
+    every opener, against three-bets and against four-bets, so the refusal rate has to
+    fall - a chart that still refused a fifth of the big blind's decisions would not have
+    converted the blind-defence half of the tree at all. Whether the calling gap follows
+    is the phase's closing measurement and its band is pre-registered in the decision
+    list, so it is read in the report rather than pinned here. What stays pinned is the
+    shape: the big blind is still where calls agree worst, and it is still measured over
+    a sample big enough to mean something. A cutover that fixed the localisation outright
+    would fail this, and that is the right way to hear it.
     """
     humans_calling_in_the_blind = comparison.agreement_within(
         "humans", action="call", position="BB"
@@ -586,24 +593,20 @@ def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> Non
     ]
 
     assert humans_calling_in_the_blind.denominator > 100
-    assert humans_calling_in_the_blind.percent < 60.0
     for rate in humans_calling_elsewhere:
         assert rate.percent > humans_calling_in_the_blind.percent
 
     refused = comparison.refusal_count("humans", position="BB")
     points = comparison.decision_count("humans", position="BB")
-    assert refused / points > 0.2
+    assert refused / points < 0.2
 
 
 def test_the_price_a_decision_faced_is_banded_only_where_a_band_means_something(
     comparison,
 ) -> None:
-    """A band around an opening size is only about decisions facing a single open.
-
-    Facing no raise there is no price to speak of, and facing two the price is a
-    three-bet's. Banding either against an opening size produces a figure whose label
-    does not describe what was counted.
-    """
+    """A band around an opening size is only about decisions facing a single open. Facing
+    no raise there is no price to speak of, and facing two the price is a three-bet's.
+    Banding either against an opening size labels a figure with what it did not count."""
     for row in comparison.rows:
         assert row.price_faced_bb >= 1.0
         if row.price_band is not None:
@@ -616,14 +619,11 @@ def test_the_price_a_decision_faced_is_banded_only_where_a_band_means_something(
     assert price_band_for(4.0, raises_faced=1) == "over 2.50bb"
 
 
-def test_only_preflop_decision_points_are_compared(comparison) -> None:
-    """Phase 06's fallback never bets, so a postflop comparison measures the fallback."""
+def test_only_preflop_decision_points_that_were_chosen_are_compared(comparison) -> None:
+    """Phase 06's fallback never bets, so a postflop comparison measures the fallback, and
+    a posted blind is forced rather than chosen."""
     for row in comparison.rows:
         assert row.street == "preflop"
-
-
-def test_forced_blind_posts_are_not_decision_points(comparison) -> None:
-    for row in comparison.rows:
         assert row.observed_action in {"fold", "check", "call", "bet", "raise"}
 
 
@@ -639,15 +639,30 @@ def test_the_refusal_inventory_is_keyed_by_the_refusal_s_own_detail(comparison) 
         assert entry.count > 0
 
 
-def test_the_self_play_cross_reference_actually_found_the_inventory(comparison) -> None:
-    """Some spots must come back marked as already seen, or the column means nothing.
+def test_the_self_play_cross_reference_was_read_rather_than_defaulted(comparison) -> None:
+    """The claim this column carries - that real hands reach spots self-play never does -
+    only survives if the self-play side was read. An inventory that yielded nothing would
+    mark every spot NEW and read as the strongest version of the same claim.
 
-    The claim this column carries - that real hands reach spots self-play never does -
-    only survives if the self-play side was read successfully. An inventory that
-    yielded nothing would mark every spot NEW and read as the strongest possible
-    version of the same claim.
+    Phase 08 asserted both halves: that self-play had reached some of the corpus's gap
+    spots, and that it had missed others. The cutover removes the first. Measured on the
+    export before the derived chart existed, self-play reaches a spot outside the chart with
+    probability 0.00046 per hand, so the 600-hand run behind
+    `reports/active/latest_refusal_inventory.txt` expects 0.28 refusals and finds none about
+    three times in four; an overlap with the corpus's gap spots is smaller again. Asserting
+    it would be asserting a coin flip, and the floor run has contributed zero spot keys for
+    as long as it has existed.
+
+    So the anti-vacuity protection is asserted where it lives rather than inferred from an
+    overlap: `_self_play_spots` raises on an empty read instead of returning an empty set,
+    which is what stops every spot silently becoming NEW, and the test below pins that it
+    keeps raising. The surviving half is the one the claim was about, and the cutover makes
+    it more true rather than less. Filed as `SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS`: the
+    corpus is now the only source of chart coverage gaps this repo has at six-handed 100bb,
+    which is a real change in what the simulator can teach.
     """
-    assert any(entry.seen_in_self_play for entry in comparison.refusal_inventory)
+    assert comparison_module._self_play_spots()
+    assert comparison.refusal_inventory
     assert any(not entry.seen_in_self_play for entry in comparison.refusal_inventory)
 
 

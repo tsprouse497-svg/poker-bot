@@ -884,3 +884,187 @@ mutations:
     must_fail:
       - generate_table_state_report
       - pytest
+
+  # Phase 14's canaries, authored at stage 4 before any implementation exists. Every `find`
+  # below is therefore a specification the stage 6 builder must produce verbatim, the same way
+  # phases 11, 12 and 13's were: a canary written after the code can only describe what was
+  # already written, which is how phases 08, 09 and 10 each ended up with no canary for the one
+  # behaviour their phase existed to add. A find string that does not occur is the builder
+  # having drifted from the specification, not the canary being wrong.
+  #
+  # Two of the eight below satisfy the contract's requirement that at least one canary prove a
+  # wrong ARTIFACT fails the gate rather than merely a wrong report:
+  # `derivation-reach-floor-drops-to-a-tenth` and `committed-cells-claim-the-whole-range-arrived`.
+  # The mechanism is worth stating exactly, because the first version of this comment described
+  # one that does not run and an independent review caught it. No mutation here touches anything
+  # under `data/`, and `check_gate_bite` never regenerates the artifact, so the committed file
+  # stays correct throughout. What bites is the DISAGREEMENT between mutated derivation code and
+  # the unchanged committed artifact, caught by `convert_preflop_export.py --check` and by the
+  # report validating the artifact's own spot count against the walk's. That comparison is
+  # symmetric - it cannot tell which side moved - so a mutated deriver and a corrupted artifact
+  # are one failure to it, which is what makes these two canaries evidence about the artifact and
+  # not only about the code that writes it.
+
+  - id: derivation-reach-floor-drops-to-a-tenth
+    description: >-
+      Decision 1's ruled selection rule moves from 2 percent of hero's arriving range to 0.2
+      percent, so the walk keeps thousands of deep nodes the solve never converged on. Measured
+      on the committed export, the 2 percent floor selects 5,626 of 38,828 nodes and a 1 percent
+      floor already selects 9,407, so the mutated walk and the committed artifact disagree by
+      thousands of spots. Nothing raises: every extra node derives a valid key, so the mutated
+      chart is entirely self-consistent and answers spots whose ranges are unconverged - the
+      hijack facing a lojack four-bet folding JJ 97 percent while calling 76s outright is what
+      lives down there. `generate_derived_chart_report` is named because the report validates the
+      artifact's own spot count against the walk's own and exits non-zero when they disagree; a
+      report that renders whatever it is handed exits 0 however wrong the chart is.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "REACH_FLOOR_BP = 200"
+    replace: "REACH_FLOOR_BP = 20"
+    must_fail:
+      - pytest_derived_chart
+      - generate_derived_chart_report
+      - pytest
+
+  - id: committed-cells-claim-the-whole-range-arrived
+    description: >-
+      Every committed cell records full arriving reach instead of the reach the export gives it,
+      so a cell the solver trained and a cell it barely visited become indistinguishable. That is
+      exactly the information `CHART-CELLS-SHOULD-CARRY-ARRIVING-REACH` asks for and decision 5
+      ruled in, and it is the same information a refusal carries. The artifact still validates,
+      still imports, still answers every spot it did before, and every frequency in every report
+      is unchanged, so nothing but a test comparing the committed reach against the export's own
+      `reach_bp` can see it.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "reach_by_class[hand_class_text] = node.reach_bp[gtopen_class_index(hand_class_text)]"
+    replace: "reach_by_class[hand_class_text] = 10_000"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: the-walk-takes-each-action-from-the-node-that-follows-it
+    description: >-
+      The actor of a recorded action is read from the node the action leads to rather than from
+      the node it was taken at, so every entry in every spot key names the wrong seat. This is
+      the conversion's counterpart of `solver-export-hand-index-uses-the-grid-ordering`: an
+      off-by-one in whose action is whose, silent wherever the two seats happen to coincide, and
+      it is the single most likely defect in a tree walk that has to look backwards to say who
+      acted. A chart keyed this way is internally consistent and describes a different game.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: 'entries.append(PreflopAction(parent.actor_pos, "call"))'
+    replace: 'entries.append(PreflopAction(node.actor_pos, "call"))'
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: the-artifact-declares-blinds-it-was-not-solved-at
+    description: >-
+      The artifact declares a 1/3 blind structure while carrying ranges solved at 0.5/1. Decision
+      4 added the field so a lookup can refuse a game whose blinds are not in the solved ratio
+      instead of answering it silently, and this is that field lying rather than being absent,
+      which is strictly worse: the same hand at the same stack depth is a different decision at
+      1/3, and a declared-but-wrong structure passes every check an absent one would fail.
+      `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE` was phase 13's largest single
+      finding, and a field nobody checks against the export's own `config_posted.posts` closes it
+      in name only.
+      Re-aimed at stage 4 after an independent review. The first version replaced the payload
+      line in `schema.py` with a hardcoded 1/3 structure, and would have bitten only if stage 6
+      routed the derived payload through `PreflopArtifact.to_payload()`, which nothing specifies -
+      and the one committed test that does exercise `to_payload` round-trips it, so both dumps
+      would carry the same wrong structure and agree. Aimed instead at the derivation, where the
+      structure is read out of the export's own `config_posted.posts`, so the canary bites
+      wherever the payload is assembled. Tripling the big blind rather than inverting the two
+      keeps the mutation SILENT: an inverted structure is refused by the schema's own validation
+      and would fail loudly, where 0.5/3.0 is a structure the schema accepts and only a test
+      comparing it against the export's posts can catch.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "        big_blind_bb=float(posts[-1]),"
+    replace: "        big_blind_bb=float(posts[-1]) * 3.0,"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: a-jam-only-spot-goes-back-to-having-no-size
+    description: >-
+      The sizing table stops pricing an all-in, so the 4,257 export nodes that offer a jam and no
+      named raise carry a `raise` weight the sizing table cannot price: the chart says raise and
+      cannot say how much. That is the "commit sizeless and refuse on price" option decision 6
+      rejected, arriving by omission instead of by ruling. The GTO Wizard source this repo
+      converted before had zero spots of that kind, which is why the rule it inherited was safe
+      there and is not here, and it is why the note that a spot absent from the sizing table has
+      no size stops being true of a chart nobody edited.
+      Re-aimed at stage 4 after an independent review: the file was `scripts/convert_preflop_export.py`,
+      but the frozen tests require the sizing table to come out of
+      `chart_derivation.derive_chart(export).sizing_payload`, and a `src/` module cannot import the
+      rule back out of `scripts/`. `check_gate_bite` requires the find string to occur exactly once
+      in the named file, so the canary would have halted stage 7 with zero occurrences unless the
+      builder wrote the collapse rule twice.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: '        if action.kind in ("raise", "jam"):'
+    replace: '        if action.kind == "raise":'
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: hero-may-limp-again
+    description: >-
+      The schema rule forbidding a call weight at a folded-to-hero spot goes vacuous, so an
+      artifact in which hero limps imports cleanly. `CHART-HERO-MUST-NEVER-LIMP` asks for exactly
+      this rule and says why: the committed export enforces it by construction, "but that is a
+      property of the data rather than a rule", and phase 14 owns the schema. The retired chart
+      limped 13.73 percent from the small blind across 103 hand classes carrying a nonzero call
+      weight, so this is not hypothetical - it is the state the repo shipped in until this phase.
+      `generate_derived_chart_report` is deliberately not named, and that is a finding rather
+      than an omission: the committed artifact does not limp, so no report figure moves and no
+      command that reads only good data can notice. What kills it is the test that constructs a
+      limping artifact and requires the schema to refuse it, which is the whole difference
+      between a rule and a measurement over one file.
+    file: src/poker_training_bot/solver_artifacts/schema.py
+    find: "if not spot.action_sequence and call_weight > 0.0:"
+    replace: "if False and call_weight > 0.0:"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: the-derived-chart-report-renders-whatever-it-is-handed
+    description: >-
+      The report's own validation goes vacuous, so it publishes a census that does not add up, a
+      spot count that disagrees with the walk, a dominance relation that does not hold, and an
+      old-versus-new disagreement count nobody recomputed. This repo has twice shipped a
+      validator that could not fail, and phase 13's adversarial verifier found the second one by
+      reverting a fix and watching all 45 commands stay green.
+      `generate_derived_chart_report` is deliberately NOT named below, and saying so is the point
+      rather than a hedge: on the committed data every figure is right, so a validator that has
+      stopped checking still exits 0. What kills this is the tests that feed the generator a
+      deliberately wrong input and require a non-zero exit, which is the only way a check that
+      cannot fail is distinguishable from a check that passes.
+    file: scripts/generate_derived_chart_report.py
+    find: "    if validation_errors:"
+    replace: "    if False:"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: the-old-versus-new-comparison-reads-the-new-chart-twice
+    description: >-
+      The retired chart is no longer read out of git history at the pinned commit decision 7
+      names; the comparison is handed the derived chart a second time. Every corpus decision then
+      agrees with itself, the disagreement count is zero, and the report's most concrete claim
+      about what the cutover changed in play reads at its strongest exactly when it has stopped
+      measuring anything. The same shape as `corpus-self-play-crossref-empties-silently`: an
+      input that quietly becomes trivial rather than raising.
+      What kills it on `generate_derived_chart_report` is one specific validator case, added at
+      stage 4 after an independent review found this canary did not bite: a zero disagreement
+      count over a nonzero shared overlap must be refused. Without it the mutated report renders
+      and exits 0, because zero disagreements passes every arithmetic check on the count - and the
+      cheap repair at stage 7 would then have been to drop this command from `must_fail`, which
+      loosens the gate instead of the code. Do not delete that case. It is also the right claim on
+      its own terms: the retired chart three-bets to 8, 11 and 13.5 and opens the small blind to
+      3.5, the derived one holds only 2.5, 7.5, 22.5 and 100, and two charts that disagree about
+      hero's own opening price cannot agree on a thousand shared corpus decisions.
+    file: scripts/generate_derived_chart_report.py
+    find: "    retired = load_retired_chart_from_git(RETIRED_CHART_COMMIT)"
+    replace: "    retired = derived"
+    must_fail:
+      - generate_derived_chart_report
+      - pytest_derived_chart
+      - pytest

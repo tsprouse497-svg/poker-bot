@@ -74,11 +74,11 @@ def sizing() -> PreflopSizingTable:
     ("value", "rendered"),
     [
         (2.5, "2.5"),
-        (8.0, "8"),
+        (7.5, "7.5"),
+        (22.5, "22.5"),
         (11.0, "11"),
         (13.5, "13.5"),
         (2.25, "2.25"),
-        (21.5, "21.5"),
         (100.0, "100"),
         (0.5, "0.5"),
     ],
@@ -86,8 +86,9 @@ def sizing() -> PreflopSizingTable:
 def test_a_size_renders_as_hundredths_with_trailing_zeros_stripped(value, rendered) -> None:
     """Taylor ruled this rendering on 2026-08-20 and it goes into committed data.
 
-    Every case is a size the committed sizing table or the corpus actually holds, so
-    none of them is a shape nobody will meet.
+    Every case is a size the committed sizing table or the corpus actually holds, so none
+    of them is a shape nobody will meet. 2.5, 7.5, 22.5 and 100 are the four the derived
+    chart carries; 11 and 13.5 are corpus prices the normaliser has to render to answer.
     """
     assert schema_module.render_size_bb(value) == rendered
 
@@ -157,12 +158,21 @@ def test_the_opener_facing_a_three_bet_carries_both_prices() -> None:
     )
 
 
-def test_a_small_blind_open_carries_its_own_larger_price() -> None:
-    """The tree already has two opening prices: the small blind opens to 3.5."""
+def test_a_second_opening_price_is_a_second_spot() -> None:
+    """The vocabulary has to be able to say it whether or not a chart uses it.
+
+    The raked chart opened the small blind to 3.5 and the rake-free solve opens everyone
+    to 2.5, so this is now a key for a spot no committed artifact declares - which is the
+    point: a grammar that could only spell the prices one solve happened to pick would
+    have to be re-cut every time a solve is replaced.
+    """
     assert key("BB", raise_to("SB", 3.5)) == "t6/d100/BB/SB:raise@3.5"
+    assert key("BB", raise_to("SB", 2.5)) == "t6/d100/BB/SB:raise@2.5"
 
 
 def test_a_limp_carries_no_price_and_reads_as_it_did() -> None:
+    """Still a legal key, and since the cutover no longer a covered spot. The grammar
+    and the coverage are different questions and this file only asks the first."""
     assert key("BB", call_by("SB")) == "t6/d100/BB/SB:call"
 
 
@@ -329,24 +339,34 @@ def test_every_committed_raise_entry_carries_a_size(library) -> None:
     assert sizeless == []
 
 
-def test_the_committed_artifact_still_holds_thirty_six_spots(library) -> None:
-    """Re-keying is not re-solving. Each prefix admits one solved size, so the count
-    does not move, which is what makes the size free in cells."""
-    assert len(library.spot_keys()) == 36
+def test_the_committed_spot_count_is_the_one_the_artifact_declares(library) -> None:
+    """Phase 12 asserted 36 here, on the argument that re-keying is not re-solving.
+
+    Phase 14 is a re-solve, so that claim is gone rather than loosened: the count the
+    reach floor selects is decision 1's arithmetic and the permitted re-solve moves it.
+    What survives is the half re-keying was really guarding - that the keys the library
+    exposes and the count the artifact audits itself against are one number, so a
+    re-keying that dropped or collided a spot cannot pass silently.
+    """
+    assert len(library.spot_keys()) == library.artifacts[0].audit_fields.spot_count
+    assert len(library.spot_keys()) > 36
 
 
 def test_the_committed_keys_are_the_measured_ones(library) -> None:
     """Five hand-checked keys, each traceable to a sizing entry by a reader.
 
-    `t6/d100/CO/rfi` is 2.5 and `t6/d100/BTN/LJ:raise` is 8.0, which is where the two
-    prices in the three-bet key below come from.
+    Re-measured against the rake-free chart. The retired chart's small-blind open at 3.5
+    and its 8.0 three-bet are gone, and so is the limped spot; the four prices this tree
+    carries are 2.5, 7.5, 22.5 and 100, and the last of those is the all-in decision 6
+    prices at hero's whole stack.
     """
     keys = set(library.spot_keys())
     assert "t6/d100/BTN/CO:raise@2.5" in keys
-    assert "t6/d100/BB/SB:raise@3.5" in keys
-    assert "t6/d100/BB/SB:call" in keys
-    assert "t6/d100/LJ/LJ:raise@2.5,BTN:raise@8" in keys
-    assert "t6/d100/SB/SB:raise@3.5,BB:raise@10.5" in keys
+    assert "t6/d100/BB/SB:raise@2.5" in keys
+    assert "t6/d100/BB/SB:call" not in keys
+    assert "t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5" in keys
+    assert "t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5" in keys
+    assert "t6/d100/BTN/LJ:raise@2.5,CO:call" in keys
 
 
 def test_every_sizing_key_is_a_key_the_artifact_declares(library, sizing) -> None:

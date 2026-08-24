@@ -1,11 +1,13 @@
 task_id: PHASE_14_CHART_CUTOVER
 active_phase: "14"
-task_mode: contract-update
-base_commit: 28e302d728de6d188bd75d1633d09b58f304b862
+task_mode: implementation
+base_commit: b834bdcbda4c746647631fa3cdd4061f971282cf
 approved_scope:
-  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
-  - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
+  - tests/**
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - scripts/run_verify.py
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -985,3 +987,25 @@ scope_change_log:
       must stop for a human, and this phase's central call - which subset of the solved tree
       becomes the chart the bot plays - is frozen-into-data, so the list has to exist before any
       test is authored.
+  - date: 2026-08-24
+    reason: >-
+      Phase 14 stage 4 authors the tests before any implementation exists, so it needs tests/**,
+      the two declared gate commands registered in scripts/run_verify.py, their mutation canaries
+      in verification/mutations.yml, and the freeze lock those tests are recorded in. The canaries
+      are authored here rather than at stage 7 because phases 08, 09 and 10 each wrote their own
+      after the code and each filed that as the same miss; every `find` string added now is a
+      specification the stage 6 builder has to produce verbatim, on the phase 11, 12 and 13
+      precedent.
+      tests/** is approved as a whole rather than as this phase's own files, because the contract's
+      regression expectation requires every frozen test of a completed phase that asserts against
+      the chart's contents to be migrated here, at stage 4 and before the freeze, rather than
+      repaired afterwards. Phases 11 and 12 each deferred that and each paid a separate repair task.
+      The migration is confined to assertions the cutover makes false - the retired artifact's
+      filename, its 36 spots, its 3.5bb small-blind open and its 8/11/13.5 three-bet prices - and
+      no assertion is weakened.
+      docs/phase_contracts/PHASE_14_CHART_CUTOVER.md and the decision record leave approved_scope
+      here, which is the point: check_scope.py is what mechanically enforces the rule that
+      implementation mode may not edit the contract it is measured against. base_commit moves to
+      the stage-3 close on the phase 05 and phase 12 precedent, so the contract and decision-record
+      edits that were legitimately in scope under contract-update do not read as out-of-scope work
+      by this task.

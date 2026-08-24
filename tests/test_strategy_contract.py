@@ -68,40 +68,39 @@ def _audit_line_for(outcome: StrategyDecision | StrategyRefusal) -> str:
 
 
 def _uncovered_spot_query() -> StrategyQuery:
-    """A six-handed 100bb five-bet spot, which the committed charts do not hold.
+    """A six-handed 100bb limped pot, which the committed chart does not hold.
 
-    Phase 05 committed opens, responses to a single open, an opener facing a three-bet, and
-    the big blind against a small-blind limp. A third raise is past all of those, so the
-    lookup misses and the refusal has a spot key to name.
+    Authored as a five-bet spot, which the raked 36-spot chart missed. The rake-free solve
+    runs to a four-bet and a shove over it and the reach floor keeps those lines, so a
+    five-bet is answered now and would make this test pass for the wrong reason. A limp
+    cannot come back: the ruled config is `limp: false` and the non-goals forbid re-solving
+    with limps, so the lookup misses and the refusal has a spot key to name.
 
-    Everybody starts on 10,000, so the table is flat at 100bb and the depth checks pass
-    the spot through to the chart rather than refusing on the table shape. Seat 1 opens to
-    250, seat 2 three-bets to 800, seat 1 four-bets to 2,150 and seat 2 five-bets to 3,500,
-    which is a legal ladder: each raise is at least the last increment. The old fixture
-    raised 2,150 to 2,200, an under-raise no legal preflop street produces, and stated a
-    pot no seat had paid for.
+    Everybody starts on 10,000, so the table is flat at 100bb and the depth checks pass the
+    spot through to the chart rather than refusing on the table shape. The small blind's
+    100 is explained by its own recorded call, so the pot reconciles seat by seat and the
+    forced-money detector reads no straddle and no ante.
     """
-    contributed = {1: 2150, 2: 3500, 4: 50, 5: 100}
-    still_in = {1, 2}
+    contributed = {4: 100, 5: 100}
     full = 10_000
     return StrategyQuery(
-        hand_id="five-bet",
+        hand_id="limped",
         street="preflop",
-        seat=1,
+        seat=5,
         button_seat=3,
         hole_cards=("As", "Ah"),
         board=(),
-        legal_actions=("fold", "call", "raise"),
-        to_call=1350,
-        current_bet=3500,
-        min_raise_target=4850,
+        legal_actions=("check", "raise"),
+        to_call=0,
+        current_bet=100,
+        min_raise_target=200,
         pot=sum(contributed.values()),
         seat_states=tuple(
             SeatState(
                 seat=seat,
                 street_bet=contributed.get(seat, 0),
                 committed_total=contributed.get(seat, 0),
-                folded=seat not in still_in,
+                folded=seat not in {4, 5},
                 all_in=False,
             )
             for seat in range(6)
@@ -109,10 +108,11 @@ def _uncovered_spot_query() -> StrategyQuery:
         stacks=tuple((seat, full - contributed.get(seat, 0)) for seat in range(6)),
         blinds=(50, 100),
         preflop_actions=(
-            SeatAction(1, "raise", 250),
-            SeatAction(2, "raise", 800),
-            SeatAction(1, "raise", 2150),
-            SeatAction(2, "raise", 3500),
+            SeatAction(0, "fold"),
+            SeatAction(1, "fold"),
+            SeatAction(2, "fold"),
+            SeatAction(3, "fold"),
+            SeatAction(4, "call"),
         ),
     )
 
@@ -505,3 +505,4 @@ class TestChartRefusalsNameTheirSpot:
         assert outcome.named("hand_class")
         assert outcome.named("table_size") == "6"
         assert outcome.named("stack_depth_bb") == "100"
+        assert outcome.named("spot_key") == "t6/d100/BB/SB:call"

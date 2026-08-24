@@ -157,8 +157,11 @@ why" - because the export can neither fit under the byte cap nor be trusted at d
   chart's 13.73 percent small-blind limp is combo-weighted over 1,326 combos; the unweighted mean
   is 17.32. The contract no longer quotes the first, requires the phase to publish the second with
   its definition, and states the basis of the third.
-- **The roadmap's spot counts do reproduce, at a five-entry cap.** `ROADMAP-SPOT-COUNTS-DO-NOT-
-  REPRODUCE` says no variation tried reproduces 1,691 and 848. The variation is the entry cap:
+- **The roadmap's spot counts do reproduce, at a five-entry cap.**
+  `ROADMAP-SPOT-COUNTS-DO-NOT-REPRODUCE` says no variation tried reproduces 1,691 and 848. The
+  id is kept on one line deliberately: the quality gate reads every capitalised hyphenated token
+  in `docs/` and `reports/` as a backlog id, so a wrapped one becomes a citation of an item nobody
+  created. The variation is the entry cap:
   five gives 1,691 and 848 exactly, six - where the v1 vocabulary saturates - gives 1,949 and 977.
   The entry is answerable and has been updated rather than left open.
 - **A derived chart cannot be gzipped.** `import_preflop_artifacts` globs `*.json` and reads text,
