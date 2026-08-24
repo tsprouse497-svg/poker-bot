@@ -360,3 +360,41 @@ committed chart and pins them into live documents, and the cutover moves several
 `quality_checks`'s fact-drift check doing its job rather than a failure, but it is check-script
 territory a phase task may not reach, so it is likely to need its own maintenance task between
 stage 6 commits, on the MAINT-24 and MAINT-25 precedent.
+
+## Verification brief for the next agent: the cold-call finding
+
+Written at the stage-4 halt, 2026-08-24. Everything below is a claim to be **falsified**, not a
+result to be confirmed. It was measured by the agent that also wrote the tests, which is exactly
+the arrangement this repo distrusts, so recompute rather than quote.
+
+    Work only in ~/projects/poker-bot-worktrees/phase-14 on phase/14-chart-cutover. The loop is
+    halted at stage 4; do not advance it. Read reports/phase_audits/reviews/
+    PHASE_14_CHART_CUTOVER/stage-04-tests.md and verification/loop_runs/14.yml first.
+
+    Verify or refute, independently, from
+    data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz. Write your own walk;
+    do not import chart_derivation, which does not exist yet, and do not reuse the scratch
+    scripts.
+
+    1. At node path [1,0,0,0,0] the big blind faces a 2.5bb lojack open and defends 27.28% of
+       its range, combo-weighted, with KQo calling 99.9% and AA raising to 7.5 at 99.7%.
+    2. At node path [1,1,0,0,0], the same spot plus one hijack cold-call, it defends 7.44%,
+       KQo folds 99.9%, AJo 99.5%, T9s 99.9%, K9s 99.2%, and AA jams 100bb at 94.3%.
+    3. The price improves from needing 27.3% equity to needing 18.8%.
+    4. Both nodes clear the ruled 2% reach floor, so both are committed spots.
+    5. Across the 26 committed spots where the big blind faces one 2.5bb open plus one to four
+       cold calls, defence never rises above 40.57% and falls as low as 4.01%, and is not
+       monotone in the number of callers.
+
+    Then answer the question the numbers cannot: is this a defect, or is it correct for a
+    100bb six-max game with no rake? State which hands you would defend at node 2 and why, in
+    poker terms, before you look at what the solver did.
+
+    Two claims to check separately, because they change what the phase does rather than what it
+    believes. First: `reach_bp` in the export is the ACTOR's own range survival, not the
+    probability the line occurs, so decision 1's floor keeps every node where hero has not yet
+    acted however rare the line. Second: no aggregate form of decision 10's two relations passes
+    over all 5,626 committed nodes, and over the 351 full-reach nodes the suited-versus-offsuit
+    aggregate gives 6 violations as solved against 97 with suited and offsuit transposed.
+
+    Report findings only. Change no test, contract or artifact.
