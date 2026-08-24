@@ -26,23 +26,23 @@ The phase commits the ranges. Every phase after it is measured against what is c
 which is why `verification/loop_policy.yml` gives it `auto_advance: false` and why more of its
 decision list is `frozen-into-data` than any phase since 10.
 
-**The phase converts a subset of the export, and choosing the subset is its central decision.**
-Two independent reasons, both measured before this contract was written. The export holds 38,828
-action nodes; at the retired chart's own measured 7,346 bytes per spot that is 272 MiB, and 131
-MiB compacted, against a 20 MiB cap on `data/artifacts` that phase 10 set as a halt rather than a
-number to raise - roughly 2,100 spots of headroom against 38,828 nodes. And the deep nodes should
-not be committed even if they fit: GTOpen's solve target is a summed best-response gap in big
-blinds over the whole tree, so a 0.01bb target constrains nothing at a node carrying negligible
-mass. The one deep node the export publishes shows it. At `latest_solver_export_report.txt`, HJ
-facing a lojack four-bet to 22.5 folds JJ 97 percent, TT and 99 outright, and KJs outright, while
-calling 76s outright - at 64 to 100 percent arriving reach, so these are reached cells rather than
-rounding. Over the eleven published grids the two airtight dominance relations give one violation
-across the ten shallow reference nodes and 42 at that single four-bet node. The export is clean
-where a human read it and unconverged where he did not, and phase 10 committed the whole tree
-precisely so that this phase could choose rather than re-solve.
+**The phase converts a subset of the export, and choosing the subset was its central decision.**
+Two independent reasons, both measured. The export holds 38,828 action nodes, and committing them
+as chart spots is 272 MiB at the retired chart's own 7,346 bytes per spot or 131 MiB compacted,
+against a 20 MiB cap on `data/artifacts` that phase 10 set as a halt rather than a number to
+raise - about 2,267 spots of headroom, or 8,650 once each spot is filtered to hero's arriving
+range. And the deep nodes should not be committed even if they fit: the solve target is a gap
+summed over the whole tree, so it constrains nothing where mass is negligible. The one deep node
+the export publishes shows it - the hijack facing a lojack four-bet to 22.5 folds JJ 97 percent
+and TT, 99 and KJs outright while calling 76s outright, at 64 to 100 percent arriving reach - and
+the two dominance relations separate the shallow tree from that one node sharply under every
+tolerance tried. The export is clean where a human read it and unconverged where he did not, and
+phase 10 committed the whole tree so that this phase could choose.
 
-So a selection rule is required, it is `frozen-into-data`, and it must rest on arriving reach or
-an equivalent convergence measure rather than on whatever makes the file fit.
+**Ruled by Taylor on 2026-08-23: keep a node when at least 2 percent of hero's range arrives
+there.** 5,626 spots and 10.3 MiB against a 15.9 MiB budget as measured on the current export;
+decision 1 records that the threshold is the ruling and the count is not, since four other
+rulings move it.
 
 Four things arrive ruled and are not reopened. Limps left the solve at phase 10's human gate, on
 the measurement that limps are 87 percent of the tree and that hero never limps, so the committed
@@ -53,9 +53,18 @@ rake-free corpus and removes one of the explanations phase 08 offered for the ca
 second solved opening price is added. And the export is not graded against GTO Wizard, because a
 threshold over the gap between two programs measures two products.
 
-What this phase does not do: it runs no new solve, it does not change the spot key grammar, it
-adds no depth or table size, and it does not touch `data/samples/**`. The corpus is evidence and a
-phase does not get to edit the thing it is measured by.
+What this phase does not do: it does not change the spot key grammar, it adds no depth or table
+size, and it does not touch `data/samples/**`. The corpus is evidence and a phase does not get to
+edit the thing it is measured by.
+
+**One re-solve is permitted, at the ruled config and nothing else.** Taylor ruled decision 2 on
+2026-08-24 by re-solving rather than by hand-editing or accepting the one non-monotone cell the
+shallow tree carries: the committed solve stopped at 300 iterations against a 2,000 cap because
+its target is a gap summed over the whole tree, and marginal hands converge last. So the phase may
+re-run the same six-handed, 100bb, 2.5bb-open, no-limp, rake-free config at a tighter gap. It may
+not add an opening price, add limps, add a depth or change a table size; those remain
+phase-10-shaped work. What the re-solve owes is in the criteria below, because a new export does
+not inherit the old one's proofs.
 
 ## Non-goals
 - Do not add PokerNow automation.
@@ -63,21 +72,23 @@ phase does not get to edit the thing it is measured by.
 - Do not add runtime solver calls.
 - Do not add LLM-backed poker decisions.
 - Do not add training UI surfaces.
-- Do not re-solve at a second opening price, and do not re-solve with limps. Both are
-  phase-10-shaped work with their own human verdict.
+- Do not re-solve at a second opening price, with limps, at another depth, or at another table
+  size. All are phase-10-shaped work with their own human verdict. The one permitted re-solve is
+  the ruled config at a tighter gap, and its purpose is to settle decision 2 rather than to widen
+  coverage.
 - Do not change the spot key grammar. Phase 12 set it, re-keying re-seeds every mixed cell
   (`RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`), and paying that twice buys one result.
-- Do not rederive `data/artifacts/preflop/expectations/six_max_nl25_100bb.json` from the export.
-  Its own notes say it holds "the only numbers in this phase that this repo did not produce, so
-  they are what catches a range that is uniformly wrong rather than merely self-consistent". A
-  reference regenerated from the thing it checks cannot fail.
+- Do not rederive `data/artifacts/preflop/expectations/six_max_nl25_100bb.json` from the export. Its
+  own notes call it "the only numbers in this phase that this repo did not produce", which is what
+  catches a uniformly wrong range; a reference regenerated from what it checks cannot fail.
 
 ## Acceptance criteria
 
 ### Selecting what gets committed
-- The selection rule is stated in the decision list as `frozen-into-data`, ruled by a human before
-  any conversion runs, and expressed as a predicate over an export node - not as a spot count and
-  not as a byte budget. A rule chosen to make the file fit is a rule the poker did not pick.
+- The committed spots are exactly those the ruled predicate selects, and the predicate is the
+  ruling rather than the spot count it produced: if the count no longer fits under the cap once the
+  schema fields and the re-solve land, that is a halt and a return to the decision list, not a
+  quietly tightened floor. A rule adjusted to make the file fit is a rule the poker did not pick.
 - Every node in the export is accounted for by the walk in exactly one of three buckets:
   committed, excluded by the selection rule, or inexpressible in the spot vocabulary. The three
   counts sum to the node count published in the export's source card. The exclusion reason and the
@@ -90,6 +101,33 @@ phase does not get to edit the thing it is measured by.
   tell a cell the solver trained from one it barely visited, or the phase states why the schema
   cannot and files it. Today the schema has no such field, and a refusal and an untrained cell are
   the same information the chart cannot express.
+
+### What the permitted re-solve owes
+- The re-solved export replaces the committed one and re-establishes **every** property its source
+  card claims, because none is inherited. Enumerated from
+  `gtopen_six_max_100bb_rakefree.source.json` rather than remembered: the two-process determinism
+  proof at zero divergence and zero shape differences; the walk, meaning every action node asked a
+  second time by its own recorded action sequence and returning the same node with zero
+  mismatches; the node-count reconciliation between the export and the solver's own count; a
+  restamped `export_sha256` and saved-solve checksum; and the recomputed `size` block.
+- The `config_posted` block is byte-identical to the current one apart from the solve target, and
+  the criterion asserts that rather than trusting it. That is what makes this a re-solve of the
+  ruled game rather than a new one, and it is the only thing standing between decision 2's ruling
+  and a second opening price arriving by accident.
+- `model` stays `realization=calibrated`. Decision 3's ruling records a measured realization bias
+  onto the artifact's source card, and that statement is about this model; a different one makes
+  the recorded bias false rather than fixed.
+- The two gated orderings are re-asserted against the new export: later position opens wider among
+  the four non-blind positions, and the big blind defends more against whoever opens wider.
+- The report publishes what moved between the two solves - the cells whose frequency changed by
+  more than the monotonicity tolerance, and the eleven aggregate frequencies before and after. If
+  anything beyond the marginal cells moved, that is a human read of the range grids rather than a
+  number in a report, and the phase says so rather than proceeding.
+- The one violation the monotonicity rule names in the shallow tree is expected to disappear. If
+  it survives the tighter gap, decision 2's ruling says it is the solver's considered answer and
+  ships as solved, with that outcome recorded rather than reopened.
+- The source card records both solves: the iteration count, the target and achieved gap, and the
+  wall clock for each. A reader must be able to see that the committed ranges came from the second.
 
 ### The derived artifact
 - The artifact is derived from `data/artifacts/preflop/exports/` by a committed script and is
@@ -118,49 +156,46 @@ phase does not get to edit the thing it is measured by.
   rather than a rule", and phase 14 owns the schema. The retired chart limps 13.73 percent from
   the small blind, combo-weighted over 1,326 combos, across 103 hand classes carrying a nonzero
   call weight.
-- The committed cells are monotone under the two relations that hold in every preflop spot: a
-  higher pair is played at least as often as a lower pair, and a suited hand at least as often as
-  the offsuit hand of the same two ranks. No wider order is asserted, because preflop strength is
-  not totally ordered - plain card-rank dominance gives 61 to 121 violations per node over the
-  published grids and its top hits are correct poker, the lojack opening 76s always and T6s never.
-- The one violation those two relations find in the shallow tree is settled rather than declared:
-  the lojack opens 44 at 72.81 percent while opening 33 and 22 outright
-  (`SOLVE-TARGET-LEAVES-A-NONMONOTONE-PAIR`). The permitted dispositions are the two that entry
-  names - re-solve to a tighter gap before deriving, or smooth the pair ladder with the reason
-  recorded - and shipping it with a note is not one of them. Folding 44 more than a quarter of the
-  time from the lojack while always opening 22 is a leak in the most-played cell family in the
-  chart.
+- The committed cells are monotone under the two relations that hold in every preflop spot, at the
+  tolerance decision 10 rules: a higher pair played at least as often as the pair one rank below,
+  and a suited hand at least as often as the offsuit hand of the same two ranks, with a gap over one
+  percentage point counting. No wider order is asserted, because preflop strength is not totally
+  ordered - plain card-rank dominance gives 61 to 121 violations per node over the published grids
+  and its top hits are correct poker, the lojack opening 76s always and T6s never.
+- The one violation that rule finds in the shallow tree today is settled by the permitted re-solve
+  rather than declared: the lojack opens 44 at 72.81 percent while opening 33 at 99.88 and 22 at
+  99.92 (`SOLVE-TARGET-LEAVES-A-NONMONOTONE-PAIR`). If it survives a tighter gap, decision 2 rules
+  that it is the solver's considered answer and ships as solved with that recorded; nobody
+  hand-edits the cell in either branch.
 - The orderings the export was gated on hold in the derived artifact: later position opens wider
   among the four non-blind positions, and the big blind defends more against whoever opens wider.
   These survive any rake basis and any solver, which is why they transfer.
-- `REALIZATION-MODEL-UNDERPRICES-POSITION` is settled with one of the three dispositions it names
-  - accept and record it on the chart's source card, correct it with a stated adjustment, or solve
-  elsewhere - and the chosen one is written into the source card of the committed artifact. It is
-  a measured claim about the ranges this phase commits: the big blind folds 50.98 percent facing a
-  2.5bb small-blind open from a 54 percent range, closing the action with 1.5 to win 3.5 and
-  needing 30 percent in position. Leaving it unnamed makes the closing measurement unfalsifiable,
-  because the big blind holds 58 of the 89 human call disagreements.
+- `REALIZATION-MODEL-UNDERPRICES-POSITION` is accepted and stated on the committed artifact's
+  source card, which is decision 3's ruling, in poker terms with its measurement: the big blind
+  folds 50.98 percent facing a 2.5bb small-blind open from a 54 percent range, closing with 1.5 to
+  win 3.5 and needing 30 percent in position. Leaving it unnamed would make the closing measurement
+  unfalsifiable, since the big blind holds 58 of the 89 human call disagreements.
 
 ### The closing measurement
 - The prediction is written into the decision list before the measurement runs, **per opener and
-  with a magnitude band**, computed from the export's own published deltas. A directional
-  prediction cannot answer the question this phase is asked. Big-blind defence widens 4.65 points
-  against the lojack, 3.72 against the hijack, 2.64 against the cutoff and 6.14 against the small
-  blind, and comes back 2.67 points *tighter* against the button - the opener that generates the
-  most big-blind defending decisions in any six-max sample - so an aggregate prediction that
-  defence widens is falsified in advance on its largest component. And roughly five points of
-  extra defence is about 60 combos of 1,326 against a 39-point call-agreement gap, so any nonzero
-  movement confirms a directional prediction while leaving the gap intact.
+  with a magnitude band** - ruled at a quarter to one times that opener's defence delta - and the
+  deltas are recomputed from the re-solved export rather than carried over. A directional
+  prediction cannot answer the question this phase is asked: defence widens against four openers
+  and comes back 2.67 points *tighter* against the button, which generates the most big-blind
+  defending decisions in any six-max sample, so an aggregate "defence widens" is falsified in
+  advance on its largest component. And five points of extra defence is about 60 combos of 1,326
+  against a 39-point call-agreement gap, so any nonzero movement confirms a sign-only prediction
+  while leaving the gap intact.
 - The prediction covers price too, and says which way. The cutover reprices hero's own small-blind
   open from 3.5bb to 2.5bb, so the big-blind-facing-small-blind family moves from a 3.5-solved
-  answer to a 2.5-solved one against a corpus median open of 2.25. "The price-tracking part will
-  not move" is false by construction for that family.
+  answer to a 2.5-solved one against a corpus median open of 2.25, and "the price-tracking part
+  will not move" is false by construction for that family.
 - The report names all three candidate explanations for any residual gap - rake, price, and the
-  realization model's underpricing of position - and says which of them this measurement can
-  separate and which it cannot. Two of the three are still uncontrolled after the cutover.
-- The report states that price is uncontrolled, and publishes the corpus opening-price
-  distribution rather than only the qualification: how much of the sample sits at each price, and
-  whether it clusters at 2.25 or spreads. That is what quantifies the cost of phase 12's ruling 8.
+  realization model's underpricing of position - and says which this measurement can separate and
+  which it cannot. Two of the three survive the cutover uncontrolled. It states that price is
+  uncontrolled and publishes the corpus opening-price distribution rather than only the
+  qualification, since how much of the sample sits at each price is what quantifies the cost of
+  phase 12's ruling 8.
 - The retained sample and the refusal rate are reported beside every agreement rate, and the two
   definitions that make a rate readable are carried into the new report rather than dropped: that
   agreement means the chart gives the observed action nonzero weight rather than that a draw

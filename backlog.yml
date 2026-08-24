@@ -2420,3 +2420,64 @@ items:
       is where" - that still appears on the board and still forces a reader to confirm the earlier
       ruling covers this phase's instance.
       Raised by the independent stage-2 review of phase 14.
+  - id: EXPORT-SOURCE-CARD-HAS-NO-REQUIRED-PROPERTY-LIST
+    status: deferred
+    phase: "14"
+    title: The properties a solver export must establish exist only as prose
+    reason: >-
+      data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json claims five distinct
+      properties a reader relies on: determinism across two processes at zero divergence, a walk
+      re-resolving all 38,828 nodes by their own recorded action sequences with zero mismatches, a
+      node-count reconciliation against the solver's own count, an export checksum with a
+      saved-solve checksum beside it, and a size block. Nothing states that list as a requirement.
+      It exists as prose in the phase 10 packet and as fields in a card the same task wrote.
+      Phase 14 stage 3 lost one of the five that way. Taylor ruled a re-solve at a tighter gap,
+      which invalidates every property attached to the current export, and the contract criterion
+      written for it re-established determinism and the node count and stopped there - because the
+      packet's prose runs the determinism check and the walk together, and the walk is a different
+      proof. It was caught by enumerating the file rather than by reading the packet again.
+      What is wanted is the list somewhere a check can read: which properties an export in
+      data/artifacts/preflop/exports/ must carry, so that replacing one is a checked operation
+      rather than a remembered one. check_solver_export_expectations already validates the card's
+      shape and could own it.
+      Raised by the phase 14 stage-3 self-review.
+  - id: RESOLVE-PERMISSION-HAS-NO-CONFIG-EQUALITY-CHECK
+    status: deferred
+    phase: "14"
+    title: The gate cannot tell the same game solved longer from a different game
+    reason: >-
+      scripts/check_solver_export_expectations.py recomputes the committed export's orderings and
+      fails on a broken source card. It never compares config_posted against the configuration a
+      human ruled. So an export solved at a second opening price, with limps, at another depth or
+      at another table size passes every check the gate runs, as long as its card is well formed and
+      its orderings hold - and the orderings hold at any rake basis for any solver, which is why
+      they were chosen.
+      Phase 14 makes this live. Taylor ruled one re-solve permitted, at the ruled config and a
+      tighter gap and nothing else, and the phase's own contract now asserts config_posted
+      byte-identical apart from the solve target. That assertion is a phase 14 criterion rather
+      than a standing check, so it protects this cutover and not the next one.
+      The ruled configuration has no home in the repo either. It lives in the phase 10 contract as
+      prose, in the decision list as a ruling, and in the export's own card as the thing being
+      described - never as data a check can compare against. Committing it, and comparing every
+      export against it, is what turns "do not re-solve at a second opening price" from a rule
+      somebody must remember into one the gate holds.
+      Raised by the phase 14 stage-3 self-review.
+  - id: STAGE-REVIEW-HAS-NO-RETRY-RECORD
+    status: deferred
+    phase: contract-update
+    title: An API outage silently downgrades a stage's review and nothing tracks the debt
+    reason: >-
+      AGENTS.md step 10 allows a self-review when no subagent can be spawned, provided the concrete
+      reason is recorded. That is the right escape hatch and it was used at phase 14 stage 3, after
+      one ECONNRESET and two 529 Overloaded responses.
+      What is missing is the debt. loop_stage.validate_review checks three headings and unresolved
+      blockers; it has no concept of who wrote the note, which DELEGATION-EXCEPTION-IS-NEVER-CHECKED
+      already records. So a self-review satisfies the stage identically to an independent one,
+      nothing marks the stage as owing a re-read, and no later stage is prompted to do it. The
+      phase's own note is the only record, and a note is not a queue.
+      review_queue.py derives the pause board from six places a human ask already lives. A seventh
+      would fit the same shape: a stage whose review note declares itself a self-review, listed
+      until an independent note replaces or endorses it. That is cheaper than a marker somebody has
+      to remember to clear, and it follows the board's own rule that the queue is derived and never
+      recorded.
+      Raised by the phase 14 stage-3 self-review.

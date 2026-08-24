@@ -110,6 +110,40 @@ Small-blind entry moves from 48.14 percent - 34.41 raising plus 13.73 limping - 
 raising. That is about six points wider entry with 13.73 points of limping converted to raising,
 not the 19.68-point headline the raw open-frequency delta suggests.
 
+## What the rulings changed about each other
+
+Recorded by the coordinator after stage 3, because four of the eight answers interact and a reader
+taking any single item's numbers forward would take a stale one.
+
+**Decision 1's threshold survives; its spot count and size do not.** The rule is "keep a node when
+at least 2 percent of hero's range arrives there", and that is a predicate over an export node, so
+it is unaffected by anything else here. The 5,626 spots and 10.3 MiB attached to it were measured
+against the *current* export at 1,925 bytes per spot, and three later rulings move both. Decision
+2 re-solves, which changes the reach values the count was computed from. Decision 5 adds a reach
+field to every cell. Decision 4 adds a blind structure to the artifact, which is a fixed cost
+rather than a per-spot one. Decision 6 adds a sizing-table entry for each of the 4,257 jam-only
+spots the filter keeps, at roughly 55 bytes each measured off the current sizing file.
+
+So **10.3 MiB is a floor rather than an estimate**, and stage 6 measures the real figure before
+committing anything. If the 2 percent floor no longer fits under 15.9 MiB once those four are in,
+the contract's own rule applies: exceeding the cap is a halt and a decision, and the decision is
+Taylor's rather than a quiet re-tightening of the floor to whatever fits. That is decision 1's
+ruled threshold being protected from arithmetic, which is why it was ruled as a predicate.
+
+**Decision 2 may make decision 10 a no-op, and that is the intended outcome.** The monotonicity
+rule at one point, adjacent ranks, names exactly one violation in the shallow tree today. The
+re-solve is expected to remove it. If it does, the rule's job at stage 6 is to prove the chart is
+clean rather than to send any cell to decision 2's second branch, and decision 2's ruling is then
+satisfied by the re-solve alone.
+
+**Decision 2 also unsettles the numbers every other measured section here rests on.** The reach
+table, the 42-versus-1 violation counts, the eleven aggregate frequencies, and the five
+blind-defence deltas decision 9's band is built from were all measured against the 300-iteration
+export. The band is ruled as a multiple of the deltas rather than as absolute points precisely so
+that it survives - stage 6 recomputes the deltas from the new export and the band follows. Every
+other figure in this file is a measurement of the old export and stage 6 restates it against the
+new one.
+
 ---
 
 ## 1. Which nodes of the solved tree become committed spots
@@ -156,7 +190,13 @@ solver never trained. Refusing too much is recoverable by a later phase; answeri
 untrained cell is what this decision exists to prevent.
 
 Options: reach-at-2pct | reach-at-5pct | depth-at-8 | reach-at-2pct-with-a-5-action-floor
-Answer: []
+Answer: [reach-at-2pct]
+
+**Ruled by Taylor, 2026-08-23: reach at 2 percent.** 5,626 spots and 10.3 MiB against a 15.9 MiB
+budget. He took the option that keeps the most coverage while leaving headroom, over the stricter
+5 percent floor and over the depth proxy. The cost he accepted: the next solve into this directory
+has 5.6 MiB rather than 9.8, and `ARTIFACT-SIZE-LIMIT-VERSUS-SOLVE-COVERAGE` is where that comes
+due.
 
 ## 2. What happens to the non-monotone pair
 
@@ -178,8 +218,34 @@ The first keeps the artifact purely derived, which is the property that lets any
 diff it. The second is faster and is a hand edit to a derived file, which this repo has spent
 three phases learning to distrust.
 
-Options: re-solve-to-a-tighter-gap | smooth-the-pair-ladder
-Answer: []
+Options: re-solve-to-a-tighter-gap | smooth-the-pair-ladder | ship-as-solved
+Answer: [re-solve-to-a-tighter-gap]
+
+**Ruled by Taylor, 2026-08-24: re-solve at a tighter gap and let the re-solve decide.** He first
+put back the hypothesis that 72.81 percent might be the solver's real answer rather than an
+unfinished cell, which is the right question to ask and is why this went round twice.
+
+The argument that it is not, stated because the ruling rests on it. Among pairs in an open-fold
+decision 44 dominates 33 and 22 outright - higher set, better equity against overcards, more
+overpair boards - and there is no blocker effect at this magnitude. If opening 33 is profitable
+enough to do always then opening 44 is more profitable, so it cannot be opened less. And the
+committed solve stopped at **300 iterations against a 2,000 cap**, because the target it was given
+is a gap summed over the whole tree; `docs/GTOPEN_SOLVER_NOTES.md` says of a 300-iteration run
+that marginal hands converge last, and 44 from the lojack is exactly a marginal hand.
+
+What makes this the ruling rather than the argument winning: the re-solve settles it either way.
+If 44 moves to roughly 100 percent it was convergence and the chart is clean. If it holds near
+72.81 after 2,000 iterations then the hypothesis was right, it is the solver's considered answer,
+and it ships as solved with that recorded. Nobody hand-edits a cell in either branch and the
+artifact stays purely derived, which was the cost the smoothing option asked for.
+
+**This ruling has a consequence the phase must carry.** A re-solve produces a *new export*, and
+phase 10's human verdict, its determinism proof and its byte-identical claim all attach to the
+300-iteration one. So the phase owes: the same determinism check the old export passed, the two
+orderings re-asserted, and a published diff of what moved between the two solves. If anything
+beyond the marginal cells moved, that is a human read of the grids rather than a number in a
+report. The contract's Scope is amended in the same task to permit a re-solve at the ruled config
+and nothing else - not a second opening price, not limps, not another depth.
 
 ## 3. What is done about the realization model underpricing position
 
@@ -203,7 +269,15 @@ means a human-authored number in a derived file. Or solve elsewhere, which is a 
 new human verdict, so it is phase-10-shaped work rather than this phase's.
 
 Options: accept-and-record-on-the-source-card | correct-with-a-stated-adjustment | solve-elsewhere
-Answer: []
+Answer: [accept-and-record-on-the-source-card]
+
+**Ruled by Taylor, 2026-08-23: accept it and record it on the source card.** The ranges ship as
+solved and the artifact's source card states the bias in poker terms with the measurement behind
+it, so every later reader of the chart meets it. The closing measurement then names it as a third
+candidate explanation it cannot separate, which is what stops a residual gap being read as price
+or as a defect. Rejected: a stated adjustment, which puts a human-authored number inside a file
+whose whole value is that it reproduces from the export; and solving elsewhere, which is a new
+capture and a new human verdict.
 
 ## 4. Whether the artifact declares its blind structure
 
@@ -223,7 +297,13 @@ Adding the field is cheap now and expensive later, because a schema version bump
 every committed artifact. Declining it means the two entries stay open through phase 15 and 16.
 
 Options: declare-blind-structure-now | defer-to-a-later-schema-change
-Answer: []
+Answer: [declare-blind-structure-now]
+
+**Ruled by Taylor, 2026-08-24: declare it now.** The artifact carries the blind structure it was
+solved at, so a lookup can refuse a game whose blinds are not in that ratio instead of answering
+it silently. Closes `BLIND-STRUCTURE-VARIANTS` and
+`BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE`, the second of which was phase 13's
+largest single finding. Ruled together with decision 5, which shares the version bump.
 
 ## 5. Whether committed cells carry arriving reach
 
@@ -243,7 +323,18 @@ cannot carry it with the entry filed forward. A per-spot summary is not on that 
 spot-level number cannot tell one cell from another, which is the whole ask.
 
 Options: carry-reach-per-cell | do-not-carry-reach-and-file-the-reason
-Answer: []
+Answer: [carry-reach-per-cell]
+
+**Ruled by Taylor, 2026-08-24: carry reach per cell.** Ruled together with decision 4, since both
+land on the same `ARTIFACT_SCHEMA_VERSION` bump and the marginal cost of the second is bytes only.
+The selection rule from decision 1 then lives in the artifact rather than being applied once at
+conversion and forgotten, and a later reader can tell a trained cell from one the solver barely
+visited. Closes `CHART-CELLS-SHOULD-CARRY-ARRIVING-REACH`.
+
+The bytes are not free and the phase must measure them against the 15.9 MiB budget rather than
+assume: decision 1's 10.3 MiB estimate was computed without a reach field. If the two together
+breach the cap, that is a halt and a return to this list, not a silent re-tightening of the reach
+floor.
 
 ## 6. How the export's four action kinds become the schema's four
 
@@ -272,7 +363,14 @@ record it as a raise with no price and let the strategy refuse when asked how mu
 spot out of the chart entirely?
 
 Options: price-the-jam-at-the-stack | commit-sizeless-and-refuse-on-price | exclude-jam-only-spots
-Answer: []
+Answer: [price-the-jam-at-the-stack]
+
+**Ruled by Taylor, 2026-08-23: price the jam at the stack.** A shove is recorded as a raise to
+hero's whole stack, so the chart answers both what to do and how much, and the size is true rather
+than absent. `build_sizings` gains an entry for every such spot, and the note that a spot absent
+from the sizing table has no size stays true because none of these will be absent. Rejected:
+committing sizeless, which would train "raise, no idea how much"; and excluding them, which drops
+real spots the reach filter would otherwise keep.
 
 ## 7. Where the old-versus-new comparison reads the retired chart from
 
@@ -332,7 +430,13 @@ a sign, which the contract already argues cannot settle anything, since any nonz
 confirms it while the 39-point call gap stands.
 
 Options: quarter-to-one-times-the-delta | half-to-twice-the-delta | sign-only
-Answer: []
+Answer: [quarter-to-one-times-the-delta]
+
+**Ruled by Taylor, 2026-08-24: a quarter to one times the delta, per opener.** So big-blind call
+agreement is predicted to move by +1.16 to +4.65 points against the lojack, +0.93 to +3.72 against
+the hijack, +0.66 to +2.64 against the cutoff, +1.54 to +6.14 against the small blind, and to
+*worsen* by 0.67 to 2.67 against the button. Recorded here before the measurement runs, which is
+the whole point of the item. A miss in either direction is a result and the report states which.
 
 ## 10. What counts as a monotonicity violation, and at what tolerance
 
@@ -357,7 +461,17 @@ The choice is frozen because a stage-4 test asserts it over the committed artifa
 freezes that test, so changing it later is a task rather than an edit.
 
 Options: adjacent-at-1-point | adjacent-at-half-a-point | adjacent-at-zero | all-pairs-at-1-point
-Answer: []
+Answer: [adjacent-at-1-point]
+
+**Ruled by Taylor, 2026-08-24: adjacent ranks, one percentage point.** A pair is compared to the
+next one down and a gap over one point is a violation. That catches the real 44-versus-33 pair at
+27 points and ignores the ten cells sitting at gaps of 0.01 to 0.19 points, which are two cells a
+solver plays almost always rather than a leak. The suited-versus-offsuit relation takes the same
+tolerance.
+
+The interaction with decision 2 is now benign: the re-solve is expected to remove the one
+violation this rule names, so the rule's job at stage 6 is to prove that rather than to send cells
+to be rewritten.
 
 ## 11. Which rate the closing conclusion is read off
 
