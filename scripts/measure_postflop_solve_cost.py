@@ -1119,6 +1119,12 @@ def render_solve_block(view: dict) -> list[str]:
     return lines
 
 
+def board_texture(board: str) -> str:
+    """Suit texture of a board, read off the cards rather than trusted from the row's label."""
+    suits = {board[i + 1] for i in range(0, len(board) - 1, 2)}
+    return {1: "monotone", 2: "two-tone"}.get(len(suits), "rainbow")
+
+
 def render_aggregate(rows: list[dict]) -> list[str]:
     usable = [row for row in rows if row.get("usable_for_mean")]
     excluded = [row for row in rows if not row.get("usable_for_mean")]
@@ -1145,6 +1151,33 @@ def render_aggregate(rows: list[dict]) -> list[str]:
         "- these are per-unit costs pooled across different spots, which is the only thing that"
         " can be pooled; pooling wall clocks across spots would mean nothing"
     )
+    lines += render_texture_coverage(usable)
+    return lines
+
+
+def render_texture_coverage(usable: list[dict]) -> list[str]:
+    """Name the textures the pooled figures rest on, because texture is the largest cost driver.
+
+    The iso rows measure the same line and the same action-node count on three boards and split
+    by a factor of 3.2, so an aggregate that happens to exclude a texture is not a mean of all
+    flops. Derived from the rows rather than stated, so it stays true as cells are added.
+    """
+    present = {board_texture(row["tree"]["board"]) for row in usable if row.get("tree")}
+    if not present:
+        return []
+    missing = [t for t in ("rainbow", "two-tone", "monotone") if t not in present]
+    counts = ", ".join(
+        f"{t} {sum(1 for row in usable if board_texture(row['tree']['board']) == t)}"
+        for t in ("rainbow", "two-tone", "monotone")
+    )
+    lines = [f"- texture coverage of the pooled rows: {counts}"]
+    if missing:
+        lines.append(
+            f"- NOT MEASURED at this target: {', '.join(missing)}. Any figure for those textures"
+            " taken from this block is scaled from the iso rows rather than measured, and"
+            " rainbow is the expensive end: the iso rows put it at about 1.54x a two-tone and"
+            " 3.24x a monotone per iteration on an identical tree"
+        )
     return lines
 
 

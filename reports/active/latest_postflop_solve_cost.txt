@@ -1,10 +1,10 @@
 Postflop Solve Cost Report
 ==========================
 
-Generated at: 2026-08-24T00:22:20Z
+Generated at: 2026-08-24T15:19:35Z
 Solver: GTOpen at http://127.0.0.1:3737, commit 4aee435bdeb1
 Machine: Apple M4, 10 physical / 10 logical cores, 34.4 GB RAM, macOS-15.7.7-arm64-arm-64bit-Mach-O
-Free RAM at generation: 12.5 GB; power: AC
+Free RAM at generation: 11.1 GB; power: battery (the CPU throttles; treat this row as a slower machine)
 
 How to read this
 ----------------
@@ -522,7 +522,7 @@ Row data: {"arena_ceiling_mb":12025.908428800001,"arena_mb":2385.246316,"build_s
 
 ## Solves (measured cost)
 
-Aggregate over the 5 of 28 rows that reached their target; 23 excluded as cap-bound or failed.
+Aggregate over the 7 of 30 rows that reached their target; 23 excluded as cap-bound or failed.
 - excluded: probe1-lineB-3bp-Kc7c2c-monotone-high - hit-iteration-cap
 - excluded: probe2sub-lineA-srp-Kc7d2h-flop3375-turnriver75 - hit-iteration-cap
 - excluded: iso-lineB-Kc7d2h-rainbow-30it - hit-iteration-cap
@@ -546,11 +546,13 @@ Aggregate over the 5 of 28 rows that reached their target; 23 excluded as cap-bo
 - excluded: sweep30-15-lineA-reduced-tree-not-cost-comparable-8c5d2h-rainbow-disconnected-low - hit-iteration-cap
 - excluded: sweep30-16-lineA-reduced-tree-not-cost-comparable-9c8c7c-monotone-connected - hit-iteration-cap
 - excluded: sweep30-17-lineB-pinned-Kc7d2h-rainbow-dry-high-DRIFT-RECHECK-OF-CELL-01 - hit-iteration-cap
-- microseconds_per_action_node_iteration: min 1.2298, median 3.0555, max 3.5010
-- nanoseconds_per_action_node_iteration_per_hand: min 1.7273, median 1.8872, max 4.2795
-- seconds_per_iteration: min 1.32047, median 2.56599, max 3.28073
-- peak resident MB: min 10193.5, max 10864.9
+- microseconds_per_action_node_iteration: min 0.7940, median 1.2841, max 3.5010
+- nanoseconds_per_action_node_iteration_per_hand: min 1.1073, median 1.7909, max 4.2795
+- seconds_per_iteration: min 0.85247, median 1.37873, max 3.28073
+- peak resident MB: min 3951.1, max 10864.9
 - these are per-unit costs pooled across different spots, which is the only thing that can be pooled; pooling wall clocks across spots would mean nothing
+- texture coverage of the pooled rows: rainbow 0, two-tone 1, monotone 6
+- NOT MEASURED at this target: rainbow. Any figure for those textures taken from this block is scaled from the iso rows rather than measured, and rainbow is the expensive end: the iso rows put it at about 1.54x a two-tone and 3.24x a monotone per iteration on an identical tree
 
 ### probe1-lineB-3bp-Kc7c2c-monotone-high
 
@@ -2647,9 +2649,185 @@ Thermal reference
 
 Row data: {"arena_ceiling_mb":12025.908428800001,"arena_mb":3726.090152,"build_seconds":0.5322309581097215,"config":{"add_allin":false,"allin_threshold":85.0,"board":"Kc7d2d","effective_stack":92.5,"ip":"ref:config.ip@2827d093808a","max_raises":2,"oop":"ref:config.oop@2827d093808a","rake_cap":0.0,"rake_pct":0.0,"range_ip":"ref:config.range_ip@75dddc9d9ce2","range_oop":"ref:config.range_oop@568ae7b39c57","starting_pot":16.0},"config_sha256":"839080cf2e59cb018ed35cf180116c5c9c83475cdfd74221b87599598a6fcd3d","curve":[[20,10.43583022045295],[40,3.4160948809173615],[60,2.012893246195012],[80,1.6048504565596784],[100,1.1347536797019269],[120,0.8529263097276911],[140,0.8779917455860098],[160,0.7398538016612264],[180,0.592057740845793],[200,0.47528085707134043],[220,0.39092235748880155],[240,0.3282363152129798],[260,0.2814982961259933]],"echo_matched":true,"fit":{"net_seconds_per_iteration":3.018954368579081,"residual_rms_seconds":2.4535864081369203,"samples":3334,"seconds_per_best_response_pass":5.715960451216975},"group":"solve","iterations_to_target":{"bracket_high_inclusive":260,"bracket_low_exclusive":240,"quantisation_iterations":20,"reached_at_iteration":260},"label":"matrix-05-lineB-pinned-Kc7d2d-twotone-high","machine":"ref:machine@dfd99b7bfa41","machine_detail":{"cpu":"Apple M4","free_ram_gb":12.48,"logical_cores":10,"os":"macOS-15.7.7-arm64-arm-64bit-Mach-O","physical_cores":10,"power":"AC","ram_gb":34.36},"measured_at":"2026-08-24T00:08:02Z","memory":{"above_baseline_mb":0.13107200000013108,"baseline_mb":10193.403904,"peak_mb":10193.534976,"pid":69758,"sample_interval_seconds":0.25,"samples":3256},"menu":"ref:menu@d46e22af4571","menu_sha256":"fdbebc9ed64f3245c8868d14039f485d61d628152c3e61c7546ce67521ab0def","not_usable_because":"","outcome":"converged-to-target","root_strategy_sha256":"9fa87199b8b2fb7c038279e91ec44924a615696e34e737f0781f38ae52231aa1","solve":{"algorithm":"dcfr (server default)","best_response_passes":13,"check_every":20,"deadline_seconds":7200.0,"error":"","exploit_chips_agree":true,"exploit_chips_derived":0.04503972738015893,"exploit_chips_reported":0.045039727380158934,"exploit_pct":0.2814982961259933,"iteration_base":0,"iteration_final":260,"max_iterations":500,"run_iterations":260,"server_elapsed_seconds":851.838906958,"state":"done","target_chips":0.048,"target_exploit_pct":0.3,"wall_seconds":852.9897530411836},"solver":"ref:solver@1ced6e9cf69b","spr":5.78125,"thermal":{"after_seconds":1.9271081250626594,"before_seconds":1.6262634999584407,"drift_pct":18.49913160517387},"tree":{"action_nodes":1073702,"arena_mb":3726.090152,"board":"Kc7d2d","gpu_available":false,"gpu_cap_mb":20000,"hands_ip":475,"hands_oop":239,"nodes":2830230,"vram_mb":21359.057736},"tree_sha256":"d1d5acf453c0d90a831772ad25ed4f586636271fcb26571936903e763f93285d","usable_for_mean":true}
 
+### determinism-lineB-pinned-Kc7c2c-monotone-high (run 1)
+
+Measured at: 2026-08-24T15:12:39Z
+Machine: Apple M4, 10 physical / 10 logical cores, 34.4 GB RAM, macOS-15.7.7-arm64-arm-64bit-Mach-O
+Solver: GTOpen 4aee435bdeb1 on cpu at http://127.0.0.1:3737
+
+Spot
+- Kc7c2c, pot 16, stack 92.5, SPR 5.78, allin_threshold 85 percent, max_raises 2, add_allin False, rake 0% cap 0
+- ranges, resolved in the appendix: oop config.range_oop@568ae7b39c57, ip config.range_ip@75dddc9d9ce2
+- oop sizes: flop bet=33 75 raise=2.5x donk=- | turn bet=33 75 raise=2.5x donk=- | river bet=33 75 raise=2.5x donk=-
+- ip sizes: flop bet=33 75 raise=2.5x donk=- | turn bet=33 75 raise=2.5x donk=- | river bet=33 75 raise=2.5x donk=-
+- config sha256 410d61b135e3dc82, and the server echoed the posted config back unchanged: True
+
+Tree
+- 2830230 nodes, 1073702 action nodes, 240v477 hands, arena 3741.6 MB of a 12026 MB ceiling, built in 0.098 s
+- geometry sha256 9172d605c89b1554, root menu sha256 fdbebc9ed64f3245
+- root action node, street 0, pot 16, actor 0: 0 Check | 1 Bet 5.28 (33%) | 2 Bet 12 (75%)
+
+Solve
+- target, percent of starting pot: 0.3
+- target, chips: 0.0480
+- iteration cap, per run: 500
+- iterations between best-response passes: 20
+- algorithm: dcfr (server default)
+- watchdog deadline, seconds: 1800.0
+- wall clock, seconds: 205.967
+- server-reported elapsed, seconds: 204.776
+- iterations this run: 240
+- cumulative counter, before and after: 0 -> 240
+- best-response passes: 12
+- reached exploitability, percent of pot: 0.2948
+- reached exploitability, chips as reported by the server: 0.0472
+- reached exploitability, chips derived from the percent: 0.0472
+- reported and derived chips agree: True
+- final state: done
+- outcome: converged-to-target
+- usable for a mean: True
+- iterations to target: 240
+- iterations to target, bracket: (220, 240]
+- bracket width, iterations: 20
+
+Convergence curve (iteration of this run : exploitability percent of pot / chips)
+- 20:11.844%/1.895c  40:3.552%/0.568c  60:1.830%/0.293c  80:1.212%/0.194c  100:0.871%/0.139c  120:0.701%/0.112c  140:0.565%/0.090c  160:0.465%/0.074c  180:0.412%/0.066c  200:0.370%/0.059c  220:0.330%/0.053c  240:0.295%/0.047c
+
+Memory (peak resident set of the gto-server process)
+- solver pid: 704
+- baseline resident, MB: 1360.0
+- peak resident, MB: 3951.1
+- peak above baseline, MB: 2591.2
+- server arena estimate, MB: 3741.6
+- samples: 793
+- sample interval, seconds: 0.25
+
+Per unit (what transfers to other hardware)
+- seconds per iteration, gross: 0.85820
+- seconds per iteration, net of checks: 0.85904
+- seconds per best-response pass: 0.27311
+- fit samples, and residual RMS seconds: 807 samples, residual RMS 2.3663
+- seconds per 1000 action nodes: 0.19183
+- microseconds per action-node iteration: 0.7993
+- nanoseconds per action-node iteration per hand: 1.1148
+- hands counted in that figure: 717
+- arena bytes per action node: 3484.7
+- measured peak above baseline, bytes per action node: 2413.3
+- measured peak above baseline over arena estimate: 0.69
+- root strategy sha256: ca16cf82eeb9c96ee37ad4abf6453fff476d15e9d2578a0955897c871321a3b8
+
+Thermal reference
+- smoke reference before this row, seconds: 0.767
+- smoke reference after this row, seconds: 0.925
+- drift, percent: +20.6
+
+Row data: {"arena_ceiling_mb":12025.908428800001,"arena_mb":3741.554388,"build_seconds":0.09815029217861593,"config":{"add_allin":false,"allin_threshold":85.0,"board":"Kc7c2c","effective_stack":92.5,"ip":"ref:config.ip@2827d093808a","max_raises":2,"oop":"ref:config.oop@2827d093808a","rake_cap":0.0,"rake_pct":0.0,"range_ip":"ref:config.range_ip@75dddc9d9ce2","range_oop":"ref:config.range_oop@568ae7b39c57","starting_pot":16.0},"config_sha256":"410d61b135e3dc82d447d641c8f8dfa96f17a63ef811331d22392d714d5ef8f6","curve":[[20,11.843532493902082],[40,3.5521102134671025],[60,1.8295215782700067],[80,1.2115465143837127],[100,0.8708373659088677],[120,0.700710862672381],[140,0.5646239501517603],[160,0.46474927386852893],[180,0.41164562951573924],[200,0.3697638378197622],[220,0.32967093724265983],[240,0.2948473582762269]],"echo_matched":true,"fit":{"net_seconds_per_iteration":0.8590381172855249,"residual_rms_seconds":2.36625695988456,"samples":807,"seconds_per_best_response_pass":0.2731115561539979},"group":"solve","iterations_to_target":{"bracket_high_inclusive":240,"bracket_low_exclusive":220,"quantisation_iterations":20,"reached_at_iteration":240},"label":"determinism-lineB-pinned-Kc7c2c-monotone-high (run 1)","machine":"ref:machine@dfd99b7bfa41","machine_detail":{"cpu":"Apple M4","free_ram_gb":11.14,"logical_cores":10,"os":"macOS-15.7.7-arm64-arm-64bit-Mach-O","physical_cores":10,"power":"battery (the CPU throttles; treat this row as a slower machine)","ram_gb":34.36},"measured_at":"2026-08-24T15:12:39Z","memory":{"above_baseline_mb":2591.1623680000002,"baseline_mb":1359.95392,"peak_mb":3951.116288,"pid":704,"sample_interval_seconds":0.25,"samples":793},"menu":"ref:menu@d46e22af4571","menu_sha256":"fdbebc9ed64f3245c8868d14039f485d61d628152c3e61c7546ce67521ab0def","not_usable_because":"","outcome":"converged-to-target","root_strategy_sha256":"ca16cf82eeb9c96ee37ad4abf6453fff476d15e9d2578a0955897c871321a3b8","solve":{"algorithm":"dcfr (server default)","best_response_passes":12,"check_every":20,"deadline_seconds":1800.0,"error":"","exploit_chips_agree":true,"exploit_chips_derived":0.0471755773241963,"exploit_chips_reported":0.047175577324196305,"exploit_pct":0.2948473582762269,"iteration_base":0,"iteration_final":240,"max_iterations":500,"run_iterations":240,"server_elapsed_seconds":204.775717791,"state":"done","target_chips":0.048,"target_exploit_pct":0.3,"wall_seconds":205.96698850020766},"solver":"ref:solver@1ced6e9cf69b","spr":5.78125,"thermal":{"after_seconds":0.9253657090011984,"before_seconds":0.7673166659660637,"drift_pct":20.59762938110414},"tree":{"action_nodes":1073702,"arena_mb":3741.554388,"board":"Kc7c2c","gpu_available":false,"gpu_cap_mb":20000,"hands_ip":477,"hands_oop":240,"nodes":2830230,"vram_mb":21446.590808},"tree_sha256":"9172d605c89b15548c8a826e5f6d8defd59760316a2f67475e8bb406b5c056bc","usable_for_mean":true}
+
+### determinism-lineB-pinned-Kc7c2c-monotone-high (run 2)
+
+Measured at: 2026-08-24T15:16:09Z
+Machine: Apple M4, 10 physical / 10 logical cores, 34.4 GB RAM, macOS-15.7.7-arm64-arm-64bit-Mach-O
+Solver: GTOpen 4aee435bdeb1 on cpu at http://127.0.0.1:3737
+
+Spot
+- Kc7c2c, pot 16, stack 92.5, SPR 5.78, allin_threshold 85 percent, max_raises 2, add_allin False, rake 0% cap 0
+- ranges, resolved in the appendix: oop config.range_oop@568ae7b39c57, ip config.range_ip@75dddc9d9ce2
+- oop sizes: flop bet=33 75 raise=2.5x donk=- | turn bet=33 75 raise=2.5x donk=- | river bet=33 75 raise=2.5x donk=-
+- ip sizes: flop bet=33 75 raise=2.5x donk=- | turn bet=33 75 raise=2.5x donk=- | river bet=33 75 raise=2.5x donk=-
+- config sha256 410d61b135e3dc82, and the server echoed the posted config back unchanged: True
+
+Tree
+- 2830230 nodes, 1073702 action nodes, 240v477 hands, arena 3741.6 MB of a 12026 MB ceiling, built in 0.142 s
+- geometry sha256 9172d605c89b1554, root menu sha256 fdbebc9ed64f3245
+- root action node, street 0, pot 16, actor 0: 0 Check | 1 Bet 5.28 (33%) | 2 Bet 12 (75%)
+
+Solve
+- target, percent of starting pot: 0.3
+- target, chips: 0.0480
+- iteration cap, per run: 500
+- iterations between best-response passes: 20
+- algorithm: dcfr (server default)
+- watchdog deadline, seconds: 1800.0
+- wall clock, seconds: 204.594
+- server-reported elapsed, seconds: 203.322
+- iterations this run: 240
+- cumulative counter, before and after: 0 -> 240
+- best-response passes: 12
+- reached exploitability, percent of pot: 0.2948
+- reached exploitability, chips as reported by the server: 0.0472
+- reached exploitability, chips derived from the percent: 0.0472
+- reported and derived chips agree: True
+- final state: done
+- outcome: converged-to-target
+- usable for a mean: True
+- iterations to target: 240
+- iterations to target, bracket: (220, 240]
+- bracket width, iterations: 20
+
+Convergence curve (iteration of this run : exploitability percent of pot / chips)
+- 20:11.844%/1.895c  40:3.552%/0.568c  60:1.830%/0.293c  80:1.212%/0.194c  100:0.871%/0.139c  120:0.701%/0.112c  140:0.565%/0.090c  160:0.465%/0.074c  180:0.412%/0.066c  200:0.370%/0.059c  220:0.330%/0.053c  240:0.295%/0.047c
+
+Memory (peak resident set of the gto-server process)
+- solver pid: 704
+- baseline resident, MB: 4340.1
+- peak resident, MB: 4731.2
+- peak above baseline, MB: 391.1
+- server arena estimate, MB: 3741.6
+- samples: 786
+- sample interval, seconds: 0.25
+
+Per unit (what transfers to other hardware)
+- seconds per iteration, gross: 0.85247
+- seconds per iteration, net of checks: 0.95343
+- seconds per best-response pass: -1.75015
+- fit samples, and residual RMS seconds: 799 samples, residual RMS 2.9649
+- seconds per 1000 action nodes: 0.19055
+- microseconds per action-node iteration: 0.7940
+- nanoseconds per action-node iteration per hand: 1.1073
+- hands counted in that figure: 717
+- arena bytes per action node: 3484.7
+- measured peak above baseline, bytes per action node: 364.3
+- measured peak above baseline over arena estimate: 0.10
+- root strategy sha256: ca16cf82eeb9c96ee37ad4abf6453fff476d15e9d2578a0955897c871321a3b8
+
+Thermal reference
+- smoke reference before this row, seconds: 0.966
+- smoke reference after this row, seconds: 0.978
+- drift, percent: +1.2
+
+Row data: {"arena_ceiling_mb":12025.908428800001,"arena_mb":3741.554388,"build_seconds":0.14159499993547797,"config":{"add_allin":false,"allin_threshold":85.0,"board":"Kc7c2c","effective_stack":92.5,"ip":"ref:config.ip@2827d093808a","max_raises":2,"oop":"ref:config.oop@2827d093808a","rake_cap":0.0,"rake_pct":0.0,"range_ip":"ref:config.range_ip@75dddc9d9ce2","range_oop":"ref:config.range_oop@568ae7b39c57","starting_pot":16.0},"config_sha256":"410d61b135e3dc82d447d641c8f8dfa96f17a63ef811331d22392d714d5ef8f6","curve":[[20,11.843532493902082],[40,3.5521102134671025],[60,1.8295215782700067],[80,1.2115465143837127],[100,0.8708373659088677],[120,0.700710862672381],[140,0.5646239501517603],[160,0.46474927386852893],[180,0.41164562951573924],[200,0.3697638378197622],[220,0.32967093724265983],[240,0.2948473582762269]],"echo_matched":true,"fit":{"net_seconds_per_iteration":0.9534254291530363,"residual_rms_seconds":2.9649125726857952,"samples":799,"seconds_per_best_response_pass":-1.7501530733577997},"group":"solve","iterations_to_target":{"bracket_high_inclusive":240,"bracket_low_exclusive":220,"quantisation_iterations":20,"reached_at_iteration":240},"label":"determinism-lineB-pinned-Kc7c2c-monotone-high (run 2)","machine":"ref:machine@dfd99b7bfa41","machine_detail":{"cpu":"Apple M4","free_ram_gb":11.14,"logical_cores":10,"os":"macOS-15.7.7-arm64-arm-64bit-Mach-O","physical_cores":10,"power":"battery (the CPU throttles; treat this row as a slower machine)","ram_gb":34.36},"measured_at":"2026-08-24T15:16:09Z","memory":{"above_baseline_mb":391.11884800000007,"baseline_mb":4340.072448,"peak_mb":4731.191296,"pid":704,"sample_interval_seconds":0.25,"samples":786},"menu":"ref:menu@d46e22af4571","menu_sha256":"fdbebc9ed64f3245c8868d14039f485d61d628152c3e61c7546ce67521ab0def","not_usable_because":"","outcome":"converged-to-target","root_strategy_sha256":"ca16cf82eeb9c96ee37ad4abf6453fff476d15e9d2578a0955897c871321a3b8","solve":{"algorithm":"dcfr (server default)","best_response_passes":12,"check_every":20,"deadline_seconds":1800.0,"error":"","exploit_chips_agree":true,"exploit_chips_derived":0.0471755773241963,"exploit_chips_reported":0.047175577324196305,"exploit_pct":0.2948473582762269,"iteration_base":0,"iteration_final":240,"max_iterations":500,"run_iterations":240,"server_elapsed_seconds":203.32193875,"state":"done","target_chips":0.048,"target_exploit_pct":0.3,"wall_seconds":204.5936430420261},"solver":"ref:solver@1ced6e9cf69b","spr":5.78125,"thermal":{"after_seconds":0.9775609590578824,"before_seconds":0.9662070421036333,"drift_pct":1.175101863212391},"tree":{"action_nodes":1073702,"arena_mb":3741.554388,"board":"Kc7c2c","gpu_available":false,"gpu_cap_mb":20000,"hands_ip":477,"hands_oop":240,"nodes":2830230,"vram_mb":21446.590808},"tree_sha256":"9172d605c89b15548c8a826e5f6d8defd59760316a2f67475e8bb406b5c056bc","usable_for_mean":true}
+
 ## Determinism (one config solved twice and diffed)
 
-(none recorded)
+### determinism-lineB-pinned-Kc7c2c-monotone-high
+
+Measured at: 2026-08-24T15:16:09Z
+Machine: Apple M4, 10 physical / 10 logical cores, 34.4 GB RAM, macOS-15.7.7-arm64-arm-64bit-Mach-O
+Solver: GTOpen 4aee435bdeb1 on cpu at http://127.0.0.1:3737
+
+Spot
+- Kc7c2c, pot 16, stack 92.5, SPR 5.78, allin_threshold 85 percent, max_raises 2, add_allin False, rake 0% cap 0
+- ranges, resolved in the appendix: oop config.range_oop@568ae7b39c57, ip config.range_ip@75dddc9d9ce2
+- oop sizes: flop bet=33 75 raise=2.5x donk=- | turn bet=33 75 raise=2.5x donk=- | river bet=33 75 raise=2.5x donk=-
+- ip sizes: flop bet=33 75 raise=2.5x donk=- | turn bet=33 75 raise=2.5x donk=- | river bet=33 75 raise=2.5x donk=-
+- config sha256 410d61b135e3dc82, and the server echoed the posted config back unchanged: True
+
+Tree
+- 2830230 nodes, 1073702 action nodes, 240v477 hands, arena 3741.6 MB of a 12026 MB ceiling, built in 0.142 s
+- geometry sha256 9172d605c89b1554, root menu sha256 fdbebc9ed64f3245
+- root action node, street 0, pot 16, actor 0: 0 Check | 1 Bet 5.28 (33%) | 2 Bet 12 (75%)
+
+Determinism
+- identical solved strategy: True
+- root strategy sha256, run 1 and run 2: ca16cf82eeb9c96e vs ca16cf82eeb9c96e
+- largest per-action frequency divergence: 0
+- combos present in one run only: 0
+- exploitability percent, run 1 and run 2: 0.2948 vs 0.2948
+- exploitability chips, run 1 and run 2: 0.0472 vs 0.0472
+- iterations, run 1 and run 2: 240 vs 240
+- wall clock seconds, run 1 and run 2: 205.967 vs 204.594
+
+Row data: {"arena_ceiling_mb":12025.908428800001,"arena_mb":3741.554388,"build_seconds":0.14159499993547797,"config":{"add_allin":false,"allin_threshold":85.0,"board":"Kc7c2c","effective_stack":92.5,"ip":"ref:config.ip@2827d093808a","max_raises":2,"oop":"ref:config.oop@2827d093808a","rake_cap":0.0,"rake_pct":0.0,"range_ip":"ref:config.range_ip@75dddc9d9ce2","range_oop":"ref:config.range_oop@568ae7b39c57","starting_pot":16.0},"config_sha256":"410d61b135e3dc82d447d641c8f8dfa96f17a63ef811331d22392d714d5ef8f6","curve":[[20,11.843532493902082],[40,3.5521102134671025],[60,1.8295215782700067],[80,1.2115465143837127],[100,0.8708373659088677],[120,0.700710862672381],[140,0.5646239501517603],[160,0.46474927386852893],[180,0.41164562951573924],[200,0.3697638378197622],[220,0.32967093724265983],[240,0.2948473582762269]],"determinism":{"exploit_chips_a":0.047175577324196305,"exploit_chips_b":0.047175577324196305,"exploit_pct_a":0.2948473582762269,"exploit_pct_b":0.2948473582762269,"identical":true,"iterations_a":240,"iterations_b":240,"max_divergence":0.0,"sha_a":"ca16cf82eeb9c96e","sha_b":"ca16cf82eeb9c96e","shape_differences":0,"wall_a":205.96698850020766,"wall_b":204.5936430420261},"echo_matched":true,"fit":{"net_seconds_per_iteration":0.9534254291530363,"residual_rms_seconds":2.9649125726857952,"samples":799,"seconds_per_best_response_pass":-1.7501530733577997},"group":"determinism","iterations_to_target":{"bracket_high_inclusive":240,"bracket_low_exclusive":220,"quantisation_iterations":20,"reached_at_iteration":240},"label":"determinism-lineB-pinned-Kc7c2c-monotone-high","machine":"ref:machine@dfd99b7bfa41","machine_detail":{"cpu":"Apple M4","free_ram_gb":11.14,"logical_cores":10,"os":"macOS-15.7.7-arm64-arm-64bit-Mach-O","physical_cores":10,"power":"battery (the CPU throttles; treat this row as a slower machine)","ram_gb":34.36},"measured_at":"2026-08-24T15:16:09Z","memory":{"above_baseline_mb":391.11884800000007,"baseline_mb":4340.072448,"peak_mb":4731.191296,"pid":704,"sample_interval_seconds":0.25,"samples":786},"menu":"ref:menu@d46e22af4571","menu_sha256":"fdbebc9ed64f3245c8868d14039f485d61d628152c3e61c7546ce67521ab0def","not_usable_because":"","outcome":"converged-to-target","root_strategy_sha256":"ca16cf82eeb9c96ee37ad4abf6453fff476d15e9d2578a0955897c871321a3b8","solve":{"algorithm":"dcfr (server default)","best_response_passes":12,"check_every":20,"deadline_seconds":1800.0,"error":"","exploit_chips_agree":true,"exploit_chips_derived":0.0471755773241963,"exploit_chips_reported":0.047175577324196305,"exploit_pct":0.2948473582762269,"iteration_base":0,"iteration_final":240,"max_iterations":500,"run_iterations":240,"server_elapsed_seconds":203.32193875,"state":"done","target_chips":0.048,"target_exploit_pct":0.3,"wall_seconds":204.5936430420261},"solver":"ref:solver@1ced6e9cf69b","spr":5.78125,"thermal":{"after_seconds":0.9775609590578824,"before_seconds":0.9662070421036333,"drift_pct":1.175101863212391},"tree":{"action_nodes":1073702,"arena_mb":3741.554388,"board":"Kc7c2c","gpu_available":false,"gpu_cap_mb":20000,"hands_ip":477,"hands_oop":240,"nodes":2830230,"vram_mb":21446.590808},"tree_sha256":"9172d605c89b15548c8a826e5f6d8defd59760316a2f67475e8bb406b5c056bc","usable_for_mean":true}
 
 ## Appendix: the values the rows reference
 

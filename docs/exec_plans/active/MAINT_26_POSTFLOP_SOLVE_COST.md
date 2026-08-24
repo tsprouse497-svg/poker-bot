@@ -58,7 +58,13 @@ one lane may hold it at a time, and every other lane is designed to need nothing
   shapes RECON returns; MATRIX designs the measurement set and the form of the cost model with no
   server access at all; VERIFY, added once MATRIX returned claims read out of Rust and never run,
   tries to refute them; MEASURE runs the calibration and then the matrix, holding the server
-  alone; REVIEW-MECH and REVIEW-DOMAIN read the finished work independently of each other.
+  alone; MECH and DOMAIN read the finished work independently of each other.
+  Every lane name here is a single unhyphenated token on purpose, and the last two were renamed
+  on 2026-08-24 from names that paired the word review with a hyphen and a discipline. The
+  backlog-integrity check reads any hyphenated all-caps token under `docs/**` as a citation of a
+  filed backlog item, so those two names failed the gate as findings filed under ids nobody
+  created. Do not hyphenate a lane name. The trap itself is filed as
+  `QUALITY-GATE-READS-LANE-NAMES-AS-BACKLOG-IDS` in `backlog.yml`.
 
 VERIFY was not in the original six and is the lane that earned its place. MATRIX argued from the
 source that a flop solve already contains the turn and river subgames beneath it, which would make
@@ -79,8 +85,10 @@ server, confirmed the mechanism, and then refuted MATRIX's own arithmetic in two
   non-blocker, or alignment item.
 - Status: RECON completed; MATRIX completed; VERIFY completed, a seventh lane added mid-task to
   refute MATRIX's source-only claims before they entered the record; DRIVER completed after one
-  connection failure and a resume; MEASURE running the build sweep and the two calibration
-  probes; both review lanes blocked on MEASURE.
+  connection failure and a resume; MEASURE completed the build sweep, both calibration probes
+  and five of the twelve matrix cells, and is closed at five by the ruling below rather than
+  run to completion; the determinism row it still owes is one repeat of a cell already solved,
+  not a new spot. Both review lanes are unblocked and unspawned.
 - Integration order: RECON and MATRIX run concurrently because neither writes a file and only one
   touches the server. DRIVER follows RECON. MEASURE follows DRIVER and runs alone, calibrating at
   a loose exploitability target first so the matrix is sized against a known order of magnitude
@@ -95,11 +103,11 @@ server, confirmed the mechanism, and then refuted MATRIX's own arithmetic in two
 
 ## Slices
 
-- [ ] **Confirm the postflop routes against a running server.** Build one spot, solve it to a
+- [x] **Confirm the postflop routes against a running server.** Build one spot, solve it to a
   loose target, read one node back. Evidence: the request and response shapes recorded in the
   notes, in the same style the preflop config surface is already recorded. This is the part that
   can fail early and cheaply, and everything below assumes it passed.
-- [ ] **Write the driver.** Takes both ranges, pot, stacks and sizes for one preflop line out of
+- [x] **Write the driver.** Takes both ranges, pot, stacks and sizes for one preflop line out of
   the committed export, plus a board and an exploitability target. Returns wall-clock to target,
   iterations, peak resident memory, the solved payload's size on disk, and the machine spec.
   Evidence: one recorded run.
@@ -109,9 +117,25 @@ server, confirmed the mechanism, and then refuted MATRIX's own arithmetic in two
   noise and a single flop's timing would be a mean nobody can use. At least one single-raised pot
   and one three-bet pot, since narrower ranges and a shallower SPR should move cost more than the
   board does. Evidence: `reports/active/latest_postflop_solve_cost.txt`.
-- [ ] **Determinism.** One config solved twice and diffed, which is still unverified for postflop
+  **Bounded at five of twelve cells, and closed rather than resumed.** See the ruling of
+  2026-08-24 under Decisions. What the five leave unmeasured is not evenly spread: the cells ran
+  cheapest texture first, so all five that converged are monotone or two-tone and no rainbow board
+  reached the 0.3% target on either line. Rainbow is the expensive end and the common one, so
+  every pooled figure in the report's aggregate is biased low against the population of 1,755
+  flops. The report now says so in a line derived from its own rows rather than in prose a later
+  run would overwrite, and the gap is filed to `backlog.yml` as
+  `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`.
+- [x] **Determinism.** One config solved twice and diffed, which is still unverified for postflop
   exactly as it was for preflop before phase 10 checked it. Evidence: byte-identical, or a
   recorded accuracy target and tolerance instead.
+  **Byte-identical, and reproducible beyond what the slice asked.** The `matrix-02` config solved
+  twice on 2026-08-24 gives the same root strategy digest `ca16cf82eeb9c96e`, a largest
+  per-action frequency divergence of 0, no combo present in one run only, and 240 iterations to
+  the same 0.2948% exploitability both times. That digest also equals the one the original
+  `matrix-02` row recorded on 2026-08-23, so the solve reproduces across a server restart and
+  across days rather than only twice in a row. No accuracy target or tolerance is needed. Wall
+  clock is the one figure that moved, 206.0 and 204.6 seconds against the original run's 330.9,
+  which is thermal drift on a loaded machine and is no part of the claim.
 - [ ] **State the cost model.** Per-unit cost and peak memory as functions of texture and line,
   with the measuring hardware named, so another box can be reasoned about without re-running
   anything. Any GPU claim stays marked unrun unless GPU hardware is actually available; the
@@ -121,6 +145,19 @@ server, confirmed the mechanism, and then refuted MATRIX's own arithmetic in two
   choice, the preflop-line head - goes to `backlog.yml` as a deferred item naming phase 16, not
   as a decision taken here.
 - [ ] **Independent read-only review**, per the handoff above, before the gate commit.
+
+## Decisions
+
+- **Stop the matrix at five of twelve cells** - *runtime-reversible*. Ruled by Taylor on
+  2026-08-24, asked because the remaining seven are about two more hours of solving on this
+  machine and the run had already halted itself mid-cell-six when the Mac came off AC. Nothing is
+  frozen into committed data by stopping: no solve output is committed, the driver takes a cell
+  per invocation, and the seven can be run later on this or any other box by re-invoking it. What
+  it costs is texture coverage, recorded in slice 3 and in the backlog rather than left implicit.
+- **Report the cost model from five cells rather than withholding it** - *runtime-reversible*.
+  The per-unit costs, the peak memory and the convergence shape are what the task owed, and all
+  three are measured on real study-quality solves. The figure that must not be stated flat is a
+  per-flop mean over all textures, and the report's aggregate now names the textures it rests on.
 
 ## Verification
 
@@ -138,7 +175,9 @@ closed entries in the notes' "Not verified" list.
 
 ## Outcome
 
-Not yet complete. Opened 2026-08-23.
+Not yet complete. Opened 2026-08-23. Measurement closed 2026-08-24 at five matrix cells by
+Taylor's ruling; the determinism row, the cost-model write-up into the notes, and both reviews
+are still owed.
 
 ## Next Agent Bootstrap
 
@@ -152,10 +191,24 @@ integrates after it, and rebases onto the result if `main` has moved.
 This is not a loop phase, so `scripts/loop_stage.py` does not drive it. Work the slices above in
 order.
 
-State: task opened, no implementation written, gate green at the base commit.
+State: slices 1 and 2 are done and slice 3 is closed short by ruling. The driver exists and
+works, `reports/active/latest_postflop_solve_cost.txt` holds 52 rows - 24 builds, 28 solves - of
+which five reached the 0.3%-of-pot target. Four findings are already filed to `backlog.yml`. The
+GTOpen server may still be up at `127.0.0.1:3737` holding a killed cell six; a determinism run
+should start from a freshly restarted server, because the report states about itself that peak
+resident is a high-water mark over everything that process has ever held.
 
-Next command:
+Do not resume matrix cells six through twelve. That was asked and answered on 2026-08-24; see
+Decisions. Adding cells is not wrong, it is simply not this task's remaining work, and a later
+task that wants rainbow coverage should re-invoke the driver rather than reopen this one.
 
-    uv run python scripts/run_verify.py
+What is left, in order: the determinism row (slice 4), the cost model written into the "Not
+verified" list in `docs/GTOPEN_SOLVER_NOTES.md` (slices 5 and 6), then two independent read-only
+reviewers per the handoff above (slice 7), then the gate and closeout.
 
-Then slice 1, which needs a running GTOpen server and cannot start without one.
+Next command, one repeat of a cell already solved, on a freshly restarted server:
+
+    uv run python scripts/measure_postflop_solve_cost.py --determinism --report ...
+
+Read `--help` for the spot flags, and match them to the `matrix-02` row's config in the report so
+the diff is taken against a solve that is already recorded.

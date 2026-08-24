@@ -1274,3 +1274,60 @@ items:
       suit-symmetric, since a permutation is admitted only if it maps every combo to an
       equal-weight combo in the same range. A single suit-specific entry such as AhKh at 0.25
       collapses the permutation group to the identity and the saving goes to zero.
+  - id: POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL
+    status: deferred
+    phase: "16"
+    title: The measured postflop cost model covers only monotone and two-tone flops
+    reason: >-
+      MAINT-26 designed a twelve-cell matrix, six flop textures crossed with a deep
+      single-raised pot and a three-bet pot, each solved to GTOpen's study-quality 0.3% of
+      pot. Taylor ruled on 2026-08-24 to stop at the five cells that had converged rather than
+      spend about two more hours of solving; see the Decisions section of
+      docs/exec_plans/completed/MAINT_26_POSTFLOP_SOLVE_COST.md. The ruling is sound and
+      nothing was frozen into data by it, but the five are not a random five. Cells ran
+      cheapest texture first, so all five are monotone or two-tone: four monotone, one
+      two-tone, zero rainbow.
+      That is the expensive end and the common one. The task's own iso rows, same line and an
+      identical 1,073,702 action nodes on all three boards, measure 4.570 seconds per
+      iteration rainbow against 2.967 two-tone and 1.410 monotone, so rainbow costs about
+      1.54 times a two-tone and 3.24 times a monotone. The 1,755 canonical flop classes split
+      455 rainbow, 1,014 two-tone and 286 monotone, so the population is dominated by the two
+      textures the pooled aggregate is thinnest on. Every per-unit figure in
+      reports/active/latest_postflop_solve_cost.txt is therefore biased low against a real
+      flop set, and the report now names the gap in a line derived from its own rows.
+      What closes this is one converged rainbow cell per line, which is the driver re-invoked
+      on Kc7d2h for lineB and for the reduced lineA menu, not a reopened task. Until then a
+      rainbow cost quoted from this report is scaled from the iso rows rather than measured,
+      and the short-window bias MAINT-26 also found applies to that scaling: an estimate
+      anchored on a thirty-iteration window under-predicts the true iteration count by a
+      median of 22 percent, worse on the deeper line.
+  - id: QUALITY-GATE-READS-LANE-NAMES-AS-BACKLOG-IDS
+    status: deferred
+    phase: contract-update
+    title: The backlog citation check reads any hyphenated all-caps token in docs as a filed finding
+    reason: >-
+      _citations() in scripts/run_full_quality_gate.py collects every token shaped like a backlog
+      id out of docs/**/*.md and reports/**/*.md and requires each one to name an item in
+      backlog.yml. The intent is right: a finding cited under an id nobody filed has recorded
+      nothing. The net is too wide. Any hyphenated all-caps token in any document is read as a
+      citation, including ones that are plainly not findings.
+      It has now fired twice on things that are not findings. A review-note heading in phase 05
+      is hardcoded into the exclusion table with a note explaining that it is a heading rather
+      than an id. On 2026-08-24 it fired again on two delegation lane names in MAINT-26's
+      ExecPlan, each of which paired the word review with a hyphen and a discipline, and it held
+      the gate red for five commits because nothing else on that branch had run it. The lanes
+      were renamed to single unhyphenated tokens, which fixes that instance and not the trap: the
+      next hyphenated acronym, standard name or lane label anybody writes in a document reddens
+      the gate again, and the failure names an id rather than the naming rule, so the reader has
+      to reverse-engineer the cause from a message about the backlog.
+      Task ids are already excluded by shape rather than one at a time, and the comment there
+      says why: the next task will have a new number, so enumerating them is a losing game. The
+      same argument applies to everything else the net catches. A third cost is that the reason
+      text of a backlog item is copied verbatim into docs/BACKLOG.md, which is itself scanned, so
+      an item cannot quote the ghost id it is about without creating one. This entry is written
+      around that and should not have to be. Options worth weighing: require a citation to be
+      backticked, which is how every real one in this repo is already written; scope the scan to
+      the sections where findings are recorded rather than whole documents; or drive the check
+      from the backlog side. Filed as contract-update, which is where this repo files repo
+      tooling and process defects, alongside the other checks that do not check what they
+      claim.
