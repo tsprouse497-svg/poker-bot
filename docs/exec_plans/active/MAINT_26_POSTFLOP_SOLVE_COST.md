@@ -136,14 +136,22 @@ server, confirmed the mechanism, and then refuted MATRIX's own arithmetic in two
   across days rather than only twice in a row. No accuracy target or tolerance is needed. Wall
   clock is the one figure that moved, 206.0 and 204.6 seconds against the original run's 330.9,
   which is thermal drift on a loaded machine and is no part of the claim.
-- [ ] **State the cost model.** Per-unit cost and peak memory as functions of texture and line,
+- [x] **State the cost model.** Per-unit cost and peak memory as functions of texture and line,
   with the measuring hardware named, so another box can be reasoned about without re-running
   anything. Any GPU claim stays marked unrun unless GPU hardware is actually available; the
   README's ten-times figure is not evidence.
-- [ ] **Record and file.** Update the "Not verified" list in `docs/GTOPEN_SOLVER_NOTES.md` to say
+- [x] **Record and file.** Update the "Not verified" list in `docs/GTOPEN_SOLVER_NOTES.md` to say
   what is now known. Anything the numbers invalidate - the flop-only ruling, the full-1,755
   choice, the preflop-line head - goes to `backlog.yml` as a deferred item naming phase 16, not
   as a decision taken here.
+  **Done 2026-08-24.** `docs/GTOPEN_SOLVER_NOTES.md` gains a "What a postflop solve costs"
+  section and its "Not verified" list is rewritten. Two entries closed: solve time and
+  convergence, and determinism. Both were also stale for preflop, settled by phase 10 and
+  never struck from the list, so the extraction path now names the source card that carries
+  them instead of leaving the reader to think they are open. Four entries added for what the
+  measurement did not reach: rainbow at study quality, turn and river roots, the batch
+  reports, and the solver's own memory guard. The section on postflop is retitled, since
+  "none of it was run" stopped being true.
 - [ ] **Independent read-only review**, per the handoff above, before the gate commit.
 
 ## Decisions
@@ -176,8 +184,8 @@ closed entries in the notes' "Not verified" list.
 ## Outcome
 
 Not yet complete. Opened 2026-08-23. Measurement closed 2026-08-24 at five matrix cells by
-Taylor's ruling; the determinism row, the cost-model write-up into the notes, and both reviews
-are still owed.
+Taylor's ruling. Slices 1 to 6 are done and the gate is green. Two independent read-only
+reviews and the closeout are what remain.
 
 ## Next Agent Bootstrap
 
