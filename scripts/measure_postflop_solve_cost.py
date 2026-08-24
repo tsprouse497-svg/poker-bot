@@ -85,6 +85,22 @@ SERVER_PROCESS = "gto-server"
 # is its own database. Regenerating from parsed rows is what lets a later run recompute the
 # group aggregate rather than append one that was true when written and false afterwards.
 ROW_MARKER = "Row data: "
+APPENDIX_MARKER = "Appendix data: "
+REF_PREFIX = "ref:"
+# A run holds two preflop lines and two bet menus but dozens of rows, so a range string written
+# into every row is the same 1.8 KB copied dozens of times, and that duplication alone was 44%
+# of a report that then failed the 300 KB size gate. These fields are emitted once in an
+# appendix and referenced by a hash OF THEMSELVES, so nothing is lost: the reference still
+# proves which range and which menu a row was measured on, which is what the copy was for.
+INTERN_PATHS = (
+    ("config", "range_oop"),
+    ("config", "range_ip"),
+    ("config", "oop"),
+    ("config", "ip"),
+    ("menu",),
+    ("solver",),
+    ("machine",),
+)
 GROUPS = ("build", "solve", "determinism")
 GROUP_TITLES = {
     "build": "Builds (tree geometry and arena, no solve)",
@@ -899,6 +915,20 @@ NOTE_SAMPLING = (
     " RSS counts shared pages, and freed pages are not always returned to the OS, which inflates"
     " a baseline taken after a larger solve"
 )
+# Two measured limitations of the block above, recorded so the columns are not misread. Both
+# were observed against a live server: the arena turned out to be resident before the sampler
+# ever started, and a process holding only a 145,245-node smoke tree still reported 9,912 MB
+# resident because it had held a 6,220,932-node tree earlier in the same session.
+NOTE_BASELINE_IS_POST_BUILD = (
+    "- the baseline is read AFTER the tree is built and the arena is already resident by then,"
+    " so `peak above baseline` measures almost nothing and must not be read as the solve's"
+    " memory cost; the absolute peak is the only figure in this block that carries meaning"
+)
+NOTE_FRESH_SERVER_ONLY = (
+    "- the server does not return freed pages to the OS, so `peak resident` is a high-water mark"
+    " over everything that process has ever held rather than over this row; it is trustworthy"
+    " only on a freshly started server, and otherwise is an upper bound carrying earlier spots"
+)
 NOTE_UNITS = (
     "- the net figures come from a least-squares fit of elapsed = a*iterations + b*checks over"
     " the run's own status samples; n/a means the trace never spanned two check boundaries, so"
@@ -911,6 +941,31 @@ NOTE_THERMAL = (
 NOTE_DETERMINISM = (
     "- wall clock is expected to vary and is no part of the determinism claim; the strategy"
     " digest and the iteration count are"
+)
+
+LIMITATIONS = "\n".join(
+    [
+        "Limitations of the columns below",
+        "--------------------------------",
+        "",
+        "These held for every row, so they are stated once here rather than repeated under each.",
+        "",
+        "Exploitability and the curve",
+        NOTE_QUANTISATION,
+        "- the chips figure on each curve point is DERIVED as percent x starting pot / 100; the"
+        " API's history carries the percent only, and the server reports chips just for the"
+        " final check, which is the figure each Solve block cross-checks the derivation against",
+        "",
+        "Memory",
+        NOTE_SAMPLING,
+        NOTE_BASELINE_IS_POST_BUILD,
+        NOTE_FRESH_SERVER_ONLY,
+        "",
+        "Per-unit costs and thermal drift",
+        NOTE_UNITS,
+        NOTE_THERMAL,
+        NOTE_DETERMINISM,
+    ]
 )
 
 HOW_TO_READ = """How to read this
@@ -988,7 +1043,10 @@ def derived(row: dict) -> dict:
     return view
 
 
-def render_row(row: dict) -> list[str]:
+def render_row(row: dict, stored: dict | None = None) -> list[str]:
+    """`row` carries real values and renders the text; `stored` carries references and is what
+    the machine-readable line holds. They are the same row, written twice at different cost."""
+    stored = row if stored is None else stored
     view = derived(row)
     cfg, tree, menu = view["config"], view["tree"], view["menu"]
     actions = " | ".join(f"{i} {action['label']}" for i, action in enumerate(menu["actions"]))
@@ -1005,8 +1063,8 @@ def render_row(row: dict) -> list[str]:
         f" SPR {fmt(view['spr'], '.2f')}, allin_threshold {cfg['allin_threshold']:g} percent,"
         f" max_raises {cfg['max_raises']}, add_allin {cfg['add_allin']},"
         f" rake {cfg['rake_pct']:g}% cap {cfg['rake_cap']:g}",
-        f"- oop range: {cfg['range_oop']}",
-        f"- ip range: {cfg['range_ip']}",
+        f"- ranges, resolved in the appendix: oop {reference(stored, ('config', 'range_oop'))},"
+        f" ip {reference(stored, ('config', 'range_ip'))}",
         f"- oop sizes: {sizes_line(cfg['oop'])}",
         f"- ip sizes: {sizes_line(cfg['ip'])}",
         f"- config sha256 {view['config_sha256'][:16]}, and the server echoed the posted config"
@@ -1024,9 +1082,16 @@ def render_row(row: dict) -> list[str]:
     if view["group"] == "solve":
         lines += render_solve_block(view)
     if view["group"] == "determinism":
-        lines += ["", "Determinism", *render_fields(view, DETERMINISM_FIELDS), NOTE_DETERMINISM]
-    stored = {key: value for key, value in row.items() if not key.startswith("_")}
-    return lines + ["", ROW_MARKER + json.dumps(stored, sort_keys=True), ""]
+        lines += ["", "Determinism", *render_fields(view, DETERMINISM_FIELDS)]
+    # `per_unit` is dropped rather than stored: every field in it is a ratio of numbers already
+    # on this row, so storing it is the same figures written twice. `restore_per_unit` puts it
+    # back on load, which keeps the row identical without paying 400 bytes a row for it.
+    payload = {
+        key: value
+        for key, value in stored.items()
+        if not key.startswith("_") and key != "per_unit"
+    }
+    return lines + ["", ROW_MARKER + json.dumps(payload, sort_keys=True, separators=(",", ":")), ""]
 
 
 def render_solve_block(view: dict) -> list[str]:
@@ -1039,24 +1104,18 @@ def render_solve_block(view: dict) -> list[str]:
         "",
         "Solve",
         *render_fields(view, SOLVE_FIELDS),
-        NOTE_QUANTISATION,
         "",
         "Convergence curve (iteration of this run : exploitability percent of pot / chips)",
         f"- {curve or 'none'}",
-        "- the chips figure on each point is DERIVED as percent x starting pot / 100; the API's"
-        " history carries the percent only, and the server reports chips just for the final"
-        " check, which is the figure the Solve block above cross-checks the derivation against",
         "",
         f"Memory (peak resident set of the {SERVER_PROCESS} process)",
         *render_fields(view, MEMORY_FIELDS),
-        NOTE_SAMPLING,
         "",
         "Per unit (what transfers to other hardware)",
         *render_fields(view, UNIT_FIELDS),
-        NOTE_UNITS,
     ]
     if view.get("thermal"):
-        lines += ["", "Thermal reference", *render_fields(view, THERMAL_FIELDS), NOTE_THERMAL]
+        lines += ["", "Thermal reference", *render_fields(view, THERMAL_FIELDS)]
     return lines
 
 
@@ -1101,31 +1160,140 @@ def render_report(rows: list[dict], machine: Machine, url: str) -> str:
         "",
         HOW_TO_READ,
         "",
+        LIMITATIONS,
+        "",
     ]
+    stored_rows, table = intern_rows(rows)
     for group in GROUPS:
-        members = [row for row in rows if row.get("group") == group]
+        members = [
+            (row, stored)
+            for row, stored in zip(rows, stored_rows, strict=True)
+            if row.get("group") == group
+        ]
         lines += [f"## {GROUP_TITLES[group]}", ""]
         if not members:
             lines += ["(none recorded)", ""]
             continue
         if group == "solve":
-            lines += render_aggregate(members) + [""]
-        for row in members:
-            lines += render_row(row)
+            lines += render_aggregate([row for row, _ in members]) + [""]
+        for row, stored in members:
+            lines += render_row(row, stored)
+    lines += render_appendix(table)
     return "\n".join(lines).rstrip() + "\n"
 
 
+
+def _intern_holder(row: dict, path: tuple[str, ...]) -> tuple[dict | None, str]:
+    holder: object = row
+    for key in path[:-1]:
+        if not isinstance(holder, dict):
+            return None, path[-1]
+        holder = holder.get(key)
+    return (holder if isinstance(holder, dict) else None), path[-1]
+
+
+def intern_rows(rows: list[dict]) -> tuple[list[dict], dict[str, object]]:
+    """Swap the repeated bulk fields for references, and return the table they point into."""
+    table: dict[str, object] = {}
+    out: list[dict] = []
+    for row in rows:
+        copy = json.loads(json.dumps(row))
+        for path in INTERN_PATHS:
+            holder, leaf = _intern_holder(copy, path)
+            if holder is None or leaf not in holder:
+                continue
+            value = holder[leaf]
+            if isinstance(value, str) and value.startswith(REF_PREFIX):
+                continue
+            key = f"{'.'.join(path)}@{digest(value)[:12]}"
+            table[key] = value
+            holder[leaf] = REF_PREFIX + key
+        out.append(copy)
+    return out, table
+
+
+def expand_rows(rows: list[dict], table: dict[str, object]) -> list[dict]:
+    """Put the referenced values back, so a loaded row is indistinguishable from a fresh one."""
+    for row in rows:
+        for path in INTERN_PATHS:
+            holder, leaf = _intern_holder(row, path)
+            if holder is None:
+                continue
+            value = holder.get(leaf)
+            if isinstance(value, str) and value.startswith(REF_PREFIX):
+                stored = table.get(value[len(REF_PREFIX) :])
+                if stored is not None:
+                    holder[leaf] = json.loads(json.dumps(stored))
+    return rows
+
+
+def reference(stored: dict, path: tuple[str, ...]) -> str:
+    holder, leaf = _intern_holder(stored, path)
+    value = holder.get(leaf) if holder else None
+    if isinstance(value, str) and value.startswith(REF_PREFIX):
+        return value[len(REF_PREFIX) :]
+    return "inline"
+
+
+def render_appendix(table: dict[str, object]) -> list[str]:
+    lines = [
+        "## Appendix: the values the rows reference",
+        "",
+        "Each entry is written once here and named by every row that used it. The key is a hash"
+        " of the value, so a row naming a key is still proof of which range, which sizing and"
+        " which menu it was measured on - the same proof a per-row copy gave, without paying"
+        " for the copy on every row.",
+        "",
+    ]
+    for key in sorted(table):
+        lines += [
+            f"### {key}",
+            APPENDIX_MARKER
+            + json.dumps({"key": key, "value": table[key]}, separators=(",", ":"), sort_keys=True),
+            "",
+        ]
+    return lines
+
+
 def load_rows(path: Path) -> list[dict]:
+    """Rows with their referenced values put back, so a reload round-trips to the same report."""
     if not path.exists():
         return []
-    rows = []
+    rows: list[dict] = []
+    table: dict[str, object] = {}
     for line in path.read_text(encoding="utf-8").splitlines():
-        if line.startswith(ROW_MARKER):
-            try:
-                rows.append(json.loads(line[len(ROW_MARKER) :]))
-            except json.JSONDecodeError:
-                continue
-    return rows
+        marker = ROW_MARKER if line.startswith(ROW_MARKER) else None
+        marker = APPENDIX_MARKER if line.startswith(APPENDIX_MARKER) else marker
+        if marker is None:
+            continue
+        try:
+            payload = json.loads(line[len(marker) :])
+        except json.JSONDecodeError:
+            continue
+        if marker == APPENDIX_MARKER:
+            table[payload["key"]] = payload["value"]
+        else:
+            rows.append(payload)
+    return [restore_per_unit(row) for row in expand_rows(rows, table)]
+
+
+def restore_per_unit(row: dict) -> dict:
+    """Recompute the derived per-unit block a loaded row does not carry."""
+    if row.get("group") not in {"solve", "determinism"} or "per_unit" in row:
+        return row
+    solve, memory, tree = row.get("solve"), row.get("memory") or {}, row.get("tree") or {}
+    if not solve:
+        return row
+    hands = int(tree.get("hands_oop", 0)) + int(tree.get("hands_ip", 0))
+    row["per_unit"] = per_unit(
+        float(solve.get("wall_seconds", 0.0)),
+        int(solve.get("run_iterations", 0)),
+        hands,
+        memory.get("peak_mb"),
+        memory.get("baseline_mb"),
+        row,
+    )
+    return row
 
 
 def write_report(new_rows: list[dict], machine: Machine, url: str, fresh: bool) -> Path:
