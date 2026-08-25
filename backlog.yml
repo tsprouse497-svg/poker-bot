@@ -2234,3 +2234,202 @@ items:
       and "not a placeholder string" in the checker are already two different bars for one line.
       Filed as contract-update because the first fix is a rule about what an exception may say
       and the rest are implementation that follows it.
+  - id: POSTFLOP-DEPTH-RATIOS-ARE-INVERTED
+    status: deferred
+    phase: "16"
+    title: The turn and river cost ratios phase 16 is planned against run the wrong way
+    reason: >-
+      reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md and
+      docs/V2_ROADMAP.md both state that the turn is about 49 times a flop and the river about
+      2,350 times, and both give compute cost as part of why the phase was ruled flop-only on
+      2026-08-19. MAINT-26 measured it. A port of GTOpen's TreeBuilder, validated byte-exact
+      against the running server, gives a flop-rooted tree that is 99.5 percent river nodes:
+      on GTOpen's own reference spot, 32 flop-street nodes, 6,190 turn, and 1,239,749 river.
+      The tree holds 784 distinct turn subgames and 158,466 river subgames and the CFR
+      traversal updates regrets in every one of them each iteration, with no bucketing and no
+      sampling anywhere in the postflop path. Solving the same config from a turn root is
+      5,889 nodes and from a river root is 33, so a turn-root solve costs about 1/212 of a
+      flop solve and a river-root solve about 1/38,000.
+      The ratios are therefore inverted rather than merely imprecise, and "solving the flop"
+      already is solving 158,466 rivers. The ruling itself is not disturbed: its artifact-size
+      and spot-key grounds stand untouched, and one real limit survives, which is that turn
+      and river strategy obtained from a flop solve is conditional on that flop tree's own bet
+      menu, ranges and flop lines, so a separately configured turn spot remains a different
+      game. What must change is the stated compute rationale in both documents, and that is a
+      contract-shaped edit phase 16 owns rather than a measurement task.
+  - id: SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS
+    status: deferred
+    phase: "16"
+    title: GTOpen's tree-size guard cannot fire on this machine, so a solve script must carry its own
+    reason: >-
+      mem_cap_mb() in GTOpen's server reads /proc/meminfo, which does not exist on Darwin, and
+      falls through to a flat 48,000 MB constant. On this 32 GB machine that is about 1.5
+      times physical RAM, and the arena gate compares only arena_bytes_for(storage) while
+      counting no tree nodes, children or actions at all; the mid-build node budget works out
+      to roughly 3.6e8 nodes, which is over 21 GB of tree structure before a single arena
+      byte. So the guard cannot fire before the machine thrashes. The preflop side's fallback
+      for the same missing file is a conservative 2,000 MB, which is what makes the postflop
+      48,000 look like an oversight rather than a choice.
+      MAINT-26's own driver builds first and enforces its own arena ceiling, so this task is
+      covered. Nothing else is. scripts/extract_gtopen_preflop.py has no such ceiling, and any
+      solve script phase 14 or phase 16 adds would inherit the same absent guard unless it
+      carries one. Filed so the next solve script does not have to rediscover it.
+  - id: SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE
+    status: deferred
+    phase: "16"
+    title: The same solver setting is a percent on one surface and a fraction on two others
+    reason: >-
+      GTOpen's postflop HTTP route takes allin_threshold as a percent and divides by 100
+      server-side. The preflop engine takes it as a fraction validated into (0,1], and
+      solve-cli takes a fraction too. The repo's committed preflop config uses 0.67, so the
+      value a reader is most likely to copy is the one the postflop route will silently
+      misread as 0.67 percent. It is accepted without error or warning.
+      The effect is not subtle and it is not loud. Proven live on one spot, identical except
+      the threshold: 85 gives 145,245 nodes with a root menu of Check and Bet 15 at 75 percent
+      of pot, while 0.85 gives 31,761 nodes with a menu of Check and All-in 100. Every
+      configured bet size is replaced by a jam and the tree shrinks about 4.5 times, so the
+      run is labelled as one tree and measured on another. rake_pct differs the same way
+      between solve-cli and the HTTP route.
+      MAINT-26's driver refuses any value under 1.0 by name. That guard lives in one script,
+      and any future solve script needs its own.
+  - id: ISOMORPHISM-FACTORS-MISREAD-AS-SPEEDUPS
+    status: deferred
+    phase: "16"
+    title: The 1.4x and 2.2x isomorphism figures are branch counts, not solve speedups
+    reason: >-
+      docs/GTOPEN_SOLVER_NOTES.md records suit isomorphism as worth about 1.4 times on
+      two-tone flops and 2.2 times on monotone, taken from GTOpen's README. Those are the
+      branch counts at the first chance node, not per-iteration speedups, and the README
+      contradicts itself: its own timings give 62 ms per iteration rainbow against 37 two-tone
+      and 18 monotone, which is 1.68 and 3.44. The full-tree orbit reductions computed from
+      the solver's own representative rule are 1.646 and 3.484, matching the timings, as they
+      must once river nodes are 99.5 percent of the tree.
+      This matters for any solve budget phase 16 estimates. Over the 1,755 canonical flop
+      classes, which split 455 rainbow, 1,014 two-tone and 286 monotone, applying the correct
+      factors gives about 1,153 rainbow-equivalent solves and a saving near 34 percent, where
+      the README figures would suggest 1,309 and 25 percent. A 25 percent figure is reachable,
+      but only by weighting on raw flop frequency rather than by class, and the two must not
+      be quoted as the same number.
+      One condition the notes should carry alongside it: the saving requires both ranges to be
+      suit-symmetric, since a permutation is admitted only if it maps every combo to an
+      equal-weight combo in the same range. A single suit-specific entry such as AhKh at 0.25
+      collapses the permutation group to the identity and the saving goes to zero.
+  - id: POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL
+    status: deferred
+    phase: "16"
+    title: The measured postflop cost model covers only monotone and two-tone flops
+    reason: >-
+      MAINT-26 designed a twelve-cell matrix, six flop textures crossed with a deep
+      single-raised pot and a three-bet pot, each solved to GTOpen's study-quality 0.3% of
+      pot. Taylor ruled on 2026-08-24 to stop at the five cells that had converged rather than
+      spend about two more hours of solving; see the Decisions section of
+      docs/exec_plans/completed/MAINT_26_POSTFLOP_SOLVE_COST.md. The ruling is sound and
+      nothing was frozen into data by it, but the five are not a random five. Cells ran
+      cheapest texture first, so all five are monotone or two-tone: four monotone, one
+      two-tone, zero rainbow.
+      That is the expensive end and the common one. The task's own iso rows, same line and an
+      identical 1,073,702 action nodes on all three boards, measure 4.570 seconds per
+      iteration rainbow against 2.967 two-tone and 1.410 monotone, so rainbow costs about
+      1.54 times a two-tone and 3.24 times a monotone. The 1,755 canonical flop classes split
+      455 rainbow, 1,014 two-tone and 286 monotone, so the population is dominated by the two
+      textures the pooled aggregate is thinnest on. Every per-unit figure in
+      reports/active/latest_postflop_solve_cost.txt is therefore biased low against a real
+      flop set, and the report now names the gap in a line derived from its own rows.
+      What closes this is one converged rainbow cell per line, which is the driver re-invoked
+      on Kc7d2h for lineB and for the reduced lineA menu, not a reopened task. Until then a
+      rainbow cost quoted from this report is scaled from the iso rows rather than measured,
+      and the short-window bias MAINT-26 also found applies to that scaling: an estimate
+      anchored on a thirty-iteration window under-predicts the true iteration count by a
+      median of 22 percent, worse on the deeper line.
+  - id: QUALITY-GATE-READS-LANE-NAMES-AS-BACKLOG-IDS
+    status: deferred
+    phase: contract-update
+    title: The backlog citation check reads any hyphenated all-caps token in docs as a filed finding
+    reason: >-
+      _citations() in scripts/run_full_quality_gate.py collects every token shaped like a backlog
+      id out of docs/**/*.md and reports/**/*.md and requires each one to name an item in
+      backlog.yml. The intent is right: a finding cited under an id nobody filed has recorded
+      nothing. The net is too wide. Any hyphenated all-caps token in any document is read as a
+      citation, including ones that are plainly not findings.
+      It has now fired twice on things that are not findings. A review-note heading in phase 05
+      is hardcoded into the exclusion table with a note explaining that it is a heading rather
+      than an id. On 2026-08-24 it fired again on two delegation lane names in MAINT-26's
+      ExecPlan, each of which paired the word review with a hyphen and a discipline, and it held
+      the gate red for five commits because nothing else on that branch had run it. The lanes
+      were renamed to single unhyphenated tokens, which fixes that instance and not the trap: the
+      next hyphenated acronym, standard name or lane label anybody writes in a document reddens
+      the gate again, and the failure names an id rather than the naming rule, so the reader has
+      to reverse-engineer the cause from a message about the backlog.
+      Task ids are already excluded by shape rather than one at a time, and the comment there
+      says why: the next task will have a new number, so enumerating them is a losing game. The
+      same argument applies to everything else the net catches. A third cost is that the reason
+      text of a backlog item is copied verbatim into docs/BACKLOG.md, which is itself scanned, so
+      an item cannot quote the ghost id it is about without creating one. This entry is written
+      around that and should not have to be. Options worth weighing: require a citation to be
+      backticked, which is how every real one in this repo is already written; scope the scan to
+      the sections where findings are recorded rather than whole documents; or drive the check
+      from the backlog side. Filed as contract-update, which is where this repo files repo
+      tooling and process defects, alongside the other checks that do not check what they
+      claim.
+  - id: SOLVER-EVIDENCE-REPORTS-HAVE-NO-REGENERATION-CHECK
+    status: deferred
+    phase: contract-update
+    title: Committed solver measurement reports are evidence no gate command can see
+    reason: >-
+      reports/active/latest_postflop_solve_cost.txt is 2,900 lines of committed evidence that the
+      gate can never regenerate, because regenerating it needs a running GTOpen server and the
+      gate must pass on a machine with none. Every other generated document in the repo has a
+      matching check that recomputes it and fails on drift, and this one has nothing. A hand
+      edited row, a stale rendering, or a rendered figure that disagrees with the row JSON it
+      was rendered from is invisible to all 43 gate commands.
+      The fix is available and cheap, which is what makes the gap worth filing. The report is
+      self-describing: each row is emitted as a JSON line and each shared value as an appendix
+      line, and the loader plus the renderer reproduce the whole body from those lines alone
+      with no server involved. A check that reloads the committed file, re-renders it, and
+      compares everything below the generated-at and current-machine header lines would be
+      gate-runnable offline and would catch exactly the drift nothing currently can. Phase 14 and
+      phase 16 will both add solve-derived reports and would inherit the same blind spot.
+      Found by the independent mechanical review of MAINT-26 and filed as an alignment item,
+      because it is a rule about how solver evidence is committed rather than anything one
+      measurement task can settle.
+  - id: EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP
+    status: deferred
+    phase: "14"
+    title: The preflop export's ranges carry indifference artifacts and unfloored residue
+    reason: >-
+      The committed preflop export's conditional ranges are a faithful record of what the solver
+      produced and are not yet fit to be a postflop input. Two problems, both measured during
+      MAINT-26.
+      Indifference artifacts. The three-bet range holds 22 at 0.9994 next to 44 at 0.0007 and 33
+      at 0.162. The preflop solve was indifferent among small pairs and picked one arbitrarily,
+      which is correct behaviour for a solver and wrong as a range somebody studies. A chart
+      built on it shows 22 playing differently from 44 in a three-bet pot for no strategic
+      reason.
+      Unfloored residue. The single-raised out-of-position range spans almost the whole grid at
+      weights far below the resolution of any target anybody solves to. Flooring both ranges at
+      0.01 leaves the action-node count identical and cuts the arena from 21,663 MB to 10,881 MB,
+      hands from 1131v679 to 360v559. So the residue costs a factor of two in memory and buys
+      nothing.
+      The conditioning step has a constraint that rules out the obvious fix: per-combo weights
+      break the solver's suit symmetry, and one unequal combo inside a class collapses the
+      isomorphism group to the identity and forfeits the whole saving on every non-rainbow
+      board. So the floor and any smoothing have to be applied at class level, uniformly across
+      the combos of a class. Filed against phase 14 because that phase re-keys the chart and is
+      where a conditioning step belongs; phase 16 consumes the result.
+  - id: ROADMAP-CLAIMS-NO-SOLVE-WAS-EVER-TIMED
+    status: deferred
+    phase: contract-update
+    title: The roadmap still says no solve has been timed to a real exploitability target
+    reason: >-
+      docs/V2_ROADMAP.md states that no solve in this repo has been timed to a real
+      exploitability target, so affordability at any depth is unmeasured. MAINT-26 timed exactly
+      that on 2026-08-23 and 2026-08-24: seven solves reached GTOpen's own 0.3%-of-pot study
+      quality target, with per-unit costs, peak memory and a determinism result, all recorded in
+      reports/active/latest_postflop_solve_cost.txt and summarised in
+      docs/GTOPEN_SOLVER_NOTES.md.
+      The neighbouring item about inverted depth ratios covers the wrong compute numbers in that
+      same file and in the phase 16 decision record, but not this sentence, which is a different
+      error: not a wrong figure but a claim that no figure exists. A reader who takes it at face
+      value will re-plan around an unmeasured cost that has been measured. Filed separately so
+      the roadmap edit catches both, and as contract-update because both documents are
+      contract-shaped and MAINT-26 is not a contract task.
