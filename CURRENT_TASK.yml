@@ -1044,3 +1044,12 @@ scope_change_log:
       base_commit moves to the contract-update commit so the diff is measured from it rather than
       from the stage-4 halt, which would read the ruled contract edits as out-of-scope work by an
       implementation task.
+  - date: 2026-08-23
+    reason: >-
+      MAINT-26 measures what a real postflop solve costs, because every count phase 16 is
+      planned against rests on a ratio rather than a timing. docs/GTOPEN_SOLVER_NOTES.md
+      carries the "Not verified" list this closes, and scripts/measure_postflop_solve_cost.py
+      is the offline driver that produces the numbers. Neither is read by the gate, the same
+      way scripts/extract_gtopen_preflop.py is not, so the gate still passes on a machine with
+      no GTOpen server. No chart data is committed and no phase status moves: this is not
+      phase 16 and must not be mistaken for it.
