@@ -189,14 +189,56 @@ not guessed - it is the bot refusing hands it could have played, or answering fr
 solver never trained. Refusing too much is recoverable by a later phase; answering from an
 untrained cell is what this decision exists to prevent.
 
-Options: reach-at-2pct | reach-at-5pct | depth-at-8 | reach-at-2pct-with-a-5-action-floor
-Answer: [reach-at-2pct]
+Options: reach-at-2pct | reach-at-5pct | depth-at-8 | reach-at-2pct-with-a-5-action-floor |
+heads-up-only
+Answer: [heads-up-only]
 
 **Ruled by Taylor, 2026-08-23: reach at 2 percent.** 5,626 spots and 10.3 MiB against a 15.9 MiB
 budget. He took the option that keeps the most coverage while leaving headroom, over the stricter
 5 percent floor and over the depth proxy. The cost he accepted: the next solve into this directory
 has 5.6 MiB rather than 9.8, and `ARTIFACT-SIZE-LIMIT-VERSUS-SOLVE-COVERAGE` is where that comes
 due.
+
+**Superseded by Taylor on 2026-08-24: keep a node only when at most one opponent has voluntarily
+put money in beyond the blinds. 110 spots.** The 2026-08-23 ruling was made on a question about
+bytes. Stage 4's independent verification changed the question to one about whether the ranges are
+right, and the answer is that most of them are not: GTOpen prices a multiway pot as the product of
+hero's pairwise equities - `crates/solver/src/preflop/mod.rs` line 12 says so - which understates
+true three-way equity by 10.5 points and by 14 on the suited connectors whose entire value is
+multiway. The big blind therefore defends 7.44 percent closing at 4.3 to 1 three-handed where
+correct pricing gives 65.6, and **98.0 percent of the 5,626 spots the reach floor selected have two
+or more opponents already invested**. The predicate that keeps only what the model prices exactly
+selects 110 nodes of the 38,828.
+
+**How the four options above now stand.** All four are reach or depth rules over the whole tree,
+so all four select mostly multiway nodes and none of them addresses this. The reach floor is not
+retuned but retired: measured over the export, every one of the 110 heads-up nodes also clears the
+2 percent floor, so conjoining them changes nothing and the floor now selects nothing the new
+predicate does not. Recorded because the two rules were nearly confused: 110 is the heads-up count
+over the *whole* export, not the heads-up subset of the 5,626, and the earlier note phrasing "110
+of 5,626" reads as the second.
+
+**What the 110 are**, measured from the committed export by a walk that reproduces the recorded
+5,626 exactly under the recorded floor definition, which is the unweighted mean of `reach_bp` over
+the 169 classes rather than a combo-weighted one: 5 opens and 30, 30, 30 and 15 spots facing one,
+two, three and four prior aggressive actions; 16/17/18/19/20/20 across LJ, HJ, CO, BTN, SB and BB;
+35 at full reach; and four action menus - 60 fold/call, 30 fold/call/raise/jam, 15 fold/call/jam
+and 5 fold/raise/jam.
+
+**The cost Taylor accepted.** The bot refuses the multiway decisions rather than answering them
+from a model that cannot see multiway equity. Those are 8.3 percent of the corpus's 3,054 preflop
+decision points, and they leave phase 08's denominator with them; `CHART-COVERAGE-EXPANSION` and
+`CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK` are settled against 110 spots rather than 5,626, and the
+cold-call spots the retired chart already refuses stay refused. What it does not cost is
+optionality: the spot key encodes the action sequence, so a multiway family arrives later as new
+keys with no re-keying, once `MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION` is fixed in GTOpen.
+
+**Depth was not cut further.** The recommendation put to him was heads-up with a shallow depth
+clause; he ruled "the 110" as counted, which is the full heads-up set including the three-bet,
+four-bet and five-bet continuations. The consequence is recorded rather than hidden: this phase's
+own measurement flags the published four-bet node as unconverged - JJ folded 97 percent, TT and 99
+and KJs outright - and it ships, published in the report as a measurement beside the cells it
+describes.
 
 ## 2. What happens to the non-monotone pair
 
@@ -351,6 +393,26 @@ assume: decision 1's 10.3 MiB estimate was computed without a reach field. If th
 breach the cap, that is a halt and a return to this list, not a silent re-tightening of the reach
 floor.
 
+**Amended 2026-08-24, because decision 1's supersession removed both halves of the rationale above
+and the ruling survives on neither of them.** Two sentences are now false. "The selection rule from
+decision 1 then lives in the artifact rather than being applied once at conversion and forgotten"
+does not hold: the selection rule is no longer a reach threshold, so a reach field does not encode
+it - the predicate is "at most one opponent voluntarily invested", which is a property of the spot
+key rather than of a per-cell number. And the byte paragraph is moot: there is no 15.9 MiB budget in
+play at 110 spots and no reach floor left to re-tighten.
+
+**The ruling stands, on the half that survives, and the half is smaller than it was.** A reader can
+still tell a trained cell from one the solver barely visited, and that is what
+`CHART-CELLS-SHOULD-CARRY-ARRIVING-REACH` asked for. But 35 of the 110 are at full reach and none is
+near the retired floor, so on the committed set the field distinguishes less than it was ruled to.
+The reason to keep it is prospective rather than present: the multiway family that returns once
+GTOpen can price it is deep, rare and exactly where the distinction bites, and adding the field then
+is a second `ARTIFACT_SCHEMA_VERSION` bump and a re-derivation of everything built on the first.
+
+This item is `frozen-into-data` and the amendment does not reverse it, so it proceeds. Taylor is
+told the rationale narrowed rather than asked to re-rule; dropping the field remains his call, and
+its cost is a schema bump later instead of now.
+
 ## 6. How the export's four action kinds become the schema's four
 
 Reversibility: frozen-into-data
@@ -407,6 +469,23 @@ sizing table has no size stays true because none of these will be absent" is fal
 have no entry. The invariant is two-directional instead - every spot with a positive raise weight
 has an entry, and every spot without an entry has no raise weight - and both sets are non-empty.
 
+**Restated on 2026-08-24, because decision 1's supersession moved the measurement under this
+ruling and a premise that evaporated must not be left standing.** The 60.6 percent figure is a
+property of the multiway spots. Re-measured over the 110 the cutover now commits: **35 spots offer
+both a named raise and a jam, and the shove is 5.0 percent of hero's reach-weighted aggressive
+volume at them, the majority at 2 and all of it at none.** So the sentence "one price per spot
+teaches a 22.5bb raise on 136 decisions the solve plays as a stack-off" is false of what this phase
+ships, and the AA-jams-100bb behaviour that produced it was itself a tree artifact of the
+cold-called nodes, where the only non-jam raise available prices the whole field in.
+
+**The ruling stands on narrower ground and the ground is stated.** A spot offering two prices is
+described by two prices; one price per spot silently drops that 5 percent; the schema is strictly
+more expressive and costs bytes the phase now has in abundance; and the multiway family that
+returns later is where the 60.6 percent lived, so the schema will be needed then. This is a
+restatement rather than a reopening - Taylor is told the premise moved, and reverting to one price
+per spot remains his call. The two-directional invariant below is unaffected except in its numbers:
+**60 of the 110** committed spots offer hero only fold and call.
+
 What stays out of scope, and is filed rather than done: solving *additional* 3-bet, 4-bet and
 5-bet sizes so the tree offers a real choice rather than a raise-or-shove pair. Measured on this
 machine through GTOpen's own estimator, a second re-raise multiplier takes the tree from 38,828
@@ -446,6 +525,14 @@ Default: the reason codes live beside the existing refusal codes in
 so a reader meets one vocabulary rather than two. Measured today, the vocabulary needs no
 inexpressibility code at all - all 38,828 nodes derive a key - so the census will publish that
 bucket at zero, which is a result rather than an omission.
+
+**Proceeded on its default and extended, 2026-08-24, reported rather than blocked** because this
+item is `runtime-reversible`. Decision 1's supersession makes the exclusion bucket 38,718 nodes, so
+one code for all of them carries no information. The vocabulary distinguishes **two** exclusion
+reasons: a node outside the selection rule, and a node the source misprices. Every multiway node is
+both, and the second is the fact a later phase needs to find them by - filing them under one code
+loses which nodes come back when GTOpen can price multiway. Taylor was told this proceeds on the
+default rather than asked to rule it.
 
 ## 9. What the closing prediction's magnitude band is
 
@@ -534,8 +621,25 @@ rather than gating the artifact.
 
 What gates instead is the same dominance taken over **groups**, where indifference cancels: the
 combo-weighted play frequency of each pair band and each suited row, over hero's arriving range,
-must be at least that of the band or row below. That keeps a real check - a transposed hand index
-or a mis-assigned actor still fails it - without asserting a per-cell order the solve does not owe.
+must be at least that of the band or row below. That is meant to keep a real check - a transposed
+hand index or a mis-assigned actor still failing it - without asserting a per-cell order the solve
+does not owe.
+
+**Corrected 2026-08-24: the sentence above claims a property that was then measured and is false.**
+The independent walk in `stage-04-cold-call-verification.md` ran every aggregate form over the 5,626
+at this item's ruled tolerance. The suited-versus-offsuit relation flagged **2,007 nodes as solved
+against 818 with suited and offsuit transposed**, so the gate scores the *wrong* index mapping as
+the better one - it does not catch a transposed index, it rewards one, which is worse than having no
+gate for that defect at all. Only the two-band pair aggregate came out clean, and only over the 351
+full-reach nodes. So no aggregate form of this rule had been shown to pass over what the phase was
+going to commit.
+
+**What that means now that decision 1 commits the 110 instead.** The measurement above is over the
+5,626 and does not transfer: the contract requires the aggregate gate re-measured over the 110
+before it is frozen, and the phase halts rather than freeze a gate it has not seen pass. Until that
+measurement exists, this item's group gate is a proposal rather than a proven check, and the
+transposed-index claim is withdrawn rather than restated - whether it holds on the 110 is one of the
+things stage 4 now owes.
 
 Two things this ruling does not settle, recorded so nobody reads them as settled. It was given
 against the pair ladder, and 6,990 of the violations are suited-versus-offsuit, where the offsuit

@@ -2861,3 +2861,124 @@ items:
       value will re-plan around an unmeasured cost that has been measured. Filed separately so
       the roadmap edit catches both, and as contract-update because both documents are
       contract-shaped and MAINT-26 is not a contract task.
+  - id: SELF-PLAY-COVERAGE-PREMISE-RESTS-ON-THE-REACH-FLOOR
+    status: deferred
+    phase: simulator
+    title: The self-play coverage argument is built on a selection rule phase 14 retired
+    reason: >-
+      SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS reasons from decision 1's 2 percent reach floor:
+      the per-hand probability of reaching a node under that floor is 0.00046, so an empty
+      refusal inventory is "the reach floor working rather than a defect, since the nodes
+      decision 1 drops are the nodes nobody reaches". Taylor superseded that rule on 2026-08-24
+      and the conclusion inverts. The committed set is now the 110 heads-up spots - the shallow,
+      high-reach half - so a self-play seat reading it refuses every multiway line and the
+      refusal inventory will not be empty. The entry also declares a non-deferrable stage-6
+      obligation about generate_sample_comparison_report dying about three runs in four, derived
+      from the same inverted premise, and nothing in the rewritten phase 14 contract points at
+      it. Raised by the independent mechanical review of the phase 14 predicate change.
+  - id: BACKLOG-SWEEP-MISSES-ENTRIES-FILED-UNDER-A-CATEGORY
+    status: deferred
+    phase: contract-update
+    title: A phase's closing sweep is scoped by phase id and cannot see what it filed by subject
+    reason: >-
+      Every phase contract closes with a catch-all over "every other entry reading phase: NN".
+      Phase 14's own stage 4 filed SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS under phase simulator
+      and ARRIVING-REACH-HAS-TWO-DEFINITIONS and
+      SHALLOW-TREE-CONVERGENCE-WAS-NEVER-MEASURED-BEYOND-ELEVEN-NODES under phase charts, so the
+      sweep reaches none of the three even though the phase that must settle them wrote them.
+      Filing by subject area is right - the work belongs to a subsystem - but it means the only
+      mechanism that forces a phase to revisit what it learned is keyed on the one field those
+      entries deliberately do not use. Either the sweep needs a second key, or a filed-by field
+      naming the phase that raised it. Raised by the independent mechanical review of the phase
+      14 predicate change.
+  - id: LOOP-HAS-NO-RULE-FOR-A-MID-PHASE-CONTRACT-UPDATE
+    status: deferred
+    phase: contract-update
+    title: Flipping a running phase back to contract-update is precedent rather than a rule
+    reason: >-
+      Phase 14 has twice gone implementation to contract-update at a stage boundary without
+      passing through idle, because a review found that a ruling under the current stage moved.
+      The pattern is correct - a contract change cannot be applied from implementation mode -
+      but AGENTS.md Task Activation assumes idle, and docs/LOOP.md and scripts/loop_stage.py have
+      no stage or transition named for it, so each occurrence argues from the last one in its
+      scope_change_log entry rather than from a rule. The loop should name the transition, say
+      what base_commit does, and say whether the stage pointer moves. Raised by the independent
+      mechanical review of the phase 14 predicate change.
+  - id: PHASE-CONTRACT-LINE-CAP-FORCES-REWRITES-OVER-AMENDMENTS
+    status: deferred
+    phase: contract-update
+    title: The 300-line contract cap turns amendments into rewrites, and rewrites lose cross-references
+    reason: >-
+      check_file_sizes caps docs/phase_contracts/*.md at 300 lines. The phase 14 contract sat at
+      298 before its predicate changed, so a ruling that should have been a short amendment
+      required a full rewrite, and the rewrite silently dropped three things a diff-shaped
+      amendment would have kept: the halt rule on the artifact byte cap, the re-solve section's
+      thresholds and its human-read clause, and the note that the roadmap's 1,691-spot figure is
+      superseded. An independent review found all three. This is the same mechanism as
+      ENGINE-FIDELITY-CONTRACT-IS-AT-ITS-LINE-CAP and PHASE-AUDIT-PACKET-AT-ITS-LINE-CAP, now
+      observed causing defects rather than just friction, and the phase 14 contract is back at
+      299 of 300 with one line of headroom for whatever stage 6 owes it. The ruling wanted is
+      whether the cap moves, whether a contract may carry an appendix the cap does not count, or
+      whether the cap is right and contracts must shed content to earn new criteria.
+  - id: BACKLOG-CITATION-SHAPE-MATCHES-POKER-NOTATION
+    status: deferred
+    phase: contract-update
+    title: The backlog citation check reads a pair band as an unknown backlog id
+    reason: >-
+      run_full_quality_gate's backlog integrity check recognises a citation by the shape of an id,
+      and a hand-range band written the way a poker player writes it, two pair names joined by a
+      hyphen, has that shape. A stage-4 review note tabulating pair-band aggregates turned the gate
+      red with four "cites backlog id which no item declares" errors about hand ranges - and this
+      entry could not name the four offenders without reproducing the failure. Worked around by
+      rewriting the bands as "AA to JJ", which is a document bending to a checker. The check is
+      right to be shape-based, but the shape needs to exclude two-rank tokens, or ids need a
+      prefix, or citations need to be explicit. Filed because every later phase writing about
+      ranges will hit it, and the failure mode is a red gate blaming the wrong thing. Also worth
+      noting how it was found: the gate had not been run since the note was committed, so the halt
+      commit shipped a red gate nobody saw.
+  - id: SELECTION-PREDICATE-MUST-BE-STATED-OVER-REACHABLE-TERMINALS
+    status: deferred
+    phase: charts
+    title: A selection rule claiming a pricing property has to be stated over the subtree, not the history
+    reason: >-
+      Phase 14 ruled its predicate as "at most one opponent has voluntarily put money in beyond the
+      blinds", intending to select the nodes GTOpen prices exactly. That is a statement about the
+      actions already taken, and the product approximation bites at terminals, so a node's value is
+      backward-induced over every terminal below it. Measured: 110 nodes pass the ruled predicate,
+      5,472 have only heads-up terminals, 86 are in both, and 24 of the 110 have a multiway terminal
+      still reachable - four of the five opens, the RFI defences with seats behind, and the
+      decisions facing an open-jam, carrying 2,232 of the corpus's 3,054 preflop decisions. The
+      general rule for any future extraction from a solved tree: state the rule over the subtree the
+      value is computed from, and measure it, before it becomes an acceptance criterion. Raised by
+      the independent poker review of the phase 14 predicate change.
+  - id: CHART-MUST-REFUSE-AN-UNTRAINED-CELL
+    status: deferred
+    phase: charts
+    title: Carrying arriving reach per cell is not the same as refusing a cell the solver never trained
+    reason: >-
+      Phase 14 satisfies CHART-CELLS-SHOULD-CARRY-ARRIVING-REACH by putting arriving reach on every
+      committed cell, which is the right field, but nothing in the acceptance criteria makes the
+      runtime decline a cell the solver never visited. Measured over the committed set: 39.9 percent
+      of 18,590 cells have zero arriving reach and 20.3 percent sit at the solver's untouched
+      uniform initialisation, every action at exactly 1/k - readable straight off the grid, where LJ
+      facing a BB three-bet gives K4o, 72o and 43o all at 25/25/25/25. Corpus exposure is small at
+      0.5 percent of matched decisions, so the closing measurement is safe; the training use is not,
+      because the moment a student deviates upstream the next node's answer for his hand is the
+      initialisation, returned with the same confidence as a solved cell. Wanted: a per-cell refusal
+      at a ruled reach threshold. Raised by the independent poker review of the phase 14 predicate
+      change.
+  - id: SOLVE-CAPTURE-NEEDS-A-POT-ENTRY-RATE-CHECK
+    status: deferred
+    phase: charts
+    title: Nothing checks a solved tree's aggregate pot-entry rate against the corpus
+    reason: >-
+      Extends NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL with one cheap number that
+      would have caught the multiway pricing defect at phase 10. Walk the solved strategies forward
+      through the tree and publish the rate at which a hand ends preflop and the rate at which it
+      reaches a multiway flop, beside the same two rates from the public corpus. The committed solve
+      gives 71.2 percent and 0.18 percent against the corpus's 48.1 and 4.01. A rake-free no-limp
+      game should steal more than a real one, not walk the blinds on three hands in four, and no
+      range-shape check in this repo can see a defect that lives in the aggregate. It needs no
+      external solver and no new data. Raised by the independent poker review of the phase 14
+      predicate change.
+

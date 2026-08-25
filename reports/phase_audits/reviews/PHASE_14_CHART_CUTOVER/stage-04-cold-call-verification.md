@@ -63,9 +63,9 @@ one-point tolerance, counting nodes with at least one violation:
 | Aggregate | over 5,626 committed | over the 351 at full reach |
 |---|---|---|
 | pairs, 13 single ranks adjacent | 1,185 | 33 |
-| pairs, 4 bands AA-JJ / TT-88 / 77-55 / 44-22 | 409 | 4 |
-| pairs, 3 bands AA-TT / 99-66 / 55-22 | 251 | 2 |
-| pairs, 2 bands AA-88 / 77-22 | 51 | 0 |
+| pairs, 4 bands AA to JJ / TT to 88 / 77 to 55 / 44 to 22 | 409 | 4 |
+| pairs, 3 bands AA to TT / 99 to 66 / 55 to 22 | 251 | 2 |
+| pairs, 2 bands AA to 88 / 77 to 22 | 51 | 0 |
 | suited row over the row below | 1,145 | 73 |
 | suited vs offsuit, per row | 2,102 | 9 |
 | suited vs offsuit, whole range in one aggregate | 2,007 | 6 |

@@ -1,13 +1,11 @@
 task_id: PHASE_14_CHART_CUTOVER
 active_phase: "14"
-task_mode: implementation
-base_commit: e03d2507829339c072ccc64a4a4c1ef437e5faf2
+task_mode: contract-update
+base_commit: 9be45bf81604bb5eab25510532ed8a3cff35031f
 approved_scope:
+  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+  - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
-  - tests/**
-  - verification/mutations.yml
-  - verification/freeze.lock
-  - scripts/run_verify.py
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -1053,3 +1051,20 @@ scope_change_log:
       way scripts/extract_gtopen_preflop.py is not, so the gate still passes on a machine with
       no GTOpen server. No chart data is committed and no phase status moves: this is not
       phase 16 and must not be mistaken for it.
+  - date: 2026-08-24
+    reason: >-
+      Phase 14 stage 4's independent verification of the cold-call finding traced it to a defect
+      in the extraction source rather than in this repo: GTOpen prices a multiway pot as the
+      product of hero's pairwise equities, which understates true three-way equity by 10.5 points
+      and makes the big blind fold 92.6 percent closing at 4.3 to 1 three-handed. No re-solve and
+      no size menu touches it, because it is the core pricing rather than a parameter. Taylor
+      ruled on 2026-08-24 that the cutover commits only the 110 heads-up spots, where the
+      approximation is exact by construction, and refuses the rest with a code.
+      That moves decision 1, which is frozen-into-data and was ruled on 2026-08-23, so it cannot
+      be applied from implementation mode: contract-update as its own task on the same precedent
+      this lane used two commits ago. docs/phase_contracts/PHASE_14_CHART_CUTOVER.md and
+      reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md return to approved_scope
+      and tests/**, verification/** and scripts/** are deliberately absent, so this task cannot
+      reshape the tests it is correcting the specification for.
+      base_commit moves to the merge of main into this lane, so MAINT-26's files - which arrived
+      from main and not from this task - do not read as out-of-scope work by a contract-update.

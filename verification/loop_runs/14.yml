@@ -1,17 +1,28 @@
 auto_advance: false
-halt_reason: 'Stage 4 still held, on a NEW finding that supersedes the gate question.
-  Measuring a replacement aggregate gate surfaced a defect in the ranges themselves:
-  the big blind''s strategy collapses the moment a cold-caller enters. Heads-up versus
-  a 2.5bb lojack open it defends 27.28 percent needing 27.3 and KQo calls 99.9 percent;
-  add one cold-caller, so the price improves to 18.8 percent and the pot is bigger,
-  and it defends 7.44 percent, KQo folds 99.9, AJo folds 99.5, T9s folds 99.9, K9s
-  folds 99.2, and AA jams 100bb 94.3 percent of the time. 26 committed spots, all
-  kept by the reach floor. This is not the indifference Taylor ruled on: KQo folding
-  at 4.3 to 1 and AA shoving forty times the pot are determinate answers, not arbitrary
-  splits among equal-EV hands. Also recorded: no aggregate gate as the amended contract
-  specifies it passes on the committed chart, and reach_bp measures the actor''s own
-  range survival rather than how often the line occurs, so decision 1''s floor never
-  dropped a rare line.'
+halt_reason: 'Stage 4 halted a second time, on a finding that breaks the premise of
+  the 2026-08-24 ruling rather than on the ruling itself. Taylor ruled the cutover
+  commits the 110 heads-up spots, on the understanding that the heads-up predicate
+  selects the nodes GTOpen prices exactly. An independent poker review measured that
+  and it is false. The product approximation bites at terminals, and a node''s strategy
+  is backward-induced over every terminal below it, so the property has to be stated
+  over the subtree rather than over the actions already taken. Counting seats that
+  have not folded rather than seats that have acted: 110 pass the ruled predicate,
+  5,472 are terminal-clean, 86 are in both, and 24 of the 110 have a multiway terminal
+  still reachable. The 24 are four of the five opens, the RFI defences with seats
+  still behind, and the decisions facing a 100bb open-jam, and they carry 2,232 of
+  the corpus''s 3,054 preflop decisions - 73 percent of everything the bot would still
+  answer. It is visible in the cells: flatting a 2.5bb open runs 21 to 24 percent
+  for the big blind, who closes the action with nobody behind, and 0.07 to 4.5 percent
+  for every seat with players still to act, the button flatting a cutoff open 0.07
+  percent of the time. Every three-bet frequency is close to right. Forward-simulated
+  the solve walks the blinds on 71.2 percent of hands and reaches a multiway flop
+  on 0.18, against 48.1 and 4.01 in the corpus. Two further blockers ride with it,
+  both also for Taylor: the four-bet continuations inside the 110 fold JJ 97 percent
+  at 32 percent pot odds, and the small blind facing a button open continues 22 at
+  99.94 percent and 44 at 0.07 at full reach where the ruled band grouping cannot
+  see it. Cutting to the 86 drops four of the five opens, so it is not obviously a
+  chart; shipping the 110 ships 24 spots that teach a button never flatting a cutoff.
+  Evidence in reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-predicate-change-review.md.'
 loop: halted
 phase_id: '14'
 schema_version: 1
