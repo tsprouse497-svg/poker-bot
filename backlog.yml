@@ -2640,3 +2640,25 @@ items:
       exist. Phase 14 should not tag until this has run, on that precedent.
       No check reports a contract sitting at the cap while it owes an amendment, which is the same
       gap phase 13 stage 1 found the first time and which is why this is filed by hand again.
+  - id: MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION
+    status: deferred
+    phase: v2
+    title: GTOpen prices multiway pots as a product of pairwise equities
+    reason: >-
+      crates/solver/src/preflop/mod.rs line 12 states it: "Multiway equity uses the product
+      approximation (exact heads-up)", and line 1127 gates the calibrated realization fit to
+      live == 2 because the postflop engine behind it is heads-up only. The product understates
+      true three-way equity by 10.5 points on average across the 169 classes, worst by 14 on the
+      suited connectors whose whole value is multiway and near zero on AA. That is what makes the
+      big blind defend 7.44 percent closing at 4.3 to 1 against an open plus one cold call: priced
+      as a product the predicted figure is 7.39, and with correct equity the same node defends 65.6.
+      Measured and evidenced in
+      reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-cold-call-verification.md.
+      Filed so nobody plans this as a re-solve. No config value turns it off - realization picks
+      among raw, static and calibrated and all three multiply an equity already computed as a
+      product - and three-way equity does not decompose into pairwise terms, so the fix is true
+      multiway equity at KIND_POT_SHARE terminals inside GTOpen, with its own benchmarking and
+      validation. A squeeze size is a separate, smaller defect with a config-level fix
+      (raise_mults_by_seat) and does not touch this one. Heads-up output is unaffected: the
+      approximation is exact there, and the five opens and five big-blind defence frequencies
+      check out against the GTO Wizard reference.
