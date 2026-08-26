@@ -2661,7 +2661,16 @@ items:
       validation. A squeeze size is a separate, smaller defect with a config-level fix
       (raise_mults_by_seat) and does not touch this one. Heads-up output is unaffected: the
       approximation is exact there, and the five opens and five big-blind defence frequencies
-      check out against the GTO Wizard reference.
+      check out against the GTO Wizard reference. Scheduled rather than merely noted by Taylor's
+      2026-08-25 ruling on phase 14: the cutover commits the 86 terminal-clean spots now precisely
+      because this fix is the route by which the other 24 return, as new keys with no re-keying. Two
+      consequences follow. The 24 that phase 14 refuses are four of the five opens, the RFI defences
+      with seats still behind and the decisions facing a 100bb open-jam, so until this is fixed the
+      bot cannot open from LJ, HJ, CO or BTN at all - 2,232 of the corpus's 3,048 preflop decision
+      points. And the roadmap has no phase slot for it: phases 15 and 16 are The Drill and Postflop
+      That Can Bet, and whether this becomes a numbered phase ahead of them or stays v2 work is a
+      decision nobody has made. It stays phase: v2 here because inventing a slot is not phase 14's
+      to do.
   - id: POSTFLOP-DEPTH-RATIOS-ARE-INVERTED
     status: deferred
     phase: "16"
@@ -2947,7 +2956,7 @@ items:
       backward-induced over every terminal below it. Measured: 110 nodes pass the ruled predicate,
       5,472 have only heads-up terminals, 86 are in both, and 24 of the 110 have a multiway terminal
       still reachable - four of the five opens, the RFI defences with seats behind, and the
-      decisions facing an open-jam, carrying 2,232 of the corpus's 3,054 preflop decisions. The
+      decisions facing an open-jam, carrying 2,232 of the corpus's 3,048 preflop decisions. The
       general rule for any future extraction from a solved tree: state the rule over the subtree the
       value is computed from, and measure it, before it becomes an acceptance criterion. Raised by
       the independent poker review of the phase 14 predicate change.

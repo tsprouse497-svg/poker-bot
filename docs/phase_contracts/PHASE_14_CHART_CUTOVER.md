@@ -25,56 +25,55 @@ the ranges every later phase is measured against; hence `auto_advance: false` in
 
 **The phase converts a subset of the export's 38,828 action nodes, and choosing it was the central
 decision.** It was first ruled on size - committing the tree is 272 MiB - so decision 1 kept a node
-when at least 2 percent of hero's range arrived there, selecting 5,626 spots at 10.3 MiB.
-
-**That rule was superseded on 2026-08-24, on the poker rather than the bytes.** Stage 4 measured the
-big blind closing for 1.5 into 6.5 at 4.3 to 1 against an open and one cold call: it defends **7.44
-percent**, folding KQo, AJo, T9s and K9s while AA jams 100bb. An independent walk reproduced every
-figure and found the cause, evidenced in the stage-4 review notes and filed as
+when at least 2 percent of hero's range arrived there, selecting 5,626 spots at 10.3 MiB. That rule
+was superseded on 2026-08-24 on the poker rather than the bytes. Stage 4 measured the big blind
+closing for 1.5 into 6.5 at 4.3 to 1 against an open and one cold call: it defends **7.44 percent**,
+folding KQo, AJo, T9s and K9s while AA jams 100bb. An independent walk reproduced every figure and
+found the cause, evidenced in the stage-4 review notes and filed as
 `MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION`: GTOpen prices a multiway pot as the product of hero's
 pairwise equities, **understating true three-way equity by 10.5 points** and by 14 on the suited
 connectors whose entire value is multiway. Priced correctly the node defends 65.6. It is the core
 pricing rather than a parameter, so no re-solve and no size menu touches it.
 
-**Ruled by Taylor on 2026-08-24: the cutover commits the 110 heads-up spots.** Keep a node when at
-most one opponent has voluntarily put money in beyond the blinds. That is 110 of the 38,828, all of
-which also clear the old reach floor, so
-decision 1's threshold is retired rather than retuned. They are 5 opens and 30, 30, 30 and 15 spots
-facing one, two, three and four prior aggressive actions, spread 16/17/18/19/20/20 across LJ, HJ,
-CO, BTN, SB and BB, 35 at full reach. Everything else is a lookup miss refused with a code. The cost
-is stated against the right baseline: **all 36 spots of the retired chart are heads-up too**, so
-nothing the bot answers today is lost and coverage goes from 36 to 110. The 8.3 percent of the
-corpus's 3,054 decision points that are multiway were already refused, and stay refused. What the
-ruling gives up is the *planned* 5,626, not the shipped 36. It forecloses nothing further, because
-the spot key encodes the action sequence, so a multiway family arrives later as new keys.
+**First ruled on 2026-08-24 as the 110 heads-up spots, superseded on 2026-08-25: the cutover commits
+the 86.** The first ruling kept a node when at most one opponent had voluntarily put money in beyond
+the blinds, on the understanding that this selects what the model prices exactly. It does not: the
+approximation bites at *terminals* and a node's strategy is backward-induced over every terminal
+below it, so a subtree clause is **conjoined** rather than substituted. **Keep a node when at most
+one opponent has voluntarily invested beyond the blinds *and* at most two players are still live.**
+Neither half alone is the rule - the history half selects 110 and admits 24 nodes that can still go
+multiway; the subtree half selects 5,472 and admits 5,386 reached through a cold call, heads-up from
+here on but already priced against the degenerate calling ranges the defect produces. **86 satisfy
+both**, and `SELECTION-PREDICATE-MUST-BE-STATED-OVER-REACHABLE-TERMINALS` files the general error.
+The 24 dropped are four of the five opens, the RFI defences with seats behind and the decisions
+facing a 100bb open-jam, carrying 2,232 real decisions. All 86 clear the retired 2 percent floor, so
+decision 1's threshold is retired rather than retuned. Everything else is a lookup miss refused.
 
-**HALT recorded 2026-08-24, against this ruling's premise.** The predicate does not select the nodes
-the model prices exactly: the approximation bites at *terminals*, and **86 of the 110 are
-terminal-clean while 24 are not**, carrying 73 percent of real decisions. Evidence, the measured
-flat-call collapse and the options are in the stage-4 review notes and `verification/loop_runs/14.yml`.
-**Everything below is written against the 110 and is on hold.**
+**The cost, measured before the ruling rather than after.** The 86 answer **563 of the corpus's 3,048
+preflop decision points, 18.5 percent**; only the small blind's opening range survives. **The retired
+chart is not a subset: 22 of its 36 spots survive and 14 do not**, four RFI ranges among them, so the
+cutover gains 64 spots and gives up 14 the bot answers today. The ruling's second half is that the
+source gets fixed: `MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION` is scheduled and the 24 come back.
 
 Five things arrive ruled and are not reopened. Limps left the solve at phase 10's human gate, on the
-measurement that they are 87 percent of the tree and hero never limps, so the export is
-`limp: false` and every count here is a no-limp count. The solve is rake-free, which removes one of
-phase 08's explanations for the calling gap. Phase 12's ruling 8 stands: opponent prices abstract to
-the solved price inside the lookup, and no second opening price is added. The export is not graded
-against GTO Wizard, because a threshold over the gap between two programs measures two products. And
-**no re-solve is run** - decision 2 ruled ship-as-solved, and a tighter gap does not move a pricing
-model. The phase also leaves the spot key grammar, the depth, the table size and `data/samples/**`
-alone.
+measurement that they are 87 percent of the tree and hero never limps, so the export is `limp: false`
+and every count here is a no-limp count. The solve is rake-free, which removes one of phase 08's
+explanations for the calling gap. Phase 12's ruling 8 stands: opponent prices abstract to the solved
+price inside the lookup, and no second opening price is added. The export is not graded against GTO
+Wizard, because a threshold over the gap between two programs measures two products. And **no
+re-solve is run** - decision 2 ruled ship-as-solved, and a tighter gap does not move a pricing model.
+The phase also leaves the spot key grammar, the depth, the table size and `data/samples/**` alone.
 
 ## Non-goals
 - Do not add PokerNow automation, browser or platform observation, runtime solver calls,
   LLM-backed poker decisions, or training UI surfaces. These are the standing V1 boundaries.
 - Do not re-solve at a second opening price, with limps, at another depth, or at another table size.
   All are phase-10-shaped work with their own human verdict.
-- Do not fix the multiway pricing here, and do not commit multiway spots with the defect recorded
-  as a caveat. The fix is a change to GTOpen's `KIND_POT_SHARE` terminals with its own
-  benchmarking: no config turns it off, since `realization` picks among `raw`, `static` and
-  `calibrated` and all three multiply an equity already computed as a product, and three-way equity
-  does not decompose into pairwise terms. A source-card caveat does not reach the human at the
-  table, and the rule here is that a spot with no trusted ranges is refused.
+- Do not fix the multiway pricing here, and do not commit a mispriced spot with the defect recorded
+  as a caveat. The fix is a change to GTOpen's `KIND_POT_SHARE` terminals with its own benchmarking:
+  no config turns it off, since `realization` picks among `raw`, `static` and `calibrated` and all
+  three multiply an equity already computed as a product. A source-card caveat does not reach the
+  human at the table, and the rule here is that a spot with no trusted ranges is refused.
 - Do not change the spot key grammar. Phase 12 set it, re-keying re-seeds every mixed cell
   (`RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`), and paying that twice buys one result.
 - Do not rederive `data/artifacts/preflop/expectations/six_max_nl25_100bb.json` from the export. It
@@ -85,21 +84,22 @@ alone.
 
 ### Selecting what gets committed
 - The committed spots are exactly those the ruled predicate selects - at most one opponent
-  voluntarily invested beyond the blinds - and the predicate is the ruling rather than the 110 it
-  produced. It is stated in those terms in the converter, never as a node list.
+  voluntarily invested **and** at most two players still live - and the predicate is the ruling
+  rather than the 86 it produced. Both clauses live in the converter, never a node list and never one
+  clause alone: alone they give 110 and 5,472.
 - Every node in the export is accounted for by the walk in exactly one of three buckets: committed,
   excluded, or inexpressible in the spot vocabulary, and the three sum to the node count the source
   card publishes. Both reasons come from a closed vocabulary the tests enumerate, so a node the
   converter merely failed to handle cannot be filed as a property of the grammar.
 - The exclusion vocabulary distinguishes **two** reasons: a node outside the selection rule, and a
-  node the source misprices. Every multiway node is both, and the second is what a later phase finds
-  them by; one code loses which nodes come back when GTOpen can price them.
+  node the source misprices. The second is what a later phase finds the mispriced nodes by, and one
+  code loses which of them come back when GTOpen can price them.
 - A node the selection rule excludes is a lookup miss at runtime, refused with a code and never
-  answered from a neighbouring cell. That refusal is the whole point of the exclusion.
-- The committed artifact carries, per cell, enough of the arriving reach for a later reader to tell
-  a cell the solver trained from one it barely visited; the schema has no such field today. It stays
-  even though 35 of the 110 are at full reach, because a later multiway family is read with it.
-- `data/artifacts` stays inside the 20 MiB cap `check_file_sizes.py` enforces, which at 110 spots
+  answered from a neighbouring cell. That refusal is the point of the exclusion.
+- The committed artifact carries, per cell, enough of the arriving reach for a later reader to tell a
+  cell the solver trained from one it barely visited; the schema has no such field today. It earns
+  that presently: 11 of the 86 are at full reach where 35 of the 110 were.
+- `data/artifacts` stays inside the 20 MiB cap `check_file_sizes.py` enforces, which at 86 spots
   no longer binds. Exceeding it stays a halt and a decision, not a number to raise.
 
 ### What a re-solve owes, if one is run
@@ -132,16 +132,15 @@ a number in a report, and the phase says so rather than proceeding.**
 - **The sizing table holds every raise size a spot offers, with the weight hero gives each.** Ruled
   by Taylor on 2026-08-24 extending decision 6, and **restated because the predicate moved the
   measurement under it**: the ruling was made on 313 spots where the shove was 60.6 percent of
-  hero's aggressive volume, and over the 110 it is 35 spots and 5.0 percent, the majority at 2 and
-  all of it at none. The schema stays multi-size on the ground that survives - a spot offering two
-  prices is described by two prices, one price per spot silently drops that 5 percent, and the
-  multiway family that returns later is where the 60.6 lived. The key does not change, because it
-  states what hero faces rather than what hero does. Closes
+  hero's aggressive volume, and over the 86 it is 21 spots, with 15 more offering a jam and no named
+  raise at all. The schema stays multi-size on the ground that survives - a spot offering two prices
+  is described by two prices, and the multiway family that returns later is where the 60.6 lived. The
+  key does not change, because it states what hero faces rather than what hero does. Closes
   `CHART-CANNOT-EXPRESS-TWO-RAISE-SIZES-AT-ONE-SPOT`.
-- A spot offering no raise carries no size and the strategy refuses rather than invent one: 60 of the
-  110 offer hero only fold and call, so "every spot has a size" would price an action the chart never
-  offers. A test enumerates the four menus - 60 fold/call, 30 fold/call/raise/jam, 15 fold/call/jam,
-  5 fold/raise/jam - because a converter that dropped an action would pass every other check here.
+- A spot offering no raise carries no size and the strategy refuses rather than invent one: 50 of the
+  86 offer hero only fold and call, so "every spot has a size" would price an action the chart never
+  offers. A test enumerates the four menus - 50 fold/call, 20 fold/call/raise/jam, 15 fold/call/jam,
+  1 fold/raise/jam - because a converter that dropped an action would pass every other check here.
 
 ### What the ranges must not have become
 - No spot with an empty `action_sequence` carries a call weight, enforced by the artifact schema
@@ -159,7 +158,7 @@ a number in a report, and the phase says so rather than proceeding.**
   or row below, over hero's arriving range. No wider order is asserted, because preflop strength is
   not totally ordered - card-rank dominance gives 61 to 121 violations per node and its top hits
   are correct poker, the lojack opening 76s always and T6s never.
-- The aggregate gate is **re-measured over the 110 before it is frozen**, and the phase halts rather
+- The aggregate gate is **re-measured over the 86 before it is frozen**, and the phase halts rather
   than ship a gate it has not seen pass. Over the retired 5,626 no form passed: suited-versus-offsuit
   flagged 2,007 nodes as solved against 818 transposed, scoring the wrong index mapping as the
   better one. A gate that prefers a transposed mapping is worse than none.
@@ -195,10 +194,10 @@ a number in a report, and the phase says so rather than proceeding.**
   definitions that make a rate readable: agreement means the chart gives the observed action nonzero
   weight rather than that a draw matched, and real players are not an oracle. The stricter
   sampled-action match rate is reported beside it for both populations.
-- **The refusal rate is reported against a named baseline and split by cause**, so a decision
-  refused for being multiway is reported apart from one refused for a limp or an unmatched key. The
-  baseline is the retired chart, whose 36 spots are all heads-up, so the rate is expected to **fall**
-  and a rise is a defect rather than the cost of this ruling. The report bounds what
+- **The refusal rate is reported against a named baseline and split by cause**, so a multiway refusal
+  is reported apart from a limp or an unmatched key. The baseline is the retired chart, of whose 36
+  spots **21 stay covered**, so the rate must **rise** on the 14 the predicate drops plus the limped
+  pot and nowhere else; a rise outside those 15 is a defect, not the cost of this ruling. The report bounds what
   the chart answers at all - six-handed, 100bb, symmetric stacks, no straddle, no ante, one solved
   opening price, heads-up only - so no agreement rate reads as a grade on preflop play when it
   grades one table configuration and one branch of the tree.
@@ -234,7 +233,8 @@ a number in a report, and the phase says so rather than proceeding.**
   are pre-cutover full-sample figures, and the restatement recomputes both on whatever sample the
   new chart retains rather than comparing a new rate against them.
 - `MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION` is restated with the excluded node count and the
-  scope of the fix and stays deferred; it is why the phase commits 110 rather than 5,626.
+  scope of the fix; it is why the phase commits 86, and the 2026-08-25 ruling makes it the route by
+  which the other 24 return. The roadmap owes it a phase slot, which this phase does not assign.
   `CHART-HERO-MUST-NEVER-LIMP` closes on the schema rule above, not on a measurement, and
   `SOLVE-TARGET-LEAVES-A-NONMONOTONE-PAIR` closes on ship-as-solved per the 2026-08-24 ruling.
 - `CHART-CANNOT-EXPRESS-TWO-RAISE-SIZES-AT-ONE-SPOT` closes on the multi-size sizing table above,

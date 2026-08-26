@@ -189,3 +189,67 @@ facts about that node, and a later phase adding multiway needs to find the secon
 retuned - the heads-up predicate selects the 110 outright and no byte cap is in play at that size,
 so the rule that existed to fit under 20 MB has nothing left to do. That is the halt the contract
 demanded: the predicate changed on the poker, not on the bytes.
+
+
+
+## Ruled by Taylor, 2026-08-25: the 86, and the engine work with it
+
+The 2026-08-24 ruling above rests on a premise the independent poker review falsified, so the
+question came back with the terminal-clean measurement in hand. Four dispositions were put: ship the
+110 as ruled, cut to the 86, cut to the 86 *and* schedule the engine fix so the rest returns, or park
+the phase until the engine is fixed. **He took the third in full**, including its condition that the
+86's real corpus coverage be measured before the ruling was written rather than inferred from a
+subtraction. The 86 are the *conjunction* of the two clauses - at most one opponent invested and at
+most two players live - not the subtree clause substituted for the history one, which would select
+5,472 and admit every cold-called line back in.
+
+**The measurement came first and it is 563 of 3,048 preflop decisions, 18.5 percent** - close to the
+568 the subtraction predicted, and now a number rather than a bound. It also found that every
+stage-4 document's denominator was six too large. Both in
+`stage-04-eighty-six-coverage.md`.
+
+**What he accepted.** The chart holds one opening range, the small blind's. The bot cannot open from
+LJ, HJ, CO or BTN and refuses those decisions with a code, which is 2,232 corpus decisions the 110
+would have answered - from cells where the solver flats a 2.5bb open 0.07 to 4.5 percent of the time
+because flatting invites terminals it misprices. What ships whole is the blind-versus-blind skeleton,
+the big blind closing against an open, and the three-bet, four-bet and five-bet continuations - the
+half the poker review said it would trust.
+
+**Correction to what was put to him, filed the same day.** This note and the contract both told him
+coverage rises 36 to 86 with all 36 retired spots retained. That is the 110's version of the cost and
+it does not survive the terminal-clean predicate: only **22 of the retired 36 are terminal-clean**, so
+the cutover gains 64 and gives up 14, four RFI ranges among them. Measured in the addendum to
+`stage-04-eighty-six-coverage.md` and carried back to him as a blocker, because the trade is larger
+than the one he agreed to even though the reasoning behind the ruling is untouched. **He confirmed
+the same day that it stands**, knowing the bot loses its LJ, HJ, CO and BTN opening ranges until the
+engine fix lands. So the correction changes what the phase reports, not what it commits.
+
+**The other half of the ruling is that the source gets fixed.** He did not take the plain cut. The
+86 ship now *because* the missing spots have a route back:
+`MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION` moves off the deferred v2 pile and becomes scheduled
+work, and the 24 return as new keys once GTOpen can price them, with no re-keying and no
+re-derivation of what this phase commits. Option F is therefore not a companion filing any more; it
+is the second half of what was ruled.
+
+**What still rides to him separately.** The two remaining stage-4 blockers are unaffected by this
+choice and neither is answered here. The four-bet continuations folding JJ at 32 percent pot odds are
+inside the 86, so that one is still live and still his. The small blind's 0.07-against-99.94 split on
+adjacent small pairs is inside the 86 as well, and `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP`
+remains its filed remedy.
+
+**Sub-questions, restated against the retained set.** Sub-question 1 is moot: the terminal-clean
+predicate cuts depth by itself and there is no further clause. Sub-question 2 stands as answered -
+two exclusion codes, and the second one is how a later phase finds the 24 by name. Sub-question 3
+must be re-taken: decision 6 was ruled on 35 spots offering both a named raise and a jam, and over
+the 86 that is 21. Sub-question 4 is settled the other way from before - with 11 of 86 at full reach
+against 35 of 110, the reach field distinguishes more rather than less, so it is kept on present
+grounds.
+
+---
+
+**Correction, 2026-08-25.** This note's corpus denominator of 3,054 preflop decision points is
+wrong by six. The committed 499-hand sample holds **3,048**, confirmed against `replay_hand`'s own
+`DecisionPoint` stream; 3,054 counts the six decisions of `pluribus/41b/204`, a hand the sample
+excludes. The digits are left as written because this is a dated record of what was measured. No
+conclusion in it moves - 2,232 of 3,048 is 73.2 percent and the multiway share is 8.3 percent under
+either denominator. See `stage-04-eighty-six-coverage.md`.

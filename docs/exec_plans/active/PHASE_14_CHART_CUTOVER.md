@@ -243,28 +243,37 @@ Stages 1 to 3 are done and committed. Phase 14 is `active` in `phase_status.yml`
 stage-4 review notes are under `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/` and the
 stage-4 ones must be read before anything else, because they moved the phase's central ruling.
 
-**The selection predicate changed on 2026-08-24 and the tests do not know it yet.** Taylor
-superseded decision 1: the cutover commits the **110 heads-up spots** - at most one opponent
-voluntarily invested beyond the blinds - rather than the 5,626 the reach floor selected. The reason
-is in `stage-04-cold-call-verification.md` and in `MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION`:
-GTOpen prices a multiway pot as the product of hero's pairwise equities, understating true
-three-way equity by 10.5 points, so the big blind folds 92.6 percent closing at 4.3 to 1
-three-handed, and 98.0 percent of the 5,626 were multiway. The options put to Taylor and his ruling
-are in `stage-04-disposition-options.md`.
+**The selection predicate changed twice and the tests know neither change.** Taylor superseded
+decision 1 on 2026-08-24 onto the 110 heads-up spots, then superseded that on 2026-08-25 onto the
+**86 spots**: keep a node when at most one opponent has voluntarily invested beyond the blinds
+**and** at most two players are still live. Both clauses, conjoined - the first alone gives 110 and
+the second alone gives 5,472. The first
+supersession is in `stage-04-cold-call-verification.md` and in
+`MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION` - GTOpen prices a multiway pot as the product of hero's
+pairwise equities, understating true three-way equity by 10.5 points, so the big blind folds 92.6
+percent closing at 4.3 to 1 three-handed. The second is in `stage-04-predicate-change-review.md`:
+the approximation bites at *terminals*, so a history predicate does not select what the model prices
+exactly and 24 of the 110 carry the defect. The coverage measurement the ruling was made on is in
+`stage-04-eighty-six-coverage.md` and the ruling itself is at the foot of
+`stage-04-disposition-options.md`.
 
 Main was merged into this lane at `9be45bf`, bringing MAINT-26; phase 13 was already here.
 
 **What the next implementation task owes**, once this contract-update is committed and the mode
 flips back:
-- Re-cut every stage-4 test that asserts 5,626, the reach floor, or a multiway spot. The predicate,
-  the node census counts, the exclusion vocabulary (now two reasons, not one) and the sizing-table
-  numbers all moved.
-- Re-measure the aggregate dominance gate over the 110 before freezing it. Over the 5,626 no
+- Re-cut every stage-4 test that asserts 5,626, 110, the reach floor, or a multiway spot. The
+  predicate, the node census counts, the exclusion vocabulary (now two reasons, not one) and the
+  sizing-table numbers all moved, twice.
+- State the predicate over live seats, not over the action history. The two disagree on 24 nodes and
+  a test that asserts 110 is asserting the superseded rule.
+- Re-measure the aggregate dominance gate over the 86 before freezing it. Over the 5,626 no
   aggregate form passed and the suited-versus-offsuit form scored the transposed mapping as better;
   the contract now requires the phase to halt rather than freeze a gate it has not seen pass.
 - Add the canary the contract now requires: one that widens the predicate to admit a multiway node.
-- Carry the four action menus into a test - 60 fold/call, 30 fold/call/raise/jam, 15 fold/call/jam,
-  5 fold/raise/jam - because a converter that dropped an action passes every other check.
+  A canary that admits a *history*-heads-up node with a multiway terminal is the sharper one, since
+  that is the error the 2026-08-25 supersession corrects.
+- Carry the four action menus into a test - 50 fold/call, 20 fold/call/raise/jam, 15 fold/call/jam,
+  1 fold/raise/jam - because a converter that dropped an action passes every other check.
 
 The contract and the decision record left `approved_scope` at stage 4, which is the point:
 `check_scope.py` is what mechanically enforces the rule that implementation mode may not edit the
@@ -299,8 +308,10 @@ Six things that will bite if they are not carried forward.
    superseded limps-included estimate.
 2. The export cannot be committed whole and should not be - and as of 2026-08-24 the reason is
    neither the byte cap nor convergence but the multiway pricing. The selection rule is the phase,
-   and it is now "at most one opponent voluntarily invested beyond the blinds". The byte cap no
-   longer binds at 110 spots and any plan that reasons from it is reasoning from a retired premise.
+   and as of 2026-08-25 it is the history clause **conjoined with** "at most two players are still
+   live" - the subtree statement the 110 was missing, not a replacement for the history one. Either
+   clause alone is wrong: 110 and 5,472. The byte cap no longer binds at 86 spots and any plan that
+   reasons from it is reasoning from a retired premise.
 3. The retired chart is deleted rather than left to a duplicate-key collision. 17 of its 36 keys
    do not collide, and every one of those is a three-bet spot or a small-blind open.
 4. The closing measurement must state that price is uncontrolled, and now the realization model
@@ -312,9 +323,9 @@ Six things that will bite if they are not carried forward.
    way the existing converter already collapses them, and the sizes go to the sizing table.
    Decision 6 settled where the price comes from: a shove is a raise **to hero's whole stack**,
    and `build_sizings` gains an entry for every jam-only spot the filter keeps. Its 4,257 and 313
-   counts are pre-supersession; over the 110 it is 15 jam-only spots and 35 offering both, and the
-   shove is 5.0 percent of hero's aggressive volume rather than 60.6. The multi-size table survives
-   on that narrower ground, restated in decision 6, and 60 of the 110 offer hero no raise at all.
+   counts are pre-supersession; over the 86 it is 15 jam-only spots and 21 offering both, against
+   313 and 60.6 percent when the ruling was made. The multi-size table survives on that narrower
+   ground, restated in decision 6, and 50 of the 86 offer hero no raise at all.
 6. `docs/CORPUS_COMPARISON_LIMITS.md` carries a sentence saying spot keys hold no size, which
    phase 12 made false. It is out of this stage's scope and is filed as
    `CORPUS-LIMITS-DOC-STILL-SAYS-KEYS-CARRY-NO-SIZE`.
@@ -345,8 +356,12 @@ it are stage-4 work to be re-cut, not a design to build to.* What survives uncha
 actor from the **parent** node's `actor_pos` and dropping folds; `census(export)` returns a
 `NodeCensus` whose buckets sum to the source card's own node count; and it is verified on the
 committed export that all 38,828 nodes derive a valid key, 38,828 distinct, with zero collisions.
-What replaces the floor is a predicate over the action history - at most one non-actor seat having
-taken a call, raise or jam - which selects 110 nodes and needs no threshold constant at all. The
+What replaces the floor is a two-clause predicate needing no threshold constant at all: at most one
+non-actor seat has taken a call, raise or jam, **and** at most two seats are not yet folded. Together
+they select 86. *Do not build either clause on its own: the history clause was ruled on 2026-08-24,
+selects 110, and was superseded on 2026-08-25 because 24 of those 110 still reach a multiway
+terminal; the subtree clause alone selects 5,472, admitting nodes reached through a cold call whose
+arriving ranges the same defect already distorted.* The
 reach mean stays as a *published measurement* rather than a filter, and note its definition: the
 plain unweighted mean over the 169 classes, which is what reproduced 891 / 1,424 / 3,296 / 5,626 /
 9,407 / 13,575 at the 20, 10, 5, 2, 1 and 0.5 percent floors. A combo-weighted reading gives 4,856
@@ -356,8 +371,10 @@ at 2 percent and is a different number for the same words.
 rather than two. `DERIVATION_NO_LEGAL_SPOT_KEY` stands and its bucket publishes at zero, which is a
 result rather than an omission. `DERIVATION_BELOW_REACH_FLOOR` is superseded: decision 8's amendment
 requires **two** exclusion codes rather than one - a node outside the selection rule, and a node the
-source misprices - because every one of the 38,718 excluded nodes is both and one code cannot say
-which come back when GTOpen can price multiway.
+source misprices - because one code cannot say which of the 38,742 excluded nodes come back when
+GTOpen can price multiway. The two codes now genuinely differ: the 24 that the 2026-08-25 ruling
+drops are outside the rule *because* the source misprices them, and 5,386 terminal-clean nodes are
+outside the rule for the separate reason that they are reached through a cold call.
 
 **Schema at version 2**, carrying `BlindStructure` (decision 4) and `arriving_reach_bp` per cell
 (decision 5), plus the rule that a spot with an empty `action_sequence` may not carry a positive
@@ -374,20 +391,28 @@ what it checks cannot fail.
 four raise prices - 2.5, 7.5, 22.5 and 100 - so none of the retired chart's 3.5, 8, 11 or 13.5
 survives, which is the 17-of-36 non-collision the contract cites. *Revised 2026-08-24:* the squeeze
 after an open and a cold call is no longer gained - it is the family the ruling excludes. Gained is
-the big blind facing a four-bet and the rest of the heads-up three-bet and four-bet skeleton, 110
-spots against the retired chart's 36. All 36 retired spots are themselves heads-up, so the only
-thing lost is the limped pot, absent from the tree because the solve is `limp: false`, so
+the big blind facing a four-bet and the rest of the heads-up three-bet and four-bet skeleton, 86
+spots against the retired chart's 36 - *revised again 2026-08-25, and four of the five opening
+ranges are now excluded with it, leaving only the small blind's.* The retired 36 are all heads-up by
+the superseded history predicate but **only 22 of them are terminal-clean**, so 14 spots the bot
+answers today are refused after the cutover and the "nothing currently answered is lost" claim dies
+with the 110. Beyond those 14 the limped pot is lost too, absent from the tree because the solve is
+`limp: false`, so
 `t6/d100/BB/SB:call` moves from covered to refused. That is the accepted cost of phase 10's human
 gate, filed as `CHART-CANNOT-ANSWER-A-LIMPED-POT`, and stage 4 migrated the tests to assert the
-refusal rather than deleting the claim. **Coverage rises and the refusal rate falls**; a rise in the
-refusal rate against the retired baseline is a defect, not the cost of this ruling.
+refusal rather than deleting the claim. So of the retired 36, **22 pass the ruled predicate but only
+21 are actually covered** - `BB/SB:call` passes it and still has no node, because the tree has no limp
+branch to hold one. **Spot count rises 36 to 86 and the refusal rate rises with it**, on those 15 and
+on nothing else; a rise outside the 15 named spots is a defect rather than the cost of this ruling.
+The 2026-08-25 note reversing the direction of this criterion is in
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-eighty-six-coverage.md`.
 
 ## What stage 6 will have to face that stage 4 could not settle
 
 Two things are known to be waiting and neither is a reason to stop now.
 
 **~~The byte budget is not proven.~~ Retired 2026-08-24.** This was a live risk while the phase
-committed 5,626 spots. At 110 it is not: the artifact is two orders of magnitude under the 20 MiB
+committed 5,626 spots. At 86 it is not: the artifact is two orders of magnitude under the 20 MiB
 cap and no field the schema gains can close that gap. The contract's rule still stands - exceeding
 the cap is a halt and a decision for Taylor, not a number to raise - it simply has nothing to bite
 on here. Any plan that reasons from the byte budget is reasoning from a retired premise.

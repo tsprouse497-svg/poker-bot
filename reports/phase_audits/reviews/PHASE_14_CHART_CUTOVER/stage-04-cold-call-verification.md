@@ -259,3 +259,13 @@ meet. The per-seat squeeze menu's node count was not measured, and it is one `PO
 Which disposition the phase takes - scope to heads-up, exclude the cold-call family only, replace the
 reach floor with an arrival-probability floor, re-solve with a per-seat squeeze menu, file the
 multiway engine work for later, or ship and record - is Taylor's, not this note's.
+
+
+---
+
+**Correction, 2026-08-25.** This note's corpus denominator of 3,054 preflop decision points is
+wrong by six. The committed 499-hand sample holds **3,048**, confirmed against `replay_hand`'s own
+`DecisionPoint` stream; 3,054 counts the six decisions of `pluribus/41b/204`, a hand the sample
+excludes. The digits are left as written because this is a dated record of what was measured. No
+conclusion in it moves - 2,232 of 3,048 is 73.2 percent and the multiway share is 8.3 percent under
+either denominator. See `stage-04-eighty-six-coverage.md`.

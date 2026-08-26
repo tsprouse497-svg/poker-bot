@@ -226,7 +226,7 @@ two, three and four prior aggressive actions; 16/17/18/19/20/20 across LJ, HJ, C
 and 5 fold/raise/jam.
 
 **The cost Taylor accepted.** The bot refuses the multiway decisions rather than answering them
-from a model that cannot see multiway equity. Those are 8.3 percent of the corpus's 3,054 preflop
+from a model that cannot see multiway equity. Those are 8.3 percent of the corpus's 3,048 preflop
 decision points, and they leave phase 08's denominator with them; `CHART-COVERAGE-EXPANSION` and
 `CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK` are settled against 110 spots rather than 5,626, and the
 cold-call spots the retired chart already refuses stay refused. What it does not cost is
@@ -239,6 +239,90 @@ four-bet and five-bet continuations. The consequence is recorded rather than hid
 own measurement flags the published four-bet node as unconverged - JJ folded 97 percent, TT and 99
 and KJs outright - and it ships, published in the report as a measurement beside the cells it
 describes.
+
+**Superseded again by Taylor on 2026-08-25: keep a node when at most one opponent has voluntarily
+invested beyond the blinds *and* at most two players are still live. 86 spots.** The 2026-08-24
+ruling was made on the understanding that the history clause alone selects the nodes GTOpen prices
+exactly. It does not. The approximation bites at *terminals* and a node's strategy is
+backward-induced over every terminal below it, so a statement over the still-reachable subtree is
+**conjoined** with the history one rather than replacing it. Counting seats that have not folded as
+well as seats that have acted: 110 pass the history clause, 5,472 pass the subtree clause, **86 pass
+both, and 24 of the 110 have a multiway terminal still reachable**.
+
+**Why both clauses and not just the subtree one.** The subtree clause alone admits 5,386 further
+nodes whose remaining terminals are genuinely heads-up but which are reached through a cold call.
+Every one of those arrives with a range the same defect produced - the solver almost never cold-calls
+because cold-calling invites the terminals it misprices - so the node is priced correctly from here
+on and fed a distorted range to price. The predicate-change review settled the strict reading of
+"invested" for the same reason and this is that reading's consequence, not a new rule.
+Those 24 are four of the five opens, the RFI defences with seats still behind, and the decisions
+facing a 100bb open-jam, and the defect is visible in their cells - flatting a 2.5bb open runs 21 to
+24 percent for the big blind, who closes the action, and 0.07 to 4.5 percent for every seat with
+players still to act. Every three-bet frequency is close to right. Hero's aggressive branch survives
+the mispricing and hero's passive branch does not, because flatting is what invites the multiway
+terminals the model underprices.
+
+`SELECTION-PREDICATE-MUST-BE-STATED-OVER-REACHABLE-TERMINALS` is the general form of the error and
+is filed. This is the second time this decision has been superseded and both supersessions ran the
+same way: a predicate that was ruled on one property turned out to select on a different one.
+
+**Measured before the ruling, not after.** The 86 answer **563 of the corpus's 3,048 preflop
+decision points, 18.5 percent**, against 2,795 for the 110 and 2,232 for the 24 alone. The
+disposition put to Taylor carried this as an upper bound of 568 derived by subtraction; he made the
+ruling conditional on the real figure, and it is 563. Method and full tables in
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-eighty-six-coverage.md`, which
+reproduces 110, 5,472, 86, 24 and 2,232 exactly from a fresh walk.
+
+**The corpus denominator is 3,048, not 3,054.** Every stage-4 document said 3,054, which counts the
+six preflop decisions of `pluribus/41b/204` - a hand the committed sample excludes for fractional
+finishing stacks. Corrected wherever it appears in this phase. No conclusion moves: 2,232 of 3,048
+is 73.2 percent and the multiway share is 8.3 percent under either denominator.
+
+**What the 86 are.** 1 spot at four prior actions, 10 at five, 30 at six, 30 at seven and 15 at
+eight; 15/14/13/12/12/20 across LJ, HJ, CO, BTN, SB and BB; 11 at full reach; four menus - 50
+fold/call, 20 fold/call/raise/jam, 15 fold/call/jam and 1 fold/raise/jam. The minimum arriving reach
+over the set is 2.62 percent, so all 86 clear the retired 2 percent floor too and conjoining it
+changes nothing for the third time.
+
+**The cost Taylor accepted, stated in what the bot can do.** Only the small blind's opening range
+survives; the bot cannot open from LJ, HJ, CO or BTN and refuses those decisions with a code. What
+it keeps whole is the blind-versus-blind skeleton, the big blind closing against an open, and the
+three-bet, four-bet and five-bet continuations - the part the independent poker review said it would
+trust. Against the 110 coverage falls by 2,232 corpus decisions, every one of which the 110 would
+have answered from a mispriced cell.
+
+**Against the artifact being replaced it is not a pure gain, and the 2026-08-24 wording said it was.**
+The retired chart's 36 spots are all heads-up under the superseded history predicate, which is what
+made "nothing the bot answers today is lost" true of the 110. Under the terminal-clean predicate only
+**22 of the 36 survive and 14 do not**: the LJ, HJ, CO and BTN opening ranges, every RFI defence with
+seats still behind (`HJ/LJ:raise@2.5`, both CO spots, the three BTN spots) and all four small-blind
+defences against a non-blind open. What survives whole is every big-blind defence, every three-bet
+continuation, the small-blind open and the blind-versus-blind pair. So the cutover gains 64 spots and
+gives up 14, rather than gaining 50 and giving up none, and the bot's opening coverage goes from five
+positions to one. This was measured on 2026-08-25 while reviewing the ruling's own paperwork and is
+carried to Taylor as a blocker rather than absorbed, because the cost he accepted was stated in the
+form that was true of the 110. **He confirmed on 2026-08-25 that the ruling stands** with the bot's
+opening coverage falling from five positions to one until the engine fix lands. The consequence is
+therefore a ruled cost rather than an open question, and the closing measurement states it as one:
+14 retired spots refused, 64 gained, opening coverage five seats to one.
+
+**This is half a ruling; the other half is the engine.** Taylor took the disposition's option 3
+rather than its option 2: ship the 86 now, fix the source, and add the rest back as new keys.
+`MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION` therefore stops being a deferred v2 note and becomes
+scheduled work that the missing 24 spots are waiting on. It is an engine change inside GTOpen - true
+multiway equity at `KIND_POT_SHARE` terminals, benchmarked and re-validated - and the calibrated
+realization fit cannot be extended over it, because the postflop engine behind that fit is heads-up
+only. Adding the spots afterwards costs no re-keying: the spot key already encodes the action
+sequence, so `RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL` is not paid twice.
+
+**What this moves in the rulings below.** Decision 5's reach field gains a present reason rather than
+a prospective one, since 11 of 86 sit at full reach against 35 of 110. Decision 6's sizing table was
+ruled on 35 spots offering both a named raise and a jam; over the 86 that is 21, with 15 more
+offering a jam and no named raise, and the ruling must be restated against those counts before the
+freeze. Decision 8's two exclusion codes stand and now separate a larger set: the second code, for a
+node the source misprices, is what a later phase reads to find the 24 by name. Decision 10's
+obligation to show that some aggregate form of its two relations passes over the retained set is
+unchanged in kind and is now owed over 86 nodes rather than 5,626.
 
 ## 2. What happens to the non-monotone pair
 

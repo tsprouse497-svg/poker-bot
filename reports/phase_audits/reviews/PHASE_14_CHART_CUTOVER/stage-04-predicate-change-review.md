@@ -176,3 +176,13 @@ false, and that finding is why this phase is halted again rather than advancing.
   contract is back at 300 of 300.
 - `BACKLOG-CITATION-SHAPE-MATCHES-POKER-NOTATION` - the citation check reads a hand-range band as a
   backlog id.
+
+
+---
+
+**Correction, 2026-08-25.** This note's corpus denominator of 3,054 preflop decision points is
+wrong by six. The committed 499-hand sample holds **3,048**, confirmed against `replay_hand`'s own
+`DecisionPoint` stream; 3,054 counts the six decisions of `pluribus/41b/204`, a hand the sample
+excludes. The digits are left as written because this is a dated record of what was measured. No
+conclusion in it moves - 2,232 of 3,048 is 73.2 percent and the multiway share is 8.3 percent under
+either denominator. See `stage-04-eighty-six-coverage.md`.
