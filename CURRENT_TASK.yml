@@ -1,11 +1,13 @@
 task_id: PHASE_14_CHART_CUTOVER
 active_phase: "14"
-task_mode: contract-update
-base_commit: 9be45bf81604bb5eab25510532ed8a3cff35031f
+task_mode: implementation
+base_commit: da05adf79398c3a7ee240de0cb718a3d5329fb69
 approved_scope:
-  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
-  - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
+  - tests/**
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - scripts/run_verify.py
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -1068,3 +1070,19 @@ scope_change_log:
       reshape the tests it is correcting the specification for.
       base_commit moves to the merge of main into this lane, so MAINT-26's files - which arrived
       from main and not from this task - do not read as out-of-scope work by a contract-update.
+  - date: 2026-08-26
+    reason: >-
+      The 2026-08-25 contract-update is committed at da05adf, so phase 14 returns to
+      implementation mode to re-cut its stage-4 tests against the ruling it now carries. Taylor
+      superseded decision 1 a second time: the predicate is at most one opponent voluntarily
+      invested beyond the blinds AND at most two players still live, which selects 86 rather than
+      110, because the product approximation bites at terminals and 24 of the 110 could still
+      reach a multiway one. The authored tests still assert the 110 and the retired reach floor,
+      so they describe a specification that no longer exists and cannot be frozen as they stand.
+      tests/**, verification/mutations.yml, verification/freeze.lock and scripts/run_verify.py
+      return to approved_scope on the same shape this lane used for its two previous
+      implementation stints. The contract and the decision record leave approved_scope in the
+      same move, which is the point: check_scope.py is what mechanically stops an implementation
+      task editing the specification it is building to.
+      base_commit moves to the contract-update commit, so the ruling's own paperwork does not
+      read as uncommitted work by the task that follows it.
