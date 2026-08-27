@@ -8,13 +8,21 @@ If another document contradicts it, this file wins and the other document must b
 
 ## Start Of Work
 
-1. Read `CURRENT_TASK.yml`.
-2. Read `phase_status.yml`.
-3. If `task_mode` is `idle`, no task is active. Do not change the repo until a task is activated by an explicit request.
-4. Read the active phase contract in `docs/phase_contracts/`.
-5. Read or create the active ExecPlan under `docs/exec_plans/active/`, starting from `docs/exec_plans/TEMPLATE.md`.
-6. Stay inside approved scope and away from forbidden scope.
-7. Before closing any phase or package, satisfy every item in `docs/DEFINITION_OF_DONE.md`.
+Several lanes run at once, one git worktree each, so nothing in the current directory is the
+repo's state until step 1 says which tree you are in.
+
+1. Run `git worktree list`. Only the tree holding `main` describes the repo; a `phase/NN` or
+   `maint/NN` tree describes its own lane, and a tree on an already-merged branch describes a
+   phase that finished. Never answer a status question from the current directory.
+2. Run `uv run python scripts/loop_fleet.py` from the `main` tree for the live lanes and their
+   stages. `verification/loop_state.yml` is history and names a dead phase; a lane's live
+   pointer is `verification/loop_runs/NN.yml` in the lane's own tree.
+3. Read `CURRENT_TASK.yml` in the tree you are working in, then `phase_status.yml`.
+4. If `task_mode` is `idle`, no task is active. Do not change the repo until a task is activated by an explicit request.
+5. Read the active phase contract in `docs/phase_contracts/`.
+6. Read or create the active ExecPlan under `docs/exec_plans/active/`, starting from `docs/exec_plans/TEMPLATE.md`.
+7. Stay inside approved scope and away from forbidden scope.
+8. Before closing any phase or package, satisfy every item in `docs/DEFINITION_OF_DONE.md`.
 
 ## Task Modes
 

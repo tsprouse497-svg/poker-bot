@@ -2433,3 +2433,66 @@ items:
       value will re-plan around an unmeasured cost that has been measured. Filed separately so
       the roadmap edit catches both, and as contract-update because both documents are
       contract-shaped and MAINT-26 is not a contract task.
+  - id: START-OF-WORK-READS-THE-CURRENT-DIRECTORY
+    status: done
+    phase: contract-update
+    title: Step 1 of Start Of Work told every agent to read state out of whichever tree it woke up in
+    reason: >-
+      Fixed by MAINT-27. AGENTS.md step 1 was "Read CURRENT_TASK.yml", written when the repo was
+      one shared tree. Under parallel lanes the file in the session's own directory is that
+      lane's state and not the repo's, and the instruction named no way to tell the difference.
+      Four sessions have now answered a status question wrongly from it - 2026-08-20, 2026-08-24
+      and twice on 2026-08-27 - each time reporting the newest completed phase as several behind
+      what main holds, and each time corrected by the operator rather than by anything in the
+      repo. The two files that mislead hardest are CURRENT_TASK.yml, which reads idle in any
+      tree whose own task closed, and verification/loop_state.yml, whose name says it holds the
+      loop's state and which has said phase 10, stage 11, completed in every tree since August
+      (filed as COMPLETED-LANE-POINTERS-ARE-NEVER-RETIRED and LOOP-LANE-POINTERS-NEVER-RETIRE).
+      docs/LOOP.md described the fleet correctly the whole time; nothing in the file an agent is
+      required to read pointed at it. Start Of Work now begins with git worktree list and
+      scripts/loop_fleet.py, names main as the only tree that describes the repo, and says
+      loop_state.yml is history. It does not reach a session that starts in a stale tree, which
+      is filed separately as A-STALE-TREE-CARRIES-ITS-OWN-COPY-OF-THE-RULES.
+  - id: A-STALE-TREE-CARRIES-ITS-OWN-COPY-OF-THE-RULES
+    status: deferred
+    phase: contract-update
+    title: No committed fix can reach a session that starts in a tree parked on an old commit
+    reason: >-
+      The primary checkout at ~/projects/poker-bot has sat on the merged phase/10-solver-extraction
+      branch since 2026-08-20 and main now holds 118 commits it does not. It is also the directory a
+      session starting from the project's own name lands in, and it carries its own AGENTS.md,
+      CLAUDE.md, phase_status.yml and check scripts at that commit. So the MAINT-27 fix to Start
+      Of Work is invisible there, scripts/loop_fleet.py does not exist there at all, and
+      scripts/loop_stage.py there reads the phase-10 pointer and prints "loop is 'completed';
+      start it with --start PHASE_ID", which is a confident wrong answer rather than a refusal.
+      Nothing committed to main can close this, because the tree that misleads is by definition
+      not reading main. Three candidate fixes, and the choice is the operator's rather than a
+      task's: hold main in the primary checkout and retire the separate main worktree, park the
+      primary checkout at a detached HEAD on main's tip, or leave it and accept that the guard
+      lives outside the repo in the operator's own session configuration. Filed rather than
+      fixed because every one of them changes where the operator lands when he opens the project.
+  - id: STAGE-REVIEW-CHECK-READS-ONE-FILENAME-PER-STAGE
+    status: deferred
+    phase: contract-update
+    title: The advance check reads one review note per stage, so a second note's open blockers cannot hold the stage
+    reason: >-
+      scripts/loop_stage.py check_stage_review builds exactly one path,
+      review_path(ctx, stage) = stage-NN-<stage name>.md, and validates that file alone. Any other
+      review note written for the same stage - a second round, a re-cut, a specialised review - is
+      never opened, so its unresolved blockers cannot hold the stage. scripts/review_queue.py
+      globs stage-*.md and does see them, which is why the two drivers give opposite answers.
+      Live and reproduced on 2026-08-27 in the phase-14 lane. loop_stage.py --phase 14 prints
+      "this stage's checks pass; run --advance to move on", because stage-04-tests.md carries
+      nine blockers all marked [resolved]. review_queue.py --list prints "4 item(s) waiting on
+      you": three blockers marked [open, for Taylor] in stage-04-predicate-change-review.md, and
+      the ExecPlan's own pause declaration. A fourth note, stage-04-test-recut.md, carries three
+      more blockers under a "## Blockers" heading with "### N." bullets, a shape unresolved_blockers
+      cannot parse even if the file were read. So an agent that trusts --advance freezes the tests
+      with open questions still on the board, which is the exact thing the per-stage review was
+      added to prevent.
+      Not the same defect as FLEET-AND-STAGE-DRIVERS-DISAGREE-ABOUT-INTEGRATION, which is about who
+      owns a lane after stage 11; this is about which files the advance check reads. Two candidate
+      fixes and the choice is a ruling: check_stage_review globs the stage's notes rather than
+      naming one, or the loop forbids more than one note per stage and the driver says so when a
+      second appears. The second is cheaper and loses the ability to add a review that the stage
+      did not plan for, which is what all four of phase 14's extra notes are.
