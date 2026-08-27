@@ -1,9 +1,8 @@
-task_id: maint-locate-the-live-lane
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: ada52054325690e8de13b2dc3e6fa845d156c4d2
-approved_scope:
-  - AGENTS.md
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
