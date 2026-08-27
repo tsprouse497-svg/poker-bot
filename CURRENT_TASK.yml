@@ -1,7 +1,7 @@
-task_id: maint-primary-checkout-holds-main
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 50d25eee9eafa16f541f8f31436988cddf079403
+task_mode: idle
+base_commit: null
 approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
