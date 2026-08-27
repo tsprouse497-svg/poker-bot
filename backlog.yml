@@ -2454,7 +2454,7 @@ items:
       loop_state.yml is history. It does not reach a session that starts in a stale tree, which
       is filed separately as A-STALE-TREE-CARRIES-ITS-OWN-COPY-OF-THE-RULES.
   - id: A-STALE-TREE-CARRIES-ITS-OWN-COPY-OF-THE-RULES
-    status: deferred
+    status: done
     phase: contract-update
     title: No committed fix can reach a session that starts in a tree parked on an old commit
     reason: >-
@@ -2471,6 +2471,15 @@ items:
       primary checkout at a detached HEAD on main's tip, or leave it and accept that the guard
       lives outside the repo in the operator's own session configuration. Filed rather than
       fixed because every one of them changes where the operator lands when he opens the project.
+      Ruled and closed by MAINT-28 on 2026-08-27: the first candidate. The separate main worktree
+      was removed and main is checked out in the primary checkout, so the directory a session lands
+      in by default is the tree that describes the repo, and no tree on the machine now holds a
+      stale copy of the rules. scripts/loop_fleet.py needed no change - primary_worktree() derives
+      the repository from --git-common-dir and lane_root() from its parent, so lanes still live in
+      ~/projects/poker-bot-worktrees and the integration runbook's git -C REPO_ROOT checkout main
+      now names the tree that actually holds main. AGENTS.md deliberately still says "the tree
+      holding main" rather than a path, for the reason docs/LOOP.md gives for not committing the
+      board: which worktrees exist is a property of the machine, not of the repo.
   - id: STAGE-REVIEW-CHECK-READS-ONE-FILENAME-PER-STAGE
     status: deferred
     phase: contract-update

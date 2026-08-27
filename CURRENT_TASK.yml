@@ -983,3 +983,8 @@ scope_change_log:
       approved because it is the single source for behavior rules and the only place a Start Of
       Work step can be fixed; docs/LOOP.md already documents the fleet correctly and needs no
       edit.
+  - date: 2026-08-27
+    reason: >-
+      MAINT-28 records the workspace change that closes
+      A-STALE-TREE-CARRIES-ITS-OWN-COPY-OF-THE-RULES. Nothing beyond standing scope: the fix was
+      two git commands and no tracked file implements it.
