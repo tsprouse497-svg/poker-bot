@@ -975,3 +975,11 @@ scope_change_log:
       way scripts/extract_gtopen_preflop.py is not, so the gate still passes on a machine with
       no GTOpen server. No chart data is committed and no phase status moves: this is not
       phase 16 and must not be mistaken for it.
+  - date: 2026-08-27
+    reason: >-
+      MAINT-27 fixes the one instruction that has now handed four sessions a wrong answer about
+      where the repo stands. AGENTS.md step 1 says to read CURRENT_TASK.yml, and with parallel
+      worktrees the file in the session's own directory is not the repo's state. AGENTS.md is
+      approved because it is the single source for behavior rules and the only place a Start Of
+      Work step can be fixed; docs/LOOP.md already documents the fleet correctly and needs no
+      edit.
