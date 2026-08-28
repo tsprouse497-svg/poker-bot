@@ -1,16 +1,27 @@
 """Phase 14: the report a non-coding reviewer reads, and the closing corpus measurement.
 
-Split from the derivation tests because these check a different kind of claim: the chart
-being right and a reviewer being led to the right conclusion about it are separate things.
+This file owns the published report: that every heading the spec names is there, that the body
+under each makes the claim the heading promises, and that the numbers printed under them are
+the numbers the phase measured. `tests/test_derived_chart_report_validators.py` is the other
+half, split from this one when the pair went past the 700-line cap. It owns the generator's
+refusals - each validator fed a deliberately wrong input and made to exit non-zero - and it
+imports this file's census constants, its command id and its paths rather than copying them,
+so the two halves cannot drift apart. The seam is what is on trial: a rendered report here, an
+unrendered one there. Both files run under `pytest_derived_chart`.
 
-A report renders whatever it is handed: a census that does not add up, or a spot count that
-disagrees with the walk that produced it, exits 0 and publishes just as happily as the right
-number would. The contract requires the generator to validate exactly four figures and to
-exit non-zero when they do not hold, and this repo has twice shipped a validator that could
-not fail. So each is fed a deliberately wrong input and made to refuse.
+The split from the derivation tests is the older seam and still holds: the chart being right
+and a reviewer being led to the right conclusion about it are separate things. A report renders
+whatever it is handed, so the sibling exists at all.
 
-Decision 9 fixed the closing prediction's band before any of it was measured, so the report
-is checked against the decision record rather than allowed to restate its own prediction.
+Two things the ruled predicate changed about this file. The census the report publishes is 86
+committed against **two** exclusion codes rather than 5,626 against one, so a report naming one
+code is naming a vocabulary that cannot say which nodes come back when GTOpen can price
+multiway. And the coverage claim reversed sign: the cutover gains 65 spots and gives up 14 plus
+the limped pot, so the refusal rate must **rise**, confined to those fifteen spots, where the
+criterion previously called any rise a defect.
+
+Decision 9 fixed the closing prediction's band before any of it was measured, so the report is
+checked against the decision record rather than allowed to restate its own prediction.
 
 The headings in `HEADINGS` and the row shapes the parsers require are part of the spec.
 """
@@ -20,33 +31,70 @@ from __future__ import annotations
 import json
 import re
 import subprocess
-import sys
-from collections.abc import Mapping
-from pathlib import Path
 from typing import NamedTuple
 
 import pytest
 
 from poker_training_bot.solver_artifacts import lookup
-from poker_training_bot.solver_artifacts.importer import (
-    import_preflop_artifact,
-    import_preflop_artifacts,
-)
-from poker_training_bot.solver_artifacts.schema import weights_checksum
+from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
 from scripts.repo_paths import REPO_ROOT
 
-sys.path.insert(0, str(REPO_ROOT / "scripts"))
-
-from run_verify import COMMANDS  # noqa: E402
-
 COMMAND_ID = "generate_derived_chart_report"
-SCRIPT = REPO_ROOT / "scripts" / f"{COMMAND_ID}.py"
+
+
 ARTIFACT_DIR = REPO_ROOT / "data" / "artifacts" / "preflop"
+
+
 EXPECTATIONS = ARTIFACT_DIR / "expectations" / "six_max_nl25_100bb.json"
+
+
 RETIRED_CHART = "data/artifacts/preflop/six_max_nl25_100bb.json"
+
+
 DECISIONS = (
     REPO_ROOT / "reports" / "phase_audits" / "decisions" / "PHASE_14_CHART_CUTOVER_DECISIONS.md"
 )
+
+
+# The census the ruled predicate produces over the committed export, every figure of it a tree
+# fact. They are here rather than recomputed because this file feeds them to a validator as
+# *inputs* - the walk that derives them is `test_chart_derivation.py`'s subject.
+EXPORTED_NODES = 38_828
+
+
+COMMITTED_SPOTS = 86
+
+
+MISPRICED_NODES = 33_356
+
+
+OUTSIDE_RULE_NODES = 5_386
+
+
+# What the cutover did to coverage, measured before the ruling rather than after. The refusal
+# rate rises on these fifteen and nowhere else; a rise outside them is a defect rather than
+# the cost of the ruling.
+RETIRED_CHART_SPOTS = 36
+
+
+RETIRED_SPOTS_REFUSED = 14
+
+
+RETIRED_SPOTS_STILL_COVERED = 21
+
+
+SPOTS_GAINED = COMMITTED_SPOTS - RETIRED_SPOTS_STILL_COVERED
+"""Derived, never a literal. A spot is gained when the derived chart answers it and the retired
+chart did not, so gained is the committed count less the number carried over: 86 - 21 = 65. The
+64 this file used to hold was 86 - 22, which counted the limped pot `t6/d100/BB/SB:call` as
+carried over although it passes the predicate with no node to derive from and is not among the
+86 at all. Stated as the relation so the constants beside it cannot drift apart again, and
+because the report's published figure is then checked against the relation rather than against
+a number this file remembered."""
+
+
+LIMPED_SPOT = "t6/d100/BB/SB:call"
+
 
 # The report's own headings. Exactly one of each, and the body under it is where the claim
 # that heading names has to be made.
@@ -56,6 +104,7 @@ HEADINGS = {
     "dominance": "## The two dominance relations",
     "orderings": "## The two orderings",
     "expectations": "## The derived chart against the GTO Wizard expectations",
+    "coverage": "## What the cutover gained and gave up",
     "corpus": "## The corpus, before and after",
     "prediction": "## The pre-registered prediction",
     "price": "## The price the corpus was played at",
@@ -66,12 +115,22 @@ HEADINGS = {
     "recomputable": "## One number a reader can recompute by hand",
 }
 
-RANKS = "AKQJT98765432"
+
 OPENERS = {"lojack": "LJ", "hijack": "HJ", "cutoff": "CO", "small blind": "SB", "button": "BTN"}
+
+
 POPULATIONS = ("Pluribus", "humans")
+
+
 REFUSAL_ROW = r"^\s*(lookup:[a-z-]+)\s+(\d+)\s+(\d+)\s*$"
+
+
 RATE_ROW = r"\s*([a-z][a-z -]*?),\s*(before|after)\s+(\d+) of (\d+) [a-z ]+\((\d+\.\d)%\)\s*$"
+
+
 SIGNED = re.compile(r"[+-]\d+(?:\.\d+)?")
+
+
 BAND = re.compile(
     r"([+-]?\d+\.\d+)\s+to\s+([+-]?\d+\.\d+)\s+(?:points\s+)?"
     r"against the (lojack|hijack|cutoff|small blind|button)"
@@ -86,14 +145,6 @@ def generator():
     module sorts into a different isort block than the same module once written.
     """
     import scripts.generate_derived_chart_report as module
-
-    return module
-
-
-@pytest.fixture(scope="module")
-def derivation():
-    """`chart_derivation`, reached the same way and for the same two reasons."""
-    import poker_training_bot.solver_artifacts.chart_derivation as module
 
     return module
 
@@ -114,7 +165,8 @@ def section(text: str, key: str) -> str:
 
 def decision_bands() -> dict[str, tuple[float, float]]:
     """Decision 9's per-opener band, parsed out of the record that pre-registered it rather
-    than copied here: decision 2 re-solves, so the deltas it is a multiple of move with it.
+    than copied here. The record is the pre-registration and this file is frozen after it, so
+    a band restated in the report is the agent that ran the measurement setting its own bar.
     """
     body = DECISIONS.read_text(encoding="utf-8").split("\n## 9. ", 1)[1].split("\n## ", 1)[0]
     ruling = " ".join(body.split("**Ruled by Taylor", 1)[1].split())
@@ -205,189 +257,17 @@ def refusals_after(body: str) -> dict[str, int]:
     return {code: int(after) for code, _, after in re.findall(REFUSAL_ROW, body, re.MULTILINE)}
 
 
+def refusals_before(body: str) -> dict[str, int]:
+    return {code: int(before) for code, before, _ in re.findall(REFUSAL_ROW, body, re.MULTILINE)}
+
+
 def reported_refusals(text: str) -> list[RateRow]:
     rows = rate_rows(section(text, "corpus"))
     return [row for row in rows if row.label == "refused" and row.when == "after"]
 
 
-def a_census(derivation, committed: int = 5626, excluded: Mapping[str, int] | None = None):
-    if excluded is None:
-        excluded = {lookup.DERIVATION_BELOW_REACH_FLOOR: 33202}
-    return derivation.NodeCensus(
-        committed=committed, excluded=dict(excluded), inexpressible={}
-    )
-
-
-def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, generator) -> None:
-    """Every node lands in exactly one bucket, or the census is a subset dressed as a census.
-
-    The wrong inputs are the honest ones: counts that sum to one node fewer than the export
-    holds, and a reason nobody ruled. Decision 8 closes both vocabularies so a node the
-    converter merely failed to handle cannot be filed as a property of the grammar.
-    """
-    generator.validate_census(a_census(derivation), 38828)
-
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_census(a_census(derivation), 38829)
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_census(a_census(derivation, committed=5625), 38828)
-    with pytest.raises(generator.DerivedChartReportError):
-        wrong = a_census(derivation, excluded={"derivation:gave-up": 33202})
-        generator.validate_census(wrong, 38828)
-    with pytest.raises(generator.DerivedChartReportError):
-        invented = derivation.NodeCensus(5626, {}, {"derivation:not-ruled": 33202})
-        generator.validate_census(invented, 38828)
-
-    assert lookup.DERIVATION_BELOW_REACH_FLOOR in lookup.DERIVATION_EXCLUSION_CODES
-    assert lookup.DERIVATION_NO_LEGAL_SPOT_KEY in lookup.DERIVATION_INEXPRESSIBILITY_CODES
-
-
-def test_the_artifact_spot_count_is_checked_against_the_walk_key_by_key(generator) -> None:
-    """A count that matches while the keys do not is the failure this has to catch: a converter
-    that dropped one node and invented one key gives the same count. The last case is that.
-    """
-    walked = {"t6/d100/LJ/rfi", "t6/d100/BTN/rfi", "t6/d100/BB/BTN:raise@2.5"}
-    generator.validate_spot_count(set(walked), set(walked))
-
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_spot_count(walked - {"t6/d100/LJ/rfi"}, walked)
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_spot_count(walked | {"t6/d100/SB/rfi"}, walked)
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_spot_count((walked - {"t6/d100/LJ/rfi"}) | {"t6/d100/SB/rfi"}, walked)
-
-
-def a_grid(**overrides: float) -> dict[str, dict[str, float]]:
-    """One spot's play frequency per hand class, monotone before anything is overridden."""
-    cells = {f"{rank}{rank}": 100.0 - index for index, rank in enumerate(RANKS)}
-    for high, low in (("A", "K"), ("K", "Q"), ("7", "6")):
-        cells[f"{high}{low}s"] = 80.0
-        cells[f"{high}{low}o"] = 60.0
-    cells.update(overrides)
-    return {"t6/d100/LJ/rfi": cells}
-
-
-def test_the_dominance_relations_are_refused_at_the_tolerance_decision_10_ruled(generator) -> None:
-    """The measured violation put back in as a wrong input, and the ruling that scopes it.
-
-    The lojack opening 44 at 72.81 percent under 33 at 99.88 is a cell the solver had not
-    finished. But a gap of exactly a point is not a violation - 44 at 99.91 under 33 at 99.99
-    is not a mistake - and a ladder drifting nine tenths a step passes though the top pair
-    ends ten points under the bottom one, because the ruling compares adjacent ranks only.
-    """
-    assert generator.MONOTONICITY_TOLERANCE_PCT == 1.0
-    generator.validate_dominance(a_grid())
-    generator.validate_dominance(a_grid(**{"44": 90.0, "33": 91.0}))
-    generator.validate_dominance(a_grid(**{f"{r}{r}": 88.0 + 0.9 * i for i, r in enumerate(RANKS)}))
-
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_dominance(a_grid(**{"44": 72.81, "33": 99.88}))
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_dominance(a_grid(**{"44": 90.0, "33": 91.01}))
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_dominance(a_grid(AKs=50.0, AKo=80.0))
-
-
-def test_the_old_versus_new_disagreement_count_is_refused_when_it_cannot_be_read(generator) -> None:
-    """A comparison that did not happen arrives as a small consistent number, not as an error.
-
-    Every case below is one shape: a validator that only checks a count's arithmetic cannot
-    tell a real zero from an input that quietly became trivial - an empty overlap, a pin that
-    no longer resolves, a retired chart read as zero spots, or a comparison handed the derived
-    chart twice. The poker rules the last one out on its own, because the two charts share no
-    three-bet price and no small-blind opening price: the retired one prices them at 8, 11,
-    13.5 and 3.5 against the derived chart's 7.5 and 2.5, and the derived chart holds only
-    four prices in all, so they cannot agree on a thousand shared corpus decisions.
-    `corpus-self-play-crossref-empties-silently` is the same failure in another subsystem.
-    """
-    ways = {"derived continues, retired folds": 140, "retired continues, derived folds": 40}
-    generator.validate_disagreement(shared_decisions=1200, disagreements=180, by_direction=ways)
-
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_disagreement(shared_decisions=0, disagreements=0, by_direction={})
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_disagreement(shared_decisions=1200, disagreements=0, by_direction={})
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_disagreement(shared_decisions=1200, disagreements=181, by_direction=ways)
-    with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_disagreement(shared_decisions=100, disagreements=180, by_direction=ways)
-
-
 def git(*arguments: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(["git", *arguments], cwd=REPO_ROOT, capture_output=True, text=True)
-
-
-def run_report(tmp_path: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
-    # Or a missing script would make every refusal below pass without a validator existing.
-    assert SCRIPT.exists(), f"{SCRIPT} does not exist, so nothing here runs a validator"
-    command = [sys.executable, str(SCRIPT), "--output", str(tmp_path / "report.txt"), *arguments]
-    return subprocess.run(command, cwd=REPO_ROOT, capture_output=True, text=True)
-
-
-def test_the_gate_command_runs_this_script() -> None:
-    """A validator the gate does not run is a validator nothing runs."""
-    assert COMMAND_ID in COMMANDS
-    assert any(str(SCRIPT.relative_to(REPO_ROOT)) in part for part in COMMANDS[COMMAND_ID].command)
-
-
-@pytest.mark.parametrize("pin", ["nonexistent", "root"])
-def test_a_pin_the_retired_chart_cannot_be_read_at_fails_the_command(tmp_path, pin) -> None:
-    """Decision 7 reads the retired chart out of git history, so the pin is an input.
-
-    Both bad pins fail differently. One is not a commit at all; the other is a real commit at
-    which the retired chart does not exist, which a resolvable-looking sha sails past. A copy
-    kept under `data/artifacts/preflop/` in a subdirectory the importer's non-recursive glob
-    misses was rejected for this: it works, and it makes a reader ask which chart plays.
-    """
-    commit = "0" * 40
-    if pin == "root":
-        commit = git("rev-list", "--max-parents=0", "HEAD").stdout.split()[-1]
-        assert git("cat-file", "-e", f"{commit}:{RETIRED_CHART}").returncode != 0
-
-    result = run_report(tmp_path, "--retired-commit", commit)
-
-    assert result.returncode != 0, result.stdout + result.stderr
-    assert not (tmp_path / "report.txt").exists(), "a refused report must not also be published"
-
-
-def corrupted_artifact(tmp_path: Path, how: str) -> Path:
-    paths = sorted(ARTIFACT_DIR.glob("*.json"))
-    assert len(paths) == 1, f"expected exactly one committed preflop artifact, found {paths}"
-    payload = json.loads(paths[0].read_text(encoding="utf-8"))
-    if how == "drop-a-spot":
-        dropped = payload["spots"][0]["spot_id"]
-        payload["spots"] = [spot for spot in payload["spots"] if spot["spot_id"] != dropped]
-        del payload["action_weights"][dropped]
-        payload["audit_fields"]["spot_count"] = len(payload["spots"])
-    else:
-        spot = "t6/d100/LJ/rfi"
-        assert spot in payload["action_weights"], f"{spot} is not in the committed artifact"
-        payload["action_weights"][spot]["44"] = {"fold": 0.9, "raise": 0.1}
-        payload["action_weights"][spot]["33"] = {"raise": 1.0}
-    # Restamped through the repo's own checksum, so the corruption stays a valid artifact.
-    weights = tuple(
-        (spot, tuple((text, tuple(acts.items())) for text, acts in sorted(cells.items())))
-        for spot, cells in sorted(payload["action_weights"].items())
-    )
-    payload["audit_fields"]["weights_sha256"] = weights_checksum(weights)
-    path = tmp_path / "corrupted.json"
-    path.write_text(json.dumps(payload), encoding="utf-8")
-    # It has to stay a valid artifact. If the schema rejected it the command would exit
-    # non-zero for the loader's reason and this test would prove nothing about the report.
-    import_preflop_artifact(path)
-    return path
-
-
-@pytest.mark.parametrize("how", ["drop-a-spot", "invert-the-pair-ladder"])
-def test_a_wrong_artifact_fails_the_command_rather_than_being_rendered(tmp_path, how) -> None:
-    """Both artifacts below load cleanly and are wrong, which is the case that matters. One
-    holds a spot fewer than the walk selected and says so in its own audit fields, so only a
-    comparison against the export sees it. The other opens 44 a tenth of the time under 33.
-    """
-    result = run_report(tmp_path, "--artifact", str(corrupted_artifact(tmp_path, how)))
-
-    assert result.returncode != 0, result.stdout + result.stderr
-    assert not (tmp_path / "report.txt").exists()
 
 
 def test_the_report_states_the_band_the_decision_record_pre_registered(report_text) -> None:
@@ -413,10 +293,12 @@ def test_the_report_states_the_band_the_decision_record_pre_registered(report_te
 
 
 def test_the_band_is_a_quarter_to_one_of_the_delta_and_the_miss_is_named(report_text) -> None:
-    """Decision 9's rule and its verdict, both recomputed from the report's own columns. The
-    record's numbers came off the 300-iteration export and the re-solve moves them, so the
-    rule is checked rather than the figures. A miss either way is a result, so the side is
-    named rather than the band merely printed.
+    """Decision 9's rule and its verdict, both recomputed from the report's own columns.
+
+    The rule is checked rather than the five figures, because the deltas are a measurement over
+    the export and the report is where they are recomputed: the record's numbers are quoted
+    from the stage-4 walk and the report owes its own. A miss either way is a result, so the
+    side is named rather than the band merely printed.
     """
     rows = prediction_rows(section(report_text, "prediction"))
 
@@ -440,7 +322,8 @@ def test_the_band_is_a_quarter_to_one_of_the_delta_and_the_miss_is_named(report_
 def test_the_prediction_covers_price_and_says_which_way(report_text) -> None:
     """The cutover reprices hero's own small-blind open from 3.5bb to 2.5bb, so the big blind
     facing a small-blind open moves from a 3.5-solved answer to a 2.5-solved one against a
-    corpus median of 2.25, and "the price-tracking part will not move" is false for it.
+    corpus median of 2.25, and "the price-tracking part will not move" is false for it. It is
+    also the only opening price the chart still holds, which is why this family is named.
     """
     body = section(report_text, "price")
     lines = body.splitlines()
@@ -514,11 +397,86 @@ def test_every_rate_carries_its_sample_and_is_published_per_population(report_te
     assert "not an oracle" in report_text.lower()
 
 
+def test_the_refusal_rate_rises_and_the_report_says_it_was_ruled_to(report_text) -> None:
+    """The criterion whose sign the predicate reversed, and the reason it is worth a test.
+
+    Until 2026-08-25 this phase expected the refusal rate to fall and called a rise a defect.
+    Under the ruled predicate 14 of the retired chart's 36 spots are refused - four opening
+    ranges among them - and the limped pot goes with them, so the rate **rises** and that is
+    the ruled cost. A report publishing a fall is reporting a chart that is not this one.
+    """
+    for population in POPULATIONS:
+        rows = [
+            row
+            for row in rate_rows(section(report_text, "corpus"))
+            if row.population == population and row.label == "refused"
+        ]
+        before = next(row for row in rows if row.when == "before")
+        after = next(row for row in rows if row.when == "after")
+        assert after.percent > before.percent, (population, before, after)
+
+
+def test_the_report_publishes_what_the_cutover_gained_and_gave_up(report_text) -> None:
+    """The coverage claim in the form the measurement left it, spot by spot.
+
+    Every stage-4 document said all 36 retired spots survive, which was a reading of their
+    action histories and is false of the predicate that was ruled. 22 pass it, 21 are covered,
+    and the twenty-second is the limped pot the solve has no branch for. The fourteen are named
+    because a count of fourteen with the wrong fourteen in it is the same arithmetic and a
+    different chart, and the opening coverage is stated in seats because that is the loss a
+    reader can feel: the bot cannot open a pot from four of six seats.
+
+    The gained figure is read off a labelled row and checked as a **relation**: gained is the
+    committed count less the number carried over, and the retired chart's own 36 is those 21
+    plus the fourteen refused plus the one limped pot. An earlier draft compared a constant
+    against its own definition, which cannot fail, and swept the section for the right integer
+    appearing anywhere, which passes on a report that publishes 64 and mentions 65 in prose.
+    The phase's own documents did publish 64, which is 86 - 22 and counts the limped pot as
+    carried over though it is refused.
+    """
+    body = section(report_text, "coverage")
+    refused = re.findall(r"^\s*refused\s+(t6/\S+)", body, re.MULTILINE)
+    gained = re.search(r"^\s*gained\s+(\d+)\s*$", body, re.MULTILINE)
+    carried = re.search(r"^\s*carried over\s+(\d+)\s*$", body, re.MULTILINE)
+
+    # The relation is asserted against the figures the report PUBLISHES, not against the
+    # constants at the top of this file. Comparing a derived constant to its own definition
+    # cannot fail, and a set-membership sweep over every integer in the section passes when
+    # the right number appears anywhere in it, including in a sentence about something else.
+    assert gained is not None and carried is not None, body
+    assert int(carried.group(1)) == RETIRED_SPOTS_STILL_COVERED
+    assert int(gained.group(1)) == COMMITTED_SPOTS - int(carried.group(1)) == SPOTS_GAINED
+    assert RETIRED_SPOTS_STILL_COVERED + RETIRED_SPOTS_REFUSED + 1 == RETIRED_CHART_SPOTS
+    assert len(refused) == RETIRED_SPOTS_REFUSED, refused
+    assert len(set(refused)) == len(refused)
+    for key in refused:
+        assert not key.endswith(":call"), f"{key} is the limped pot, counted apart from the 14"
+    assert {f"t6/d100/{seat}/rfi" for seat in ("LJ", "HJ", "CO", "BTN")} <= set(refused)
+    assert LIMPED_SPOT in body
+    seats = r"five\s+(?:seats|positions)\s+to\s+one|5\s+(?:seats|positions)\s+to\s+1"
+    assert re.search(seats, body), (
+        "the coverage section does not state that opening coverage falls from five seats to one"
+    )
+
+
 def test_the_report_bounds_what_the_chart_answers_at_all(report_text) -> None:
-    """An agreement rate on one table configuration is not a grade on preflop play."""
+    """An agreement rate on one table configuration is not a grade on preflop play.
+
+    "Heads-up only" is on the list because it is the ruled predicate stated as a bound: the
+    chart answers a decision only where at most one opponent has invested and at most two
+    players are live, so a rate read off it says nothing about multiway play.
+    """
     body = section(report_text, "bounds").lower()
 
-    for token in ("six-handed", "100", "symmetric", "no straddle", "no ante", "2.5"):
+    for token in (
+        "six-handed",
+        "100",
+        "symmetric",
+        "no straddle",
+        "no ante",
+        "2.5",
+        "heads-up",
+    ):
         assert token in body, f"the bounds section does not state {token!r}"
 
 
@@ -526,15 +484,20 @@ def test_the_refusal_movement_is_stated_by_reason_over_the_closed_vocabulary(rep
     """One total hides the finding: the codes move in different directions and by different
     sizes. Every code gets a row, a zero included, because a reason that stopped happening is a
     result; no row may name a code outside the vocabulary; and the rows add up to the refusals
-    the per-population rates published.
+    the per-population rates published. At least one code has to go up, since the predicate
+    refuses fourteen spots the retired chart answered.
     """
-    after = refusals_after(section(report_text, "refusals"))
+    body = section(report_text, "refusals")
+    after = refusals_after(body)
+    before = refusals_before(body)
     reported = reported_refusals(report_text)
 
     assert set(after) == set(lookup.MISS_CODES)
+    assert set(before) == set(lookup.MISS_CODES)
     assert set(re.findall(r"lookup:[a-z-]+", report_text)) <= set(lookup.MISS_CODES)
     assert reported
     assert sum(after.values()) == sum(row.numerator for row in reported)
+    assert sum(after.values()) > sum(before.values())
 
 
 def test_the_phase_publishes_its_own_limped_decision_point_count(report_text) -> None:
@@ -587,22 +550,28 @@ def test_the_report_names_a_commit_the_retired_chart_can_be_read_at(report_text)
 
 
 def test_the_census_in_the_report_adds_up_to_the_export_source_card(report_text) -> None:
-    """Three buckets and a total a reader can check against a file this phase did not write."""
+    """Three buckets and a total a reader can check against a file this phase did not write.
+
+    Both exclusion reasons get their own row, because the point of having two is that a reader
+    can tell the 33,356 nodes the source misprices from the 5,386 that are priced exactly and
+    reached through a cold call. A census publishing one excluded row has lost that.
+    """
     body = section(report_text, "census")
     committed = re.search(r"^\s*committed\s+(\d+)\s*$", body, re.MULTILINE)
     excluded = re.findall(r"^\s*excluded\s+(derivation:[a-z-]+)\s+(\d+)\s*$", body, re.MULTILINE)
     unwritable = re.findall(r"^\s*inexpressible\s+(derivation:[a-z-]+)\s+(\d+)$", body, re.M)
 
     assert committed is not None and excluded and unwritable, body
-    assert {code for code, _ in excluded} <= set(lookup.DERIVATION_EXCLUSION_CODES)
+    assert {code for code, _ in excluded} == set(lookup.DERIVATION_EXCLUSION_CODES)
     assert {code for code, _ in unwritable} <= set(lookup.DERIVATION_INEXPRESSIBILITY_CODES)
+    assert int(committed.group(1)) == COMMITTED_SPOTS
 
     cards = sorted((ARTIFACT_DIR / "exports").glob("*.source.json"))
     assert len(cards) == 1, f"expected exactly one export source card, found {cards}"
     counted = list(excluded) + list(unwritable)
     total = int(committed.group(1)) + sum(int(count) for _, count in counted)
     card = json.loads(cards[0].read_text(encoding="utf-8"))
-    assert total == card["node_counts"]["exported"]
+    assert total == card["node_counts"]["exported"] == EXPORTED_NODES
 
 
 def test_one_cell_is_traced_from_an_export_node_to_the_row_it_became(report_text) -> None:
@@ -635,13 +604,24 @@ def test_one_cell_is_traced_from_an_export_node_to_the_row_it_became(report_text
 
 
 def test_the_relations_are_published_at_the_ruled_tolerance(generator, report_text) -> None:
-    """A surviving violation is decision 2's second branch and has to be recorded as one."""
+    """Per cell, published and gating nothing; per group, published with both mappings.
+
+    Decision 10 was re-ruled to measure per cell and gate on aggregates, and the aggregate's
+    own claim to catch a transposed hand index has to be visible rather than asserted: the
+    solved column beside the transposed one is what shows the measure discriminating, and over
+    the 5,626 that comparison came out backwards. A surviving per-cell violation is decision
+    2's ship-as-solved branch and has to be recorded as one.
+    """
     body = section(report_text, "dominance")
     counts = [int(value) for value in re.findall(r"violations\s+(\d+)", body)]
+    groups = re.findall(r"^\s*(.+?)\s+solved\s+(\d+)\s+transposed\s+(\d+)\s*$", body, re.MULTILINE)
 
     assert len(counts) == 2, "the report publishes a violation count for each of the two relations"
     assert re.search(rf"{generator.MONOTONICITY_TOLERANCE_PCT}\s*(?:percentage )?point", body)
     assert "adjacent" in body.lower()
+    assert groups, "the report publishes no group aggregate against its transposed mapping"
+    for label, solved, transposed in groups:
+        assert int(solved) < int(transposed), (label, solved, transposed)
     if any(counts):
         assert "ships as solved" in body.lower() or "considered answer" in body.lower()
 
@@ -650,32 +630,48 @@ def test_the_two_orderings_hold_in_the_numbers_the_report_publishes(report_text)
     """Later position opens wider, and the big blind defends more against a wider opener,
     recomputed from the published column rather than read off a sentence saying they hold.
     These survive any rake basis and any solver, which is why they transfer.
+
+    The opening column is the **export's**, and the report has to say so: the ruled predicate
+    commits one opening range, so four of the five opening frequencies are no longer properties
+    of the chart at all. Printing them as the chart's would be the report claiming coverage the
+    cutover gave up. The defence column is the chart's, because every one of the big blind's
+    twenty spots survives the predicate.
     """
     body = section(report_text, "orderings")
-    pattern = r"^\s*(LJ|HJ|CO|BTN|SB)\s+opens\s+(\d+\.\d+)\s+big blind defends\s+(\d+\.\d+)$"
+    pattern = (
+        r"^\s*(LJ|HJ|CO|BTN|SB)\s+opens\s+\(export\)\s+(\d+\.\d+)"
+        r"\s+big blind defends\s+\(chart\)\s+(\d+\.\d+)$"
+    )
     found = re.findall(pattern, body, re.MULTILINE)
     rows = {position: (float(opens), float(defends)) for position, opens, defends in found}
 
     assert set(rows) == {"LJ", "HJ", "CO", "BTN", "SB"}
     opens = [rows[position][0] for position in ("LJ", "HJ", "CO", "BTN")]
-    defence = [rows[position][1] for position in ("LJ", "HJ", "CO", "BTN")]
     assert opens == sorted(opens), f"later position does not open wider: {opens}"
-    # The small blind sits out of the defence ordering rather than failing it: the big blind
-    # closes heads-up against it, in position and at a price, so it defends 42.88 against a
-    # 34.41 opener, which is correct poker rather than a broken ordering.
+    # The defence ordering follows the opening frequencies wherever they land rather than a
+    # fixed seat order, which is what keeps the widest-opening seat inside the check.
+    ordered = sorted(rows, key=lambda position: rows[position][0])
+    defence = [rows[position][1] for position in ordered]
     assert defence == sorted(defence), f"the big blind does not defend more against wider: {rows}"
 
 
 def test_the_derived_chart_is_printed_against_the_external_expectations(report_text) -> None:
     """The one column the repo did not produce, so it must match the file: a reference
-    regenerated from what it checks cannot fail, which is why it is not rederived here."""
+    regenerated from what it checks cannot fail, which is why it is not rederived here.
+
+    Each row says where its own left-hand figure came from, and only one can say `derived`:
+    the small blind's is the one opening range the cutover commits. The other four come from
+    the export, and a row claiming `derived` for the lojack is a chart built on the superseded
+    predicate saying so in its own report.
+    """
     body = section(report_text, "expectations")
-    pattern = r"^\s*(LJ|HJ|CO|BTN|SB)\s+derived\s+(\d+\.\d+)\s+GTO Wizard\s+(\d+\.\d+)$"
+    pattern = r"^\s*(LJ|HJ|CO|BTN|SB)\s+(derived|export)\s+(\d+\.\d+)\s+GTO Wizard\s+(\d+\.\d+)$"
     rows = re.findall(pattern, body, re.MULTILINE)
     expected = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))["open_frequency_pct"]
 
-    assert {position for position, _, _ in rows} == set(expected)
-    for position, _, printed in rows:
+    assert {position for position, _, _, _ in rows} == set(expected)
+    assert [position for position, source, _, _ in rows if source == "derived"] == ["SB"]
+    for position, _, _, printed in rows:
         assert float(printed) == pytest.approx(expected[position], abs=0.005), position
     assert re.search(r"gated by nothing|does not gate|not a threshold", body), (
         "the comparison against another program's product must say it grades nothing"

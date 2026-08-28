@@ -32,6 +32,7 @@ from poker_training_bot.poker_core.positions import position_for_seat
 from poker_training_bot.strategy.contract import (
     DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
+    SeatAction,
     SeatState,
     StrategyDecision,
     StrategyQuery,
@@ -250,18 +251,89 @@ def preflop_seat_of(position: str) -> int:
 
 
 def preflop_query(
-    hole_cards: tuple[str, ...] = ("As", "Ah"), depth_bb: int = 100, **overrides: Any
+    hole_cards: tuple[str, ...] = ("As", "Ah"),
+    depth_bb: int = 100,
+    open_to_bb: float = 2.5,
+    **overrides: Any,
 ) -> StrategyQuery:
-    """An unopened six-handed preflop spot, 100bb by default, which the charts cover."""
-    hero = preflop_seat_of("LJ")
-    posted = {preflop_seat_of("SB"): PREFLOP_SB, preflop_seat_of("BB"): PREFLOP_BB}
+    """Hero in the big blind closing the action against a single button open.
+
+    It used to seat hero at the lojack with the pot unopened. The cutover retires
+    `t6/d100/LJ/rfi` - four opponents are still live behind an under-the-gun open, so it
+    fails the ruled predicate - and the bot now opens from the small blind and faces an
+    open from the big blind and nowhere else. A fixture that still means what it meant has
+    to sit at one of those two, and this is the second: everyone folds to the button, which
+    comes in at `open_to_bb`, the small blind folds, and hero closes the action.
+
+    At the default price that is `t6/d100/BB/BTN:raise@2.5`, the spot the phase traces end
+    to end. Setting `open_to_bb` to `depth_bb` makes it an open-shove, a committed spot too,
+    which offers hero fold and call and nothing else.
+    """
+    hero = preflop_seat_of("BB")
+    opener = preflop_seat_of("BTN")
     full = depth_bb * PREFLOP_BB
+    open_to = round(open_to_bb * PREFLOP_BB)
+    street = {preflop_seat_of("SB"): PREFLOP_SB, hero: PREFLOP_BB, opener: open_to}
+    acted = tuple(preflop_seat_of(position) for position in ("LJ", "HJ", "CO", "BTN", "SB"))
+    folders = tuple(seat for seat in acted if seat != opener)
     fields: dict[str, Any] = {
         "hand_id": "preflop-hand",
         "street": "preflop",
         "seat": hero,
         "button_seat": PREFLOP_BUTTON,
         "hole_cards": hole_cards,
+        "board": (),
+        # An open for the whole stack leaves hero nothing to raise with, and the contract
+        # refuses a query that offers one.
+        "legal_actions": ("fold", "call") if open_to >= full else ("fold", "call", "raise"),
+        # The price hero can actually pay, capped at what hero holds.
+        "to_call": min(open_to - PREFLOP_BB, full - PREFLOP_BB),
+        "current_bet": open_to,
+        "min_raise_target": open_to + (open_to - PREFLOP_BB),
+        "pot": sum(street.values()),
+        "seat_states": tuple(
+            SeatState(
+                seat,
+                street.get(seat, 0),
+                street.get(seat, 0),
+                seat in folders,
+                street.get(seat, 0) >= full,
+            )
+            for seat in PREFLOP_SEATS
+        ),
+        "stacks": tuple((seat, full - street.get(seat, 0)) for seat in PREFLOP_SEATS),
+        "blinds": (PREFLOP_SB, PREFLOP_BB),
+        # The folds travel with the raise. A spot key drops them, but the history and the
+        # seat states are read by different code and a reader should see one hand.
+        "preflop_actions": tuple(
+            SeatAction(seat, "raise", open_to)
+            if seat == opener
+            else SeatAction(seat, "fold")
+            for seat in acted
+        ),
+    }
+    fields.update(overrides)
+    return StrategyQuery(**fields)
+
+
+def retired_preflop_query(**overrides: Any) -> StrategyQuery:
+    """The lojack opening an unopened 100bb pot: what `preflop_query` used to build.
+
+    Kept rather than deleted, because the cutover turns it from a covered spot into a
+    refused one. `t6/d100/LJ/rfi` leaves four opponents live behind an under-the-gun open,
+    so it fails the predicate's subtree clause and the chart declines a decision the bot
+    answers today. That is the ruled cost, and refusal being the common preflop answer is
+    exactly why a component that routed one wrongly would be invisible.
+    """
+    hero = preflop_seat_of("LJ")
+    posted = {preflop_seat_of("SB"): PREFLOP_SB, preflop_seat_of("BB"): PREFLOP_BB}
+    full = 100 * PREFLOP_BB
+    fields: dict[str, Any] = {
+        "hand_id": "retired-preflop-hand",
+        "street": "preflop",
+        "seat": hero,
+        "button_seat": PREFLOP_BUTTON,
+        "hole_cards": ("As", "Ah"),
         "board": (),
         "legal_actions": ("fold", "call", "raise"),
         "to_call": PREFLOP_BB,
@@ -322,9 +394,11 @@ class TestStreetRouting:
         """A passive action here would be a second, silent preflop strategy."""
         for hole_cards in (("As", "Ah"), ("7d", "2c")):
             for legal in (("fold", "call", "raise"), ("check", "raise")):
-                to_call = 0 if "check" in legal else PREFLOP_BB
+                # Facing the open hero owes the fixture's own price; the check shape is a
+                # hero who owes nothing, which is the other way a preflop seat can be asked.
+                priced = {} if "check" not in legal else {"to_call": 0}
                 outcome = fallback.decide(
-                    preflop_query(hole_cards=hole_cards, legal_actions=legal, to_call=to_call)
+                    preflop_query(hole_cards=hole_cards, legal_actions=legal, **priced)
                 )
 
                 assert not isinstance(outcome, StrategyDecision), outcome

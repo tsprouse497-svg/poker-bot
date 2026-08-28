@@ -41,6 +41,7 @@ from test_postflop_fallback import (
     preflop_query,
     query,
     refusal,
+    retired_preflop_query,
     shape_with,
 )
 
@@ -120,9 +121,13 @@ class TestUnbeatableFunction:
 
 
 def uncovered_preflop_query() -> StrategyQuery:
-    """A flat 40bb table: no committed chart holds that depth, so the chart refuses. Flat
-    matters now that a starting stack is what a seat holds plus what it put in - the old
-    fixture left 4,000 in front of a blind that had posted 50, which refuses on shape."""
+    """A flat 40bb table: no committed chart holds that depth, so the chart refuses.
+
+    Flat matters, because a starting stack is what a seat holds plus what it put in and a
+    table that is not one depth refuses on shape before the spot is ever looked up. Its
+    refusal is `lookup:no-artifact-for-stack-depth`, which is a different reason from
+    `retired_preflop_query`'s and is why both are here.
+    """
     return preflop_query(depth_bb=40)
 
 
@@ -146,9 +151,110 @@ class TestComposite:
             assert composite.component_for(street) == "postflop-fallback"
 
     def test_a_preflop_query_is_answered_by_the_chart(self, composite) -> None:
-        outcome = decision(composite.decide(preflop_query()))
+        """The subject is the routing, and the spot is chosen so the routing is all it tests.
+
+        It used to ask at the lojack's opening range, which the cutover retires. The open
+        hero faces here is for the whole stack, and `t6/d100/BB/BTN:raise@100` is one of the
+        50 committed spots offering hero fold and call and nothing else - so the chart's
+        answer needs no raise size, and this stays a test about which component answered
+        rather than about the sizing table. A spot offering two prices was ruled on
+        2026-08-26 - having decided to raise, the strategy draws the price with the seed
+        it already collapses a mixed cell with - and the sized case is the test below,
+        kept apart so that a routing failure and a re-sizing failure never arrive as the
+        same red.
+
+        What is asserted is no longer that the action is fold or call. `preflop_query` leaves
+        hero exactly those two legal actions here, and `preflop_chart.py` refuses any drawn
+        action outside the legal set, so that held for every possible implementation and for
+        the fallback's own answers too. What is asserted instead is that the composite hands
+        back the chart's own answer untouched, at a spot whose menu really is the two: a router
+        that rebuilt the query on the way through, and a converter that put a raise branch under
+        an all-in, both fail here and neither failed before.
+        """
+        request = preflop_query(open_to_bb=100)
+
+        outcome = decision(composite.decide(request))
+        weights = dict(composite.preflop.weights_for(request))
 
         assert outcome.code.startswith(CHART_PREFIX)
+        assert outcome == composite.preflop.decide(request)
+        assert weights.get("raise", 0.0) == 0.0
+        assert weights.get("call", 0.0) > 0.9
+
+    def test_a_charted_raise_travels_out_at_the_size_the_chart_set(self, composite) -> None:
+        """The composite must not re-price a charted decision, and nothing here said so.
+
+        `composite.py` claims it in terms - `decide` returns what it received "without
+        touching the amount" - and every preflop outcome this file asserts over comes back
+        fold, call or refusal, so the amount compared on both sides is `None` in all of
+        them. A router that capped a raise to the query's `min_raise_target`, rounded it to
+        whole big blinds, or clamped it to hero's stack would pass every one. A fallback
+        layer silently re-sizing a decision the chart already priced is exactly the defect
+        this file exists to catch, and it needs a query that actually carries a size.
+
+        Both subjects sit in the big blind against a button open to 2.5, which keys to
+        `t6/d100/BB/BTN:raise@2.5` - committed, and one of the 21 spots offering hero a
+        named raise and the jam both: the 20 whose menu is fold, call, raise and jam, plus
+        `t6/d100/SB/rfi`, which offers the raise and the jam with no call at all. Both put
+        all their weight on the raise branch and none on fold or call, read off export node
+        `(0,0,0,1,0)`, so the collapse returns an aggressive action on every seed and
+        neither can flap. The blinds are 50 and 100, so a price in big blinds is a hundred
+        chips each and the spot's menu is 750 or 10,000.
+
+        Aces are the single-price half and are pinned exactly. The 2026-08-26 ruling put
+        the weights under the hand class, and measured at that node aces raise to 7.5 with
+        weight 1.0 and jam with weight 0 - so aces have one price, the draw has nothing to
+        draw between, and 750 is the only amount a correct build can produce. `> 0` passed
+        for 400 (the query's `min_raise_target`), for 800 (rounded to whole big blinds) and
+        for 9,900 (clamped to hero's remaining stack rather than to the all-in target);
+        every one of those now fails.
+
+        Jacks are the two-price half, which is what the ruling is actually about and what
+        nothing in this file asserted. JJ splits its aggression 0.3687 against 0.6313 over
+        the same two prices, so which one arrives is the seed's business and is deliberately
+        not pinned - but it must be one of the two the chart holds, and a table that priced
+        the spot rather than the class would have to answer aces and jacks alike. Note that
+        `t6/d100/SB/rfi` is not the same shape and must never be pinned at two prices: of its
+        169 classes 118 carry the 2.5 alone, aces among them, 45 fold pure and carry no price
+        at all, and six carry both. 163 counts those 45 as priced.
+
+        The small blind's open would be the sharper subject, being the one spot the bot
+        opens from at all. No query builder reaches it, and the harness is the sibling
+        module's to grow rather than this file's to copy, so the claim is frozen at the
+        seat the existing fixture reaches; the routing it exercises is the same one.
+        """
+        one_price = preflop_query()
+        two_prices = preflop_query(hole_cards=("Jd", "Jc"))
+
+        aces = decision(composite.decide(one_price))
+        jacks = decision(composite.decide(two_prices))
+
+        assert aces.code.startswith(CHART_PREFIX)
+        assert aces.action == "raise"
+        assert aces.amount == 750
+        assert aces == composite.preflop.decide(one_price)
+
+        assert jacks.action == "raise"
+        assert jacks.amount in {750, 10_000}, jacks
+        assert jacks == composite.preflop.decide(two_prices)
+
+    def test_a_retired_preflop_spot_comes_back_as_the_charts_own_refusal(
+        self, composite
+    ) -> None:
+        """Routing a refusal is the common case after the cutover, so it is pinned.
+
+        The chart answers 86 spots and refuses everything else, and the lojack's open is
+        one of the fourteen it gives up. A composite that let a refused preflop query fall
+        through to the postflop component would answer it with a check or a fold and look
+        entirely normal, which is why the code is asserted rather than the outcome kind.
+        """
+        request = retired_preflop_query()
+
+        outcome = refusal(composite.decide(request))
+
+        assert outcome.code.startswith(CHART_PREFIX)
+        assert not outcome.code.startswith(FALLBACK_PREFIX)
+        assert outcome == composite.preflop.decide(request)
 
     def test_postflop_queries_are_answered_by_the_fallback(self, composite) -> None:
         for street in POSTFLOP_STREETS:
@@ -175,11 +281,19 @@ class TestComposite:
     def test_its_outcome_is_always_its_components_outcome(self, composite) -> None:
         for request in enumeration_queries():
             assert composite.decide(request) == composite.postflop.decide(request)
-        for request in (preflop_query(), preflop_query(hole_cards=("7d", "2c"))):
+        for request in (
+            preflop_query(open_to_bb=100),
+            preflop_query(hole_cards=("7d", "2c")),
+            retired_preflop_query(),
+        ):
             assert composite.decide(request) == composite.preflop.decide(request)
 
     def test_every_outcome_names_the_component_that_produced_it(self, composite) -> None:
         for request in enumeration_queries():
             assert composite.decide(request).code.startswith(FALLBACK_PREFIX)
-        for request in (preflop_query(), uncovered_preflop_query()):
+        for request in (
+            preflop_query(open_to_bb=100),
+            uncovered_preflop_query(),
+            retired_preflop_query(),
+        ):
             assert composite.decide(request).code.startswith(CHART_PREFIX)

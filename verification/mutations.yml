@@ -892,9 +892,13 @@ mutations:
   # behaviour their phase existed to add. A find string that does not occur is the builder
   # having drifted from the specification, not the canary being wrong.
   #
-  # Two of the eight below satisfy the contract's requirement that at least one canary prove a
+  # Three of the nine below satisfy the contract's requirement that at least one canary prove a
   # wrong ARTIFACT fails the gate rather than merely a wrong report:
-  # `derivation-reach-floor-drops-to-a-tenth` and `committed-cells-claim-the-whole-range-arrived`.
+  # `derivation-predicate-drops-its-subtree-clause`, `committed-cells-claim-the-whole-range-arrived`
+  # and `a-class-that-never-arrives-is-committed-anyway`. The first was named here as
+  # `derivation-reach-floor-drops-to-a-tenth` until 2026-08-27: the 2026-08-25 predicate change
+  # renamed the canary and left the reference behind, which is this comment failing the same way
+  # twice, and it is why the sentence below about the first version is in the present tense.
   # The mechanism is worth stating exactly, because the first version of this comment described
   # one that does not run and an independent review caught it. No mutation here touches anything
   # under `data/`, and `check_gate_bite` never regenerates the artifact, so the committed file
@@ -905,21 +909,26 @@ mutations:
   # are one failure to it, which is what makes these two canaries evidence about the artifact and
   # not only about the code that writes it.
 
-  - id: derivation-reach-floor-drops-to-a-tenth
+  - id: derivation-predicate-drops-its-subtree-clause
     description: >-
-      Decision 1's ruled selection rule moves from 2 percent of hero's arriving range to 0.2
-      percent, so the walk keeps thousands of deep nodes the solve never converged on. Measured
-      on the committed export, the 2 percent floor selects 5,626 of 38,828 nodes and a 1 percent
-      floor already selects 9,407, so the mutated walk and the committed artifact disagree by
-      thousands of spots. Nothing raises: every extra node derives a valid key, so the mutated
-      chart is entirely self-consistent and answers spots whose ranges are unconverged - the
-      hijack facing a lojack four-bet folding JJ 97 percent while calling 76s outright is what
-      lives down there. `generate_derived_chart_report` is named because the report validates the
-      artifact's own spot count against the walk's own and exits non-zero when they disagree; a
-      report that renders whatever it is handed exits 0 however wrong the chart is.
+      The ruled selection predicate loses its second clause, so a node is kept whenever at most
+      one opponent has voluntarily invested and the reachable subtree is not looked at. That is
+      the rule Taylor ruled on 2026-08-24 and superseded on 2026-08-25, and it is the error the
+      supersession exists to correct: the product approximation bites at TERMINALS, so
+      heads-up-ness stated over the action history does not select what GTOpen prices exactly.
+      Measured on the committed export the mutated walk keeps 110 nodes against the ruled 86,
+      admitting the 24 whose terminals can still go multiway - four of the five opening ranges
+      among them, plus every RFI defence with seats still behind. Every one of those 24 converts
+      cleanly, imports cleanly, keys legally and answers a query; the defect is entirely in the
+      RANGES, which flat a 2.5bb open 0.07 to 4.5 percent of the time because flatting invites
+      the terminals the model underprices. Nothing else in this gate can see it: the census still
+      balances, the artifact still round-trips, and the chart gains coverage rather than losing
+      it. `generate_derived_chart_report` is named because the report validates the artifact's
+      spot set against the walk's key by key and exits non-zero when they disagree; a report that
+      renders whatever it is handed exits 0 with a chart 24 spots too wide.
     file: src/poker_training_bot/solver_artifacts/chart_derivation.py
-    find: "REACH_FLOOR_BP = 200"
-    replace: "REACH_FLOOR_BP = 20"
+    find: "    return invested_opponents(by_path, node) <= 1 and live_players(by_path, node) <= 2"
+    replace: "    return invested_opponents(by_path, node) <= 1"
     must_fail:
       - pytest_derived_chart
       - generate_derived_chart_report
@@ -937,6 +946,31 @@ mutations:
     file: src/poker_training_bot/solver_artifacts/chart_derivation.py
     find: "reach_by_class[hand_class_text] = node.reach_bp[gtopen_class_index(hand_class_text)]"
     replace: "reach_by_class[hand_class_text] = 10_000"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: a-class-that-never-arrives-is-committed-anyway
+    description: >-
+      The converter stops asking whether a hand class arrives at a node and commits all 169
+      strategy rows at every spot, so the artifact goes from 7,112 cells to 14,534. A GTOpen
+      payload is unconditional - a hand hero folded upstream still carries a full strategy row -
+      and 3,781 of the rows the mutation admits are the solver's untouched initialisation, every
+      action within a basis point of 1/n. `UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY` is the
+      entry, and the sharpest single cell is the small blind facing a hundred-blind four-bet jam
+      with 72o: reach zero, row 5,000/5,000, so the mutated chart calls off a hundred blinds with
+      72o half the time and says it with the same confidence it says fold to a four-bet. A uniform
+      row is worse than a gap rather than merely as bad, because it does not read as missing.
+      This is the third canary that is evidence about the ARTIFACT rather than about the report,
+      and by the same mechanism as the other two: no mutation touches anything under `data/` and
+      `check_gate_bite` never regenerates the artifact, so what bites is the disagreement between
+      the mutated derivation and the unchanged committed file, caught by
+      `convert_preflop_export.py --check`. `committed-cells-claim-the-whole-range-arrived` is its
+      sibling and a different defect - that one keeps the cell set and lies about the reach, this
+      one reads the reach correctly and ignores it.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "        if node.reach_bp[gtopen_class_index(hand_class_text)] <= 0:"
+    replace: "        if False and node.reach_bp[gtopen_class_index(hand_class_text)] <= 0:"
     must_fail:
       - pytest_derived_chart
       - pytest
@@ -985,9 +1019,11 @@ mutations:
 
   - id: a-jam-only-spot-goes-back-to-having-no-size
     description: >-
-      The sizing table stops pricing an all-in, so the 4,257 export nodes that offer a jam and no
+      The sizing table stops pricing an all-in, so the committed spots that offer a jam and no
       named raise carry a `raise` weight the sizing table cannot price: the chart says raise and
-      cannot say how much. That is the "commit sizeless and refuse on price" option decision 6
+      cannot say how much. Over the 86 the ruled predicate commits that is 15 spots, against the
+      4,257 export nodes and the 3,865 committed ones decision 6 was originally written on - the
+      count moved twice with the predicate and the case did not. That is the "commit sizeless and refuse on price" option decision 6
       rejected, arriving by omission instead of by ruling. The GTO Wizard source this repo
       converted before had zero spots of that kind, which is why the rule it inherited was safe
       there and is not here, and it is why the note that a spot absent from the sizing table has

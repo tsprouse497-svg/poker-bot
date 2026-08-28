@@ -180,16 +180,32 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
       blocker 2 is withdrawn as a defect, with the four-bet realisation question filed against
       phase 16; blocker 3 is ruled to commit the cell as solved, and the band ruling taken earlier
       the same day was withdrawn before any implementation once the solver output was investigated.
-      Stage 4 owes one more pass before the freeze, and it is not a human question: the tests must
-      assert that an unreached class is refused rather than committed
-      (`UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY` - 27 percent of the committed grid is
-      untouched uniform initialisation). The epsilon or reach cutoff that rule uses is
-      `frozen-into-data` and wants Taylor's confirmation before stage 6 implements it, but the
-      assertion that an unreached class is refused does not depend on the exact value.
+      Stage 4's last pass is written and **halted on one blocker for Taylor**, 2026-08-27. Three
+      tests in `tests/test_derived_chart.py` assert that a class the solver never trained is
+      refused rather than committed - at the artifact over all 86 spots, at the table as a coded
+      lookup miss, and off the strategy row at two tolerances that need nobody's ruling - plus the
+      canary `a-class-that-never-arrives-is-committed-anyway`. Two independent reviewers, mechanical
+      and poker, neither having seen the other's work, both reproduced the census exactly and found
+      five blockers between them. Three mechanical ones are fixed: a two-sided cell bound that
+      foreclosed every reach-threshold answer, a tautology, and a `mutations.yml` comment that was
+      false twice over. The poker one is the halt and it refutes this pass's own first argument:
+      the five near-uniform cells it called threshold hands are undertrained rows, the 100bb
+      open-jam carries zero weight at every opening node so one of them is a strategy against a
+      range that does not exist, and eight committed spots holding 1,031 cells have arrival
+      probability exactly zero while carrying every class at full reach. Arriving reach is hero's
+      own range filter, not a measure of whether the solver trained the node. The open question -
+      does the rule refuse on arriving reach alone, or also where the solve never trained the
+      node - is `frozen-into-data` and is in `review_queue.py`. The tests were made
+      non-foreclosing before it was filed, so whichever way it is ruled the freeze is safe.
+- Paused at S4 on the blocker in `stage-04-untrained-cell-refusal.md`. `--advance` is not run.
 - [ ] S5 Freeze.
 - [ ] S6 Build. The walk and its census, the converter, the artifact, the retirement of the old
       chart, the sizings, the comparison rerun. The expectations file is external and is not
-      rebuilt.
+      rebuilt. Two things arrive owed rather than discovered: the known list in
+      `stage-04-test-recut.md` under "What stage 6 owes in `src/` and `scripts/`" - four gate
+      commands of completed phases crash once the artifact is rebuilt, and `table_state/measures.py`
+      pins `CORPUS_REFUSALS = 290` which must be re-measured - and Taylor's answer on whether the
+      untrained-cell rule fires at a two-action node.
 - [ ] S7 Gate. Full `scripts/run_verify.py` plus `check_gate_bite`.
 - [ ] S8 Review. Two independent reviewers, mechanical and poker.
 - [ ] S9 Audit. Packet with the closing measurement and what it does not establish.

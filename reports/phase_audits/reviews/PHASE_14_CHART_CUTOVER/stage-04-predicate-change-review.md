@@ -212,7 +212,7 @@ The finding was read cell by cell, which is not the level a solve is answerable 
 | group | continue | share of arriving weight |
 |---|---|---|
 | whole arriving range | 65.40% | 100% |
-| premium - AA-QQ, AKs, AKo | 96.15% | 39.1% |
+| premium - AA to QQ, AKs, AKo | 96.15% | 39.1% |
 | suited connectors - JTs to 54s | 99.10% | 12.3% |
 | suited broadway - AQs, AJs, KQs, KJs, QJs | 43.38% | 18.9% |
 | middling pairs - JJ to 22 | 1.21% | 20.2% |
@@ -257,7 +257,7 @@ The example spot as filed - the small blind facing a button open - is not in the
 the big blind is still live behind it. The pattern is, though: 43 of the 86 spots carry an adjacent
 full-reach pair gap over 50 points and 14 carry one over 90. Measured against the bands:
 
-| seat | spot | the two cells | JJ-22 band | all pairs |
+| seat | spot | the two cells | JJ to 22 band | all pairs |
 |---|---|---|---|---|
 | LJ | `LJ:raise@2.5,HJ:raise@7.5` | 33 0.37% / 22 99.67% | 67.12% | 74.87% |
 | HJ | `HJ:raise@2.5,BTN:raise@7.5` | 66 99.96% / 55 1.17% | 70.24% | 77.11% |
@@ -328,7 +328,7 @@ real pair cells, and **56 of those are clean contiguous thresholds** - continue 
 fold everything below, which is what optimal play looks like when hands are ordered by strength.
 Fifteen break contiguity, and all fifteen break it the same way:
 
-| spot | AA-88 | 77 | 66 | 55 | 44 | 33 | 22 |
+| spot | AA to 88 | 77 | 66 | 55 | 44 | 33 | 22 |
 |---|---|---|---|---|---|---|---|
 | `LJ/LJ:raise@2.5,HJ:raise@7.5` | 97-100% | 56% | 100% | 1% | 0% | 0% | 100% |
 | `LJ/LJ:raise@2.5,CO:raise@7.5` | 100% | 72% | 97% | 1% | 0% | 1% | 100% |
