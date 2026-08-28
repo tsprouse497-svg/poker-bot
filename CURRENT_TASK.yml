@@ -1,13 +1,15 @@
 task_id: PHASE_14_CHART_CUTOVER
 active_phase: "14"
 task_mode: implementation
-base_commit: da05adf79398c3a7ee240de0cb718a3d5329fb69
+base_commit: 19fdb8d3a5e308b0ecc1cf5c5fcd3406f1fe5976
 approved_scope:
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
-  - tests/**
-  - verification/mutations.yml
-  - verification/freeze.lock
-  - scripts/run_verify.py
+  - src/poker_training_bot/solver_artifacts/**
+  - src/poker_training_bot/strategy/**
+  - src/poker_training_bot/table_state/**
+  - src/poker_training_bot/data_pipeline/**
+  - scripts/**
+  - data/artifacts/preflop/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -23,6 +25,21 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-08-27
+    reason: >-
+      Phase 14 stage 5. The tests are frozen - 35 files, 892 functions in
+      verification/freeze.lock - so tests/**, verification/mutations.yml and verification/freeze.lock
+      leave approved_scope and check_scope.py enforces that the implementer cannot write its own
+      tests or soften its own canaries. What replaces them is what stage 6 has to touch, listed by
+      package rather than as src/** because the work list is known: solver_artifacts for the new
+      chart_derivation module, the derivation codes and the schema's arrival and reach fields;
+      strategy for the multi-size sizing table and the seeded price draw; table_state because
+      CORPUS_REFUSALS is pinned at 290 and must be re-measured against an 86-key chart; data_pipeline
+      because generate_sample_comparison_report names retired spot keys; scripts for the converter,
+      the new report generator and the three other gate commands of completed phases that crash once
+      the artifact is rebuilt; and data/artifacts/preflop for the artifact itself, its sizing table
+      and the deletion of the retired six_max_nl25_100bb.json. The expectations file under that path
+      is a non-goal and is not rederived.
   - date: 2026-06-08
     reason: Phase 00 scaffold requires root metadata, CI config, uv lockfile, and tiny sample fixtures.
   - date: 2026-06-08
