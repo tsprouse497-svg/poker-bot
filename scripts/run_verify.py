@@ -289,6 +289,7 @@ COMMANDS = {
             "tests/test_chart_conversion.py",
             "tests/test_derived_chart_report.py",
             "tests/test_derived_chart_report_validators.py",
+            "tests/test_chart_arrival_probability.py",
         ],
         "Run the derived-chart selection, conversion, artifact, and report tests",
     ),

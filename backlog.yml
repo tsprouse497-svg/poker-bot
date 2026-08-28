@@ -2982,7 +2982,10 @@ items:
       the untouched initialisation. The wanted disposition is unchanged in substance and sharper
       in form: see UNIFORM-ROW-TEST-IS-BLIND-AT-A-BINARY-NODE for why a ruled reach threshold
       above zero and a uniform-row epsilon are different answers with different costs, which is
-      the open question stage 4 put to Taylor.
+      the open question stage 4 put to Taylor. Answered on 2026-08-27 and not the way this entry
+      asks: no per-cell refusal at a ruled reach threshold is added. The cells ship committed and
+      the artifact records each spot's arrival probability so a later heuristic layer can find
+      them. This entry is superseded in its remedy and stands in its diagnosis.
   - id: SOLVE-CAPTURE-NEEDS-A-POT-ENTRY-RATE-CHECK
     status: deferred
     phase: charts
@@ -3124,7 +3127,17 @@ items:
       is zero. The entry's conclusion is unaffected and in fact strengthened, because the reach
       reading loses nothing the row reading would have caught; but stage 6 reads this entry and
       must not go looking for a near-33-percent row that is not there.
-      See UNIFORM-ROW-TEST-IS-BLIND-AT-A-BINARY-NODE and
+      Ruled by Taylor on 2026-08-27, and the ruling is not the one this entry recommends: the
+      chart COMMITS the untrained cells and refuses only the classes that never arrive, because
+      heuristics for spots with no solver output are wanted later and that is where such a layer
+      belongs. Blanking the cells now is not the route to it. What was added is findability - the
+      converter records each spot's arrival probability on the artifact in parts per billion, so a
+      later heuristic layer can find the eight never-reached spots and the five undertrained
+      all-in nodes rather than re-walking the export, and neither reads as ordinary play. The
+      uniform-row epsilon this entry asked for is not implemented and is not wanted; the entry is
+      kept because its census is the measurement the ruling was made on.
+      See UNIFORM-ROW-TEST-IS-BLIND-AT-A-BINARY-NODE,
+      INTERIOR-MIX-COUNT-BOUNDS-A-TWO-ACTION-NODE and
       reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-untrained-cell-refusal.md.
   - id: INTERIOR-MIX-COUNT-BOUNDS-A-TWO-ACTION-NODE
     status: deferred
@@ -3156,7 +3169,11 @@ items:
       Measured over phase 14's committed 86: the 100bb open-jam carries zero weight on all 169
       classes at all four opening nodes, so t6/d100/BB/BTN:raise@100 has arrival probability
       exactly zero while carrying every one of its 169 classes at full reach of 10,000 basis
-      points. Eight committed spots holding 1,031 cells are in that position. Beside them, 1,182
+      points. Eight committed spots holding 1,031 cells have arrival probability zero, and reach
+      flags none of them: four are that shape, and the other four carry 87, 87, 86 and 95 classes
+      at means of 7,654, 7,654, 6,094 and 4,753 basis points, which is what a well-played spot
+      facing a four-bet looks like - so reach is not merely pointing the wrong way there, it is
+      indistinguishable. The 1,031 is not eight times 169 for that reason. Beside them, 1,182
       committed cells sit at arriving reach below 10 basis points, and 2,474 of the 7,112 sit at
       nodes where the solve's achieved gap of 0.0062bb divided by the node's arrival probability
       exceeds the 100bb stack, so the gate's own quality claim constrains their strategy by

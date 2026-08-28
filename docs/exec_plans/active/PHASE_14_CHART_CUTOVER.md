@@ -192,20 +192,33 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
       the five near-uniform cells it called threshold hands are undertrained rows, the 100bb
       open-jam carries zero weight at every opening node so one of them is a strategy against a
       range that does not exist, and eight committed spots holding 1,031 cells have arrival
-      probability exactly zero while carrying every class at full reach. Arriving reach is hero's
+      probability exactly zero while reach flags none of them - four carry every class at full
+      reach and four look like an ordinary range facing a four-bet. Arriving reach is hero's
       own range filter, not a measure of whether the solver trained the node. The open question -
       does the rule refuse on arriving reach alone, or also where the solve never trained the
-      node - is `frozen-into-data` and is in `review_queue.py`. The tests were made
-      non-foreclosing before it was filed, so whichever way it is ruled the freeze is safe.
-- Paused at S4 on the blocker in `stage-04-untrained-cell-refusal.md`. `--advance` is not run.
+      node - was put to Taylor and ruled the same day: **option one, the chart commits the
+      untrained cells and refuses only the classes that never arrive**, because heuristics for
+      spots with no solver output are wanted later and a spot with no output is where such a layer
+      belongs. One addition was put back to him and taken, since option one as stated defeats its
+      own purpose: a committed cell that was never computed is indistinguishable from one that
+      was, so **the converter records each spot's arrival probability on the artifact** in parts
+      per billion, beside the per-cell reach. The eight never-reached spots read zero; nothing the
+      bot answers today changes. Frozen in `tests/test_chart_arrival_probability.py`, a seventh
+      file in the family because two of the six are at the 700-line cap and the rest have no room,
+      with the canary `every-spot-claims-its-line-is-always-played`. A third independent review of
+      that file found three blockers, all fixed: a false "every one of their 169 classes reads full
+      reach" in six places, which holds at four of the eight spots and which the file's own cell
+      count contradicted; a canary description naming a detector that cannot see the defect; and a
+      band that included one of the eight zeros. Decision 5 and the contract's artifact
+      criterion both owe an amendment at the next `contract-update`.
 - [ ] S5 Freeze.
 - [ ] S6 Build. The walk and its census, the converter, the artifact, the retirement of the old
       chart, the sizings, the comparison rerun. The expectations file is external and is not
       rebuilt. Two things arrive owed rather than discovered: the known list in
       `stage-04-test-recut.md` under "What stage 6 owes in `src/` and `scripts/`" - four gate
       commands of completed phases crash once the artifact is rebuilt, and `table_state/measures.py`
-      pins `CORPUS_REFUSALS = 290` which must be re-measured - and Taylor's answer on whether the
-      untrained-cell rule fires at a two-action node.
+      pins `CORPUS_REFUSALS = 290` which must be re-measured - and the arrival-probability field
+      ruled on 2026-08-27, which `schema.py` and `chart_derivation.py` both have to carry.
 - [ ] S7 Gate. Full `scripts/run_verify.py` plus `check_gate_bite`.
 - [ ] S8 Review. Two independent reviewers, mechanical and poker.
 - [ ] S9 Audit. Packet with the closing measurement and what it does not establish.

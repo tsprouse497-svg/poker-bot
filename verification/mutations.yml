@@ -892,10 +892,10 @@ mutations:
   # behaviour their phase existed to add. A find string that does not occur is the builder
   # having drifted from the specification, not the canary being wrong.
   #
-  # Three of the nine below satisfy the contract's requirement that at least one canary prove a
+  # Four of the ten below satisfy the contract's requirement that at least one canary prove a
   # wrong ARTIFACT fails the gate rather than merely a wrong report:
-  # `derivation-predicate-drops-its-subtree-clause`, `committed-cells-claim-the-whole-range-arrived`
-  # and `a-class-that-never-arrives-is-committed-anyway`. The first was named here as
+  # `derivation-predicate-drops-its-subtree-clause`, `committed-cells-claim-the-whole-range-arrived`,
+  # `a-class-that-never-arrives-is-committed-anyway` and `every-spot-claims-its-line-is-always-played`. The first was named here as
   # `derivation-reach-floor-drops-to-a-tenth` until 2026-08-27: the 2026-08-25 predicate change
   # renamed the canary and left the reference behind, which is this comment failing the same way
   # twice, and it is why the sentence below about the first version is in the present tense.
@@ -971,6 +971,35 @@ mutations:
     file: src/poker_training_bot/solver_artifacts/chart_derivation.py
     find: "        if node.reach_bp[gtopen_class_index(hand_class_text)] <= 0:"
     replace: "        if False and node.reach_bp[gtopen_class_index(hand_class_text)] <= 0:"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: every-spot-claims-its-line-is-always-played
+    description: >-
+      Every committed spot records full arrival instead of the chance its line is actually played,
+      so a spot the solve worked out and a spot it never visited become indistinguishable. It is
+      the exact counterpart of `committed-cells-claim-the-whole-range-arrived` one level up: that
+      one lies about which hands reach a node, this one lies about whether the node is reached.
+      The field exists because Taylor ruled on 2026-08-27 that the untrained cells ship committed
+      rather than blanked, on the ground that a later heuristic layer wants them - and a layer
+      keying on this field reads eight never-reached spots holding 1,031 cells as ordinary play
+      once the mutation lands. Arriving reach cannot catch it: at four of those spots every one of
+      the 169 classes already reads fully arrived, and at the other four it reads like an ordinary
+      range facing a four-bet, 86 to 95 classes at a mean of 4,753 to 7,654 basis points. The
+      artifact still validates, still imports, still answers every spot, and no frequency in any
+      report moves.
+      What bites is the fourth entry in this block's artifact mechanism, spelled out in the comment
+      above: no mutation touches `data/`, so `test_every_committed_spot_records_how_often_its_line_is_played`
+      reads the unchanged committed file and passes under this mutation. The failure is
+      `convert_preflop_export.py --check` in
+      `tests/test_derived_chart.py::test_the_committed_chart_reproduces_from_the_committed_export`,
+      where the mutated deriver disagrees with the artifact it is supposed to reproduce. Saying
+      otherwise is the error this block's own comment records itself making once already, and an
+      independent review caught it here too.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "        arrival_ppb[key] = node_arrival_ppb(by_path, node)"
+    replace: "        arrival_ppb[key] = 1_000_000_000"
     must_fail:
       - pytest_derived_chart
       - pytest

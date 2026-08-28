@@ -8,7 +8,8 @@ uses, because the epsilon is `frozen-into-data` and is Taylor's before stage 6.
 
 That is done, and it is three assertions rather than one. Two independent reviewers, one
 mechanical and one on the poker, then read it without having seen each other's work, and the
-poker reviewer refuted the argument this note was first written around. **The stage halts.** The
+poker reviewer refuted the argument this note was first written around. The stage halted on one
+blocker and Taylor ruled it the same day; the ruling is the closing section. The
 recommendation in the backlog entry - detect the uniform row directly, which needs only an
 epsilon rather than a reach cutoff - does not survive; neither did the first draft's replacement
 for it. What is now open is a different and larger question, in `## Blocker` below, and it is
@@ -95,8 +96,9 @@ direction.
 
 ## Blocker
 
-- **Does the untrained-cell rule refuse on arriving reach alone, or does it also refuse where the
-  solve never trained the node?** `frozen-into-data`, so it blocks on a human. The evidence, the
+- **[resolved] Does the untrained-cell rule refuse on arriving reach alone, or does it also
+  refuse where the solve never trained the node?** `frozen-into-data`. Ruled 2026-08-27, option
+  one with an addition; see the closing section. The evidence, the
   three options and the withdrawal of this note's first answer are all below; nothing else in this
   section is a separate ask.
 
@@ -246,7 +248,9 @@ independent mechanical review and is removed.
   undertrained ones (three to nineteen). It is the instrument a later phase should reach for.
 - `ARRIVING-REACH-IS-NOT-A-TRAINED-NESS-MEASURE` - `reach_bp` filters hero's own range and says
   nothing about whether a node is ever played. Eight of phase 14's committed spots have arrival
-  probability exactly zero while carrying every class at full reach. The computable proxy is node
+  probability exactly zero, and reach flags none of them: four carry every class at full reach and
+  the other four carry 86 to 95 classes at a mean of 4,753 to 7,654 basis points, which is what an
+  ordinary range facing a four-bet looks like. The computable proxy is node
   arrival probability, or `achieved_gap_bb / P(node reached)` against the pot, neither of which
   anything in this repo reads.
 
@@ -270,3 +274,84 @@ reproduced independently by the coordinator before being acted on: the 100bb ope
 zero weight on all 169 classes at all four opening nodes, the interior-mix counts are 1 and 1 at
 the two well-converged all-in nodes against 3, 5, 6, 7 and 19 at the five this note defended, and
 eight committed spots holding 1,031 cells have arrival probability exactly zero.
+
+---
+
+## Ruled by Taylor, 2026-08-27: option one, and record where the cells came from
+
+The blocker went up with the three options and no recommendation between two and three. **The
+ruling is option one - the chart commits the untrained cells and refuses only the classes that
+never arrive - and the reasoning is forward-looking rather than a judgment that the cells are
+sound:** heuristics for spots with no solver output are wanted eventually, and a spot with no
+output is precisely where such a layer belongs. Blanking the cells now is not the route to that.
+
+**One thing was put back to him and added, because option one as stated defeats its own purpose.**
+A refused cell is visibly empty and a heuristic layer can find it. A committed cell that was never
+computed is indistinguishable from one that was, and reach cannot separate them at any of the
+eight. At four it points the wrong way outright - the big blind facing a 100bb open-jam has all
+169 classes at 10,000, fully arrived. At the other four it does something worse than lying, which
+is looking ordinary: 86 to 95 classes arriving at a mean of 4,753 to 7,654 basis points, the shape
+a well-played spot facing a four-bet has. So under option one as first written, the cells the
+future layer is for are the ones it cannot find. Ruled: **the converter records each spot's arrival probability on
+the artifact**, in parts per billion, beside the per-cell reach decision 5 already put there. No
+answer the bot gives today changes.
+
+The two fields are orthogonal and the chart needs both. Reach is per cell and says whether hero
+can hold that class here. Arrival is per spot and says whether the line is one anybody plays. It
+covers both halves of the blocker with one number: the eight never-reached spots read exactly
+zero, and four of the five undertrained all-in nodes read 6.7e-06 to 1.6e-04 against the busiest
+spot's 0.275 - the fifth, `BB/BTN:raise@100`, is itself one of the eight zeros. Integers because that is what makes the artifact checksum mean something, per decision 8,
+and parts per billion rather than basis points for the reason the field has to get right: **21 of
+the 86 spots sit at a nonzero arrival below one basis point**, the smallest at 2.5e-08, so in
+basis points all 21 would round to zero and become indistinguishable from the eight the solve
+genuinely never reaches. In ppb the smallest nonzero value is 25, so nothing that is not zero
+rounds to zero.
+
+Frozen in `tests/test_chart_arrival_probability.py`, a seventh file in the `pytest_derived_chart`
+family - two of the six are at the 700-line cap exactly and `test_derived_chart.py` has 33 lines
+of headroom against the 250 this needs, so there was nowhere in the family to put it. It asserts the field at every one of the 86 spots against arrival recomputed
+from the export's own action frequencies, that the eight read zero **and still answer**, which is
+the ruling's two halves held at once, and that the schema rejects an absent or out-of-range value
+- the blind structure's lesson, that a field nothing validates is one a later artifact can fill
+with anything. No threshold is asserted anywhere: option one ruled that nothing is refused for
+arriving rarely, and the field is recorded so a later phase can rule on it with the measurement in
+front of it. The canary is `every-spot-claims-its-line-is-always-played`.
+
+Two things in the first draft of that file were wrong and are corrected before the freeze. It
+specified `schema.validate_arrival_ppb` and `PreflopArtifact.from_payload`, neither of which
+exists and neither of which is this repo's shape for proving a schema rule rejects something -
+`rfi_artifact` in `tests/test_derived_chart.py` builds a one-spot artifact that is right in every
+other respect and asserts the constructor raises, and the arrival tests now do the same. And it
+justified parts per billion with "61 of the 86 sit below one basis point", which does not
+reproduce; the figure is 29 below a basis point, 21 of them nonzero, and the corrected sentence
+states the consequence rather than the count.
+
+A third review, of the new file itself, found three more and they are fixed above. The one that
+mattered is the same false generalisation in six places: "every one of their 169 classes reads
+10,000" holds at four of the eight spots and not at the other four, and the file's own
+`NEVER_REACHED_CELLS = 1_031` contradicted it, since eight times 169 is 1,352. The corrected
+reading is the stronger argument and is why the constant is now asserted against that product.
+The second was the canary claiming a detector that cannot see it, corrected at the canary. The
+third is the sentence about the five undertrained nodes, corrected above.
+
+One thing the review raises that is a record rather than a fix. **"Exactly zero" is the export's
+quantisation floor, not a solver zero.** `_quantise_row` drops a raw weight below one basis point
+rather than rounding it up, so an all-zero strategy row means "below 1e-04 on all 169 classes"
+rather than "the solver assigned zero". The reading holds - only 12 of the export's 83,122 action
+rows are all-zero and 8 of them are on these paths, so this is not a general artifact of the
+quantisation - but the packet should say it, because the field's semantics are stated as "the
+solve never worked the line out at all" and what is measured is the floor.
+
+**What this owes elsewhere.** Decision 5 is `frozen-into-data` and covers the reach field only, so
+it owes an amendment at the next `contract-update` carrying this ruling and the measurement above.
+The contract's artifact criterion asks for reach and does not mention arrival; it owes the same
+sentence. Until they land this note is the only place either is written down.
+
+**What it does not settle, and is now findable rather than fixed.** The 1,031 cells at eight
+never-reached spots and the interior-mix noise at five more are shipping as solver output. They
+are wrong in the sense the poker review measured - kings called less often than queens facing a
+five-bet jam, K7s stacking off a third of the time - and the ruling is that they ship anyway with
+a marker on them. `INTERIOR-MIX-COUNT-BOUNDS-A-TWO-ACTION-NODE` and
+`ARRIVING-REACH-IS-NOT-A-TRAINED-NESS-MEASURE` carry the diagnosis for whichever phase builds the
+heuristic layer, and the packet must say plainly that a committed cell is not evidence the solve
+computed one.
