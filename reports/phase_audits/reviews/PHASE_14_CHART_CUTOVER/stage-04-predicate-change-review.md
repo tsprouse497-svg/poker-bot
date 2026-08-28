@@ -11,7 +11,7 @@ false, and that finding is why this phase is halted again rather than advancing.
 
 ## Blocker
 
-- **[open, for Taylor] The ruled predicate does not select the nodes the model prices exactly. 24
+- **[resolved] The ruled predicate does not select the nodes the model prices exactly. 24
   of the 110 carry the defect, and they hold 73 percent of the decisions a real player makes.**
   The product approximation bites at **terminals**, and a node's strategy is backward-induced over
   every terminal below it, so the property has to be stated over the subtree rather than over the
@@ -56,7 +56,7 @@ false, and that finding is why this phase is halted again rather than advancing.
   call and therefore priced against the degenerate calling ranges above. The strict reading costs 7
   of 3,054 corpus decisions.
 
-- **[open, for Taylor] The four-bet continuations teach folding JJ at 32 percent pot odds.** At HJ
+- **[resolved] The four-bet continuations teach folding JJ at 32 percent pot odds.** At HJ
   facing a lojack four-bet to 22.5, inside the 110, JJ arrives at 96.7 percent reach and folds 97.2
   percent, TT folds 99.9, 99 folds outright, AJs jams 51.4 percent with no call in AQs, and 76s
   calls 99.6. Hero is adding 15 into 31.5 needing 32.3 percent with 77.5 behind. Sub-question 1 was
@@ -64,7 +64,7 @@ false, and that finding is why this phase is halted again rather than advancing.
   the reviewer's point is that the record does not reach the person at the table, and a confident
   wrong answer is worse than a refusal because it replaces the student's prior instead of leaving it.
 
-- **[open, for Taylor] Adjacent small pairs split 0.07 against 99.94 at full reach, and the
+- **[resolved] Adjacent small pairs split 0.07 against 99.94 at full reach, and the
   aggregate-only dominance ruling cannot see it.** Small blind facing a button open, all four pairs
   at full reach: 55 continues 99.83 percent, **44 continues 0.07**, 33 continues 16.20, 22 continues
   99.94. The 2026-08-24 ruling gates dominance on bands where indifference cancels, on the ground
@@ -186,3 +186,192 @@ wrong by six. The committed 499-hand sample holds **3,048**, confirmed against `
 excludes. The digits are left as written because this is a dated record of what was measured. No
 conclusion in it moves - 2,232 of 3,048 is 73.2 percent and the multiway share is 8.3 percent under
 either denominator. See `stage-04-eighty-six-coverage.md`.
+
+---
+
+## Ruled by Taylor, 2026-08-27: all three blockers close, and one of them was a reading error
+
+The three blockers above were raised on 2026-08-25 against the 110-spot plan. All three were put
+back to Taylor on 2026-08-27 with the measurements re-derived from the export by an independent
+walk that reproduces the published census exactly - 38,828 nodes, 110 under the history clause,
+5,472 under the terminal clause, 86 in both, 24 ruled but multiway. He ruled all three.
+
+### Blocker 1: answered on 2026-08-26, a day after it was written
+
+`da05adf` ruled the cutover onto the 86: the predicate is both clauses conjoined, and he took the
+disposition's third option in full so the missing spots have a route back. That commit did not
+touch this marker, so the answer existed and the board still showed the question. Nothing was
+decided today; the marker is corrected to match a ruling already made.
+
+### Blocker 2: withdrawn as a defect. The rows are a coherent polarised four-bet defence
+
+The finding was read cell by cell, which is not the level a solve is answerable at. At
+`t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5` - hero in position, adding 15 into 31.5 for
+32.26 percent with 77.5 behind - the continue frequency by group, combo and reach weighted:
+
+| group | continue | share of arriving weight |
+|---|---|---|
+| whole arriving range | 65.40% | 100% |
+| premium - AA-QQ, AKs, AKo | 96.15% | 39.1% |
+| suited connectors - JTs to 54s | 99.10% | 12.3% |
+| suited broadway - AQs, AJs, KQs, KJs, QJs | 43.38% | 18.9% |
+| middling pairs - JJ to 22 | 1.21% | 20.2% |
+
+Value continues, the suited bluffs continue, the middling pairs fold. That is what a polarised
+three-bet range does against a four-bet, and preflop bluff-continues are the whole point of the
+suited connectors being in the three-bet range at all. JJ against a four-betting range of roughly
+QQ+ and AK is dominated and flops badly for its equity; 76s in position, rake-free, at 32 percent
+pot odds and 1.7 SPR realises well and can win a stack. Equity losing to playability is a standard
+solver result and not a broken row.
+
+**The claim "no preflop solution plays that" is withdrawn.** It was the reviewer's claim and this
+coordinator repeated and amplified it without checking the aggregate.
+
+The convergence hypothesis offered alongside it is withdrawn too, and it failed its own test.
+If the deep nodes carried no real solve their rows would sit nearer uniform. Measured over cells at
+reach at least 5 percent, purity runs the other way:
+
+| prior aggressive actions | cells | pure above 99% | mean max action weight |
+|---|---|---|---|
+| 0 - the open | 169 | 88.2% | 0.976 |
+| 1 - facing an open | 1,690 | 85.3% | 0.977 |
+| 2 - facing a three-bet | 2,050 | 69.3% | 0.960 |
+| 3 - facing a four-bet | 872 | 67.1% | 0.943 |
+| 4 - facing a five-bet | 184 | 83.7% | 0.956 |
+
+Deep nodes mix more, not less, and mean max weight moves 0.976 to 0.943 across the whole tree.
+There is no depth-dependent degradation to point at.
+
+One number survives and it is not about cell order: whether 65.40 percent is the right total.
+Continuing nearly two thirds of a three-bet range against a four-bet is high, and the thing that
+would move it is `realization: calibrated` - GTOpen resolves flops by scaled equity share rather
+than playing them, and a four-bet pot at 1.7 SPR is where that approximation is weakest. Ruled:
+that is a question about the model the chart derives from, not about the derivation, and it is
+filed against phase 16 as `CALIBRATED-REALISATION-PRICES-FOUR-BET-POTS-UNTESTED`. Phase 14 changes
+nothing for it.
+
+### Blocker 3: reframed. The band is committed, not the cell
+
+The test the note never ran is the individual split against the aggregate of the band it sits in.
+The example spot as filed - the small blind facing a button open - is not in the 86 at all, because
+the big blind is still live behind it. The pattern is, though: 43 of the 86 spots carry an adjacent
+full-reach pair gap over 50 points and 14 carry one over 90. Measured against the bands:
+
+| seat | spot | the two cells | JJ-22 band | all pairs |
+|---|---|---|---|---|
+| LJ | `LJ:raise@2.5,HJ:raise@7.5` | 33 0.37% / 22 99.67% | 67.12% | 74.87% |
+| HJ | `HJ:raise@2.5,BTN:raise@7.5` | 66 99.96% / 55 1.17% | 70.24% | 77.11% |
+| CO | `CO:raise@2.5,BB:raise@7.5` | 55 99.16% / 44 0.45% | 89.76% | 92.13% |
+| BTN | `BTN:raise@2.5,BB:jam@100` | TT 99.71% / 99 0.19% | 20.61% | 38.93% |
+
+Every band aggregate is a sensible number. The pairs are near-indifferent at these prices, and at
+an indifference point every mixture is optimal, including the extreme ones - a solver that puts 33
+at zero and 22 at one broke a tie, and any other tie-break scores identically. That is what the
+2026-08-24 dominance ruling already said, and this note escalated it by comparing cells without
+ever checking the band. **The 2026-08-24 ruling stands and this note was wrong to contradict it.**
+
+It cannot be proved from the export either way: the file carries `path`, `actor_pos`, `actions`,
+`strategy_bp` and `reach_bp` and no EV field, so an arbitrary optimal split and a tie broken the
+wrong way are indistinguishable. There is also no seed to vary -
+`scripts/extract_gtopen_preflop.py` passes only `iterations`, `check_every` and `target_gap`, and
+the solve stopped at 300 because it reached the 0.01 bb target at 0.0062 - so the only
+discriminating run is a tighter target, which needs the GTOpen server and is not run here.
+
+**The ruling does not depend on that run.** For 22 to genuinely outrank 33 there would have to be a
+poker reason, and there is none: 33 dominates 22 when they clash and the two are otherwise near
+identical against a three-bet range. So the per-cell number is either an arbitrary tie-break or
+wrong, and under both readings it carries no information while the band aggregate is true.
+**Ruled: where a class sits in a near-indifferent run, the committed cell carries the run's
+aggregate rather than the class's own tie-break.** Rejected: committing the cell, which transcribes
+a tie-break into a rule the drill then teaches with the same confidence it teaches folding to a
+four-bet, in 43 of 86 spots.
+
+Filed as `COMMIT-THE-BAND-NOT-THE-TIE-BREAK` against phase 14, because it is a conversion-step rule
+that stage 6 implements and stage 4's tests must encode.
+
+**What this ruling does not yet pin, and it is `frozen-into-data`.** What counts as a run. Decision
+10 failed twice at exactly this - the 13 single ranks, four bands, three bands and two bands all
+measured differently and choosing the smallest was rejected as picking a threshold to go green - so
+naming bands by hand is the move that has already failed. The recommendation put to Taylor with
+this note is pool-adjacent-violators over each family run (the 13 pairs, each suited row, each
+offsuit row): it has no threshold and no band list, it preserves each pooled block's reach-weighted
+aggregate exactly, it leaves every monotone run untouched, and the run it pools is derived from the
+data rather than chosen. Its one assumption is that higher-in-family at least matches
+lower-in-family, which is the ordering decision 10 declined to *gate*; conditioning committed data
+is not the same act as failing a build, and it only moves cells where the order is violated and
+where the cell has been shown to carry nothing. That distinction is his to accept or reject before
+stage 4 re-cuts the tests.
+
+---
+
+## Reversed the same day, 2026-08-27: commit the cell, and the investigation found something else
+
+Taylor asked how we know the pair splits are not optimal. The honest answer was that we did not, so
+the solver output was investigated directly rather than argued about further. Two of the three
+grounds for the band ruling above did not survive it, and the ruling is withdrawn before any
+implementation. `COMMIT-THE-BAND-NOT-THE-TIE-BREAK` is closed as withdrawn.
+
+### The consistency argument was invalid
+
+The band ruling was defended by a second measurement: across the 86, 22 continues more than 33 at
+ten spots and never fewer, and 33 more than 44 at seven and never fewer, which was read as a
+systematic effect rather than a coin flip. That reasoning is wrong. The solver is deterministic -
+the source card records the ruled config solved twice in a fresh process against a restarted server,
+byte-identical, `max_divergence_bp: 0` - so a deterministic tie-break lands the same way at every
+node. Consistency across spots cannot separate a real effect from an arbitrary one, and it was used
+as if it could.
+
+### The anomaly is much narrower than the filing said
+
+Measured over the 86 with both classes required at full arriving reach: 71 spots carry four or more
+real pair cells, and **56 of those are clean contiguous thresholds** - continue down to some pair,
+fold everything below, which is what optimal play looks like when hands are ordered by strength.
+Fifteen break contiguity, and all fifteen break it the same way:
+
+| spot | AA-88 | 77 | 66 | 55 | 44 | 33 | 22 |
+|---|---|---|---|---|---|---|---|
+| `LJ/LJ:raise@2.5,HJ:raise@7.5` | 97-100% | 56% | 100% | 1% | 0% | 0% | 100% |
+| `LJ/LJ:raise@2.5,CO:raise@7.5` | 100% | 72% | 97% | 1% | 0% | 1% | 100% |
+| `LJ/LJ:raise@2.5,BTN:raise@7.5` | 100% | 68% | 91% | 2% | 0% | 1% | 100% |
+
+Every one has a mixed hand at the threshold. A mixed hand is where the solver found indifference,
+and inside an indifference region the total is determined while the allocation across it is not. So
+66 and 22 at 100 percent beside 55, 44 and 33 at zero is what an arbitrary allocation of a
+determined total looks like. Smoothing it changes nothing that can be shown to be wrong and risks
+deleting something that cannot be shown to be right.
+
+**Ruled: commit the cell as solved.** No PAV, no band, no conversion change for this. The export
+carries no EV field so nothing in the file settles it, and the run that would - a solve at a tighter
+target - needs the GTOpen server and is not run here.
+
+### Two hypotheses closed on the way
+
+Neither is a defect, and both are worth recording so they are not re-opened.
+
+**Not an extraction defect.** `data/artifacts/preflop/exports/gtopen_node_payloads.captured.json` is
+a raw per-node capture straight from the solver - `view.reach` as 169 floats, `view.strategy` as 676
+- and two of its six captured nodes are the exact spots under argument. Decoded from the raw capture
+and compared against the committed `.gtx.gz`, every pair class agrees to the quantisation step at
+both: 77 at 55.66 against 55.66, 22 at 99.67 against 99.67. This oracle was in the tree the whole
+time and no stage-4 document had used it.
+
+**Not an index artifact.** 22 sits at GTOpen index 0, so the boundary was ruled out directly. Across
+the 86, 32o and 42o at indices 1 and 2 mean 0.0 percent continue, AKs at 167 means 69.3, AA at 168
+continues at all 86. And 22 is responsive to the spot rather than pinned: at the 43 spots where it
+arrives at full reach it continues above 95 percent at 21 and folds below 5 percent at 21.
+
+### What the investigation did find
+
+Filed as `UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY`. **3,925 of the 14,534 cells in the
+86-by-169 committed grid - 27.0 percent - are untouched initialisation**, every action within two
+points of 1/n. The source card describes the mechanism and nothing acted on it: the payload is
+unconditional and reach is the only thing conditioning it. The four-bet node shows it for real
+hands, where 77 through 22 arrive at 0.0001 to 0.0019 reach and all sit near a third.
+
+A converter that reads a strategy row without asking whether the class arrives commits a quarter of
+every spot as an answer the solver never computed, and a uniform row is not a refusal - it reads as
+a considered mixed strategy, which is what makes it worse than a gap. Reach separates them almost
+perfectly: 3,922 of the 3,925 sit at or below one percent arriving reach and three sit above.
+Stage 4's tests must assert that an unreached class is refused rather than committed; the exact
+epsilon or cutoff is `frozen-into-data` and wants Taylor's confirmation before stage 6, but it does
+not block the freeze.

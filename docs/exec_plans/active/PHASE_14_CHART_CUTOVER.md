@@ -174,14 +174,18 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
       phase's centre: decision 10's monotonicity criterion cannot be satisfied at the ruled reach
       floor, and the "one violation in the shallow tree" it rests on is a measurement of the eleven
       grids the export publishes rather than of the shallow tree.
-- Paused: two stage-4 blockers move `frozen-into-data` rulings and are with Taylor. First, whether
-      the permitted re-solve moves ahead of the test freeze, since decision 10's two relations give
-      1,938 violating nodes and 8,962 violations over the 5,626 committed nodes - 36 nodes and 541
-      violations even where hero's whole range arrives - against a contract that expects one.
-      Second, whether decision 6 is reopened to price hero's raise by where his aggressive weight
-      actually sits, since at the 313 spots offering both a named raise and a jam the shove is 60.6
-      percent of that weight, the majority at 177 of them and all of it at 35. Full evidence in
-      `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-tests.md`.
+- Not paused. All three stage-4 blockers in
+      `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-predicate-change-review.md` are
+      resolved as of 2026-08-27. Blocker 1 was answered by `da05adf` a day after it was written;
+      blocker 2 is withdrawn as a defect, with the four-bet realisation question filed against
+      phase 16; blocker 3 is ruled to commit the cell as solved, and the band ruling taken earlier
+      the same day was withdrawn before any implementation once the solver output was investigated.
+      Stage 4 owes one more pass before the freeze, and it is not a human question: the tests must
+      assert that an unreached class is refused rather than committed
+      (`UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY` - 27 percent of the committed grid is
+      untouched uniform initialisation). The epsilon or reach cutoff that rule uses is
+      `frozen-into-data` and wants Taylor's confirmation before stage 6 implements it, but the
+      assertion that an unreached class is refused does not depend on the exact value.
 - [ ] S5 Freeze.
 - [ ] S6 Build. The walk and its census, the converter, the artifact, the retirement of the old
       chart, the sizings, the comparison rerun. The expectations file is external and is not
