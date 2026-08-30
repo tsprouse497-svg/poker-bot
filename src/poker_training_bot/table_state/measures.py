@@ -38,13 +38,27 @@ MOVING_FIXTURE_HAND = "phase02-three-way-side-pot"
 # What that fixture refused at all three of its preflop decisions before this phase.
 BEFORE_MOVING_CODE = "preflop-chart:lookup:no-artifact-for-table-size"
 
-# What the corpus held when this phase started. A number that moves means the replay moved,
-# which this phase does not touch, so it fails rather than being published. The capped count
-# is the population the `to_call` ruling of 2026-08-20 is about, and the one the deleted
-# depth derivation was wrong for.
+# What the corpus holds. `checks._validate_corpus` demands equality against these, so each is
+# a claim about what may and may not move.
+#
+# The sample and the decision count are the replay, which this report does not touch: a moved
+# denominator there is a defect, and holding them at equality is the whole point of the pair.
+# The capped count is the population the `to_call` ruling of 2026-08-20 is about, and the one
+# the deleted depth derivation was wrong for; it is a property of the recorded hands rather
+# than of any chart, so it does not move with one either.
+#
+# The refusal count does move with the chart, and it moved: 290 until the chart cutover, 2,529
+# after it. The cutover replaced the raked chart with a rake-free solve derived under a
+# selection rule that keeps a spot only where the source prices every terminal below it, which
+# gives up four of the five opening ranges and ten of the eleven spots facing a single open. So
+# the decisions that reached those spots are refused now, and the contract for that phase
+# requires this number to rise rather than fall. It stays pinned at equality rather than
+# becoming a floor: a refusal count that drifts silently is exactly what a coverage change
+# looks like from here, and the point of the pin is that changing the chart has to be a
+# deliberate edit to this line.
 CORPUS_HANDS = 499
 CORPUS_DECISIONS = 3048
-CORPUS_REFUSALS = 290
+CORPUS_REFUSALS = 2529
 CORPUS_CAPPED_DECISIONS = 10
 
 DEPTH_CODES = (REFUSE_RAGGED_DEPTH, REFUSE_UNEVEN_TABLE, REFUSE_SHORT_LIVE_SEAT)

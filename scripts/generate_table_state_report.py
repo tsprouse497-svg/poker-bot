@@ -849,22 +849,34 @@ def canonical_holdings() -> tuple[tuple[str, str], ...]:
     return tuple(holdings)
 
 
-def small_blind_facing_a_button_open(
+def small_blind_with_the_pot_folded_to_it(
     small_blind: int, big_blind: int, hole_cards: tuple[str, str]
 ) -> StrategyQuery:
-    """Hero in the small blind facing a 2.5bb button open, at whatever blinds are handed in.
+    """Hero in the small blind with the pot folded to it, at whatever blinds are handed in.
 
     Built here rather than through `table`, which is fixed at the 50/100 the rest of this report
     uses, and the whole of this measurement is what happens when that moves. Everything a spot
-    key is made of is held still: six seats, every one of them a hundred big blinds deep, hero in
-    the small blind, one recorded raise to two and a half big blinds. Only the ratio between the
-    two blinds changes, and with it the price hero is being offered.
+    key is made of is held still: six seats, every one of them a hundred big blinds deep, hero
+    in the small blind, no recorded raise. Only the ratio between the two blinds changes, and
+    with it the price hero is being offered.
+
+    Authored as the small blind facing a 2.5bb button open, which the chart cutover retired -
+    the ruled selection predicate keeps a spot only where the source prices every terminal
+    below it, and `t6/d100/SB/BTN:raise@2.5` is one of the fourteen spots it gives up. The pot
+    folded to the small blind replaces it, and it is a better probe rather than merely a
+    surviving one. The blind ratio can only reach hero's price where the chips hero already has
+    in the pot ARE the small blind, and that is true at exactly one committed spot: this one.
+    Anywhere hero has raised, hero's contribution is the raise and the ratio has stopped
+    mattering to the price, so the demonstration would have been measuring nothing.
+
+    The price is derived rather than stated, and at equal blinds it is zero, which is why the
+    legal actions are derived with it: a seat that owes nothing checks and does not call.
     """
-    open_to = round(Fraction(5, 2) * big_blind)
     sat_down = 100 * big_blind
     hero_seat = seat_of("SB")
-    paid = {hero_seat: small_blind, seat_of("BB"): big_blind, seat_of("BTN"): open_to}
-    folded_seats = {seat_of(name) for name in ("LJ", "HJ", "CO")}
+    paid = {hero_seat: small_blind, seat_of("BB"): big_blind}
+    folded_seats = {seat_of(name) for name in ("LJ", "HJ", "CO", "BTN")}
+    to_call = big_blind - small_blind
     return StrategyQuery(
         hand_id="blind-structure",
         street="preflop",
@@ -872,10 +884,11 @@ def small_blind_facing_a_button_open(
         button_seat=BUTTON,
         hole_cards=hole_cards,
         board=(),
-        legal_actions=("fold", "call", "raise"),
-        to_call=open_to - small_blind,
-        current_bet=open_to,
-        min_raise_target=open_to + (open_to - big_blind),
+        legal_actions=("fold", "call", "raise") if to_call else ("check", "raise"),
+        to_call=to_call,
+        current_bet=big_blind,
+        # Nothing has raised, so the standing minimum increment is one big blind.
+        min_raise_target=2 * big_blind,
         pot=sum(paid.values()),
         stacks=tuple((seat, sat_down - paid.get(seat, 0)) for seat in SEATS),
         seat_states=tuple(
@@ -893,7 +906,7 @@ def small_blind_facing_a_button_open(
             dropped("LJ"),
             dropped("HJ"),
             dropped("CO"),
-            SeatAction(seat_of("BTN"), "raise", open_to),
+            dropped("BTN"),
         ),
     )
 
@@ -926,11 +939,11 @@ def blind_structure_rows(
     for label, small_blind, big_blind in BLIND_STRUCTURES:
         answers = {
             cards: strategy.weights_for(
-                small_blind_facing_a_button_open(small_blind, big_blind, cards)
+                small_blind_with_the_pot_folded_to_it(small_blind, big_blind, cards)
             )
             for cards in holdings
         }
-        query = small_blind_facing_a_button_open(small_blind, big_blind, holdings[0])
+        query = small_blind_with_the_pot_folded_to_it(small_blind, big_blind, holdings[0])
         found = strategy.chart_lookup(query)
         if not isinstance(found, ChartHit):
             raise TableStateReportError(
@@ -1033,10 +1046,10 @@ def header_lines(strategy: PreflopChartStrategy) -> list[str]:
             " table as a whole, because two classes of table escape it and are still answered as"
             " something else. A straddled pot with two or more recorded raises is invisible to"
             " every signal here. And the ratio between the two blinds is compared with nothing at"
-            " all: the committed artifact declares a table size and a stack depth and declares no"
-            " blind structure, so $1/$3 and $2/$5 - the structures this bot's own home games are"
+            " all: the committed artifact declares the structure it was solved at, and no code"
+            " path reads it, so $1/$3 and $2/$5 - the structures this bot's own home games are"
             " dealt at - reach the same cells as 50/100 and come back with the same weights, at"
-            " prices to call eleven points of pot odds apart. The closing section measures both,"
+            " prices to call tens of points of pot odds apart. The closing section measures both,"
             " and this command re-measures each of them before it will print either."
         ),
         "",
@@ -1629,14 +1642,17 @@ def blind_structure_lines(strategy: PreflopChartStrategy) -> list[str]:
         *wrapped(
             "**The ratio between the two blinds is compared with nothing, so four different games"
             " reach one cell and come back with one answer.** The committed artifact declares a"
-            " table size and a stack depth. It does not declare a blind structure, and nothing in"
-            " this repo - not the chart, not the lookup, not one of the checks this phase added -"
-            " compares the small blind against half the big one. Below is hero in the small blind"
-            " facing a 2.5bb button open at four structures, with everything a spot key is made of"
-            " held still: six seats, every one a hundred big blinds deep, one recorded raise. The"
-            f" whole canonical hand class list was asked at each, all {len(canonical_holdings())}"
-            " of them, and the last column counts the ones whose weights differ from the first"
-            " row's."
+            " table size, a stack depth, and - since the chart cutover - the blind structure it"
+            " was solved at. Nothing reads that last one: not the chart, not the lookup, not one"
+            " of the checks this phase added, and nothing compares the small blind a query"
+            " carries against the half a big blind the artifact says it was solved for. Below is"
+            " hero in the small blind with the pot folded to it at four structures, with"
+            " everything a spot key is made of held still: six seats, every one a hundred big"
+            " blinds deep, no recorded raise. That is the one committed spot where the ratio can"
+            " reach hero's price at all, because it is the one where the chips hero already has"
+            " in the pot are the small blind itself. The whole canonical hand class list was"
+            f" asked at each, all {len(canonical_holdings())} of them, and the last column counts"
+            " the ones whose weights differ from the first row's."
         ),
         "",
         header,
@@ -1659,8 +1675,9 @@ def blind_structure_lines(strategy: PreflopChartStrategy) -> list[str]:
             f" {float(odds[dearest[0]]) * 100:.2f}% at {dearest[0]} - because the small blind is"
             " a different fraction of the big blind in each of them, and hero is the seat that"
             " posted it. Not one hand class responds. All four ask the chart about the same key,"
-            f" `{rows[0][3]}`, because a key has nowhere to write the ratio down, and the artifact"
-            " behind that key has nowhere to declare what ratio it was solved at."
+            f" `{rows[0][3]}`, because a key has nowhere to write the ratio down - and the"
+            " artifact behind that key does now say what ratio it was solved at, which makes this"
+            " a comparison nobody performs rather than one nobody could."
         )
     )
     lines.append("")
@@ -1671,23 +1688,26 @@ def blind_structure_lines(strategy: PreflopChartStrategy) -> list[str]:
             " ratio matches the chart's, is the exception rather than the rule. Whether the right"
             " ranges genuinely differ between those games is a solver question this repo cannot"
             " answer from here, and this report does not claim they do. What is measured is that"
-            " they cannot differ, because nothing looks: the same eleven-point spread that would"
-            " change a marginal call into a marginal fold at the table changes nothing here."
+            " they cannot differ, because nothing looks: the whole spread in the table above,"
+            " which would turn a marginal call into a marginal fold at the table, changes nothing"
+            " here."
         )
     )
     lines.append("")
     lines.extend(
         wrapped(
             "Not fixable in this phase, and filed as"
-            " `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE`. Refusing on the ratio"
-            " would mean hardcoding into the code a property the artifact does not declare -"
-            " which is the reconstruction-from-an-undeclared-source defect this phase exists to"
-            " end, in a new place. The fix is a declared blind structure on the artifact and on"
-            " the query, which is the same format change the straddle residual above waits on and"
-            " the same one this phase is scoped out of. This command re-measures the four rows"
-            " before printing them: each has to still reach a chart cell, the four prices have to"
-            " still differ, and if any hand class ever does answer differently the command exits"
-            " non-zero, because this section would then be describing a defect that is fixed."
+            " `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE`. When this section was"
+            " first written, refusing on the ratio would have meant hardcoding into the code a"
+            " property the artifact did not declare - the"
+            " reconstruction-from-an-undeclared-source defect this phase exists to end, in a new"
+            " place. Half of that has since been removed: the chart cutover put a blind structure"
+            " on the artifact, so the remaining half is a comparison at lookup time against a"
+            " value the file already carries, and the entry is smaller than it was rather than"
+            " closed. This command re-measures the four rows before printing them: each has to"
+            " still reach a chart cell, the four prices have to still differ, and if any hand"
+            " class ever does answer differently the command exits non-zero, because this section"
+            " would then be describing a defect that is fixed."
         )
     )
     return lines

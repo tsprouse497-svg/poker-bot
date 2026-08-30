@@ -8,12 +8,8 @@ whose measurements held.
 
 from __future__ import annotations
 
-from poker_training_bot.data_pipeline.comparison import (
-    ComparisonResult,
-    compare_committed_sample,
-)
+from poker_training_bot.data_pipeline.comparison import compare_committed_sample
 from poker_training_bot.data_pipeline.sample import load_committed_sample
-from poker_training_bot.poker_core.positions import preflop_action_order
 from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
 from poker_training_bot.solver_artifacts.schema import (
     PreflopAction,
@@ -21,26 +17,39 @@ from poker_training_bot.solver_artifacts.schema import (
     render_size_bb,
     spot_key,
 )
+from poker_training_bot.solver_artifacts.vocabulary_corpus_report import (
+    census_lines,
+    inventory_lines,
+    restatement_lines,
+)
 from poker_training_bot.solver_artifacts.vocabulary_measures import (
     DEPTH_BB,
     ENUMERATION_ENTRIES,
     TABLE_SIZE,
-    V1_WEIGHTS_SHA256,
-    Census,
     VocabularyReportError,
     census,
     expressible_spots,
-    key_mapping,
-    restated_numbers,
     strip_sizes,
-    v1_weights_checksum,
 )
 from poker_training_bot.strategy.preflop_chart import ARTIFACT_DIR
+from poker_training_bot.strategy.preflop_sizing import DEFAULT_PATH as SIZING_PATH
 from poker_training_bot.strategy.preflop_sizing import PreflopSizingTable
+
+# The sizing file as a reader would type it, derived from the path the table actually loads
+# so the "open this file" instruction cannot name a file the report did not read. It named
+# the retired chart's sizing table until the cutover deleted it.
+SIZING_DISPLAY_PATH = SIZING_PATH.relative_to(ARTIFACT_DIR.parents[2])
+
+# The spot the worked example below is shown at: the big blind closing the action against a
+# button open at the price the tree solved. Named rather than derived, because the example is
+# a claim about one committed cell and the guard under it has to be able to fail: it read
+# `t6/d100/BTN/CO:raise@2.5` until the chart cutover retired that spot, and the guard is what
+# turned a report describing a cell that is not there into a command that exits non-zero.
+EXAMPLE_KEY = "t6/d100/BB/BTN:raise@2.5"
 
 
 def _key_examples(artifact: PreflopArtifact) -> list[str]:
-    raised = "t6/d100/BTN/CO:raise@2.5"
+    raised = EXAMPLE_KEY
     four_bet = spot_key(
         TABLE_SIZE,
         DEPTH_BB,
@@ -70,9 +79,10 @@ def _key_examples(artifact: PreflopArtifact) -> list[str]:
         f"    before   {strip_sizes(raised)}",
         f"    after    {raised}",
         "",
-        "Before, one cell answered every price. A 2.25bb open and a 4bb open were the",
-        "same spot, so every agreement rate this repo has published was computed across",
-        "prices the chart could not tell apart.",
+        "That is the big blind closing the action against a button open, at the one price",
+        "the committed tree opens to. Before, one cell answered every price. A 2.25bb open",
+        "and a 4bb open were the same spot, so every agreement rate this repo has published",
+        "was computed across prices the chart could not tell apart.",
         "",
         "**A position may act more than once.** A four-bet had no key at all: the rule",
         "rejected any sequence in which a position appeared twice, in as many words.",
@@ -89,55 +99,42 @@ def _key_examples(artifact: PreflopArtifact) -> list[str]:
     ]
 
 
-def _re_derivation_lines(artifact: PreflopArtifact, sizing: PreflopSizingTable) -> list[str]:
-    mapping = key_mapping(artifact)
-    old_keys = [old for old, _ in mapping]
-    if len(set(old_keys)) != len(mapping):
-        raise VocabularyReportError(
-            "two new keys strip to the same old key, so the re-keying is not a bijection"
-            " and one of the old cells has been silently merged"
-        )
-    derived_v1 = v1_weights_checksum(artifact)
-    if derived_v1 != V1_WEIGHTS_SHA256:
-        raise VocabularyReportError(
-            f"stripping the sizes back out gives weights checksum {derived_v1}, not the"
-            f" {V1_WEIGHTS_SHA256} the artifact carried before this phase; the ranges"
-            " moved and this is a re-solve rather than a re-keying"
-        )
-    missing = sorted(set(sizing.raise_to_bb) - set(old for _, old in mapping))
-    if missing:
-        raise VocabularyReportError(
-            f"the sizing table is keyed by spots the artifact does not declare: {missing}"
-        )
-    lines = [
-        "## The committed artifact, re-keyed and not re-solved",
+def _retired_section_lines() -> list[str]:
+    """What this report used to check about the artifact, and why it cannot any more.
+
+    Removed rather than loosened. The section it replaces mapped every committed key back to
+    its size-stripped v1 form and made two assertions over that mapping: that it was a
+    bijection, and that recomputing the weights checksum under the old keys reproduced the
+    one the artifact carried before the re-keying. Both were true of a chart derived from the
+    GTO Wizard source and neither can be true of the rake-free solve the cutover committed,
+    so the honest move is to retire the section with its premise. Widening the two checks
+    until they passed would have left a reader a section that reads like evidence and cannot
+    fail, which is worse than no section.
+    """
+    return [
+        "## The re-derivation section, and why it is gone",
         "",
-        f"{len(mapping)} spots before, {len(mapping)} spots after. The count does not move because",
-        "each size-stripped prefix admits exactly one solved size, so the key gained the",
-        "ability to tell prices apart at no cost in cells.",
+        "This report used to close by proving the committed artifact had been re-keyed and",
+        "not re-solved: strip every `@size` back out of the keys, recompute the weights",
+        "checksum, and reproduce the checksum the file carried before the spot vocabulary",
+        "phase. It also required the old-to-new mapping to be one-to-one, so no old cell",
+        "could be silently merged.",
         "",
-        "The ranges did not move, and that is checked rather than asserted. Strip every",
-        "`@size` back out of the committed keys, recompute the weights checksum over the",
-        "result, and it has to reproduce the checksum the artifact carried before this",
-        "phase. It does:",
+        "The chart cutover retired both, because it retired what they were about. The",
+        "committed chart is now derived from a rake-free GTOpen solve rather than from the",
+        "raked GTO Wizard ranges, so its weights are different numbers by intent and no",
+        "checksum computed here can reproduce the old one. The mapping is no longer",
+        "one-to-one either: the committed keys strip to fewer distinct v1 keys than there",
+        "are keys, because the tree carries several prices where the coarse key carried one,",
+        "and that collision is the vocabulary working rather than a merge.",
         "",
-        f"    checksum under the old keys   {derived_v1}",
-        f"    recorded before this phase    {V1_WEIGHTS_SHA256}",
-        f"    checksum the file carries now {artifact.audit_fields.weights_sha256}",
+        "So the section is removed instead of relaxed. A check rewritten until it passes",
+        "reads as evidence and proves nothing, and the re-keying it established is history",
+        "that the phase's own audit packet already holds. The claim that no weight moved is",
+        "not restated here for the new chart: nothing in this report measures it, and the",
+        "chart cutover's own evidence is where that belongs.",
         "",
-        "Spot ids are inside the checksum, so the file's own checksum had to change. The",
-        "two lines above it are why that is evidence and not an alarm.",
-        "",
-        "The old-to-new mapping, in full. Every size here came from the source export's",
-        "own action label at the spot that raise was offered at, never from a constant:",
-        "facing a lojack open is 2.5 because the export's `RFI_UTG` offers `Raise 2.5`.",
-        "",
-        f"  {'old key':<44}{'new key'}",
     ]
-    for old, new in mapping:
-        lines.append(f"  {old:<44}{new}")
-    lines.append("")
-    return lines
 
 
 def _counts_lines() -> list[str]:
@@ -179,213 +176,77 @@ def _counts_lines() -> list[str]:
     ]
 
 
-def _inventory_lines(result: ComparisonResult) -> list[str]:
-    catch_all = [
-        entry for entry in result.refusal_inventory if entry.spot_key == "(no expressible spot)"
-    ]
-    second_orbit = [
-        entry
-        for entry in result.refusal_inventory
-        if any(
-            entry.spot_key.count(f"{position}:") > 1
-            for position in preflop_action_order(TABLE_SIZE)
-        )
-    ]
-    refused = [row for row in result.rows if row.refusal is not None]
-    unrepresentable = [
-        row
-        for row in refused
-        if row.miss_code is not None and row.miss_code.endswith("unrepresentable-spot")
-    ]
-    lines = [
-        "## The real-hand refusal inventory loses its catch-all row",
-        "",
-        "The largest single row of the real-hand inventory used to be 19 decision points",
-        "filed under `(no expressible spot)`, and it was the one row nobody could act on:",
-        "a refusal that names no spot names no cell anybody could fill. All 19 were a",
-        "position acting twice.",
-        "",
-        f"  rows still reading '(no expressible spot)'          {len(catch_all)}",
-        f"  decisions refusing as lookup:unrepresentable-spot   {len(unrepresentable)}",
-        f"  decision points now naming a repeated-position key  "
-        f"{sum(entry.count for entry in second_orbit)}",
-        f"  total refusals over the committed sample            {len(refused)}",
-        "",
-        "The total is expected not to fall, and it did not. This phase adds no chart",
-        "coverage: those 19 arrive as `lookup:spot-not-covered` instead, which is a",
-        "different and better miss because the vocabulary can now name the cell. Filling",
-        "it is `CHART-COVERAGE-EXPANSION`, proposed phase 14.",
-        "",
-        "The deepest sequence the committed sample reached, now expressible:",
-        "",
-    ]
-    deepest = max(
-        (entry for entry in second_orbit),
-        key=lambda entry: entry.spot_key.count(":raise"),
-        default=None,
+def _hand_check_lines(artifact: PreflopArtifact, sizing: PreflopSizingTable) -> list[str]:
+    """One thing a reader can check in the sizing file with no code at all.
+
+    The number it used to offer was the two opening prices - four `/rfi` entries reading 2.5
+    and the small blind's reading 3.5 - and the chart cutover made every part of that false
+    at once: one `/rfi` key survives, it reads 2.5, and a sizing entry is no longer a float.
+    What replaces it is the shape change decision 6 was re-cut for, which is the property of
+    this file a reader is most likely to get wrong from the outside: the prices are per hand
+    class, so one spot holds one list per class rather than one number.
+
+    Every figure below is read out of the loaded table, so checking the report against the
+    file is comparing the file with itself through one indirection rather than against a
+    sentence somebody typed.
+    """
+    priced = sorted(sizing.raise_to_bb)
+    prices = sorted(
+        {
+            float(entry["to_bb"])
+            for classes in sizing.raise_to_bb.values()
+            for entries in classes.values()
+            for entry in entries
+        }
     )
-    if deepest is not None:
-        lines.append(f"    {deepest.spot_key}")
-        lines.append("")
-    return lines
-
-
-def _census_lines(measured: Census) -> list[str]:
-    lines = [
-        "## What ruling 8 costs in play: the price-substitution census",
-        "",
-        "Ruling 8 says the solved tree carries one opening price and every other price is",
-        "answered from it. Taylor extended it on 2026-08-20 to every raise in the",
-        "sequence, because exact matching past the open would have refused most of the",
-        "three-bet decisions this chart can answer at all.",
-        "",
-        "Until this phase nothing counted how often that abstraction was used, because",
-        "the key could not tell two prices apart and so could not tell that one had been",
-        "moved. Over the committed sample:",
-        "",
-        f"  decisions the chart answered                         {measured.answered:>6}",
-        f"  answered at the price they were asked at             {measured.exact:>6}",
-        f"  answered at a price they were not asked at           {measured.substituted:>6}"
-        f"   ({100.0 * measured.substituted / measured.answered:.1f}%)",
-        "",
-        "Two different things get counted below and adding the wrong column gives a",
-        "number this heading contradicts, so each table says which it counts. One",
-        "decision can face several raises and have more than one of them moved: there",
-        f"are {measured.substituted:,} substituted decisions carrying"
-        f" {measured.substitutions:,} substituted raises between them.",
-        "",
-        "Split by which raise was moved, counting DECISIONS. The first line is what",
-        "ruling 8 itself costs; the second is what extending it past the open costs, and",
-        "they are kept apart because they were ruled separately. The third is why the",
-        "first two sum to more than the total above.",
-        "",
-        f"  the opener's price was moved                         {measured.open_substituted:>6}",
-        f"  a later raise's price was moved                      {measured.later_substituted:>6}",
-        f"  both, counted once in each line above                {measured.both_substituted:>6}",
-        "",
-        "Split by how far a price moved, counting SUBSTITUTED RAISES:",
-        "",
-    ]
-    for label, count in measured.by_distance:
-        lines.append(f"  {label:<52}{count:>6}")
-    lines += [
-        f"  {'all substituted raises':<52}{measured.substitutions:>6}",
-        "",
-        "And by direction, which the distance split above cannot show and which is the",
-        "half with poker content. A smaller open gives the defender a better price, so",
-        "the correct response to it is a wider continue than the correct response to a",
-        "larger one. Where the answered price is the higher, the chart hands back the",
-        "tighter range:",
-        "",
-        f"  {'answered above the price asked':<52}{measured.moved_up:>6}",
-        f"  {'answered below the price asked':<52}{measured.moved_down:>6}",
-        "",
-        "The opening prices the sample actually came in at, and the cell each was",
-        "answered from, counting DECISIONS.",
-        "",
-        "The answered column is aggregated across openers whose solved prices differ, so",
-        "one asked price can appear against two answered cells and an answered cell can",
-        "be a price the tree does hold. The small blind's solved open is 3.5 and every",
-        "other position's is 2.5, which is the whole of that effect: a row reading",
-        "'2.5 -> 3.5' is a small-blind open answered from the small-blind cell, not a",
-        "solved price that was moved.",
-        "",
-        f"  {'asked':>8}{'answered':>10}{'decisions':>12}",
-    ]
-    for asked, given, count in measured.by_asked_open:
-        lines.append(
-            f"  {render_size_bb(asked):>8}{render_size_bb(given):>10}{count:>12}"
+    classes = sizing.raise_to_bb.get(EXAMPLE_KEY)
+    if not classes:
+        raise VocabularyReportError(
+            f"the sizing table prices nothing at {EXAMPLE_KEY}, so this section cannot show"
+            " a class that raises to one price beside a class that raises to two"
         )
-    lines += [
-        "",
-        "And the figure the three-bet extension was ruled on, re-measured here rather",
-        "than quoted from the decision record:",
-        "",
-        f"  decisions facing a three-bet at a spot the chart holds   "
-        f"{measured.three_bet_spots_covered:>4}",
-        f"  of those, facing a price the tree does not hold          "
-        f"{measured.three_bet_spots_substituted:>4}",
-        f"  of those, facing a price it does                         "
-        f"{measured.three_bet_spots_exact:>4}",
-        "",
-        f"So exact matching past the open would have refused"
-        f" {measured.three_bet_spots_substituted} of the {measured.three_bet_spots_covered}",
-        "three-bet decisions this chart can answer at all. That is the alternative",
-        "decision 5 rejected, not this phase's outcome.",
-        "",
-        "What this does not buy is coverage. A squeeze or a cold four-bet is expressible",
-        "today and uncovered today, and it stays uncovered here at every price: the",
-        "normaliser moves a price, it does not find a nearer spot.",
-        "",
-    ]
-    return lines
-
-
-def _restatement_lines(result: ComparisonResult) -> list[str]:
-    lines = [
-        "## Every number Phase 11 moved, and every number this phase moved",
-        "",
-        "Phase 11 corrected the engine and the strategy query that every published figure",
-        "in this repo was measured through, and ruled that a fix phase does not grade its",
-        "own fixes. This is the first phase to re-run those measurements, so it owes the",
-        "restatement - and it owes it with the two causes kept apart, because a number",
-        "that moved for both reasons and is reported once teaches nothing.",
-        "",
-        "The packet column is what the phase published. The branch column is what the",
-        "committed report said at this phase's branch point, which already carried Phase",
-        "11's corrections. So packet-to-branch is Phase 11 and branch-to-now is this",
-        "phase, and neither is asserted.",
-        "",
-        f"  {'number':<44}{'packet':>13}{'branch':>13}{'now':>13}  cause",
-    ]
-    for entry in restated_numbers():
-        now = entry.measure(result)
-        lines.append(
-            f"  {entry.label:<44}{entry.packet:>13}{entry.branch:>13}{now:>13}"
-            f"  {entry.cause(now)}"
+    one_price = sorted(name for name, entries in classes.items() if len(entries) == 1)
+    two_prices = sorted(name for name, entries in classes.items() if len(entries) > 1)
+    if not one_price or not two_prices:
+        raise VocabularyReportError(
+            f"{EXAMPLE_KEY} prices {len(one_price)} classes at one price and"
+            f" {len(two_prices)} at more than one; the worked example needs one of each"
         )
-    lines += [
-        "",
-        "The corpus figures did not move at all, and that is the phase's own result",
-        "rather than an absence of one. A finer key would have moved them if it had",
-        "changed which cell a decision reached; it did not, because a price the tree does",
-        "not hold is normalised back to the one cell the coarse key would have hit. What",
-        "changed is that the answer now says so, which is what the census above counts.",
-        "",
-        "The self-play figures in `reports/active/latest_profile_comparison_report.txt`",
-        "did move: 128 refused hands became 126, and 472 measured became 474. That is not",
-        "a coverage change either. `PreflopChartStrategy._seed` hashes the spot key into",
-        "the seeded draw that collapses a mixed cell, so re-keying re-seeds every mixed",
-        "decision and the run walks a different path through the same distributions.",
-        "Attributed to this phase, and reported here because a reader comparing the two",
-        "reports would otherwise read it as coverage.",
-        "",
-        "No committed audit packet was edited. The Phase 07 and Phase 08 packets are the",
-        "record of what those phases found and believed; rewriting them would destroy the",
-        "only evidence that a number ever changed.",
-        "",
-    ]
-    return lines
+    single = "AA" if "AA" in one_price else one_price[0]
+    mixed = "44" if "44" in two_prices else two_prices[0]
 
+    def rendered(hand_class_text: str) -> str:
+        return "   ".join(
+            f"{render_size_bb(price)} at {weight:.4f}"
+            for price, weight in sizing.sizes_bb(EXAMPLE_KEY, hand_class_text) or ()
+        )
 
-def _hand_check_lines(sizing: PreflopSizingTable) -> list[str]:
-    sizes = sorted(set(sizing.raise_to_bb.values()))
     return [
         "## Check one number by hand",
         "",
-        "**The number: the committed tree carries two opening prices, not one.**",
+        "**The number: a raise price belongs to a hand class, not to a spot.**",
         "",
-        "Open `data/artifacts/preflop/sizings/six_max_nl25_100bb.json` and read the five",
-        "entries whose key ends in `/rfi`. Four of them - LJ, HJ, CO, BTN - read 2.5, and",
-        "`t6/d100/SB/rfi` reads 3.5. No code required, and it settles a question the",
-        "roadmap left open: a single constant for 'the solved opening price' would already",
-        "be wrong today rather than only after some future solve, which is why the",
-        "normaliser derives its candidate prices from the keys the artifacts declare.",
+        f"Open `{SIZING_DISPLAY_PATH}` and find `raise_to_bb` ->",
+        f"`{EXAMPLE_KEY}`, the spot the worked example at the top of this report uses. Two",
+        "of its entries, each a list of prices with hero's weight on them:",
         "",
-        f"The same file holds {len(sizes)} distinct raise-to sizes in all, and every one is a",
-        "whole tenth of a big blind:",
+        f"    {single:<5}{rendered(single)}",
+        f"    {mixed:<5}{rendered(mixed)}",
         "",
-        f"    {', '.join(render_size_bb(size) for size in sizes)}",
+        "No code required, and it settles the thing a single number per spot cannot say. One",
+        "of those classes is offered one price and the other is offered two, so a table",
+        "holding one float per spot would have to give both the same answer: it would either",
+        "price the class that never takes the second price as though it sometimes did, or",
+        "drop the second price from the class that mostly takes it. Which of two offered",
+        "prices the bot picks is drawn from these weights with the same seed that draws",
+        "between a cell's actions, so the amount it raises to is always one the solve chose.",
+        "",
+        f"The same file prices {len(priced)} of the {artifact.audit_fields.spot_count}",
+        f"committed spots and holds {len(prices)} distinct raise-to sizes in all. The rest of",
+        "the spots offer hero no raise at all and so carry no entry, which is not the same as",
+        "an entry of zero:",
+        "",
+        f"    {', '.join(render_size_bb(size) for size in prices)}",
         "",
     ]
 
@@ -415,19 +276,26 @@ def render_spot_vocabulary_report() -> str:
         f"Spots: {artifact.audit_fields.spot_count}",
         f"Sample: {result.hands_compared} hands, {len(result.rows)} preflop decision points",
         "",
-        "This phase committed no new solve and no new chart. It widened what a spot key",
-        "can say, re-derived the committed artifact under the new keys carrying the same",
-        "ranges, and re-ran the measurements Phase 11 deliberately left open.",
+        "The spot vocabulary phase committed no new solve and no new chart. It widened what",
+        "a spot key can say, re-derived the committed artifact under the new keys carrying",
+        "the same ranges, and re-ran the measurements Phase 11 deliberately left open.",
+        "",
+        "This report is regenerated against whatever chart is committed, and the chart has",
+        "since been replaced: the ranges above are a rake-free GTOpen solve rather than the",
+        "raked GTO Wizard ranges the phase measured. Every figure below is measured on this",
+        "run, so the corpus numbers are the new chart's and the section on re-derivation is",
+        "retired rather than restated. Where a number moved, the restatement table names",
+        "which of the two phases moved it.",
         "",
     ]
     sections = [
         _key_examples(artifact),
-        _re_derivation_lines(artifact, sizing),
+        _retired_section_lines(),
         _counts_lines(),
-        _inventory_lines(result),
-        _census_lines(measured),
-        _restatement_lines(result),
-        _hand_check_lines(sizing),
+        inventory_lines(result),
+        census_lines(measured),
+        restatement_lines(result),
+        _hand_check_lines(artifact, sizing),
     ]
     body: list[str] = []
     for section in sections:

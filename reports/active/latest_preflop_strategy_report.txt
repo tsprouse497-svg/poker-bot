@@ -1,76 +1,148 @@
 Preflop Strategy Report
 =======================
 
-Artifact: data/artifacts/preflop/six_max_nl25_100bb.json
-Source: GTO Wizard 6-max 100bb NL25 rake (solver-export)
+Artifact: data/artifacts/preflop/six_max_100bb_rakefree.json
+Source: GTOpen 6-max 100bb rake-free (solver-export)
 Table: 6-handed, 100bb, positions LJ, HJ, CO, BTN, SB, BB
-Spots: 36
+Spots: 86
 
-These ranges were solved with NL25 rake. Raked ranges are tighter than
-rake-free ones, most visibly in the blinds, so the big blind folds more here
-than a rake-free chart would have it fold.
+These ranges are rake-free, so they are wider than the raked chart they replaced,
+most visibly in the blinds: a raked solution gives up a share of every pot it wins
+and defends the blinds more tightly for it. What they are not is wider in coverage.
+The selection predicate keeps only the spots the source prices every terminal
+below, which leaves one opening range and the big blind's defences, so this chart
+answers far fewer questions than the retired one and refuses the rest.
 
-## Frequencies against the source solution
+## Frequencies against the GTO Wizard reference
 
-The source column is what GTO Wizard displayed for the same spot. The chart
-column is what the committed artifact holds. The bot column is what the
+The ref column is what GTO Wizard displayed for the same spot in the raked NL25
+solution the retired chart came from. It is a cross-solve reference and not an
+expectation: these ranges are a rake-free GTOpen solve, the two disagree by
+construction, and nothing gates on the gap. The file is left unrewritten because
+a reference regenerated from what it checks cannot fail.
+
+The chart column is what the committed artifact holds. The bot column is what the
 strategy actually does once its mixed cells are drawn, which is a different
 number and the one that matters: a collapse rule that distorts the chart shows
 up only here.
 
-Spot                              chart   source      bot  bot-chart
-BTN opens                        40.56%   40.56%   40.46%      -0.10
-CO opens                         27.89%   27.89%   27.81%      -0.08
-HJ opens                         21.65%   21.65%   21.76%      +0.11
-LJ opens                         17.49%   17.49%   17.59%      +0.10
-SB opens                         34.41%   34.41%   34.28%      -0.13
-BB defends vs BTN                39.43%   39.43%   39.28%      -0.16
-BB defends vs CO                 31.48%   31.48%   31.20%      -0.28
-BB defends vs HJ                 26.20%   26.20%   26.32%      +0.12
-BB defends vs LJ                 22.63%   22.63%   22.50%      -0.13
-BB defends vs SB                 42.88%   42.88%   42.99%      +0.11
-SB limps                         13.73%   13.73%   13.77%      +0.04
+Spot                              chart      ref      bot  bot-chart
+SB opens                         54.09%   34.41%   53.97%      -0.13
+BB defends vs BTN                36.76%   39.43%   36.72%      -0.04
+BB defends vs CO                 34.12%   31.48%   34.13%      +0.01
+BB defends vs HJ                 29.92%   26.20%   29.84%      -0.08
+BB defends vs LJ                 27.28%   22.63%   27.30%      +0.03
+BB defends vs SB                 49.02%   42.88%   48.97%      -0.06
+SB limps                          0.00%   13.73%    0.00%      +0.00
+
+The reference holds an opening frequency for four seats this chart holds no
+opening range for at all: BTN, CO, HJ, LJ. They have no row here.
+A 0.00 percent row would say the solve opens nothing from them, which is a
+claim about a range; the truth is that there is no range, and the bot refuses
+rather than folding. The ruled selection predicate is what dropped them: it
+keeps a spot only where the source prices every terminal below it, and an open
+with four seats still to act can end multiway.
+
+The limp row is the one place a 0.00 percent chart figure is the real answer
+rather than an absent cell. The reference's small blind limps; this solve was
+run with limping switched off, so the spot is committed, hero is offered no
+call there, and the frequency is zero because of the configuration rather than
+because of a range.
 
 ## Coverage
 
 Every seat at a six-handed 100bb table can be asked. That is not the same as
 every situation being charted, and the spots below are the ones that are.
 
+86 spots, and the seats holding an opening range are SB.
+Every other seat refuses a pot that is folded to it, which is the largest single
+thing this chart does not do.
+
+  t6/d100/BB/BTN:raise@100                 169 hand classes
   t6/d100/BB/BTN:raise@2.5                 169 hand classes
+  t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@100  76 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5  76 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BB/CO:raise@100                  169 hand classes
   t6/d100/BB/CO:raise@2.5                  169 hand classes
+  t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@100  64 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5  64 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BB/HJ:raise@100                  169 hand classes
   t6/d100/BB/HJ:raise@2.5                  169 hand classes
+  t6/d100/BB/HJ:raise@2.5,BB:raise@7.5,HJ:raise@100  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BB/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BB/LJ:raise@100                  169 hand classes
   t6/d100/BB/LJ:raise@2.5                  169 hand classes
-  t6/d100/BB/SB:call                       169 hand classes
-  t6/d100/BB/SB:raise@3.5                  169 hand classes
-  t6/d100/BTN/BTN:raise@2.5,BB:raise@13.5   88 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/BTN:raise@2.5,SB:raise@11     88 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/CO:raise@2.5                 169 hand classes
-  t6/d100/BTN/HJ:raise@2.5                 169 hand classes
-  t6/d100/BTN/LJ:raise@2.5                 169 hand classes
-  t6/d100/BTN/rfi                          169 hand classes
-  t6/d100/CO/CO:raise@2.5,BB:raise@13.5     67 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,BTN:raise@8       67 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,SB:raise@11       67 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/HJ:raise@2.5                  169 hand classes
-  t6/d100/CO/LJ:raise@2.5                  169 hand classes
-  t6/d100/CO/rfi                           169 hand classes
-  t6/d100/HJ/HJ:raise@2.5,BB:raise@13.5     58 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,BTN:raise@8       58 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,CO:raise@8        58 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,SB:raise@11       58 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/LJ:raise@2.5                  169 hand classes
-  t6/d100/HJ/rfi                           169 hand classes
-  t6/d100/LJ/LJ:raise@2.5,BB:raise@13.5     52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,BTN:raise@8       52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,CO:raise@8        52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,HJ:raise@8        52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,SB:raise@11       52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/rfi                           169 hand classes
-  t6/d100/SB/BTN:raise@2.5                 169 hand classes
-  t6/d100/SB/CO:raise@2.5                  169 hand classes
-  t6/d100/SB/HJ:raise@2.5                  169 hand classes
-  t6/d100/SB/LJ:raise@2.5                  169 hand classes
-  t6/d100/SB/SB:raise@3.5,BB:raise@10.5    103 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BB/LJ:raise@2.5,BB:raise@7.5,LJ:raise@100  65 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BB/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5  65 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BB/SB:raise@100                  169 hand classes
+  t6/d100/BB/SB:raise@2.5                  169 hand classes
+  t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@100 134 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5 134 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,BB:raise@100   119 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5   119 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5,BB:raise@100  78 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,SB:raise@100   119 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5   119 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5,SB:raise@100  68 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@100  40 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5  40 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@100  35 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5  35 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@100  51 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5  51 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BB:raise@100      87 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BB:raise@7.5      87 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5,BB:raise@100  52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BTN:raise@100     87 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BTN:raise@7.5     87 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5,BTN:raise@100  27 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,SB:raise@100      87 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,SB:raise@7.5      87 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,SB:raise@7.5,CO:raise@22.5,SB:raise@100  38 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@100  41 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5  41 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:raise@7.5,LJ:raise@100  75 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5  75 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BB:raise@100      86 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5      86 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5,BB:raise@100  36 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BTN:raise@100     86 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5     86 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5,BTN:raise@100  29 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:raise@100      86 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5      86 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5,CO:raise@100  26 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,SB:raise@100      86 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5      86 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5,SB:raise@100  36 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@100  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BB:raise@100      95 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5      95 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5,BB:raise@100  65 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BTN:raise@100     95 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5     95 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5,BTN:raise@100  36 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:raise@100      95 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5      95 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5,CO:raise@100  49 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:raise@100      95 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5      95 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5,HJ:raise@100  35 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,SB:raise@100      95 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5      95 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5,SB:raise@100  34 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@100  52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5  52 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/CO:raise@2.5,SB:raise@7.5,CO:raise@100  33 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/CO:raise@2.5,SB:raise@7.5,CO:raise@22.5  33 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@100  33 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5  33 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@100  28 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5  28 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/SB:raise@2.5,BB:raise@100     125 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/SB:raise@2.5,BB:raise@7.5     125 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5,BB:raise@100  80 hand classes  (hero has acted, so only hero's own range)
   t6/d100/SB/rfi                           169 hand classes
 
 ## What it does with a few named hands
@@ -78,49 +150,52 @@ every situation being charted, and the spots below are the ones that are.
 A mixed cell is drawn from its weights, so a hand can appear more than
 one way across different hands. The draw below is seeded on the spot.
 
-  t6/d100/LJ/rfi
-    AA    raise to 2.5bb
-    AKs   raise to 2.5bb
-    AJo   raise to 2.5bb
-    76s   fold
-    72o   fold
+Three spots, found in the committed keys rather than named here: an
+opening range, hero facing a single open, and hero acting again behind a
+raise of hero's own. A spot offering hero two prices is drawn between them
+with the same seed that draws between a cell's actions, so the amount below
+is one of the solve's own prices and never an average of them.
 
-  t6/d100/BTN/rfi
+  t6/d100/SB/rfi
     AA    raise to 2.5bb
     AKs   raise to 2.5bb
     AJo   raise to 2.5bb
     76s   raise to 2.5bb
     72o   fold
 
-  t6/d100/BB/CO:raise@2.5
-    AA    raise to 13.5bb
-    AKs   raise to 13.5bb
-    AJo   call
-    76s   call
+  t6/d100/BB/BTN:raise@2.5
+    AA    raise to 7.5bb
+    AKs   raise to 7.5bb
+    AJo   raise to 7.5bb
+    76s   raise to 7.5bb
     72o   fold
 
-  t6/d100/LJ/LJ:raise@2.5,CO:raise@8
-    AA    raise to 21.5bb
-    AKs   raise to 21.5bb
-    AJo   fold
+  t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5
+    AA    raise to 22.5bb
+    AKs   raise to 100bb
+    AJo   call
     76s   call
     72o   refuses (preflop-chart:hand-class-not-covered)
 
 
 ## Refusals
 
-What the bot does where its chart is silent.
+What the bot does where its chart is silent. Each row names a table or a line and
+the verdict is what the bot did with it; the labels claim nothing about coverage,
+because a label that grades the answer beside it goes wrong the moment the chart
+changes and reads as a defect in the bot rather than in the label.
 
-  covered: lojack opens                               decides: raise
-  covered: big blind faces a cutoff open at the solved 2.5bbdecides: raise
-  covered by substitution: the same open at 2.25bb    decides: raise
-  uncovered: forty big blinds deep                    refuses: preflop-chart:lookup:no-artifact-for-stack-depth
-  uncovered: straddled pot                            refuses: preflop-chart:pot-holds-a-straddle
-  uncovered: anted pot                                refuses: preflop-chart:pot-holds-an-ante
-  uncovered: squeeze after an open and a cold call    refuses: preflop-chart:lookup:spot-not-covered
-  uncovered but expressible since phase 12: facing a five-betrefuses: preflop-chart:lookup:spot-not-covered
-  no legal preflop order produces it: the button raising before the cutoffrefuses: preflop-chart:lookup:unrepresentable-spot
-  uncovered: postflop                                 refuses: preflop-chart:not-preflop
+  the small blind opens                                     decides: raise
+  the lojack opens                                          refuses: preflop-chart:lookup:spot-not-covered
+  the big blind faces a cutoff open at the solved 2.5bb     decides: raise
+  the same open at 2.25bb, a price the tree does not hold   decides: raise
+  a table forty big blinds deep                             refuses: preflop-chart:lookup:no-artifact-for-stack-depth
+  a straddled pot                                           refuses: preflop-chart:pot-holds-a-straddle
+  an anted pot                                              refuses: preflop-chart:pot-holds-an-ante
+  a squeeze after an open and a cold call                   refuses: preflop-chart:lookup:spot-not-covered
+  the cutoff facing a five-bet                              decides: fold
+  the button raising before the cutoff                      refuses: preflop-chart:lookup:unrepresentable-spot
+  a flop                                                    refuses: preflop-chart:not-preflop
 
 Refusal codes seen:
   preflop-chart:lookup:no-artifact-for-stack-depth          1
@@ -132,11 +207,13 @@ Refusal codes seen:
 
 ## Check one number by hand
 
-Open data/artifacts/preflop/six_max_nl25_100bb.json, find action_weights ->
-"t6/d100/BTN/rfi" -> "A2o". It reads: fold 0.9128, raise 0.0872.
+Open data/artifacts/preflop/six_max_100bb_rakefree.json, find action_weights ->
+"t6/d100/BB/BTN:raise@2.5" -> "A2o". It reads: fold 0.9989, call 0.0011, raise 0.0000.
 
-So the button folds ace-deuce offsuit most of the time. That is a real property
-of a raked solution and it disagrees with the hand-authored chart this replaced,
-which opened it always. Nothing in this repo computed that number.
+So the BB folds A2o 99.89 percent of the time there.
+Nothing in this repo computed that number: it is the weight the solve gave that
+action at that node, carried through the conversion unchanged. The chart it
+replaced was a raked solution and answered this cell differently, which is the
+cutover rather than a defect in either file.
 
 Generated by `scripts/generate_preflop_strategy_report.py`.

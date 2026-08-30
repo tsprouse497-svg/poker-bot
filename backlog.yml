@@ -3197,3 +3197,169 @@ items:
       would refuse correct play. The general remedy is that trained-ness is read from whether the
       class arrives, with the row shape used only as corroboration where the menu is wide enough
       for 1/n not to be a frequency trained play lands on.
+
+  - id: SOURCE-PRICES-THE-JAM-EXACTLY-AND-EVERY-RAISE-THROUGH-A-MODEL
+    status: deferred
+    phase: charts
+    title: A calibrated-realization solve has a standing bias toward the all-in terminal
+    reason: >-
+      Filed by phase 14's stage-6 poker review, and it is a property of the source rather than of
+      the converter, so no predicate over the tree removes it. The export's source card records
+      `realization: calibrated`, which resolves flops by scaled equity share rather than by playing
+      them, and `add_allin: true`. An all-in preflop terminal is therefore the one terminal the
+      model prices exactly; every named raise is priced through a modelled flop. The model prefers
+      the branch it can price, and at 300 of an allowed 2,000 iterations the preference is not
+      competed away. The observable signature is that the stack-off range inverts against hand
+      strength: at the five spots where it bites, aces jam 0.0 percent while 44 jams up to 97.9
+      percent. Any future preflop source needs either a realization model that prices named raises
+      as exactly as it prices the jam, or a solve long enough to resolve the branch, and the repo
+      needs a check that can fail on the inversion rather than only on transposition.
+
+  - id: NO-GATE-MEASURE-CAN-FAIL-ON-A-BAD-RANGE
+    status: deferred
+    phase: charts
+    title: The verification gate has no check that fails on strategy quality
+    reason: >-
+      Filed by phase 14's stage-6 poker review. The only committed dominance check is
+      `validate_group_discrimination` in scripts/generate_derived_chart_report.py, which asserts the
+      solved hand index flags fewer spots than a transposed index. That is a transposition canary:
+      it proves the rows are not scrambled, not that they are right. `count_dominance_violations` in
+      the same file measures per cell and, by its own docstring, gates nothing. Nothing in the gate
+      fails on a chart that jams 100bb with 44 and never with aces, folds TT to a four-bet while
+      calling 76s, or carries 111 strict rank-dominance inversions of 20 points or more across 42 of
+      86 spots. Every shape property the repo checks is satisfied by ranges that are uniformly
+      wrong, which docs/LOOP.md already lists under Known gaps; this is the concrete instance and it
+      wants a committed measure with a threshold rather than a report column.
+
+  - id: PER-NODE-CONVERGENCE-IS-UNMEASURED-AND-UNGATED
+    status: deferred
+    phase: charts
+    title: A tree-summed best-response gap constrains nothing at a low-mass node
+    reason: >-
+      Filed by phase 14's stage-6 poker review, and phase 14's own decision list already argues the
+      premise without drawing the conclusion. The export ran 300 of an allowed 2,000 iterations to a
+      best-response gap of 0.0062bb summed over the whole tree. A node carrying little of the tree's
+      mass can be arbitrarily far from equilibrium inside that sum. The committed artifact ships
+      1,801 of 7,112 cells at under 1 percent arriving reach and 1,182 under 0.1 percent, and the
+      chart answers from all of them. The repo needs a per-node convergence statistic and a ruled
+      threshold below which a cell is refused rather than committed. `arriving_reach_bp` is the
+      nearest thing that exists and, as ARRIVING-REACH-IS-NOT-A-TRAINED-NESS-MEASURE records, it is
+      a mass measure and not a convergence measure.
+
+  - id: ONE-NON-ALLIN-PRICE-PER-ROUND-MAKES-SIZING-A-CARICATURE
+    status: deferred
+    phase: charts
+    title: The multi-size sizing schema is right and the tree it reads has nothing to record
+    reason: >-
+      Filed by phase 14's stage-6 poker review. The source solves `open_raises: [2.5]` with
+      `raise_mults: [3.0]`, which yields exactly four prices in the whole artifact - 2.5, 7.5, 22.5
+      and the 100bb jam - so hero's sizing at every spot is structurally a raise-or-shove pair
+      rather than a size choice. The consequences are real poker: the big blind three-bets to 7.5
+      out of position against a 2.5 button open, laying 2.1 to 1 where a real out-of-position
+      three-bet is 10 to 11bb, and the four-bet at 22.5 is 3x where real four-bets are 2.2x to 2.5x.
+      The per-hand-class sizing schema phase 14 built is the right shape and should be kept; it does
+      not become a sizing strategy until the solved tree carries more than one non-all-in price per
+      round.
+
+  - id: BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT
+    status: deferred
+    phase: charts
+    title: The flat-call half of blind defence does not respond to opener width
+    reason: >-
+      Filed by phase 14's stage-6 poker review. Combining over the full 1,326 combos, the big
+      blind's calling frequency against each opener is 21.01 vs LJ, 21.89 vs HJ, 24.07 vs CO, 22.64
+      vs BTN and 22.59 vs SB, a 3-point band against openers ranging from 19.1 to 54.1 percent wide.
+      Only the three-bet half moves (6.27 to 26.43). Real solutions widen the flat sharply against
+      late position, because a wide opener is what makes a marginal flat profitable. This is the
+      equity-share realization model showing through: it cannot value the postflop playability that
+      makes a wide blind flat correct, which makes it the same root cause as
+      SOURCE-PRICES-THE-JAM-EXACTLY-AND-EVERY-RAISE-THROUGH-A-MODEL measured on the passive side.
+
+  - id: A-REFUSAL-CANNOT-TELL-THE-HUMAN-WHY
+    status: deferred
+    phase: '15'
+    title: The derivation reason exists in the converter and never reaches the answer
+    reason: >-
+      Filed by phase 14's stage-6 poker review, and it lands on phase 15 rather than on the chart.
+      The converter and the report distinguish `derivation:source-misprices-multiway` from
+      `derivation:outside-selection-rule`, but the runtime refusal is a single
+      `lookup:spot-not-covered` in src/poker_training_bot/solver_artifacts/lookup.py, so at the
+      table "excluded because the source cannot price a three-way pot" and "not in the solved tree"
+      read identically. After the cutover this is most of what a driller sees: refusals go from 9.2
+      to 85.7 percent of Pluribus decisions, and the four most-refused keys are the four retired
+      opening ranges. A drill that ends the hand on a refusal without saying why teaches nothing.
+
+  - id: PHASE-12-CONTRACT-ASSERTS-A-REMOVED-BIJECTION
+    status: deferred
+    phase: contract-update
+    title: A completed contract requires a checksum and a key mapping phase 14 deleted
+    reason: >-
+      Filed by phase 14's stage-6 mechanical review. docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md
+      requires a bijection between the v1 and v2 spot keys and requires the stripped-key weights
+      checksum to reproduce V1_WEIGHTS_SHA256. Phase 14 deletes V1_WEIGHTS_SHA256, `key_mapping` and
+      `v1_weights_checksum` from vocabulary_measures.py on the correct ground that no rake-free chart
+      can reproduce a raked chart's checksum, and the module docstring says phase 12's contract owes
+      an amendment. The 86 committed keys strip to 51, so the bijection is false as well. Two things
+      are wanted: the amendment itself, which is a contract-update task and not this one, and a check
+      that can see a completed contract asserting a criterion its own phase's module no longer
+      implements, since nothing in the gate detects that today.
+
+  - id: PHASE-14-CONTRACT-STATES-A-GROUP-GATE-THAT-DID-NOT-SHIP
+    status: deferred
+    phase: contract-update
+    title: The contract's pair-band and suited-row monotonicity gate is not what was built
+    reason: >-
+      Filed by phase 14's stage-6 mechanical review. The contract requires that the combo-weighted
+      play frequency of each pair band and each suited row be at least that of the band or row
+      below, over hero's arriving range. What shipped is `validate_group_discrimination`, which
+      compares the spot count violating the per-cell suited/offsuit relation under the solved hand
+      index against the same count under a transposed index; the pair-band half is gated by nothing.
+      The decision record already concedes this at item 10, calling its own group gate a proposal
+      rather than a proven check and withdrawing the transposed-index claim, so the contract is the
+      one document left asserting the superseded form and owes the amendment. The contract also
+      publishes "gains 64 spots and gives up 14" where the committed report measures 65 and explains
+      the difference, which is the same amendment.
+
+  - id: THE-NAMED-OPEN-PRICE-HAS-THREE-IMPLEMENTATIONS
+    status: deferred
+    phase: charts
+    title: Three notions of the stack agree only because there is one depth today
+    reason: >-
+      Filed by phase 14's stage-6 mechanical review. "The named, non-all-in open price" is computed
+      three times against three different notions of the stack: data_pipeline/comparison.py filters
+      on RULED_CONFIG["stack"], scripts/repo_facts.py on min(artifact.stack_depth_bb), and
+      scripts/generate_preflop_strategy_report.py on FULL_DEPTH_BB. All three agree today because
+      there is one depth and one export, and nothing makes them agree after a second artifact or a
+      re-solve, while all three feed separately published figures. Related and narrower:
+      OPEN_SIZE_SPOTS in comparison.py still spells `t6/d100/SB/rfi` by name where repo_facts
+      derives the same set from library.spot_keys(), so a chart holding a second opening range makes
+      repo_facts raise correctly while the corpus comparison silently grades the whole sample
+      against one seat's price. Spelling a seat by name is what the comment above that constant says
+      broke the section the last time.
+
+  - id: THE-ARTIFACT-DESCRIBES-ITS-OWN-CENSUS-IN-PROSE-NOTHING-CHECKS
+    status: deferred
+    phase: charts
+    title: ARTIFACT_NOTES bakes the census as literals and only a substring test reads them
+    reason: >-
+      Filed by phase 14's stage-6 mechanical review. chart_provenance.py bakes "86", "38,828" and
+      "38,742" into ARTIFACT_NOTES, which ships inside the committed artifact. The only check is a
+      test asserting those same string literals appear as substrings, so both sides read one
+      constant and the converter's --check byte comparison cannot see the drift either. Nothing
+      compares the artifact's self-description to the census the same run computed. The frozen
+      COMMITTED_SPOTS = 86 in three test files is what actually protects this today, which is why it
+      is not urgent; the note should be rendered from the census rather than written beside it.
+
+  - id: FACT-DRIFT-WATCHES-TWO-OF-A-DOCUMENTS-SIX-LIVE-NUMBERS
+    status: deferred
+    phase: charts
+    title: repo_facts guards part of what the documents it guards actually claim
+    reason: >-
+      Filed by phase 14's stage-6 mechanical review. scripts/repo_facts.py registers
+      corpus_refusals and corpus_distinct_refused_spots against docs/CORPUS_COMPARISON_LIMITS.md,
+      but that document also carries "72 scored decisions", "the human denominator is 447", "from
+      456 and 2,302", and the per-position rate span "97.3 percent of the lojack's decision points
+      down to 33.9 percent of the big blind's". All were reproduced correct at stage 6; the point is
+      that the next chart change moves them and only two of the document's live numbers would go
+      red. Either the remaining four become facts, or the document stops stating numbers no fact
+      watches.

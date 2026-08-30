@@ -50,12 +50,14 @@ need different fixes.
 Two properties of the chart explain part of what follows before any of it is measured,
 and a reader who does not know them will draw the wrong conclusion from the numbers.
 
-The committed ranges were solved with rake. These hands were played without any. A
-raked solution defends the blinds more tightly than a rake-free one, because a share of
-every pot it wins is gone, and that is the largest single difference between the two
-settings. So a chart that folds the big blind more often than these players did is
-behaving the way a raked solution is supposed to behave. The gap is evidence about the
-artifact this repo chose, not on its own evidence that either side played badly.
+The committed ranges are solved rake-free, and these hands were played rake-free, so the
+two settings agree on that point and nothing below is explained by it. That is a change
+of reading rather than a change of numbers: this report used to tell you the ranges were
+solved with a house share taken out of every pot won, and that a solve paying one defends
+the blinds more tightly, so a chart folding the big blind more often than these players
+did was behaving as designed. The committed solve takes no share, so that explanation is
+gone and it was doing real work - where this chart continues less than these players do,
+the difference is between the chart and the players and has nothing to excuse it.
 
 The ranges were also solved against one opening size. These players used a smaller one
 most of the time, and a cheaper price is a correct reason to continue with more hands.
@@ -154,19 +156,31 @@ def render_comparison_report(result: ComparisonResult) -> str:
     for position, amount in result.solved_open_bb:
         lines.append(f"  It solves an open from {position} at {amount:g} big blinds.")
     sizes = result.open_sizes_bb()
+    # The price the sample is graded against, taken from the seats the chart actually opens
+    # from rather than from a seat named here. This read `.get("LJ")` while all five opening
+    # ranges were committed; the cutover retires the lojack's, so the name returned None and
+    # the row below formatted it into a size. Earliest actor first, because that is the seat
+    # an open in front of hero most often came from, and it is the whole mapping today: the
+    # small blind is the one seat with a single opponent behind it and so the one the ruled
+    # predicate keeps an opening range for.
+    opens = dict(result.solved_open_bb)
+    graded = next((opens[seat] for seat in REPORTED_POSITIONS if seat in opens), None)
     if sizes:
         middle = sizes[len(sizes) // 2]
         mean = sum(sizes) / len(sizes)
-        solved = dict(result.solved_open_bb).get("LJ")
-        at_least = sum(1 for size in sizes if solved is not None and size >= solved)
         lines.append("")
         lines.append(f"  Decisions facing exactly one raise      {len(sizes):6d}")
         lines.append(f"  Median size of that raise, big blinds   {middle:6g}")
         lines.append(f"  Mean size of that raise, big blinds     {mean:6.2f}")
-        label = f"At or above the solved {solved:g}"
-        lines.append(
-            f"  {label:<38s}{at_least:6d}  ({100.0 * at_least / len(sizes):.1f}%)"
-        )
+        # No graded row rather than a row graded against nothing: a chart holding no opening
+        # range at all has no price the sample can be read against, and printing the count of
+        # opens "at or above" a missing number is the shape that put a None in a format string.
+        if graded is not None:
+            at_least = sum(1 for size in sizes if size >= graded)
+            label = f"At or above the solved {graded:g}"
+            lines.append(
+                f"  {label:<38s}{at_least:6d}  ({100.0 * at_least / len(sizes):.1f}%)"
+            )
     lines.append("")
     lines.append("  A smaller open is a better price, and a better price is a correct reason")
     lines.append("  to continue with more hands. So the chart is being asked what to do at a")

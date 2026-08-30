@@ -34,6 +34,11 @@ from poker_training_bot.solver_artifacts.schema import (
     spot_key,
     weights_checksum,
 )
+from poker_training_bot.solver_artifacts.solve_conditions import (
+    parse_arrival_probabilities,
+    parse_arriving_reach,
+    parse_blind_structure,
+)
 from poker_training_bot.solver_artifacts.strict_json import (
     INVALID_VALUE,
     MISSING_FIELD,
@@ -95,10 +100,16 @@ _ARTIFACT_KEYS = {
     "table_size",
     "stack_depth_bb",
     "positions",
+    "blind_structure",
     "spots",
     "action_weights",
+    "arriving_reach_bp",
     "audit_fields",
 }
+# `arrival_ppb` is optional at the key-set level and validated wherever it appears: a chart
+# can be committed before its arrival probabilities are measured, and an absent field must
+# stay distinguishable from a spot the solve never reaches, which is recorded as zero.
+_ARTIFACT_OPTIONAL_KEYS = {"arrival_ppb"}
 _SOURCE_KEYS = {"name", "kind", "reference"}
 _SPOT_KEYS = {"spot_id", "hero_position", "action_sequence"}
 _ACTION_KEYS = {"position", "action"}
@@ -319,6 +330,34 @@ def _parse_action_weights(
     return tuple(entries)
 
 
+def _parse_arriving_reach(
+    payload: dict[str, Any], origin: str, action_weights: SpotActionWeights
+) -> tuple[tuple[str, tuple[tuple[str, int], ...]], ...]:
+    """Decision 5's per-cell reach, read against the cells the payload declares weights for.
+
+    The reach for a spot the artifact does not declare is refused with the same code a
+    *weight* for an undeclared spot gets, and deliberately so: both are a map claiming to
+    describe a cell this chart does not answer, and a reader chasing one reason code should
+    find both. The rest of the reading is `solve_conditions`, which knows nothing about this
+    module's poker-specific vocabulary.
+    """
+    path = "artifact.arriving_reach_bp"
+    declared = tuple(
+        (spot_id, tuple(hand_class_text for hand_class_text, _ in classes))
+        for spot_id, classes in action_weights
+    )
+    mapping = _require_object(payload.get("arriving_reach_bp"), origin, path)
+    known = {spot_id for spot_id, _ in declared}
+    for key in mapping:
+        if key not in known:
+            raise _fail(
+                UNKNOWN_SPOT_WEIGHTS,
+                origin,
+                f"{path}[{key!r}] has no matching entry in artifact.spots",
+            )
+    return parse_arriving_reach(payload, origin, declared, DUPLICATE_SPOT)
+
+
 def _parse_audit_fields(
     payload: dict[str, Any],
     origin: str,
@@ -372,7 +411,7 @@ def _parse_audit_fields(
 def _build_artifact(raw: Any, origin: str) -> PreflopArtifact:
     payload = _require_object(raw, origin, "artifact")
     _require_unique_keys(payload, origin, "artifact", INVALID_VALUE)
-    _require_keys(payload, origin, "artifact", _ARTIFACT_KEYS)
+    _require_keys(payload, origin, "artifact", _ARTIFACT_KEYS, _ARTIFACT_OPTIONAL_KEYS)
     version = _require_int(payload, origin, "artifact", "artifact_schema_version")
     if version != ARTIFACT_SCHEMA_VERSION:
         raise _fail(
@@ -399,6 +438,9 @@ def _build_artifact(raw: Any, origin: str) -> PreflopArtifact:
     positions = _parse_positions(payload, origin, table_size)
     spots = _parse_spots(payload, origin, table_size, stack_depth_bb, positions)
     action_weights = _parse_action_weights(payload, origin, tuple(spot.spot_id for spot in spots))
+    blind_structure = parse_blind_structure(payload, origin)
+    arriving_reach_bp = _parse_arriving_reach(payload, origin, action_weights)
+    arrival_ppb = parse_arrival_probabilities(payload, origin)
     audit_fields = _parse_audit_fields(payload, origin, spots, action_weights)
     try:
         return PreflopArtifact(
@@ -408,9 +450,12 @@ def _build_artifact(raw: Any, origin: str) -> PreflopArtifact:
             table_size=table_size,
             stack_depth_bb=stack_depth_bb,
             positions=positions,
+            blind_structure=blind_structure,
             spots=spots,
             action_weights=action_weights,
+            arriving_reach_bp=arriving_reach_bp,
             audit_fields=audit_fields,
+            arrival_ppb=arrival_ppb,
         )
     except ValueError as error:
         raise _fail(INVALID_VALUE, origin, str(error)) from error

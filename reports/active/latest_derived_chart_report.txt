@@ -1,0 +1,564 @@
+The derived preflop chart, and what the cutover changed
+
+This is the phase's evidence for a reader who does not read code. The bot's preflop ranges
+have been replaced: it used to play from 36 spots converted out of a raked GTO Wizard NL25
+solve, and it now plays from 86 derived from a GTOpen solve of the game it is actually
+trained for - six-handed, 100 big blinds, rake-free. The old chart is deleted.
+
+Nothing below is a grade on the new chart. Two of the three things that could explain a gap
+between it and how people played are still uncontrolled, the corpus is 499 hands, and real
+players are not an oracle. What the report can do is show the conversion was faithful, show
+what coverage was bought and sold, and put the closing measurement beside the prediction
+that was written down before it ran.
+
+## The three-way node census
+
+Every action node in the committed export is in exactly one of three buckets, and the
+three add up to the node count the export's own source card publishes. That total is
+the check worth making: a converter that quietly skipped a subtree balances its own
+books perfectly, and only a figure from outside catches it.
+
+  committed  86
+  excluded  derivation:source-misprices-multiway  33356
+  excluded  derivation:outside-selection-rule  5386
+  inexpressible  derivation:no-legal-spot-key  0
+  total  38828
+
+Two exclusion reasons rather than one, and a reader should not read past that. The
+first bucket is every node with a multiway terminal still reachable below it: GTOpen
+prices a multiway pot as the product of hero's pairwise equities and understates true
+three-way equity by 10.5 points, so those nodes are solved against ranges the
+approximation produced. They are named separately because they are the nodes that come
+back when the source is fixed, and one merged reason could not say which those are.
+The second is what is left outside the rule: heads-up from here on, but reached through
+a cold call, so already carrying a range the same defect shaped.
+
+The inexpressible bucket is empty, which is a measurement rather than an omission. All
+38828 nodes derive a spot key the vocabulary can write and no two collide.
+
+## One converted cell, traced
+
+One cell, from the solved node it came from to the row it is committed as. Every
+figure below is in the committed files, so a reviewer can open both and follow it
+without reading any code.
+
+  export node  0/0/0/1/0/2/2
+  export reach for the class  9985 bp
+  artifact row  t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5  AQs  fold=0.0021  call=0.8182  raise=0.1797  reach 9985 bp
+
+The weights are the solver's own, renormalised over the actions the chart vocabulary
+holds and nothing else: a named raise and an all-in both read as `raise` here, and what
+each costs is in the sizing table beside the chart rather than lost. The reach is
+decision 5's, per cell rather than per spot, and it is the difference between a cell the
+solve trained and a cell it barely visited - a distinction a chart that published only
+the strategy row would throw away.
+
+## The two dominance relations
+
+Two things a solved preflop range should almost always do: play a pair more often than
+the pair one rank below it, and play a suited hand at least as often as the offsuit hand
+of the same two ranks. Both are measured per cell at a tolerance of
+1.0 percentage point, and the ladder compares adjacent pair
+ranks only - comparing every pair against every weaker one reports one drifting step a
+dozen times over.
+
+  ladder violations  99 of 7112 committed cells
+  twins violations  74 of 7112 committed cells
+
+Decision 10 was re-ruled on 2026-08-24: these measure and gate nothing. Taylor read the
+grids and ruled the splits correct - among near-indifferent hands every split has the
+same expected value, so an individual cell carries no information about the solve's
+quality and only an aggregate does. Each surviving violation therefore ships as solved,
+which is decision 2's branch taken deliberately rather than a defect nobody noticed.
+
+The aggregate is what has a claim to catch a real defect, so it is published against the
+defect it claims to catch: the same measure run over a chart whose suited and offsuit
+rows have been swapped. A measure that cannot tell those apart cannot catch a transposed
+hand index, and over the 5,626 spots the superseded predicate selected this comparison
+came out backwards - it scored the wrong mapping as the better one.
+
+  suited against its offsuit twin, spots violating  solved 21  transposed 80
+
+## The two orderings
+
+Later position opens wider, and the big blind defends more against a wider opener.
+Neither depends on the rake basis or on which solver produced the ranges, which is why
+they are worth checking on a chart nobody has played from: a solve that got these
+backwards would be wrong in a way no agreement rate could excuse.
+
+The opening column is the EXPORT'S and the row says so. The ruled predicate commits one
+opening range - the small blind's - so four of these five opening frequencies are
+properties of the solve that the chart does not ship, and printing them as the chart's
+would claim coverage the cutover gave up. The defence column is the chart's: all twenty
+of the big blind's spots survive the predicate.
+
+  LJ  opens (export)  19.083  big blind defends (chart)  27.276
+  HJ  opens (export)  21.643  big blind defends (chart)  29.922
+  CO  opens (export)  27.338  big blind defends (chart)  34.115
+  BTN  opens (export)  40.256  big blind defends (chart)  36.757
+  SB  opens (export)  54.094  big blind defends (chart)  49.023
+
+The small blind opens widest of the five and the big blind defends most against it,
+which is the ordering holding at its extreme rather than an exception to it: the small
+blind is opening into one seat with position on it for the rest of the hand.
+
+## The derived chart against the GTO Wizard expectations
+
+GTO Wizard's own published opening frequencies for a raked NL25 six-max game, beside
+what this phase measured. They are the only numbers here this repo did not produce,
+which is what makes them worth printing: a range that is uniformly wrong is
+self-consistent everywhere inside the repo and only shows against something outside it.
+
+Each row says where its own left-hand figure came from. Only one can say `derived` - the
+small blind's, the single opening range the cutover commits - and the other four are the
+export's, for the same reason the orderings section gives.
+
+  LJ  export  19.083  GTO Wizard  17.490
+  HJ  export  21.643  GTO Wizard  21.650
+  CO  export  27.338  GTO Wizard  27.890
+  BTN  export  40.256  GTO Wizard  40.560
+  SB  derived  54.094  GTO Wizard  34.410
+
+This comparison is gated by nothing and no threshold is drawn on it, because the two
+columns are not measuring the same game. GTO Wizard's solve is raked and this one is
+not, and rake is a toll on every pot that is contested, so a rake-free solve opens more
+and defends more. The small blind's gap is the largest and has a second cause on top of
+that: the source solve limps 13.73 percent of the time from the small blind, where this
+one has no limp branch at all, so the hands that limped there open here.
+
+## What the cutover gained and gave up
+
+The retired chart is not a subset of the derived one, and every stage-4 document in this
+phase said it was. Twenty-two of its thirty-six spots pass the ruled predicate, but one
+of those twenty-two is a limped pot the rake-free solve has no branch for, so twenty-one
+are actually covered.
+
+  carried over  21
+  gained  65
+
+Gained is the committed count less the number carried over, and it is stated as that
+relation rather than as a number: 86 committed less 21 carried over is 65. This phase's own earlier documents published 64,
+which is 86 less 22 and counts the limped pot as carried over although the
+chart refuses it.
+
+The fourteen the bot answers today and will refuse tomorrow, named individually, because
+fourteen of the wrong fourteen is the same arithmetic and a different chart:
+
+  refused  t6/d100/BTN/CO:raise@2.5
+  refused  t6/d100/BTN/HJ:raise@2.5
+  refused  t6/d100/BTN/LJ:raise@2.5
+  refused  t6/d100/BTN/rfi
+  refused  t6/d100/CO/HJ:raise@2.5
+  refused  t6/d100/CO/LJ:raise@2.5
+  refused  t6/d100/CO/rfi
+  refused  t6/d100/HJ/LJ:raise@2.5
+  refused  t6/d100/HJ/rfi
+  refused  t6/d100/LJ/rfi
+  refused  t6/d100/SB/BTN:raise@2.5
+  refused  t6/d100/SB/CO:raise@2.5
+  refused  t6/d100/SB/HJ:raise@2.5
+  refused  t6/d100/SB/LJ:raise@2.5
+
+And separately from those fourteen, the limped pot:
+
+  the limped pot  t6/d100/BB/SB:call
+
+Four of the fourteen are opening ranges. Opening coverage falls from five seats to one:
+the bot could open a pot from the lojack, the hijack, the cutoff, the button and the
+small blind, and after the cutover it can open only from the small blind. That is the
+loss a reader can feel at the table, and it is the ruled cost of a predicate stated over
+reachable terminals rather than over action histories - a first-in open has four seats
+behind it and a multiway terminal under every branch.
+
+What was bought is the other side of the same rule: 65 spots the retired chart never
+held, every one of them solved for the game this bot is actually trained for -
+six-handed, 100 big blinds, rake-free - rather than converted from a raked NL25 solve.
+
+## The corpus, before and after
+
+The same 499 hands of the public corpus, scored twice: once against the chart being
+retired and once against the chart being committed. One comparison, one corpus, one
+piece of code - the chart is a parameter to it - so the before and after columns cannot
+have drifted apart by being measured differently.
+
+Two definitions make these rates readable. Agreement means the chart gives the action
+the player actually took nonzero weight, not that a draw matched: the chart collapses a
+mixed cell by a seeded draw, so a chart that folds seven times in ten does not disagree
+with a fold. And these are real players, not an oracle - agreeing with them is not the
+same as playing well, and Pluribus and the human professionals are different players, so
+nothing here is pooled.
+
+  Pluribus
+    agreement, before  439 of 456 scored decisions (96.3%)
+    agreement, after  68 of 72 scored decisions (94.4%)
+    refused, before  46 of 502 decisions (9.2%)
+    refused, after  430 of 502 decisions (85.7%)
+    sampled-action match, before  406 of 456 drawn decisions (89.0%)
+    sampled-action match, after  51 of 72 drawn decisions (70.8%)
+
+  humans
+    agreement, before  2155 of 2302 scored decisions (93.6%)
+    agreement, after  399 of 447 scored decisions (89.3%)
+    refused, before  244 of 2546 decisions (9.6%)
+    refused, after  2099 of 2546 decisions (82.4%)
+    sampled-action match, before  1964 of 2302 drawn decisions (85.3%)
+    sampled-action match, after  312 of 447 drawn decisions (69.8%)
+
+The refusal rate rises, on both populations, and that is the ruled cost rather than a
+regression. Until 2026-08-25 this phase expected it to fall and called any rise a
+defect; the predicate that was ruled drops fourteen of the retired chart's spots plus
+the limped pot, four opening ranges among them, and those fifteen are where the rise
+lives. A rise anywhere else would be the defect the old criterion was pointing at.
+
+The agreement rate falls a little and is over a much smaller sample, which is the shape
+to expect and not evidence of a worse chart: what is left after the refusals is the
+harder subset. The stricter sampled-action match sits below the looser agreement
+everywhere, as it must - it asks the seeded draw to have landed on the observed action
+rather than merely to have given it weight.
+
+## The pre-registered prediction
+
+Decision 9 fixed this band on 2026-08-24, before any of it was measured. The record is
+reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md,
+item 9. Big-blind call agreement was predicted to move in the same direction as that
+opener's defence delta, by between a quarter and one times the delta in points. The
+button's is a predicted worsening: the cutover defends 2.68 points less against it, and
+the button generates more big-blind defending decisions than any other seat in a
+six-max sample.
+
+The delta column is recomputed here from the committed files rather than carried over
+from the record - combination-weighted over each spot's covered classes, as 100 less the
+fold frequency - and the band beside it is quoted from the record unchanged. The retired
+chart's small blind opens to 3.5 and the derived one to 2.5, so the before figure for
+that row is read at `t6/d100/BB/SB:raise@3.5`; read at 2.5 it would return nothing and
+the row would disappear rather than show as wrong.
+
+  opener   defence delta   pre-registered band   measured move (humans)
+  LJ  +4.64  +1.16 to +4.65  +20.00  above
+  HJ  +3.72  +0.93 to +3.72  +42.11  above
+  CO  +2.64  +0.66 to +2.64  +44.44  above
+  BTN  -2.68  -2.67 to -0.67  +37.21  above
+  SB  +6.15  +1.54 to +6.14  +25.00  above
+
+Read the row as: the chart now defends this much more of hero's range against that
+opener, the band is what that was predicted to be worth in call agreement, and the
+measured column is what it was worth. The sample under each measured figure is small and
+the same size on both sides - the big blind facing one open survives the cutover, so
+these are the same decisions scored twice:
+
+  against the LJ: humans 15 calls, 53.3 to 73.3 percent; Pluribus 5 calls, 40.0 to 80.0 percent
+  against the HJ: humans 19 calls, 36.8 to 78.9 percent; Pluribus no calls faced that opener
+  against the CO: humans 27 calls, 33.3 to 77.8 percent; Pluribus 3 calls, 66.7 to 100.0 percent
+  against the BTN: humans 43 calls, 62.8 to 100.0 percent; Pluribus 7 calls, 28.6 to 100.0 percent
+  against the SB: humans 20 calls, 75.0 to 100.0 percent; Pluribus 5 calls, 40.0 to 100.0 percent
+
+The measured column is the human professionals' and says so, because pooling the two
+populations is forbidden and one row carries one number. Pluribus's own figures are on
+the lines above, unpooled: it brings twenty of those calls across four openers and none
+at all against the hijack, and a rate over three or five decisions cannot resolve a band
+a point wide. It moved the same way on every opener it faced.
+
+Every row misses high, and a miss is a result. The honest reading is that the band was
+drawn on the wrong scale rather than that the cutover outperformed it: a quarter-to-one
+band ties a rate over a hundred-odd decisions to a frequency over 1,326 combinations,
+and those are not the same units. The direction is right in four of five and wrong for
+the button, whose defence tightened while its call agreement rose.
+
+## The price the corpus was played at
+
+The committed solve assumes an open arrives at one price. These hands were not played
+at it, and phase 12's ruling 8 abstracts an opponent's price to the solved one before
+asking the chart, so every rate above is partly a rate about a table the chart was never
+solved for. The qualification on its own cannot be weighed; a distribution can.
+
+  decisions facing exactly one raise  1156
+  median opening price  2.25 big blinds
+
+  2.00bb  248  (21.45%)
+  2.05bb  5  (0.43%)
+  2.10bb  94  (8.13%)
+  2.11bb  5  (0.43%)
+  2.22bb  22  (1.90%)
+  2.25bb  560  (48.44%)
+  2.33bb  2  (0.17%)
+  2.34bb  2  (0.17%)
+  2.35bb  3  (0.26%)
+  2.40bb  2  (0.17%)
+  2.44bb  2  (0.17%)
+  2.45bb  2  (0.17%)
+  2.50bb  152  (13.15%)
+  2.75bb  6  (0.52%)
+  2.85bb  1  (0.09%)
+  2.87bb  10  (0.87%)
+  3.00bb  36  (3.11%)
+  3.50bb  2  (0.17%)
+  4.00bb  1  (0.09%)
+  4.50bb  1  (0.09%)
+
+The median open in this corpus is a quarter of a big blind cheaper than the solved 2.5,
+and a cheaper open is a better price to defend against, so the chart is systematically
+a little tighter than the spot in front of it deserves. That is a bias with a known
+direction, not noise.
+
+The cutover moves hero's own price too, which is why the prediction covers it:
+
+  hero's own open from the small blind  3.5bb before the cutover, 2.5bb after
+
+So the big blind facing a small-blind open moves from a 3.5-solved answer to a
+2.5-solved one, at `t6/d100/BB/SB:raise@2.5`, against a corpus median of 2.25. It is the
+only opening price the chart still holds, and `the price-tracking part will not move` is
+false for exactly that family.
+
+## What this measurement can and cannot separate
+
+Any residual gap between this chart and what the players did has three candidate
+causes, and this measurement separates one of them. Naming which is not a caveat on the
+finding; it is most of the finding.
+
+  rake  separated: the committed solve is rake-free, so a raked-solve explanation for a
+        residual gap no longer applies to this chart
+  price  uncontrolled: phase 12 ruling 8 abstracts an opponent's open to the solved
+         price, and the distribution above shows how far that reaches
+  realization  uncontrolled: the equity-realization model underprices position, and
+               decision 3 accepts it rather than fixing it in this phase
+
+Two of the three therefore survive the cutover untouched. A reader who sees a residual
+disagreement here cannot read it as a defect in the ranges, because two explanations for
+it are still standing and neither has been measured away.
+
+## What this chart does not answer
+
+Every figure above is about one table configuration and one branch of the tree. The
+chart answers a decision only when all of the following hold, and refuses otherwise:
+
+  six-handed, and no other table size
+  100 big blinds effective, and no other depth
+  symmetric stacks: every live seat started the hand at hero's depth
+  no straddle in the pot
+  no ante posted
+  one solved opening price, 2.5 big blinds
+  heads-up: at most one opponent has voluntarily invested and at most two players live
+
+The last of those is the ruled predicate stated as a bound rather than as a rule, and it
+is the one that costs most: a rate read off this chart says nothing whatever about
+multiway play, which is most of the hands a six-handed game actually deals.
+
+## The refusal inventory, by reason
+
+One total would hide the finding: the reasons move in different directions and by very
+different sizes. Every code `lookup.py` defines gets a row, a zero included, because a
+reason that stopped happening is a result too. The columns are the retired chart and the
+derived one, over both populations together - a reason code is a property of the
+chart's coverage rather than of who was sitting in the seat.
+
+  lookup:no-artifact-for-table-size  0  0
+  lookup:no-artifact-for-stack-depth  0  0
+  lookup:position-not-at-table  0  0
+  lookup:unrepresentable-spot  0  0
+  lookup:spot-not-covered  283  2527
+  lookup:hand-class-not-covered  7  2
+
+Almost all of the movement is one code. The chart declares fewer spots that this corpus
+actually reaches, so decisions that used to find a spot now do not, and that is the
+cutover's cost stated in the vocabulary a reader can act on rather than as one number.
+
+Decision 12 asks this phase to publish its own count of decision points facing a limp,
+with the definition it counted by, because the figure quoted in
+`CHART-CANNOT-ANSWER-A-LIMPED-POT` carries none and does not reproduce. The rule is that
+the first recorded action in the spot key is a call:
+
+  decision points facing a limp  16 inventory rows  52 decision points
+
+The whole inventory follows, which is what makes that count checkable: decision points
+first, then the spot key they reached.
+
+  499  t6/d100/LJ/rfi
+  407  t6/d100/HJ/rfi
+  329  t6/d100/CO/rfi
+  252  t6/d100/BTN/rfi
+  110  t6/d100/SB/BTN:raise@2.5
+  90  t6/d100/HJ/LJ:raise@2.5
+  79  t6/d100/CO/LJ:raise@2.5
+  78  t6/d100/CO/HJ:raise@2.5
+  77  t6/d100/BTN/CO:raise@2.5
+  69  t6/d100/BTN/LJ:raise@2.5
+  65  t6/d100/SB/CO:raise@2.5
+  61  t6/d100/BTN/HJ:raise@2.5
+  58  t6/d100/SB/LJ:raise@2.5
+  55  t6/d100/SB/HJ:raise@2.5
+  30  t6/d100/BB/SB:call
+  9  t6/d100/SB/LJ:raise@2.5,BTN:call
+  8  t6/d100/BB/LJ:raise@2.5,BTN:call
+  7  t6/d100/BB/BTN:raise@2.5,SB:call
+  7  t6/d100/BTN/LJ:raise@2.5,CO:call
+  7  t6/d100/BTN/LJ:raise@2.5,HJ:call
+  7  t6/d100/CO/LJ:raise@2.5,HJ:call
+  7  t6/d100/SB/LJ:raise@2.5,CO:call
+  7  t6/d100/SB/LJ:raise@2.5,HJ:call
+  6  t6/d100/BB/LJ:raise@2.5,HJ:call
+  6  t6/d100/SB/SB:call,BB:raise@3
+  5  t6/d100/BB/HJ:raise@2.5,BTN:call
+  5  t6/d100/BB/LJ:raise@2.5,CO:call
+  5  t6/d100/BTN/HJ:raise@2.5,CO:raise@7.5
+  5  t6/d100/SB/HJ:raise@2.5,BTN:call
+  4  t6/d100/BB/BTN:raise@2.5,SB:raise@10.5
+  4  t6/d100/BB/CO:raise@2.5,BTN:call
+  4  t6/d100/BB/HJ:raise@2.5,CO:raise@7.5
+  4  t6/d100/BB/HJ:raise@2.5,SB:call
+  4  t6/d100/BB/LJ:raise@2.5,SB:call
+  4  t6/d100/SB/CO:raise@2.5,BTN:call
+  4  t6/d100/SB/HJ:raise@2.5,CO:raise@7.5
+  3  t6/d100/BB/CO:raise@2.5,BTN:raise@7
+  3  t6/d100/BB/CO:raise@2.5,SB:call
+  3  t6/d100/BB/CO:raise@2.5,SB:raise@9.5
+  3  t6/d100/BB/HJ:raise@2.5,CO:call
+  3  t6/d100/BB/HJ:raise@2.5,CO:raise@7
+  3  t6/d100/BTN/HJ:raise@2.5,CO:call
+  3  t6/d100/BTN/HJ:raise@2.5,CO:raise@7
+  3  t6/d100/SB/CO:raise@2.5,BTN:raise@7
+  3  t6/d100/SB/HJ:raise@2.5,CO:call
+  3  t6/d100/SB/HJ:raise@2.5,CO:raise@7
+  2  t6/d100/BB/BTN:raise@2.5,SB:raise@10
+  2  t6/d100/BB/BTN:raise@2.5,SB:raise@8.5
+  2  t6/d100/BB/CO:raise@2.5,BTN:raise@7.5
+  2  t6/d100/BB/HJ:raise@2.5,CO:raise@6.25
+  2  t6/d100/BB/HJ:raise@2.5,CO:raise@7.2
+  2  t6/d100/BB/LJ:raise@2.5,SB:raise@11.5
+  2  t6/d100/BTN/HJ:raise@2.5,CO:raise@6.25
+  2  t6/d100/BTN/HJ:raise@2.5,CO:raise@7.2
+  2  t6/d100/HJ/LJ:call
+  2  t6/d100/SB/CO:raise@2.5,BTN:raise@7.5
+  2  t6/d100/SB/HJ:raise@2.5,CO:raise@6.25
+  2  t6/d100/SB/HJ:raise@2.5,CO:raise@7.2
+  2  t6/d100/SB/SB:call,BB:raise@3.5
+  1  t6/d100/BB/BTN:raise@2.5,SB:raise@10.75
+  1  t6/d100/BB/BTN:raise@2.5,SB:raise@11.5
+  1  t6/d100/BB/BTN:raise@2.5,SB:raise@9.5
+  1  t6/d100/BB/CO:raise@2.5,BTN:raise@6.75
+  1  t6/d100/BB/CO:raise@2.5,BTN:raise@7.8
+  1  t6/d100/BB/CO:raise@2.5,BTN:raise@8
+  1  t6/d100/BB/CO:raise@2.5,SB:raise@12
+  1  t6/d100/BB/CO:raise@2.5,SB:raise@7.3
+  1  t6/d100/BB/CO:raise@2.5,SB:raise@8.5
+  1  t6/d100/BB/CO:raise@2.5,SB:raise@8.6
+  1  t6/d100/BB/HJ:raise@2.5,BTN:raise@8
+  1  t6/d100/BB/HJ:raise@2.5,CO:raise@6.81
+  1  t6/d100/BB/HJ:raise@2.5,CO:raise@7.5,BTN:raise@23.33
+  1  t6/d100/BB/HJ:raise@2.5,CO:raise@8
+  1  t6/d100/BB/HJ:raise@2.5,SB:raise@10.1
+  1  t6/d100/BB/HJ:raise@2.5,SB:raise@11
+  1  t6/d100/BB/HJ:raise@2.5,SB:raise@11.5
+  1  t6/d100/BB/HJ:raise@2.5,SB:raise@13.25
+  1  t6/d100/BB/HJ:raise@2.5,SB:raise@13.25,BB:call,HJ:raise@100
+  1  t6/d100/BB/HJ:raise@2.5,SB:raise@8
+  1  t6/d100/BB/HJ:raise@2.5,SB:raise@9.12
+  1  t6/d100/BB/LJ:call,CO:raise@2.5,SB:call
+  1  t6/d100/BB/LJ:call,HJ:raise@2.75
+  1  t6/d100/BB/LJ:raise@2.5,BTN:call,SB:call
+  1  t6/d100/BB/LJ:raise@2.5,BTN:raise@7.25
+  1  t6/d100/BB/LJ:raise@2.5,BTN:raise@7.5
+  1  t6/d100/BB/LJ:raise@2.5,CO:call,SB:call
+  1  t6/d100/BB/LJ:raise@2.5,CO:call,SB:raise@13.5
+  1  t6/d100/BB/LJ:raise@2.5,CO:raise@6.5
+  1  t6/d100/BB/LJ:raise@2.5,CO:raise@7.37
+  1  t6/d100/BB/LJ:raise@2.5,CO:raise@8
+  1  t6/d100/BB/LJ:raise@2.5,HJ:call,SB:call
+  1  t6/d100/BB/LJ:raise@2.5,HJ:raise@5.25
+  1  t6/d100/BB/LJ:raise@2.5,HJ:raise@6.25
+  1  t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5
+  1  t6/d100/BB/LJ:raise@2.5,HJ:raise@8.5
+  1  t6/d100/BB/LJ:raise@2.5,SB:raise@10
+  1  t6/d100/BB/LJ:raise@2.5,SB:raise@10.5
+  1  t6/d100/BB/SB:call,BB:raise@3,SB:raise@12
+  1  t6/d100/BTN/BTN:raise@2.5,SB:call,BB:raise@12.25
+  1  t6/d100/BTN/BTN:raise@2.5,SB:call,BB:raise@14
+  1  t6/d100/BTN/CO:raise@2.5,BTN:call,BB:raise@13.5
+  1  t6/d100/BTN/HJ:raise@2.5,CO:raise@6.81
+  1  t6/d100/BTN/HJ:raise@2.5,CO:raise@8
+  1  t6/d100/BTN/LJ:call,CO:raise@2.5
+  1  t6/d100/BTN/LJ:call,HJ:raise@2.75
+  1  t6/d100/BTN/LJ:raise@2.5,CO:raise@6.5
+  1  t6/d100/BTN/LJ:raise@2.5,CO:raise@7.37
+  1  t6/d100/BTN/LJ:raise@2.5,CO:raise@8
+  1  t6/d100/BTN/LJ:raise@2.5,HJ:raise@5.25
+  1  t6/d100/BTN/LJ:raise@2.5,HJ:raise@6.25
+  1  t6/d100/BTN/LJ:raise@2.5,HJ:raise@7.5
+  1  t6/d100/BTN/LJ:raise@2.5,HJ:raise@8.5
+  1  t6/d100/CO/CO:raise@2.5,BTN:call,BB:raise@13.5
+  1  t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,BTN:raise@23.33
+  1  t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5,CO:raise@36.67,HJ:raise@100
+  1  t6/d100/CO/LJ:call
+  1  t6/d100/CO/LJ:call,HJ:raise@2.75
+  1  t6/d100/CO/LJ:raise@2.5,CO:call,BB:raise@13.12
+  1  t6/d100/CO/LJ:raise@2.5,CO:call,SB:raise@13.5,BB:raise@100
+  1  t6/d100/CO/LJ:raise@2.5,HJ:raise@5.25
+  1  t6/d100/CO/LJ:raise@2.5,HJ:raise@6.25
+  1  t6/d100/CO/LJ:raise@2.5,HJ:raise@7.5
+  1  t6/d100/CO/LJ:raise@2.5,HJ:raise@8.5
+  1  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,BTN:raise@23.33
+  1  t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5,BB:call
+  1  t6/d100/LJ/LJ:call,CO:raise@2.5,SB:call
+  1  t6/d100/LJ/LJ:call,HJ:raise@2.75
+  1  t6/d100/LJ/LJ:raise@2.5,CO:call,BB:raise@13.12
+  1  t6/d100/LJ/LJ:raise@2.5,CO:call,SB:raise@13.5,BB:raise@100
+  1  t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5
+  1  t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5,SB:raise@100
+  1  t6/d100/SB/BTN:raise@2.5,SB:call,BB:raise@12.25
+  1  t6/d100/SB/BTN:raise@2.5,SB:call,BB:raise@14
+  1  t6/d100/SB/CO:raise@2.5,BTN:raise@6.75
+  1  t6/d100/SB/CO:raise@2.5,BTN:raise@7.8
+  1  t6/d100/SB/CO:raise@2.5,BTN:raise@8
+  1  t6/d100/SB/HJ:raise@2.5,BTN:raise@8
+  1  t6/d100/SB/HJ:raise@2.5,CO:raise@6.81
+  1  t6/d100/SB/HJ:raise@2.5,CO:raise@7.5,BTN:raise@23.33
+  1  t6/d100/SB/HJ:raise@2.5,CO:raise@8
+  1  t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,BB:call,HJ:raise@100
+  1  t6/d100/SB/LJ:call,CO:raise@2.5
+  1  t6/d100/SB/LJ:call,HJ:raise@2.75
+  1  t6/d100/SB/LJ:raise@2.5,BTN:raise@7.25
+  1  t6/d100/SB/LJ:raise@2.5,BTN:raise@7.5
+  1  t6/d100/SB/LJ:raise@2.5,CO:call,SB:raise@13.5,BB:raise@100
+  1  t6/d100/SB/LJ:raise@2.5,CO:raise@6.5
+  1  t6/d100/SB/LJ:raise@2.5,CO:raise@7.37
+  1  t6/d100/SB/LJ:raise@2.5,CO:raise@8
+  1  t6/d100/SB/LJ:raise@2.5,HJ:raise@5.25
+  1  t6/d100/SB/LJ:raise@2.5,HJ:raise@6.25
+  1  t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5
+  1  t6/d100/SB/LJ:raise@2.5,HJ:raise@8.5
+  1  t6/d100/SB/SB:call,BB:raise@4.5
+
+## Where the retired chart and the derived chart disagree
+
+The retired chart is deleted from the tree, so this comparison reads it out of git
+history at the commit decision 7 pins. A pin rather than a second copy under
+`data/artifacts/preflop/`: a reader can fetch the same bytes and nobody has to ask which
+chart the bot plays.
+
+  the retired chart, read at commit d046ac9d27feeb3b64a71b3ad4ba65d32b88d3a3
+  decisions both charts answer  499
+  disagreed  43
+  derived continues, retired folds  35
+  retired continues, derived folds  8
+
+Answered by both means both charts returned an action for that decision, so the
+comparison is over what the two would actually have done rather than over their coverage
+differences, which the refusal rows above already carry. The difference counted is
+whether hero puts money in: a raise where the other chart calls is the same decision
+priced differently, and it belongs in the sizing table rather than here.
+
+The derived chart continues where the retired one folded four times as often as the
+reverse, which is the rake-free solve showing up as looser play - a raked solve pays a
+toll on every contested pot and folds more because of it.
+
+## One number a reader can recompute by hand
+
+The audit packet owes a reader one figure they can check without running anything, so
+here it is with the file it comes out of and the arithmetic that produces it.
+
+  the number  38828 action nodes in the committed export
+  the file  data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
+  the arithmetic  86 + 33356 + 5386 + 0 = 38828, against `node_counts.exported` in that file
+
+The four terms are the census rows above, in the same order. If they do not add to the
+card's own figure then a solved node has gone missing between the export and this
+report, and no other check in this phase would notice.

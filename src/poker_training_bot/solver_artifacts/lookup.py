@@ -34,12 +34,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from poker_training_bot.poker_core.positions import table_positions
-from poker_training_bot.solver_artifacts.hand_classes import (
-    hand_class as canonical_hand_class,
-)
-from poker_training_bot.solver_artifacts.hand_classes import (
-    is_hand_class,
-)
+from poker_training_bot.solver_artifacts.chart_query import ChartQuery
 from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
 from poker_training_bot.solver_artifacts.price_normalisation import (
     PriceSubstitutions,
@@ -75,6 +70,23 @@ LIBRARY_NO_ARTIFACTS = "library:no-artifacts"
 
 LIBRARY_ERROR_CODES: tuple[str, ...] = (LIBRARY_DUPLICATE_SPOT, LIBRARY_NO_ARTIFACTS)
 
+# Decision 8's derivation vocabulary, beside the refusal codes on purpose: a reader meeting
+# `lookup:` knows a query was refused, and `derivation:` that a solved node never shipped as
+# a cell at all. The first two partition every excluded node - a node whose terminals GTOpen
+# cannot price multiway is filed under the mispricing, because that is the fact a later phase
+# reads to find the spots that come back when it can - and the third is for a node no legal
+# spot key can name. Closed here rather than open: a code the converter invents for a node it
+# merely failed to handle would be indistinguishable from a property of the grammar.
+DERIVATION_SOURCE_MISPRICES_MULTIWAY = "derivation:source-misprices-multiway"
+DERIVATION_OUTSIDE_SELECTION_RULE = "derivation:outside-selection-rule"
+DERIVATION_NO_LEGAL_SPOT_KEY = "derivation:no-legal-spot-key"
+
+DERIVATION_EXCLUSION_CODES: tuple[str, ...] = (
+    DERIVATION_SOURCE_MISPRICES_MULTIWAY,
+    DERIVATION_OUTSIDE_SELECTION_RULE,
+)
+DERIVATION_INEXPRESSIBILITY_CODES: tuple[str, ...] = (DERIVATION_NO_LEGAL_SPOT_KEY,)
+
 
 class ChartLibraryError(ValueError):
     """A chart library that cannot be built without guessing."""
@@ -83,85 +95,6 @@ class ChartLibraryError(ValueError):
         super().__init__(f"{code}: {message}")
         self.code = code
         self.message = message
-
-
-def _validate_int(value: object, field: str) -> None:
-    if not isinstance(value, int) or isinstance(value, bool):
-        raise ValueError(f"{field} must be an integer, got {value!r}")
-
-
-@dataclass(frozen=True)
-class ChartQuery:
-    """A preflop chart question: table, depth, hero position, action, hand class.
-
-    Validation here is deliberately light. A caller builds a query out of live
-    game state, so an unknown table size or a position that does not exist at
-    that table is a lookup miss it can log, not an exception it has to catch.
-    Only genuine programming errors raise: a hand class outside the canonical
-    169, or an action sequence holding something that is not a `PreflopAction`.
-    """
-
-    table_size: int
-    stack_depth_bb: int
-    hero_position: str
-    action_sequence: tuple[PreflopAction, ...]
-    hand_class: str
-
-    def __post_init__(self) -> None:
-        _validate_int(self.table_size, "table_size")
-        _validate_int(self.stack_depth_bb, "stack_depth_bb")
-        if not isinstance(self.hero_position, str) or not self.hero_position:
-            raise ValueError(
-                f"hero_position must be a non-empty string, got {self.hero_position!r}"
-            )
-        if not isinstance(self.action_sequence, tuple):
-            raise ValueError(
-                f"action_sequence must be a tuple, got {type(self.action_sequence).__name__}"
-            )
-        for entry in self.action_sequence:
-            if not isinstance(entry, PreflopAction):
-                raise ValueError(f"action_sequence entries must be PreflopAction, got {entry!r}")
-        if not is_hand_class(self.hand_class):
-            raise ValueError(f"unknown hand class: {self.hand_class!r}")
-
-    @classmethod
-    def from_hole_cards(
-        cls,
-        table_size: int,
-        stack_depth_bb: int,
-        hero_position: str,
-        action_sequence: tuple[PreflopAction, ...],
-        hole_cards: Sequence[str],
-    ) -> ChartQuery:
-        """Build a query from two hole cards such as `("As", "kd")`.
-
-        Canonicalization is `hand_classes.hand_class`, so card order and suits
-        beyond suitedness cannot change which spot is asked about.
-        """
-        return cls(
-            table_size=table_size,
-            stack_depth_bb=stack_depth_bb,
-            hero_position=hero_position,
-            action_sequence=action_sequence,
-            hand_class=canonical_hand_class(hole_cards),
-        )
-
-    @property
-    def spot_key(self) -> str | None:
-        """The derived spot key at the query's own prices, or None if there is none.
-
-        None is not an error. It means no legal preflop situation produces this
-        sequence at all - a seat acting out of turn, a re-raise that is not an
-        increase, a raise nobody at the stated depth can pay - and the lookup misses
-        rather than guesses. A position acting more than once is no longer one of
-        those cases, which is what closed `SECOND-ORBIT-PREFLOP-SPOTS`.
-        """
-        try:
-            return derive_spot_key(
-                self.table_size, self.stack_depth_bb, self.hero_position, self.action_sequence
-            )
-        except ValueError:
-            return None
 
 
 @dataclass(frozen=True)
@@ -236,6 +169,7 @@ class ChartMiss:
             raise ValueError("miss code is required")
         if not self.detail:
             raise ValueError("miss detail is required")
+
 
 
 def _combinations(hand_class_text: str) -> int:

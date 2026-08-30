@@ -1,12 +1,7 @@
 """What the widened spot vocabulary changed, measured rather than quoted.
 
 Every figure the phase 12 report prints is derived here, so the report is a rendering
-job and the measurements are importable and testable on their own. Four of them:
-
-*Did the ranges move when the keys did?* Strip the sizes back out of the committed keys,
-recompute the weights checksum, and it has to reproduce the checksum the artifact carried
-before this phase. Spot ids are inside that checksum, which is why the artifact's own
-checksum changed, and this is what makes the change evidence instead of an alarm.
+job and the measurements are importable and testable on their own. Three of them:
 
 *How much can the vocabulary express?* Enumerated by running the preflop order and
 deriving each key with `spot_key`, so the count is a property of the function every other
@@ -19,6 +14,15 @@ whether the raise that moved was the opener's or a later one, because ruling 8 a
 *Which published numbers moved, and because of what?* Each headline figure is carried
 against both its pre-Phase-11 value and its value at this phase's branch point, so the
 cause is read off two comparisons rather than asserted.
+
+A fourth measurement was retired with its premise by the chart cutover. It stripped the
+sizes back out of the committed keys and required the weights checksum to reproduce the
+one the artifact carried before phase 12, which proved the re-keying moved no weight. That
+is a statement about a chart derived from the GTO Wizard source, and the chart is now
+derived from a rake-free GTOpen solve whose weights are different numbers on purpose:
+nothing it could compute would reproduce that checksum, and a check that cannot pass is
+not evidence of anything. The re-keying it proved is history rather than a live property,
+and phase 12's contract owes an amendment saying so.
 
 Nothing here is quoted. A figure is either measured when this runs or declared as a
 historical constant naming the committed document it came from, and the two never share
@@ -39,20 +43,11 @@ from poker_training_bot.data_pipeline.sample import MACHINE_PLAYER
 from poker_training_bot.poker_core.positions import preflop_action_order
 from poker_training_bot.solver_artifacts.schema import (
     PreflopAction,
-    PreflopArtifact,
     spot_key,
-    weights_checksum,
 )
 
 TABLE_SIZE = 6
 DEPTH_BB = 100
-
-# The checksum the committed artifact carried before this phase, taken from
-# `reports/phase_audits/PHASE_04_PREFLOP_ARTIFACTS.md` and from the file itself at commit
-# 5b715d6. Spot ids are inside the checksum, so re-keying necessarily changes it; this is
-# the value the re-keyed weights have to reproduce once the sizes are stripped back out,
-# and reproducing it is what proves no weight moved.
-V1_WEIGHTS_SHA256 = "eaf2c6ccbf3917c7fd924cc144435244fffb1a678e97685bafe36d52150482f7"
 
 # How deep the spot enumeration below goes. It is a bound on the *report*, not on the
 # vocabulary: the vocabulary has no orbit cap by ruling, and what stops it in play is
@@ -72,10 +67,10 @@ _SIZE_SUFFIX = re.compile(r"@[0-9.]+")
 class VocabularyReportError(RuntimeError):
     """The report measured something it cannot honestly publish.
 
-    Raised rather than printed. A census that totals zero, a mapping that is not a
-    bijection, or a checksum that does not reproduce all mean the report would be a
-    confident statement about something that did not happen, and a generator that writes
-    that file anyway is a generator whose gate command proves nothing.
+    Raised rather than printed. A census that totals zero, a worked example naming a spot
+    the chart does not declare, or a split that does not reconcile all mean the report would
+    be a confident statement about something that did not happen, and a generator that
+    writes that file anyway is a generator whose gate command proves nothing.
     """
 
 
@@ -90,31 +85,15 @@ def strip_sizes(spot_key_text: str) -> str:
     This is the whole of the old-to-new mapping. It is a function rather than a stored
     table because a stored table is a second statement of something the keys already
     say, and the two can disagree.
+
+    What it is for is now the worked example alone: the report shows one committed key
+    beside its own v1 form, so a reader sees what the size suffix added. The re-derivation
+    section that mapped every key this way was retired with the chart cutover, along with
+    the two checks over it - the old keys are no longer a bijection with the new ones, 86
+    committed keys stripping to 51, and the phase 12 weights checksum belongs to a solve the
+    repo no longer ships.
     """
     return _SIZE_SUFFIX.sub("", spot_key_text)
-
-
-def key_mapping(artifact: PreflopArtifact) -> tuple[tuple[str, str], ...]:
-    """Every committed spot as (old key, new key), sorted by the old key."""
-    return tuple(
-        sorted((strip_sizes(spot.spot_id), spot.spot_id) for spot in artifact.spots)
-    )
-
-
-def v1_weights_checksum(artifact: PreflopArtifact) -> str:
-    """The weights checksum this artifact would have carried under v1 keys.
-
-    Same weights, same hand classes, same actions; only the keys are stripped back. If
-    this reproduces the checksum the committed artifact carried before the re-keying,
-    then no per-hand per-action weight moved, and the changed checksum on the file is
-    accounted for entirely by the spot ids inside it.
-    """
-    return weights_checksum(
-        tuple(
-            (strip_sizes(spot_id), hand_classes)
-            for spot_id, hand_classes in artifact.action_weights
-        )
-    )
 
 
 # --------------------------------------------------------------------------- #
@@ -384,21 +363,32 @@ def _validate_census(measured: Census) -> None:
 
 @dataclass(frozen=True)
 class Restated:
+    """One headline figure, its two recorded values, and how to measure it now.
+
+    `since_branch` names what would have moved the figure away from its branch-point value,
+    for the rows where something has. "Moved" on its own is the smallest useful cause a
+    reader can be given: the branch column already says the number changed, and what the
+    restatement owes is why. It is per row because the causes are not the same - the corpus
+    refusal total moves because the chart cutover gave fifteen spots up, while a self-play
+    figure moves because re-keying re-seeds the draws.
+    """
+
     label: str
     source: str
     packet: str
     branch: str
     measure: Callable[[ComparisonResult], str]
+    since_branch: str = "the spot vocabulary"
 
     def cause(self, now: str) -> str:
         moved_by_eleven = self.branch != self.packet
-        moved_by_twelve = now != self.branch
-        if moved_by_eleven and moved_by_twelve:
-            return "moved by both"
+        moved_since = now != self.branch
+        if moved_by_eleven and moved_since:
+            return f"moved by Phase 11 and by {self.since_branch}"
         if moved_by_eleven:
             return "moved by Phase 11"
-        if moved_by_twelve:
-            return "moved by this phase"
+        if moved_since:
+            return f"moved by {self.since_branch}"
         return "unchanged (checked against both)"
 
 
@@ -410,12 +400,18 @@ def restated_numbers() -> tuple[Restated, ...]:
     """Every headline figure the Phase 07 and Phase 08 packets quote.
 
     The packet column is what that phase published and believed. The branch column is
-    what the committed report said at this phase's branch point, which already carried
-    Phase 11's corrected engine and query, so the difference between the two columns is
-    Phase 11's effect and the difference between the branch and the measurement is this
-    phase's. No committed audit packet is edited to agree with any of it: a packet is the
-    record of what a phase found, and rewriting it would destroy the only evidence that a
-    number ever changed.
+    what the committed report said at the spot vocabulary phase's branch point, which
+    already carried Phase 11's corrected engine and query, so the difference between the two
+    columns is Phase 11's effect. No committed audit packet is edited to agree with any of
+    it: a packet is the record of what a phase found, and rewriting it would destroy the
+    only evidence that a number ever changed.
+
+    The difference between the branch column and the measurement was the vocabulary's own
+    effect when this report was written, and a second phase has since run over the same
+    figures, so each row names its own cause. The corpus rows name the chart cutover: the
+    vocabulary phase measured every one of them as unchanged, because a price the tree does
+    not hold normalises back to the cell a coarse key would have reached anyway. The
+    inventory row keeps the vocabulary, because giving those 19 decisions a key emptied it.
     """
     packet_08 = "reports/phase_audits/PHASE_08_SAMPLE_COMPARISON.md"
     return (
@@ -441,6 +437,7 @@ def restated_numbers() -> tuple[Restated, ...]:
             lambda result: str(
                 sum(1 for row in result.rows if row.refusal is not None)
             ),
+            since_branch="the chart cutover, which gave fifteen retired spots up",
         ),
         Restated(
             "Pluribus agreement",
@@ -451,6 +448,7 @@ def restated_numbers() -> tuple[Restated, ...]:
                 result.agreement(MACHINE_PLAYER).numerator,
                 result.agreement(MACHINE_PLAYER).denominator,
             ),
+            since_branch="the chart cutover",
         ),
         Restated(
             "human agreement",
@@ -461,6 +459,7 @@ def restated_numbers() -> tuple[Restated, ...]:
                 result.agreement("humans").numerator,
                 result.agreement("humans").denominator,
             ),
+            since_branch="the chart cutover",
         ),
         Restated(
             "human calls agreeing",
@@ -471,6 +470,7 @@ def restated_numbers() -> tuple[Restated, ...]:
                 result.agreement_within("humans", action="call").numerator,
                 result.agreement_within("humans", action="call").denominator,
             ),
+            since_branch="the chart cutover",
         ),
         Restated(
             "human raises agreeing",
@@ -481,6 +481,7 @@ def restated_numbers() -> tuple[Restated, ...]:
                 result.agreement_within("humans", action="raise").numerator,
                 result.agreement_within("humans", action="raise").denominator,
             ),
+            since_branch="the chart cutover",
         ),
         Restated(
             "inventory decisions naming no spot at all",
@@ -496,5 +497,3 @@ def restated_numbers() -> tuple[Restated, ...]:
             ),
         ),
     )
-
-

@@ -23,6 +23,15 @@ from poker_training_bot.solver_artifacts.hand_classes import (
     hand_class_grid_index,
     is_hand_class,
 )
+from poker_training_bot.solver_artifacts.solve_conditions import (
+    ArrivalProbabilities,
+    ArrivingReach,
+    BlindStructure,
+    arrival_payload,
+    reach_payload,
+    validate_arrival_probabilities,
+    validate_arriving_reach,
+)
 from poker_training_bot.solver_artifacts.spot_key import (
     MAX_TABLE_SIZE,
     MIN_TABLE_SIZE,
@@ -48,8 +57,14 @@ __all__ = [
     "SIZE_QUANTUM",
     "WEIGHT_SUM_TOLERANCE",
     "ActionWeights",
+    # The conditions of the solve are a different subject from the ranges and holding both
+    # broke the 500-line cap, so they live in `solve_conditions`. They are re-exported
+    # because an artifact carries them and the frozen tests read them off this module.
+    "ArrivalProbabilities",
+    "ArrivingReach",
     "ArtifactAuditFields",
     "ArtifactSource",
+    "BlindStructure",
     "HandClassWeights",
     "PreflopAction",
     "PreflopArtifact",
@@ -62,7 +77,7 @@ __all__ = [
     "weights_checksum",
 ]
 
-ARTIFACT_SCHEMA_VERSION = 1
+ARTIFACT_SCHEMA_VERSION = 2
 WEIGHT_SUM_TOLERANCE = 1e-6
 PREFLOP_ACTIONS = ("fold", "check", "call", "raise")
 ARTIFACT_SOURCE_KINDS = ("solver-export", "hand-authored")
@@ -211,9 +226,15 @@ class PreflopArtifact:
     table_size: int
     stack_depth_bb: int
     positions: tuple[str, ...]
+    blind_structure: BlindStructure
     spots: tuple[SpotDefinition, ...]
     action_weights: SpotActionWeights
+    arriving_reach_bp: ArrivingReach
     audit_fields: ArtifactAuditFields
+    # Optional because a chart may be committed before its arrival probabilities are
+    # measured, and absent has to stay distinguishable from a spot that is never reached.
+    # Present, it is validated; None is the only thing that means "not recorded here".
+    arrival_ppb: ArrivalProbabilities | None = None
 
     def __post_init__(self) -> None:
         if self.artifact_schema_version != ARTIFACT_SCHEMA_VERSION:
@@ -231,7 +252,39 @@ class PreflopArtifact:
             )
         self._validate_spots()
         self._validate_action_weights()
+        self._validate_no_limp()
+        validate_arriving_reach(self.arriving_reach_bp, self._declared_cells())
+        if self.arrival_ppb is not None:
+            validate_arrival_probabilities(
+                self.arrival_ppb, tuple(spot.spot_id for spot in self.spots)
+            )
         self._validate_audit_fields()
+
+    def _declared_cells(self) -> tuple[tuple[str, tuple[str, ...]], ...]:
+        """The cells the chart answers: every spot with the hand classes it declares."""
+        return tuple(
+            (spot_id, tuple(hand_class_text for hand_class_text, _ in hand_classes))
+            for spot_id, hand_classes in self.action_weights
+        )
+
+    def _validate_no_limp(self) -> None:
+        """`CHART-HERO-MUST-NEVER-LIMP`, as a rule rather than a property of one file.
+
+        The pot folded to hero is an empty `action_sequence`, so a call there is a limp: hero
+        pays the big blind to give every seat behind a free look at a flop in position, and
+        the solve the cutover derives from offers him no call at that spot at all. The chart
+        being retired limped 13.73 percent from the small blind across 103 hand classes, so
+        this is the state the repo shipped in rather than a hypothetical. A rule refuses the
+        next artifact too; a measurement over this one refuses nothing.
+        """
+        for spot, (spot_id, hand_classes) in zip(self.spots, self.action_weights, strict=True):
+            for hand_class_text, actions in hand_classes:
+                call_weight = dict(actions).get("call", 0.0)
+                if not spot.action_sequence and call_weight > 0.0:
+                    raise ValueError(
+                        f"action_weights[{spot_id!r}][{hand_class_text!r}] limps: the pot is"
+                        f" folded to hero and call carries weight {call_weight!r}"
+                    )
 
     def _validate_spots(self) -> None:
         if not self.spots:
@@ -311,6 +364,10 @@ class PreflopArtifact:
             spot_id: dict(hand_classes) for spot_id, hand_classes in self.action_weights
         }
 
+    @cached_property
+    def _reach_index(self) -> dict[str, dict[str, int]]:
+        return {spot_id: dict(cells) for spot_id, cells in self.arriving_reach_bp}
+
     @property
     def artifact_id(self) -> str:
         """`t{table_size}/d{stack_depth_bb}/{slug}`.
@@ -331,8 +388,16 @@ class PreflopArtifact:
         """Return the ordered weights, or None when the spot/class is not covered."""
         return self._weight_index.get(spot_key_text, {}).get(hand_class_text)
 
+    def reach_bp_for(self, spot_key_text: str, hand_class_text: str) -> int | None:
+        """The cell's arriving reach in basis points, or None when it is not covered.
+
+        Fails closed like `weights_for`, and for the same reason: a caller that gets a number
+        for an uncovered cell cannot tell it from a cell the chart answers.
+        """
+        return self._reach_index.get(spot_key_text, {}).get(hand_class_text)
+
     def to_payload(self) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "artifact_schema_version": self.artifact_schema_version,
             "source": {
                 "name": self.source.name,
@@ -343,6 +408,11 @@ class PreflopArtifact:
             "table_size": self.table_size,
             "stack_depth_bb": self.stack_depth_bb,
             "positions": list(self.positions),
+            "blind_structure": {
+                "small_blind_bb": self.blind_structure.small_blind_bb,
+                "big_blind_bb": self.blind_structure.big_blind_bb,
+                "ante_bb": self.blind_structure.ante_bb,
+            },
             "spots": [
                 {
                     "spot_id": spot.spot_id,
@@ -354,6 +424,7 @@ class PreflopArtifact:
                 for spot in self.spots
             ],
             "action_weights": _weights_mapping(self.action_weights),
+            "arriving_reach_bp": reach_payload(self.arriving_reach_bp),
             "audit_fields": {
                 "weights_sha256": self.audit_fields.weights_sha256,
                 "spot_count": self.audit_fields.spot_count,
@@ -361,3 +432,6 @@ class PreflopArtifact:
                 "notes": self.audit_fields.notes,
             },
         }
+        if self.arrival_ppb is not None:
+            payload["arrival_ppb"] = arrival_payload(self.arrival_ppb)
+        return payload

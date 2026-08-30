@@ -27,7 +27,7 @@ files:
     sha256: 515eddd9cb2f83dd6792dcdb35a6560dc95beba61d98150770d07e3c76f9c4da
     test_functions: 19
   tests/test_derived_chart_report_validators.py:
-    sha256: e3537a9b7264e2c2017c1c0d38e413fef20a1c7351382ec6d92967e4f956eee9
+    sha256: 06d38bd39fe4870f508b4e28f7042e449221fd4ef4afb70e0e8d56f509c6fc5c
     test_functions: 8
   tests/test_engine_fidelity.py:
     sha256: 013a659e736a05f228c5487678591f904c9262d2c8e3b83eb7e4abc48bc5fb03

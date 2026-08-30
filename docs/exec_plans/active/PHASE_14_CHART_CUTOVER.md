@@ -139,6 +139,34 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
   the rewrite dropped no criterion the previous contract carried) and one on the poker (whether
   "at most one opponent voluntarily invested" is the right line, whether the unconverged four-bet
   continuations should ship, and whether decision 6 still makes sense on the new set).
+- Status, stage 6 (2026-08-27): five lanes, run in three waves because the dependencies are
+  real rather than stylistic. Wave 1 is one lane on the container - `lookup.py`'s two exclusion
+  codes, `schema.py` at version 2 with `BlindStructure`, `arriving_reach_bp`, `arrival_ppb` and
+  the no-limp rule, the importer that reads them, and `preflop_sizing.py` at the per-class
+  shape - because every other lane imports those names and two lanes inventing them
+  concurrently produces two shapes. Wave 2 is one lane on `chart_derivation.py`, the converter,
+  the committed artifact, the sizing table, the deletion of the retired chart and the source
+  card's restamped size block; it is one lane rather than three because the artifact, its
+  sizings and its census come out of one `derive_chart` call the frozen tests read as a unit.
+  Wave 3 is three lanes on disjoint files over the artifact wave 2 committed: L3C the report
+  generator and its four validators, L3D the runtime price draw in `preflop_chart.py` plus
+  phase 08's `comparison.py`, L3E the three other completed-phase gate commands
+  (`generate_preflop_strategy_report.py`, `repo_facts.py`, `vocabulary_report.py`) and the
+  re-measured `CORPUS_REFUSALS` in `table_state/measures.py`.
+- Ownership at stage 6: L1 owns `solver_artifacts/{schema,lookup,importer}.py` and
+  `strategy/preflop_sizing.py`; L2 owns `solver_artifacts/chart_derivation.py`,
+  `scripts/convert_preflop_export.py`, `data/artifacts/preflop/**`; L3C owns
+  `scripts/generate_derived_chart_report.py`; L3D owns `strategy/preflop_chart.py` and
+  `data_pipeline/{comparison,comparison_report}.py`; L3E owns
+  `scripts/generate_preflop_strategy_report.py`, `scripts/repo_facts.py`,
+  `solver_artifacts/{vocabulary_report,vocabulary_measures}.py` and `table_state/measures.py`.
+  The coordinator owns the waves, the integration, the gate, `CURRENT_TASK.yml`, this plan and
+  the review notes, and writes no implementation itself.
+- Operational rules given to every lane: `tests/**`, `verification/mutations.yml` and
+  `verification/freeze.lock` are read-only and outside `approved_scope`; the canary `find`
+  strings in `verification/mutations.yml` are a specification and are written verbatim,
+  indentation included; no lane runs a bare `pytest` or two mutating invocations at once, and
+  `check_scope.py` runs after anything that may apply a mutation.
 - Review handoff: an independent read-only reviewer reads the stage diff against the question
   the driver prints, writes to
   `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-NN-name.md` with the three required

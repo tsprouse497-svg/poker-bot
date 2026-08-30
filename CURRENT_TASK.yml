@@ -4,12 +4,15 @@ task_mode: implementation
 base_commit: 19fdb8d3a5e308b0ecc1cf5c5fcd3406f1fe5976
 approved_scope:
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
+  - tests/test_derived_chart_report_validators.py
+  - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/**
   - src/poker_training_bot/strategy/**
   - src/poker_training_bot/table_state/**
   - src/poker_training_bot/data_pipeline/**
   - scripts/**
   - data/artifacts/preflop/**
+  - docs/CORPUS_COMPARISON_LIMITS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -25,6 +28,44 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-08-27
+    reason: >-
+      RECONSTRUCTED 2026-08-30 after the coordinator ran `git checkout -- CURRENT_TASK.yml` to undo
+      an unrelated edit and destroyed this entry, which was uncommitted working-tree work by the
+      stage-6 build. The text below is verbatim as far as it was captured earlier in that session;
+      the final sentence was truncated mid-clause at "the phase 08 decision record" and its ending
+      is lost. The approved_scope line it justifies, `docs/CORPUS_COMPARISON_LIMITS.md`, is restored
+      with it. Recorded as a reconstruction rather than silently rewritten, because a scope log that
+      cannot be told apart from the real thing is worth less than one with a hole in it.
+      Phase 14 stage 6. `docs/CORPUS_COMPARISON_LIMITS.md` joins approved_scope for one reason:
+      `scripts/repo_facts.py` registers seven present-tense facts about the committed chart and
+      names that document as the live home of five of them, and `run_full_quality_gate` - phase
+      09's gate command, and phase 09 is completed - fails on a document stating a value the
+      fact no longer has. The cutover moves the refusal count, the distinct refused spots, the
+      human call disagreements and the solved opening price, so the document is red the moment
+      the artifact is rebuilt, and the contract's regression expectation is that a completed
+      phase's gate stays verifiable. The alternative was a separate maintenance task between
+      stage 6 commits, which is the MAINT-24 precedent and which would leave the lane's own gate
+      red in the meantime. What is NOT widened, deliberately: the phase 08 decision record
+      [TRUNCATED - remainder lost]
+  - date: 2026-08-30
+    reason: >-
+      Phase 14 stage 6. One frozen test file and the freeze lock return to approved_scope, named
+      as single paths rather than as tests/**, because exactly one helper is wrong and nothing
+      else in the suite may move while it is corrected.
+      `test_a_wrong_artifact_fails_the_command_rather_than_being_rendered[drop-a-spot]` builds its
+      corruption by removing a spot from `spots` and `action_weights` and then asserts that the
+      artifact still imports, but leaves that spot's entries in the two other per-spot maps. Two
+      other frozen tests require the importer to refuse exactly that:
+      tests/test_preflop_artifacts.py wants UNKNOWN_SPOT_WEIGHTS for an arriving_reach_bp key with
+      no declared spot, and tests/test_chart_arrival_probability.py wants a ValueError for an
+      arrival_ppb key with no declared spot. No implementation satisfies all three, so the
+      contradiction is between frozen tests and the helper is the half that is wrong.
+      Taylor ruled on 2026-08-30 that the repair be authored by a subagent given the contract, the
+      two frozen rules and the broken helper and never the implementation, then reviewed read-only
+      by a third agent, so the freeze keeps doing its one job. Returning the lane to stage 4 was
+      rejected as strictly worse: it unfreezes all 35 files for an agent that has read the
+      implementation. base_commit does not move.
   - date: 2026-08-27
     reason: >-
       Phase 14 stage 5. The tests are frozen - 35 files, 892 functions in

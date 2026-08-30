@@ -22,6 +22,11 @@ Every decision also records the position it was taken from. A preflop chart is
 indexed by position before anything else, so a disagreement rate that does not carry
 one names a symptom and hides the cell.
 
+Rebuilding a replayed decision into a query the strategy can answer lives next door in
+`decision_query`, not because it is a small job but because three callers need it and this
+file is at the repo's size cap. The rest of the vocabulary is the same: what a chart
+answered here is what phase 13's measures and the table-state report ask about too.
+
 And every decision records the price the actor faced. The committed chart was solved
 against one opening size; these hands were not played at it. A rate computed across
 both is a rate about a table the chart was never solved for, and saying so is not a
@@ -34,18 +39,22 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
+from poker_training_bot.data_pipeline.decision_query import KIND_TO_ACTION, query_for
 from poker_training_bot.data_pipeline.sample import MACHINE_PLAYER, CommittedSample
 from poker_training_bot.hand_history.replay import DecisionPoint, replay_hand
-from poker_training_bot.hand_history.schema import HistoryActionKind, StreetName
 from poker_training_bot.poker_core.positions import seat_positions
+from poker_training_bot.solver_artifacts.gtopen_config import RULED_CONFIG
+from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES
 from poker_training_bot.solver_artifacts.lookup import ChartMiss
-from poker_training_bot.strategy.contract import (
-    SeatAction,
-    SeatState,
-    StrategyQuery,
-    StrategyRefusal,
-)
+from poker_training_bot.strategy.contract import StrategyRefusal
 from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
+from poker_training_bot.strategy.preflop_sizing import PreflopSizingTable
+
+# The query builder moved to its own module when this file reached its size cap. Two files
+# outside this phase's scope import it from here by its old private name - phase 13's
+# `table_state/measures.py` and `scripts/generate_table_state_report.py` - so the name stays
+# reachable rather than editing files this lane does not own to chase a move.
+_query_for = query_for
 
 AGREE = "agree"
 DISAGREE = "disagree"
@@ -57,14 +66,6 @@ POPULATIONS = (MACHINE_PLAYER, HUMAN_POPULATION)
 SELF_PLAY_INVENTORY = (
     Path(__file__).resolve().parents[3] / "reports" / "active" / "latest_refusal_inventory.txt"
 )
-
-_KIND_TO_ACTION = {
-    HistoryActionKind.FOLD: "fold",
-    HistoryActionKind.CHECK: "check",
-    HistoryActionKind.CALL: "call",
-    HistoryActionKind.BET: "bet",
-    HistoryActionKind.RAISE: "raise",
-}
 
 # Reported in table order rather than sorted, so a reader walks the ring the way the
 # chart is indexed: earliest voluntary actor first, blinds last.
@@ -81,7 +82,52 @@ PRICE_BANDS = (
     ("2.26 to 2.50bb", 2.50),
     ("over 2.50bb", None),
 )
-OPEN_SIZE_SPOTS = ("t6/d100/LJ/rfi", "t6/d100/SB/rfi")
+# Every seat the committed chart holds an opening range for. One, since the cutover: the
+# small blind is the only seat with a single opponent behind it, so it is the only opening
+# spot the ruled predicate keeps. `t6/d100/LJ/rfi` was here and is retired, which is the
+# ruled cost paid rather than worked around - a report cannot grade against a seat the chart
+# no longer opens from, and reading one out by name is how this section broke.
+OPEN_SIZE_SPOTS = ("t6/d100/SB/rfi",)
+
+
+def named_open_prices_bb(
+    sizing: PreflopSizingTable, spots: tuple[str, ...] = OPEN_SIZE_SPOTS
+) -> tuple[tuple[str, float], ...]:
+    """The price the solved tree assumes an open arrives at, per seat that opens.
+
+    Not the price the bot opens to. Those parted company on 2026-08-26, when decision 6's
+    sizing table moved to every price a spot offers a hand class: the small blind's open
+    offers 2.5 and a 100bb shove, hero picks between them per hand with a seeded draw, and
+    `amount_bb` answers None at any class holding both - so the pair this report is built on
+    cannot come from there any more, and built from there it comes back empty and the price
+    section formats a None.
+
+    What the report grades against is the price an OPPONENT'S open comes in at, which is the
+    number both price-band boundaries are drawn from and the number every committed spot key
+    facing a single open is written at. That is the named price: the one strictly below the
+    ruled stack. A shove is a stack rather than a solved bet size, and grading a corpus of
+    2.25bb opens against 100 would report the sample as universally cheap and say nothing.
+
+    Gathered across all 169 classes because the entry sits under the class. No single class
+    can be asked on the spot's behalf: at the small blind's open six classes carry any of the
+    shove and aces carry none of it, so aces alone would report a menu the spot does not have.
+
+    A spot whose classes name more than one price below the stack is dropped rather than
+    picked between. There is no "the" price to grade against then, and dropping is the
+    fail-closed direction: the price section loses its graded row and the frozen test pinning
+    this mapping goes red, where a guess here would publish a rate under a price nobody chose.
+    """
+    priced: list[tuple[str, float]] = []
+    for spot in spots:
+        named = {
+            to_bb
+            for hand_class_text in HAND_CLASSES
+            for to_bb, _ in sizing.sizes_bb(spot, hand_class_text) or ()
+            if to_bb < float(RULED_CONFIG["stack"])
+        }
+        if len(named) == 1:
+            priced.append((spot.rsplit("/", 2)[1], named.pop()))
+    return tuple(priced)
 
 
 @dataclass(frozen=True)
@@ -322,75 +368,25 @@ def _self_play_spots() -> frozenset[str]:
     return frozenset(spots)
 
 
-def _query_for(point: DecisionPoint, hole_cards: tuple[str, str]) -> StrategyQuery | None:
-    """Rebuild the decision context the acting seat faced, or None if it is not one.
+def compare_committed_sample(
+    sample: CommittedSample, strategy: PreflopChartStrategy | None = None
+) -> ComparisonResult:
+    """Score every preflop decision in the committed sample against a chart.
 
-    Everything but the hole cards comes from the replayer's own turn state, so the
-    query describes the hand as the frozen Phase 02 replayer understands it rather
-    than as this module re-derives it.
+    The chart is a parameter with the committed one as its default, and the default is what
+    every gate command and every frozen test uses. What the parameter is for is the cutover's
+    own evidence: the same comparison has to run against the RETIRED chart, read out of git
+    history rather than out of `data/`, so that "the refusal rate rose" is a measurement over
+    one corpus and one comparison rather than two runs of different code a reader has to
+    trust agree. Passing a strategy in is the only way to get that without a second copy of
+    this function, and a second copy is how the two numbers would drift.
+
+    Pure in its arguments, which the report's byte-equality test relies on: nothing here
+    reads a clock, a random source or an environment, and the one file read that is not the
+    sample - the self-play inventory - is committed and raises rather than defaults.
     """
-    if point.street is not StreetName.PREFLOP:
-        return None
-    if point.action.kind is HistoryActionKind.POST_BLIND:
-        return None
-    state = point.turn.round
-    hero = state.player(point.seat)
-    seated = sorted(state.players, key=lambda player: player.seat)
-    stacks = tuple((player.seat, player.stack) for player in seated)
-    legal = tuple(kind.value for kind in point.legal_actions)
-    seen: list[SeatAction] = []
-    for action in point.hand.streets[0].actions:
-        if action.kind is HistoryActionKind.POST_BLIND:
-            continue
-        if action is point.action:
-            break
-        # A raise carries its raise-to target, which is what `HistoryAction.amount`
-        # already holds for a raise; every other kind carries nothing. Without it the
-        # chart cannot tell a 2.25bb open from the 2.5bb one it was solved against,
-        # which is the whole of `RAISE-SIZE-IN-SPOT-KEY`.
-        raised = action.kind is HistoryActionKind.RAISE
-        seen.append(
-            SeatAction(
-                action.seat,
-                _KIND_TO_ACTION[action.kind],
-                action.amount if raised else None,
-            )
-        )
-    return StrategyQuery(
-        hand_id=point.hand.hand_id,
-        street="preflop",
-        seat=point.seat,
-        button_seat=point.hand.button_seat,
-        hole_cards=hole_cards,
-        board=(),
-        legal_actions=legal,
-        # The price hero can actually pay, capped at what hero holds.
-        to_call=min(max(0, state.current_bet - hero.street_bet), hero.stack),
-        # The street's bet level. What hero itself put in is carried on hero's own seat
-        # record below and read from there, never worked back out of the level and the
-        # capped price. Every per-seat figure is `PlayerState`'s own, under the engine's
-        # own four names, so the replayed hand is reported rather than reconstructed.
-        current_bet=state.current_bet,
-        min_raise_target=state.current_bet + state.min_raise,
-        pot=sum(player.committed_total for player in seated),
-        stacks=stacks,
-        seat_states=tuple(
-            SeatState(
-                seat=player.seat,
-                street_bet=player.street_bet,
-                committed_total=player.committed_total,
-                folded=player.folded,
-                all_in=player.all_in,
-            )
-            for player in seated
-        ),
-        blinds=(point.hand.blinds.small_blind, point.hand.blinds.big_blind),
-        preflop_actions=tuple(seen),
-    )
-
-
-def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
-    strategy = PreflopChartStrategy.from_repo()
+    if strategy is None:
+        strategy = PreflopChartStrategy.from_repo()
     self_play = _self_play_spots()
     rows: list[ComparisonRow] = []
 
@@ -405,10 +401,10 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
         )
 
         def collect(point: DecisionPoint, names=names, cards=cards, positions=positions) -> None:
-            query = _query_for(point, cards[point.seat])
+            query = query_for(point, cards[point.seat])
             if query is None:
                 return
-            observed = _KIND_TO_ACTION[point.action.kind]
+            observed = KIND_TO_ACTION[point.action.kind]
             outcome = strategy.weights_for(query)
             found = strategy.chart_lookup(query)
             asked_spot_key = None if found is None else found.spot_key
@@ -485,9 +481,5 @@ def compare_committed_sample(sample: CommittedSample) -> ComparisonResult:
         hands_compared=len(sample.records),
         hands_excluded=len(sample.exclusions),
         chart_source=strategy.library.artifacts[0].source.name,
-        solved_open_bb=tuple(
-            (spot.rsplit("/", 2)[1], strategy.sizing.amount_bb(spot))
-            for spot in OPEN_SIZE_SPOTS
-            if strategy.sizing.amount_bb(spot) is not None
-        ),
+        solved_open_bb=named_open_prices_bb(strategy.sizing),
     )

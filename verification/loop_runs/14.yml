@@ -1,6 +1,11 @@
 auto_advance: false
-loop: running
+halt_reason: 'Taylor ruled 2026-08-30 to adopt add_allin=false and re-source phase
+  14. The stage-6 build is superseded, not advanced: RULED_CONFIG''s add_allin and
+  SOLVE_TARGET_GAP_BB are both frozen-into-data, so the amendment is a contract-update
+  task, and the census moving off 38,828 invalidates 26 assertion sites across six
+  frozen test files. Waiting on the ruled solve target before the export is regenerated.'
+loop: halted
 phase_id: '14'
 schema_version: 1
-stage: 5
-stage_base: 8358cd790f70dabf0e1a9ebfb98a0cabd06e0976
+stage: 6
+stage_base: 294a2b86bb930760425b45454f1c8e08d7b92210

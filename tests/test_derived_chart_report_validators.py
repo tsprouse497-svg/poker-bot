@@ -275,7 +275,15 @@ def corrupted_artifact(tmp_path: Path, how: str) -> Path:
     if how == "drop-a-spot":
         dropped = payload["spots"][0]["spot_id"]
         payload["spots"] = [spot for spot in payload["spots"] if spot["spot_id"] != dropped]
+        # Every per-spot map has to lose the spot as well, or the importer refuses the file
+        # for its own reason and no validator here is ever reached. The forms differ because
+        # the density rules do: `action_weights` and `arriving_reach_bp` owe an entry for
+        # every declared spot, so a missing key is a broken assumption worth raising, while
+        # `arrival_ppb` need only be a subset of `spots` in `spots` order and a spot may
+        # legitimately have no entry at all.
         del payload["action_weights"][dropped]
+        del payload["arriving_reach_bp"][dropped]
+        payload["arrival_ppb"].pop(dropped, None)
         payload["audit_fields"]["spot_count"] = len(payload["spots"])
     else:
         # A spot the predicate excludes, made to look committed: the lojack's own open, one of
