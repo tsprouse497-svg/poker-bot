@@ -2,7 +2,7 @@
 
 Project: `poker-training-bot`
 Current task: `PHASE_14_CHART_CUTOVER`
-Task mode: `implementation`
+Task mode: `contract-update`
 Active phase: `14`
 Completed phases: `14`
 

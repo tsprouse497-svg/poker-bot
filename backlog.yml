@@ -3198,6 +3198,127 @@ items:
       class arrives, with the row shape used only as corroboration where the menu is wide enough
       for 1/n not to be a frequency trained play lands on.
 
+  - id: REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH
+    status: open
+    phase: source
+    title: GTOpen's calibrated realization table ranks 76s above JJ, and the preflop chart inherits it
+    reason: >-
+      Root cause of every poker defect phase 14's stage-1 reviews found, located 2026-08-30 by
+      reading GTOpen at pinned commit 4aee435. It is not a config error and not a solver bug: the
+      solver runs correct CFR over a payoff function that is wrong.
+      With realization "calibrated", every postflop terminal is priced pot x equity x R, where R
+      comes from class_base in cache/realization_fit.json - 169 numbers, one per hand class,
+      constant across the whole tree. Measured values: 76s 1.1333, JTs 1.0641, KK 1.0473, 87s
+      1.0162, 22 0.9102, QQ 0.8556, JJ 0.7493, TT 0.7196, 99 0.7196. So the table assigns 76s
+      better equity realization than JJ, TT, 99, QQ and KK, and 22 better than every pair from 33
+      through JJ. Mean pair base 0.8398 against mean connector base 0.9539.
+      Every chart inversion the reviews found is present in the table as an inversion of the table
+      itself: J6s 0.5880 under J5s 0.8105, T6s 0.5847 under T5s 0.7601, Q7s 0.7280 under Q6s
+      0.7899, and 22 over 33/44/55. And the causal link is direct - sorting the four-bet node
+      t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5 by class_base sorts the fold decision:
+      hands that continue have mean R 1.0129, hands that fold 0.7918, and 76s is the
+      second-highest-R hand at that node, above KK. Folding JJ and calling 76s is the rational
+      response to that input.
+      Why the table is like that, from its own fitter (m5_spots/fit_phase_c.py) and meta block:
+      r2 is 0.1885 over 153,321 observations, and "equity itself still deliberately excluded as a
+      model input", so nothing makes it monotone in hand strength structurally. Monotonicity is
+      instead patched along a hand-picked list - "weighted-PAVA domination chains (broadway aces,
+      K/Q kickers, suited>=offsuit; wheel aces unchained)" - and the ladders off that list are
+      exactly where it inverts: J kickers, T kickers, and pairs against connectors.
+      Secondary, and not the cause of the inversion: the fit carries SPR coefficients (spr_edges
+      [2.5, 5.0, 8.0, 13.0, 22.0], b_spr [0.0, -0.228, -0.047, +0.121, +0.155, -0.0003]) that the
+      engine path discards. crates/solver/src/preflop/mod.rs:1137 calls class_r(k, pos_weight) at
+      :344, which is class_base[k] * pos_weight and nothing else; the full model seat_mult at :328
+      is marked "KEPT FOR ANALYSIS ONLY" because initiative and range-equity feed back
+      pathologically. SPR was dropped with them although it is not an equilibrium correlate in the
+      same way, so one realization number serves a four-bet pot at SPR 1.6 and a single-raised pot
+      at SPR 15. That term is class-independent, so it changes the level rather than the ordering.
+      What would fix it: extend the PAVA chains to cover pairs and the remaining kicker ladders, or
+      make equity a model input so monotonicity is structural rather than patched. Either is work
+      on the table and its fitter, not on postflop solving. Until then no preflop chart derived
+      from this source should be committed as a training artifact, because the ranges are a faithful
+      solve of a payoff function that is wrong in a way a human drilling them would learn.
+
+  - id: LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART
+    status: open
+    phase: tooling
+    title: check_stage_review tests that a note exists, not that it covers this run
+    reason: >-
+      Found when phase 14 was returned from stage 6 to stage 1 to re-source its solve. The driver
+      reported "this stage's checks pass" for the whole contract-update, because
+      loop_stage.check_stage_review only asks whether
+      reports/phase_audits/reviews/<PHASE>/stage-NN-name.md exists and parses, and the first
+      cutover's stage-01 note already did. On a restart every stage from 1 to 5 already carries a
+      note, so a whole re-run would advance without one fresh review - which is the opposite of what
+      the per-stage review rule exists for. The note only started holding the stage once a second
+      round with open blockers was appended by hand. A fix needs the check to compare the note
+      against the current stage_base rather than against the filesystem: a note whose newest round
+      predates stage_base is a note about a different diff.
+
+  - id: DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE
+    status: open
+    phase: tooling
+    title: Nothing detects a frozen-into-data ruling whose stated measurement no longer holds
+    reason: >-
+      Phase 14's re-source invalidated the premises of four items in its own decision record.
+      Decisions 2 and 10 both rest on the lojack opening 44 at 72.81 percent, and the lojack opening
+      range is not in the committed chart at all; decision 9's pre-registered magnitude bands were
+      computed on the superseded export; decision 11 rules the conclusion off a rate decision 15
+      then discredited. Two of the four were amended because the coordinator remembered; the other
+      two were found by a reviewer. The only mechanism is memory. check_repo_consistency already
+      finds stale generated docs by comparing them to their source - a decision item that quotes a
+      figure from a superseded artifact should be discoverable the same way, or at minimum an item
+      should be able to name the artifact its measurement came from so a checksum change can flag it.
+
+  - id: DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES
+    status: open
+    phase: tooling
+    title: "\"Decision N\" collides between phases in contract and packet prose"
+    reason: >-
+      Phase 14's contract references phase 10's decision 3 (the solve target) and phase 10's
+      decision 6 alongside phase 14's own decisions 3 (the realization model) and 6 (the action-kind
+      collapse). All four are disambiguated only by surrounding prose. Every instance is currently
+      clear, but the collision is structural and gets worse as later phases supersede earlier
+      rulings - which phase 14 has now done to phase 10 twice. A convention like `P10-D3` costs
+      nothing and is checkable.
+
+  - id: PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP
+    status: open
+    phase: "14"
+    title: The contract sits at exactly 300 of 300 lines after a rewrite that already cut rationale
+    reason: >-
+      AGENTS.md caps a phase contract at 300 lines and prescribes, for a contract that reaches the
+      cap, a rewrite folding its amendments into the criteria they amend. Phase 14 ran that rewrite
+      on 2026-08-30: it folded the 2026-08-24 and 2026-08-25 supersessions into a single statement
+      of the predicate, restated every figure on the re-sourced solve, and deliberately cut
+      rationale that duplicates the decision record and backlog. It still lands at exactly 300, and
+      landed there twice - headroom opened by compression was consumed by the corrections a review
+      then required. That is a signal about the cap or about how much this phase is carrying, not a
+      writing problem, and shaving words is not the answer a third time. Either the phase is too
+      large for one contract, or a contract's evidence prose belongs somewhere the cap does not
+      reach and the criteria alone are capped.
+
+  - id: AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART
+    status: open
+    phase: charts
+    title: The permissive corpus agreement rate scores menu width, not play quality
+    reason: >-
+      Found while re-sourcing phase 14 with `add_allin: false`, by scoring the same corpus against
+      the superseded chart and the re-sourced one. Agreement is defined as the chart giving the
+      observed action nonzero weight, so a cell with every action nonzero cannot disagree with
+      anything. The superseded chart had 1,669 of 3,985 cells in exactly that state - all three
+      actions live - and averaged 2.209 nonzero actions per cell at 21.0 percent pure. The
+      re-sourced chart averages 1.323 at 73.0 percent pure. So the permissive rate FELL when the
+      chart got better: Pluribus 94.4 to 70.4, humans 89.3 to 73.1. The strict sampled-action rate,
+      which asks whether the drawn action matched, barely moved: 70.8 to 66.2 and 69.8 to 68.5.
+      The gap between the two rates is the diagnostic - 23.6 points on the unconverged chart, 4.2
+      on the converged one - and it is a cheap convergence signal the repo does not currently
+      compute. The rate is not wrong, it is incomplete: it answers "could the chart have played
+      this" rather than "would it have". Every use of it must carry the strict rate and a purity
+      statistic beside it, and CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT cannot be settled on the
+      permissive rate alone. A report printing the permissive fall by itself states the reverse of
+      the truth about what the re-source did.
+
   - id: SOURCE-PRICES-THE-JAM-EXACTLY-AND-EVERY-RAISE-THROUGH-A-MODEL
     status: deferred
     phase: charts

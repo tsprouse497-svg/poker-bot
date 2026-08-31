@@ -388,6 +388,15 @@ beyond the marginal cells moved, that is a human read of the grids rather than a
 report. The contract's Scope is amended in the same task to permit a re-solve at the ruled config
 and nothing else - not a second opening price, not limps, not another depth.
 
+**Superseded in its premise on 2026-08-30, by decision 14.** This item ruled ship-as-solved on the
+lojack opening 44 at 72.81 percent. **The lojack opening range is not in the committed 51** - the
+re-sourced artifact holds exactly one spot with an empty action sequence, `t6/d100/SB/rfi`, and no
+non-blind opening range at all. So the pair this item was ruled about is not in the shipped chart and
+its ruling now decides nothing. The contract accordingly reopens
+`SOLVE-TARGET-LEAVES-A-NONMONOTONE-PAIR` rather than closing it here, and the measurement is retaken
+on whatever non-monotone pairs the re-sourced chart actually contains. Taylor is told the premise
+evaporated rather than asked to re-rule a spot that no longer ships.
+
 ## 3. What is done about the realization model underpricing position
 
 Reversibility: frozen-into-data
@@ -419,6 +428,13 @@ candidate explanation it cannot separate, which is what stops a residual gap bei
 or as a defect. Rejected: a stated adjustment, which puts a human-authored number inside a file
 whose whole value is that it reproduces from the export; and solving elsewhere, which is a new
 capture and a new human verdict.
+
+**Re-measured on the re-sourced solve, 2026-08-30, per decision 14.** The ruling stands and so does
+the effect: against a 2.5bb small-blind open the big blind now folds **51.61 percent** where it
+folded 50.98 before, from a small blind opening **54.30 percent** where it opened 54.09. Removing
+`add_allin` did not touch the realization bias, which is the expected result - the bias is in how
+flops are priced, not in which raises are offered - and it is recorded here so the source card's
+number is the one this phase measured rather than the one it inherited.
 
 ## 4. Whether the artifact declares its blind structure
 
@@ -579,6 +595,31 @@ binding constraint; the 20 MB artifact cap downstream is. That is phase-10-shape
 own human verdict on the ranges, and it is what `CHART-CANNOT-EXPRESS-TWO-RAISE-SIZES-AT-ONE-SPOT`
 becomes once the schema half lands.
 
+**Restated a third time on 2026-08-30, and this time the premise is gone entirely.** Decision 14
+re-sourced the solve with `add_allin: false`, which removes the jam everywhere it was offered
+without reference to the pot. Measured over the 51 spots this phase now commits: **no spot offers
+both a named raise and a jam.** Twenty-one offer a named raise only, fifteen offer a jam only - all
+fifteen being five-bet spots, where the 3.0 multiplier puts the raise at 67.5bb and
+`allin_threshold` snaps it to the stack - and fifteen more offer no raise at all. The shove is 18.6
+percent of hero's aggressive volume across the committed set when that is measured combo-weighted -
+but never as an alternative to a named price at the same spot.
+
+The 18.6 figure is stated with its definition because it is **not** like-for-like with the 60.6 and
+5.0 above, both of which this item defines as shares of hero's *reach-weighted* aggressive volume.
+Measured that way the shove is **13.7 percent**; an independent measurement under a slightly
+different reach normalisation got 12.1. The three numbers must not be read as a trend.
+
+So the 60.6 percent that the 2026-08-24 extension was ruled on, and the 5.0 percent it was restated
+to, are both properties of trees this phase no longer ships. **The multi-size schema is retained and
+is now entirely unexercised by the committed data.** It is retained because it costs nothing,
+because the multiway family that returns later is where the case for it lived, and because reverting
+it would be a schema change made to fit a temporary dataset. But the contract must say so plainly:
+a test asserting that a spot offering two prices is described by two prices **passes vacuously over
+this artifact**, and a phase that lets such a test stand unlabelled has a check that cannot fail.
+That is the honest cost of keeping the schema, and it is recorded rather than left for a later
+reader to discover. Taylor is told the premise is gone; reverting to one price per spot remains his
+call and nothing here forecloses it.
+
 ## 7. Where the old-versus-new comparison reads the retired chart from
 
 Reversibility: runtime-reversible
@@ -652,6 +693,16 @@ agreement is predicted to move by +1.16 to +4.65 points against the lojack, +0.9
 the hijack, +0.66 to +2.64 against the cutoff, +1.54 to +6.14 against the small blind, and to
 *worsen* by 0.67 to 2.67 against the button. Recorded here before the measurement runs, which is
 the whole point of the item. A miss in either direction is a result and the report states which.
+
+**The ruled bands are void as stated, 2026-08-30, and must be re-registered before the measurement
+runs.** Every band above is a quarter to one times an opener's defence delta computed on the
+superseded export, and decision 14 moved every one of those deltas. A pre-registration whose numbers
+were fixed against data the phase no longer ships is not a pre-registration; leaving it in place
+would let the closing measurement be read against whichever set of bands happened to suit it, which
+is the exact failure this item was written to prevent. **The form of the ruling stands** - per
+opener, a quarter to one times that opener's defence delta, written down before the numbers are
+seen - and only the arithmetic is redone. The re-registration happens against the re-sourced export
+and before the closing measurement is run, not after.
 
 ## 10. What counts as a monotonicity violation, and at what tolerance
 
@@ -732,6 +783,13 @@ indifference argument covers it, but nobody has read those grids. And it makes
 `NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL` sharper, because one more property
 moves from gated to printed.
 
+**Premise superseded on 2026-08-30, same cause as decision 2.** The violation rule and its one-point
+tolerance were tuned so that exactly one violation survived at the lojack's 44-versus-33 pair. That
+pair is in no committed spot, because the lojack opening range is not in the 51. The tolerance is
+therefore calibrated against data this phase does not ship and must be re-derived from the
+re-sourced chart before it is frozen - which is also what the contract's requirement to re-measure
+the aggregate gate over the 51 before freezing it demands.
+
 ## 11. Which rate the closing conclusion is read off
 
 Reversibility: runtime-reversible
@@ -748,6 +806,15 @@ between the two directions is called out, since a chart that got more mixed woul
 
 Reversible because it is which of two published numbers a paragraph cites. The backlog entry asks
 for the general rule, which is not this phase's to write.
+
+**Superseded by decision 15, 2026-08-30.** This item ruled that the conclusion is read off the
+agreement rate, meaning the permissive one. Decision 15 then established that the permissive rate
+was substantially measuring menu width and fell 24.0 and 16.2 points as the chart improved. Both
+rulings standing together would have a report print the strict rate beside the permissive one and
+then read its conclusion off the permissive one, which is precisely what the contract calls stating
+the reverse of the truth. **The conclusion is read off the strict sampled-action rate, with the
+permissive rate and the cell-purity statistic printed beside it as context.** Recorded here rather
+than only in decision 15 so that this item cannot be cited on its own.
 
 ## 12. How the limped-decision-point count is defined
 
@@ -770,3 +837,191 @@ The sizing table is 1,974 bytes for 36 spots today and scales with whatever deci
 Default: one file, matching the artifact, because it is small and because splitting it would need
 its own composition rule where the chart library already has one for artifacts. Revisit only if
 the selected spot count makes it large enough to matter, which at the measured rate it will not.
+
+## 14. Whether the solve is re-sourced with `add_allin: false`
+
+Reversibility: frozen-into-data
+
+Added 2026-08-30, after the phase reached stage 6 and its build was rejected on the poker. This
+item supersedes **phase 10's decisions 2 and 3 for this phase**, which fixed the config verbatim
+with `add_allin: true` and set a 0.01 bb target at a 2,000-iteration cap. Phase 10 is completed and
+its decision record is left exactly as written; a packet is a snapshot of what a phase believed,
+and the correction belongs here rather than inside it.
+
+**What was found.** Two independent stage-6 reviewers, one mechanical and one on the poker, found
+the committed chart stacking off 100bb with a range inverted against hand strength. At
+`t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5` aces never jammed and 44 jammed at 1.0; at
+`t6/d100/BB/BTN:raise@2.5` aces three-bet to 7.5 and never jammed while AKo jammed 0.66. Across the
+36 spots where any hand could jam, aces jammed 0.000 at five spots where 44 jammed up to 0.979, and
+those five arrive in 24.0 percent of hands.
+
+**The mechanism, read out of the solver rather than inferred.** In
+`crates/solver/src/preflop/mod.rs:2204`, `add_allin: true` pushes `cfg.stack` onto the raise menu at
+every node where a raise is legal, with no reference to the pot, which is how the big blind comes to
+shove 100 to win 4. The separate `allin_threshold` at `:2219` only snaps a raise already landing at
+or above 67bb up to the stack. The units were checked rather than assumed: the percent-valued
+threshold documented on `SpotRequest` is the postflop endpoint, while `/api/preflop/spot`
+deserialises into `PreflopConfig`, whose validator at `:2115` requires `(0, 1]`. The ruled 0.67 is
+correct and means 67 percent.
+
+**Convergence, tree-summed best-response gap in bb.** Committed solve 0.0062379 at iteration 300 of
+2,000, having stopped early on beating the 0.01 target. With the flag on at the full cap, 0.0020266.
+At 10,000 iterations, 0.0018446 - nine percent better for five times the work, with the bad cell
+bit-identical, so the defect is structural rather than unconverged noise. With `add_allin: false` at
+the cap, **0.00015591 at iteration 1,900**, roughly forty times better than the committed solve.
+
+Options: keep-add-allin-and-run-the-full-cap | re-source-with-add-allin-false | exclude-jam-spots
+Answer: [re-source-with-add-allin-false]
+
+**Ruled by Taylor, 2026-08-30: re-source with `add_allin: false` and restart the phase.** Rejected:
+running the full cap with the flag on, which the 10,000-iteration diagnostic refutes; and excluding
+the jam-bearing spots, which would treat a source defect as a coverage decision and would drop
+genuine five-bet spots along with the artefacts.
+
+**The solve target becomes `0.00016` at the same 2,000-iteration cap.** The number is chosen against
+the measured trajectory rather than picked for roundness: the run first meets it at iteration 1,900
+of 2,000, so the cap very nearly binds and the phase does not stop early the way the committed solve
+did at iteration 300. That is the whole justification and it is worth stating what is *not* part of
+it, because an earlier draft of this item got it wrong twice.
+
+First, this item previously said "0.00015 is never reached". That is not supported by anything
+measured. The run terminated at iteration 1,900 on meeting the 0.00016 target, so the trajectory
+over iterations 1,901 to 2,000 was never observed; `status.json` records `iteration: 1900` and
+nothing beyond it. A lower target might or might not be reached inside the cap, and this phase does
+not know which.
+
+Second, it cited `tests/test_chart_cutover_evidence.py:652` - `achieved_gap_bb < target_gap_bb` - as
+a frozen assertion the target choice keeps true. The line does stay true, but the citation was
+misleading and is withdrawn. That assertion sits inside
+`test_the_committed_solve_is_the_one_phase_ten_captured_and_no_re_solve_replaced_it`, whose other
+assertions pin `iterations == 300` and both checksums against the superseded export. The test exists,
+in its own docstring's words, to make a silent re-solve loud - so it is *designed* to fail on exactly
+what decision 14 rules. It failing is the canary working, not a constraint on the target, and it must
+be migrated at stage 4 under the contract's regression expectation. Nothing about the target choice
+depends on it.
+
+**What the re-source did and did not fix, measured.** The tree goes from 38,828 action nodes to
+33,969, and the predicate selects 51 rather than 86 - a strict subset, 35 lost and none gained, all
+35 of them all-in-facing spots that existed only because opponents jammed at arbitrary nodes. The
+inversion is gone: 15 spots still offer a 100bb jam and every one is a five-bet spot, with AA taking
+it at weight 1.000 at all fifteen and no spot where a low pair jams and aces do not. Five-bet jams
+survive exactly as the code predicts, because the 3.0 multiplier puts a five-bet at 67.5bb and the
+threshold snaps it.
+
+**What the re-source did NOT fix, and the stage-6 note is wrong about one of them.** That note marks
+blocker B2 `[resolved]` on the reasoning that the four-bet-facing spots it named were re-solved. They
+were, and the defect survived: at `HJ/LJ`, `BTN/LJ` and `CO/HJ` four-bet lines, JJ, TT, 99 and 88 all
+continue at **0.000** while 76s, 87s and JTs continue at **1.000**, pure folds of jacks beside pure
+calls of 76 suited, at full reach. **B2 is not resolved and the note's `[resolved]` mark is false.**
+It is committed at `a386c77` and stays as written, because a packet is a snapshot of what a phase
+believed; this is the correction.
+
+Also unfixed. `BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT`, re-measured rather than assumed, still
+holds at a 19.63 to 22.44 percent flat band against openers 6.07 to 28.09 wide. Strict rank
+dominance did not improve: the same relation over the same 51 spots gives **54 inversions on the
+re-sourced chart against 52 on the superseded one**, with pure 0-versus-1 flips between adjacent
+kickers (`J6s` 0.000 beside `J5s` 1.000, `Q7s` 0.000 beside `Q6s` 1.000). And the jam *composition*
+is still inverted even though the headline check passes: at
+`SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5` the five-bet range is AA at 1.000 and **87s at 0.995**
+while KK, QQ and AKs all flat and AKo folds 0.782.
+
+The check this item's ruling was verified against - no spot where a low pair jams and aces do not -
+passes, and is too narrow to have caught any of that. It is kept as a regression canary and is not
+evidence that the ranges are sound.
+
+## 15. How the corpus agreement rate is reported after the re-source
+
+Reversibility: runtime-reversible
+
+Added 2026-08-30. Scoring the same corpus against both charts showed the permissive agreement rate
+**falling** as the chart improved - Pluribus 94.4 to 70.4, humans 89.3 to 73.1 - while the strict
+sampled-action rate barely moved, 70.8 to 66.2 and 69.8 to 68.5.
+
+The cause is the definition. Agreement means the chart gives the observed action nonzero weight, so
+a cell with every action nonzero cannot disagree with anything. Over the 51 spots both charts share,
+the superseded chart held 1,669 of 3,985 cells in that state, averaging 2.209 nonzero actions per
+cell at 21.0 percent pure; the re-sourced chart averages 1.323 at 73.0 percent pure. The old rate
+was substantially measuring menu width.
+
+Default: **the permissive rate is never published alone.** The report prints the strict
+sampled-action rate and the cell-purity statistic beside it, and states that the fall is what a
+converged chart looks like rather than a regression. Filed as
+`AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART`.
+
+Runtime-reversible because it changes what a report prints rather than what the artifact holds, so
+it proceeds on this default and is reported afterwards. It does bear on a frozen-into-data question
+this phase must still answer - whether `CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT` closes - and the
+contract now requires that entry to be restated against the strict rate rather than the permissive
+one.
+
+## 16. Whether the phase ships a chart derived from this source at all
+
+Reversibility: frozen-into-data
+
+Added 2026-08-30, after the stage-1 reviews of the re-sourced contract. This item exists because the
+re-source succeeded at what it was ruled to do and the chart was still not fit to ship, which is a
+different question from any this record had asked.
+
+**What the re-source fixed, and what it did not.** Decision 14 removed `add_allin`, and the defect it
+was ruled against is gone: no committed spot jams where aces do not, the 15 surviving jams are all
+genuine five-bet spots, and convergence improved roughly forty-fold. What survived, all re-measured
+by the coordinator rather than taken on a reviewer's report: at the `HJ/LJ`, `BTN/LJ` and `CO/HJ`
+four-bet lines, JJ, TT, 99 and 88 continue at **0.000** while 76s, 87s and JTs continue at **1.000**;
+strict rank dominance did not improve, at **54 inversions against the superseded chart's 52 over the
+same 51 spots**; and the five-bet composition is inverted, with 87s jamming 0.995 at
+`SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5` while KK, QQ and AKs flat and AKo folds 0.782.
+
+**The cause was then found, and it is neither the solver nor the config.** Read out of GTOpen at
+pinned commit `4aee435`. Under `realization: "calibrated"` every postflop terminal is priced
+`pot x equity x R`, with `R` taken from `class_base` in `cache/realization_fit.json`: 169 numbers,
+one per hand class, constant across the entire tree. The table assigns **76s 1.1333, JTs 1.0641,
+KK 1.0473, 87s 1.0162, 22 0.9102, QQ 0.8556, JJ 0.7493, TT 0.7196, 99 0.7196**. So it rates 76s a
+better realizer than JJ, TT, 99, QQ and KK, and 22 better than every pair from 33 through JJ. Mean
+pair base 0.8398 against mean connector base 0.9539.
+
+**The link is causal, not circumstantial.** Sorting the four-bet node by `class_base` sorts the fold
+decision: continuing hands have mean `R` 1.0129 and folding hands 0.7918, and 76s is the
+second-highest-`R` hand at that node, above KK. Every inversion the reviews found in the chart is
+present in the table as an inversion of the table - J6s 0.5880 under J5s 0.8105, T6s 0.5847 under
+T5s 0.7601, Q7s 0.7280 under Q6s 0.7899, 22 over 33/44/55. **The chart is a correct CFR solve of a
+payoff function that is wrong**, and folding jacks to a four-bet while calling 76 suited is the
+rational response to that input.
+
+**Why the table is like that, from its own fitter.** `m5_spots/fit_phase_c.py` and the table's meta
+block: `r2` is **0.1885** over 153,321 observations, and "equity itself still deliberately excluded
+as a model input", so nothing makes the table monotone in hand strength structurally. Monotonicity
+is patched along a hand-picked list instead - "weighted-PAVA domination chains (broadway aces, K/Q
+kickers, suited>=offsuit; wheel aces unchained)" - and the ladders off that list are exactly where it
+inverts: J kickers, T kickers, and pairs against connectors. Filed as
+`REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH` with the secondary finding that the engine
+path also discards the fit's own SPR coefficients.
+
+Options: ship-as-solved | ship-flagged-not-for-study | halt-and-fix-the-source
+Answer: [halt-and-fix-the-source]
+
+**Ruled by Taylor, 2026-08-30: halt phase 14 and fix the source.** The chart is not committed. The
+bot keeps playing the retired raked `six_max_nl25_100bb.json` until a source exists whose postflop
+pricing is monotone in hand strength.
+
+Rejected, and the reasons are worth keeping. **Ship-as-solved** was the standing disposition for
+each of these findings taken separately - decision 2 ruled the non-monotone pair ship-as-solved,
+decision 6 ruled the four-bet continuations ship-as-solved, decision 3 accepted the realization bias
+onto the source card - and it does not survive them being traced to one cause with a measurement.
+Those rulings were made on spot-level aggregates and single examples, before any measurement over a
+shipped set existed; what is now on the table is an `r2` of 0.19 with known, only-partially-patched
+monotonicity failures, proposed as the reference every later phase is measured against.
+**Ship-flagged-not-for-study** was rejected as the worse of the two ship options rather than a
+compromise: it commits the ranges anyway, and an artifact whose own flag says do not study it is a
+training chart that cannot be used for training.
+
+**What this does not invalidate.** Decision 14 stands: `add_allin: false` fixed a real defect and
+`SOLVE_TARGET_GAP_BB` stays at the ruled `0.00016`, so a later re-source starts from the corrected
+config rather than rediscovering it. The derivation pipeline is proven end-to-end on real solver
+output - census, schema, provenance, sizing table, refusal path, determinism - and re-runs in about
+four minutes against a corrected source. What is withheld is the artifact, not the machinery.
+
+**The gate stays red while halted, and that is deliberate.** `RULED_CONFIG["add_allin"]` is `False`
+while the committed export was built with `True`, so `config_errors` refuses it and
+`pytest_derived_chart` fails. Reverting the constant to make the gate green would erase the one
+correction this restart established. The lane is halted, not closing out, so it owes no green gate;
+`main` is unaffected.

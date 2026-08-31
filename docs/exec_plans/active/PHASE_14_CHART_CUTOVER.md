@@ -17,6 +17,71 @@ before it: phases 11, 12 and 13 changed what the bot is told and left the ranges
 wrong range here becomes the reference every later phase is measured against.
 `verification/loop_policy.yml` has it `auto_advance: false` for that reason.
 
+## The restart, 2026-08-30
+
+The phase reached stage 6 and was sent back to stage 1. What follows is why, so a fresh reader does
+not mistake the earlier sections for the current specification.
+
+Two independent stage-6 reviewers, one mechanical and one on the poker, found that the chart the
+build committed stacks off 100 big blinds preflop with a range inverted against hand strength.
+At `t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5` aces never jam and 44 jams at 1.0; at
+`t6/d100/BB/BTN:raise@2.5`, the second-busiest spot in the chart, aces three-bet to 7.5 and never
+jam while AKo jams 0.66 and 44 jams 0.88. Across the 36 spots where any hand can jam, aces jam
+0.000 at five spots where 44 jams up to 0.979, and those five arrive in 24.0 percent of hands.
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-06-build.md` carries the full
+measurement and is the record of what the reviews found.
+
+The cause is the solve config rather than anything the phase wrote. `add_allin: true` pushes a
+full-stack jam onto the raise menu at every node where a raise is legal, with no reference to the
+pot, so the big blind can shove 100 to win 4. Running the full 2,000-iteration budget with the flag
+still on does not repair it: at 10,000 iterations the bad cell is bit-identical, so it is structural
+and not noise. With the flag off the defect is gone and the solve converges roughly forty times
+better.
+
+**Taylor ruled on 2026-08-30 to re-source with `add_allin: false` and restart the phase.** The two
+constants that carry it, `RULED_CONFIG["add_allin"]` and `SOLVE_TARGET_GAP_BB`, are both
+frozen-into-data, so this is a `contract-update` task rather than implementation work.
+
+The superseded stage-6 build is committed rather than discarded, at `a386c77`, on Taylor's ruling.
+It is real work and the only record of the two reviews that caught the defect. Its commit message
+says it is evidence rather than a base to build on.
+
+**The contract is rewritten rather than amended.** It sits at exactly 300 of the 300 lines
+`check_file_sizes.py` allows a contract, so no amendment of any length fits, and about 27 of its
+lines carry figures the new source falsifies. Its dormant "What a re-solve owes, if one is run"
+section becomes binding, because "no re-solve is run" stops being true. AGENTS.md's remedy for a
+contract at the cap is a rewrite that folds its amendments into the criteria they amend; Taylor
+ruled on 2026-08-30 that this task perform it. The cap is not raised.
+
+The loop pointer was hand-edited from stage 6 back to stage 1 in `verification/loop_runs/14.yml`,
+because the driver has no reverse gear. `stage_base` moves to `a386c77` so the stage-1 review sees
+exactly the contract-update diff and nothing of the build behind it.
+
+Two things the restart does not change. The multiway pricing defect stands: only spots with at most
+two live players are committed, because the source misprices multiway pots, and that is why the
+chart holds so few opening ranges. And `B3`, the rank-dominance inversions, is carried forward as a
+measurement to retake rather than as a defect the ruling repairs.
+
+## Halted, 2026-08-30
+
+- Paused: phase 14 is halted at stage 1 by Taylor's ruling of 2026-08-30, pending a fix to GTOpen's
+  calibrated realization table. The re-source with `add_allin: false` did what it was ruled to do -
+  the jam inversion is gone and convergence improved roughly fortyfold - but two independent stage-1
+  reviews found the chart still folds JJ, TT, 99 and 88 outright while calling 76s and 87s at
+  four-bet nodes, shows no improvement in rank dominance (54 inversions against 52), and five-bet
+  jams 87s where AK never does. The cause is `class_base` in `cache/realization_fit.json`, which
+  rates 76s above KK, QQ, JJ, TT and 99 and 22 above every pair through JJ; the chart is a correct
+  solve of a wrong payoff function. `REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH` carries
+  the diagnosis, decision 16 the ruling, and the stage-1 review note the measurements.
+- The artifact is withheld, not the machinery. The derivation pipeline is proven end-to-end on real
+  solver output and re-runs in about four minutes against a corrected source: census, schema,
+  provenance, sizing table, refusal path and determinism all hold. What resumes this lane is a
+  source, not a rebuild.
+- The gate is red while halted and stays that way. `add_allin` is `False` in `RULED_CONFIG` while
+  the committed export was built with `True`, so `config_errors` refuses it. Reverting the constant
+  to green the gate would erase the correction this restart established. A halted lane owes no green
+  gate and `main` is untouched.
+
 ## What is already settled, and must not be reopened here
 
 Four things arrive ruled. A phase that relitigates them spends its budget on decisions that
@@ -174,6 +239,19 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
   poker, and the poker reviewer is briefed to judge the ranges rather than the code's fidelity
   to the contract - a chart that converts cleanly and plays badly passes every mechanical check
   in this repo.
+
+- Status, restart (2026-08-30): the contract rewrite, the two constants and the decision-record
+  amendments are coordinator work on the same argument stages 1 to 3 used - a contract and a
+  decision record are single documents, and splitting their authorship produces a document with
+  two voices and no owner. What is delegated from this stage is the measurement the rewrite is
+  written against: a lane solves the re-sourced tree against the live GTOpen at `4aee435`, walks
+  it, and returns the census, the chart, the action menus, the relationship to the superseded 86,
+  the blind-defence comparison and the jam retest, writing nothing into the repo because
+  `approved_scope` holds five paths and none of them is `data/artifacts/**`. The coordinator
+  re-derives the headline figures from the lane's serialised export rather than taking them on
+  report, on the stage-6 precedent that a reviewer's report is not evidence either. Independent
+  read-only review of the finished contract-update diff before it is committed, as at stage 1 and
+  at the 2026-08-24 contract-update.
 
 ## Slices
 

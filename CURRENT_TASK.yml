@@ -1,18 +1,13 @@
 task_id: PHASE_14_CHART_CUTOVER
 active_phase: "14"
-task_mode: implementation
-base_commit: 19fdb8d3a5e308b0ecc1cf5c5fcd3406f1fe5976
+task_mode: contract-update
+base_commit: a386c77d1526dc1c17de97044373410a26a806e7
 approved_scope:
+  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+  - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
-  - tests/test_derived_chart_report_validators.py
-  - verification/freeze.lock
-  - src/poker_training_bot/solver_artifacts/**
-  - src/poker_training_bot/strategy/**
-  - src/poker_training_bot/table_state/**
-  - src/poker_training_bot/data_pipeline/**
-  - scripts/**
-  - data/artifacts/preflop/**
-  - docs/CORPUS_COMPARISON_LIMITS.md
+  - src/poker_training_bot/solver_artifacts/gtopen_config.py
+  - src/poker_training_bot/solver_artifacts/gtopen_export.py
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -28,6 +23,34 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-08-30
+    reason: >-
+      Phase 14 restarts, and this is the contract-update task that re-rules its source. Two
+      independent stage-6 reviews found the committed chart jams 100bb with a pair of fours and
+      never with aces, at spots arriving in 24.0 percent of hands; the coordinator traced it to
+      `add_allin: true` in RULED_CONFIG rather than to anything the phase wrote, and Taylor ruled
+      on 2026-08-30 to re-source with the flag off. `add_allin` and `SOLVE_TARGET_GAP_BB` are both
+      frozen-into-data, so amending them is contract-update work on the precedent this lane set on
+      2026-08-25.
+      approved_scope narrows to five paths: the contract, this phase's decision record, the reviews
+      directory, and the two modules that hold the constants being re-ruled. tests/**,
+      verification/**, scripts/**, data/artifacts/** and the rest of src/** are deliberately absent,
+      so the task that rules the new specification cannot also rewrite the tests it will be measured
+      by, nor regenerate the export whose config it is re-ruling. Two of the five are widenings
+      rather than narrowings - docs/phase_contracts/ and reports/phase_audits/decisions/ - returning
+      on exactly the shape the 2026-08-25 entry used.
+      The contract is rewritten rather than amended, ruled by Taylor on 2026-08-30. It sits at
+      exactly 300 of the 300 lines check_file_sizes.py allows a contract, so no amendment fits at
+      any length, and about 27 of its lines carry figures the new source falsifies - the committed
+      86, the 38,828 action nodes, the four-menu census, the 21-of-36 coverage baseline - while its
+      dormant "What a re-solve owes, if one is run" section becomes binding because "no re-solve is
+      run" stops being true. AGENTS.md's stated remedy for a contract at the cap is a rewrite that
+      folds its amendments into the criteria they amend, and this is that rewrite. The cap is not
+      raised.
+      base_commit moves to a386c77, the commit that records the superseded stage-6 build, so the
+      forty-odd files that build wrote are not read as out-of-scope work by a contract-update
+      measured against 19fdb8d. That is the same reason the 2026-08-25 and 2026-08-26 entries give
+      for moving it.
   - date: 2026-08-27
     reason: >-
       RECONSTRUCTED 2026-08-30 after the coordinator ran `git checkout -- CURRENT_TASK.yml` to undo

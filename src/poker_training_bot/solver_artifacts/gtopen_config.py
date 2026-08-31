@@ -1,7 +1,10 @@
 """The one solve config this repo commits an export from, and the check that it was used.
 
-Decision 2 fixes it verbatim: six-handed, 100bb, 2.5bb opens, no limp, rake-free,
-`realization: "calibrated"`, `allin_threshold: 0.67`. It lives in its own module because both
+Phase 10's decision 2 fixed it verbatim: six-handed, 100bb, 2.5bb opens, no limp,
+rake-free, `realization: "calibrated"`, `allin_threshold: 0.67`. Phase 14's decision 14
+supersedes one field of that ruling: `add_allin` is `False`, because `True` put a
+full-stack jam on the raise menu at every node where a raise was legal, with no reference
+to the pot. Genuine five-bet jams survive through `allin_threshold` instead. It lives in its own module because both
 the export reader and the source card have to hold an export to it, and neither of them owns
 the ruling.
 
@@ -24,7 +27,7 @@ RULED_CONFIG: dict = {
     "open_raises": [2.5],
     "raise_mults": [3.0],
     "max_raises": 4,
-    "add_allin": True,
+    "add_allin": False,
     "allin_threshold": 0.67,
     "rake_pct": 0.0,
     "rake_cap": 0.0,
