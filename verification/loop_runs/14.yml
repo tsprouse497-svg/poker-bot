@@ -1,21 +1,24 @@
 auto_advance: false
-halt_reason: 'Taylor ruled 2026-08-30 to halt phase 14 and fix the source. The add_allin=false
-  re-source did what decision 14 ruled - the jam inversion is gone, convergence improved
-  ~40x - but two independent stage-1 reviews found the chart still folds JJ/TT/99/88
-  outright while calling 76s/87s at four-bet nodes, shows no rank-dominance improvement
-  (54 inversions vs the superseded chart''s 52 over the same 51 spots), and five-bet
-  jams 87s where AK never does. Root cause located in GTOpen at 4aee435 and it is
-  neither the solver nor the config: class_base in cache/realization_fit.json rates
-  76s 1.1333 above KK 1.0473, QQ 0.8556, JJ 0.7493 and 99 0.7196, and 22 above every
-  pair through JJ. Sorting the four-bet node by class_base sorts the fold decision.
-  The table has r2 0.1885, excludes equity as an input by design, and patches monotonicity
-  along a hand-picked PAVA chain list whose gaps are exactly the ladders that invert.
-  The chart is a correct CFR solve of a wrong payoff function, so no re-selection
-  or flag change moves it. See REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH,
-  decision 16, and the stage-01 review note. The artifact is withheld, not the machinery:
-  the pipeline re-runs in ~4 minutes against a corrected source. Gate is red by design
-  while halted - add_allin=False vs a committed export built with True - and reverting
-  that would erase the correction.'
+halt_reason: >-
+  Halted by Taylor 2026-08-30; the cause was superseded on 2026-08-31 and the replacement ruled as
+  decision 17. The add_allin=false re-source did what decision 14 ruled, but the chart still folds
+  JJ/TT/99/88 at four-bet nodes while calling 76s/87s, shows no rank-dominance improvement, and
+  five-bet jams 87s where AK never does.
+  The 08-30 diagnosis blamed class_base for being non-monotone in hand strength. A controlled
+  experiment - realization calibrated against static, one field changed, same 38,828-node tree, both
+  arms 400 iterations - confirmed the class term is causal, and two independent review rounds then
+  defeated three separate repairs aimed at the table. The actual cause is one level down. GTOpen fits
+  realization from a closed loop that solves flops exactly (m5_spots/phase_b.py -> solve-cli
+  realization -> fit_phase_c5.py), and every study line it has ever sampled is an open, a call or a
+  three-bet: there are zero _4bet lines. The absent four-bet-pot cell is a sampling gap, so the number
+  applied at SPR 1.67 was never measured in the pot type it is used in.
+  Ruled by Taylor 2026-08-31: measure it. Re-run the loop on four-bet pots and refit to a v6 rather
+  than correct the output of a loop that never ran there. R -> 1 as SPR -> 0 survives as a boundary
+  condition to assert against the refit.
+  This ruling does not lift the halt: round 2's jam-composition and rank-dominance blockers survive
+  the intervention and still owe their own cause. See decision 17 and rounds 3 to 5 of the stage-01
+  review note. The gate is red by design while halted - add_allin=False against a committed export
+  built with True - and reverting that would erase the correction.
 loop: halted
 phase_id: '14'
 schema_version: 1
