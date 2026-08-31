@@ -130,6 +130,30 @@ measurement to retake rather than as a defect the ruling repairs.
   10's one-point tolerance - and fails on the committed chart at 7.27 and 23.10 points. It passes
   partly because a chart that continues with everything has a flat ladder, which is the sharpest thing
   this build teaches about the phase's gates.
+- **Decision 20 is now answerable rather than deferred, 2026-08-31.** Two things were added to it after
+  Taylor asked what GTOpen's own authors say. First, what the source documents at the pin: `calibrated`
+  is the shipped default and the only mode described as measured, `static` is a sensitivity-check
+  dropdown its author calls "too fond of offsuit junk", the author's own validation records "BB defends
+  50% vs 2.5x with textbook composition (vs static's junk-loving 94%)", the standing caveat is that
+  under `calibrated` "call ranges are the soft numbers; folds and value-raises are robust", the missing
+  four-bet-pot cell is in the fit's own metadata as unfinished work needing round-2 data, and the SPR
+  shrink rounds 3 to 5 converged on is in the author's TODO as a rejected causal trap. Round 10 of the
+  stage-01 note. Second, the contamination the round-8 review found unmeasured: on the `calibrated`
+  plus `add_allin: false` build, over the 36 spots the revert option keeps, **71.69 percent of value is
+  fold-win and never touches the realization model, 26.39 percent is priced inside the fitted pot types
+  and 1.38 percent outside them**, so 4.96 percent of model-priced mass is contaminated. That aggregate
+  is smallest at the busiest spots and the per-class read reverses it: AA, KK and AKs are at 100 percent
+  contamination at all fifteen three-bet-facing kept spots, because four-betting is the only way they
+  see a flop there and it is the decision those spots exist to answer. The measuring lane's own verdict
+  on its number was **not shippable on this measurement**, and the experiment that would settle it needs
+  a GTOpen edit, which is out of scope. Round 11 carries it; `calibrated-build-contamination.json` beside this
+  note is the data. Two contract-affecting findings came out of the source reading and are filed rather
+  than amended, because which one applies depends on the ruling:
+  `CALIBRATED-REALIZATION-CARRIES-ITS-TRAINING-RAKE` (a rake-free solve is not rake-free at its
+  heads-up flop terminals under `calibrated`, which weakens the contract's rake-free criterion) and the
+  reframing of `REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH` (R is realized EV over raw
+  equity, not strength, so the table is right and applying it at SPR 1.67 is the defect).
+
   Nothing under `data/artifacts/` is committed. The chart and export survive only in a session scratch
   directory, so recovering this build means re-solving it; its source card and human report are
   committed under `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/` and the checksums in round 7
@@ -321,6 +345,19 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
   the dominance counts and differ on one census figure, where the coordinator's stands and both are
   recorded. An independent read-only reviewer reads the finished diff before it is committed, as at
   every previous contract-update in this lane.
+
+- Status, decision 20's evidence (2026-08-31): the source reading and the two document findings are
+  coordinator work, because they are a read of four files in a third-party repo and a correction to
+  this repo's own prose. One worker lane owned the contamination measurement: it solved
+  `calibrated` plus `add_allin: false` against the live GTOpen by posting the config to the API
+  directly rather than through `extract_gtopen_preflop.py`, so no tracked path could move, walked
+  33,969 nodes, classified every leaf below every committed spot by pricing mechanism, and wrote its
+  own analysis code. The coordinator re-derived the headline from the lane's per-spot splits
+  independently of its aggregation and the two agree at 4.959 percent; the lane's leaf classification
+  carries its own label cross-check at 0 mismatches and per-spot masses summing to 1 within 5e-8.
+  Delegated rather than coordinator-owned because it is a measurement whose number decides a ruling,
+  and this lane's standing rule is that the agent that computes a number is not the only one that
+  checks it.
 
 ## Slices
 

@@ -1,37 +1,7 @@
 {
-  "all_passed": false,
-  "generated_at_epoch": 1788211821,
+  "all_passed": true,
+  "generated_at_epoch": 1788216694,
   "results": [
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_status.py"
-      ],
-      "command_id": "generate_status",
-      "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.051,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_phase_ledger.py"
-      ],
-      "command_id": "generate_phase_ledger",
-      "description": "Regenerate phase ledger",
-      "duration_seconds": 0.03,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
     {
       "command": [
         "uv",
@@ -41,39 +11,7 @@
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.078,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_status.py",
-        "--check"
-      ],
-      "command_id": "check_generated_status",
-      "description": "Check generated STATUS.md freshness",
-      "duration_seconds": 0.052,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_phase_ledger.py",
-        "--check"
-      ],
-      "command_id": "check_generated_phase_ledger",
-      "description": "Check generated phase ledger freshness",
-      "duration_seconds": 0.031,
+      "duration_seconds": 0.15,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -89,7 +27,7 @@
       ],
       "command_id": "check_generated_backlog",
       "description": "Check generated backlog freshness",
-      "duration_seconds": 0.078,
+      "duration_seconds": 0.155,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -104,7 +42,7 @@
       ],
       "command_id": "check_contracts",
       "description": "Validate phase contracts",
-      "duration_seconds": 0.037,
+      "duration_seconds": 0.075,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -119,7 +57,7 @@
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.123,
+      "duration_seconds": 0.282,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -134,7 +72,7 @@
       ],
       "command_id": "check_execplan_delegation",
       "description": "Validate active ExecPlan delegation plan",
-      "duration_seconds": 0.049,
+      "duration_seconds": 0.093,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -149,7 +87,7 @@
       ],
       "command_id": "check_repo_consistency",
       "description": "Cross-check phase status, ExecPlan location, gate commands, and the phase graph",
-      "duration_seconds": 0.091,
+      "duration_seconds": 0.184,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -160,27 +98,11 @@
         "uv",
         "run",
         "python",
-        "scripts/freeze_tests.py",
-        "--check"
-      ],
-      "command_id": "check_test_freeze",
-      "description": "Check tests match verification/freeze.lock",
-      "duration_seconds": 0.074,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "test freeze intact: 35 files\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
         "scripts/check_file_sizes.py"
       ],
       "command_id": "check_file_sizes",
       "description": "Validate file-size limits",
-      "duration_seconds": 0.027,
+      "duration_seconds": 0.057,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -193,47 +115,15 @@
         "python",
         "-m",
         "pytest",
-        "tests/test_quality_hardening.py"
-      ],
-      "command_id": "pytest_quality_hardening",
-      "description": "Run quality, drift, and phase-gate hardening tests",
-      "duration_seconds": 2.309,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "",
-      "stdout": "disagrees with); the repo says 42\"\nE         Use -v to get more diff\n\ntests/test_quality_hardening.py:218: AssertionError\n_____ test_this_repo_s_backlog_is_well_formed_and_every_citation_resolves ______\n\n    def test_this_repo_s_backlog_is_well_formed_and_every_citation_resolves() -> None:\n        payload = yaml.safe_load((REPO_ROOT / \"backlog.yml\").read_text())\n        phase_ids = {phase[\"phase_id\"] for phase in _phase_status()}\n        ids = {item[\"id\"] for item in payload[\"items\"]}\n        citations: dict[str, set[str]] = {}\n        for path in sorted(REPO_ROOT.glob(\"docs/**/*.md\")) + sorted(\n            REPO_ROOT.glob(\"reports/**/*.md\")\n        ):\n            cited = {token for token in re.findall(r\"\\b[A-Z][A-Z0-9-]{4,}\\b\", path.read_text())}\n            cited &= ids | {\"GHOST\"}\n            if cited:\n                citations[str(path.relative_to(REPO_ROOT))] = cited\n    \n>       assert backlog_errors(payload[\"items\"], phase_ids, citations) == []\nE       assert [\"backlog REA...e label', ...] == []\nE         \nE         Left contains 12 more items, first extra item: \"backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH has status 'open', which is not one of ['deferred', 'done']\"\nE         Use -v to get more diff\n\ntests/test_quality_hardening.py:279: AssertionError\n____________ test_the_quality_gate_command_passes_against_this_repo ____________\n\n    def test_the_quality_gate_command_passes_against_this_repo() -> None:\n        \"\"\"The end-to-end claim, run as the gate runs it.\"\"\"\n        proc = subprocess.run(\n            [sys.executable, str(Path(\"scripts\") / \"run_full_quality_gate.py\")],\n            cwd=REPO_ROOT,\n            capture_output=True,\n            text=True,\n            check=False,\n        )\n    \n>       assert proc.returncode == 0, proc.stdout + proc.stderr\nE       AssertionError: Quality And Drift Report\nE         ========================\nE         \nE         Four checks, each with what it covers and what it does not. The second half of\nE         each entry matters as much as the result: a check that passed is not a promise\nE         about everything it did not look at, and this repo has already shipped three\nE         wrong numbers and a decorative gate command past a green run.\nE         \nE         PASS  mutation coverage\nE               covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\nE               does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\nE         \nE         FAIL  fact drift\nE               covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\nE               does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\nE               ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 42\nE               ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 14\nE         \nE         FAIL  backlog integrity\nE               covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\nE               does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\nE               ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH is filed against phase 'source', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART has status 'open', which is not one of ['deferred', 'done']\nE               ! docs/BACKLOG.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! docs/BACKLOG.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'SPR-20', which no item declares. A finding filed under an id nobody created has recorded nothing\nE         \nE         PASS  phase record agreement\nE               covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\nE               does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\nE         \nE         \nE         wrote reports/active/latest_quality_report.txt\nE         quality gate failed: fact drift, backlog integrity\nE         \nE       assert 1 == 0\nE        +  where 1 = CompletedProcess(args=['/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/.venv/bin/python3', 'scripts/run_fu...\\n\\n\\nwrote reports/active/latest_quality_report.txt\\n\", stderr='quality gate failed: fact drift, backlog integrity\\n').returncode\n\ntests/test_quality_hardening.py:403: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_quality_hardening.py::test_no_document_in_this_repo_states_a_stale_fact\nFAILED tests/test_quality_hardening.py::test_this_repo_s_backlog_is_well_formed_and_every_citation_resolves\nFAILED tests/test_quality_hardening.py::test_the_quality_gate_command_passes_against_this_repo\n========================= 3 failed, 23 passed in 2.19s =========================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/run_full_quality_gate.py"
-      ],
-      "command_id": "run_full_quality_gate",
-      "description": "Run the quality checks and write the quality report",
-      "duration_seconds": 77.294,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "quality gate failed: fact drift, backlog integrity\n",
-      "stdout": "Quality And Drift Report\n========================\n\nFour checks, each with what it covers and what it does not. The second half of\neach entry matters as much as the result: a check that passed is not a promise\nabout everything it did not look at, and this repo has already shipped three\nwrong numbers and a decorative gate command past a green run.\n\nPASS  mutation coverage\n      covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\n      does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\n\nFAIL  fact drift\n      covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\n      does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\n      ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 42\n      ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 14\n\nFAIL  backlog integrity\n      covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\n      does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\n      ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH has status 'open', which is not one of ['deferred', 'done']\n      ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH is filed against phase 'source', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE has status 'open', which is not one of ['deferred', 'done']\n      ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART has status 'open', which is not one of ['deferred', 'done']\n      ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE has status 'open', which is not one of ['deferred', 'done']\n      ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES has status 'open', which is not one of ['deferred', 'done']\n      ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP has status 'open', which is not one of ['deferred', 'done']\n      ! backlog AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART has status 'open', which is not one of ['deferred', 'done']\n      ! docs/BACKLOG.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! docs/BACKLOG.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'SPR-20', which no item declares. A finding filed under an id nobody created has recorded nothing\n\nPASS  phase record agreement\n      covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\n      does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\n\n\nwrote reports/active/latest_quality_report.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
         "tests/test_loop_fleet.py"
       ],
       "command_id": "pytest_loop_fleet",
       "description": "Run parallel-loop eligibility, lane discovery, and pause board tests",
-      "duration_seconds": 0.21,
+      "duration_seconds": 0.402,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.09s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.20s ==============================\n"
     },
     {
       "command": [
@@ -246,7 +136,7 @@
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.064,
+      "duration_seconds": 0.087,
       "passed": true,
       "returncode": 0,
       "stderr": "",

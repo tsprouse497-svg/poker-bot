@@ -1331,3 +1331,175 @@ re-derived per build, which is implementation work on a script whose one field t
 correct. And the aggregate gate's missing definition is filed rather than authored, because the gate is
 frozen at stage 4 against whatever decision 20 answers and authoring it now would freeze it against a
 build that may not exist.
+
+# Round 10, 2026-08-31: what GTOpen documents about its own realization models
+
+Not a review round. Taylor asked what the source's authors say about `static` versus `calibrated` and
+what each is for. Reading the repository at the pinned `4aee435` answered most of what this lane spent
+three weeks deriving, and it moves one contract claim. The evidence and the citations are in decision
+20 under "What the source's authors document"; this round records what it changes and files the rest.
+
+Nobody was contacted - `~/projects/gtopen` is a read-only clone with no licence and no contact path -
+so "what the owners say" here means what they wrote in `AGENTS.md`, `README.md`, `TODO.md`, the fit's
+own metadata and the engine's comments.
+
+## Blocker
+
+None. Stated as prose because a bullet here is counted as one.
+
+## Non-blocker
+
+- **The chart is not rake-free where most of its value is priced, and the contract says it is.** Under
+  `calibrated` the engine prices a heads-up flop terminal with chips behind off the **gross** pot and
+  skips the rake deduction, because the fit "was measured as net-of-rake EV over GROSS pot"
+  (`mod.rs:1122`); `AGENTS.md:49` states the consequence, that the rake dial barely moves heads-up flop
+  leaves. So `rake_pct: 0.0` removes rake from the preflop betting and leaves the fit's training rake
+  in every calibrated flop terminal. The contract asserts the solve is rake-free and that this removes
+  one of phase 08's three explanations for the calling gap; phase 10's decision 2 rests on the same
+  premise. Filed as `CALIBRATED-REALIZATION-CARRIES-ITS-TRAINING-RAKE` and deliberately not amended
+  into the contract yet, because it is true of `calibrated` and false of `static` and decision 20
+  decides which ships.
+- **`REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH` is a misnomer and the halt inherited its
+  framing.** R is realized EV over raw equity, not strength, so 76s at 1.1333 over JJ at 0.7493 is
+  correct rather than inverted - a connector collects more than its equity because it flops well, a
+  middling pair collects less because it cannot improve. The defect is applying that table where there
+  is no postflop play: the module header says R is exactly 1 at an all-in terminal, a four-bet pot at
+  SPR 1.67 is nearly one, and the engine path carries no SPR term. The entry is reframed in place with
+  its measurements kept; retitling it is deferred because the id is cited from the contract, three
+  rounds of this note and two decision items.
+- **Two corrections of fact that this note and the halt have both had wrong.** `calibrated` does not
+  price every postflop terminal: `mod.rs:1129` gates it on exactly two live players with chips behind,
+  multiway keeps the static heuristic because the postflop engine that produced the fit is heads-up
+  only, and all-in terminals are R = 1 exact. And the fit's `meta.r2` is **0.1885**, so it explains
+  about a fifth of the variance in observed realization - a real signal and a weak one, which no packet
+  should describe as a measured model without that number beside it.
+- **The author's own caveat names this phase's defect, and it is the strongest argument for the option
+  the phase is weighing.** `AGENTS.md:94` tells every study to carry: "calibrated realization is
+  pessimistic on no-initiative flatting (call ranges are the soft numbers; folds and value-raises are
+  robust)." The four-bet defect is entirely a no-initiative flat-or-fold by a medium pair. Refusing the
+  fifteen four-bet spots refuses exactly the decisions the model's author flags as soft.
+
+## Alignment
+
+- **Three weeks of derivation reproduced what four files in the source already said.** The
+  `static`-versus-`calibrated` comparison was run and recorded by the author, in a sentence that gives
+  the same answer as phase 10's and as this lane's build ("BB defends 50% vs 2.5x ... vs static's
+  junk-loving 94%"). The missing four-bet-pot cell is in the fit's own `meta.note` as unfinished work
+  requiring round-2 data. The SPR shrink rounds 3 to 5 converged on is in `TODO.md`'s v3 postmortem as
+  a causal trap that produced 100 percent open rates. None of that needed an experiment. Round 5's
+  method note said "when a fitted table looks wrong, read what was sampled before arguing about what
+  was fitted"; the stronger form is to read what the authors documented before deriving it. Filed
+  nowhere because it is not a repo defect - it is the reason this round exists.
+- **What actually put this phase outside the model's envelope is three things at once, and none is a
+  bug.** No four-bet-pot cell; a fit that embeds a training rake this solve does not charge; and a
+  validation run on 4-max whose gate asserts "no pair inversions", against a six-handed tree. A phase
+  that states which envelope it is inside would have caught this at phase 10's contract stage. There
+  is no check anywhere in this repo that compares a committed artifact's config against the conditions
+  its source was validated under, and `NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL` is
+  the nearest thing to it.
+
+# Round 11, 2026-08-31: the four-bet contamination, measured
+
+Round 8's first blocker was that `revert-to-calibrated-and-refuse-the-four-bet-spots` was written as a
+clean 98.4/1.58 split when refusing a spot removes it from lookup and not from the solve, so the kept
+spots are backward-induced over four-bet-pot terminals the fit has no cell for. That was right, and the
+size of it was unknown. Taylor asked for the number before ruling. This is it.
+
+A worker lane solved the config that option ships - `calibrated` with `add_allin: false`, everything
+else as ruled - against an unmodified GTOpen, walked all 33,969 action nodes, and classified every leaf
+below each committed spot by the mechanism that prices it. It reached **0.00015591bb at iteration 1,900
+of 2,000** in 240 seconds, which is the figure decision 14 recorded for this build, so it reproduces.
+The coordinator re-derived the headline from the lane's per-spot splits independently of its
+aggregation, and the two agree at 4.959 percent. Nothing was written into the repo.
+
+**The four-way split of the 36 spots the option keeps, arrival-weighted.** Fold-win **71.69** percent -
+somebody folds preflop, there is no flop and the realization model is not consulted at all. All-in
+showdown 0.55 percent, priced `R = 1` and exact. Heads-up flop terminal in a single-raised or three-bet
+pot, inside the region the fit covers, 26.39. Heads-up flop terminal **in a four-bet pot, outside it,
+1.38**. So of the mass the model prices at all, **4.96 percent** is priced outside its fitted region.
+
+**In aggregate it is smallest where the traffic is.** The five big-blind-versus-open spots carry 56
+percent of committed arrival and run 1.45 to 3.65 percent contamination; `t6/d100/SB/rfi` carries 22.6
+percent of arrival and runs 3.65. The worst kept spots are three-bet spots -
+`LJ/LJ:raise@2.5,HJ:raise@7.5` at **14.62**, `HJ/HJ:raise@2.5,CO:raise@7.5` at 14.05,
+`LJ/LJ:raise@2.5,CO:raise@7.5` at 13.11 - and each carries under 1.5 percent of arrival. The fifteen
+five-bet-jam-facing spots the option also keeps have **zero** model-priced mass: every leaf is a fold or
+an all-in showdown, so they are priced exactly. That also corrects the option's own arithmetic - it
+refuses 15 spots and keeps 36, and 15 of the 36 need no realization model at all. There is no
+five-bet-pot flop terminal anywhere in the tree, because the 3.0 multiplier puts the fifth raise at
+67.5bb and `allin_threshold` snaps it, so the out-of-support region is exactly the four-bet pots at
+SPR 1.667.
+
+**And the aggregate is the wrong statistic, which is the finding of this round.** Read per hand class
+it does not hold, and the direction is the bad one. The measuring lane's verdict on its own number was
+**no, not shippable on this measurement**, and it is right.
+
+## Blocker
+
+None new. Stated as prose because a bullet here is counted as one.
+
+## Non-blocker
+
+## Blocker
+
+- **The 5 percent averages the defect out of exactly the part of the range the chart is consulted
+  about, and the coordinator's first draft of this round called that "structural rather than
+  alarming".** That was wrong and this is the correction. At **all fifteen** three-bet-facing kept
+  spots, AA, KK and AKs sit at **100 percent** contamination, and QQ at 100 percent in twelve of them:
+  the only way those hands reach a flop with chips behind from those spots is by four-betting, and
+  four-bet-versus-call with the top of the range is the one decision those spots exist to answer. Over
+  the 1,134 (spot, class) cells at reach 5,000bp or better in the kept spots, 100 cells sit at 90
+  percent or above and 116 at 50 or above; the classes are AA at 15 spots, AKs 15, KK 15, QQ 12, 87s 9,
+  A5s 9. Nor are the busiest spots clean per class: `SB/rfi`, 28.19 percent of arrival, puts **21.8**
+  percent of AA, KK, QQ, AKs and JJ's flop mass in a four-bet pot, and `BB/SB:raise@2.5`, 15.31 percent
+  of arrival, puts **41.5** percent of 76s's there. The low spot aggregates come from offsuit trash
+  that folds, not from the hands the chart is asked about. **Open: decision 20's revert option cannot be
+  put to Taylor as a 4.96 percent exposure without this beside it, and the item is corrected to carry
+  it.**
+- **The experiment that would settle it needs the one thing that is out of scope.** Mass bounds the
+  exposure without measuring the error. What would settle it is an EV comparison: reprice only the
+  four-bet-pot terminals defensibly - `R = 1` below SPR 2, which is what the engine already does at an
+  all-in terminal and what the module header says is exact - and see whether the kept cells move more
+  than the solve's own noise, one basis point of quantisation against a 0.000156bb gap. **No config
+  reaches that.** `realization` is tree-wide, so `static` reprices the single-raised terminals too and
+  the shallow spots' movement is then confounded; `max_raises: 3` removes the four-bet terminals but
+  also removes four-betting as an option, so it changes the strategy space rather than the pricing.
+  Repricing one pot type requires editing GTOpen, which Taylor ruled out on 2026-08-31 and which stays
+  out. So this may be a question the phase cannot answer from inside its own constraints, and that is
+  itself an input to the ruling rather than a reason to prefer the reading that flatters the option.
+  **Open.**
+
+## Non-blocker
+
+- **Two supporting facts from the fit that make the out-of-support claim exact rather than inferred.**
+  `cache/realization_fit.json`'s `meta.rho_cells` carries cells for `f_srp, i_srp, f_3bp, i_3bp, limp`
+  and nothing else - so five cells, no four-bet-pot cell, which is what `NCELL is 5` in round 6 meant.
+  And the fit's own SPR buckets start at an edge of **2.5**, so a four-bet pot at SPR 1.667 sits below
+  the lowest bucket the fit was estimated on. The applied formula carries neither term: `class_r` is
+  `clamp(class_base[k] * pos_weight, 0.2, 2.5)`, and at SPR 1.667 `pos_weight` is 1 within 1.7 percent,
+  so a ladder spanning 0.363 to 1.282 is applied at its full spread where it ought to compress toward 1.
+- **The `calibrated` plus `add_allin: false` build now exists and is preserved.** Round 8's blocker
+  noted that four of the contract's stated levels were measured on a build neither committed nor
+  preserved. That build has now been reproduced - same config, same tree at 33,969 nodes, same gap at
+  the same iteration - and its full walk is serialised at
+  `scratchpad/contamination/walk_calibrated.jsonl.gz`. One of the six figures round 7 lists is thereby
+  confirmed rather than orphaned: the solve-target criterion's "first meets it at iteration 1,900 of
+  2,000" is exactly right for this build and is falsified only by `static`, which meets it at 1,100.
+  The other three orphaned levels - the flat band, the purity pair, the opener widths - are now
+  checkable against a real artifact, and that check belongs at stage 4 with the test re-cut rather than
+  here.
+- **The lane's method, recorded because the number rests on it.** Leaf classification is by the count
+  of raises on the path from the root, read off the action labels rather than assumed from depth, with
+  a label cross-check that reported **0** mismatches; per-spot probability masses sum to 1 within 5e-8;
+  opponents propagate by their reach-weighted average action frequencies at their own nodes while
+  hero's own per-class strategy propagates exactly, which is the standard mean-field simplification and
+  is why the per-class figures above are hero-side only.
+
+## Alignment
+
+- **A chart that is 72 percent fold equity is a fact worth carrying past this ruling.** Under any
+  realization model, most of what the committed chart is worth comes from opponents folding preflop,
+  which no model prices. That bounds how wrong any R can make this artifact, and it is the first
+  quantity anyone should have asked for when the phase started arguing about realization tables three
+  weeks ago. It also says where the model *does* bite - the 26 percent that reaches a heads-up flop -
+  and that is exactly the mass phase 16's real postflop solver will eventually price properly.

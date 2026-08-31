@@ -3307,6 +3307,30 @@ items:
       The hold on committing a chart from this source is unchanged, and decision 17 restates the
       condition for lifting it.
 
+      Reframed 2026-08-31, and this supersedes the title and the causal claim above. R is realized EV
+      over raw equity, not hand strength, so "non-monotone in hand strength" describes the table
+      correctly and diagnoses it wrongly: 76s at 1.1333 above JJ at 0.7493 is what realization means -
+      a suited connector collects more than its raw equity because it flops well, a middling pair
+      collects less because it is a bluff-catcher that cannot improve. The table is a defensible
+      measurement of postflop playability. What is wrong is where the engine applies it. GTOpen's own
+      module header says "R = 1 when all-in, i.e. those terminals are exact", and at a four-bet pot's
+      SPR 1.67 the flop is nearly all-in, so the correct R there is near 1 for every class - neither
+      0.75 nor 1.13. The engine path has no SPR term, so a table measured around SPR 20 is applied
+      undiminished at 1.67. That is the defect, it is one sentence, and it explains both models at
+      once: calibrated is right where R matters and wrong where it does not, static is wrong where R
+      matters and roughly right where it does not.
+      Two further corrections of fact. Calibrated does not price "every postflop terminal": mod.rs:1129
+      gates it on exactly two live players with chips behind, multiway terminals keep the static
+      heuristic because the postflop engine that produced the data is heads-up only, and all-in
+      terminals are R = 1 exact. And the SPR term's omission is not an oversight the fitter forgot -
+      mod.rs:1120 records that feeding the context multiplier back "lets the solver BUY the aggressor
+      premium - validation showed 100% open rates", which is the v3 postmortem in GTOpen's TODO.md.
+      An SPR shrink of class_r is the repair this entry originally proposed and the one upstream
+      already tried and rejected.
+      The remaining owned defects stand as written: the missing `.min(pot_eff)` clamp on the calibrated
+      branch, and the one-directional base_gates. Neither is this phase's to fix. Retitling this entry
+      is deferred with it, because the id is cited from the contract, three review rounds and two
+      decision items.
   - id: BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS
     status: deferred
     phase: contract-update
@@ -3723,3 +3747,29 @@ items:
       Not urgent while phase 14 is halted, and it must not be resolved by deleting the levels: the
       levels are the only falsifiable content in several of those criteria, and phase 14's round-2
       review already caught one being dropped in a rewrite and one more in the reflow of 2026-08-31.
+
+  - id: CALIBRATED-REALIZATION-CARRIES-ITS-TRAINING-RAKE
+    status: deferred
+    phase: "14"
+    title: A rake-free solve is not rake-free at its heads-up flop terminals under calibrated realization
+    reason: >-
+      Found 2026-08-31 by reading GTOpen at the pinned commit rather than inferring from this repo's
+      own prose. Under `realization: "calibrated"` the engine prices a heads-up flop terminal with
+      chips behind as `gross pot x equity x R`, with R from a table fitted on the author's raked
+      games. `crates/solver/src/preflop/mod.rs:1122` states the mechanism: the fit "was measured as
+      net-of-rake EV over GROSS pot, so use the gross pot and skip the rake deduction (no double
+      charge)". `AGENTS.md:49` states the consequence: "Calibrated embeds its training rake - the rake
+      dial barely moves HU flop leaves under it (documented limitation)."
+      So `rake_pct: 0.0` removes rake from the preflop tree and not from the heads-up flop leaves,
+      which is where most of this chart's value is priced. Phase 14's contract says the solve is
+      rake-free and that this "removes one of phase 08's explanations for the calling gap"; phase 10's
+      decision 2 rests on the same premise. Both are weaker than stated: the rake is gone from the
+      preflop betting and still present, at the fit's training level, in every heads-up flop terminal
+      the calibrated path prices. The size of the effect is unmeasured here.
+      This is why it is filed rather than amended into the contract: it is a property of `calibrated`
+      and not of `static`, which has no embedded rake, so which of the two ships decides whether the
+      contract's rake-free claim needs qualifying at all. That is phase 14's decision 20. If
+      `calibrated` is ruled, the contract's rake-free criterion and the closing measurement's
+      three-explanations paragraph both need a clause saying the flop leaves keep the training rake,
+      and `CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT` gains back part of the explanation phase 14 was
+      going to strike off. Related: NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL.

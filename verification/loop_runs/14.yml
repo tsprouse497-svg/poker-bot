@@ -25,6 +25,24 @@ halt_reason: >-
   static with the positional term removed as well, and there is no fourth setting. What is left is a
   ruling rather than a measurement, and that is decision 20; its options are written out there with
   what each would ship.
+  Two things were added to decision 20 on 2026-08-31 so it can be answered rather than deferred. What
+  GTOpen's authors document at the pin, which settles most of it: calibrated is the shipped default and
+  the only mode they call measured, static is a sensitivity-check dropdown they describe as "too fond
+  of offsuit junk", their own validation records "BB defends 50% vs 2.5x ... vs static's junk-loving
+  94%", their standing caveat is that under calibrated "call ranges are the soft numbers; folds and
+  value-raises are robust", and the missing four-bet-pot cell is listed in the fit's own metadata as
+  unfinished work. And the contamination measurement the review asked for: on the calibrated plus
+  add_allin=false build, of the 36 spots the revert option keeps, 71.69 percent of value is fold-win and
+  never touches the model, 26.39 percent is priced inside the fitted pot types and 1.38 percent outside
+  them - so 4.96 percent of model-priced mass is contaminated. In aggregate that is smallest at the
+  busiest spots; per hand class it is not, and the per-class read argues against the option rather than
+  for it. AA, KK and AKs sit at 100 percent contamination at all fifteen three-bet-facing kept spots
+  because the only way they see a flop there is by four-betting, which is the decision those spots
+  exist to answer, and SB/rfi at 28 percent of arrival puts 21.8 percent of the premium classes' flop
+  mass in a four-bet pot. The experiment that would settle it - reprice only the four-bet terminals at
+  R=1 and see whether the kept cells move past solve noise - needs a GTOpen edit and is therefore out
+  of scope, so the phase may not be able to answer it from inside its own constraints.
+  Round 11 of the stage-01 note carries it; round 10 carries the source reading.
   Nothing under data/artifacts/ is committed. The chart and the export themselves survive only in a
   session scratch directory, so recovering this build means re-solving it; what is committed is its
   source card and human report under reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/, and the two
