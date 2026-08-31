@@ -1121,3 +1121,46 @@ to scope it rather than to start solving.
 
 Options: extend-the-fit-to-four-bet-pots | shrink-the-adjustment-in-short-pots | reorder-the-table
 Answer: [extend-the-fit-to-four-bet-pots]
+
+## 18. Where the solver fix lives, and what the source card pins
+
+Reversibility: frozen-into-data
+
+Decision 17 rules that the repair is to re-run GTOpen's realization loop on four-bet pots and refit.
+`~/projects/gtopen` is a clone of `MatthewPDingle/GTOpen` and **neither of Taylor's GitHub accounts can
+push to it** - both return `pull: true, push: false`, measured 2026-08-31. The `autosync:` commits in
+its log are the upstream author's, pulled down. So the ruled repair had nowhere to be committed, and
+this phase's contract requires a pinned reproducible source with a commit hash on the export's source
+card, which an uncommitted local patch cannot satisfy.
+
+**Directed by Taylor, 2026-08-31: make a home.** Created:
+- Fork `tsprouse497-svg/GTOpen`, added to the reference clone as the remote `fork` (`origin` still
+  points at upstream, so upstream stays fetchable and the fork stays pushable).
+- Worktree `/Users/taylorsprouse/projects/gtopen-worktrees/fourbet` on branch
+  `fourbet-realization-round`, **cut at `4aee435bdeb155b25f0c8140e707a8342ce4356f`** - the pinned
+  commit, not upstream's current `master`.
+
+**Why the branch starts at the pin rather than at current upstream.** Upstream has moved since the pin
+(`updated_at 2026-08-29` against the pin's 2026-07-23). Branching from current master would change the
+solver and the study lines in one step, so a re-solve could not attribute its movement to either. The
+branch therefore carries exactly one difference from the source phase 14 measured: the four-bet lines
+and whatever the refit produces. Confirmed at creation - `grep -c _4bet m5_spots/phase_b.py` is 0 and
+`realization_fit.json` is version 5, matching what every measurement in rounds 3 to 5 was taken
+against.
+
+**What the source card pins after the refit.** `solver.commit` moves off `4aee435` to a commit on
+`tsprouse497-svg/GTOpen`, and `solver.name` should say which repository, because "gtopen" alone will
+no longer identify a fetchable source once two exist. That field change is the smallest part; the
+blast radius of the re-pin was measured on 2026-08-31 and is three constants in this phase's own
+`tests/test_chart_cutover_evidence.py`, with no completed phase affected.
+
+**Two constraints this inherits, recorded because neither is discretionary.** Upstream carries **no
+licence file**, so default copyright applies: GitHub's terms permit the fork and the pin, but nothing
+here may be relicensed or redistributed outside GitHub, and no packaging of GTOpen into this repo is
+available. And an upstream pull request is not a dependable path to a pin - an unlicensed repository
+has not invited contributions and its merge timing is not Taylor's to schedule - so the pin points at
+the fork on its own merits. Offering the work upstream afterwards is `runtime-reversible` and costs
+this phase nothing either way.
+
+Options: fork-and-pin-the-fork | pin-a-local-build | pin-an-upstream-merge
+Answer: [fork-and-pin-the-fork]

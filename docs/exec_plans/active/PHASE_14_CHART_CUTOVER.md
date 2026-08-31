@@ -90,6 +90,10 @@ measurement to retake rather than as a defect the ruling repairs.
   is re-run on four-bet pots and refitted, rather than its output corrected. So this lane now waits on
   a v6 source, and separately on a cause for round 2's jam-composition blocker, which the experiment
   leaves unmoved and which no option in decision 17 accounts for.
+- The v6 work has a home as of 2026-08-31, per decision 18: fork `tsprouse497-svg/GTOpen`, worktree
+  `~/projects/gtopen-worktrees/fourbet` on `fourbet-realization-round`, cut at the pinned `4aee435`
+  rather than at upstream's newer master so the four-bet lines are the only difference from the source
+  every measurement was taken against. Nothing is implemented there yet and its cost is unscoped.
 - The gate is red while halted and stays that way. `add_allin` is `False` in `RULED_CONFIG` while
   the committed export was built with `True`, so `config_errors` refuses it. Reverting the constant
   to green the gate would erase the correction this restart established. A halted lane owes no green
