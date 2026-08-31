@@ -1,8 +1,12 @@
-task_id: null
+task_id: maint-review-machinery-reads-shape-not-content
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 38845d799500876792834862b752a701fae076e5
+approved_scope:
+  - scripts/loop_stage.py
+  - scripts/quality_checks.py
+  - tests/test_loop_machinery.py
+  - tests/test_quality_hardening.py
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -988,3 +992,14 @@ scope_change_log:
       MAINT-28 records the workspace change that closes
       A-STALE-TREE-CARRIES-ITS-OWN-COPY-OF-THE-RULES. Nothing beyond standing scope: the fix was
       two git commands and no tracked file implements it.
+  - date: 2026-08-31
+    reason: >-
+      MAINT-29 fixes three checks that test the shape of a file rather than what it says, all found
+      while phase 14 sat halted. `unresolved_blockers` matches `[resolved]` anywhere in a bullet's
+      first line, so a blocker quoting the marker to reject it is counted closed - that has hidden a
+      live phase 14 blocker since 2026-08-30 - and it reads only the first line, so a marker on a
+      continuation line would hold a stage forever. `check_stage_review` asks only whether a note
+      exists, so a restarted phase advances stages 1 to 5 on notes about a different diff. And
+      `quality_checks` rejects the `open` status and the `tooling`/`source` phase labels that eleven
+      backlog entries already use, which is twelve fatal errors waiting behind phase 14's deliberate
+      red. approved_scope is the two scripts and their two test files; `backlog.yml` is standing.
