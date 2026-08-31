@@ -3066,6 +3066,26 @@ items:
       and not of phase 14's derivation. Filed against phase 16 because that phase owns postflop and
       is where a played-flop comparison could be made. Phase 14 changes nothing for it and its 30
       spots with a raise to 22.5 on the path ship as solved.
+      Escalated 2026-08-31, and the closing sentence above is now false. This entry is the diagnosis behind the
+      four-bet defence phase 14 halted on, not future work parallel to it - though not behind all
+      three held-over blockers: the 2026-08-31 experiment leaves the jam-composition inversion
+      unmoved, so that one is not covered by this diagnosis and still owes its own account. the 2026-08-30 halt re-described the same
+      symptom as a non-monotone class table, which points at 169 numbers rather than at the stack
+      depth they are applied at, and a controlled experiment on 2026-08-31 confirmed the SPR framing
+      filed here. Changing only `realization` from calibrated to static, same 38,828-node tree,
+      add_allin and allin_threshold held, comparable convergence: JJ at the four-bet node goes from a
+      pure fold at 97 percent to a 37 percent continue, 76s from a pure call to 53, LJ's four-betting
+      range loses 87s and 76s entirely in favour of A5s, and continue-share falls 67.1 to 57.4
+      percent. The 65.40 percent this entry could not defend was the aggregate; the cells underneath
+      it were JJ folding pure at 40.8 percent equity against a 32.3 percent break-even while 76s
+      called pure at 29.6, which no indifference argument reaches.
+      Mechanism, since this entry only had the suspicion: class_base is a marginal over five pot-type
+      cells against a fixed mix with no four-bet-pot cell (`std[k] = pik @ leaf`,
+      `pi5 = [0.3341, 0.3341, 0.1432, 0.1432, 0.0454]`, `NCELL` 5), and `mod.rs:1137` applies it
+      undiminished at SPR 1.67. Round 3 of the stage-01 review note carries the run and the config.
+      Status and phase are left as filed because decision 17 puts the disposition to Taylor; what is
+      recorded here is that phase 14 now depends on it. See
+      REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH, whose prescription this supersedes.
   - id: UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY
     status: deferred
     phase: "14"
@@ -3219,9 +3239,12 @@ items:
       hands that continue have mean R 1.0129, hands that fold 0.7918, and 76s is the
       second-highest-R hand at that node, above KK. Folding JJ and calling 76s is the rational
       response to that input.
-      Why the table is like that, from its own fitter (m5_spots/fit_phase_c.py) and meta block:
+      Why the table is like that, from its own fitter (m5_spots/fit_phase_c5.py, v5 - the v4 file fit_phase_c.py was cited in error) and meta block:
       r2 is 0.1885 over 153,321 observations, and "equity itself still deliberately excluded as a
-      model input", so nothing makes it monotone in hand strength structurally. Monotonicity is
+      model input" - a second v4 carry-over, corrected 2026-08-31: that inference does not hold for
+      v5, whose `load_strength()` at fit_phase_c5.py:154-158 is equity against a random hand and feeds
+      `feats`, with every class shrunk toward `clip(feats @ beta, 0.35, 1.45)` at LAMN 40. Equity
+      anchoring is structural but weak, which is the defensible statement. Monotonicity is
       instead patched along a hand-picked list - "weighted-PAVA domination chains (broadway aces,
       K/Q kickers, suited>=offsuit; wheel aces unchained)" - and the ladders off that list are
       exactly where it inverts: J kickers, T kickers, and pairs against connectors.
@@ -3233,12 +3256,86 @@ items:
       pathologically. SPR was dropped with them although it is not an equilibrium correlate in the
       same way, so one realization number serves a four-bet pot at SPR 1.6 and a single-raised pot
       at SPR 15. That term is class-independent, so it changes the level rather than the ordering.
-      What would fix it: extend the PAVA chains to cover pairs and the remaining kicker ladders, or
-      make equity a model input so monotonicity is structural rather than patched. Either is work
-      on the table and its fitter, not on postflop solving. Until then no preflop chart derived
-      from this source should be committed as a training artifact, because the ranges are a faithful
-      solve of a payoff function that is wrong in a way a human drilling them would learn.
+      Corrected 2026-08-31 by controlled experiment; round 3 of the stage-01 review note carries
+      the run. This entry's original prescription - extend the PAVA chains over pairs and the kicker
+      ladders, or make equity a model input - is withdrawn, and so is the framing that names the
+      table as the faulty object.
+      Two corrections of fact first. The shipped table is version 5 from fit_phase_c5.py; the chain
+      list quoted above is v4's. v5 does chain the pairs, AA>=KK>=QQ>=JJ>=TT>=99, which is why TT and
+      99 are pooled at an identical 0.7196 - a live PAVA tie - and the inversions sit at and below
+      where that chain ends, 88 at 0.7514 over JJ at 0.7493. And v5 leaves 88-22 free deliberately,
+      in its own words "for legitimate set-miner premium", deriving the 0.73-0.76 bases for 99/JJ/TT
+      from their three-bet-pot facing mass. Those numbers are a conditioned measurement, not an
+      oversight, and forcing them monotone would delete it.
+      What the experiment showed. Changing only `realization` from calibrated to static, on the same
+      38,828-node tree at comparable convergence, moves JJ at the four-bet node from a pure fold at
+      97 percent to a 37 percent continue and 76s from a pure call to 53, and removes 87s and 76s -
+      21 percent of the range - from LJ's four-betting range in favour of A5s. So the class term is
+      causal, as this entry said, but the fault is where it is applied rather than what it contains:
+      `std[k] = pik @ leaf` marginalises five pot-type cells against a fixed mix with no four-bet-pot
+      cell at all, and `mod.rs:1137` then applies that single number undiminished at SPR 1.67, where
+      1.67 bets remain and realization is near 1 by construction.
+      So this is the same finding as
+      CALIBRATED-REALISATION-PRICES-FOUR-BET-POTS-UNTESTED, which filed it correctly on 2026-08-27
+      and which decision 16 did not carry forward.
+      The remedy, corrected again 2026-08-31 after Taylor asked how this reaches postflop: the fit is
+      produced by a closed loop that solves flops exactly (`m5_spots/phase_b.py` ->
+      `solve-cli realization` at solve_cli.rs:242 -> `fit_phase_c5.py`), and every study line it has
+      ever sampled is an open, a call or a three-bet - `grep -c _4bet` returns 0. The missing four-bet
+      -pot cell is a sampling gap, so the repair is to run the existing loop on four-bet lines and fit
+      a v6, which is both the fix and the played-flop measurement. Shrinking R toward 1 as SPR falls is
+      demoted to a boundary condition to assert against the refit rather than the repair itself. Two separable defects stay owned here -
+      the calibrated branch at mod.rs:1137-1141 drops the `.min(pot_eff)` clamp the static branch
+      keeps, so equity x R above 1 prices a terminal over the whole pot; and base_gates guards the
+      pair ladder one-directionally, "66 <= 1.15 x 99" passing at 0.8041 against 0.8275 while never
+      asserting 99 >= 66.
+      The hold on committing a chart from this source is unchanged, and decision 17 restates the
+      condition for lifting it.
 
+  - id: BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS
+    status: deferred
+    title: Twelve backlog entries fail run_full_quality_gate's own status and phase constants
+    reason: >-
+      Found 2026-08-31 by an independent reviewer and measured here. `quality_checks`
+      ALLOWED_BACKLOG_STATUSES is {deferred, done} and NON_PHASE_LABELS is
+      {charts, contract-update, engine, sample-comparison, samples, simulator, strategy, v2}.
+      Against those, seven entries carry status `open` and five carry a phase of `tooling` or
+      `source` - twelve fatal error strings, since `backlog_errors` is called from
+      run_full_quality_gate.py:121, is fatal at :137-139, and run_full_quality_gate is a registered
+      gate command in run_verify.py.
+      Ten of the twelve pre-date 2026-08-31; two were added that day by
+      RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE, which followed the four sibling
+      `open`/`tooling` entries already in the file rather than the constants. So `open` and `tooling`
+      are established local vocabulary that the checker never learned, and the phase 14 lane's
+      deliberate red over `add_allin` has been masking the whole set.
+      This entry is filed with status `deferred` and no `phase` field so that filing it does not add
+      a thirteenth error - which is itself the tell that the vocabulary and the checker disagree.
+      The disposition is either to declare `open`, `tooling` and `source` in the constants or to
+      re-file eleven entries; it belongs with the other loop-tooling items in a maintenance lane, and
+      it must land before this lane un-halts or the first green gate attempt fails on inherited state.
+  - id: RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE
+    status: open
+    phase: tooling
+    title: A blocker that quotes "[resolved]" is silently counted as resolved
+    reason: >-
+      Found 2026-08-31 while validating the phase 14 stage-01 note, and it has been hiding a live
+      blocker since 2026-08-30. `loop_stage.unresolved_blockers` walks lines, and for any line
+      starting "- " inside a "## Blocker" section it treats the bullet as closed when
+      RESOLVED_MARKER appears anywhere in that line - including inside backticks, and including a
+      sentence whose point is that the marker was wrongly applied somewhere else.
+      The stage-01 note's first round-2 blocker opens "The four-bet-facing shape is not fixed by the
+      re-source, and the stage-6 note's `[resolved]` on blocker B2 is false." That bullet is open. It
+      quotes the marker in order to reject it, so the driver and `review_queue` have both counted it
+      closed, and it is the most consequential of the three: it is the one that says the defect
+      survived the re-source. Two other blockers happened to be open, so the stage still held and
+      nothing advanced on a false green - the failure was silent under-reporting, not a bad advance.
+      Two defects in one line, pulling opposite ways. The marker is matched anywhere rather than as a
+      leading token, so quoted prose closes a bullet; and only the bullet's first line is examined,
+      so a marker written on a continuation line would be missed and an actually-closed blocker would
+      hold the stage forever. A fix needs the whole bullet gathered across its continuation lines,
+      and the marker recognised as a leading token on the bullet rather than as a substring.
+      Related to LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART: both are cases of the review machinery
+      testing the shape of a file rather than what it says.
   - id: LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART
     status: open
     phase: tooling

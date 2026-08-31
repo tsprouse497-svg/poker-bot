@@ -405,3 +405,384 @@ the findings to the realization model "showing through" was right in direction a
 kind - it is not a bias in an otherwise sound model, it is a specific non-monotonicity in a specific
 committed table, and it is addressable. And the coordinator's framing of "fix the source" as
 unscoped work of unknown size was wrong: it is a 169-number table and the ladder list in its fitter.
+
+# Round 3, 2026-08-31: the controlled experiment the halt was missing
+
+Round 2 traced the four-bet defects to `class_base` in GTOpen's `cache/realization_fit.json` by
+reading the table and correlating it with the decisions. That correlation reproduces exactly - every
+figure in it was re-measured here and none moved. What it never did was vary the suspected cause and
+watch the defect move, so "the chart is a correct CFR solve of a wrong payoff function" stood on
+inference rather than on an experiment. This round runs the experiment.
+
+**Provenance, stated plainly because it bears on what this round can release.** The measurements
+below were taken by the coordinator, not by an independent reviewer. Under the Subagents rule the
+agent that produced work is never the only one that judges it, so nothing here marks a blocker
+resolved and this round owes a read-only independent review before it does. What it establishes is
+evidence; what it asks for is a ruling.
+
+## The experiment
+
+One variable. The tree was rebuilt from the config the committed save carries verbatim, with
+`realization` changed from `"calibrated"` to `"static"` and every other field held, including
+`add_allin: true` and `allin_threshold: 0.67`. Holding `add_allin: true` is deliberate: it matches
+the artifact on screen, so the comparison is against the grids the reviews actually measured rather
+than against the re-source.
+
+    POST /api/preflop/spot   with the config below
+    POST /api/preflop/solve  {"iterations": 400, "check_every": 25, "target_gap": 0.0001}
+    POST /api/preflop/node   {"path": [1, 0, 2, 0, 0, 0, 2]}
+
+```json
+{"add_allin":true,"allin_threshold":0.67,"ante":0.0,"call_only_seats":[],"limp":false,
+ "max_raises":4,"no_flop_no_drop":true,"open_raises":[2.5],"open_raises_by_seat":null,
+ "positions":["LJ","HJ","CO","BTN","SB","BB"],"posts":[0.0,0.0,0.0,0.0,0.5,1.0],
+ "raise_mults":[3.0],"raise_mults_by_seat":null,"rake_cap":0.0,"rake_pct":0.0,
+ "realization":"static","stack":100.0}
+```
+
+Both runs are 38,828 action nodes and 83,123 total, so the tree shape is identical and only the
+terminal pricing differs. Convergence is comparable: BR gap 0.004635 against the baseline's 0.0047.
+The node is CO facing LJ's four-bet to 22.5 - pot 31.5, 15.0 to add, 77.5 behind, SPR 1.67,
+break-even 32.3 percent. Equity is GTOpen's own `preflop_eq169.bin` against each run's own four-bet
+range, weighted by strategy x reach x combos.
+
+| hand | R | eq (calib) | calibrated | eq (static) | static |
+|---|---|---|---|---|---|
+| AA | 1.282 | 75.7% | jam 100% | 76.5% | jam 100% |
+| KK | 1.047 | 59.5% | call 99% | 57.1% | call 100% |
+| QQ | 0.856 | 46.3% | call 100% | 39.4% | call 100% |
+| JJ | 0.749 | 40.8% | **fold 97%** | 31.6% | fold 63 / call 37 |
+| TT | 0.720 | 40.9% | fold 100% | 31.7% | fold 58 / call 42 |
+| 99 | 0.720 | 40.9% | fold 100% | 31.7% | fold 75 / call 25 |
+| 88 | 0.751 | 40.5% | fold 100% | 31.8% | fold 63 / call 37 |
+| A5s | 1.009 | 34.9% | call 97% | 30.4% | fold 61 / call 36 / jam 3 |
+| 87s | 1.016 | 33.2% | call 97% | 28.1% | fold 48 / call 39 / jam 12 |
+| 76s | 1.133 | 29.6% | **call 100%** | 27.9% | fold 47 / call 30 / jam 23 |
+
+LJ's four-bet range moves further than the defence does. Calibrated: AA 19.4, KK 19.3, QQ 17.8,
+AKs 12.9, **87s 11.7, 76s 9.0**, A5s 4.4. Static: QQ 25.0, KK 24.7, AA 20.4, AKs 16.6, **A5s 7.1**,
+44 3.2, 66 1.5. Removing the class term removes the suited connectors from the four-betting range
+entirely and replaces them with the wheel ace. Twenty-one percent of four-bets being 87s and 76s is
+not a shape any published solve produces; A5s as the four-bet bluff is the standard one. Nothing was
+tuned to get that - one config field changed.
+
+Share of hero's arriving range continuing against the four-bet: 67.1 percent calibrated, 57.4
+percent static. `CALIBRATED-REALISATION-PRICES-FOUR-BET-POTS-UNTESTED` recorded 65.4 as the figure
+its group measurement could not defend.
+
+## Blocker
+
+- `[resolved]` **Decision 16's exit condition cannot be met by the fix this experiment points at, so the lane
+  cannot restart even once the source is corrected.** Withdrawn as framed by round 4's independent
+  review: "postflop pricing" is the priced terminal, not the table, so a shrink satisfies it on the
+  literal reading. The real ambiguity is quantifier and scope, and it lives in decision 17, which the
+  review queue surfaces as an unanswered frozen-into-data item. The withdrawn argument follows as round 3 wrote it. The ruling says the bot waits "until a source
+  exists whose postflop pricing is monotone in hand strength". Read literally that demands
+  `class_base` be monotone, which is a claim about the wrong object: R is an equity-realization
+  multiplier and is not monotone in hand strength in correct poker either, because a suited connector
+  genuinely out-realizes a middling pair in a pot with money behind. v5's own fitter says so in as
+  many words - "88-22 left free for legitimate set-miner premium" - and the low pair bases are a
+  measured, conditioned result rather than an oversight. A fix that shrinks R toward 1 at low SPR
+  removes the defect while leaving the table exactly as non-monotone as it is now, so it would not
+  satisfy the condition; a fix that satisfies the condition would flatten a measurement the fitter
+  deliberately preserved. The exit condition needs restating over the priced terminal instead of over
+  the table. Raised as decision 17, `frozen-into-data`, unanswered. (Round 3 ended this bullet
+  "Open: needs Taylor's ruling"; the ruling is still owed, on decision 17's restated question rather
+  than on this bullet's claim.)
+
+## Non-blocker
+
+- **Round 2 and the backlog entry cite the wrong fitter, and the correct one changes the
+  prescription.** Both name `m5_spots/fit_phase_c.py`. The shipped table is `version 5`, produced by
+  `m5_spots/fit_phase_c5.py`. The quoted chain list - "broadway aces, K/Q kickers, suited>=offsuit;
+  wheel aces unchained" - is v4's and has no pair chain at all. v5 adds
+  `["AA","KK","QQ","JJ","TT","99"]`, which is why TT and 99 are pooled at an identical 0.7196: that
+  is the PAVA tie, and it is visible proof the chain is live and binding. So the pair ladder is
+  chained and **terminates at 99**, and the inversions sit at and below that boundary - 88 at 0.7514
+  above JJ at 0.7493, and 22 at 0.9102 above every pair from 33 through JJ. "Pairs are unchained" is
+  wrong and points at a different repair than "the chain stops one rung too high".
+- **`class_base` is a fixed-reference-mix marginal, and four-bet pots carry zero weight in that
+  mix.** `std[k] = pik @ leaf` collapses five cells - facing-SRP, init-SRP, facing-3BP, init-3BP,
+  limped - against `pi5 = [0.3341, 0.3341, 0.1432, 0.1432, 0.0454]`. `NCELL` is 5 and there is no
+  four-bet-pot cell, so the number applied at SPR 1.67 is a population average that is 67 percent
+  single-raised pots, and unsupported 3BP mass even folds back into SRP. The engine at
+  `mod.rs:1137` then calls `class_r(k, posw)`, discarding the pot-type axis that was v5's entire
+  contribution. This is the mechanism behind the correlation round 2 found.
+- **Round 2's dismissal of the discarded SPR coefficients is right for the wrong reason.** It calls
+  them class-independent and therefore level-only, which holds for `b_spr` as implemented inside
+  `seat_mult`. But `spr0` is exactly `0.0` - low SPR is the fit's reference level - so wiring
+  `b_spr` in would raise R at mid SPR and do nothing at 1.67. A shrink toward 1 is not multiplicative
+  and does change ordering, which is what the experiment demonstrates.
+- **The calibrated branch drops a clamp the static branch keeps.** `mod.rs:1137-1141` bounds
+  `share` by nothing; the fallback at `:1149` keeps `.min(pot_eff)`. With `clip` at `[0.2, 2.5]`,
+  equity x R exceeds 1 for AA and its flop terminal prices above the whole pot. It is also a mild
+  confound in this experiment, disclosed rather than hidden: static restores the cap as well as
+  removing the class term, though the cap only binds when equity x R exceeds 1.
+- **`base_gates` guards the pair ladder in one direction only.** "mid pairs vs set-miners sane
+  (66 <= 1.15 x 99)" passes at 0.8041 against 0.8275, barely, and never asserts 99 >= 66. The gate
+  list permits the inversion it reads as guarding.
+- **GTOpen's `AGENTS.md` documents the 169-vector index transposed.** It states `index = lo*13+hi`
+  suited. Under that reading 76o returns reach 0.998 at a four-bet node and AKo out-plays AKs. The
+  correct convention is the fitter's own `class_of`, suited at `hi*13+lo`. This is the exact
+  transposition `UNIFORM-ROW-TEST-IS-BLIND-AT-A-BINARY-NODE` and the extractor warn about, sitting
+  in the file an agent reads first.
+- **A blocker in this very note has been invisible since 2026-08-30.**
+  `loop_stage.unresolved_blockers` closes a bullet when `[resolved]` appears anywhere in its first
+  line. Round 2's first blocker opens by quoting that marker in order to say it was wrongly applied -
+  "the stage-6 note's `[resolved]` on blocker B2 is false" - so the driver and `review_queue` have
+  both counted the open finding as closed. Nothing advanced on it, because two sibling blockers were
+  genuinely open and held the stage, so this was silent under-reporting rather than a false green.
+  Filed as `RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE`. The bullet stays exactly as
+  written; the checker is what changes.
+- **Two UI defects found while reproducing this, both capable of producing a wrong reading of a
+  committed artifact.** The `Scenario` preset label does not reset when a save is loaded, so the
+  panel reads `HU 10bb push/fold` over a six-handed 100bb game. And `cfg-allinthr` is a hidden input
+  with zero width and height defaulting to 85 against the ruled 67, so a rebuild through the form
+  silently solves a different tree. The second confirms `extract_gtopen_preflop.py`'s docstring that
+  loading the save is the only way to put the exact ruled tree on screen.
+
+## Alignment
+
+- **This question was already filed correctly, three days before the halt, and the halt lost the
+  framing.** `CALIBRATED-REALISATION-PRICES-FOUR-BET-POTS-UNTESTED`, status deferred, phase 16, from
+  Taylor's 2026-08-27 ruling: "GTOpen resolves flops by scaled equity share rather than playing them,
+  and a four-bet pot at 1.7 SPR is where that approximation is weakest." That is this round's
+  conclusion. Decision 16 then re-diagnosed the same symptom as a non-monotone table, which points at
+  169 numbers instead of at the stack depth they are applied at, and the SPR framing dropped out. The
+  entry is not new work waiting on phase 16; it is the diagnosis phase 14 turned out to depend on.
+- **What let it slip was reporting the four-bet defence as aggregates.** The 08-27 measurement -
+  "96.15 percent of premiums, 99.10 of suited connectors, 43.38 of suited broadway and 1.21 of
+  middling pairs" - reads as a coherent polarised range, and polarised four-bet defence is real. But
+  1.21 percent of middling pairs is JJ, TT and 99 as pure folds, and 99.10 of suited connectors is
+  76s calling on 30 percent equity into a 32.3 percent break-even. Banding a rank inversion turns it
+  into a shape that looks like theory. The general lesson is the one
+  `UNIFORM-ROW-TEST-IS-BLIND-AT-A-BINARY-NODE` already carries: a band aggregate cannot see an
+  ordering defect inside the band, so a dominance finding has to be reported at the cells too.
+- **The residual, and why this round does not claim the class term is the whole cause.** Under static
+  76s still continues 53 percent against JJ's 37. The four pairs carry equities of 31.6, 31.7, 31.7
+  and 31.8 - identical - and mix 37, 42, 25 and 37, so the noise floor at this convergence is about
+  17 points and the leftover gap is 16. It is inside the noise, where the calibrated gap of 97 points
+  is not. That is a bound, not a proof, and the way to close it is the played-flop comparison the
+  phase 16 entry asks for rather than a tighter preflop target.
+- **The strongest single discriminator is purity, not magnitude, and it is worth stating as a
+  reusable test.** Under static these hands sit on the indifference point and mix, and four hands
+  with identical equity choosing different mixes is arbitrary tie-breaking working as the 2026-08-24
+  dominance ruling describes. Under calibrated, JJ at 40.8 percent equity is a pure fold and 76s at
+  29.6 is a pure call. Indifference cannot produce two pure opposite decisions between hands 11
+  equity points apart, so "solves have unique strategies" does not cover this shape. A future
+  dominance gate could test exactly that: a pure decision on the wrong side of break-even is a defect
+  in a way an extreme mixture never is.
+
+# Round 4, 2026-08-31: independent review of round 3
+
+Round 3 was coordinator work and said it owed an independent read-only review before anything it
+held could be released. This is that review. The reviewer wrote none of round 3, worked read-only,
+ran no gate, planted no mutation, and was fenced off from every endpoint that would have destroyed
+the live session. Round 3 stands as written above, per the convention that a round is a
+snapshot of what it believed, with one exception stated because round 4 was initially wrong about it:
+round 3's own blocker bullet was edited in place to carry a `[resolved]` marker and a pointer here,
+which is what `unresolved_blockers` needs in order to close it. That edit is mechanical rather than
+revisionist; round 3's prose is otherwise untouched and every correction below is additive.
+
+**The reviewer agreed with round 3's central poker conclusion** - the calibrated four-bet shape is a
+mispricing rather than a legitimate polarised defence, and the experiment is real evidence for it -
+and independently confirmed the mechanism: every `class_base` value quoted anywhere in the diff, the
+v5 pair chain terminating at 99 with 88-22 left free, `std[k] = pik @ leaf` marginalising five
+pot-type cells with no four-bet-pot cell, `mod.rs:1137` applying the result undiminished,
+`spr0` exactly `0.0`, `base_gates` one-directional, the marker defect in `loop_stage.py:180` in both
+its halves, the `AGENTS.md` index transposition, and the node's prices. It also established that the
+one confound round 3 disclosed is numerically inert here: the `.min(pot_eff)` clamp binds only when
+`eqp * rp > 1`, which under static needs equity above 0.984 while AA's is 0.757, and the gross-pot
+versus `pot_eff` difference is inert too because `rake_pct` and `rake_cap` are both 0. It found no
+undisclosed mechanical confound. And it recorded a non-finding worth keeping: 77 through 22 continue
+21-33 percent at this node while JJ-88 fold pure, which reads as a catastrophic within-family
+inversion until you see their arriving reach is 0.000 to 0.005 - they are round 1's unreached cells
+and the selection rule already excludes them.
+
+## Blocker
+
+- `[resolved]` **Round 3 misread the object of decision 16's exit condition, and its new blocker was
+  wrong as framed.** Decision 16 says "until a source exists whose **postflop pricing** is monotone
+  in hand strength". Postflop pricing is the priced terminal - `share = nd.pot * eqp * r` at
+  `mod.rs:1138` - not the table. Under an SPR shrink `r` goes to about 1 at SPR 1.67 and the price
+  becomes `pot x equity`, which is monotone. So the shrink satisfies decision 16 on the literal
+  reading, and round 3's claim that "the lane cannot restart even once the source is corrected" does
+  not hold. What is genuinely ambiguous is **quantifier and scope, not object**: universally
+  quantified over every SPR the condition is not satisfiable by anything, because at SPR 15 a suited
+  connector legitimately out-prices a middling pair and should. Decision 17 is rewritten to ask that
+  question instead. The finding is the reviewer's; the rewrite is the coordinator's and has not been
+  independently reviewed.
+- `[resolved]` **`price-monotone-within-family` was the wrong condition and would have released the
+  halt on a chart carrying the identical defect.** Round 3 recommended it. JJ is in the pair ladder
+  and 76s is in the 7-high suited ladder, so the JJ-pure-fold against 76s-pure-call comparison - the
+  entire reason for the halt - is cross-family and explicitly exempted by the condition's own
+  wording. Worse, the prescription the same diff withdrew as damaging, extending the PAVA chains
+  over pairs and kicker ladders, satisfies it: chaining makes `class_base` monotone within each
+  family, equity already is, so `eq x R` is monotone within family and the gate passes while JJ stays
+  at 0.7493 and 76s at 1.1333 and folds jacks exactly as before. The reviewer verified the condition
+  is at least not vacuous today - 88 prices at 0.3088 above 99 at 0.2996 and TT at 0.3018, and J6s at
+  0.175 under J5s at 0.234 - but necessary is not sufficient, and round 3 presented it as the test
+  that releases the halt. The option set in decision 17 is replaced.
+- `[resolved]` **The experiment's control arm is unidentified and does not reproduce against the
+  committed baseline.** Round 3 says the calibrated arm "matches the artifact on screen, so the
+  comparison is against the grids the reviews actually measured" and cites "the baseline's 0.0047".
+  The committed export header records `iterations: 300` and `achieved_gap_bb: 0.006237862`; there is
+  no 0.0047 in the repo. The reviewer re-measured the live 300-iteration session and got JJ folding
+  93.5 percent at the CO node against round 3's 97, continue-share 65.55 against 67.1, and 76s at
+  6.97 percent of LJ's four-bet range against 9.0, while the equity column reproduced throughout.
+  The reviewer offered, and could not confirm, that the control arm is the session
+  **after** the operator re-solved it to iteration 400 rather than the committed 300-iteration export.
+  The coordinator confirms it from its own session record - that is a coordinator statement, not a
+  review conclusion, and it happens to be the one that most repairs the coordinator's position. That makes the comparison better matched
+  than round 3 claimed - 400 against 400, gap 0.0046 against 0.0047 - and makes round 3's sentence
+  about matching the reviews' grids false, since those grids are the 300-iteration solve. Both arms
+  are 400 iterations of DCFR on the same tree. Recorded here rather than by editing round 3.
+
+## Non-blocker
+
+- **The intervention does not move round 2's third blocker, and round 3 did not say so.** The
+  five-bet composition inversion survives: round 3's own static column has KK calling 100 and QQ
+  calling 100 while 87s jams 12 and 76s jams 23. The calibrated analogue at the CO node is starker -
+  A4s at reach 0.949 jams 54.5 percent while KK jams 2.0 and QQ 0.0. So the experiment moves the
+  four-bet defence and leaves the jam composition where it was, which weakens any claim that one
+  cause explains all three held-over blockers. The backlog rewrite calling the phase 16 entry "the
+  diagnosis phase 14 halted on" is too strong by exactly this much.
+- **The residual is bounded by the wrong instrument, and part of it is a known-sign error rather
+  than scatter.** Round 3's noise floor came from four pairs mixing 25 to 42 at identical equity. But
+  those cells arrive at reach 0.958, 0.881, 0.697 and 0.449 against 76s's 0.998, so the floor is
+  estimated from cells with half the traffic of the one under test. The suited family is ordered
+  rather than scattered - A5s equity 30.4 continues 39, 87s 28.1 continues 51, 76s 27.9 continues 53,
+  so continue rises 14 points as equity falls 2.5. And at least 23 of 76s's 53 continue points sit on
+  a jam worth about **-40bb** against -7.5 for folding, robust even if QQ folds to it entirely. That
+  is a sign-known error invisible to a tree-wide BR gap because the node arrives about 0.15 percent
+  of the time, which is this phase's own `SOLVER-CONVERGENCE-IS-NOT-UNIFORM-OVER-THE-TREE`. Round 3's
+  conclusion that a tighter preflop target cannot close this stands; its "inside the noise" does not,
+  and its own hedge - "a bound, not a proof" - should have been the claim.
+- **Both experiment arms hold `add_allin: true` while the blockers being diagnosed were measured on
+  `add_allin: false`, and this is load-bearing for the two findings above.** Round 2's three open
+  blockers come from the re-sourced chart, where JJ-88 continue at exactly 0.000 and 76s/87s/JTs at
+  exactly 1.000. Round 3 justified holding `true` as matching "the grids the reviews actually
+  measured", which is round 1's export rather than round 2's. Under `add_allin: false` there is no jam
+  at the four-bet-facing node at all, so 76s's 23 static jam points become calls - which moves the
+  residual arithmetic in the finding above it and moves the jam-composition comparison in the one
+  before that. The diagnosis probably transfers; nothing has shown that it does.
+- **The driver and `review_queue` under-report this note until the tooling item lands, and that is a
+  mitigation this task can state even though it cannot fix it.** `unresolved_blockers` closes round
+  2's first blocker because it quotes `[resolved]` in its opening line, so the queue's count is low by
+  one and the missing one is the blocker that says the defect survived the re-source. Anyone reading
+  the queue should read this note's `## Blocker` sections directly. `scripts/` is outside this task's
+  `approved_scope`, so the fix is a maintenance lane, not a scope widening.
+- **Round 3 leaned on the source for a shrink the source does not support.** "Realization is near 1
+  by construction" is true at SPR 0, which is what `mod.rs:7` says; it is not a statement about SPR
+  1.67, and the engine gates the calibrated branch on `spr > 1e-9` with no interpolation. More
+  pointedly the fit's own `ctx` has `spr1 -0.2283` and `spr2 -0.0469` against the `spr0 0.0`
+  reference, so it **measured** the multiplier as higher below SPR 2.5 than between 2.5 and 8 - the
+  opposite direction to the shrink round 3 advocates. Round 3's "wiring `b_spr` in would raise R at
+  mid SPR" is therefore wrong for buckets 1 and 2. The load-bearing half is still exactly right:
+  `spr_bucket(1.67)` is 0 and `b_spr[0]` is 0.0, so wiring it in changes nothing where the defect
+  lives. The shrink is a proposal that has to be argued on the poker and settled by a played-flop
+  comparison, not something the fit already implies.
+- **The backlog rewrite fixed one v4 quotation and left the other, keeping an inference that is false
+  of v5.** Both quoted strings came from `fit_phase_c.py:366-369`. The filename was corrected and
+  "equity itself still deliberately excluded as a model input" was kept, together with "so nothing
+  makes it monotone in hand strength structurally". v5 does anchor on equity: `load_strength()` at
+  `fit_phase_c5.py:154-158` is equity against a random hand, `feats` carries
+  `[1, s, s^2, suited, pair, straight_windows, hi]`, and every class shrinks toward
+  `clip(feats @ beta, 0.35, 1.45)` at `LAMN = 40`. Equity anchoring is structural but weak, which is
+  a different and defensible claim. Corrected in `backlog.yml`.
+- **Round 3's second UI finding named the wrong element and mechanism.** `cfg-allinthr`
+  (`web/index.html:78`) belongs to the **postflop** setup panel and is only read by
+  `currentSpotRequest()` at `web/js/app.js:296`; it measures zero because its tab is `display:none`
+  while the Preflop Lab is showing, not because it is a hidden input. The real mechanism is that the
+  Preflop Lab has no all-in-threshold control at all - `web/js/preflop_lab.js:232` sends `add_allin`
+  and nothing else - so serde falls back to `default_allin_threshold()` = **0.85** at
+  `mod.rs:108-110` against the ruled 0.67. The conclusion holds and matters, since a five-bet to 67.5
+  stays a raise at 0.85 and becomes a jam at 0.67; a fix aimed at round 3's description would have
+  edited the wrong file.
+- **Two figures were restated without re-measuring, the pattern round 2 flagged twice.** Decision
+  16's 1.0129 continuing against 0.7918 folding re-measures at 0.9849 against 0.8022 reach-and-combo
+  weighted at the CO node; round 3's "twenty-one percent of four-bets being 87s and 76s" measures
+  18.6. Direction and magnitude survive in both cases and no conclusion moves. Both differences are
+  consistent with the 300-versus-400 iteration gap in the resolved blocker above.
+
+## Alignment
+
+- **The reusable purity test as round 3 distilled it would over-fire, and the half that makes it
+  correct was dropped.** "A pure decision on the wrong side of break-even is a defect in a way an
+  extreme mixture never is" is not safe as a gate: a small pair facing a four-bet has raw all-in
+  equity above the naive pot-odds threshold and folds pure in correct solves, because it cannot
+  realize at low SPR. The sound discriminator is the **inversion** - a pure fold above break-even
+  while a strictly lower-equity hand pure-calls at comparable arriving reach. Any dominance gate
+  built from this should carry the second clause.
+- **Purity answers one of the two counter-arguments, and round 3 credited it with both.** It kills
+  the indifference and tie-breaking defence decisively, and the static arm's mixing is what
+  indifference actually looks like. It does not kill equity-loses-to-playability, because a large
+  playability gap produces pure decisions too. What answers that one is the arithmetic round 3 had
+  and did not write down: JJ folding at 40.8 percent into a 32.3 percent price requires JJ to realize
+  under **79** percent of its equity, and 76s calling at 29.6 requires over **109**, a 30-point
+  spread in the wrong direction at SPR 1.67 - which is just `1.1333 / 0.7493 = 1.51`. Stated that
+  way the 2026-08-27 ruling is answered on its own terms, and the whole argument stops depending on
+  anyone's read of a grid.
+- **The reviewer's independent poker judgment, recorded because it is the thing least reducible to a
+  measurement.** SPR 1.67 is where implied odds are smallest and showdown value largest, so the
+  correct gradient runs toward pairs and away from speculative hands, and the model has it backwards
+  in both directions at once.
+- **The band-aggregate lesson is the durable output of this whole exercise.** Reporting four-bet
+  defence as "1.21 percent of middling pairs, 99.10 of suited connectors" is what let a rank
+  inversion read as theory for three days. Already carried by
+  `UNIFORM-ROW-TEST-IS-BLIND-AT-A-BINARY-NODE`.
+
+# Round 5, 2026-08-31: the sampling gap, found by Taylor's question
+
+Not a review round. Taylor asked how any of this reaches postflop, and whether preflop and postflop
+being interconnected means a one-off correction for preflop can ever be sound. Chasing that down
+found the cause one level below where rounds 3 and 4 stopped, and it changes what the repair is.
+
+## Blocker
+
+- `[resolved]` **Rounds 3 and 4 prescribed a repair that substitutes an argument for a measurement the
+  pipeline can already produce.** The shrink is reasoning about what realization must be at SPR 1.67.
+  `m5_spots/phase_b.py` can measure it. Its own docstring describes a closed loop - "preflop lab
+  solves -> HU flop exports -> realization runs" - in which `solve-cli realization`
+  (`solve_cli.rs:242`, "solve each board and append per-class realization") **solves each flop
+  exactly** with the postflop CFR solver and records what each class actually collected, and
+  `fit_phase_c5.py` fits those observations into `class_base` per pot-type cell. That is the
+  preflop/postflop fixed point, already built and already run twice.
+  What it has never been run on is a four-bet pot. Every study line in `phase_b.py` is an open, a call
+  or a three-bet - `co_open_btn_3bet`, `btn_open_bb_call`, `utg_open_sb_3bet` and the rest - and
+  `grep -c _4bet` returns **0**. So the missing four-bet-pot cell that rounds 3 and 4 correctly
+  identified is a **sampling gap, not a modelling oversight**, and the repair is to run the existing
+  loop on four-bet lines rather than to bolt a correction onto its output. v5 acquired its
+  three-bet-pot axis by precisely this route: "Requires round-2 data (phase_b.py --round2: dense
+  3-bet-pot lines + the 4-max 7.5x game)". Decision 17 is rewritten with
+  `extend-the-fit-to-four-bet-pots` as the primary option and the shrink demoted.
+
+## Non-blocker
+
+- **Postflop does not inherit the defect, which is worth recording because it bounds the damage.**
+  `realization`, `class_base` and `RealizationFit` appear only under `crates/solver/src/preflop/`
+  plus `query.rs` and `solve_cli.rs`. The postflop solver - `cfr.rs`, `tree.rs`, `game.rs`,
+  `best_response.rs`, `evaluator.rs`, `range.rs` - carries no realization model and plays flops
+  exactly. `R` is preflop's stand-in for postflop and is used in that direction only, so a wrong `R`
+  cannot corrupt a postflop solve. Phase 16 does not inherit it.
+- **The shrink keeps a narrower job.** As SPR reaches 0 the terminal becomes all-in and realization is
+  exactly 1, which `mod.rs:7` already states. A model that violates its own boundary condition is
+  wrong independently of what any refit measures, so `R -> 1 as SPR -> 0` is worth asserting against a
+  refitted table as a check. It is a constraint, not the repair.
+
+## Alignment
+
+- **The real objection to the whole approach, stated in Taylor's terms because it is sharper than the
+  rounds above.** Preflop and postflop are a fixed point: preflop ranges decide which postflop spots
+  arise, and postflop EVs decide which preflop actions pay. Substituting `R` for playing the flop
+  breaks that loop, so preflop ranges derived from an `R` that was never measured in the pot type they
+  are used in are not consistent with **any** postflop strategy. Once phase 16 gives the bot postflop
+  play that can bet, it would be playing preflop ranges premised on one postflop future and then
+  playing a different one. That is a better reason to distrust the chart than anything rounds 3 or 4
+  argued, and it is the reason the refit beats the patch: the refit closes the loop, the patch adjusts
+  one end of a loop that stays open.
+- **A method note the next lane should carry.** Three successive repairs were proposed and defeated -
+  extend the PAVA chains, price-monotone-within-family, price-follows-equity - before anyone read the
+  data generator. Each was a proposal about the shape of the output. The generator explains why the
+  output has that shape, and it took one question about mechanism to reach it. When a fitted table
+  looks wrong, read what was sampled before arguing about what was fitted.

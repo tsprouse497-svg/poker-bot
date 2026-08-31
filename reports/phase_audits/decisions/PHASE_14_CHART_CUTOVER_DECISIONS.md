@@ -1025,3 +1025,99 @@ while the committed export was built with `True`, so `config_errors` refuses it 
 `pytest_derived_chart` fails. Reverting the constant to make the gate green would erase the one
 correction this restart established. The lane is halted, not closing out, so it owes no green gate;
 `main` is unaffected.
+
+Amendment, 2026-08-31: the cause named above is confirmed by controlled experiment, and the exit
+condition stated here is superseded by item 17. The ruling to halt stands; what changes is the test
+the lane restarts against. The fitter citation in this item is also wrong - the shipped table is
+version 5 from `m5_spots/fit_phase_c5.py`, not v4 from `fit_phase_c.py` - and the corrected reading
+is in round 3 of the stage-01 review note.
+
+## 17. What the source has to satisfy before the phase re-sources
+
+Reversibility: frozen-into-data
+
+Decision 16 halted the phase "until a source exists whose postflop pricing is monotone in hand
+strength". That test does not work, and this item replaces it. The halt is not reopened.
+
+**The defect.** GTOpen's preflop solver does not play flops. It prices each flop terminal
+`pot x equity x R`, where `R` is how much of its equity a hand is assumed to keep. `R` is 169 numbers
+in `cache/realization_fit.json`, and the engine applies them unchanged at every stack depth. In a
+four-bet pot at SPR 1.67 only 1.67 bets remain, so there is almost nothing left to adjust for, yet JJ
+is still priced at 0.749 of its equity and 76s at 1.133. The solve therefore folds JJ at 40.8 percent
+equity into a 32.3 percent price while calling 76s at 29.6.
+
+**Why the numbers are like that, established 2026-08-31 after Taylor asked how any of this reaches
+postflop.** They are not guesses and they are not unordered by accident. `m5_spots/phase_b.py` is a
+closed loop - "preflop lab solves -> HU flop exports -> realization runs" - in which
+`solve-cli realization` (`solve_cli.rs:242`) **solves each flop exactly** and records what each class
+actually collected, and `fit_phase_c5.py` fits those observations per pot-type cell. That is the
+preflop/postflop fixed point, already built. But every study line it samples is an open, a call or a
+three-bet: **there are zero `_4bet` lines, and there never have been.** So the absent four-bet-pot
+cell is a sampling gap, not a modelling oversight, and the number applied at SPR 1.67 is a marginal
+over pot types that excludes the pot it is being used in. v5 acquired its three-bet-pot axis by
+exactly this route - its docstring requires "round-2 data (phase_b.py --round2: dense 3-bet-pot
+lines)".
+
+**Why decision 16's test does not work.** Read as a test on the 169 numbers it demands they be
+ordered by hand strength, which is false poker - a suited connector really does keep more of its
+equity than a middling pair when money is behind, and v5 left 88-22 free "for legitimate set-miner
+premium" on purpose. Read as a test on the price it is satisfiable at low SPR but unsatisfiable if
+quantified over every SPR. Two earlier drafts of this item proposed replacements that independent
+review defeated; rounds 4 and 5 of the stage-01 review note carry them and neither is on the table.
+
+**The evidence that the class term is causal.** One field changed, `realization` from `calibrated` to
+`static`, same 38,828-node tree, `add_allin: true` and `allin_threshold: 0.67` held, both arms 400
+iterations at BR gap 0.0046 against 0.0047. JJ goes from folding 93.5 percent to a 37 percent
+continue, 76s from a pure call to 53; LJ's four-betting range loses 87s and 76s entirely, 18.6 percent
+of it, in favour of A5s; continue-share falls 65.6 to 57.4 percent. Two limits: the intervention does
+**not** move round 2's jam-composition blocker, and both arms hold `add_allin: true` while round 2's
+blockers were measured on `false`.
+
+**Options.**
+`extend-the-fit-to-four-bet-pots` - add `_4bet` study lines to `phase_b.py`, run the realization
+stage, and fit a v6 carrying a four-bet-pot cell. This is the pipeline's own documented extension
+pattern rather than a one-off; it is simultaneously the repair and the played-flop measurement, since
+the realization run solves the flops exactly; it yields a measured number where every alternative
+yields an argued one; and it closes the preflop/postflop loop rather than patching around the break.
+Cost is real and unmeasured: 100 flops in the subset and about 12 spots produced 59,786 three-bet-pot
+rows, so a four-bet round is that scale of postflop solving on a CPU-only box.
+`shrink-the-adjustment-in-short-pots` - make `R` fade toward 1 as SPR falls, `R = 1 + s(SPR)(R - 1)`,
+one argument and one line at `mod.rs:344`. Cheap and directionally right, and at a threshold of 2.5 it
+clears the inversion. But it substitutes an argument for the measurement the option above produces,
+and the fit's own SPR coefficients point the other way. Rule it as a **stopgap** if the refit's cost
+is unacceptable, or as a **constraint the refit must also satisfy**, since `R` must reach 1 as SPR
+reaches 0 whatever the data says and a model violating its own boundary condition is wrong regardless.
+`reorder-the-table` - force the 169 numbers into hand-strength order, decision 16 read literally. It
+deletes a real measurement and a reviewer showed it does not even fix the pair-versus-connector case.
+Listed to be ruled out rather than because it works.
+
+**What is not being asked here.** Any threshold or band a stopgap needs is `runtime-reversible`: it
+proceeds on a measured default and is reported. So is the arriving-reach floor any per-cell check
+needs, without which the 77-through-22 block reads as a catastrophic inversion until you see it
+arrives at reach 0.000 to 0.005. The repair lives in GTOpen, so whatever is ruled becomes a re-pin of
+`/solver/commit` away from `4aee435bdeb155b25f0c8140e707a8342ce4356f` and owes its own item before an
+export is committed; the blast radius of that re-pin is three constants in this phase's own
+`tests/test_chart_cutover_evidence.py`, and no completed phase breaks. `SOLVE_TARGET_GAP_BB` at
+`0.00016` and `add_allin: false` both stand; decision 14 is not reopened. And no option here accounts
+for round 2's jam-composition blocker, which survives the intervention and still owes its own cause.
+
+**Recommendation:** `extend-the-fit-to-four-bet-pots`, with the shrink's boundary condition - `R` to 1
+as SPR to 0 - asserted against the refitted table rather than shipped as a patch.
+
+**Ruled by Taylor, 2026-08-31: measure it.** The source is repaired by running GTOpen's existing
+realization loop on four-bet pots and refitting, not by correcting the output of a loop that was never
+run there. The shrink is not adopted as the repair; `R -> 1 as SPR -> 0` stays as a boundary condition
+to assert against the refitted table, because a model that violates its own limit is wrong whatever
+the new data says.
+
+**What this ruling does not settle, stated so nothing reads as unblocked.** It does not lift the halt:
+round 2's jam-composition blocker survives the static intervention and still owes its own cause, and
+round 2's rank-dominance blocker is unaddressed by any option here. It does not fix multiway - the
+committed set stays at 51 of 86 spots on
+`MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION`. It does not authorise a re-pin: moving
+`/solver/commit` off `4aee435bdeb155b25f0c8140e707a8342ce4356f` owes its own frozen item once a v6
+exists. And it does not price the work - the four-bet round's cost is unmeasured, so the first task is
+to scope it rather than to start solving.
+
+Options: extend-the-fit-to-four-bet-pots | shrink-the-adjustment-in-short-pots | reorder-the-table
+Answer: [extend-the-fit-to-four-bet-pots]

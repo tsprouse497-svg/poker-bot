@@ -77,6 +77,19 @@ measurement to retake rather than as a defect the ruling repairs.
   solver output and re-runs in about four minutes against a corrected source: census, schema,
   provenance, sizing table, refusal path and determinism all hold. What resumes this lane is a
   source, not a rebuild.
+- Updated 2026-08-31. A controlled experiment now backs the halt's causal claim and corrects its
+  diagnosis: changing only `realization` from calibrated to static, same 38,828-node tree with
+  `add_allin: true` and `allin_threshold: 0.67` held and comparable convergence, moves JJ at the
+  four-bet node from a pure fold at 97 percent to a 37 percent continue and 76s from a pure call to
+  53, and drops 87s and 76s - 21 percent - out of LJ's four-betting range in favour of A5s. So the
+  class term is causal, but the fault is that a pot-type marginal with no four-bet-pot cell is
+  applied undiminished at SPR 1.67, not that the 169 numbers are unordered. Round 3 of the stage-01
+  review note carries the run; decision 17 asks Taylor at which stack depths the exit
+  condition must hold and how tightly, after two independent review passes withdrew two earlier
+  framings of that question. Ruled by Taylor on 2026-08-31: measure it - GTOpen's realization loop
+  is re-run on four-bet pots and refitted, rather than its output corrected. So this lane now waits on
+  a v6 source, and separately on a cause for round 2's jam-composition blocker, which the experiment
+  leaves unmoved and which no option in decision 17 accounts for.
 - The gate is red while halted and stays that way. `add_allin` is `False` in `RULED_CONFIG` while
   the committed export was built with `True`, so `config_errors` refuses it. Reverting the constant
   to green the gate would erase the correction this restart established. A halted lane owes no green
