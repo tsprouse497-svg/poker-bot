@@ -3278,7 +3278,11 @@ items:
       So this is the same finding as
       CALIBRATED-REALISATION-PRICES-FOUR-BET-POTS-UNTESTED, which filed it correctly on 2026-08-27
       and which decision 16 did not carry forward.
-      The remedy, corrected again 2026-08-31 after Taylor asked how this reaches postflop: the fit is
+      SUPERSEDED as a phase 14 blocker on 2026-08-31 by decision 19: the phase solves with
+      realization=static instead, which has no per-class term to get backwards, so nothing below is
+      work phase 14 owes. It stays open as a defect in GTOpen's calibrated model for anyone who later
+      wants that model, and no work in GTOpen is owed by this repo.
+      The earlier remedy, recorded 2026-08-31 after Taylor asked how this reaches postflop: the fit is
       produced by a closed loop that solves flops exactly (`m5_spots/phase_b.py` ->
       `solve-cli realization` at solve_cli.rs:242 -> `fit_phase_c5.py`), and every study line it has
       ever sampled is an open, a call or a three-bet - `grep -c _4bet` returns 0. The missing four-bet

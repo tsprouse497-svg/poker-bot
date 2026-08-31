@@ -1,24 +1,21 @@
 auto_advance: false
 halt_reason: >-
-  Halted by Taylor 2026-08-30; the cause was superseded on 2026-08-31 and the replacement ruled as
-  decision 17. The add_allin=false re-source did what decision 14 ruled, but the chart still folds
-  JJ/TT/99/88 at four-bet nodes while calling 76s/87s, shows no rank-dominance improvement, and
-  five-bet jams 87s where AK never does.
-  The 08-30 diagnosis blamed class_base for being non-monotone in hand strength. A controlled
-  experiment - realization calibrated against static, one field changed, same 38,828-node tree, both
-  arms 400 iterations - confirmed the class term is causal, and two independent review rounds then
-  defeated three separate repairs aimed at the table. The actual cause is one level down. GTOpen fits
-  realization from a closed loop that solves flops exactly (m5_spots/phase_b.py -> solve-cli
-  realization -> fit_phase_c5.py), and every study line it has ever sampled is an open, a call or a
-  three-bet: there are zero _4bet lines. The absent four-bet-pot cell is a sampling gap, so the number
-  applied at SPR 1.67 was never measured in the pot type it is used in.
-  Ruled by Taylor 2026-08-31: measure it. Re-run the loop on four-bet pots and refit to a v6 rather
-  than correct the output of a loop that never ran there. R -> 1 as SPR -> 0 survives as a boundary
-  condition to assert against the refit.
-  This ruling does not lift the halt: round 2's jam-composition and rank-dominance blockers survive
-  the intervention and still owe their own cause. See decision 17 and rounds 3 to 5 of the stage-01
-  review note. The gate is red by design while halted - add_allin=False against a committed export
-  built with True - and reverting that would erase the correction.
+  Halted 2026-08-30. Live ruling is decision 19 (2026-08-31): re-solve with realization=static.
+  Decisions 17 and 18 are superseded and 18 is withdrawn - ignore both. No work is owed in GTOpen and
+  no fork exists; ~/projects/gtopen is a reference clone at 4aee435 and stays unmodified.
+  What stopped the phase: with realization=calibrated the chart folds JJ/TT/99/88 at four-bet nodes
+  while calling 76s/87s, because calibrated prices flops from 169 per-class numbers fitted only on
+  single-raised and three-bet pots and applies them unchanged at SPR 1.67. A one-field experiment
+  (calibrated vs static, same tree, both arms 400 iterations) showed static removes it. GTOpen ships
+  calibrated, static and raw, and the field selecting one is RULED_CONFIG in this repo, in this
+  phase's approved scope - so this is a config ruling, not a solver repair.
+  To restart: flip realization to static in contract-update mode on decision 14's precedent, re-run
+  extract_gtopen_preflop.py against an unmodified GTOpen at 4aee435, re-derive, then re-measure round
+  2's two open blockers rather than assume they moved. Note add_allin=false and static have never been
+  solved together; the experiment held add_allin=true to isolate one variable, so its numbers do not
+  describe the build this produces. SOLVE_TARGET_GAP_BB stays 0.00016.
+  The gate is red by design until the export is rebuilt - RULED_CONFIG disagrees with the committed
+  export - and reverting the constants to green it would erase the rulings.
 loop: halted
 phase_id: '14'
 schema_version: 1

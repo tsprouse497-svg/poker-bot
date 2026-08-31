@@ -1036,6 +1036,13 @@ is in round 3 of the stage-01 review note.
 
 Reversibility: frozen-into-data
 
+**SUPERSEDED by decision 19, 2026-08-31, the same day. Read 19 first; nothing below is work to do.**
+This item asked how to repair GTOpen's realization model. That was never this phase's question. GTOpen
+ships three realization models and the config selecting one lives in this repo, so the live question
+is which model to solve with - decision 19 - and no solver work is owed by anybody. What survives from
+this item is its diagnosis, which decision 19 rests on: the `calibrated` model's per-class numbers were
+never measured in a four-bet pot, and that is why the chart folds JJ and calls 76s there.
+
 Decision 16 halted the phase "until a source exists whose postflop pricing is monotone in hand
 strength". That test does not work, and this item replaces it. The halt is not reopened.
 
@@ -1126,41 +1133,64 @@ Answer: [extend-the-fit-to-four-bet-pots]
 
 Reversibility: frozen-into-data
 
-Decision 17 rules that the repair is to re-run GTOpen's realization loop on four-bet pots and refit.
-`~/projects/gtopen` is a clone of `MatthewPDingle/GTOpen` and **neither of Taylor's GitHub accounts can
-push to it** - both return `pull: true, push: false`, measured 2026-08-31. The `autosync:` commits in
-its log are the upstream author's, pulled down. So the ruled repair had nowhere to be committed, and
-this phase's contract requires a pinned reproducible source with a commit hash on the export's source
-card, which an uncommitted local patch cannot satisfy.
+**Withdrawn 2026-08-31, the same day it was written, before any work rested on it.** This item forked
+`MatthewPDingle/GTOpen` and cut a branch for the four-bet study lines. Taylor withdrew it: he does not
+want work in GTOpen, the bot is what is being built here, and phase 14 was expected to need tweaks
+rather than a solver project. The fork, its remote and its worktree are removed; `~/projects/gtopen`
+is a reference clone at `4aee435` again and nothing in it was modified.
 
-**Directed by Taylor, 2026-08-31: make a home.** Created:
-- Fork `tsprouse497-svg/GTOpen`, added to the reference clone as the remote `fork` (`origin` still
-  points at upstream, so upstream stays fetchable and the fork stays pushable).
-- Worktree `/Users/taylorsprouse/projects/gtopen-worktrees/fourbet` on branch
-  `fourbet-realization-round`, **cut at `4aee435bdeb155b25f0c8140e707a8342ce4356f`** - the pinned
-  commit, not upstream's current `master`.
-
-**Why the branch starts at the pin rather than at current upstream.** Upstream has moved since the pin
-(`updated_at 2026-08-29` against the pin's 2026-07-23). Branching from current master would change the
-solver and the study lines in one step, so a re-solve could not attribute its movement to either. The
-branch therefore carries exactly one difference from the source phase 14 measured: the four-bet lines
-and whatever the refit produces. Confirmed at creation - `grep -c _4bet m5_spots/phase_b.py` is 0 and
-`realization_fit.json` is version 5, matching what every measurement in rounds 3 to 5 was taken
-against.
-
-**What the source card pins after the refit.** `solver.commit` moves off `4aee435` to a commit on
-`tsprouse497-svg/GTOpen`, and `solver.name` should say which repository, because "gtopen" alone will
-no longer identify a fetchable source once two exist. That field change is the smallest part; the
-blast radius of the re-pin was measured on 2026-08-31 and is three constants in this phase's own
-`tests/test_chart_cutover_evidence.py`, with no completed phase affected.
-
-**Two constraints this inherits, recorded because neither is discretionary.** Upstream carries **no
-licence file**, so default copyright applies: GitHub's terms permit the fork and the pin, but nothing
-here may be relicensed or redistributed outside GitHub, and no packaging of GTOpen into this repo is
-available. And an upstream pull request is not a dependable path to a pin - an unlicensed repository
-has not invited contributions and its merge timing is not Taylor's to schedule - so the pin points at
-the fork on its own merits. Offering the work upstream afterwards is `runtime-reversible` and costs
-this phase nothing either way.
+The coordinator's error is worth keeping, because it is the same one three times over. Decision 17
+asked how to repair GTOpen's realization model. That was never phase 14's question. GTOpen ships
+**three** realization models - `calibrated`, `static`, `raw` - and the config that selects one is
+`RULED_CONFIG` in this repo, in this phase's own approved scope. The real question is which of the
+three this phase solves with, or whether the affected spots are excluded by the selection rule the
+phase already owns. Both are poker-bot decisions requiring no solver work at all.
 
 Options: fork-and-pin-the-fork | pin-a-local-build | pin-an-upstream-merge
-Answer: [fork-and-pin-the-fork]
+Answer: [withdrawn-see-decision-19]
+
+## 19. Which realization model the committed solve uses
+
+Reversibility: frozen-into-data
+
+Supersedes decisions 17 and 18. Both asked how to repair GTOpen's `calibrated` realization model - 17
+by refitting it on four-bet-pot data, 18 by forking the solver to hold that work. Neither was this
+phase's question, and Taylor withdrew both on 2026-08-31: the bot is what is being built here, no work
+is wanted in GTOpen, and phase 14 was expected to need a tweak rather than a solver project.
+
+**The question this phase actually faces.** GTOpen ships three realization models - `calibrated`,
+`static` and `raw` - selected by one field of the config, and that config is `RULED_CONFIG` in
+`src/poker_training_bot/solver_artifacts/gtopen_config.py`, inside this phase's approved scope. So the
+choice is which model to solve with, on GTOpen unmodified at the pinned `4aee435`.
+
+`calibrated` prices each flop terminal `pot x equity x R` with `R` from 169 per-class numbers fitted
+only on single-raised and three-bet pots. Applied unchanged in a four-bet pot at SPR 1.67 it prices JJ
+at 0.749 of its equity and 76s at 1.133, and the solve folds JJ at 40.8 percent equity into a 32.3
+percent price while calling 76s at 29.6.
+`static` keeps a positional term only - about plus or minus 8 percent, growing with SPR and saturating
+at 8 - and carries no per-class term at all. Measured 2026-08-31 on the same 38,828-node tree with one
+field changed and both arms at 400 iterations: JJ moves from folding 93.5 percent to a 37 percent
+continue, 76s from a pure call to 53, LJ's four-betting range drops 87s and 76s entirely in favour of
+A5s, and continue-share falls 65.6 to 57.4 percent.
+`raw` sets `R` to 1 everywhere, discarding position as well.
+
+**Ruled by Taylor, 2026-08-31: `static`.** It removes the defect that stopped the phase, needs no
+change to GTOpen, and is one field in a config this phase already owns - the same shape as decision
+14, which flipped `add_allin`.
+
+**The cost, stated plainly rather than discovered later.** `static` is a blunter postflop model. It
+does not know that a suited connector realizes its equity better than a middling pair in a deep pot,
+which is real poker that `calibrated` was trying to capture and sometimes did. What is bought is that
+it has no per-class term to get backwards at low SPR. Whether that trade holds across the committed
+spots is measured at stage 6, not assumed here.
+
+**Two things this does not settle.** Round 2's jam-composition and rank-dominance blockers are
+re-measured against the new build rather than assumed fixed; the static arm still showed 87s and 76s
+jamming while KK and QQ flat, so the jam blocker in particular should be expected to survive. And the
+committed export was built with `add_allin: true` and `calibrated`, while the ruled config now carries
+`add_allin: false` and `static` - **that combination has never been solved.** The 2026-08-31 experiment
+deliberately held `add_allin: true` to isolate one variable, so the numbers above do not describe the
+build this ruling produces. `SOLVE_TARGET_GAP_BB` stays at the ruled `0.00016`.
+
+Options: calibrated | static | raw
+Answer: [static]

@@ -786,3 +786,50 @@ found the cause one level below where rounds 3 and 4 stopped, and it changes wha
   data generator. Each was a proposal about the shape of the output. The generator explains why the
   output has that shape, and it took one question about mechanism to reach it. When a fitted table
   looks wrong, read what was sampled before arguing about what was fitted.
+
+# Round 6, 2026-08-31: what is live, and what to ignore above
+
+Rounds 3 to 5 stand as written, per the convention that a round is a snapshot. But they converged on
+repairing GTOpen's `calibrated` realization model, and Taylor withdrew that whole direction on
+2026-08-31: no work is wanted in GTOpen, the bot is what is being built here, and phase 14 was
+expected to need a tweak. He was right, and this round is the correction.
+
+**Live:** decision 19. GTOpen ships **three** realization models - `calibrated`, `static`, `raw` -
+and the field selecting one is `RULED_CONFIG` in
+`src/poker_training_bot/solver_artifacts/gtopen_config.py`, inside this phase's approved scope. Ruled:
+solve with `static`. The restart is a contract-update flip of one field on decision 14's precedent,
+then a re-export and a re-measure. No solver work by anybody.
+
+**Ignore, as work:** decision 17's refit of the fit, decision 18's fork (deleted the same day), the
+SPR shrink of `class_r`, the PAVA chain extensions, the four-bet study lines, and the
+`price-monotone` / `price-follows-equity` / `price-inversion-margin` conditions. Every one of them
+answered a question this phase does not have to ask.
+
+**Keep, as diagnosis:** why `calibrated` fails here. Its 169 per-class numbers were fitted only on
+single-raised and three-bet pots - `NCELL` is 5 with no four-bet cell, and `grep -c _4bet` in the data
+generator is 0 - and the engine applies them unchanged at SPR 1.67. That is what makes `static` the
+fix rather than a downgrade: the term being dropped is one that was never measured where this phase
+uses it. Everything in rounds 3 to 5 that establishes this is sound and independently reviewed.
+
+## Blocker
+
+- No new blocker. Round 2's two remain open and are re-measured against the `static` build rather than
+  assumed to have moved.
+
+## Non-blocker
+
+- **The experiment's numbers do not describe the build this ruling produces.** It held
+  `add_allin: true` to isolate `realization`, while the ruled config now carries `add_allin: false`
+  **and** `static`. That combination has never been solved. Expect the four-bet defence to improve and
+  do not expect the reported 37 / 53 percent figures to reproduce.
+- **The jam-composition blocker should be expected to survive.** The static arm still had 87s jamming
+  12 percent and 76s 23 while KK and QQ flat. `static` addresses the per-class term, and nothing in
+  this ruling explains the jam shape.
+
+## Alignment
+
+- **The coordinator's failure here is worth more than the finding.** Three rounds proposed repairs to
+  a fitted table, then a refit of it, then a fork to hold the refit, then a change of solver vendor -
+  and the answer was a config field in this repo, in this phase's own approved scope, selecting a
+  model the solver already ships. Nobody asked what the options were before asking how to build one.
+  Rounds 3 to 5 read as escalating competence at answering the wrong question.
