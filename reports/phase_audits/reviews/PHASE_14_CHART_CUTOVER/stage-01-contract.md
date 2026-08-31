@@ -813,8 +813,9 @@ uses it. Everything in rounds 3 to 5 that establishes this is sound and independ
 
 ## Blocker
 
-- No new blocker. Round 2's two remain open and are re-measured against the `static` build rather than
-  assumed to have moved.
+None new. Round 2's two remain open and are re-measured against the `static` build rather than
+assumed to have moved. Stated as prose rather than as a bullet, because a bullet here saying "no
+blocker" is counted by `unresolved_blockers` as one.
 
 ## Non-blocker
 
