@@ -1194,3 +1194,147 @@ build this ruling produces. `SOLVE_TARGET_GAP_BB` stays at the ruled `0.00016`.
 
 Options: calibrated | static | raw
 Answer: [static]
+
+**A third thing this does not settle, found 2026-08-31 by the lane executing the ruling and recorded
+here additively rather than by editing the ruling above.** This item argues `static` from the four-bet
+pots. `static` is also the model phase 10 rejected, and it rejected it on the single-raised pots this
+item does not discuss. Phase 10's decision 2 ran the same tree with only this field changed and
+recorded a big blind defending **99.71** percent against a small-blind open under the `static`
+default, 97.44 against a button open and 72.94 against the lojack, against 49.03, 36.88 and 27.19
+under `calibrated` and 42.88, 39.43 and 22.63 in the raked expectations file. It ruled that **nothing
+may be committed under the default**, in those words, and called it the finding that would otherwise
+have shipped a self-consistent, checksummed, thoroughly reported calling station. That measurement is
+not cited here, and the figure sat in `gtopen_config.py`'s own docstring while this item was written.
+
+Both readings can hold, and the mechanism says how: `static`'s positional term saturates at SPR 8 and
+there is no per-class term, so at a four-bet pot's SPR 1.67 it has nothing to get backwards, while in
+a single-raised pot it approaches raw realization, where calling 2.5 to reach an equity split is
+almost always profitable. That would make `static` right where `calibrated` is broken and wrong where
+`calibrated` was sound - and the second of those is the busiest part of the chart.
+
+Two qualifiers, so this is read as a measurement owed rather than a result claimed. Phase 10's
+`static` probe ran with `limp: true`, and the same table has the small blind limping 60.81 percent, so
+that tree is not this one. And the contract's gated orderings cannot separate the two: 72.94 < 97.44 <
+99.71 is monotone in exactly the way 27.19 < 36.88 < 49.03 is, so the ordering phase 10 said
+"reproduces exactly" passes under a calling station too. The defence level per opener is therefore
+measured on this build and read by a human before anything derived from it is committed. The contract
+carries that as a criterion, and `STATIC-REALIZATION-UNMEASURED-IN-SINGLE-RAISED-POTS` carries the
+diagnosis. If the level lands near phase 10's `static` column, this ruling needs re-taking against a
+question it was not asked, and that is a new item for Taylor rather than a caveat for this one.
+
+## 20. Which pot type the committed chart prices correctly, now that no model prices both
+
+Reversibility: frozen-into-data
+
+Raised 2026-08-31 by the lane that executed decision 19, on the build that ruling produces, and
+rewritten the same day after an independent review found the first draft argued for one of its own
+options and stated it doing something it does not do. It does not reopen decision 19 by argument; it
+reports what decision 19 turned out to do and asks the question the measurement leaves. Decisions 17
+and 18 stay superseded and withdrawn, and no work is owed in GTOpen by anybody.
+
+**What the build says.** `add_allin: false` with `static`, solved on an unmodified GTOpen at
+`4aee435` to 0.00015672bb at iteration 1,100 of 2,000, byte-identical across two processes, 0 walk
+mismatches, 51 spots from 33,969 nodes. Every figure below was measured by a worker lane, re-derived
+by the coordinator and re-derived again by an independent reviewer, all three from their own code.
+
+- **The defect decision 19 was ruled to fix is reduced, unevenly, and not by pricing the connectors.**
+  At the deep four-bet lines JJ goes from continuing 0.028 to 0.462 and TT from 0.001 to 0.585, and no
+  pair sits at 0.000 at any of the fifteen four-bet-facing spots. But over all fifteen, JJ improves at
+  ten, holds at three and **falls at two** - `BB/HJ` 0.289 to 0.235 and `SB/HJ` 0.409 to 0.166 - and
+  99 stays under 0.10 at **nine** of the fifteen. The connectors did not get repriced: 76s is absent
+  from all fifteen and 87s and JTs survive at one, because they are no longer in hero's three-betting
+  range. Where they do survive, `BB/SB`, **QJs continues 1.000 on 10,000bp and JTs 1.000 on 9,999bp**,
+  so "no connector calls a four-bet at full reach" is false as a general claim.
+- **The big blind now defends 76.31, 84.51, 91.46, 98.19 and 100.00 percent** against the lojack,
+  hijack, cutoff, button and small blind, against 27.28 to 49.02 on the committed chart and 22.63 to
+  42.88 in the raked expectations file. It folds **zero** combos against a small-blind open; 72o calls
+  at 1.000. The damage is in the flat call, not the raise: against the small blind, call moves 22.59
+  to 81.49 while the three-bet *falls* 26.43 to 18.51. Phase 10's decision 2 measured 72.94, 97.44 and
+  99.71 for the three openers it took and ruled that nothing may be committed under this model.
+- **Round 2's jam-composition blocker survives with new ranks.** 88 five-bets 0.508 at 9,277bp while
+  KK and AKs flat 1.000 and AKo folds 0.937; 55 jams 0.358 at 5,677bp while QQ flats; 77 jams 0.967 at
+  4,768bp while KK flats and JJ folds 0.765. Worse than any of those: at **three of the five lojack
+  four-bet lines** - `BTN/LJ`, `CO/LJ`, `HJ/LJ` - **AQs five-bets for the whole 100bb stack at 0.9998,
+  0.9992 and 0.9991 on 10,000, 9,998 and 9,775 basis points of arriving reach, while KK, QQ, AKs and
+  AKo every one of them flat at 1.000** on comparable reach. AJs and ATs jam beside it but arrive at 2
+  to 345 and 1 to 52 basis points, so those cells are noise and are not part of the finding. AQs is
+  not: a hand dominated by two of the hands that decline the jam, taking it at full reach, is the
+  44-jam defect that rejected the first cutover with the ranks changed.
+- **The aggregate group dominance gate - the one check the contract actually gates the ranges on, and
+  the one the phase halted rather than freeze unproven - passes on this build and fails on the
+  committed one.** Combo-weighted by arriving reach and spot arrival, chart-wide: this build's pair
+  ladder has 5 adjacent inversions with a largest gap of **0.43** points and its suited-row ladder 1 at
+  **0.02**, all inside decision 10's ruled one-point tolerance. The committed chart over the same 51
+  spots has 4 pair inversions up to **7.27** points (22 over 33) and 3 suited-row inversions up to
+  **23.10** (5xs over 6xs), which fails it heavily. Strict per-cell dominance improves the same way,
+  85 violations to 34 over the same 51 keys. This is the strongest evidence in favour of the build and
+  it is recorded here for that reason. What it also shows is that these gates cannot see the defect
+  above: a chart where the big blind defends every hand has a nearly flat pair ladder precisely
+  *because* everything continues.
+- **Priced by the artifact's own arrival mass**, `static` repairs 1.58 percent of the chart's traffic
+  and breaks 57.11. The five single-raised big-blind spots are 57.11 percent, the opening range 25.11,
+  the fifteen three-bet spots 16.00, the fifteen four-bet spots 1.58, the five-bet spots 0.20.
+
+**Why this is a ruling and not a measurement.** GTOpen ships three realization models and all three
+are measured or bounded. `calibrated` applies a per-class table with no four-bet-pot cell and gets
+four-bet pots backwards. `static` drops the per-class term and turns single-raised pots into a calling
+station - and the mechanism explains both halves at once, which is what makes it a real finding rather
+than two coincidences: `static`'s positional term saturates at SPR 8 and there is no per-class term,
+so at a four-bet pot's SPR 1.67 it has nothing to get backwards, while at a single-raised pot's SPR 20
+it approaches raw realization, where calling 2.5 to reach an equity split is almost always profitable.
+`raw` is `static` with the positional term removed too, so it cannot be better on that axis. There is
+no fourth setting, and repairing the model is out of scope by Taylor's ruling of 2026-08-31. So the
+phase cannot get a source that prices both pot types, and what is left is a choice.
+
+**The options, stated as what each would ship. This item does not recommend one.**
+
+`revert-to-calibrated-and-refuse-the-four-bet-spots` - restore `realization: "calibrated"` and extend
+the exclusion vocabulary so the fifteen four-bet-facing spots are excluded with a code rather than
+committed, the way multiway pots already are. Commits the 98.4 percent of arrival mass that is not a
+four-bet spot on the model phase 10 verified against an independent solver.
+**What this does not do, stated because the first draft of this item claimed otherwise.** Refusing a
+spot removes it from *lookup*, not from the *solve*. Every committed three-bet spot and every committed
+single-raised spot is backward-induced over four-bet-pot terminals, so it carries whatever the model
+gets wrong down there whether or not the four-bet node itself is committed. That is this phase's own
+ruled principle - the contract says the approximation bites at *terminals* and a node's strategy is
+backward-induced over every terminal below it, citing
+`SELECTION-PREDICATE-MUST-BE-STATED-OVER-REACHABLE-TERMINALS` - and it is the half of the multiway
+precedent this option would be borrowing without. Stated over terminals, "exclude what the source
+misprices" excludes every node with a four-bet pot below it, which is the whole chart. **The size of
+that contamination is unmeasured.** It is bounded by how much of a shallow node's value comes through
+a four-bet terminal, which the export can answer and nobody has asked; the four-bet pots carry 1.58
+percent of *arrival* mass, which is not the same quantity. So this option is either taken knowing the
+contamination is unquantified, or the measurement is run first.
+
+`keep-static-as-solved` - commit the build measured above, with the defence level stated on the source
+card as an accepted limitation. What ships is a chart that flat-calls a button open with every hand
+dealt, and it ships to a bot whose postflop is phase 06's heuristic fallback, so the equity those
+calls realize is below even what the model assumed. Phase 10's decision 2 ruled against this model on
+the same figures. In its favour: it is the only option under which the aggregate dominance gate has
+been seen to pass, and the four-bet ranges are better poker than the committed chart's.
+
+`keep-static-and-refuse-the-single-raised-spots` - the mirror of the first option. Refuses 57 percent
+of the chart's traffic and, on the same reasoning about terminals, the opening range with it, leaving
+the bot answering the rare spots and refusing the common ones. Carries the same unmeasured
+contamination in the other direction, since a three-bet pot's terminals include single-raised-pot
+turns of play only through folds - it is stated for completeness rather than as a near thing.
+
+`halt-until-a-source-prices-both` - what decision 16 did. The derivation machinery is proven and
+re-runs in about seven minutes, so a corrected source costs only the solve. **What it costs is not
+"only time".** Decision 20's own preamble forecloses every route to a corrected source - 17
+superseded, 18 withdrawn, no work owed in GTOpen, no vendor change - so as written this is an
+indefinite halt with no owner and no path, and it leaves live the retired raked GTO Wizard chart the
+contract requires **deleted**, which phases 15 onward are then measured against. That is a real
+option; it is not a cheap one.
+
+**Two options deliberately excluded, named so the list is not read as the whole space.** Committing
+all 51 under `calibrated` with the four-bet misprice recorded as a caveat is forbidden by the
+contract's own non-goal - a caveat does not reach the human at the table - and it is the state the
+phase was in before decision 19, which two independent reviews rejected. And re-solving with
+`max_raises` reduced so the tree holds no four-bet pot at all is the only route that removes the
+contamination rather than refusing around it, but it changes the solved tree, which the non-goals
+freeze, and it buys that by abstracting away a line real opponents take. Either could be ruled in;
+neither is offered as an option here without Taylor saying so.
+
+Options: revert-to-calibrated-and-refuse-the-four-bet-spots | keep-static-as-solved | keep-static-and-refuse-the-single-raised-spots | halt-until-a-source-prices-both
+Answer: []

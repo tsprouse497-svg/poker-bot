@@ -834,3 +834,500 @@ blocker" is counted by `unresolved_blockers` as one.
   and the answer was a config field in this repo, in this phase's own approved scope, selecting a
   model the solver already ships. Nobody asked what the options were before asking how to build one.
   Rounds 3 to 5 read as escalating competence at answering the wrong question.
+
+# Round 7, 2026-08-31: decision 19 executed, and what the build says
+
+Coordinator work: the ruling of decision 19 carried out and the build measured. `RULED_CONFIG`
+carries `realization: "static"`, the export and the chart are rebuilt from an unmodified GTOpen at
+`4aee435`, and round 2's two open blockers are re-measured against the result rather than assumed to
+have moved. One worker lane solved, walked and derived, and measured everything below independently
+with its own code; the coordinator re-derived every headline figure from the artifact itself, on the
+standing rule that a lane's report is not evidence either. Nothing under `data/artifacts/` is
+committed: the artifact is writable at stage 6, and the frozen tests that pin the superseded 86-spot
+build migrate at stage 4 by the contract's own regression expectation. The build is preserved outside
+the tree and the tracked paths are restored.
+
+**The build is sound as a build.** 51 spots from 33,969 action nodes, the census and the three action
+menus exactly as the contract states - 35 call/fold/raise, 15 call/fold, 1 fold/raise, prices
+`[2.5, 7.5, 22.5, 100.0]`. Achieved gap **0.00015672bb at iteration 1,100** of 2,000 against the ruled
+0.00016 target, 0 walk mismatches over 33,969 re-resolved nodes, and the two-process determinism proof
+byte-identical at 0 basis points of divergence. The source card names `realization=static` because the
+field now derives from `RULED_CONFIG` rather than being typed; it read `realization=calibrated` beside
+a `config_posted` saying otherwise until this task, and `config_errors` never reads that sentence.
+
+The build is identified by checksum so a later session can prove it rebuilt the same thing rather than
+trusting a number quoted here: export `43a29604b9f99564129390c7622a04dc2fed953bcc6077cfa212accf15fd65be`
+by the card's own `export_sha256`, chart weights `de9d62e1342b5add29862393e8f6c4898fde02aee0b8ce3f26c363e92a426d27`
+by `audit_fields.weights_sha256`, export file 2,033,258 bytes against the superseded 4,094,221. The
+GTOpen save it came from is 98,422,118 bytes at
+`2fc257714f8a09cf5275dea6de4549fb0889d33647e317559cca302f37ac07b7`; that file was overwritten by this
+build and the `calibrated` save the committed card names, `64d8729a30f758f24e713976ac529bab64c741d22af4b68bdeea424864f27ab5`,
+was backed up first and put back, so the committed card still describes a solve a human can load.
+
+**What "preserved" does and does not mean, corrected after round 8.** The chart itself and the 2 MB
+export live only in a session-scoped scratch directory that a later session cannot reach, so the two
+files committed beside this note are the whole of the in-tree trace, and reproducing the build means
+re-solving rather than recovering. The checksums are what make that re-solve *checkable*, which is the
+point of quoting them; they are not a copy of the build. The two files are:
+`static-build-source-card.json`, the provenance and convergence of the solve, and
+`static-build-derived-chart-report.txt`, the human report over the 51 spots. They sit under
+`reports/phase_audits/reviews/` rather than `data/artifacts/`, so nothing in the repo reads them as the
+committed chart. **One line of that report is false and is left as generated rather than hand-edited:**
+its fifth line says the bot "now plays from 86", copied from `chart_provenance.py`'s literal, three
+paragraphs above its own census reading 51. That is the defect named under Non-blocker below, and
+correcting it inside a generated artefact would hide it.
+
+## Blocker
+
+- **The big blind defends 100.0 percent of hands against a small-blind open, and this build is phase
+  10's rejected column.** Measured on the artifact, combo-weighted over all 169 classes, against the
+  same figure taken the same way from the superseded chart and from phase 10's decision 2:
+
+  | BB defends vs | this build (`static`) | committed (`calibrated`) | phase 10 `static` | phase 10 `calibrated` | raked expectations |
+  |---|---|---|---|---|---|
+  | LJ | **76.31** | 27.28 | 72.94 | 27.19 | 22.63 |
+  | HJ | **84.51** | 29.92 | - | - | - |
+  | CO | **91.46** | 34.12 | - | - | - |
+  | BTN | **98.19** | 36.76 | 97.44 | 36.88 | 39.43 |
+  | SB | **100.00** | 49.02 | 99.71 | 49.03 | 42.88 |
+
+  The damage is entirely in the flat call: against the small blind, call moves 22.59 to **81.49**
+  percent while the three-bet *falls* 26.43 to 18.51; against the lojack, call moves 21.01 to 70.83.
+  That is the mechanism phase 10 wrote down - a caller who realizes near-raw equity is almost always
+  right to call 2.5 to reach an equity split - and phase 10's decision 2 ruled in as many words that
+  **nothing may be committed under this model**, calling it the finding that would otherwise have
+  shipped a self-consistent, checksummed, thoroughly reported calling station. Decision 19 does not
+  cite that measurement, and the 99.71 figure was sitting in `gtopen_config.py`'s own docstring while
+  it was written. **Open, and it is the phase's ruling that has to move, not this measurement.**
+- **The jam-composition blocker survives, re-shaped rather than reduced, exactly as decision 19 said
+  to expect.** The specific inversion round 2 named is gone - no suited connector five-bets anywhere,
+  because they are no longer in hero's three-betting range at all. What replaces it is the same error
+  one family across. At `t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5` the five-bet range is AA
+  at 1.000 and **88 at 0.508 on 9,277bp of arriving reach**, while KK flats 1.000, AKs flats 1.000,
+  QQ flats 0.983 and AKo folds 0.937. At `t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5`,
+  **55 jams 0.358** at 5,677bp while QQ, JJ, AKs and AKo all flat at 1.000. At
+  `t6/d100/BB/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5`, **77 jams 0.967** at 4,768bp while KK flats
+  1.000 and JJ folds 0.765. A pair of eights stacking off 100bb where kings never do is the error that
+  rejected the first cutover, with the ranks changed.
+  The sharpest case is not a pair. At all three lojack four-bet lines - `BTN/LJ`, `CO/LJ` and `HJ/LJ` -
+  **AQs five-bets for the stack at 0.999 on 10,000, 9,998 and 9,775 basis points of arriving reach,
+  while KK, QQ, AKs and AKo every one of them flat at 1.000 on comparable reach.** AJs and ATs jam
+  alongside it at 0.74 to 0.999 but arrive at 1 to 345 basis points, so those cells are noise and are
+  named separately; AQs is not. A hand that is behind KK, QQ and AKs in every equity ordering that
+  exists, taking the most committing action in the game where all three refuse it at full reach, is the
+  same defect as the original 44-jam and it is no longer confined to small pairs. **Open.**
+
+Round 2's two blockers stay open and neither is marked resolved, stated as prose because a bullet here
+saying so is counted as a third open blocker. The jam-composition one is open on its own terms above.
+The rank-dominance one is not marked resolved even though the count improves from 85 to 34, because the
+improvement is a property of a build that will not exist if decision 20 answers anything other than
+`keep-static-as-solved`, and because what the contract actually gates is the aggregate group form,
+which no build has yet been seen to pass. A blocker closed against a discarded artifact is worse than
+one left open.
+
+## Non-blocker
+
+- **The four-bet defect the ruling was made to fix is reduced, unevenly, and not by pricing the
+  connectors.** Continue frequency at the deep four-bet lines, static against the committed calibrated
+  build at comparable arriving reach: at `HJ/LJ`, JJ 0.028 to **0.462** and TT 0.001 to **0.585**; at
+  `BTN/LJ`, JJ 0.093 to 0.540 and TT 0.001 to 0.543; at `CO/HJ`, JJ 0.578 to 1.000 and TT 0.002 to
+  0.995. No pair sits at 0.000 at any of the fifteen four-bet-facing spots. **Corrected after round
+  8's review, because the first draft of this bullet read the best three of fifteen spots as the
+  shape.** Over all fifteen, JJ improves at ten, holds at three and **falls at two** - `BB/HJ` 0.289
+  to 0.235 and `SB/HJ` 0.409 to 0.166, both of them spots where a low pair jams - and 99 stays under
+  0.10 at **nine** of the fifteen, not only at the lojack lines. Round 8 counts seven for that; the
+  re-derivation gives nine and the coordinator's figure stands. The connectors were not repriced
+  either: 76s is absent from all fifteen and 87s and JTs survive at one, because hero's three-betting
+  range no longer holds them - and at that one spot, `BB/SB`, **QJs continues 1.000 on 10,000bp and
+  JTs 1.000 on 9,999bp**, so this bullet's original claim that the connectors are absent from those
+  spots was false as a general statement and is withdrawn.
+- **Strict rank dominance improves, and the improvement cannot be attributed to this ruling alone.**
+  Under the relation stated in round 2 - same top card, same suitedness, kickers one rank apart, plus
+  adjacent pairs, both classes at 5,000bp or better, wheel-ace family excluded, one point of tolerance
+  - measured over the identical 51 spot keys by one implementation run against both charts: **85
+  inversions across 31 of 51 on the superseded chart, 34 across 20 of 51 on this build**, from 1,635
+  and 1,608 comparisons. The character changes too: the pure 0-versus-1 kicker flips (`J6s` 0.000
+  beside `J5s` 0.9978) are gone, and what remains is mixed-frequency pair-ladder inversions at
+  four-bet nodes (99 0.040 beside 88 0.731). Two cautions. This implementation does not reproduce
+  round 2's coordinator count of 52 on the superseded chart - it gets 85 - so the relation as prose
+  admits more than one implementation and only the within-implementation comparison is sound. And the
+  `calibrated`/`add_allin: false` chart that scored 54 was never committed, so the only available
+  comparison moves two config fields at once and the credit cannot be split between them.
+- **The trade this ruling makes, priced by arrival mass rather than by spot count.** Over the 51
+  committed spots: the five single-raised big-blind spots carry **57.11 percent** of committed arrival
+  mass, the small blind's opening range 25.11, the fifteen three-bet spots 16.00, the fifteen four-bet
+  spots **1.58** and the five-bet spots 0.20. So `static` repairs a defect in 1.58 percent of the
+  chart's traffic and creates one in 57.11. Both figures come from the artifact's own `arrival_ppb`.
+- **Six contract figures this build falsifies, and the first draft of this bullet said two.** Round 8
+  found four more and the re-derivation confirms all of them. (1) The reach-noise illustration, which
+  is the criterion whose whole purpose is to let a reader tell a trained cell from a barely-visited
+  one: the contract says that at `SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5` the classes 99, 88 and
+  AQs carry **5, 1 and 1** basis points "- noise -" while AA carries 10,000. On this build they carry
+  **10,000, 9,277 and 10,000**. It does not read as stale, it reads as the reverse of the truth, and
+  88 at 9,277bp at that spot is the same cell this note's own jam blocker quotes. (2)
+  `BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT`, which the contract says was re-measured "**and it did
+  not**" move, at a flat band of 19.63 to 22.44 percent: the band here is **70.83, 78.17, 83.13, 86.73
+  and 81.49**. (3) The purity statistic: the contract says the re-sourced chart holds 1.323 nonzero
+  actions per cell and is 73.0 percent pure; this build holds **1.264** and is **77.4** percent pure.
+  Its superseded half reproduces exactly - 2.209 and 21.0 percent over the 51 shared spots, measured
+  20.95 - so the drift is confined to the re-sourced half. (4) The same criterion's opener widths, 6.07
+  to 28.09 percent, against a small blind opening **51.06**. (5) The solve-target criterion says the
+  trajectory first meets 0.00016 at iteration 1,900 of 2,000 "so the cap binds"; under `static` it
+  meets it at **1,100**. (6) The schema note that every committed node ships all 169 hand classes: 6 of
+  the 51 carry 169 and the rest carry 9 to 93.
+  **What matters more than the count.** Every one of the first four was measured on the
+  `calibrated`/`add_allin: false` dry run, and that build is neither committed nor preserved anywhere -
+  so no artifact in this repo or beside it demonstrates a single one of the levels the contract states.
+  They are left unamended because the ruling that decides whether any of them describes the shipped
+  build is open, and enumerating them here is what tells stage 4 where to look. A contract naming
+  `realization: static` in its narrative while stating `calibrated` levels in its criteria is
+  internally inconsistent until decision 20 is answered, and that is the honest description of it.
+- **`GTOPEN-NOTES-OMIT-REALIZATION` is what made this collidable.** The config body in
+  `docs/GTOPEN_SOLVER_NOTES.md` omits the field, so its default was invisible; phase 10 found the
+  default was `static` and rejected it, phase 14 rediscovered `static` as the fix, and neither
+  document reads the other. The docstring of the module holding the field carried both facts at once.
+- **The gate is red, it is red for two reasons rather than one, and the second cannot be fixed from
+  this task.** Measured after the flip, 45 of the 46 registered commands run: 35 PASS, 10 FAIL. Nine of
+  the ten are one cause - `config_errors` now refuses the committed export with *two* messages,
+  "config field add_allin is True, ruled False; config field realization is 'calibrated', ruled
+  'static'", so every command that loads the chart dies at import. Rebuilding the export answers that,
+  and it is not the whole of the red: four frozen assertions name the superseded model by name -
+  `tests/test_solver_export.py` at its expected config dict and at the source card's `model` string,
+  `tests/test_solver_expectations.py`, and
+  `test_the_source_card_still_names_the_calibrated_realization_model` in
+  `tests/test_chart_cutover_evidence.py` - and the frozen suite also pins 86 spots in three files and
+  169 classes at every spot. `tests/**` is outside `approved_scope` by the freeze and the contract puts
+  that migration at stage 4, so **no green gate is reachable from this task**, and the halt note's
+  earlier claim that the gate is red "until the export is rebuilt" was true of one field and one
+  cause. `check_gate_bite` was not run: it exists to prove a green gate bites, its mutations take over
+  an hour of pytest runs, and the one time it ran in this lane it left a live mutation in a file
+  carrying uncommitted work. The tenth failure, `run_full_quality_gate`, is inherited and its diagnosis
+  is corrected in `BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS`: it reports
+  sixteen errors, not the twelve that entry claims, and the four extra are two id-shaped phrases read
+  as citations (`P10-D3`, `JJ-88`) and two stale corpus figures. Two commands went from FAIL to PASS
+  here, `generate_backlog` and `check_generated_backlog`.
+- **The malformed backlog entry that was masking two gate commands is fixed here.**
+  `BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS` was deliberately filed with no
+  `phase` field, to avoid adding a thirteenth vocabulary error. `scripts/generate_backlog.py` indexes
+  `item['phase']` unconditionally, so the omission raised `KeyError` and turned `generate_backlog` and
+  `check_generated_backlog` from PASS to FAIL - worse than the error it avoided, and hidden by the
+  lane's own red. `phase: contract-update` is added, which the constants already allow, and the entry
+  records what happened. The twelve status/phase errors themselves stay MAINT-29's.
+
+- **The committed artifact ships prose that this build makes false, including one poker claim.** Found
+  by the measurement lane. `solver_artifacts/chart_provenance.py` hard-codes "The chart commits 86 of
+  that solve's 38,828 action nodes and excludes 38,742 of them" - 51 of 33,969 excluding 33,918 on this
+  build - and, separately, "the big blind here folds 50.98 percent of its range" facing a small-blind
+  open, which is **0.00 percent** here. That text is copied verbatim into the artifact's
+  `audit_fields.notes` beside a `spot_count` that is computed and correct, and the generated report's
+  fifth line repeats "it now plays from 86" three paragraphs above a census reading 51.
+  `THE-ARTIFACT-DESCRIBES-ITS-OWN-CENSUS-IN-PROSE-NOTHING-CHECKS` carries the census half and is
+  extended here with the second half: the same module states a *poker* frequency as a literal, which
+  is not a census figure and would not be fixed by rendering the census. Neither is repaired in this
+  task - `chart_provenance.py` is stage-6 scope and outside this `approved_scope`.
+- **Two independent measurements agree, and where they differ the coordinator's is recorded.** The lane
+  and the coordinator wrote separate implementations and both report 85 dominance violations on the
+  superseded chart over the 51 shared keys, 34 on this build, and 96 over all 86 keys - to the unit, so
+  the 52/54 of round 2 is a narrower reading of the same prose rather than a disagreement about the
+  chart. The one difference: the lane reports 5 spots carrying all 169 hand classes, and the
+  re-derivation gives **6** - the five big-blind spots plus `t6/d100/SB/rfi`, where every class arrives
+  by construction. The coordinator's figure stands.
+
+## Alignment
+
+- **An ordering is not a level, and this phase has now been bitten by that twice.** Both orderings the
+  export was gated on - later position opens wider, the big blind defends more against whoever opens
+  wider - hold under this build: 76.31 < 84.51 < 91.46 < 98.19 < 100.00 is monotone in exactly the way
+  27.28 < 29.92 < 34.12 < 36.76 < 49.02 is. Phase 10 said the defence ordering "reproduces exactly"
+  under `calibrated`, and it reproduces exactly under a big blind that defends every hand. Every
+  gated check in this phase is a shape check - an ordering, a census, a menu, a monotonicity - and
+  `NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL` is the entry that says so. The
+  contract now carries a level criterion against the expectations file, and it is the only check in
+  the phase that would have caught this build.
+- **The option space GTOpen offers is now measured out rather than argued about.** `calibrated`
+  inverts the four-bet pots, `static` turns the single-raised pots into a calling station, and `raw`
+  sets R to 1 everywhere, which is the same failure as `static` with the positional term removed as
+  well. No third setting exists. That is not a reason to reopen decision 17's refit or decision 18's
+  fork - both are withdrawn and no work is owed in GTOpen - but it does mean the choice in front of
+  this phase is which pot type to price correctly and what to do about the other, and that is a
+  ruling rather than a measurement. Filed as decision 20.
+- **The method note round 5 wrote applies to the ruling as well as to the repair.** Round 5 said: when
+  a fitted table looks wrong, read what was sampled before arguing about what was fitted. The same
+  discipline applied to the *replacement* would have surfaced phase 10's decision 2 in one grep -
+  `99.71` appears in six committed documents and in the docstring of the module being edited - before
+  a ruling was taken on where the alternative had been measured.
+
+# Round 8, 2026-08-31: independent review of round 7
+
+Read-only reviewer, wrote none of round 7 and none of the diff. Every figure below was re-measured
+from the preserved build with code written for this note, without reading the lane's `measure_lm.py`
+or the coordinator's: the `static` chart, its sizing table, the committed `calibrated` chart and the
+new source card. No gate command and no `pytest` was run; `check_scope`, `check_file_sizes` and
+`check_contracts` pass and the contract still stands at exactly 300 lines.
+
+**Round 7's headline figures reproduce, to the digit, without exception.** BB defence 76.31 / 84.51 /
+91.46 / 98.19 / 100.00 against LJ / HJ / CO / BTN / SB and 27.28 / 29.92 / 34.12 / 36.76 / 49.02 on
+the committed chart; the call moving 22.59 to 81.49 against the small blind and 21.01 to 70.83 against
+the lojack while the three-bet falls 26.43 to 18.51; zero combos folding to a small-blind open, 72o
+calling at 1.000. The jam compositions: 88 at 0.5082 on 9,277bp with KK and AKs flat 1.000, QQ 0.9826
+and AKo folding 0.9367; 55 at 0.3582 on 5,677bp; 77 at 0.9665 on 4,768bp with JJ folding 0.7655. The
+four-bet continues at `HJ/LJ` 0.028 to 0.462 and 0.001 to 0.585, at `BTN/LJ` 0.093 to 0.540 and 0.001
+to 0.543, at `CO/HJ` 0.578 to 1.000 and 0.002 to 0.995. Dominance **34 across 20 of 51 from 1,608
+comparisons, 85 across 31 of 51 from 1,635, 96 across 40 of 86** - a third independent implementation
+landing on the lane's and the coordinator's counts to the unit. Arrival mass 57.111 / 25.106 / 16.004
+/ 1.579 / 0.200. Census 51 + 29,104 + 4,814 + 0 = 33,969. Menus 35 / 15 / 1, prices exactly
+`[2.5, 7.5, 22.5, 100.0]`, 36 sizing entries and 15 without, 21 named-price-only and 15 jam-only and
+**0** offering both. Six spots at 169 classes and the rest 9 to 93, so the coordinator's 6 stands over
+the lane's 5. Source card: gap 0.00015672434 at iteration 1,100 of 2,000, 33,969 exported against
+33,969 solver action nodes, 0 walk mismatches, byte-identical determinism at 0bp, `4aee435`,
+2,033,258 bytes, `model` reading `realization=static` beside a `config_posted` that agrees. **The
+measurement half of round 7 is sound and I found nothing wrong with it.** Everything below is about
+what was not measured, what was stated selectively, and one option that does not do what it says.
+
+**The poker conclusion is right, and right for a reason round 7 does not give.** A big blind that
+defends 100 percent is unshippable, and the steelman fails on arithmetic rather than on taste. Facing
+2.5 with 1.0 posted the big blind risks 1.5 to contest a 5.0 pot, so it needs 30 percent equity, and
+against a small blind opening 51.06 percent even 72o holds roughly a third of the pot in raw equity.
+The 40-to-50 percent of hands every real solution folds there are folded on **realization**, not on
+equity - so a model whose R tends to 1 in a 20-SPR pot must defend everything, and 100.00 percent is
+that model's signature rather than a solve that happens to be loose. Two corroborations. The three-bet
+*falls* to 18.51 while the call rises to 81.49: under near-raw realization you never need fold equity,
+so the model prefers calling to raising out of position, which inverts the polarity of the big blind's
+whole strategy and is a second independent tell. And the loss is not the bounded realization gap a
+playing bot would pay, because this chart's postflop is phase 06's heuristic fallback, so the equity
+those 72o calls actually realize is below even the discounted figure the model assumed - the chart
+hands the fallback a range it cannot play. For a training artifact it is worse still: the deliverable
+*is* the teaching material, and this one teaches the single most common leak in the games it targets.
+By the same token the four-bet repair is real poker for a real reason - at SPR 1.67 realization
+genuinely is near-raw, so a model with no per-class term has nothing to get backwards - and that is
+precisely why it destroys the SPR-20 pots. Decision 20's diagnosis of the mechanism is correct, which
+is what makes it a ruling and not a measurement.
+
+## Blocker
+
+- `[resolved]` **`revert-to-calibrated-and-refuse-the-four-bet-spots` does not do what decision 20 says it does,
+  and it is the option presented first and argued for.** Refusing the fifteen four-bet spots removes
+  them from *lookup*. It does not remove the four-bet-pot terminals from the *solve that produced the
+  committed spots*. Every committed three-bet spot - 16.004 percent of arrival mass - and every
+  committed single-raised big-blind spot - 57.111 percent - is backward-induced over four-bet-pot
+  terminals, so its strategy carries whatever the model got wrong down there whether or not the
+  four-bet node itself is committed. This is not a novel objection: it is this phase's own ruled
+  principle, stated in the contract in these words - "the approximation bites at *terminals* and a
+  node's strategy is backward-induced over every terminal below it" - citing
+  `SELECTION-PREDICATE-MUST-BE-STATED-OVER-REACHABLE-TERMINALS`. Worse, the option borrows the
+  multiway precedent - "this is the shape the phase already uses for multiway pots" - while dropping
+  the half that makes the precedent work. The multiway predicate was deliberately *restated over
+  terminals* on 2026-08-25, which is what caught the 24 of 110 nodes whose history was heads-up and
+  whose terminals were not. Restated over terminals here, "exclude the spots the source misprices"
+  excludes every node with a four-bet pot below it, which is the entire chart. So "it commits 98.4
+  percent of the arrival mass on the model phase 10 verified against an independent solver" is not a
+  clean split: it commits 98.4 percent of the mass computed against terminals the same sentence
+  declares mispriced, and the size of that contamination is **unmeasured and not acknowledged**. The
+  option is not thereby dead - a bounded, measured contamination may well be acceptable, and the
+  alternative options are worse in other ways - but it cannot go in front of a `frozen-into-data`
+  ruling stated as a clean 98.4/1.58 split. Restate it with the contamination named and its size
+  declared unmeasured, or measure it. And note the shape of the list while doing so: option 2 is
+  "stated to be rejected", option 3 carries "phase 10's decision 2 already ruled against it", option
+  4 "is honest", and option 1 is the only one argued for and the only one presented first. Three
+  argued down and one argued up is a recommendation, and this ruling is Taylor's.
+- `[resolved]` **Round 7 says "Two contract figures this build falsifies". There are at least five, and that
+  enumeration is the list the next session will migrate from at stage 4.** Measured here:
+  (1) the reach-noise illustration. The contract states that at
+  `SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5` the classes 99, 88 and AQs carry **5, 1 and 1** basis
+  points "- noise -" while AA carries 10,000. On this build they carry **10,000, 9,277 and 10,000**.
+  That is the same spot and the same class round 7's own jam blocker quotes at 9,277bp two screens
+  earlier, and it is the criterion whose entire purpose is to let a reader tell a trained cell from a
+  barely-visited one - so it does not read as a stale number, it reads as the opposite of the truth.
+  (2) `BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT`, which the contract says was "re-measured rather
+  than assumed to have moved, **and it did not**", at a flat band of **19.63 to 22.44** percent. On
+  this build the flat band is **70.83, 78.17, 83.13, 86.73, 81.49**. (3) the purity statistic. The
+  contract says the re-sourced chart "holds **1.323** and is **73.0** percent pure"; this build holds
+  **1.264** and is **77.4** percent pure. Its superseded half reproduces exactly - 2.209, 21.0
+  percent, 1,669 of 3,985 cells over the 51 shared spots - so the error is confined to the re-sourced
+  half. (4) and (5) are the two round 7 names, the iteration-1,900 sentence and the all-169-classes
+  schema note. A sixth is adjacent: the same flat criterion says the openers are "6.07 to 28.09
+  percent wide", and this build's small blind opens **51.06** percent (54.09 on the committed chart).
+  All of these come from the `calibrated` plus `add_allin: false` dry run, and that build is
+  **neither committed nor preserved** - the `dryrun_a386c77` directory beside the preserved build is
+  the `add_allin: true` committed chart at 86 spots, not the dry run - so no artifact in the repo or
+  in the scratchpad demonstrates a single one of the contract's stated levels. Leaving them unamended
+  while the ruling is open is defensible; publishing a count of two is not, because a contract that
+  now names `realization: static` in its narrative and states `calibrated` levels in its criteria is
+  internally inconsistent, and the note is what tells the next session where.
+- `[resolved]` **Decision 20's evidence bullets are selectively measured, one of them is false, and the strongest
+  finding against `keep-static-as-solved` is in the halt note but not in the ruling.** Three parts.
+  (a) *False as written*: "no suited connector calls a four-bet at full reach any more, because none
+  is in hero's three-betting range", which round 7 states as "76s, 87s and JTs are absent from those
+  spots". At `t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5` **QJs continues 1.000 on 10,000bp
+  and JTs continues 1.000 on 9,999bp**, and 87s is present on 6,774bp. The spot is not itself bad
+  poker - JJ, TT and 99 all continue 1.000 there too, against a blind-versus-blind four-bet range -
+  but the sentence is the one that turns "the connectors dropped out of the range" into "the four-bet
+  nodes are now priced correctly", and only the first of those is true. (b) *Selective*: "the defect
+  decision 19 was ruled to fix is largely fixed" rests on the three best of fifteen spots. Over all
+  fifteen four-bet-facing spots JJ's continue frequency improves at ten, is unchanged at three, and
+  **falls at two** - `BB/HJ` 0.289 to 0.235 and `SB/HJ` 0.409 to 0.166 - and those two are spots
+  where a low pair jams, 77 at 0.9665 and 0.5559 respectively. So at the very spot round 7 uses for
+  its jam blocker, JJ got *worse*. And 99 stays under 0.10 at **seven** of the fifteen, not only at
+  "the lojack lines". (c) *Omitted*: at three of the **five** lojack four-bet lines - `BTN/LJ`,
+  `CO/LJ`, `HJ/LJ` - **AQs five-bets for the full 100bb stack at 0.9998, 0.9992 and 0.9991 on 10,000,
+  9,998 and 9,775 basis points of arriving reach, while KK, QQ, AKs and AKo every one of them flat at
+  1.000**. Stacking off 100bb with a hand dominated by two of the hands that decline it, at full
+  reach, is worse poker than any pair inversion decision 20 lists, and decision 20 lists only 88, 55
+  and 77. The ExecPlan and the halt note do carry it, and both misstate it: the ExecPlan says "at all
+  three lojack four-bet lines" when there are five and it holds at three, and the halt note cites
+  "AQs, ATs and AJs jam near 1.000" without reach, where **ATs carries 8, 52 and 1 basis points and
+  AJs carries 2, 345 and 166** - two of the three classes it names are noise cells, which is exactly
+  the discipline round 7 applies correctly when it quotes 9,277bp and 5,677bp. Fix the ruling before
+  it is answered: it is the document a `frozen-into-data` answer will be written onto.
+
+Round 2's two blockers stay open on their own terms, and round 7 is right to leave the dominance one
+open rather than close it against a build that may not exist - stated as prose here because a bullet
+under this heading is counted.
+
+## Non-blocker
+
+- **The one check the contract actually gates the ranges on was not measured on the build, and on a
+  defensible reading it passes.** The contract gates the *aggregate group* form - "the combo-weighted
+  play frequency of each pair band and each suited row is at least that of the band or row below,
+  over hero's arriving range" - and requires the phase to halt rather than freeze a gate it has not
+  seen pass. Round 7 declines to close the dominance blocker partly because that form is one "no
+  build has yet been seen to pass", which is true only because nobody looked. Measured chart-wide,
+  weighting each class by combos times arriving reach times spot arrival: on this build the pair
+  ladder has **5 adjacent inversions, the largest 0.43 points** (TT over JJ 0.16, 88 over 99 0.22, 77
+  over 88 0.33, 55 over 66 0.43, 44 over 55 0.18) and the suited-row ladder has **1, of 0.02 points**
+  (7xs over 8xs). On the committed chart over the same 51 spots the pair ladder has 4 inversions up
+  to **7.27** points (22 over 33) and the suited-row ladder 3 up to **24.54** (5xs over 6xs). At any
+  tolerance above half a point this build passes the gate the phase halted for and the committed one
+  fails it heavily. That is a real point in `keep-static-as-solved`'s favour and it is missing from
+  decision 20, which matters even though it does not change my verdict - an option sheet that omits
+  its rejected option's best evidence is the same defect as one that omits its favoured option's
+  worst. Caveat, and it is the reason this is not a blocker: the contract's prose admits at least a
+  per-spot and a chart-wide reading and names no tolerance, so this is one implementation's answer,
+  not the gate's.
+- **The reflow that made room dropped the only prohibitive half of the artifact-size criterion.**
+  "`data/artifacts` stays inside the 20 MiB cap, which at 51 spots no longer binds. **Exceeding it is
+  a halt and a decision, not a number to raise.**" became "...no longer binds; over it is a halt."
+  The clause that survived is the one a future session cannot act on wrongly; the clause deleted is
+  the one that forbids the wrong action, and it mirrors `AGENTS.md`'s own "Never raise the cap". This
+  is the same species as the finding round 2 recorded and closed about the refusal-rate criterion, in
+  the same lane, two contract edits later. Nothing else in the diff loses a criterion: the other five
+  deletions are pointer prose ("The criteria below carry the arrival and corpus figures"),
+  justification ("These survive any rake basis and any solver"), or restatements covered by a
+  surviving non-goal ("so nothing here touches it"). I checked all thirteen hunks line by line.
+- **The scope widening is justified and the fix is right, and it left its own twin one line above
+  untouched.** `scripts/extract_gtopen_preflop.py` joins `approved_scope` to stop the card's `model`
+  field asserting `realization=calibrated` beside a `config_posted` saying `static`, which
+  `config_errors` never reads - a real hole, one field, correctly derived from `RULED_CONFIG` now.
+  But the `discriminator` field immediately above it, in the same dict, is hard-coded prose stating a
+  *measurement* - "72o arrives with a reach of about 3.7e-08, which quantises to zero basis points,
+  and it still carries a full uniform strategy row at a quarter per action" - which is likewise never
+  re-derived per build and likewise unread by any check. It is the same defect class the widening was
+  granted for, at line 265 against line 278. Not repaired here and I am not asking for it inside this
+  task; it belongs beside `THE-ARTIFACT-DESCRIBES-ITS-OWN-CENSUS-IN-PROSE-NOTHING-CHECKS`, which the
+  diff already extends for the same reason in `chart_provenance.py`.
+- **`halt-until-a-source-prices-both` is priced as if a route existed.** It is stated to cost
+  "nothing but time" because the machinery "re-runs in minutes against a corrected source" - but
+  decision 20's own preamble forecloses every route to a corrected source: 17 superseded, 18
+  withdrawn, "no work is owed in GTOpen by anybody", and a vendor change is not on the list. As
+  written it is an indefinite halt with no owner and no path, and it leaves live the retired raked
+  chart the contract requires **deleted**, which blocks phase 15 onward rather than merely costing
+  time. That is a fair option, but it should be priced as what it is. Two options are also absent
+  from a list that presents itself as the space: commit all 51 under `calibrated` with the four-bet
+  misprice recorded as an accepted limitation - which the contract's own non-goal forbids in as many
+  words, so it should be *named as excluded* rather than silently missing, since it is the state the
+  phase was in before decision 19 - and re-solve with `max_raises` reduced so the tree contains no
+  four-bet pot at all, which is the only option that removes the contamination blocker 1 describes
+  rather than refusing around it, at the price of a capped-tree abstraction and a config field the
+  contract's non-goal currently freezes. I am not arguing for either. A frozen-into-data ruling that
+  claims to enumerate the space should say why they are out.
+- **Committing nothing under `data/artifacts/` is the right call, and the build is less preserved
+  than four documents say it is.** The reasoning holds on both legs - three of four decision-20
+  answers discard this chart, and the frozen tests that pin 86 spots migrate at stage 4 by the
+  contract's own regression expectation - and `git status` confirms it: no tracked path under
+  `data/artifacts/` moved, the tracked paths were restored, and the GTOpen save the committed card
+  pins was backed up and put back. But round 7, decision 20, the ExecPlan and the halt note all say
+  the build is "preserved outside the tree" by checksum and none of them mentions that the two
+  untracked files now sitting in this reviews directory -
+  `static-build-derived-chart-report.txt` and `static-build-source-card.json` - are the only in-tree
+  trace of it, or that the chart and the 2 MB export themselves live only in a session-scoped
+  scratchpad a later session cannot reach. `keep-static-as-solved` therefore means a re-solve, not a
+  recovery. The checksums make that re-solve *checkable*, which is the point and is enough - but say
+  which of the two it is, and say the two files are there.
+- **This phase's own jam test passes on this build.** Verified: fifteen spots offer the 100bb jam,
+  all fifteen are five-bet spots, and **AA takes it at weight 1.000 at every one**, so the criterion
+  written to catch the error that rejected the first cutover - "no committed spot where a low pair
+  takes the jam and aces do not" - is green on a chart where 88 jams 0.508 at 9,277bp while KK flats.
+  Round 7's alignment bullet makes the general case that every gated check in this phase is a shape
+  check; the sharp instance is that the one check authored *specifically* against the first
+  cutover's rejection does not catch the second cutover's version of it, and this is the second time
+  the same test has been confirmed green beside the same error one family across.
+
+## Alignment
+
+- The dominance relation is prose loose enough that this lane has now produced 93, 95, 52, 54, 85, 34
+  and 96 from it depending on who implemented it, and the *aggregate* form the contract actually
+  gates admits at least a per-spot and a chart-wide reading with no tolerance stated at all. Round 7
+  half-notes this ("the relation as prose admits more than one implementation"). The remedy is a
+  pinned definition - weighting, reach floor, tolerance, and whether the aggregate is per spot or per
+  chart - authored as the gate rather than as prose, and that is stage-4 work on the answer to
+  decision 20. **Belongs in `backlog.yml`, not in this note.**
+- Every falsified figure in my second blocker has one root cause: a contract criterion that states a
+  measured *level* while naming no artifact the level was measured on, so the number outlives the
+  build silently. `NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL` covers the absence of
+  an external check; this is the adjacent gap, that an internal level is stated without provenance.
+  The general rule worth filing is the one the diff already reaches for in
+  `THE-ARTIFACT-DESCRIBES-ITS-OWN-CENSUS-IN-PROSE-NOTHING-CHECKS`: any number in a governing document
+  either names the artifact and checksum it came from or is computed by the run that publishes it.
+  **Belongs in `backlog.yml`, not in this note.**
+
+# Round 9, 2026-08-31: what round 8 changed, before the diff was committed
+
+Coordinator, responding to the independent review of round 7 rather than reviewing anything. Round 8's
+three blockers are marked `[resolved]` above and this is what was done, so the marker is checkable.
+Round 8's own text is untouched.
+
+**Decision 20 is rewritten, not patched.** Its first draft argued for one of its four options and
+described that option doing something it does not do, which is the worst combination available in a
+`frozen-into-data` item. Fixed: `revert-to-calibrated-and-refuse-the-four-bet-spots` now carries the
+contamination round 8 identified - refusing a spot removes it from lookup, not from the solve, and
+every committed shallow spot is backward-induced over four-bet-pot terminals, which is this phase's
+own `SELECTION-PREDICATE-MUST-BE-STATED-OVER-REACHABLE-TERMINALS` principle turned on the option that
+borrowed the multiway precedent without it - and states in as many words that the size of that
+contamination is **unmeasured**, along with what would measure it and why the 1.58 percent arrival
+figure is not that quantity. The list no longer argues: three options were argued down and one up, and
+the item now says it does not recommend one. `halt-until-a-source-prices-both` is repriced as an
+indefinite halt with no route and a retired chart left live, rather than as costing "only time". The
+two options round 8 found missing are named as deliberately excluded with the reason - committing all
+51 under `calibrated` with a caveat, which the contract's non-goal forbids in as many words, and
+re-solving at a reduced `max_raises`, which is the only route that removes the contamination rather
+than refusing around it and which the non-goals freeze. And the aggregate group dominance gate is now
+in the item as evidence *for* `keep-static-as-solved`, which round 8 was right that its absence was
+the mirror of the defect it was complaining about.
+
+**Two claims of round 7 were false or selective and are withdrawn in place, marked as such.** The
+four-bet bullet read the best three of fifteen spots as the shape: over all fifteen, JJ improves at
+ten, holds at three and falls at two, both of the two being spots where a low pair jams. And "the
+connectors are absent from those spots" is false at `BB/SB`, where QJs continues 1.000 on 10,000bp and
+JTs on 9,999bp. The falsified-contract-figure count went from two to six, with the four round 8 found
+re-derived here and one thing added that matters more than the count: all four of the new ones were
+measured on the `calibrated`/`add_allin: false` dry run, which is neither committed nor preserved, so
+no artifact anywhere demonstrates a level this contract states.
+
+**Two figures where the re-derivation disagrees with round 8, recorded because a reviewer's report is
+not evidence either.** Round 8 counts 99 continuing under 0.10 at seven of the fifteen four-bet spots;
+measured here it is **nine** - `BB/CO` 0.033, `BB/LJ` 0.064, `BTN/HJ` 0.002, `BTN/LJ` 0.005, `CO/HJ`
+0.003, `CO/LJ` 0.005, `HJ/LJ` 0.005, `SB/CO` 0.082, `SB/LJ` 0.040. And round 8's worst suited-row
+aggregate inversion on the committed chart is 24.54 points against **23.10** here, on the same
+5xs-over-6xs pair; the pair-ladder figures agree exactly at 0.43 and 7.27. Both differences are
+weighting choices inside prose that names none, which is the alignment item round 8 filed and which is
+now in `backlog.yml` as `DOMINANCE-RELATION-IS-PROSE-AND-HAS-PRODUCED-SEVEN-COUNTS`.
+
+**Three things round 8 raised that this task did not fix, and why.** The artifact-size criterion's
+prohibitive clause is restored - "exceeding it is a halt and a decision, never a raise" - inside one
+line, so the cap is not raised to make room and the informational half about 51 spots went instead.
+The `discriminator` field in `extract_gtopen_preflop.py`, which hard-codes a measurement thirteen lines
+above the `model` field this task fixed, is left alone and filed: repairing it needs the reach figure
+re-derived per build, which is implementation work on a script whose one field this task was scoped to
+correct. And the aggregate gate's missing definition is filed rather than authored, because the gate is
+frozen at stage 4 against whatever decision 20 answers and authoring it now would freeze it against a
+build that may not exist.

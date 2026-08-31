@@ -102,6 +102,39 @@ measurement to retake rather than as a defect the ruling repairs.
   the committed export was built with `True`, so `config_errors` refuses it. Reverting the constant
   to green the gate would erase the correction this restart established. A halted lane owes no green
   gate and `main` is untouched.
+- **Decision 19 was executed on 2026-08-31 and the build it produces cannot ship. This bullet
+  supersedes the four above and the halt now waits on decision 20, not on decision 19.** The one field
+  was flipped, an unmodified GTOpen at `4aee435` was re-solved, and the chart was re-derived and
+  measured by a worker lane and re-derived again by the coordinator. The build itself is sound: 51
+  spots from 33,969 nodes, 0.00015672bb at iteration 1,100 of 2,000, 0 walk mismatches,
+  byte-identical determinism, the census and the three action menus exactly as the contract states.
+  The four-bet defect it was ruled to fix is largely fixed - JJ moves from continuing 0.028 to 0.462
+  at the lojack four-bet lines, TT from 0.001 to 0.585 - and strict rank dominance improves from 85
+  violations to 34 over the same 51 keys.
+  What it also does is turn the single-raised pots into a calling station. **The big blind defends
+  76.31, 84.51, 91.46, 98.19 and 100.00 percent against the lojack, hijack, cutoff, button and small
+  blind**, against 27.28 to 49.02 on the committed chart, and against a small-blind open it folds
+  **zero** combos - 72o calls at 1.000. That is phase 10's rejected column reproduced: its decision 2
+  measured 72.94, 97.44 and 99.71 under the same model and ruled that nothing may be committed under
+  it. Round 2's jam-composition blocker also survives with new ranks - 88 five-bets 0.508 at 9,277bp
+  while KK and AKs flat, and at three of the five lojack four-bet lines **AQs five-bets for the whole
+  stack at 0.999 on 9,775 to 10,000 basis points of arriving reach while KK, QQ, AKs and AKo every one
+  of them flat at 1.000**. Priced by the artifact's own arrival mass, `static` repairs 1.58 percent of
+  the chart's traffic and breaks 57.11.
+  So all three realization models GTOpen ships are now measured or bounded, none prices both pot
+  types, and repairing the model is out of scope by Taylor's own ruling. What is left is a choice
+  about which pot type the chart commits and what happens to the other, which is **decision 20**,
+  `frozen-into-data` and unanswered. One thing does cut the other way and is in decision 20 as such:
+  the aggregate group dominance gate, which the phase halted rather than freeze unproven, passes on
+  this build - 5 pair inversions at most 0.43 points, 1 suited-row inversion at 0.02, inside decision
+  10's one-point tolerance - and fails on the committed chart at 7.27 and 23.10 points. It passes
+  partly because a chart that continues with everything has a flat ladder, which is the sharpest thing
+  this build teaches about the phase's gates.
+  Nothing under `data/artifacts/` is committed. The chart and export survive only in a session scratch
+  directory, so recovering this build means re-solving it; its source card and human report are
+  committed under `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/` and the checksums in round 7
+  make a re-solve checkable. The tracked paths are restored, and the GTOpen save the committed card
+  names was backed up before the re-solve overwrote it and put back afterwards.
 
 ## What is already settled, and must not be reopened here
 
@@ -274,6 +307,21 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
   read-only review of the finished contract-update diff before it is committed, as at stage 1 and
   at the 2026-08-24 contract-update.
 
+- Status, decision 19's execution (2026-08-31): the one-field flip, the contract's two clauses naming
+  `calibrated`, the decision-record addendum, decision 20 and this plan are coordinator work on the
+  standing argument that a contract and a decision record are single documents. One worker lane owned
+  the build and its measurements - it started the GTOpen server, ran the extraction, the determinism
+  proof, the converter and the report, and wrote its own measurement code with the coordinator's
+  explicitly withheld, so that the two measurements are two measurements. It was told to write nothing
+  outside `data/artifacts/` and its own scratch directory, to run no gate command and no bare
+  `pytest`, and to leave the tracked artifact paths dirty for the coordinator to restore rather than
+  clean up after itself. One lane rather than three because the solve, the walk and the derivation are
+  one sequential pipeline through a single server on one port and a single writable path. The
+  coordinator re-derived every headline figure from the artifact itself; the two agree to the unit on
+  the dominance counts and differ on one census figure, where the coordinator's stands and both are
+  recorded. An independent read-only reviewer reads the finished diff before it is committed, as at
+  every previous contract-update in this lane.
+
 ## Slices
 
 - [x] S1 Contract. Skeleton replaced with criteria written against the backlog entries this phase
@@ -398,46 +446,46 @@ Ask the driver and do only what it names, then `--advance`:
 
     uv run python scripts/loop_stage.py --phase 14 [--advance]
 
-**Current state: the loop sits at stage 4 and the phase is on its second contract-update.**
-Stages 1 to 3 are done and committed. Phase 14 is `active` in `phase_status.yml`. The stage-1 to
-stage-4 review notes are under `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/` and the
-stage-4 ones must be read before anything else, because they moved the phase's central ruling.
+**Current state, 2026-08-31: the lane is halted at stage 1 in `contract-update` mode, waiting on
+decision 20.** Phase 14 is `active` in `phase_status.yml`. Decision 19 has been executed - the field
+is flipped, the build exists, it is measured, and it cannot ship. Read, in this order: round 7 of
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md`, decision 20, then round 6
+and decision 19. Rounds 3 to 5 and decisions 17 and 18 are superseded snapshots - read them for
+diagnosis, never for work.
 
-**The selection predicate changed twice and the tests know neither change.** Taylor superseded
-decision 1 on 2026-08-24 onto the 110 heads-up spots, then superseded that on 2026-08-25 onto the
-**86 spots**: keep a node when at most one opponent has voluntarily invested beyond the blinds
-**and** at most two players are still live. Both clauses, conjoined - the first alone gives 110 and
-the second alone gives 5,472. The first
-supersession is in `stage-04-cold-call-verification.md` and in
-`MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION` - GTOpen prices a multiway pot as the product of hero's
-pairwise equities, understating true three-way equity by 10.5 points, so the big blind folds 92.6
-percent closing at 4.3 to 1 three-handed. The second is in `stage-04-predicate-change-review.md`:
-the approximation bites at *terminals*, so a history predicate does not select what the model prices
-exactly and 24 of the 110 carry the defect. The coverage measurement the ruling was made on is in
-`stage-04-eighty-six-coverage.md` and the ruling itself is at the foot of
-`stage-04-disposition-options.md`.
+**Do not do any of these.** Do not touch, fork, branch or build anything in `~/projects/gtopen`: it
+is a read-only reference clone of a third party's repo at `4aee435`, with no licence and no push
+access, and no work is owed there by anybody. Do not refit or patch GTOpen's realization table
+(decision 17, superseded), do not restore the fork (decision 18, withdrawn and deleted), and do not
+change solver vendor. Do not revert a ruled constant to green the gate. Do not commit anything under
+`data/artifacts/`: the artifact is writable at stage 6 and the frozen tests that pin the superseded
+86-spot build migrate at stage 4 first.
 
-Main was merged into this lane at `9be45bf`, bringing MAINT-26; phase 13 was already here.
+**What the gate is red on, so nobody mistakes an inherited red for their own.** `RULED_CONFIG` now
+disagrees with the committed export on two fields, so `config_errors` refuses to load it and every
+command that reads the chart fails. Four frozen assertions pin the superseded model by name -
+`tests/test_solver_export.py` at the config dict and at the card's `model` string,
+`tests/test_solver_expectations.py`, and `test_the_source_card_still_names_the_calibrated_realization_model`
+in `tests/test_chart_cutover_evidence.py` - and they cannot be repaired here, because `tests/**` is
+frozen and its migration is stage 4's by the contract's own regression expectation. Twelve backlog
+entries still fail `run_full_quality_gate`'s status and phase constants, which is MAINT-29's
+(`BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS`), and `unresolved_blockers`
+under-reports this note (`RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE`), also MAINT-29's.
 
-**What the next implementation task owes**, once this contract-update is committed and the mode
-flips back:
-- Re-cut every stage-4 test that asserts 5,626, 110, the reach floor, or a multiway spot. The
-  predicate, the node census counts, the exclusion vocabulary (now two reasons, not one) and the
-  sizing-table numbers all moved, twice.
-- State the predicate over live seats, not over the action history. The two disagree on 24 nodes and
-  a test that asserts 110 is asserting the superseded rule.
-- Re-measure the aggregate dominance gate over the 86 before freezing it. Over the 5,626 no
-  aggregate form passed and the suited-versus-offsuit form scored the transposed mapping as better;
-  the contract now requires the phase to halt rather than freeze a gate it has not seen pass.
-- Add the canary the contract now requires: one that widens the predicate to admit a multiway node.
-  A canary that admits a *history*-heads-up node with a multiway terminal is the sharper one, since
-  that is the error the 2026-08-25 supersession corrects.
-- Carry the four action menus into a test - 50 fold/call, 20 fold/call/raise/jam, 15 fold/call/jam,
-  1 fold/raise/jam - because a converter that dropped an action passes every other check.
+**What happens after Taylor answers decision 20.** Every option except `keep-static-as-solved` needs
+the same next steps, so they are worth stating once: the lane returns to stage 2 to re-cut the
+decision record against the answer, stage 4 re-cuts and re-freezes the tests that pin 86 spots, the
+calibrated model by name, the 169-class grid and the export's checksums, and stage 6 rebuilds and
+commits the artifact. The build machinery is proven and re-runs in about seven minutes end to end:
+start the server with `PREFLOP_MAX_ARENA_MB=2600 ./target/release/gto-server`, then
+`extract_gtopen_preflop.py --save-name six-max-100bb-rakefree`, then the same script
+`--determinism-only` against a restarted server, then `convert_preflop_export.py`, then
+`generate_derived_chart_report.py`. Two traps in that sequence: the extraction overwrites
+`~/projects/gtopen/saves/preflop/six-max-100bb-rakefree.gtop`, whose sha256 the committed source card
+pins, so back it up first; and the 169-class index is `hi*13+lo` for suited, which GTOpen's own
+AGENTS.md documents transposed.
 
-The contract and the decision record left `approved_scope` at stage 4, which is the point:
-`check_scope.py` is what mechanically enforces the rule that implementation mode may not edit the
-contract it is measured against. Do not reopen any of the thirteen rulings.
+Do not reopen the nineteen answered rulings. Decision 20 is the only open one.
 
 `check_repo_consistency` was red from stage 1 until stage 4, saying phase 14 declares
 `pytest_derived_chart` and `generate_derived_chart_report` and neither is registered in

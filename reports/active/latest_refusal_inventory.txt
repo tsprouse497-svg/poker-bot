@@ -19,76 +19,67 @@ here, so a row names the cell the chart was really asked about.
 ## six copies of the chart bot
 
   hands dealt         600
-  hands refused       126
-  distinct spots       25
+  hands refused       600
+  distinct spots        1
 
    hands  spot key                                 hands seen  reason
-      17  t6/d100/BB/BTN:raise@2.5,SB:raise@11             17  spot-not-covered
-      11  t6/d100/SB/SB:call,BB:raise@3.5                  10  spot-not-covered
-      10  t6/d100/BTN/HJ:raise@2.5,CO:raise@8               9  spot-not-covered
-       8  t6/d100/BB/CO:raise@2.5,SB:raise@11               8  spot-not-covered
-       7  t6/d100/BTN/LJ:raise@2.5,CO:raise@8               7  spot-not-covered
-       7  t6/d100/SB/CO:raise@2.5,BTN:raise@8               7  spot-not-covered
-       7  t6/d100/SB/HJ:raise@2.5,BTN:raise@8               7  spot-not-covered
-       7  t6/d100/SB/LJ:raise@2.5,BTN:raise@8               7  spot-not-covered
-       6  t6/d100/BB/LJ:raise@2.5,SB:raise@11               6  spot-not-covered
-       6  t6/d100/CO/LJ:raise@2.5,HJ:raise@8                6  spot-not-covered
-       4  t6/d100/BB/HJ:raise@2.5,SB:raise@11               4  spot-not-covered
-       4  t6/d100/BB/LJ:raise@2.5,SB:call                   4  spot-not-covered
-       4  t6/d100/BTN/LJ:raise@2.5,CO:call                  4  spot-not-covered
-       3  t6/d100/BB/BTN:raise@2.5,SB:call                  3  spot-not-covered
-       3  t6/d100/BB/CO:raise@2.5,SB:call                   3  spot-not-covered
-       3  t6/d100/BB/HJ:raise@2.5,BB:raise@13.5,HJ:raise@28.5          3  spot-not-covered
-       3  t6/d100/BB/HJ:raise@2.5,SB:call                   3  spot-not-covered
-       3  t6/d100/BB/SB:raise@3.5,BB:raise@10.5,SB:raise@22          3  spot-not-covered
-       3  t6/d100/CO/LJ:raise@2.5,HJ:call                   2  spot-not-covered
-       3  t6/d100/SB/CO:raise@2.5,BTN:call                  3  spot-not-covered
-       3  t6/d100/SB/HJ:raise@2.5,BTN:call                  3  spot-not-covered
-       1  t6/d100/BB/CO:raise@2.5,BB:raise@13.5,CO:raise@28.5          1  spot-not-covered
-       1  t6/d100/BB/LJ:raise@2.5,BB:raise@13.5,LJ:raise@28.5          1  spot-not-covered
-       1  t6/d100/BTN/HJ:raise@2.5,CO:call                  1  spot-not-covered
-       1  t6/d100/SB/LJ:raise@2.5,BTN:call                  1  spot-not-covered
+     600  t6/d100/LJ/rfi                                  152  spot-not-covered
 
   hand classes reached, per spot:
-    t6/d100/BB/BTN:raise@2.5,SB:raise@11: 62o, 63s, 65o, 72s, 92o, 99, A4o, J3o, J7o,
-    K2o, K3o, KJo, KQo, Q3s, Q5o, Q6o, T8o
-    t6/d100/SB/SB:call,BB:raise@3.5: 33, 44, 54s, 76s, A5s, K5s, K7o, K8o, KK, Q8ox2
-    t6/d100/BTN/HJ:raise@2.5,CO:raise@8: 22, 65o, 75s, 76s, 83o, 97ox2, J2o, J3o, J7s
-    t6/d100/BB/CO:raise@2.5,SB:raise@11: 43o, 86o, 88, 97o, A4o, ATo, Q4s, T4s
-    t6/d100/BTN/LJ:raise@2.5,CO:raise@8: 52s, 84o, 86o, 92o, KJo, Q4s, T6o
-    t6/d100/SB/CO:raise@2.5,BTN:raise@8: 62s, A9o, AQo, J3s, K3o, T2o, T8o
-    t6/d100/SB/HJ:raise@2.5,BTN:raise@8: A5o, A8o, J6s, K8s, Q4o, T8s, T9s
-    t6/d100/SB/LJ:raise@2.5,BTN:raise@8: 52s, 65o, 72o, 74o, 75o, 76o, Q7o
-    t6/d100/BB/LJ:raise@2.5,SB:raise@11: 42o, 87o, A2o, K4o, KJo, T3o
-    t6/d100/CO/LJ:raise@2.5,HJ:raise@8: A5o, AQo, ATo, J2s, J7o, T9o
-    t6/d100/BB/HJ:raise@2.5,SB:raise@11: 87o, A7o, A9o, Q9s
-    t6/d100/BB/LJ:raise@2.5,SB:call: 33, ATo, J3s, Q5s
-    t6/d100/BTN/LJ:raise@2.5,CO:call: 73o, A8o, K3o, K8o
-    t6/d100/BB/BTN:raise@2.5,SB:call: A7o, K4o, KJo
-    t6/d100/BB/CO:raise@2.5,SB:call: AJo, J6o, T6s
-    t6/d100/BB/HJ:raise@2.5,BB:raise@13.5,HJ:raise@28.5: A2s, A5o, K2s
-    t6/d100/BB/HJ:raise@2.5,SB:call: K6o, K8o, Q9o
-    t6/d100/BB/SB:raise@3.5,BB:raise@10.5,SB:raise@22: AJs, AQo, JTo
-    t6/d100/CO/LJ:raise@2.5,HJ:call: 63ox2, A4o
-    t6/d100/SB/CO:raise@2.5,BTN:call: 96o, AKo, K7o
-    t6/d100/SB/HJ:raise@2.5,BTN:call: K3o, K8o, KQo
-    t6/d100/BB/CO:raise@2.5,BB:raise@13.5,CO:raise@28.5: A5o
-    t6/d100/BB/LJ:raise@2.5,BB:raise@13.5,LJ:raise@28.5: A6s
-    t6/d100/BTN/HJ:raise@2.5,CO:call: J9o
-    t6/d100/SB/LJ:raise@2.5,BTN:call: J9o
+    t6/d100/LJ/rfi: 22x4, 32ox4, 32sx2, 33x4, 42o, 43ox5, 44x5, 52ox2, 52s, 53ox5,
+    53sx2, 54ox3, 54sx3, 55x4, 62ox12, 63ox5, 64ox7, 64s, 65ox7, 65s, 66x6, 72ox4,
+    72sx3, 73ox7, 73sx4, 74o, 74sx2, 75ox5, 76ox6, 76s, 77x5, 82ox7, 83ox4, 83s, 84ox5,
+    84sx3, 85ox8, 85s, 86ox9, 86s, 87ox8, 87sx2, 88x6, 92ox3, 92sx5, 93ox7, 93s, 94ox7,
+    95ox12, 95s, 96ox5, 96s, 97ox4, 97sx3, 98ox5, 98s, 99x3, A2ox5, A2sx2, A3ox5, A3sx2,
+    A4ox6, A4sx3, A5ox5, A5s, A6ox5, A6sx2, A7ox3, A7sx2, A8ox3, A9ox7, A9sx3, AAx3,
+    AJox4, AJs, AKox3, AKsx2, AQox5, AQsx2, ATox6, J2ox2, J2sx2, J3ox12, J4ox8, J4sx2,
+    J5ox5, J5s, J6o, J6sx5, J7ox10, J8ox6, J8sx2, J9ox4, JJx3, JTox6, JTs, K2ox7, K2sx2,
+    K3ox7, K3s, K4ox7, K4sx2, K5ox3, K5s, K6o, K6sx3, K7ox5, K7s, K8ox3, K8sx2, K9ox9,
+    K9sx3, KJo, KK, KQox6, KQsx3, KTox10, Q2ox5, Q2sx3, Q3ox6, Q3sx6, Q4ox5, Q4sx2,
+    Q5ox6, Q5sx3, Q6ox4, Q6s, Q7ox3, Q8ox3, Q8s, Q9ox4, QJox7, QJs, QQx2, QTox5, QTsx4,
+    T2ox10, T2sx3, T3ox5, T3s, T4ox7, T5ox4, T5sx3, T6ox6, T6sx4, T7ox6, T7sx2, T8ox4,
+    T8sx3, T9ox4, T9s, TTx3
 
-  126 refused hands across 25 distinct spots. Those two numbers must agree with the
+  600 refused hands across 1 distinct spots. Those two numbers must agree with the
   hands-refused count above; if they do not, refusal detail is being dropped somewhere
   between the strategy and this file.
 
 ## chart bot against five check-fold seats
 
   hands dealt         600
-  hands refused         0
-  distinct spots        0
+  hands refused       400
+  distinct spots        4
 
-  Nothing refused in this seating. That is not the charts being complete: an opponent
-  that folds to everything keeps the betting tree shallow, so the uncovered spots are
-  never reached.
+   hands  spot key                                 hands seen  reason
+     100  t6/d100/BTN/rfi                                  73  spot-not-covered
+     100  t6/d100/CO/rfi                                   70  spot-not-covered
+     100  t6/d100/HJ/rfi                                   71  spot-not-covered
+     100  t6/d100/LJ/rfi                                   71  spot-not-covered
+
+  hand classes reached, per spot:
+    t6/d100/BTN/rfi: 33, 42ox2, 42s, 43o, 43s, 44, 52ox3, 52s, 54o, 54s, 55, 63o, 63s,
+    64ox3, 65o, 73o, 73s, 74ox2, 75o, 82o, 84o, 85o, 86o, 86s, 88, 92o, 92s, 93o, 95ox3,
+    98ox3, A2o, A3o, A4o, A4s, A5o, A6s, A8ox2, A9ox3, AJs, AKox2, AQo, ATox2, J2ox2,
+    J3o, J4o, J5o, J6o, J7o, J7s, J8o, J9o, JTo, K4ox2, K5ox2, KJox2, KQox3, KTo, Q2o,
+    Q4o, Q5ox2, Q6ox2, Q6s, Q7ox2, Q9s, QJo, QQ, QTox3, T2o, T4s, T6ox2, T7s, T8o, T9o
+    t6/d100/CO/rfi: 33x3, 42o, 62o, 63ox2, 64s, 65o, 66x3, 72ox2, 73ox3, 74ox2, 75ox2,
+    82ox2, 83o, 84ox2, 86o, 87o, 92s, 94s, 96ox4, 97ox2, 98ox2, 98sx2, A2s, A3ox3, A5o,
+    A5s, A6o, A6sx2, A8o, A8s, A9o, AKo, AKs, AQs, ATo, J2o, J3o, J5o, J7o, J8o, J9ox2,
+    JTox3, JTs, K3o, K4o, K8o, K8s, K9o, KJo, KK, KQo, KQs, KTs, Q2ox2, Q4o, Q4sx2,
+    Q8ox2, Q8s, Q9o, QJo, QTo, QTs, T2s, T5ox3, T5s, T6ox2, T6s, T7o, T8o, T9o
+    t6/d100/HJ/rfi: 22, 32o, 32s, 33, 42o, 52o, 53o, 54ox2, 62ox2, 62s, 63o, 64s, 65ox2,
+    72s, 73o, 74ox4, 75ox3, 76sx2, 84o, 85ox2, 87ox2, 92s, 93o, 94o, 96s, 97ox2, 98s,
+    99, A3ox2, A5sx3, A6o, A7o, A7s, A8s, A9o, AJs, AQo, ATo, J2ox2, J4o, J5ox2, J6o,
+    J8s, J9ox2, JJ, JTo, K2o, K4o, K4s, K5s, K6s, K7o, K9s, KQox2, Q2ox2, Q3o, Q4o,
+    Q5ox2, Q8ox3, Q8s, Q9ox2, Q9sx2, QJs, T2ox3, T2s, T3o, T4ox2, T5o, T6o, T8o, T9ox2
+    t6/d100/LJ/rfi: 42o, 43o, 52ox2, 52s, 53ox2, 55, 62ox5, 63o, 64o, 65o, 65s, 66, 73o,
+    75ox2, 76o, 82o, 85ox4, 86ox3, 88x2, 92o, 92s, 93o, 94ox2, 95ox2, 96o, 96s, 98o,
+    A3ox2, A4sx3, A5o, A6o, A9sx2, AJo, AQo, ATo, J2s, J3ox4, J4o, J5o, J7ox3, J8o, J8s,
+    J9o, JTox2, JTs, K2ox2, K3ox2, K5o, K7s, K8o, KQo, Q2o, Q3o, Q3s, Q4o, Q6o, Q7ox2,
+    Q8o, Q8s, QJo, QQ, QTo, T2o, T2s, T3o, T4ox2, T5o, T5s, T7o, T8o, TT
+
+  400 refused hands across 4 distinct spots. Those two numbers must agree with the
+  hands-refused count above; if they do not, refusal detail is being dropped somewhere
+  between the strategy and this file.
 
 Generated by `scripts/generate_profile_comparison_report.py`.

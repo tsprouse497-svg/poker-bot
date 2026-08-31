@@ -1,6 +1,6 @@
 {
   "all_passed": false,
-  "generated_at_epoch": 1787723625,
+  "generated_at_epoch": 1788211821,
   "results": [
     {
       "command": [
@@ -11,7 +11,7 @@
       ],
       "command_id": "generate_status",
       "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.056,
+      "duration_seconds": 0.051,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -26,7 +26,7 @@
       ],
       "command_id": "generate_phase_ledger",
       "description": "Regenerate phase ledger",
-      "duration_seconds": 0.035,
+      "duration_seconds": 0.03,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -41,484 +41,10 @@
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.072,
+      "duration_seconds": 0.078,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_poker_core.py"
-      ],
-      "command_id": "pytest_poker_core",
-      "description": "Run poker-core tests",
-      "duration_seconds": 0.128,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 9 items\n\ntests/test_poker_core.py .........                                       [100%]\n\n============================== 9 passed in 0.01s ===============================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_golden_hand_report.py"
-      ],
-      "command_id": "generate_golden_hand_report",
-      "description": "Generate golden-hand replay report",
-      "duration_seconds": 0.034,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_golden_hand_report.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_hand_history.py"
-      ],
-      "command_id": "pytest_hand_history",
-      "description": "Run hand-history tests",
-      "duration_seconds": 0.101,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 18 items\n\ntests/test_hand_history.py ..................                            [100%]\n\n============================== 18 passed in 0.02s ==============================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_hand_history_replay_report.py"
-      ],
-      "command_id": "generate_hand_history_replay_report",
-      "description": "Generate normalized hand-history replay report",
-      "duration_seconds": 0.035,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_hand_history_replay_report.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_strategy_contract.py",
-        "tests/test_action_order.py"
-      ],
-      "command_id": "pytest_strategy_contract",
-      "description": "Run strategy-contract and turn-order tests",
-      "duration_seconds": 0.151,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 80 items\n\ntests/test_strategy_contract.py ........................................ [ 50%]\n..................F                                                      [ 73%]\ntests/test_action_order.py .....................                         [100%]\n\n=================================== FAILURES ===================================\n_ TestChartRefusalsNameTheirSpot.test_an_uncovered_spot_reports_the_key_it_looked_for _\n\nself = <test_strategy_contract.TestChartRefusalsNameTheirSpot object at 0x1040f87d0>\n\n    def test_an_uncovered_spot_reports_the_key_it_looked_for(self) -> None:\n        strategy = PreflopChartStrategy.from_repo()\n        outcome = strategy.decide(_uncovered_spot_query())\n    \n>       assert isinstance(outcome, StrategyRefusal), outcome\nE       AssertionError: StrategyDecision(action='raise', amount=350, code='preflop-chart:weighted-draw:raise[raise=1]', detail=())\nE       assert False\nE        +  where False = isinstance(StrategyDecision(action='raise', amount=350, code='preflop-chart:weighted-draw:raise[raise=1]', detail=()), StrategyRefusal)\n\ntests/test_strategy_contract.py:504: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_strategy_contract.py::TestChartRefusalsNameTheirSpot::test_an_uncovered_spot_reports_the_key_it_looked_for\n========================= 1 failed, 79 passed in 0.07s =========================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_strategy_query_report.py"
-      ],
-      "command_id": "generate_strategy_query_report",
-      "description": "Generate strategy query report and decision audit",
-      "duration_seconds": 0.038,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_strategy_query_report.txt\nwrote reports/active/latest_decision_audit.jsonl\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_preflop_positions.py",
-        "tests/test_preflop_artifacts.py",
-        "tests/test_preflop_lookup.py",
-        "tests/test_preflop_committed_charts.py"
-      ],
-      "command_id": "pytest_preflop_artifacts",
-      "description": "Run preflop position, artifact, and chart-lookup tests",
-      "duration_seconds": 0.796,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "",
-      "stdout": "riced: list[str] = []\n        sizeless: list[str] = []\n        for spot_id, hand_classes in library.artifacts[0].action_weights:\n            offers_raise = any(\n                weight > 0.0\n                for _, weights in hand_classes\n                for action, weight in weights\n                if action == \"raise\"\n            )\n            (priced if offers_raise else sizeless).append(spot_id)\n    \n            assert (sizing.amount_bb(spot_id) is not None) == offers_raise, spot_id\n    \n>       assert priced and sizeless\nE       AssertionError: assert (['t6/d100/BB/BTN:raise@2.5', 't6/d100/BB/CO:raise@2.5', 't6/d100/BB/HJ:raise@2.5', 't6/d100/BB/LJ:raise@2.5', 't6/d100/BB/SB:call', 't6/d100/BB/SB:raise@3.5', ...] and [])\n\ntests/test_preflop_committed_charts.py:466: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_preflop_artifacts.py::test_valid_artifact_imports - poker_t...\nFAILED tests/test_preflop_artifacts.py::test_lookup_is_ordered_and_fail_closed\nFAILED tests/test_preflop_artifacts.py::test_hand_classes_are_ordered_by_grid_index\nFAILED tests/test_preflop_artifacts.py::test_action_weights_follow_spot_order\nFAILED tests/test_preflop_artifacts.py::test_to_payload_round_trips_byte_for_byte\nFAILED tests/test_preflop_artifacts.py::test_nested_object_required - Asserti...\nFAILED tests/test_preflop_artifacts.py::test_a_repeated_json_key_is_rejected[hand class]\nFAILED tests/test_preflop_artifacts.py::test_a_repeated_json_key_is_rejected[spot]\nFAILED tests/test_preflop_artifacts.py::test_rejections[missing nested field]\nFAILED tests/test_preflop_artifacts.py::test_rejections[retired schema version]\nFAILED tests/test_preflop_artifacts.py::test_rejections[unwritten schema version]\nFAILED tests/test_preflop_artifacts.py::test_rejections[reach for an undeclared spot]\nFAILED tests/test_preflop_artifacts.py::test_rejections[weights with no reach]\nFAILED tests/test_preflop_artifacts.py::test_rejections[reach above the scale]\nFAILED tests/test_preflop_artifacts.py::test_rejections[reach absent entirely]\nFAILED tests/test_preflop_artifacts.py::test_rejections[non-positive stack depth]\nFAILED tests/test_preflop_artifacts.py::test_rejections[table size out of range]\nFAILED tests/test_preflop_artifacts.py::test_rejections[non-RFC3339 timestamp]\nFAILED tests/test_preflop_artifacts.py::test_rejections[unknown source kind]\nFAILED tests/test_preflop_artifacts.py::test_rejections[malformed checksum text]\nFAILED tests/test_preflop_artifacts.py::test_rejections[empty spot weights]\nFAILED tests/test_preflop_artifacts.py::test_rejections[duplicate sequence position]\nFAILED tests/test_preflop_artifacts.py::test_rejections[out-of-order sequence]\nFAILED tests/test_preflop_artifacts.py::test_rejections[reordered positions]\nFAILED tests/test_preflop_artifacts.py::test_rejections[short positions] - As...\nFAILED tests/test_preflop_artifacts.py::test_rejections[foreign hero position]\nFAILED tests/test_preflop_artifacts.py::test_rejections[foreign sequence position]\nFAILED tests/test_preflop_artifacts.py::test_rejections[spot key mismatch] - ...\nFAILED tests/test_preflop_artifacts.py::test_rejections[duplicate spot] - Ass...\nFAILED tests/test_preflop_artifacts.py::test_rejections[weights for undeclared spot]\nFAILED tests/test_preflop_artifacts.py::test_rejections[spot without weights]\nFAILED tests/test_preflop_artifacts.py::test_rejections[unknown hand class]\nFAILED tests/test_preflop_artifacts.py::test_rejections[unknown weight action]\nFAILED tests/test_preflop_artifacts.py::test_rejections[fold inside action sequence]\nFAILED tests/test_preflop_artifacts.py::test_rejections[negative weight] - As...\nFAILED tests/test_preflop_artifacts.py::test_rejections[non-numeric weight]\nFAILED tests/test_preflop_artifacts.py::test_rejections[weights below one] - ...\nFAILED tests/test_preflop_artifacts.py::test_rejections[all-zero weights] - A...\nFAILED tests/test_preflop_artifacts.py::test_rejections[weights outside tolerance]\nFAILED tests/test_preflop_artifacts.py::test_rejections[checksum mismatch] - ...\nFAILED tests/test_preflop_artifacts.py::test_rejections[spot count mismatch]\nFAILED tests/test_preflop_artifacts.py::test_rejections[hand class count mismatch]\nFAILED tests/test_preflop_artifacts.py::test_weight_sum_tolerance_edge - poke...\nFAILED tests/test_preflop_artifacts.py::test_restamped_mutation_still_rejected\nFAILED tests/test_preflop_artifacts.py::test_import_directory_is_sorted_and_complete\nFAILED tests/test_preflop_artifacts.py::test_import_directory_fails_closed_on_one_bad_file\nFAILED tests/test_preflop_artifacts.py::test_import_accepts_string_paths - po...\nFAILED tests/test_preflop_artifacts.py::test_artifact_with_no_spots_is_rejected\nFAILED tests/test_preflop_lookup.py::test_an_artifact_declares_its_blinds_and_its_per_cell_reach\nFAILED tests/test_preflop_lookup.py::test_rfi_hit_returns_the_artifact_weights_unchanged\nFAILED tests/test_preflop_lookup.py::test_vs_open_hit_returns_the_artifact_weights_in_order\nFAILED tests/test_preflop_lookup.py::test_hit_weights_are_the_artifact_tuple_and_nothing_is_mutated\nFAILED tests/test_preflop_lookup.py::test_pure_and_mixed_best_action - Attrib...\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[unknown table size]\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[unknown stack depth]\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[position not at table]\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[sequence no legal order produces]\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[second orbit sequence, expressible and uncovered]\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[uncovered spot] - A...\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[uncovered hand class]\nFAILED tests/test_preflop_lookup.py::test_uncovered_stack_depth_never_borrows_the_nearest_depth\nFAILED tests/test_preflop_lookup.py::test_uncovered_table_size_never_borrows_another_table\nFAILED tests/test_preflop_lookup.py::test_hole_card_entry_points_agree[hole_cards0]\nFAILED tests/test_preflop_lookup.py::test_hole_card_entry_points_agree[hole_cards1]\nFAILED tests/test_preflop_lookup.py::test_hole_card_entry_points_agree[hole_cards2]\nFAILED tests/test_preflop_lookup.py::test_offsuit_hole_cards_are_a_different_class\nFAILED tests/test_preflop_lookup.py::test_identical_queries_return_identical_results\nFAILED tests/test_preflop_lookup.py::test_library_ordering_is_stable_regardless_of_input_order\nFAILED tests/test_preflop_lookup.py::test_ordering_is_stable_even_for_artifacts_sharing_an_id\nFAILED tests/test_preflop_lookup.py::test_both_depths_answer_only_their_own_queries\nFAILED tests/test_preflop_lookup.py::test_duplicate_spot_across_artifacts_fails_closed\nFAILED tests/test_preflop_lookup.py::test_from_directory_imports_and_answers\nFAILED tests/test_preflop_lookup.py::test_query_accepts_unknown_tables_and_positions\nFAILED tests/test_preflop_committed_charts.py::test_committed_artifact_imports\nFAILED tests/test_preflop_committed_charts.py::test_the_artifact_declares_the_blind_structure_it_was_solved_at\nFAILED tests/test_preflop_committed_charts.py::test_the_retired_raked_chart_is_gone_from_the_artifact_directory\nFAILED tests/test_preflop_committed_charts.py::test_provenance_names_the_export_it_came_from\nFAILED tests/test_preflop_committed_charts.py::test_the_squeeze_the_retired_chart_refused_is_now_covered\nFAILED tests/test_preflop_committed_charts.py::test_the_big_blind_facing_a_four_bet_is_now_covered\nFAILED tests/test_preflop_committed_charts.py::test_a_limped_pot_is_refused_because_the_solve_holds_no_limp\nFAILED tests/test_preflop_committed_charts.py::TestSourceFrequencies::test_the_rake_free_chart_no_longer_matches_the_raked_reference\nFAILED tests/test_preflop_committed_charts.py::TestSizingTable::test_a_spot_carries_a_committed_size_exactly_when_it_offers_a_raise\n======================== 82 failed, 172 passed in 0.64s ========================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_preflop_chart_report.py"
-      ],
-      "command_id": "generate_preflop_chart_report",
-      "description": "Generate preflop chart coverage report",
-      "duration_seconds": 0.051,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_preflop_chart_report.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_full_table_preflop.py"
-      ],
-      "command_id": "pytest_full_table_preflop",
-      "description": "Run full-table preflop strategy tests",
-      "duration_seconds": 0.421,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "",
-      "stdout": " len(library.artifacts) == 1\n>       assert len(library.spot_keys()) > 36\nE       AssertionError: assert 36 > 36\nE        +  where 36 = len(('t6/d100/BB/BTN:raise@2.5', 't6/d100/BB/CO:raise@2.5', 't6/d100/BB/HJ:raise@2.5', 't6/d100/BB/LJ:raise@2.5', 't6/d100/BB/SB:call', 't6/d100/BB/SB:raise@3.5', ...))\nE        +    where ('t6/d100/BB/BTN:raise@2.5', 't6/d100/BB/CO:raise@2.5', 't6/d100/BB/HJ:raise@2.5', 't6/d100/BB/LJ:raise@2.5', 't6/d100/BB/SB:call', 't6/d100/BB/SB:raise@3.5', ...) = spot_keys()\nE        +      where spot_keys = <poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x104647770>.spot_keys\n\ntests/test_full_table_preflop.py:258: AssertionError\n_____ TestCommittedArtifact.test_provenance_is_declared_as_a_solver_export _____\n\nself = <test_full_table_preflop.TestCommittedArtifact object at 0x1046c07d0>\nlibrary = <poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x104647770>\n\n    def test_provenance_is_declared_as_a_solver_export(self, library) -> None:\n        source = library.artifacts[0].source\n    \n        assert source.kind == \"solver-export\"\n>       assert (REPO_ROOT / source.reference) == COMMITTED_EXPORT_PATH\nE       AssertionError: assert (PosixPath('/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14') / 'data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json') == PosixPath('/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz')\nE        +  where 'data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json' = ArtifactSource(name='GTO Wizard 6-max 100bb NL25 rake', kind='solver-export', reference='data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json').reference\n\ntests/test_full_table_preflop.py:264: AssertionError\n_ TestCommittedArtifact.test_the_big_blind_facing_a_limp_is_no_longer_covered __\n\nself = <test_full_table_preflop.TestCommittedArtifact object at 0x104681250>\nlibrary = <poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x104647770>\n\n    def test_the_big_blind_facing_a_limp_is_no_longer_covered(self, library) -> None:\n        \"\"\"The coverage the cutover gave up: the export is `limp: false`, so no limped\n        node exists at any reach floor. `CHART-CANNOT-ANSWER-A-LIMPED-POT` carries the\n        accepted cost and `TestRefusals` proves the layer refuses rather than guesses.\"\"\"\n>       assert f\"t6/d{DEPTH_BB}/BB/SB:call\" not in library.spot_keys()\nE       AssertionError: assert 't6/d100/BB/SB:call' not in ('t6/d100/BB/BTN:raise@2.5', 't6/d100/BB/CO:raise@2.5', 't6/d100/BB/HJ:raise@2.5', 't6/d100/BB/LJ:raise@2.5', 't6/d100/BB/SB:call', 't6/d100/BB/SB:raise@3.5', ...)\nE        +  where ('t6/d100/BB/BTN:raise@2.5', 't6/d100/BB/CO:raise@2.5', 't6/d100/BB/HJ:raise@2.5', 't6/d100/BB/LJ:raise@2.5', 't6/d100/BB/SB:call', 't6/d100/BB/SB:raise@3.5', ...) = spot_keys()\nE        +    where spot_keys = <poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x104647770>.spot_keys\n\ntests/test_full_table_preflop.py:301: AssertionError\n___ TestRefusals.test_a_second_orbit_spot_is_now_decided_rather_than_refused ___\n\nself = <test_full_table_preflop.TestRefusals object at 0x1046a9ba0>\nstrategy = PreflopChartStrategy(library=<poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x1046c2850>, s...t6/d100/SB/SB:raise@3.5,BB:raise@10.5': 22.0, 't6/d100/SB/rfi': 3.5}), strategy_id='preflop-chart', strategy_version=1)\n\n    def test_a_second_orbit_spot_is_now_decided_rather_than_refused(self, strategy) -> None:\n        \"\"\"Phase 12 gave it a key and the raked chart had no cell to fill it with. The\n        solved tree runs to a four-bet and a shove over it and the reach floor keeps that\n        line, so this inverts; what it guarded moves to the limp below.\"\"\"\n>       history = raised_line(strategy.library, \"LJ\", \"LJ\", \"CO\", \"LJ\", \"CO\")\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\ntests/test_full_table_preflop.py:389: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \ntests/test_full_table_preflop.py:193: in raised_line\n    for entry in solved_line(library, hero, *raisers)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nlibrary = <poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x1046c2850>\nhero = 'LJ', raisers = ('LJ', 'CO', 'LJ', 'CO')\nsequence = [PreflopAction(position='LJ', action='raise', size_bb=2.5), PreflopAction(position='CO', action='raise', size_bb=8.0)]\nraiser = 'LJ', prices = ()\n\n    def solved_line(\n        library: PreflopChartLibrary, hero: str, *raisers: str\n    ) -> tuple[PreflopAction, ...]:\n        \"\"\"`hero`'s line where each seat raises at the price the chart solved there. Each\n        point offers the named raise and the all-in decision 6 prices at hero's whole stack,\n        so the named raise is the smaller of the two.\"\"\"\n        sequence: list[PreflopAction] = []\n        for raiser in raisers:\n            prices = library.solved_prices_bb(6, DEPTH_BB, hero, tuple(sequence), raiser)\n>           assert prices, (hero, raiser, tuple(sequence))\nE           AssertionError: ('LJ', 'LJ', (PreflopAction(position='LJ', action='raise', size_bb=2.5), PreflopAction(position='CO', action='raise', size_bb=8.0)))\nE           assert ()\n\ntests/test_full_table_preflop.py:173: AssertionError\n___ TestRefusals.test_a_limped_pot_refuses_because_no_solved_node_holds_one ____\n\nself = <test_full_table_preflop.TestRefusals object at 0x1046cfd10>\nstrategy = PreflopChartStrategy(library=<poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x1046c2850>, s...t6/d100/SB/SB:raise@3.5,BB:raise@10.5': 22.0, 't6/d100/SB/rfi': 3.5}), strategy_id='preflop-chart', strategy_version=1)\n\n    def test_a_limped_pot_refuses_because_no_solved_node_holds_one(self, strategy) -> None:\n        \"\"\"The one structurally uncovered spot left, so this cannot go vacuous: all the\n        chart's other misses are under the reach floor, which the re-solve moves, and a\n        limp cannot come back at any floor. The neighbour it must not reach for - the\n        small blind opening instead of limping - is covered in full.\"\"\"\n        history = (folded(\"LJ\"), folded(\"HJ\"), folded(\"CO\"), folded(\"BTN\"), called(\"SB\"))\n    \n>       outcome = refusal(\n            strategy.decide(query(\"BB\", history=history, hole_cards=(\"As\", \"Ah\")))\n        )\n\ntests/test_full_table_preflop.py:404: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\noutcome = StrategyDecision(action='raise', amount=350, code='preflop-chart:weighted-draw:raise[raise=1]', detail=())\n\n    def refusal(outcome) -> StrategyRefusal:\n>       assert isinstance(outcome, StrategyRefusal), outcome\nE       AssertionError: StrategyDecision(action='raise', amount=350, code='preflop-chart:weighted-draw:raise[raise=1]', detail=())\nE       assert False\nE        +  where False = isinstance(StrategyDecision(action='raise', amount=350, code='preflop-chart:weighted-draw:raise[raise=1]', detail=()), StrategyRefusal)\n\ntests/test_full_table_preflop.py:249: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_full_table_preflop.py::TestCommittedArtifact::test_the_artifact_imports_through_the_unchanged_importer\nFAILED tests/test_full_table_preflop.py::TestCommittedArtifact::test_provenance_is_declared_as_a_solver_export\nFAILED tests/test_full_table_preflop.py::TestCommittedArtifact::test_the_big_blind_facing_a_limp_is_no_longer_covered\nFAILED tests/test_full_table_preflop.py::TestRefusals::test_a_second_orbit_spot_is_now_decided_rather_than_refused\nFAILED tests/test_full_table_preflop.py::TestRefusals::test_a_limped_pot_refuses_because_no_solved_node_holds_one\n========================= 5 failed, 43 passed in 0.34s =========================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_preflop_strategy_report.py"
-      ],
-      "command_id": "generate_preflop_strategy_report",
-      "description": "Generate preflop strategy coverage and frequency report",
-      "duration_seconds": 0.183,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_preflop_strategy_report.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_postflop_fallback.py",
-        "tests/test_postflop_fallback_components.py"
-      ],
-      "command_id": "pytest_postflop_fallback",
-      "description": "Run postflop fallback and composite strategy tests",
-      "duration_seconds": 4.146,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 44 items\n\ntests/test_postflop_fallback.py ..........................               [ 59%]\ntests/test_postflop_fallback_components.py ..................            [100%]\n\n============================== 44 passed in 4.06s ==============================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_postflop_fallback_report.py"
-      ],
-      "command_id": "generate_postflop_fallback_report",
-      "description": "Generate postflop fallback enumeration report and decision audit",
-      "duration_seconds": 10.314,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_postflop_fallback_report.txt\nwrote reports/active/latest_postflop_decision_audit.jsonl\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_simulator.py"
-      ],
-      "command_id": "pytest_simulator",
-      "description": "Run offline simulator and profile tests",
-      "duration_seconds": 0.365,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 45 items\n\ntests/test_simulator.py .............................................    [100%]\n\n============================== 45 passed in 0.25s ==============================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_profile_comparison_report.py"
-      ],
-      "command_id": "generate_profile_comparison_report",
-      "description": "Generate the bot/profile comparison report",
-      "duration_seconds": 0.513,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_profile_comparison_report.txt\nwrote reports/active/latest_refusal_inventory.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_sample_comparison.py",
-        "tests/test_sample_comparison_report.py"
-      ],
-      "command_id": "pytest_sample_comparison",
-      "description": "Run public-corpus ingestion and player comparison tests",
-      "duration_seconds": 2.112,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 52 items\n\ntests/test_sample_comparison.py ......................................F. [ 76%]\n......                                                                   [ 88%]\ntests/test_sample_comparison_report.py ......                            [100%]\n\n=================================== FAILURES ===================================\n__________ test_the_position_split_is_what_localises_the_calling_gap ___________\n\ncomparison = ComparisonResult(rows=(ComparisonRow(hand_id='pluribus/100/0', seat=2, position='LJ', player='MrWhite', population='hu...ared=499, hands_excluded=1, chart_source='GTO Wizard 6-max 100bb NL25 rake', solved_open_bb=(('LJ', 2.5), ('SB', 3.5)))\n\n    def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> None:\n        \"\"\"The finding this split exists for, pinned so it cannot quietly stop being true.\n    \n        Calls are where the chart and real players part company, and phase 08 found the gap\n        was not spread across the table: it was the big blind, which was also the seat the\n        chart refused most often, above one decision in five. Both halves were asserted,\n        because either one alone reads as a smaller problem than it is.\n    \n        The cutover moves both, and in opposite directions. It covers the big blind against\n        every opener, against three-bets and against four-bets, so the refusal rate has to\n        fall - a chart that still refused a fifth of the big blind's decisions would not have\n        converted the blind-defence half of the tree at all. Whether the calling gap follows\n        is the phase's closing measurement and its band is pre-registered in the decision\n        list, so it is read in the report rather than pinned here. What stays pinned is the\n        shape: the big blind is still where calls agree worst, and it is still measured over\n        a sample big enough to mean something. A cutover that fixed the localisation outright\n        would fail this, and that is the right way to hear it.\n        \"\"\"\n        humans_calling_in_the_blind = comparison.agreement_within(\n            \"humans\", action=\"call\", position=\"BB\"\n        )\n        humans_calling_elsewhere = [\n            comparison.agreement_within(\"humans\", action=\"call\", position=position)\n            for position in REPORTED_POSITIONS\n            if position != \"BB\"\n        ]\n    \n        assert humans_calling_in_the_blind.denominator > 100\n        for rate in humans_calling_elsewhere:\n            assert rate.percent > humans_calling_in_the_blind.percent\n    \n        refused = comparison.refusal_count(\"humans\", position=\"BB\")\n        points = comparison.decision_count(\"humans\", position=\"BB\")\n>       assert refused / points < 0.2\nE       assert (96 / 361) < 0.2\n\ntests/test_sample_comparison.py:601: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_sample_comparison.py::test_the_position_split_is_what_localises_the_calling_gap\n========================= 1 failed, 51 passed in 1.96s =========================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_sample_comparison_report.py"
-      ],
-      "command_id": "generate_sample_comparison_report",
-      "description": "Generate the real-hand comparison report and its refusal inventory",
-      "duration_seconds": 0.431,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_sample_comparison_report.txt\nwrote reports/active/latest_sample_refusal_inventory.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_quality_hardening.py"
-      ],
-      "command_id": "pytest_quality_hardening",
-      "description": "Run quality, drift, and phase-gate hardening tests",
-      "duration_seconds": 2.349,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 26 items\n\ntests/test_quality_hardening.py ..........................               [100%]\n\n============================== 26 passed in 2.19s ==============================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/run_full_quality_gate.py"
-      ],
-      "command_id": "run_full_quality_gate",
-      "description": "Run the quality checks and write the quality report",
-      "duration_seconds": 0.899,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "Quality And Drift Report\n========================\n\nFour checks, each with what it covers and what it does not. The second half of\neach entry matters as much as the result: a check that passed is not a promise\nabout everything it did not look at, and this repo has already shipped three\nwrong numbers and a decorative gate command past a green run.\n\nPASS  mutation coverage\n      covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\n      does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\n\nPASS  fact drift\n      covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\n      does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\n\nPASS  backlog integrity\n      covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\n      does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\n\nPASS  phase record agreement\n      covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\n      does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\n\n\nwrote reports/active/latest_quality_report.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_solver_export.py",
-        "tests/test_solver_expectations.py"
-      ],
-      "command_id": "pytest_solver_export",
-      "description": "Run GTOpen solver export, source-card, and expectations tests",
-      "duration_seconds": 2.001,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 74 items\n\ntests/test_solver_export.py ............................................ [ 59%]\n...........                                                              [ 74%]\ntests/test_solver_expectations.py ...................                    [100%]\n\n============================== 74 passed in 1.90s ==============================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/check_solver_export_expectations.py"
-      ],
-      "command_id": "check_solver_export_expectations",
-      "description": "Recompute the solver export's two orderings and check its source card against it",
-      "duration_seconds": 1.858,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "export:        /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz\naction nodes:  38828\n  RFI BTN    40.26%\n  RFI CO     27.34%\n  RFI HJ     21.64%\n  RFI LJ     19.08%\n  RFI SB     54.09%\n  BB vs BTN    36.76%\n  BB vs CO     34.12%\n  BB vs HJ     29.92%\n  BB vs LJ     27.28%\n  BB vs SB     49.02%\nboth orderings hold, and the source card matches the export\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_solver_export_report.py"
-      ],
-      "command_id": "generate_solver_export_report",
-      "description": "Generate the solver export range-grid and comparison report",
-      "duration_seconds": 1.889,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_solver_export_report.txt (39808 bytes)\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_engine_fidelity.py"
-      ],
-      "command_id": "pytest_engine_fidelity",
-      "description": "Run the engine and strategy-query fidelity tests",
-      "duration_seconds": 0.264,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 52 items\n\ntests/test_engine_fidelity.py ...................F...................... [ 80%]\n..........                                                               [100%]\n\n=================================== FAILURES ===================================\n_ TestNoShippedStrategyFoldsWhenCheckingIsFree.test_the_chart_holds_no_spot_where_checking_is_free _\n\nself = <test_engine_fidelity.TestNoShippedStrategyFoldsWhenCheckingIsFree object at 0x10608c180>\n\n    def test_the_chart_holds_no_spot_where_checking_is_free(self) -> None:\n        \"\"\"Phase 09 found one - the big blind facing a limp - and asserted the chart put no\n        fold weight in it, because folding a free option is an artifact finding rather than\n        something a phase may silence. The cutover removes the spot instead: a sequence\n        carries no raise exactly when nobody has raised, and the solve is `limp: false`. So\n        the claim is emptiness, and the fold-weight loop is gone rather than left behind it\n        as unreachable code - emptiness fails whether a limped cell arrives with fold weight\n        or without it, where the loop caught only the first. What a limped query does at the\n        lookup is in `test_preflop_committed_charts`.\"\"\"\n        library = PreflopChartStrategy.from_repo().library\n        free_spots = [\n            key\n            for key in library.spot_keys()\n            if key.split(\"/\")[3] != \"rfi\" and \"raise\" not in key.split(\"/\")[3]\n        ]\n    \n>       assert free_spots == []\nE       AssertionError: assert ['t6/d100/BB/SB:call'] == []\nE         \nE         Left contains one more item: 't6/d100/BB/SB:call'\nE         Use -v to get more diff\n\ntests/test_engine_fidelity.py:310: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_engine_fidelity.py::TestNoShippedStrategyFoldsWhenCheckingIsFree::test_the_chart_holds_no_spot_where_checking_is_free\n========================= 1 failed, 51 passed in 0.17s =========================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_engine_fidelity_report.py"
-      ],
-      "command_id": "generate_engine_fidelity_report",
-      "description": "Generate the engine and query fidelity before/after report",
-      "duration_seconds": 0.065,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_engine_fidelity_report.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_spot_vocabulary.py",
-        "tests/test_spot_vocabulary_downstream.py"
-      ],
-      "command_id": "pytest_spot_vocabulary",
-      "description": "Run the sizing-aware and second-orbit spot vocabulary tests",
-      "duration_seconds": 1.779,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "",
-      "stdout": " \n        Phase 14 replaced the chart under this file, and it shares no three-bet price with the\n        one these tests were authored against. Each raising point offers the named raise and\n        the all-in decision 6 prices at hero's whole stack, so the named raise is the smaller.\n        \"\"\"\n        sequence: list = []\n        for raiser in raisers:\n            prices = library.solved_prices_bb(TABLE, DEPTH, hero, tuple(sequence), raiser)\n>           assert prices, (hero, raiser, tuple(sequence))\nE           AssertionError: ('BB', 'BB', (PreflopAction(position='CO', action='raise', size_bb=2.5),))\nE           assert ()\n\ntests/test_spot_vocabulary_downstream.py:62: AssertionError\n____________ test_normalising_a_price_is_not_finding_a_nearest_spot ____________\n\nlibrary = <poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x102d35a90>\n\n    def test_normalising_a_price_is_not_finding_a_nearest_spot(library) -> None:\n        \"\"\"The line between the ruled abstraction and heuristic guessing.\n    \n        Authored on a squeeze, which the phase 12 chart did not hold. The rake-free solve does\n        hold squeezes, so the instance moves to the one spot that is structurally uncovered\n        rather than merely under the reach floor: nobody limps in a `limp: false` tree, and\n        the neighbouring sequence a nearest-spot matcher would reach for - the small blind\n        raising instead of calling - is covered at full reach.\n        \"\"\"\n        found = library.lookup(query_facing(\"BB\", call_by(\"SB\")))\n    \n>       assert not isinstance(found, ChartHit)\nE       AssertionError: assert not True\nE        +  where True = isinstance(ChartHit(artifact_id='t6/d100/gto-wizard-6-max-100bb-nl25-rake', spot_key='t6/d100/BB/SB:call', hand_class='AKs', action_weights=(('raise', 1.0),), price_substitutions=()), ChartHit)\n\ntests/test_spot_vocabulary_downstream.py:189: AssertionError\n_____________ test_the_second_orbit_rows_are_no_longer_all_refused _____________\n\ncomparison = ComparisonResult(rows=(ComparisonRow(hand_id='pluribus/100/0', seat=2, position='LJ', player='MrWhite', population='hu...ared=499, hands_excluded=1, chart_source='GTO Wizard 6-max 100bb NL25 rake', solved_open_bb=(('LJ', 2.5), ('SB', 3.5)))\n\n    def test_the_second_orbit_rows_are_no_longer_all_refused(comparison) -> None:\n        \"\"\"Phase 12 gave these 19 decision points a key and left them uncovered, because it\n        added no coverage. That was `CHART-COVERAGE-EXPANSION` at proposed phase 14, and this\n        is phase 14: the solved tree holds four-bets and the reach floor keeps the ones real\n        players reach, so the count has to fall. Not asserted to reach zero, because a\n        four-bet line under the reach floor is still an honest refusal.\"\"\"\n        second_orbit = [\n            entry\n            for entry in comparison.refusal_inventory\n            if any(\n                entry.spot_key.count(f\"{position}:\") > 1\n                for position in (\"LJ\", \"HJ\", \"CO\", \"BTN\", \"SB\", \"BB\")\n            )\n        ]\n>       assert sum(entry.count for entry in second_orbit) < 19\nE       assert 19 < 19\nE        +  where 19 = sum(<generator object test_the_second_orbit_rows_are_no_longer_all_refused.<locals>.<genexpr> at 0x102ca6140>)\n\ntests/test_spot_vocabulary_downstream.py:314: AssertionError\n______ test_the_squeeze_refusals_are_answered_rather_than_normalised_away ______\n\ncomparison = ComparisonResult(rows=(ComparisonRow(hand_id='pluribus/100/0', seat=2, position='LJ', player='MrWhite', population='hu...ared=499, hands_excluded=1, chart_source='GTO Wizard 6-max 100bb NL25 rake', solved_open_bb=(('LJ', 2.5), ('SB', 3.5)))\n\n    def test_the_squeeze_refusals_are_answered_rather_than_normalised_away(comparison) -> None:\n        \"\"\"Phase 12 pinned this at 132 as the falsifiable form of what price normalisation\n        does *not* buy: 125 of them were a squeeze or a cold four-bet, expressible and\n        uncovered, and normalising a price is not finding a nearest spot, so the count could\n        not move.\n    \n        Phase 14 moves it by covering the cells rather than by matching a neighbour, which is\n        the one way it was allowed to move. Cold calls are in the solved tree - only limps\n        left it - so the squeeze family is answered now. The guard against nearest-spot\n        matching moves to `test_normalising_a_price_is_not_finding_a_nearest_spot`, where the\n        uncovered spot is structural rather than a count.\n        \"\"\"\n        positions = (\"LJ\", \"HJ\", \"CO\", \"BTN\", \"SB\", \"BB\")\n        two_raise = [\n            row\n            for row in comparison.rows\n            if row.refusal is not None\n            and row.spot_key\n            and row.spot_key.split(\"/\")[-1].count(\":raise\") == 2\n            and not any(row.spot_key.count(f\"{position}:\") > 1 for position in positions)\n        ]\n>       assert len(two_raise) < 132\nE       AssertionError: assert 132 < 132\nE        +  where 132 = len([ComparisonRow(hand_id='pluribus/100/63', seat=5, position='BTN', player='MrWhite', population='humans', street='prefl...5),), asked_spot_key='t6/d100/BB/HJ:raise@2.5,CO:raise@7.5', raises_faced=2, miss_code='lookup:spot-not-covered'), ...])\n\ntests/test_spot_vocabulary_downstream.py:351: AssertionError\n______ test_the_refusal_total_fell_and_the_limped_points_are_what_is_left ______\n\ncomparison = ComparisonResult(rows=(ComparisonRow(hand_id='pluribus/100/0', seat=2, position='LJ', player='MrWhite', population='hu...ared=499, hands_excluded=1, chart_source='GTO Wizard 6-max 100bb NL25 rake', solved_open_bb=(('LJ', 2.5), ('SB', 3.5)))\n\n    def test_the_refusal_total_fell_and_the_limped_points_are_what_is_left(comparison) -> None:\n        \"\"\"Phase 12 pinned 290 because it added no coverage and a drop would have been a\n        finding. Phase 14 adds thousands of spots, so the number has to fall, and the\n        direction is the assertion rather than the value, which the report publishes by\n        reason code.\n    \n        What must not fall to zero is the limped population. Every decision whose first\n        recorded action is a call arrives at a spot the solved tree does not hold at any reach\n        floor, and `CHART-CANNOT-ANSWER-A-LIMPED-POT` is restated on that count rather than\n        closed. Both halves are asserted, because the drop alone would also be satisfied by a\n        chart that quietly answered a limp from a neighbouring cell.\n        \"\"\"\n        refused = [row for row in comparison.rows if row.refusal is not None]\n        limped = [\n            row\n            for row in refused\n            if row.spot_key and row.spot_key.split(\"/\")[-1].split(\",\")[0].endswith(\":call\")\n        ]\n    \n>       assert len(refused) < 290\nE       AssertionError: assert 290 < 290\nE        +  where 290 = len([ComparisonRow(hand_id='pluribus/100/0', seat=1, position='BB', player='MrBlonde', population='humans', street='preflo...2.5),), asked_spot_key='t6/d100/BB/HJ:raise@2.5,CO:raise@8', raises_faced=2, miss_code='lookup:spot-not-covered'), ...])\n\ntests/test_spot_vocabulary_downstream.py:373: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_spot_vocabulary.py::test_the_committed_spot_count_is_the_one_the_artifact_declares\nFAILED tests/test_spot_vocabulary.py::test_the_committed_keys_are_the_measured_ones\nFAILED tests/test_spot_vocabulary_downstream.py::test_the_solved_prices_come_from_the_loaded_keys_not_from_a_constant\nFAILED tests/test_spot_vocabulary_downstream.py::test_normalising_a_price_is_not_finding_a_nearest_spot\nFAILED tests/test_spot_vocabulary_downstream.py::test_the_second_orbit_rows_are_no_longer_all_refused\nFAILED tests/test_spot_vocabulary_downstream.py::test_the_squeeze_refusals_are_answered_rather_than_normalised_away\nFAILED tests/test_spot_vocabulary_downstream.py::test_the_refusal_total_fell_and_the_limped_points_are_what_is_left\n========================= 7 failed, 62 passed in 1.69s =========================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_spot_vocabulary_report.py"
-      ],
-      "command_id": "generate_spot_vocabulary_report",
-      "description": "Generate the spot vocabulary report, key mapping, and price substitution census",
-      "duration_seconds": 1.187,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_spot_vocabulary_report.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_table_state.py",
-        "tests/test_table_state_strategy.py"
-      ],
-      "command_id": "pytest_table_state",
-      "description": "Run the per-seat contribution query and table-shape strategy tests",
-      "duration_seconds": 0.17,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 66 items\n\ntests/test_table_state.py .............................................. [ 69%]\n                                                                         [ 69%]\ntests/test_table_state_strategy.py ..................F.                  [100%]\n\n=================================== FAILURES ===================================\n_ TestForcedMoney.test_a_limper_is_explained_by_its_own_recorded_call_and_is_not_forced_money _\n\nself = <test_table_state_strategy.TestForcedMoney object at 0x103efbdf0>\nstrategy = PreflopChartStrategy(library=<poker_training_bot.solver_artifacts.lookup.PreflopChartLibrary object at 0x103ea5090>, s...t6/d100/SB/SB:raise@3.5,BB:raise@10.5': 22.0, 't6/d100/SB/rfi': 3.5}), strategy_id='preflop-chart', strategy_version=1)\n\n    def test_a_limper_is_explained_by_its_own_recorded_call_and_is_not_forced_money(\n        self, strategy\n    ) -> None:\n        \"\"\"Reconstruction is against the blinds *and each seat's own recorded actions*.\n    \n        The small blind holds 100 where its blind alone predicts 50, and the extra fifty\n        is a call it is recorded as making. Comparing against the blinds and nothing\n        else would call the most common pot in a home game an anted one.\n    \n        Since the cutover the chart holds no limped spot, so this refuses - which is why\n        the code is read rather than the outcome counted: a limped pot must refuse for\n        want of a cell, never for forced money.\n        \"\"\"\n        contributed = {seat_of(\"SB\"): BIG_BLIND, seat_of(\"BB\"): BIG_BLIND}\n    \n        outcome = strategy.decide(\n            table_query(\n                \"BB\",\n                contributed=contributed,\n                history=(\n                    dropped(\"LJ\"),\n                    dropped(\"HJ\"),\n                    dropped(\"CO\"),\n                    dropped(\"BTN\"),\n                    called(\"SB\"),\n                ),\n                folded=(\"LJ\", \"HJ\", \"CO\", \"BTN\"),\n                hole_cards=(\"As\", \"Ah\"),\n            )\n        )\n    \n>       assert isinstance(outcome, StrategyRefusal), outcome\nE       AssertionError: StrategyDecision(action='raise', amount=350, code='preflop-chart:weighted-draw:raise[raise=1]', detail=())\nE       assert False\nE        +  where False = isinstance(StrategyDecision(action='raise', amount=350, code='preflop-chart:weighted-draw:raise[raise=1]', detail=()), StrategyRefusal)\n\ntests/test_table_state_strategy.py:668: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_table_state_strategy.py::TestForcedMoney::test_a_limper_is_explained_by_its_own_recorded_call_and_is_not_forced_money\n========================= 1 failed, 65 passed in 0.08s =========================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_table_state_report.py"
-      ],
-      "command_id": "generate_table_state_report",
-      "description": "Generate the table-state report: pot reconciliation, depth, and blind structure",
-      "duration_seconds": 0.442,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "wrote reports/active/latest_table_state_report.txt\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests/test_derived_chart.py",
-        "tests/test_chart_derivation.py",
-        "tests/test_derived_chart_report.py"
-      ],
-      "command_id": "pytest_derived_chart",
-      "description": "Run the derived-chart selection, conversion, artifact, and report tests",
-      "duration_seconds": 14.243,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "",
-      "stdout": "e.exists of PosixPath('/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/scripts/generate_derived_chart_report.py')>\n@py_assert3 = False\n@py_format5 = \"/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/scripts/generate_derived_chart_report.py does not exist, s...('/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/scripts/generate_derived_chart_report.py').exists\\n}()\\n}\"\n\n    def run_report(tmp_path: Path, *arguments: str) -> subprocess.CompletedProcess[str]:\n        # Or a missing script would make every refusal below pass without a validator existing.\n>       assert SCRIPT.exists(), f\"{SCRIPT} does not exist, so nothing here runs a validator\"\nE       AssertionError: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/scripts/generate_derived_chart_report.py does not exist, so nothing here runs a validator\nE       assert False\nE        +  where False = exists()\nE        +    where exists = PosixPath('/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/scripts/generate_derived_chart_report.py').exists\n\ntests/test_derived_chart_report.py:322: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_derived_chart.py::test_the_raked_chart_is_absent_from_the_artifact_directory\nFAILED tests/test_derived_chart.py::test_the_library_holds_exactly_one_chart_at_the_new_schema_version\nFAILED tests/test_derived_chart.py::test_the_chart_names_the_committed_export_it_was_derived_from\nFAILED tests/test_derived_chart.py::test_the_chart_declares_the_blind_structure_the_solve_posted\nFAILED tests/test_derived_chart.py::test_a_blind_structure_that_is_not_one_is_rejected[0.0-1.0-0.0]\nFAILED tests/test_derived_chart.py::test_a_blind_structure_that_is_not_one_is_rejected[-0.5-1.0-0.0]\nFAILED tests/test_derived_chart.py::test_a_blind_structure_that_is_not_one_is_rejected[0.5-0.0-0.0]\nFAILED tests/test_derived_chart.py::test_a_blind_structure_that_is_not_one_is_rejected[1.0-0.5-0.0]\nFAILED tests/test_derived_chart.py::test_a_blind_structure_that_is_not_one_is_rejected[0.5-1.0--0.1]\nFAILED tests/test_derived_chart.py::test_every_committed_cell_carries_an_arriving_reach\nFAILED tests/test_derived_chart.py::test_reach_answers_for_a_covered_cell_and_refuses_an_uncovered_one\nFAILED tests/test_derived_chart.py::test_every_committed_spot_clears_the_ruled_reach_floor\nFAILED tests/test_derived_chart.py::test_the_charts_reach_is_the_exports_reach_recomputed\nFAILED tests/test_derived_chart.py::test_the_schema_rejects_an_artifact_whose_hero_limps\nFAILED tests/test_derived_chart.py::test_the_same_artifact_without_the_limp_is_accepted\nFAILED tests/test_derived_chart.py::test_no_committed_spot_limps - AssertionE...\nFAILED tests/test_derived_chart.py::test_the_committed_cells_are_monotone - A...\nFAILED tests/test_derived_chart.py::test_the_big_blind_defends_more_against_whoever_opens_wider\nFAILED tests/test_derived_chart.py::test_the_derived_chart_is_not_the_raked_reference\nFAILED tests/test_derived_chart.py::test_the_chart_states_the_realization_bias_in_poker_terms\nFAILED tests/test_derived_chart.py::test_the_source_card_records_both_solves\nFAILED tests/test_derived_chart.py::test_the_re_solved_export_restamps_its_checksums\nFAILED tests/test_chart_derivation.py::test_the_floor_is_the_ruled_two_percent_of_heros_range\nFAILED tests/test_chart_derivation.py::test_arriving_reach_is_the_plain_mean_over_the_169_classes\nFAILED tests/test_chart_derivation.py::test_the_floor_bites_without_selecting_the_whole_tree\nFAILED tests/test_chart_derivation.py::test_both_reason_vocabularies_are_closed_and_enumerated_here\nFAILED tests/test_chart_derivation.py::test_the_actor_of_an_action_is_the_parent_node_s\nFAILED tests/test_chart_derivation.py::test_folds_never_enter_the_sequence - ...\nFAILED tests/test_chart_derivation.py::test_the_converter_reads_its_sizes_from_the_export_s_own_labels[2.5]\nFAILED tests/test_chart_derivation.py::test_the_converter_reads_its_sizes_from_the_export_s_own_labels[3.75]\nFAILED tests/test_chart_derivation.py::test_the_converter_reads_its_sizes_from_the_export_s_own_labels[4.0]\nFAILED tests/test_chart_derivation.py::test_two_prices_produce_two_different_charts\nFAILED tests/test_chart_derivation.py::test_a_node_the_converter_cannot_handle_raises_rather_than_being_filed\nFAILED tests/test_chart_derivation.py::test_the_converter_does_not_write_the_expectations_file\nFAILED tests/test_derived_chart_report.py::test_a_pin_the_retired_chart_cannot_be_read_at_fails_the_command[nonexistent]\nFAILED tests/test_derived_chart_report.py::test_a_pin_the_retired_chart_cannot_be_read_at_fails_the_command[root]\nFAILED tests/test_derived_chart_report.py::test_a_wrong_artifact_fails_the_command_rather_than_being_rendered[drop-a-spot]\nFAILED tests/test_derived_chart_report.py::test_a_wrong_artifact_fails_the_command_rather_than_being_rendered[invert-the-pair-ladder]\nERROR tests/test_chart_derivation.py::test_the_committed_spots_are_exactly_what_the_predicate_selects\nERROR tests/test_chart_derivation.py::test_the_three_buckets_account_for_every_node_the_source_card_publishes\nERROR tests/test_chart_derivation.py::test_nothing_in_the_committed_export_is_inexpressible\nERROR tests/test_chart_derivation.py::test_one_export_node_traced_to_its_artifact_row\nERROR tests/test_chart_derivation.py::test_a_jam_only_spot_is_priced_at_heros_whole_stack\nERROR tests/test_chart_derivation.py::test_a_spot_absent_from_the_sizing_table_has_no_size_to_hold\nERROR tests/test_chart_derivation.py::test_a_jam_and_a_named_raise_collapse_into_one_raise_whose_parts_add\nERROR tests/test_chart_derivation.py::test_an_excluded_node_is_refused_and_a_committed_one_is_answered\nERROR tests/test_derived_chart_report.py::test_the_census_is_refused_when_it_does_not_cover_the_export\nERROR tests/test_derived_chart_report.py::test_the_artifact_spot_count_is_checked_against_the_walk_key_by_key\nERROR tests/test_derived_chart_report.py::test_the_dominance_relations_are_refused_at_the_tolerance_decision_10_ruled\nERROR tests/test_derived_chart_report.py::test_the_old_versus_new_disagreement_count_is_refused_when_it_cannot_be_read\nERROR tests/test_derived_chart_report.py::test_the_report_states_the_band_the_decision_record_pre_registered\nERROR tests/test_derived_chart_report.py::test_the_band_is_a_quarter_to_one_of_the_delta_and_the_miss_is_named\nERROR tests/test_derived_chart_report.py::test_the_prediction_covers_price_and_says_which_way\nERROR tests/test_derived_chart_report.py::test_all_three_candidate_explanations_are_named_with_what_this_controls\nERROR tests/test_derived_chart_report.py::test_the_corpus_opening_price_distribution_is_published\nERROR tests/test_derived_chart_report.py::test_every_rate_carries_its_sample_and_is_published_per_population\nERROR tests/test_derived_chart_report.py::test_the_report_bounds_what_the_chart_answers_at_all\nERROR tests/test_derived_chart_report.py::test_the_refusal_movement_is_stated_by_reason_over_the_closed_vocabulary\nERROR tests/test_derived_chart_report.py::test_the_phase_publishes_its_own_limped_decision_point_count\nERROR tests/test_derived_chart_report.py::test_the_report_names_a_commit_the_retired_chart_can_be_read_at\nERROR tests/test_derived_chart_report.py::test_the_census_in_the_report_adds_up_to_the_export_source_card\nERROR tests/test_derived_chart_report.py::test_one_cell_is_traced_from_an_export_node_to_the_row_it_became\nERROR tests/test_derived_chart_report.py::test_the_relations_are_published_at_the_ruled_tolerance\nERROR tests/test_derived_chart_report.py::test_the_two_orderings_hold_in_the_numbers_the_report_publishes\nERROR tests/test_derived_chart_report.py::test_the_derived_chart_is_printed_against_the_external_expectations\nERROR tests/test_derived_chart_report.py::test_the_report_names_the_number_a_reader_can_recompute_by_hand\nERROR tests/test_derived_chart_report.py::test_the_report_fits_the_size_the_file_check_allows\n================== 38 failed, 11 passed, 29 errors in 14.14s ===================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_derived_chart_report.py"
-      ],
-      "command_id": "generate_derived_chart_report",
-      "description": "Generate the derived preflop chart report and the closing corpus measurement",
-      "duration_seconds": 0.023,
-      "passed": false,
-      "returncode": 2,
-      "stderr": "/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/.venv/bin/python3: can't open file '/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/scripts/generate_derived_chart_report.py': [Errno 2] No such file or directory\n",
       "stdout": ""
     },
     {
@@ -531,7 +57,7 @@
       ],
       "command_id": "check_generated_status",
       "description": "Check generated STATUS.md freshness",
-      "duration_seconds": 0.056,
+      "duration_seconds": 0.052,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -547,7 +73,7 @@
       ],
       "command_id": "check_generated_phase_ledger",
       "description": "Check generated phase ledger freshness",
-      "duration_seconds": 0.034,
+      "duration_seconds": 0.031,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -563,7 +89,7 @@
       ],
       "command_id": "check_generated_backlog",
       "description": "Check generated backlog freshness",
-      "duration_seconds": 0.073,
+      "duration_seconds": 0.078,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -578,7 +104,7 @@
       ],
       "command_id": "check_contracts",
       "description": "Validate phase contracts",
-      "duration_seconds": 0.042,
+      "duration_seconds": 0.037,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -593,7 +119,7 @@
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.145,
+      "duration_seconds": 0.123,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -639,11 +165,11 @@
       ],
       "command_id": "check_test_freeze",
       "description": "Check tests match verification/freeze.lock",
-      "duration_seconds": 0.073,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "frozen test file changed: tests/test_engine_fidelity.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_full_table_preflop.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_preflop_artifacts.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_preflop_committed_charts.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_preflop_lookup.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_sample_comparison.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_simulator.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_solver_expectations.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_solver_export.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_spot_vocabulary.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_spot_vocabulary_downstream.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_strategy_contract.py (re-run scripts/freeze_tests.py and review the lock diff)\nfrozen test file changed: tests/test_table_state_strategy.py (re-run scripts/freeze_tests.py and review the lock diff)\ntest file is not in the freeze lock: tests/test_chart_derivation.py (an implementer must not add its own tests)\ntest file is not in the freeze lock: tests/test_derived_chart.py (an implementer must not add its own tests)\ntest file is not in the freeze lock: tests/test_derived_chart_report.py (an implementer must not add its own tests)\n",
-      "stdout": ""
+      "duration_seconds": 0.074,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "test freeze intact: 35 files\n"
     },
     {
       "command": [
@@ -654,11 +180,43 @@
       ],
       "command_id": "check_file_sizes",
       "description": "Validate file-size limits",
-      "duration_seconds": 0.046,
+      "duration_seconds": 0.027,
       "passed": true,
       "returncode": 0,
       "stderr": "",
       "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_quality_hardening.py"
+      ],
+      "command_id": "pytest_quality_hardening",
+      "description": "Run quality, drift, and phase-gate hardening tests",
+      "duration_seconds": 2.309,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "",
+      "stdout": "disagrees with); the repo says 42\"\nE         Use -v to get more diff\n\ntests/test_quality_hardening.py:218: AssertionError\n_____ test_this_repo_s_backlog_is_well_formed_and_every_citation_resolves ______\n\n    def test_this_repo_s_backlog_is_well_formed_and_every_citation_resolves() -> None:\n        payload = yaml.safe_load((REPO_ROOT / \"backlog.yml\").read_text())\n        phase_ids = {phase[\"phase_id\"] for phase in _phase_status()}\n        ids = {item[\"id\"] for item in payload[\"items\"]}\n        citations: dict[str, set[str]] = {}\n        for path in sorted(REPO_ROOT.glob(\"docs/**/*.md\")) + sorted(\n            REPO_ROOT.glob(\"reports/**/*.md\")\n        ):\n            cited = {token for token in re.findall(r\"\\b[A-Z][A-Z0-9-]{4,}\\b\", path.read_text())}\n            cited &= ids | {\"GHOST\"}\n            if cited:\n                citations[str(path.relative_to(REPO_ROOT))] = cited\n    \n>       assert backlog_errors(payload[\"items\"], phase_ids, citations) == []\nE       assert [\"backlog REA...e label', ...] == []\nE         \nE         Left contains 12 more items, first extra item: \"backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH has status 'open', which is not one of ['deferred', 'done']\"\nE         Use -v to get more diff\n\ntests/test_quality_hardening.py:279: AssertionError\n____________ test_the_quality_gate_command_passes_against_this_repo ____________\n\n    def test_the_quality_gate_command_passes_against_this_repo() -> None:\n        \"\"\"The end-to-end claim, run as the gate runs it.\"\"\"\n        proc = subprocess.run(\n            [sys.executable, str(Path(\"scripts\") / \"run_full_quality_gate.py\")],\n            cwd=REPO_ROOT,\n            capture_output=True,\n            text=True,\n            check=False,\n        )\n    \n>       assert proc.returncode == 0, proc.stdout + proc.stderr\nE       AssertionError: Quality And Drift Report\nE         ========================\nE         \nE         Four checks, each with what it covers and what it does not. The second half of\nE         each entry matters as much as the result: a check that passed is not a promise\nE         about everything it did not look at, and this repo has already shipped three\nE         wrong numbers and a decorative gate command past a green run.\nE         \nE         PASS  mutation coverage\nE               covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\nE               does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\nE         \nE         FAIL  fact drift\nE               covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\nE               does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\nE               ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 42\nE               ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 14\nE         \nE         FAIL  backlog integrity\nE               covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\nE               does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\nE               ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH is filed against phase 'source', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART has status 'open', which is not one of ['deferred', 'done']\nE               ! docs/BACKLOG.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! docs/BACKLOG.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'SPR-20', which no item declares. A finding filed under an id nobody created has recorded nothing\nE         \nE         PASS  phase record agreement\nE               covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\nE               does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\nE         \nE         \nE         wrote reports/active/latest_quality_report.txt\nE         quality gate failed: fact drift, backlog integrity\nE         \nE       assert 1 == 0\nE        +  where 1 = CompletedProcess(args=['/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/.venv/bin/python3', 'scripts/run_fu...\\n\\n\\nwrote reports/active/latest_quality_report.txt\\n\", stderr='quality gate failed: fact drift, backlog integrity\\n').returncode\n\ntests/test_quality_hardening.py:403: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_quality_hardening.py::test_no_document_in_this_repo_states_a_stale_fact\nFAILED tests/test_quality_hardening.py::test_this_repo_s_backlog_is_well_formed_and_every_citation_resolves\nFAILED tests/test_quality_hardening.py::test_the_quality_gate_command_passes_against_this_repo\n========================= 3 failed, 23 passed in 2.19s =========================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/run_full_quality_gate.py"
+      ],
+      "command_id": "run_full_quality_gate",
+      "description": "Run the quality checks and write the quality report",
+      "duration_seconds": 77.294,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "quality gate failed: fact drift, backlog integrity\n",
+      "stdout": "Quality And Drift Report\n========================\n\nFour checks, each with what it covers and what it does not. The second half of\neach entry matters as much as the result: a check that passed is not a promise\nabout everything it did not look at, and this repo has already shipped three\nwrong numbers and a decorative gate command past a green run.\n\nPASS  mutation coverage\n      covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\n      does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\n\nFAIL  fact drift\n      covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\n      does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\n      ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 42\n      ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 14\n\nFAIL  backlog integrity\n      covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\n      does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\n      ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH has status 'open', which is not one of ['deferred', 'done']\n      ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH is filed against phase 'source', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE has status 'open', which is not one of ['deferred', 'done']\n      ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART has status 'open', which is not one of ['deferred', 'done']\n      ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE has status 'open', which is not one of ['deferred', 'done']\n      ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES has status 'open', which is not one of ['deferred', 'done']\n      ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP has status 'open', which is not one of ['deferred', 'done']\n      ! backlog AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART has status 'open', which is not one of ['deferred', 'done']\n      ! docs/BACKLOG.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! docs/BACKLOG.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'SPR-20', which no item declares. A finding filed under an id nobody created has recorded nothing\n\nPASS  phase record agreement\n      covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\n      does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\n\n\nwrote reports/active/latest_quality_report.txt\n"
     },
     {
       "command": [
@@ -671,75 +229,11 @@
       ],
       "command_id": "pytest_loop_fleet",
       "description": "Run parallel-loop eligibility, lane discovery, and pause board tests",
-      "duration_seconds": 0.197,
+      "duration_seconds": 0.21,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.08s ==============================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-c",
-        "import poker_training_bot; print(poker_training_bot.__version__)"
-      ],
-      "command_id": "import_smoke",
-      "description": "Import package smoke test",
-      "duration_seconds": 0.021,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "0.0.0\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-c",
-        "import poker_training_bot; print('uv import ok')"
-      ],
-      "command_id": "uv_import_smoke",
-      "description": "Prove uv environment can import the package",
-      "duration_seconds": 0.021,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": "uv import ok\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "-m",
-        "pytest",
-        "tests"
-      ],
-      "command_id": "pytest",
-      "description": "Run tests",
-      "duration_seconds": 29.107,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "",
-      "stdout": "_preflop_artifacts.py::test_rejections[spot count mismatch]\nFAILED tests/test_preflop_artifacts.py::test_rejections[hand class count mismatch]\nFAILED tests/test_preflop_artifacts.py::test_weight_sum_tolerance_edge - poke...\nFAILED tests/test_preflop_artifacts.py::test_restamped_mutation_still_rejected\nFAILED tests/test_preflop_artifacts.py::test_import_directory_is_sorted_and_complete\nFAILED tests/test_preflop_artifacts.py::test_import_directory_fails_closed_on_one_bad_file\nFAILED tests/test_preflop_artifacts.py::test_import_accepts_string_paths - po...\nFAILED tests/test_preflop_artifacts.py::test_artifact_with_no_spots_is_rejected\nFAILED tests/test_preflop_committed_charts.py::test_committed_artifact_imports\nFAILED tests/test_preflop_committed_charts.py::test_the_artifact_declares_the_blind_structure_it_was_solved_at\nFAILED tests/test_preflop_committed_charts.py::test_the_retired_raked_chart_is_gone_from_the_artifact_directory\nFAILED tests/test_preflop_committed_charts.py::test_provenance_names_the_export_it_came_from\nFAILED tests/test_preflop_committed_charts.py::test_the_squeeze_the_retired_chart_refused_is_now_covered\nFAILED tests/test_preflop_committed_charts.py::test_the_big_blind_facing_a_four_bet_is_now_covered\nFAILED tests/test_preflop_committed_charts.py::test_a_limped_pot_is_refused_because_the_solve_holds_no_limp\nFAILED tests/test_preflop_committed_charts.py::TestSourceFrequencies::test_the_rake_free_chart_no_longer_matches_the_raked_reference\nFAILED tests/test_preflop_committed_charts.py::TestSizingTable::test_a_spot_carries_a_committed_size_exactly_when_it_offers_a_raise\nFAILED tests/test_preflop_lookup.py::test_an_artifact_declares_its_blinds_and_its_per_cell_reach\nFAILED tests/test_preflop_lookup.py::test_rfi_hit_returns_the_artifact_weights_unchanged\nFAILED tests/test_preflop_lookup.py::test_vs_open_hit_returns_the_artifact_weights_in_order\nFAILED tests/test_preflop_lookup.py::test_hit_weights_are_the_artifact_tuple_and_nothing_is_mutated\nFAILED tests/test_preflop_lookup.py::test_pure_and_mixed_best_action - Attrib...\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[unknown table size]\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[unknown stack depth]\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[position not at table]\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[sequence no legal order produces]\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[second orbit sequence, expressible and uncovered]\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[uncovered spot] - A...\nFAILED tests/test_preflop_lookup.py::test_every_miss_code[uncovered hand class]\nFAILED tests/test_preflop_lookup.py::test_uncovered_stack_depth_never_borrows_the_nearest_depth\nFAILED tests/test_preflop_lookup.py::test_uncovered_table_size_never_borrows_another_table\nFAILED tests/test_preflop_lookup.py::test_hole_card_entry_points_agree[hole_cards0]\nFAILED tests/test_preflop_lookup.py::test_hole_card_entry_points_agree[hole_cards1]\nFAILED tests/test_preflop_lookup.py::test_hole_card_entry_points_agree[hole_cards2]\nFAILED tests/test_preflop_lookup.py::test_offsuit_hole_cards_are_a_different_class\nFAILED tests/test_preflop_lookup.py::test_identical_queries_return_identical_results\nFAILED tests/test_preflop_lookup.py::test_library_ordering_is_stable_regardless_of_input_order\nFAILED tests/test_preflop_lookup.py::test_ordering_is_stable_even_for_artifacts_sharing_an_id\nFAILED tests/test_preflop_lookup.py::test_both_depths_answer_only_their_own_queries\nFAILED tests/test_preflop_lookup.py::test_duplicate_spot_across_artifacts_fails_closed\nFAILED tests/test_preflop_lookup.py::test_from_directory_imports_and_answers\nFAILED tests/test_preflop_lookup.py::test_query_accepts_unknown_tables_and_positions\nFAILED tests/test_sample_comparison.py::test_the_position_split_is_what_localises_the_calling_gap\nFAILED tests/test_spot_vocabulary.py::test_the_committed_spot_count_is_the_one_the_artifact_declares\nFAILED tests/test_spot_vocabulary.py::test_the_committed_keys_are_the_measured_ones\nFAILED tests/test_spot_vocabulary_downstream.py::test_the_solved_prices_come_from_the_loaded_keys_not_from_a_constant\nFAILED tests/test_spot_vocabulary_downstream.py::test_normalising_a_price_is_not_finding_a_nearest_spot\nFAILED tests/test_spot_vocabulary_downstream.py::test_the_second_orbit_rows_are_no_longer_all_refused\nFAILED tests/test_spot_vocabulary_downstream.py::test_the_squeeze_refusals_are_answered_rather_than_normalised_away\nFAILED tests/test_spot_vocabulary_downstream.py::test_the_refusal_total_fell_and_the_limped_points_are_what_is_left\nFAILED tests/test_strategy_contract.py::TestChartRefusalsNameTheirSpot::test_an_uncovered_spot_reports_the_key_it_looked_for\nFAILED tests/test_table_state_strategy.py::TestForcedMoney::test_a_limper_is_explained_by_its_own_recorded_call_and_is_not_forced_money\nERROR tests/test_chart_derivation.py::test_the_committed_spots_are_exactly_what_the_predicate_selects\nERROR tests/test_chart_derivation.py::test_the_three_buckets_account_for_every_node_the_source_card_publishes\nERROR tests/test_chart_derivation.py::test_nothing_in_the_committed_export_is_inexpressible\nERROR tests/test_chart_derivation.py::test_one_export_node_traced_to_its_artifact_row\nERROR tests/test_chart_derivation.py::test_a_jam_only_spot_is_priced_at_heros_whole_stack\nERROR tests/test_chart_derivation.py::test_a_spot_absent_from_the_sizing_table_has_no_size_to_hold\nERROR tests/test_chart_derivation.py::test_a_jam_and_a_named_raise_collapse_into_one_raise_whose_parts_add\nERROR tests/test_chart_derivation.py::test_an_excluded_node_is_refused_and_a_committed_one_is_answered\nERROR tests/test_derived_chart_report.py::test_the_census_is_refused_when_it_does_not_cover_the_export\nERROR tests/test_derived_chart_report.py::test_the_artifact_spot_count_is_checked_against_the_walk_key_by_key\nERROR tests/test_derived_chart_report.py::test_the_dominance_relations_are_refused_at_the_tolerance_decision_10_ruled\nERROR tests/test_derived_chart_report.py::test_the_old_versus_new_disagreement_count_is_refused_when_it_cannot_be_read\nERROR tests/test_derived_chart_report.py::test_the_report_states_the_band_the_decision_record_pre_registered\nERROR tests/test_derived_chart_report.py::test_the_band_is_a_quarter_to_one_of_the_delta_and_the_miss_is_named\nERROR tests/test_derived_chart_report.py::test_the_prediction_covers_price_and_says_which_way\nERROR tests/test_derived_chart_report.py::test_all_three_candidate_explanations_are_named_with_what_this_controls\nERROR tests/test_derived_chart_report.py::test_the_corpus_opening_price_distribution_is_published\nERROR tests/test_derived_chart_report.py::test_every_rate_carries_its_sample_and_is_published_per_population\nERROR tests/test_derived_chart_report.py::test_the_report_bounds_what_the_chart_answers_at_all\nERROR tests/test_derived_chart_report.py::test_the_refusal_movement_is_stated_by_reason_over_the_closed_vocabulary\nERROR tests/test_derived_chart_report.py::test_the_phase_publishes_its_own_limped_decision_point_count\nERROR tests/test_derived_chart_report.py::test_the_report_names_a_commit_the_retired_chart_can_be_read_at\nERROR tests/test_derived_chart_report.py::test_the_census_in_the_report_adds_up_to_the_export_source_card\nERROR tests/test_derived_chart_report.py::test_one_cell_is_traced_from_an_export_node_to_the_row_it_became\nERROR tests/test_derived_chart_report.py::test_the_relations_are_published_at_the_ruled_tolerance\nERROR tests/test_derived_chart_report.py::test_the_two_orderings_hold_in_the_numbers_the_report_publishes\nERROR tests/test_derived_chart_report.py::test_the_derived_chart_is_printed_against_the_external_expectations\nERROR tests/test_derived_chart_report.py::test_the_report_names_the_number_a_reader_can_recompute_by_hand\nERROR tests/test_derived_chart_report.py::test_the_report_fits_the_size_the_file_check_allows\n================= 137 failed, 875 passed, 29 errors in 28.96s ==================\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/check_gate_bite.py"
-      ],
-      "command_id": "check_gate_bite",
-      "description": "Prove committed mutations make the gate fail",
-      "duration_seconds": 2039.999,
-      "passed": false,
-      "returncode": 1,
-      "stderr": "po_consistency.py with git checkout before trusting this run\nafter restoring 'worktree-lock-collapses-to-the-repo-root', 'pytest' is still failing: restore scripts/loop_stage.py with git checkout before trusting this run\nafter restoring 'solver-export-hand-index-uses-the-grid-ordering', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/gtopen_export.py with git checkout before trusting this run\nafter restoring 'solver-export-aggregates-ignore-the-arriving-range', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/gtopen_export.py with git checkout before trusting this run\nafter restoring 'free-fold-taken-off-the-table-again', 'pytest_engine_fidelity' is still failing: restore src/poker_training_bot/poker_core/engine.py with git checkout before trusting this run\nafter restoring 'free-fold-taken-off-the-table-again', 'pytest' is still failing: restore src/poker_training_bot/poker_core/engine.py with git checkout before trusting this run\nafter restoring 'reopening-measured-against-the-preceding-bet-again', 'pytest_engine_fidelity' is still failing: restore src/poker_training_bot/poker_core/order.py with git checkout before trusting this run\nafter restoring 'reopening-measured-against-the-preceding-bet-again', 'pytest' is still failing: restore src/poker_training_bot/poker_core/order.py with git checkout before trusting this run\nafter restoring 'all-in-ceiling-loose-by-the-price-to-call-again', 'pytest_engine_fidelity' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'all-in-ceiling-loose-by-the-price-to-call-again', 'pytest' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'fail-closed-can-invest-again', 'pytest_engine_fidelity' is still failing: restore src/poker_training_bot/strategy/postflop_fallback.py with git checkout before trusting this run\nafter restoring 'fail-closed-can-invest-again', 'pytest' is still failing: restore src/poker_training_bot/strategy/postflop_fallback.py with git checkout before trusting this run\nafter restoring 'under-sized-all-in-bet-becomes-the-reference-level', 'pytest_engine_fidelity' is still failing: restore src/poker_training_bot/poker_core/order.py with git checkout before trusting this run\nafter restoring 'under-sized-all-in-bet-becomes-the-reference-level', 'pytest' is still failing: restore src/poker_training_bot/poker_core/order.py with git checkout before trusting this run\nafter restoring 'spot-key-drops-the-raise-size', 'pytest_spot_vocabulary' is still failing: restore src/poker_training_bot/solver_artifacts/spot_key.py with git checkout before trusting this run\nafter restoring 'spot-key-drops-the-raise-size', 'pytest_preflop_artifacts' is still failing: restore src/poker_training_bot/solver_artifacts/spot_key.py with git checkout before trusting this run\nafter restoring 'spot-key-drops-the-raise-size', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/spot_key.py with git checkout before trusting this run\nafter restoring 'price-substitution-not-recorded', 'pytest_spot_vocabulary' is still failing: restore src/poker_training_bot/solver_artifacts/lookup.py with git checkout before trusting this run\nafter restoring 'price-substitution-not-recorded', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/lookup.py with git checkout before trusting this run\nafter restoring 'a-flat-re-raise-is-accepted', 'pytest_spot_vocabulary' is still failing: restore src/poker_training_bot/solver_artifacts/spot_key.py with git checkout before trusting this run\nafter restoring 'a-flat-re-raise-is-accepted', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/spot_key.py with git checkout before trusting this run\nafter restoring 'a-folded-seat-may-act-again', 'pytest_spot_vocabulary' is still failing: restore src/poker_training_bot/solver_artifacts/spot_key.py with git checkout before trusting this run\nafter restoring 'a-folded-seat-may-act-again', 'pytest' is still failing: restore src/poker_training_bot/solver_artifacts/spot_key.py with git checkout before trusting this run\nafter restoring 'the-pot-stops-having-to-reconcile', 'pytest_table_state' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'the-pot-stops-having-to-reconcile', 'pytest' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'a-capped-hero-may-raise-again', 'pytest_table_state' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'a-capped-hero-may-raise-again', 'pytest' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nafter restoring 'hero-depth-is-derived-by-subtraction-again', 'pytest_table_state' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'hero-depth-is-derived-by-subtraction-again', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'a-folded-seat-makes-the-table-ragged', 'pytest_table_state' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'a-folded-seat-makes-the-table-ragged', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'an-absorbed-straddle-goes-unseen', 'pytest_table_state' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'an-absorbed-straddle-goes-unseen', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'the-depth-refusal-names-the-first-offender-in-seat-order', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'the-short-seat-refusal-names-the-first-offender-in-seat-order', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'the-residual-refusal-names-the-lowest-chair', 'pytest' is still failing: restore src/poker_training_bot/strategy/preflop_chart.py with git checkout before trusting this run\nafter restoring 'an-impossible-raise-sequence-still-constructs', 'pytest' is still failing: restore src/poker_training_bot/strategy/contract.py with git checkout before trusting this run\nmutation 'derivation-reach-floor-drops-to-a-tenth' names missing file src/poker_training_bot/solver_artifacts/chart_derivation.py\nmutation 'committed-cells-claim-the-whole-range-arrived' names missing file src/poker_training_bot/solver_artifacts/chart_derivation.py\nmutation 'the-walk-takes-each-action-from-the-node-that-follows-it' names missing file src/poker_training_bot/solver_artifacts/chart_derivation.py\nmutation 'the-artifact-declares-blinds-it-was-not-solved-at' names missing file src/poker_training_bot/solver_artifacts/chart_derivation.py\nmutation 'a-jam-only-spot-goes-back-to-having-no-size' names missing file src/poker_training_bot/solver_artifacts/chart_derivation.py\nmutation 'hero-may-limp-again' expected exactly one match in src/poker_training_bot/solver_artifacts/schema.py, found 0; the code moved and the mutation no longer applies\nmutation 'the-derived-chart-report-renders-whatever-it-is-handed' names missing file scripts/generate_derived_chart_report.py\nmutation 'the-old-versus-new-comparison-reads-the-new-chart-twice' names missing file scripts/generate_derived_chart_report.py\n",
-      "stdout": ""
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.09s ==============================\n"
     },
     {
       "command": [
@@ -752,7 +246,7 @@
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.268,
+      "duration_seconds": 0.064,
       "passed": true,
       "returncode": 0,
       "stderr": "",

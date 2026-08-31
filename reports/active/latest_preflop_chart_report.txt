@@ -4,70 +4,120 @@ Preflop Chart Report
 Artifact directory: `data/artifacts/preflop`
 Artifacts imported: 1
 
-## t6/d100/gto-wizard-6-max-100bb-nl25-rake
+## t6/d100/gtopen-6-max-100bb-rake-free
 
-Source: GTO Wizard 6-max 100bb NL25 rake
+Source: GTOpen 6-max 100bb rake-free
 Source kind: solver-export
-Source reference: data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json
-Generated at: 2026-08-20T00:00:00Z
+Source reference: data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz
+Generated at: 2026-08-27T00:00:00Z
 Table size: 6
 Stack depth: 100 bb
 Import: accepted
-Weights checksum (recomputed and matched at import): d2d5c3fa04a6fe41c6eca8ca286c82d5c833dd2dc635b4fb21b69471c179ad60
-Spots: 36
+Weights checksum (recomputed and matched at import): e9705b95e143544c992c8ee6ba6bf6e9af6c6cf2db22e47bdc03e0d2f9994e64
+Spots: 86
 Hero positions covered: BB, BTN, CO, HJ, LJ, SB
 Distinct hand classes covered: 169 of 169
 
 Spot keys:
+- `t6/d100/BB/BTN:raise@100`
 - `t6/d100/BB/BTN:raise@2.5`
+- `t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@100`
+- `t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5`
+- `t6/d100/BB/CO:raise@100`
 - `t6/d100/BB/CO:raise@2.5`
+- `t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@100`
+- `t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5`
+- `t6/d100/BB/HJ:raise@100`
 - `t6/d100/BB/HJ:raise@2.5`
+- `t6/d100/BB/HJ:raise@2.5,BB:raise@7.5,HJ:raise@100`
+- `t6/d100/BB/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5`
+- `t6/d100/BB/LJ:raise@100`
 - `t6/d100/BB/LJ:raise@2.5`
-- `t6/d100/BB/SB:call`
-- `t6/d100/BB/SB:raise@3.5`
-- `t6/d100/BTN/BTN:raise@2.5,BB:raise@13.5`
-- `t6/d100/BTN/BTN:raise@2.5,SB:raise@11`
-- `t6/d100/BTN/CO:raise@2.5`
-- `t6/d100/BTN/HJ:raise@2.5`
-- `t6/d100/BTN/LJ:raise@2.5`
-- `t6/d100/BTN/rfi`
-- `t6/d100/CO/CO:raise@2.5,BB:raise@13.5`
-- `t6/d100/CO/CO:raise@2.5,BTN:raise@8`
-- `t6/d100/CO/CO:raise@2.5,SB:raise@11`
-- `t6/d100/CO/HJ:raise@2.5`
-- `t6/d100/CO/LJ:raise@2.5`
-- `t6/d100/CO/rfi`
-- `t6/d100/HJ/HJ:raise@2.5,BB:raise@13.5`
-- `t6/d100/HJ/HJ:raise@2.5,BTN:raise@8`
-- `t6/d100/HJ/HJ:raise@2.5,CO:raise@8`
-- `t6/d100/HJ/HJ:raise@2.5,SB:raise@11`
-- `t6/d100/HJ/LJ:raise@2.5`
-- `t6/d100/HJ/rfi`
-- `t6/d100/LJ/LJ:raise@2.5,BB:raise@13.5`
-- `t6/d100/LJ/LJ:raise@2.5,BTN:raise@8`
-- `t6/d100/LJ/LJ:raise@2.5,CO:raise@8`
-- `t6/d100/LJ/LJ:raise@2.5,HJ:raise@8`
-- `t6/d100/LJ/LJ:raise@2.5,SB:raise@11`
-- `t6/d100/LJ/rfi`
-- `t6/d100/SB/BTN:raise@2.5`
-- `t6/d100/SB/CO:raise@2.5`
-- `t6/d100/SB/HJ:raise@2.5`
-- `t6/d100/SB/LJ:raise@2.5`
-- `t6/d100/SB/SB:raise@3.5,BB:raise@10.5`
+- `t6/d100/BB/LJ:raise@2.5,BB:raise@7.5,LJ:raise@100`
+- `t6/d100/BB/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5`
+- `t6/d100/BB/SB:raise@100`
+- `t6/d100/BB/SB:raise@2.5`
+- `t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@100`
+- `t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5`
+- `t6/d100/BTN/BTN:raise@2.5,BB:raise@100`
+- `t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5`
+- `t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5,BB:raise@100`
+- `t6/d100/BTN/BTN:raise@2.5,SB:raise@100`
+- `t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5`
+- `t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5,SB:raise@100`
+- `t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@100`
+- `t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5`
+- `t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@100`
+- `t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5`
+- `t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@100`
+- `t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5`
+- `t6/d100/CO/CO:raise@2.5,BB:raise@100`
+- `t6/d100/CO/CO:raise@2.5,BB:raise@7.5`
+- `t6/d100/CO/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5,BB:raise@100`
+- `t6/d100/CO/CO:raise@2.5,BTN:raise@100`
+- `t6/d100/CO/CO:raise@2.5,BTN:raise@7.5`
+- `t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5,BTN:raise@100`
+- `t6/d100/CO/CO:raise@2.5,SB:raise@100`
+- `t6/d100/CO/CO:raise@2.5,SB:raise@7.5`
+- `t6/d100/CO/CO:raise@2.5,SB:raise@7.5,CO:raise@22.5,SB:raise@100`
+- `t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@100`
+- `t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5`
+- `t6/d100/CO/LJ:raise@2.5,CO:raise@7.5,LJ:raise@100`
+- `t6/d100/CO/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5`
+- `t6/d100/HJ/HJ:raise@2.5,BB:raise@100`
+- `t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5,BB:raise@100`
+- `t6/d100/HJ/HJ:raise@2.5,BTN:raise@100`
+- `t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5,BTN:raise@100`
+- `t6/d100/HJ/HJ:raise@2.5,CO:raise@100`
+- `t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5,CO:raise@100`
+- `t6/d100/HJ/HJ:raise@2.5,SB:raise@100`
+- `t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5,SB:raise@100`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@100`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5`
+- `t6/d100/LJ/LJ:raise@2.5,BB:raise@100`
+- `t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5,BB:raise@100`
+- `t6/d100/LJ/LJ:raise@2.5,BTN:raise@100`
+- `t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5,BTN:raise@100`
+- `t6/d100/LJ/LJ:raise@2.5,CO:raise@100`
+- `t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5,CO:raise@100`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:raise@100`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5,HJ:raise@100`
+- `t6/d100/LJ/LJ:raise@2.5,SB:raise@100`
+- `t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5,SB:raise@100`
+- `t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@100`
+- `t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5`
+- `t6/d100/SB/CO:raise@2.5,SB:raise@7.5,CO:raise@100`
+- `t6/d100/SB/CO:raise@2.5,SB:raise@7.5,CO:raise@22.5`
+- `t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@100`
+- `t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5`
+- `t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@100`
+- `t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5`
+- `t6/d100/SB/SB:raise@2.5,BB:raise@100`
+- `t6/d100/SB/SB:raise@2.5,BB:raise@7.5`
+- `t6/d100/SB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5,BB:raise@100`
 - `t6/d100/SB/rfi`
 
 ## Lookup probes
 
-- covered: cutoff open with aces: hit -> raise 1.0
-- covered: cutoff open with seven-deuce offsuit: hit -> fold 1.0
-- covered: big blind defending a cutoff open with ace-king suited: hit -> raise 1.0
-- covered by price substitution: the same open at 2.25bb: hit -> raise 1.0
+- covered: cutoff open with aces: miss -> lookup:spot-not-covered
+- covered: cutoff open with seven-deuce offsuit: miss -> lookup:spot-not-covered
+- covered: big blind defending a cutoff open with ace-king suited: hit -> fold 0.0, call 0.0, raise 1.0
+- covered by price substitution: the same open at 2.25bb: hit -> fold 0.0, call 0.0, raise 1.0
 - uncovered table size: miss -> lookup:no-artifact-for-table-size
 - uncovered stack depth: miss -> lookup:no-artifact-for-stack-depth
 - position that does not exist at a six-handed table: miss -> lookup:position-not-at-table
-- covered: cutoff facing a lojack open: hit -> raise 1.0
+- covered: cutoff facing a lojack open: miss -> lookup:spot-not-covered
 - uncovered spot: the button squeezing an open and a three-bet: miss -> lookup:spot-not-covered
-- expressible since phase 12, and uncovered: big blind facing a four-bet: miss -> lookup:spot-not-covered
+- expressible since phase 12, and uncovered: big blind facing a four-bet: hit -> fold 0.0, call 0.0003, raise 0.9997
 - no legal preflop order produces it: the button raising before the cutoff: miss -> lookup:unrepresentable-spot
 
 A miss is the correct answer for an uncovered spot. Phase 04 never fills a gap

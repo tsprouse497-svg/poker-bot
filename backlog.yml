@@ -654,6 +654,17 @@ items:
       decision is collapsed or declined, and this is a property of which solution was
       committed and at what price it was read.
 
+      Noted 2026-08-31 by the phase 14 lane, which the fact checker sends here. The two watched
+      numbers in the sentence above are stale: the repo computes 42 and 14 where it states 89 and
+      58, because the committed chart changed at a386c77 and this entry was not restated with it.
+      That is why `fact drift` and `pytest_quality_hardening` are red, and it is not repaired here.
+      The contract assigns this recomputation to the phase's closing measurement, against the chart
+      the phase actually commits, and decision 20 has not settled which chart that is; restating it
+      now against a superseded artifact would produce a number the phase discards next week and
+      would cost the entry its provenance. The surrounding figures - 53.2 percent in the big blind,
+      62 to 77 elsewhere, 47 of 58 facing a small open - are stale for the same reason and are
+      watched by nothing, which is the other half of the problem.
+
       What is left to establish is narrower. Phase 08 may not change the chart it measures,
       so the work is recorded rather than done: get a rake-free solve, or a 2.25bb-open
       solve, and see how much of the gap survives. Start with the refused big-blind spots,
@@ -3298,6 +3309,7 @@ items:
 
   - id: BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS
     status: deferred
+    phase: contract-update
     title: Twelve backlog entries fail run_full_quality_gate's own status and phase constants
     reason: >-
       Found 2026-08-31 by an independent reviewer and measured here. `quality_checks`
@@ -3312,11 +3324,31 @@ items:
       `open`/`tooling` entries already in the file rather than the constants. So `open` and `tooling`
       are established local vocabulary that the checker never learned, and the phase 14 lane's
       deliberate red over `add_allin` has been masking the whole set.
-      This entry is filed with status `deferred` and no `phase` field so that filing it does not add
-      a thirteenth error - which is itself the tell that the vocabulary and the checker disagree.
       The disposition is either to declare `open`, `tooling` and `source` in the constants or to
       re-file eleven entries; it belongs with the other loop-tooling items in a maintenance lane, and
       it must land before this lane un-halts or the first green gate attempt fails on inherited state.
+      Corrected 2026-08-31 by the lane executing decision 19. This entry was originally filed with no
+      `phase` field, deliberately, so that filing it would not add a thirteenth error string. That
+      traded one error string for two hard command failures: `scripts/generate_backlog.py` indexes
+      `item['phase']` unconditionally at line 21, so the omission raised `KeyError: 'phase'` and both
+      `generate_backlog` and `check_generated_backlog` went from PASS to FAIL, which is strictly worse
+      than the error it avoided and was itself masked by the same red. `phase: contract-update` is
+      added, which `NON_PHASE_LABELS` already allows, so the count of vocabulary errors stays twelve.
+      The lesson generalises past this entry: `quality_checks.backlog_errors` treats `phase` as
+      optional (`if phase and ...`) while the generator treats it as required, so the two disagree
+      about the schema and only one of them says so.
+      Also measured 2026-08-31, because a maintenance lane sizing this from the title would be
+      surprised: `run_full_quality_gate` reports **sixteen** errors, not twelve, across two checks, and
+      the four extra are not of this kind and would survive whichever disposition is chosen here.
+      Backlog integrity adds two false citations - `docs/BACKLOG.md` cites `P10-D3`, which is this
+      file's own DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES entry *proposing* that convention and
+      being read as using it, and `stage-01-contract.md` cites `JJ-88`, which is round 3's shorthand
+      for the pair ladder from JJ down to 88. Both are id-shaped prose rather than citations, so the
+      shape-based detector is what is wrong in the second case and arguably in the first. And fact
+      drift adds two: an entry states 89 for `corpus_human_call_disagreements` and 58 for its
+      big-blind half against a repo that computes 42 and 14, figures that moved when the corpus
+      comparison did and were never restated. Twelve of sixteen are the vocabulary; the other four are
+      a detector that cannot tell a citation from a hyphenated phrase, and two stale numbers.
   - id: RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE
     status: open
     phase: tooling
@@ -3571,6 +3603,23 @@ items:
       compares the artifact's self-description to the census the same run computed. The frozen
       COMMITTED_SPOTS = 86 in three test files is what actually protects this today, which is why it
       is not urgent; the note should be rendered from the census rather than written beside it.
+      Extended 2026-08-31 by the lane executing decision 19, which built a 51-spot chart and measured
+      what the prose then said. The census half is as described - the notes claimed 86 of 38,828
+      excluding 38,742 against an actual 51 of 33,969 excluding 33,918. But the same module also states
+      a *poker* frequency as a literal: "the big blind here folds 50.98 percent of its range" facing a
+      small-blind open, measured 0.00 percent on that build. That one is not a census figure and
+      rendering the census would not fix it, so the disposition has to cover both kinds - any number in
+      ARTIFACT_NOTES is either computed by the run that writes it or it does not go in the artifact.
+      The generated report has the same defect at its own fifth line, which says the bot "now plays
+      from 86" three paragraphs above a census that read 51.
+      One more instance, found by the round-8 review in the same diff that fixed its twin.
+      `scripts/extract_gtopen_preflop.py` writes the source card's `conditioning.discriminator` as
+      hard-coded prose stating a measurement - "72o arrives with a reach of about 3.7e-08, which
+      quantises to zero basis points, and it still carries a full uniform strategy row at a quarter per
+      action" - never re-derived per build and read by no check. It sits thirteen lines above the
+      `model` field, which was the same defect and was fixed on 2026-08-31 by deriving it from
+      `RULED_CONFIG`. The discriminator cannot be fixed the same way: it needs the reach recomputed from
+      the export the run just wrote, which is implementation work rather than a one-field derivation.
 
   - id: FACT-DRIFT-WATCHES-TWO-OF-A-DOCUMENTS-SIX-LIVE-NUMBERS
     status: deferred
@@ -3585,3 +3634,92 @@ items:
       that the next chart change moves them and only two of the document's live numbers would go
       red. Either the remaining four become facts, or the document stops stating numbers no fact
       watches.
+
+  - id: STATIC-REALIZATION-UNMEASURED-IN-SINGLE-RAISED-POTS
+    status: deferred
+    phase: "14"
+    title: Decision 19 rules the model phase 10 rejected, and rules it on the pots phase 10 did not test
+    reason: >-
+      Filed 2026-08-31 by the lane executing decision 19, before its build finished, because the
+      conflict is in the record rather than in any measurement this lane took. Decision 19 rules
+      `realization: static` on evidence from four-bet pots at SPR 1.67, where `calibrated` applies
+      169 per-class numbers fitted with no four-bet-pot cell and folds JJ into a price it calls 76s
+      at. That diagnosis is sound and independently reviewed. What it does not address is where the
+      other model was measured. Phase 10's decision 2 ran the same tree with only this field changed
+      and recorded, under the `static` default, a big blind defending **99.71** percent against a
+      small-blind open, 97.44 against a button open and 72.94 against the lojack, against 49.03,
+      36.88 and 27.19 under `calibrated` and 42.88, 39.43 and 22.63 in the raked expectations file.
+      It ruled, in as many words, that nothing may be committed under the default, and called it the
+      finding that would otherwise have produced a self-consistent, checksummed, thoroughly reported
+      calling station. Decision 19 does not cite that measurement or supersede that ruling, and
+      `gtopen_config.py` carried the 99.71 figure in its own docstring the whole time.
+      Both can be true at once, and that is the shape to test rather than to argue: `static` keeps a
+      positional term saturating at SPR 8 and no per-class term, so at a four-bet pot's SPR 1.67 it
+      has nothing to get backwards, while in a single-raised pot at SPR 20 it approaches raw equity
+      realization - and calling 2.5 to reach an equity split is then almost always profitable. That
+      would make `static` right where `calibrated` is broken and wrong where `calibrated` was sound,
+      on the busiest spots in the chart: the big blind facing one open is where the corpus has most of
+      its decisions.
+      Two things make this hard to see from inside the phase. Phase 10's `static` probe had `limp:
+      true` - the same table records the small blind limping 60.81 percent - so the tree is not this
+      one and the figures are indicative rather than predictive. And the contract's gated ordering
+      checks pass under either model: 72.94 < 97.44 < 99.71 is monotone in exactly the way 27.19 <
+      36.88 < 49.03 is, so the check that phase 10 said "reproduces exactly" cannot separate a sound
+      level from a calling station. `NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL` is
+      the general form of that gap; this is the instance that decides a ruling.
+      What closes this entry: the defence level per opener measured on the `add_allin: false` plus
+      `static` build - a combination never solved before this lane - printed beside phase 10's two
+      columns and the expectations file, and read by Taylor. A level near the `static` column is a
+      halt and a ruling, not a caveat. The contract carries the criterion; this entry carries the
+      diagnosis.
+
+  - id: DOMINANCE-RELATION-IS-PROSE-AND-HAS-PRODUCED-SEVEN-COUNTS
+    status: deferred
+    phase: charts
+    title: The rank-dominance relation is stated as prose and every implementation of it gives a different count
+    reason: >-
+      Filed 2026-08-31 by phase 14's round-8 independent review and confirmed by the coordinator. The
+      same relation, described in the same words in the contract and in round 2 of the stage-01 note,
+      has produced 93, 95, 52, 54, 85, 34 and 96 violations depending on who wrote the code: a poker
+      reviewer, a coordinator, a worker lane and an independent reviewer, over the same two charts. The
+      prose leaves at least four things open - the reach floor, whether the wheel-ace family is
+      excluded and how, whether pairs are compared adjacently or against every lower pair, and the
+      tolerance - and the counts are not comparable across implementations, so a figure quoted from one
+      round into another is not a figure.
+      The `aggregate` form is worse, and it is the one the contract actually gates: "the combo-weighted
+      play frequency of each pair band and each suited row is at least that of the band or row below,
+      over hero's arriving range" names no tolerance, does not say whether the aggregate is taken per
+      spot or over the whole chart, and does not say whether the combo weight is multiplied by arriving
+      reach, by spot arrival, or by neither. Measured chart-wide with reach and arrival weighting, two
+      independent implementations agreed on the pair ladder to two decimal places (5 inversions, worst
+      0.43 points on the static build; 4, worst 7.27, on the committed one) and disagreed on the worst
+      suited-row gap, 23.10 against 24.54 - which is the smallest disagreement this relation has
+      produced and still enough to matter if a threshold sits between them.
+      The disposition is a pinned definition authored as the gate rather than as prose - weighting,
+      reach floor, tolerance, family exclusions, and per-spot versus per-chart - and it is stage-4 work
+      on whatever phase 14's decision 20 answers, because freezing a gate now would freeze it against a
+      build that may not exist. Related: NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL and
+      UNIFORM-ROW-TEST-IS-BLIND-AT-A-BINARY-NODE.
+
+  - id: A-CONTRACT-STATES-MEASURED-LEVELS-WITHOUT-NAMING-THE-ARTIFACT
+    status: deferred
+    phase: contract-update
+    title: Criteria quote measured levels with no provenance, so the number outlives the build silently
+    reason: >-
+      Filed 2026-08-31 by phase 14's round-8 independent review. Six figures in the phase 14 contract
+      were falsified by one config flip, and they share one cause rather than six: each states a
+      measured *level* - a reach of 5 basis points at a named cell, a flat band of 19.63 to 22.44
+      percent, 1.323 nonzero actions per cell at 73.0 percent purity, opener widths of 6.07 to 28.09
+      percent, a target first met at iteration 1,900, all 169 classes at every node - without naming
+      the artifact it was measured on. Four of the six were measured on a build that is neither
+      committed nor preserved anywhere, so nothing in the repo demonstrates them and nothing would have
+      gone red when they stopped being true.
+      This is adjacent to, and sharper than, THE-ARTIFACT-DESCRIBES-ITS-OWN-CENSUS-IN-PROSE-NOTHING-CHECKS:
+      that entry is about generated prose inside a generated artifact, where the fix is to render the
+      number from the census. Here the document is hand-written and governing, so the fix is provenance
+      rather than rendering - a level in a criterion carries the artifact and commit it was taken on, or
+      it is stated as a shape rather than a level. `scripts/repo_facts.py` is the mechanism that already
+      exists for the rendering half; nothing covers the hand-written half.
+      Not urgent while phase 14 is halted, and it must not be resolved by deleting the levels: the
+      levels are the only falsifiable content in several of those criteria, and phase 14's round-2
+      review already caught one being dropped in a rewrite and one more in the reflow of 2026-08-31.

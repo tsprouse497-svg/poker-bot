@@ -8,6 +8,7 @@ approved_scope:
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
   - src/poker_training_bot/solver_artifacts/gtopen_config.py
   - src/poker_training_bot/solver_artifacts/gtopen_export.py
+  - scripts/extract_gtopen_preflop.py
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -23,6 +24,29 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-08-31
+    reason: >-
+      Decision 19 is executed: `RULED_CONFIG["realization"]` moves from `calibrated` to `static`,
+      ruled by Taylor on 2026-08-31. One field, in a module already in `approved_scope`, on decision
+      14's precedent - a frozen-into-data constant amended in `contract-update` mode. The contract is
+      edited in place rather than amended at its foot: it stands at 300 of the 300 lines
+      `check_file_sizes` allows, so nothing can be appended at any length, and what needs changing is
+      two clauses that name `calibrated` as the model and `add_allin` as the only field this
+      re-solve moves. Editing the criteria the ruling contradicts is what AGENTS.md prescribes for a
+      contract at the cap, and the cap is not raised.
+      `scripts/extract_gtopen_preflop.py` joins `approved_scope` for one reason: it writes the source
+      card's `model` field as the hard-coded string "realization=calibrated", which `config_errors`
+      never reads. Flipping the config without it produces a card whose prose contradicts its own
+      `config_posted` block - the single claim about this export that no gate command checks. The
+      field now derives from `RULED_CONFIG`. Nothing else in the script is touched.
+      What is deliberately NOT widened: `data/artifacts/**` and `tests/**`. The re-export and the
+      re-derivation are run in this worktree to measure what the ruling produces, and their outputs
+      are copied out and the tracked paths restored, exactly as the 2026-08-30 restart entry ruled
+      for the same reason - the committed artifact is writable at stage 6 and the contract's own
+      regression expectation puts the migration of the frozen tests that pin the superseded 86-spot
+      build at stage 4, before the freeze. A stage-1 commit of a rebuilt chart would land data no
+      re-cut test describes.
+      base_commit does not move.
   - date: 2026-08-30
     reason: >-
       Phase 14 restarts, and this is the contract-update task that re-rules its source. Two

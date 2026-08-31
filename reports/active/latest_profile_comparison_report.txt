@@ -34,10 +34,10 @@ gives a known expected answer to check the machinery against, which a run betwee
 different profiles cannot do.
 
   net chips across the table                   0   (must be exactly 0)
-  hands reaching a showdown                 121
-  hands won uncontested                     353
-  hands refused                             126
-  hands re-derived by the replayer          474
+  hands reaching a showdown                   0
+  hands won uncontested                       0
+  hands refused                             600
+  hands re-derived by the replayer            0
 
 The last line is the cross-check that matters most. Every dealt hand is written out in
 the Phase 02 normalized schema as it is played, then handed back to the Phase 02
@@ -53,8 +53,8 @@ averaged away.
 ### Coverage: six copies of the chart bot
 
   hands dealt                               600
-  hands measured                            474
-  hands refused                             126    21.0%
+  hands measured                              0
+  hands refused                             600   100.0%
 
 A refused hand is one where the committed chart had no answer for the spot it reached.
 The hand is voided rather than guessed at: stacks are restored, no chips move, and it is
@@ -63,9 +63,9 @@ coverage signal, and it is the most actionable number in this file - it is a lis
 spots the charts do not yet hold.
 
   refusals by reason:
-    preflop-chart:lookup:spot-not-covered                  126
+    preflop-chart:lookup:spot-not-covered                  600
 
-So this run measured the strategy over 474 of 600 hands. Whatever the figures below say,
+So this run measured the strategy over 0 of 600 hands. Whatever the figures below say,
 they say it about that subset.
 
 ### Chips per hand: six copies of the chart bot
@@ -97,18 +97,26 @@ repo does not have one yet.
 ### Coverage: chart bot against five check-fold seats
 
   hands dealt                               600
-  hands measured                            600
-  hands refused                               0     0.0%
+  hands measured                            200
+  hands refused                             400    66.7%
 
-No hand was refused, so every hand dealt was measured. That is not the chart being more
-complete than it is: an opponent that folds to everything keeps the betting tree
-shallow, so the deeper spots the chart does not cover are never reached.
+A refused hand is one where the committed chart had no answer for the spot it reached.
+The hand is voided rather than guessed at: stacks are restored, no chips move, and it is
+excluded from the chips-per-hand figures below and counted here instead. That is the
+coverage signal, and it is the most actionable number in this file - it is a list of
+spots the charts do not yet hold.
+
+  refusals by reason:
+    preflop-chart:lookup:spot-not-covered                  400
+
+So this run measured the strategy over 200 of 600 hands. Whatever the figures below say,
+they say it about that subset.
 
 ### Chips per hand: chart bot against five check-fold seats
 
 profile                                        seats     total  per hand   std err
-composite-preflop-chart-postflop-fallback          1     23200     38.67      2.59
-reference-check-fold                               5    -23200    -38.67      2.59
+composite-preflop-chart-postflop-fallback          1      7950     39.75      3.81
+reference-check-fold                               5     -7950    -39.75      3.81
 
 A profile's figure sums every seat it occupies, because a comparison is between
 strategies rather than between chairs. `std err` is the run's own variation in that

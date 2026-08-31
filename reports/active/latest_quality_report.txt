@@ -16,9 +16,26 @@ FAIL  fact drift
       ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 42
       ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 14
 
-PASS  backlog integrity
+FAIL  backlog integrity
       covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.
       does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.
+      ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH has status 'open', which is not one of ['deferred', 'done']
+      ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH is filed against phase 'source', which is neither a phase in phase_status.yml nor a declared non-phase label
+      ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE has status 'open', which is not one of ['deferred', 'done']
+      ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label
+      ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART has status 'open', which is not one of ['deferred', 'done']
+      ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label
+      ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE has status 'open', which is not one of ['deferred', 'done']
+      ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label
+      ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES has status 'open', which is not one of ['deferred', 'done']
+      ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label
+      ! backlog PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP has status 'open', which is not one of ['deferred', 'done']
+      ! backlog AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART has status 'open', which is not one of ['deferred', 'done']
+      ! docs/BACKLOG.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! docs/BACKLOG.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'SPR-20', which no item declares. A finding filed under an id nobody created has recorded nothing
 
 PASS  phase record agreement
       covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.

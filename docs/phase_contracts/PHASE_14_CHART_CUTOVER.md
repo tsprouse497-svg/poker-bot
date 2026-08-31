@@ -22,45 +22,43 @@ six-handed, 100bb, rake-free - and Taylor judged its range grids sound. This pha
 artifact from that solve and deletes the old one, committing the ranges every later phase is measured
 against; hence `auto_advance: false` in `verification/loop_policy.yml`.
 
-**The phase re-sources the solve, and that is what this rewrite records.** A first cutover reached a
-green gate and was rejected on the poker: two stage-6 reviews found the chart jammed 100bb with a
-pair of fours and never with aces, at spots arriving in 24.0 percent of hands. The cause was the
-config. `add_allin: true` puts a full-stack jam on the raise menu at **every** node where a raise is
-legal, with no reference to the pot, and the iteration budget does not repair it - at 10,000
-iterations the bad cell is bit-identical. **Taylor ruled on 2026-08-30 to re-source with
-`add_allin: false`**; decision 14 has the measurements, `a386c77` the superseded build.
-**The re-sourced tree is 33,969 action nodes and 72,798 total**, against 38,828 before. Genuine
-five-bet jams survive, because the 3.0 multiplier puts a five-bet at 67.5bb and `allin_threshold`
-snaps it to the stack; what goes is the jam offered where no jam belongs.
+**The phase re-sources the solve twice over, and that is what this rewrite records.** A first cutover
+reached a green gate and was rejected on the poker: two stage-6 reviews found the chart jammed 100bb
+with a pair of fours and never with aces, at spots arriving in 24.0 percent of hands. The cause was
+the config, not the conversion. `add_allin: true` put a full-stack jam on the raise menu at **every**
+node where a raise is legal, and the budget does not repair it - at 10,000 iterations the bad cell is
+bit-identical. **Taylor ruled on 2026-08-30 to re-source with `add_allin: false`** - decision 14,
+`a386c77` the superseded build - and **on 2026-08-31 with `realization: static`**, decision 19, since
+`calibrated` prices every flop from 169 per-class numbers fitted with no four-bet-pot cell.
+**The re-sourced tree is 33,969 action nodes and 72,798 total** against 38,828; five-bet jams survive
+because the 3.0 multiplier puts a five-bet at 67.5bb and `allin_threshold` snaps it to the stack.
 
 **Which nodes are committed was ruled separately and stands.** Keep a node when at most one opponent
 has voluntarily invested beyond the blinds **and** at most two players are still live. Neither clause
 alone is the rule, because the approximation bites at *terminals* and a node's strategy is
-backward-induced over every terminal below it
-(`SELECTION-PREDICATE-MUST-BE-STATED-OVER-REACHABLE-TERMINALS`). The reason is
+backward-induced over every terminal below it, per
+`SELECTION-PREDICATE-MUST-BE-STATED-OVER-REACHABLE-TERMINALS`. The reason is
 `MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION`: GTOpen prices a multiway pot as the product of hero's
 pairwise equities, **understating true three-way equity by 10.5 points** and by 14 on the suited
-connectors whose whole value is multiway. Core pricing rather than a parameter, so nothing
-here touches it. **The predicate selects 51.**
+connectors whose whole value is multiway. Core pricing, not a parameter. **The predicate selects 51.**
 
-**The cost, measured rather than estimated.** The 51 are a **strict subset of the superseded 86** -
-51 kept, 35 lost, none gained - and **all 35 lost are all-in-facing**, existing only because
-opponents jammed at arbitrary nodes. The criteria below carry the arrival and corpus figures. Only
-the small blind's opening range survives, a cost of the multiway ruling and not of this re-source.
+**The cost, measured rather than estimated.** The 51 are a **strict subset of the superseded 86** - 51
+kept, 35 lost, none gained - and **all 35 lost are all-in-facing**, existing only because opponents
+jammed at arbitrary nodes. Only the small blind's opening range survives, a cost of the multiway
+ruling and not of either re-source.
 
 Five things arrive ruled and are not reopened: limps left the solve at phase 10's human gate, so the
 export is `limp: false` and every count here is a no-limp count; the solve is rake-free, removing one
 of phase 08's explanations for the calling gap; phase 12's ruling 8 stands on opponent price
 abstraction; the export is not graded against GTO Wizard, since a threshold over the gap between two
-programs measures two products; and the spot key grammar, depth, table size and `data/samples/**`
-are left alone.
+programs measures two products; and the key grammar, depth, table size and `data/samples/**` stand.
 
 ## Non-goals
 - Do not add PokerNow automation, browser or platform observation, runtime solver calls,
   LLM-backed poker decisions, or training UI surfaces. These are the standing V1 boundaries.
 - Do not re-solve at a second opening price, with limps, at another depth, or at another table size;
-  all are phase-10-shaped work. The one re-solve this phase runs changes `add_allin` and the solve
-  target and **nothing else**, and the criteria below enforce that.
+  all are phase-10-shaped work. The one re-solve this phase runs changes `add_allin`, `realization`
+  and the solve target and **nothing else**, and the criteria below enforce that.
 - Do not fix the multiway pricing here, and do not commit a mispriced spot with the defect recorded
   as a caveat. The fix changes GTOpen's `KIND_POT_SHARE` terminals and has its own benchmarking; no
   config turns it off, since `raw`, `static` and `calibrated` all multiply an equity already computed
@@ -69,17 +67,18 @@ are left alone.
   (`RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`) and paying that twice buys one result.
 - Do not rederive `data/artifacts/preflop/expectations/six_max_nl25_100bb.json` from the export. It
   is the only number here this repo did not produce, which is what catches a uniformly wrong range.
-- Do not widen the predicate to recover the 35 lost spots: a spot the source should never have
-  offered is not coverage.
+- Do not widen the predicate to recover the 35 lost spots: a spot the source should never have offered
+  is not coverage.
 
 ## Acceptance criteria
 
 ### What the re-solve owes
 The phase runs exactly one re-solve and it is owed in full, enumerated from
 `gtopen_six_max_100bb_rakefree.source.json` rather than remembered.
-- `config_posted` is byte-identical to the previous card **apart from `add_allin`**, the solve block
-  differs only in its target, and `model` stays pinned to `realization=calibrated`. A test asserts the
-  export's config equals `RULED_CONFIG` field for field; `config_errors` enforces it at import.
+- `config_posted` is byte-identical to the previous card **apart from `add_allin` and `realization`**,
+  the solve block differs only in its target, and `model` names the realization the config posts,
+  derived from `RULED_CONFIG` rather than typed. A test asserts the export's config equals
+  `RULED_CONFIG` field for field; `config_errors` enforces it at import.
 - The two-process determinism proof is re-run and its result written onto the source card by the
   script rather than typed in afterwards, per `--determinism-only`.
 - The walk re-resolves every node from its recorded path and reports the mismatch count, which must
@@ -109,8 +108,7 @@ The phase runs exactly one re-solve and it is owed in full, enumerated from
 - The committed artifact carries, per cell, enough arriving reach for a reader to tell a cell the
   solver trained from one it barely visited. At `SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5` the
   classes 99, 88 and AQs carry 5, 1 and 1 basis points - noise - while AA carries the full 10,000.
-- `data/artifacts` stays inside the 20 MiB cap, which at 51 spots no longer binds. Exceeding it is a
-  halt and a decision, not a number to raise.
+- `data/artifacts` stays inside the 20 MiB cap; exceeding it is a halt and a decision, never a raise.
 
 ### The derived artifact
 - The artifact is derived from `data/artifacts/preflop/exports/` by a committed script, reproducible
@@ -162,11 +160,13 @@ The phase runs exactly one re-solve and it is owed in full, enumerated from
   42 of 86 spots, where a spot-check of the small blind's grid under the new config found three
   single-cell dips in 169. `UNIFORM-ROW-TEST-IS-BLIND-AT-A-BINARY-NODE` covers it.
 - The orderings the export was gated on hold: later position opens wider among the four non-blind
-  positions, and the big blind defends more against whoever opens wider. These survive any rake basis
-  and any solver, which is why they transfer. **The first half is checked against the export, not the
-  artifact, and the contract says so because the artifact holds zero non-blind opening ranges** - it
-  cannot violate that clause, so a test asserting it over the artifact is vacuous in the same way the
-  sizing schema is. The second half is checkable over the artifact and is where the gate belongs.
+  positions, and the big blind defends more against whoever opens wider. **The first half is checked
+  against the export, not the artifact, which holds zero non-blind opening ranges** - it cannot
+  violate that clause, so a test asserting it over the artifact is vacuous like the sizing schema.
+  The second half is checkable over the artifact and is where the gate belongs.
+- **An ordering is not a level.** Both orderings hold under the `static` default phase 10 rejected at
+  a 99.71 percent big-blind defence, so the defence level per opener is re-measured, printed against
+  the expectations file, and read by a human: `STATIC-REALIZATION-UNMEASURED-IN-SINGLE-RAISED-POTS`.
 - `REALIZATION-MODEL-UNDERPRICES-POSITION` is accepted and stated on the source card per decision 3,
   in poker terms with its measurement, **retaken on the re-sourced solve**; unnamed it would make the
   closing measurement unfalsifiable. The multiway defect is stated there too, with the excluded node
