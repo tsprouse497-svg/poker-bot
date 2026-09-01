@@ -62,138 +62,20 @@ two live players are committed, because the source misprices multiway pots, and 
 chart holds so few opening ranges. And `B3`, the rank-dominance inversions, is carried forward as a
 measurement to retake rather than as a defect the ruling repairs.
 
-## Halted, 2026-08-30
+## Halted, 2026-08-30 - resolved, and folded away 2026-09-01
 
-- Superseded, and kept as the record of what the lane believed on 2026-08-30: phase 14 was halted at
-  stage 1 pending a fix to GTOpen's
-  calibrated realization table. The re-source with `add_allin: false` did what it was ruled to do -
-  the jam inversion is gone and convergence improved roughly fortyfold - but two independent stage-1
-  reviews found the chart still folds JJ, TT, 99 and 88 outright while calling 76s and 87s at
-  four-bet nodes, shows no improvement in rank dominance (54 inversions against 52), and five-bet
-  jams 87s where AK never does. The cause is `class_base` in `cache/realization_fit.json`, which
-  rates 76s above KK, QQ, JJ, TT and 99 and 22 above every pair through JJ; the chart is a correct
-  solve of a wrong payoff function. `REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH` carries
-  the diagnosis, decision 16 the ruling, and the stage-1 review note the measurements.
-- The artifact is withheld, not the machinery. The derivation pipeline is proven end-to-end on real
-  solver output and re-runs in about four minutes against a corrected source: census, schema,
-  provenance, sizing table, refusal path and determinism all hold. What resumes this lane is a
-  source, not a rebuild.
-- Updated 2026-08-31. A controlled experiment now backs the halt's causal claim and corrects its
-  diagnosis: changing only `realization` from calibrated to static, same 38,828-node tree with
-  `add_allin: true` and `allin_threshold: 0.67` held and comparable convergence, moves JJ at the
-  four-bet node from a pure fold at 97 percent to a 37 percent continue and 76s from a pure call to
-  53, and drops 87s and 76s - 21 percent - out of LJ's four-betting range in favour of A5s. So the
-  class term is causal, but the fault is that a pot-type marginal with no four-bet-pot cell is
-  applied undiminished at SPR 1.67, not that the 169 numbers are unordered. Round 3 of the stage-01
-  review note carries the run; decision 17 asks Taylor at which stack depths the exit
-  condition must hold and how tightly, after two independent review passes withdrew two earlier
-  framings of that question. Ruled by Taylor on 2026-08-31: measure it - GTOpen's realization loop
-  is re-run on four-bet pots and refitted, rather than its output corrected. So this lane now waits on
-  a v6 source, and separately on a cause for round 2's jam-composition blocker, which the experiment
-  leaves unmoved and which no option in decision 17 accounts for.
-- **Corrected 2026-08-31, and this supersedes the two bullets above.** Decision 18 forked GTOpen to
-  hold a refit; Taylor withdrew it the same day and the fork is gone. Decision 17 asked how to repair
-  GTOpen's realization model and was never this phase's question. The live ruling is **decision 19:
-  solve with `realization: static`**. GTOpen ships three realization models, the field selecting one is
-  `RULED_CONFIG` in this repo, and no work is owed in the solver by anyone. The restart is a
-  contract-update flip of one field on decision 14's precedent, then a re-export and a re-measure of
-  round 2's two open blockers. `add_allin: false` and `static` have never been solved together, so the
-  experiment's numbers do not describe the build this produces.
-- The gate is red while halted and stays that way. `add_allin` is `False` in `RULED_CONFIG` while
-  the committed export was built with `True`, so `config_errors` refuses it. Reverting the constant
-  to green the gate would erase the correction this restart established. A halted lane owes no green
-  gate and `main` is untouched.
-- **Decision 19 was executed on 2026-08-31 and the build it produces cannot ship. This bullet
-  supersedes the four above and the halt now waits on decision 20, not on decision 19.** The one field
-  was flipped, an unmodified GTOpen at `4aee435` was re-solved, and the chart was re-derived and
-  measured by a worker lane and re-derived again by the coordinator. The build itself is sound: 51
-  spots from 33,969 nodes, 0.00015672bb at iteration 1,100 of 2,000, 0 walk mismatches,
-  byte-identical determinism, the census and the three action menus exactly as the contract states.
-  The four-bet defect it was ruled to fix is largely fixed - JJ moves from continuing 0.028 to 0.462
-  at the lojack four-bet lines, TT from 0.001 to 0.585 - and strict rank dominance improves from 85
-  violations to 34 over the same 51 keys.
-  What it also does is turn the single-raised pots into a calling station. **The big blind defends
-  76.31, 84.51, 91.46, 98.19 and 100.00 percent against the lojack, hijack, cutoff, button and small
-  blind**, against 27.28 to 49.02 on the committed chart, and against a small-blind open it folds
-  **zero** combos - 72o calls at 1.000. That is phase 10's rejected column reproduced: its decision 2
-  measured 72.94, 97.44 and 99.71 under the same model and ruled that nothing may be committed under
-  it. Round 2's jam-composition blocker also survives with new ranks - 88 five-bets 0.508 at 9,277bp
-  while KK and AKs flat, and at three of the five lojack four-bet lines **AQs five-bets for the whole
-  stack at 0.999 on 9,775 to 10,000 basis points of arriving reach while KK, QQ, AKs and AKo every one
-  of them flat at 1.000**. Priced by the artifact's own arrival mass, `static` repairs 1.58 percent of
-  the chart's traffic and breaks 57.11.
-  So all three realization models GTOpen ships are now measured or bounded, none prices both pot
-  types, and repairing the model is out of scope by Taylor's own ruling. What is left is a choice
-  about which pot type the chart commits and what happens to the other, which is **decision 20**,
-  `frozen-into-data` and unanswered. One thing does cut the other way and is in decision 20 as such:
-  the aggregate group dominance gate, which the phase halted rather than freeze unproven, passes on
-  this build - 5 pair inversions at most 0.43 points, 1 suited-row inversion at 0.02, inside decision
-  10's one-point tolerance - and fails on the committed chart at 7.27 and 23.10 points. It passes
-  partly because a chart that continues with everything has a flat ladder, which is the sharpest thing
-  this build teaches about the phase's gates.
-- **Decision 20 is now answerable rather than deferred, 2026-08-31.** Two things were added to it after
-  Taylor asked what GTOpen's own authors say. First, what the source documents at the pin: `calibrated`
-  is the shipped default and the only mode described as measured, `static` is a sensitivity-check
-  dropdown its author calls "too fond of offsuit junk", the author's own validation records "BB defends
-  50% vs 2.5x with textbook composition (vs static's junk-loving 94%)", the standing caveat is that
-  under `calibrated` "call ranges are the soft numbers; folds and value-raises are robust", the missing
-  four-bet-pot cell is in the fit's own metadata as unfinished work needing round-2 data, and the SPR
-  shrink rounds 3 to 5 converged on is in the author's TODO as a rejected causal trap. Round 10 of the
-  stage-01 note. Second, the contamination the round-8 review found unmeasured: on the `calibrated`
-  plus `add_allin: false` build, over the 36 spots the revert option keeps, **71.69 percent of value is
-  fold-win and never touches the realization model, 26.39 percent is priced inside the fitted pot types
-  and 1.38 percent outside them**, so 4.96 percent of model-priced mass is contaminated. That aggregate
-  is smallest at the busiest spots and the per-class read reverses it: AA, KK and AKs are at 100 percent
-  contamination at all fifteen three-bet-facing kept spots, because four-betting is the only way they
-  see a flop there and it is the decision those spots exist to answer. The measuring lane's own verdict
-  on its number was **not shippable on this measurement**, and the experiment that would settle it needs
-  a GTOpen edit, which is out of scope. Round 11 carries it; `calibrated-build-contamination.json` beside this
-  note is the data. Two contract-affecting findings came out of the source reading and are filed rather
-  than amended, because which one applies depends on the ruling:
-  `CALIBRATED-REALIZATION-CARRIES-ITS-TRAINING-RAKE` (a rake-free solve is not rake-free at its
-  heads-up flop terminals under `calibrated`, which weakens the contract's rake-free criterion) and the
-  reframing of `REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH` (R is realized EV over raw
-  equity, not strength, so the table is right and applying it at SPR 1.67 is the defect).
+The lane was halted at stage 1 on 2026-08-30 pending a fix to GTOpen's calibrated realization table.
+Decisions 19, 20 and 21 resolved it: `calibrated` was reverted to and kept, the four-bet-facing spots
+are withheld rather than repriced, and the corpus verdict became phase 17's. The halt narrative was
+~130 lines describing a state no longer true, and it was folded away here so the plan fits the 800-line
+cap that `check_file_sizes.py` enforces.
 
-- **Decision 20 ruled and executed, 2026-08-31: `calibrated`, and the four-bet-facing spots refused.**
-  36 of the 51 are committed. `RULED_CONFIG` carries `calibrated` again and the module docstring records
-  `static` as ruled-and-reverted with the measurement that reverted it, so the next reader who reaches
-  for that field finds the experiment already run. The two things the ruling accepts are filed with
-  exits rather than left in prose - `THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` and
-  `CHART-CANNOT-ADVISE-A-FIVE-BET` - and both close the same way, either a fitted pot-type cell or
-  phase 16's postflop solver, which plays flops exactly and carries no realization model at all.
-  Measured consequences, structural and so true under either model: menus **20 call/fold/raise, 15
-  call/fold, 1 fold/raise**, prices **`[2.5, 7.5, 22.5]`**, census 36 + 15 + 29,104 + 4,814 = 33,969.
-  The one worth stating loudest: hero can only five-bet where he faces a four-bet, so **the committed
-  chart contains no jam at all** and the bot refuses rather than advising a stack-off.
-- **Decision 21, 2026-08-31: phase 14 is split, and stage 1 is complete.** The contract rewrite Taylor
-  approved was done and reviewed twice, and with decision 20's criteria plus what the reviews asked for
-  it measured 305 against a 300 cap after a genuine folding rewrite. Taylor ruled the split. Phase 14
-  keeps deriving and committing the artifact and checking its ranges, at **284** lines with both
-  criteria the reviews asked for - the human read of hero's four-betting range at each committed
-  three-bet spot, and the statement that the group gate is a regression detector the committed build
-  fails while the rejected one passes. **Phase 17, "The Corpus Verdict On The Committed Chart"**, is
-  declared `future` at 158 lines, `depends_on: ["14"]`, `auto_advance: false`, and takes the closing
-  measurement, the corpus half of the report, four corpus-facing backlog entries and decision 9's
-  pre-registration. `PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP` closes with the lesson attached: a
-  contract that will not fit after a folding rewrite is usually a phase doing two jobs. Round 16 of the
-  stage-01 note dispositions every blocker the lane carried; none is open.
-
-- **The lane is halted on one question: may the contract be rewritten?** It must now say 36 rather than
-  51, carry a third exclusion reason, state that no jam survives and qualify the rake-free claim, and it
-  stands at exactly 300 of 300 lines. The draft that says all of it is 323 after cutting every level
-  measured on a discarded build. AGENTS.md's remedy is a rewrite that folds amendments into the criteria
-  they amend, as its own contract-update task and never a raised cap, and the previous such rewrite was
-  Taylor's call - so this one is put to him. The draft is preserved at
-  `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/contract-draft-decision-20.md` with what it still
-  owes; the committed contract is restored to its last coherent state so the disagreement is visible
-  rather than papered over. Round 12 of the stage-01 note carries it.
-
-  Nothing under `data/artifacts/` is committed. The chart and export survive only in a session scratch
-  directory, so recovering this build means re-solving it; its source card and human report are
-  committed under `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/` and the checksums in round 7
-  make a re-solve checkable. The tracked paths are restored, and the GTOpen save the committed card
-  names was backed up before the re-solve overwrote it and put back afterwards.
+Nothing is lost. The full narrative, its measurements and its checksums are in git history at 5793926
+and earlier, in the decision record at items 16 to 21, and in the stage-01 and stage-02 review notes
+under `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/`. Two facts from it are still live and are
+kept here rather than buried: the discarded `static` build's source card and human report are committed
+under that review directory, so a re-solve of it is checkable against its checksums; and the GTOpen save
+the committed card names was backed up before the re-solve overwrote it and put back afterwards.
 
 ## What is already settled, and must not be reopened here
 
@@ -279,6 +161,89 @@ Forbidden throughout: `AGENTS.md`, the check scripts, `data/samples/**`, and `te
 stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
 
 ## Delegation Plan
+
+### Stage 4 re-cut, 2026-09-01 - the live lane assignment
+
+This supersedes the lane table below for stage 4 only; the rest of it still describes the phase.
+Stage 4 is a **re-cut**, not fresh authoring. The tests on disk were written against a
+specification that has moved twice: decision 20 cut the committed set from 51 spots to 36 and
+added a third exclusion reason no code implements, and the 2026-09-01 contract amendments changed
+the dominance criterion to the transposition discrimination and added arrival probability beside
+per-cell reach. 29 tests fail and 83 pass against the re-sourced export, all on assertions.
+
+Every lane may write **only** `tests/**`, `verification/mutations.yml`,
+`verification/freeze.lock` and `scripts/run_verify.py`. No lane may touch `src/**`,
+`scripts/convert_preflop_export.py`, the contract, or the decision record - stage 4 authors the
+specification as tests and stage 6 makes them pass. A lane that believes the implementation is
+wrong says so and stops; it does not fix it.
+
+| lane | owns | the re-cut it is responsible for | status |
+|---|---|---|---|
+| R1 | `tests/test_chart_derivation.py`, `tests/test_derived_chart.py` | the 51-to-36 withholding, the third exclusion reason `source-misprices-four-bet-pot` and its census line, the four-bucket census 36/15/29,104/4,814 summing to 33,969, the menu counts, full-reach spots, untrained-cell refusal | dispatched |
+| R2 | `tests/test_chart_conversion.py` | the sizing table per hand class, prices exactly `[2.5, 7.5, 22.5]`, 21 spots carrying an entry and 15 not, the two-directional invariant, and the vacuity label decision 6 requires since 0 of 36 offer two prices | dispatched |
+| R3 | `tests/test_chart_cutover_evidence.py`, `tests/test_derived_chart_report.py`, `tests/test_derived_chart_report_validators.py`, `tests/test_chart_arrival_probability.py` | the re-solve card fields, the determinism proof, the transposition discrimination retaken over the 36, arrival probability per spot, the report census, and decision 24's flat-frequency publication | dispatched |
+| R4 | `verification/mutations.yml`, `scripts/run_verify.py` | a canary per new assertion family, so `check_gate_bite` proves the re-cut bites rather than decorates | next |
+
+**Outcome, 2026-09-01.** All three lanes returned. The suite stands at **30 failed, 82 passed, 4
+skipped, and not one non-assertion error** - every red is an assertion describing what stage 6 must
+satisfy, which is the state stage 4 exists to reach.
+
+Each lane found something the coordinator had wrong, which is the argument for delegating it:
+
+- **R1** found that commit `188e0a9` had carried the 51-spot chart and its sizing table despite saying
+  "the solve, and only the solve". The phase's own test command regenerates them, and the scope check
+  had been run before the suite rather than after. Corrected at `db08304`.
+- **R2** found the small blind's open no longer offers two prices under `add_allin: false`, so a test
+  asserting six open-shoving classes was asserting a tree that no longer exists. It also found that
+  **no node anywhere in the export offers both a jam and a named raise**, so the collapse rule is not
+  merely vacuous over the committed 36 - it never fires at all.
+- **R3** found that decision 24's three example spots are **not in the committed 36**. See the
+  correction recorded below and in `CURRENT_TASK.yml`.
+
+Two conventions came out of the lanes and are adopted for the phase. A vacuous check is labelled with
+a `vacuous()` helper that skips, placed **after** an assertion that the vacuity premise still holds, so
+a build that stops being vacuous stops skipping and starts checking. And a count is owned by exactly
+one file: R3 declined to re-assert the 51/15 ledger that R1 owns, on the grounds that two owners for
+one number is how numbers drift.
+
+**The correction to decision 24, ruled by Taylor 2026-09-01.** The finding that item records was
+measured on `t6/d100/CO` facing a lojack open, which the chart **refuses** - with the hijack folded
+five players are still live, so decision 1's second clause excludes it. The committed spots facing a
+single open are all big blind, and they flat about 20 percent rather than 0.69. Measured over the
+artifact: BB continues 25.70 percent against a lojack open with a 19.63 flat, 28.88 / 20.98 against the
+hijack, 32.78 / 22.44 against the cutoff, 36.65 / 21.09 against the button, 48.39 / 20.30 against the
+small blind. Opening frequencies for context, all sane: LJ 18.74, HJ 21.56, CO 27.17, BTN 39.27, SB
+54.30.
+
+So "the committed spots never flat a raise" is false and is struck. What survives is narrower and still
+real: **the big blind over-folds.** 25.70 percent against an 18.74 percent opening range wants to be
+nearer 40, and 48.39 against a 54.30 percent small-blind open wants to be well past that. Taylor's
+ruling stands unchanged in substance - accept, record, phase 16 is the exit - against the corrected
+finding. The backlog id `COMMITTED-SPOTS-NEVER-FLAT-A-RAISE` is now a misnomer and is renamed at the
+next `contract-update`; the entry's body carries the correction today. This ruling was taken in
+implementation mode and **owes a decision item at the next `contract-update`**.
+
+R3 pinned the publication requirement rather than the three numbers, deliberately, so no test baked the
+error in.
+
+**Sequencing.** R1, R2 and R3 run in parallel; they own disjoint files and their only shared
+input is the committed export, which is now correct and which none of them may write. R4 is held
+deliberately: a canary written against an assertion that is still being reworded pins the wording
+rather than the behaviour, and this lane has filed that mistake once already.
+
+**Why this is delegated rather than coordinator-owned.** The coordinator authored the transcription
+these tests are being re-cut against and ruled on the two open questions with Taylor, so it is the
+wrong agent to judge whether the tests state the specification faithfully. Nothing about this work
+is unsuited to a lane: each slice is a bounded set of files with a written contract criterion
+behind it.
+
+**Review.** Each lane returns its diff and the commands it ran; none of them reviews its own work.
+The stage-4 review is a separate read-only pass by an agent that wrote none of the tests, and it
+owes a poker read as well as a mechanical one, because a test that pins the wrong frequency is a
+poker error wearing a mechanical costume.
+
+### The phase-level lanes, as originally written
+
 
 - Worker lanes: L1 the GTOpen tree walk, the three-way node census, and the reach statistics the
   selection rule is ruled against; L2 the converter, from node payloads to artifact rows at the

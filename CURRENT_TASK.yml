@@ -27,6 +27,33 @@ forbidden_scope:
 scope_change_log:
   - date: 2026-09-01
     reason: >-
+      No scope change. Recorded here because implementation mode may not edit the decision record and
+      RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE says a ruling with nowhere to go
+      is how a phase loses one. THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending
+      decision 24.
+      Decision 24 was ruled on 2026-09-01 on a finding that measurement has since falsified. Its three
+      example spots are not in the committed 36: at `t6/d100/CO` facing a lojack open five players are
+      still live once the hijack folds, so decision 1's second clause excludes it, and the same holds
+      for the button facing a cutoff open and for the small blind. The 7.35 percent continue and 0.69
+      flat are export nodes the chart refuses. The coordinator put those numbers to Taylor described as
+      a committed spot, which was wrong; the independent R3 worker lane caught it at stage 4 and it was
+      confirmed against the artifact before anything was written.
+      The committed spots facing a single open are all big blind and they flat about 20 percent, so
+      "the committed spots never flat a raise" is struck. What survives is narrower and still real: the
+      big blind over-folds. Measured over the artifact, combo-and-reach weighted - 25.70 percent
+      continue with a 19.63 flat against a lojack open, 28.88 / 20.98 against the hijack, 32.78 / 22.44
+      against the cutoff, 36.65 / 21.09 against the button, 48.39 / 20.30 against the small blind -
+      against opening ranges that are themselves sane at LJ 18.74, HJ 21.56, CO 27.17, BTN 39.27 and SB
+      54.30. Six-max at 100bb rake-free wants the big blind nearer 40 percent against a lojack open.
+      Ruled by Taylor on 2026-09-01: restate the finding, keep the acceptance. The disposition is
+      unchanged - accept, record, phase 16 is the exit - and only the finding it rests on is corrected.
+      The backlog id COMMITTED-SPOTS-NEVER-FLAT-A-RAISE is now a misnomer; its body carries the
+      correction today and the id is renamed at the next contract-update rather than now, because the
+      decision record and the stage-3 review note both cite it by name and neither is editable here.
+      No test baked the error in: R3 pinned the report's publication requirement rather than the three
+      numbers.
+  - date: 2026-09-01
+    reason: >-
       Ruled by Taylor on 2026-09-01 after the mode switch, on evidence he was shown: commit the
       re-sourced solve, and only the solve. The two export paths join approved_scope as single
       files rather than as `data/artifacts/**`, because exactly two files are wrong and nothing

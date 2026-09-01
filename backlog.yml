@@ -3990,12 +3990,24 @@ items:
     phase: "16"
     title: The committed chart continues about 7 percent against an open and flats under 1, where real play flats a real range
     reason: >-
-      Accepted by Taylor on 2026-09-01 as decision 24, with phase 16 as the exit. Re-derived from the
-      committed export and verified twice: at the cutoff facing a lojack open - a spot the predicate
-      selects and decision 20 does not withhold - the chart continues 7.35 percent and flats 0.69, the
-      rest a three-bet or a jam. The button facing a cutoff open continues 8.63 with a 1.65 flat, the
-      small blind 10.04 with a 4.54 flat. Six-max at 100bb rake-free wants roughly 14 to 16 percent
-      there with a real flatting range.
+      CORRECTED 2026-09-01, hours after filing, and the id is now a misnomer that is renamed at the
+      next contract-update. The three spots this entry was filed on are NOT in the committed 36. At
+      `t6/d100/CO` facing a lojack open, five players are still live once the hijack folds, so decision
+      1's second clause excludes it; the same holds for the button facing a cutoff open and for the
+      small blind. Found by the independent R3 worker lane at stage 4 and confirmed against the
+      artifact. The 7.35 / 0.69 figures are export nodes the chart refuses, and "the committed spots
+      never flat a raise" is false: the committed spots facing a single open are all big blind and they
+      flat about 20 percent.
+      What is true, measured over the artifact's own 36 and combo-and-reach weighted, is narrower and
+      still worth an id: THE BIG BLIND OVER-FOLDS. It continues 25.70 percent against a lojack open with
+      a 19.63 flat, 28.88 / 20.98 against the hijack, 32.78 / 22.44 against the cutoff, 36.65 / 21.09
+      against the button, and 48.39 / 20.30 against the small blind. The opening ranges those defend
+      against are sane - LJ 18.74 percent, HJ 21.56, CO 27.17, BTN 39.27, SB 54.30 - so the defence is
+      being read against a reasonable opener rather than a broken one. Six-max at 100bb rake-free wants
+      the big blind nearer 40 percent against a lojack open, closing the action at 1.5 to 1, and well
+      past 48 against a small blind opening 54 percent of hands.
+      Accepted by Taylor on 2026-09-01 as decision 24 and re-affirmed the same day against this
+      corrected finding, with phase 16 as the exit.
       The cause was established at stage 4 in stage-04-cold-call-verification.md: the export's tree
       branches on every cold call, so the solver prices flatting against a continuation structure that
       punishes it and the flat collapses. Decision 1's heads-up-only ruling kept the cold-call and
@@ -4004,7 +4016,8 @@ items:
       tree. The defect is inside the committed cells rather than beside them, which is what separates
       this from THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL.
       It matters more than its size suggests because this bot exists to fix v1 calling too much, and the
-      replacement chart errs the other way at the same decision. Under decision 21's split the corpus
+      replacement chart errs the other way at the same decision - in the one seat, the big blind, that
+      faces a raise most often. Under decision 21's split the corpus
       measurement that would catch it is phase 17's, which lands after phase 14 can tag.
       Not fixable inside phase 14: separating it needs the cold-call branch repriced and no config
       reaches that. Phase 16's postflop solver plays flops exactly and carries no realization model, at

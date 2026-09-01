@@ -14,9 +14,12 @@ deliberately wrong input and made to refuse, and the command itself is run again
 cannot resolve and against artifacts that load cleanly and are wrong. Both files run under
 `pytest_derived_chart`.
 
-The ruled predicate is why the census validator takes **two** exclusion codes rather than one:
-a validator still accepting a single reason is accepting a vocabulary that cannot say which
-nodes come back when GTOpen can price multiway.
+**Re-cut at stage 4 on 2026-09-01.** The census validator now takes **three** exclusion codes,
+because decision 20 added the reason a four-bet pot is refused for, and a validator accepting
+fewer accepts a vocabulary that cannot say which nodes come back by which route. And the
+discrimination gate is exercised over the real committed artifact on every partition, not only
+against hand-made inputs: the contract's amendment of that day states the gate per partition,
+and a validator that only ever refuses a fabricated pair has never been shown reading a chart.
 """
 
 from __future__ import annotations
@@ -33,14 +36,20 @@ from test_derived_chart_report import (
     COMMAND_ID,
     COMMITTED_SPOTS,
     EXPORTED_NODES,
-    MISPRICED_NODES,
+    FOUR_BET_POT_CODE,
+    FOUR_BET_POT_NODES,
+    MULTIWAY_NODES,
     OUTSIDE_RULE_NODES,
     RETIRED_CHART,
+    discrimination_partitions,
     git,
 )
 
 from poker_training_bot.solver_artifacts import lookup
-from poker_training_bot.solver_artifacts.importer import import_preflop_artifact
+from poker_training_bot.solver_artifacts.importer import (
+    import_preflop_artifact,
+    import_preflop_artifacts,
+)
 from poker_training_bot.solver_artifacts.schema import weights_checksum
 from scripts.repo_paths import REPO_ROOT
 
@@ -81,8 +90,9 @@ def a_census(
 ):
     if excluded is None:
         excluded = {
-            lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MISPRICED_NODES,
+            lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MULTIWAY_NODES,
             lookup.DERIVATION_OUTSIDE_SELECTION_RULE: OUTSIDE_RULE_NODES,
+            FOUR_BET_POT_CODE: FOUR_BET_POT_NODES,
         }
     return derivation.NodeCensus(
         committed=committed, excluded=dict(excluded), inexpressible={}
@@ -93,12 +103,21 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
     """Every node lands in exactly one bucket, or the census is a subset dressed as a census.
 
     The wrong inputs are the honest ones: counts that sum to one node fewer than the export
-    holds, and a reason nobody ruled. Decision 8 closes both vocabularies so a node the
-    converter merely failed to handle cannot be filed as a property of the grammar, and its
-    amendment makes that two exclusion codes rather than one - a census filing all 38,742
-    excluded nodes under a single reason cannot say which of them come back when GTOpen can
-    price multiway, so it is refused here too.
+    holds, and a reason nobody ruled. Decision 8 closes both vocabularies so a node the converter
+    merely failed to handle cannot be filed as a property of the grammar, and decision 20 makes
+    that **three** exclusion codes - a census filing all 33,933 excluded nodes under one reason
+    cannot say which come back when GTOpen prices multiway and which when the realization fit
+    gains a four-bet-pot cell, so a two-code census is refused here as well as a one-code one.
     """
+    # The vocabulary first, because everything below is built out of it: a census fed a reason
+    # the module does not carry is refused for the wrong reason, and the refusal would read as
+    # this test passing while the ruled three-reason census was the thing being rejected.
+    assert set(lookup.DERIVATION_EXCLUSION_CODES) == {
+        lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY,
+        lookup.DERIVATION_OUTSIDE_SELECTION_RULE,
+        FOUR_BET_POT_CODE,
+    }
+    assert lookup.DERIVATION_NO_LEGAL_SPOT_KEY in lookup.DERIVATION_INEXPRESSIBILITY_CODES
     generator.validate_census(a_census(derivation), EXPORTED_NODES)
 
     with pytest.raises(generator.DerivedChartReportError):
@@ -119,16 +138,23 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
         )
         generator.validate_census(one_code, EXPORTED_NODES)
     with pytest.raises(generator.DerivedChartReportError):
+        # The vocabulary as it stood before decision 20: multiway and outside-the-rule, with the
+        # fifteen four-bet-pot nodes folded into one of them rather than named.
+        two_codes = a_census(
+            derivation,
+            excluded={
+                lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MULTIWAY_NODES,
+                lookup.DERIVATION_OUTSIDE_SELECTION_RULE: (
+                    OUTSIDE_RULE_NODES + FOUR_BET_POT_NODES
+                ),
+            },
+        )
+        generator.validate_census(two_codes, EXPORTED_NODES)
+    with pytest.raises(generator.DerivedChartReportError):
         invented = derivation.NodeCensus(
             COMMITTED_SPOTS, {}, {"derivation:not-ruled": EXPORTED_NODES - COMMITTED_SPOTS}
         )
         generator.validate_census(invented, EXPORTED_NODES)
-
-    assert set(lookup.DERIVATION_EXCLUSION_CODES) == {
-        lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY,
-        lookup.DERIVATION_OUTSIDE_SELECTION_RULE,
-    }
-    assert lookup.DERIVATION_NO_LEGAL_SPOT_KEY in lookup.DERIVATION_INEXPRESSIBILITY_CODES
 
 
 def test_the_artifact_spot_count_is_checked_against_the_walk_key_by_key(generator) -> None:
@@ -208,6 +234,54 @@ def test_the_group_measure_is_refused_when_it_prefers_the_transposed_hand_index(
         generator.validate_group_discrimination(solved=2_007, transposed=818)
     with pytest.raises(generator.DerivedChartReportError):
         generator.validate_group_discrimination(solved=6, transposed=6)
+
+
+def test_the_group_measure_discriminates_on_every_partition_of_the_committed_set(
+    generator,
+) -> None:
+    """The gate run over the real chart, on each partition, through the validator that ships.
+
+    The refusal test above proves the validator says no to a bad pair of numbers. It cannot show
+    the numbers it will actually be handed are good ones, and the contract's 2026-09-01
+    amendment states the gate **on every partition** rather than over the committed set as a
+    whole. So the shipped measure is run here against the committed artifact and every partition
+    is put through `validate_group_discrimination` - the same function the report calls, not a
+    second copy of the rule, because two copies of a rule agreeing tells you nothing.
+
+    **What the partitions are for.** A measure can discriminate over the whole chart and still
+    be blind on the part of it that matters: a converter reading the payload by the grid
+    ordering only where hero faces a raise breaks the deep spots and leaves the shallow ones
+    right, and an aggregate over 36 spots absorbs that. Splitting by hero's seat catches a
+    mis-assigned actor the same way.
+
+    Measured over the real committed 36 on 2026-09-01: 0 flagged under the solver's own class
+    ordering against 26 under the transposed one over the whole set, and 0 against between 1 and
+    15 on every seat and raise-count split. Every partition passed and none tied. The counts are
+    recorded here rather than asserted, because the ruling is the direction: fixing a count
+    fixes a partition, and picking the partition that reads smallest is picking a number to go
+    green. A solved arm of 0 is the measure passing rather than the measure being blind - the
+    transposed arm flags 26, so it tells the two mappings apart.
+    """
+    artifact = import_preflop_artifacts(ARTIFACT_DIR)[0]
+    grid = generator.play_grid(artifact)
+    by_label: dict[str, tuple[str, ...]] = {"the committed set": tuple(grid)}
+    for spot in artifact.spots:
+        faced = sum(1 for entry in spot.action_sequence if entry.action == "raise")
+        for label in (f"hero={spot.hero_position}", f"raises faced {faced}"):
+            by_label[label] = (*by_label.get(label, ()), spot.spot_id)
+
+    assert len(artifact.spots) == COMMITTED_SPOTS
+    assert set(by_label) == discrimination_partitions(artifact)
+    for label, keys in by_label.items():
+        solved = generator.spots_violating_twins({key: grid[key] for key in keys})
+        transposed = generator.spots_violating_twins(
+            {key: generator.transpose_hand_index(grid[key]) for key in keys}
+        )
+        assert solved < transposed, (label, solved, transposed)
+        # Through the validator as well as beside it: a partition this test calls good and the
+        # gate calls bad is a gate nobody is testing. Asserted first so a partition that fails
+        # fails as an assertion rather than as the validator's own exception.
+        generator.validate_group_discrimination(solved=solved, transposed=transposed)
 
 
 def test_the_old_versus_new_disagreement_count_is_refused_when_it_cannot_be_read(generator) -> None:

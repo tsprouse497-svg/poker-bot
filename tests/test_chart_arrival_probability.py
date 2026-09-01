@@ -1,43 +1,40 @@
 """Phase 14: the spot-level arrival probability, and what a committed cell is not evidence of.
 
-Authored at stage 4 after Taylor's 2026-08-27 ruling on the untrained-cell blocker, so this
-file is the specification rather than a description of what got built. It is a seventh file in
-the `pytest_derived_chart` family rather than an addition to `tests/test_derived_chart.py`
-because that file has 33 lines of headroom and this needs 250; two of its siblings are already
-at the 700-line cap exactly, so there was nowhere in the family to put it. The cap forced the
-split and the split is the honest response to it.
+Authored at stage 4 after Taylor's 2026-08-27 ruling on the untrained-cell blocker, and re-cut
+at stage 4 again on 2026-09-01 after decision 14 re-sourced the solve at `add_allin: false` and
+decision 20 cut the committed set from 51 spots to 36. So this file is the specification rather
+than a description of what got built. It is a separate file in the `pytest_derived_chart` family
+because two of its siblings sit at the 700-line cap exactly and there was nowhere in the family
+to put it.
 
 **The ruling was option one: commit the cells, and record where they came from.** The chart
 answers every cell whose class arrives, including the ones the solve never worked out - the
-alternative was blanking them, and the reason not to is that a later heuristic layer is
-wanted for exactly those spots. That layer is the thing this field exists for. A refused cell
-is visibly empty and a heuristic can find it; a committed cell that was never computed looks
-exactly like one that was, and the reach field cannot tell them apart at any of the eight spots
-the solve never visits. At four of them it points the wrong way outright - the big blind facing
-a 100bb open-jam has all 169 classes at 10,000, fully arrived. At the other four it does
-something worse than lying, which is looking ordinary: 86 to 95 classes arrive at a mean of
-4,753 to 7,654 basis points, which is exactly the shape a well-played spot facing a four-bet
-has. So without this field the cells the future heuristic is for are the ones it cannot find.
+alternative was blanking them, and the reason not to is that a later heuristic layer is wanted
+for exactly those spots. That layer is the thing this field exists for. A refused cell is
+visibly empty and a heuristic can find it; a committed cell that was never computed looks
+exactly like one that was, and the reach field cannot tell them apart. On the 86-spot build the
+ruling was taken against, reach pointed the wrong way outright at four of the eight spots the
+solve never visited: the big blind facing a 100bb open-jam carried all 169 classes at 10,000
+basis points, fully arrived and never played.
 
 Arrival probability and arriving reach are orthogonal and the chart needs both. Reach is per
-cell and says whether hero can be holding that class here. Arrival is per spot and says
-whether the line is one anybody plays. A spot can have every class at full reach and never be
-reached at all, which is precisely the case at `BB/BTN:raise@100`.
+cell and says whether hero can be holding that class here. Arrival is per spot and says whether
+the line is one anybody plays. A spot can have every class at full reach and never be reached
+at all.
 
-Stored in parts per billion as an integer, for the reason decision 8 gave for basis points: a
-checksum over integers means something. Basis points would not do here, and the reason is the
-one thing this field has to get right. 21 of the 86 spots sit at a nonzero arrival below one
-basis point, the smallest at 2.5e-08, so in basis points they would all round to zero and
-become indistinguishable from the eight the solve genuinely never reaches - which is the single
-distinction the field exists to carry. In parts per billion the smallest nonzero value is 25,
-so nothing that is not zero rounds to zero.
+**Two things this field was ruled for are unexercised over the committed 36, and this file says
+so rather than counting them as checks that passed.** The re-source removed the open-jam
+branches, so no committed spot is one the solve never reaches - the zero case is measured empty
+and only a hand-built fixture exercises it. And the smallest committed arrival is 1.03 basis
+points, so nothing here would have rounded to zero in basis points either; the parts-per-billion
+grain decision 5 ruled buys nothing on this set. Both are kept for the reason decision 5 gives,
+which is prospective: the multiway family that returns once GTOpen can price it is deep and
+rare, adding the field later is a second `ARTIFACT_SCHEMA_VERSION` bump, and a check that cannot
+fail today must not be recorded as one that did.
 
 **What this file does not assert.** No threshold. Nothing here refuses a cell for arriving
 rarely, because option one ruled that the chart commits them; the field is recorded so a later
-phase can rule on it with the measurement in front of it. Decision 5 covers the reach field
-and does not carry this one, so it owes an amendment at the next `contract-update` - until
-that lands, `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-untrained-cell-refusal.md`
-is where the ruling is written down.
+phase can rule on it with the measurement in front of it.
 """
 
 from __future__ import annotations
@@ -75,30 +72,34 @@ ARTIFACT_DIR = REPO_ROOT / "data" / "artifacts" / "preflop"
 
 PARTS_PER_BILLION = 1_000_000_000
 
-# The eight committed spots the solve never reaches. Four are the big blind facing a 100bb
-# open-jam, which nobody does: the jam carries zero weight on all 169 classes at every one of
-# the four opening nodes, measured, so the frequency is not small but exactly zero. The other
-# four are a 100bb jam over an open. They hold 1,031 committed cells between them, every one of
-# which is the solver's placeholder rather than its answer. Not 1,352 - only the four big-blind
-# spots carry all 169 classes, and the other four carry 87, 87, 86 and 95, of which 15, 15, 10
-# and 10 are at full reach. This is the list a heuristic layer starts from.
-NEVER_REACHED_SPOTS = (
-    "t6/d100/BB/BTN:raise@100",
-    "t6/d100/BB/CO:raise@100",
-    "t6/d100/BB/HJ:raise@100",
-    "t6/d100/BB/LJ:raise@100",
-    "t6/d100/CO/CO:raise@2.5,BTN:raise@100",
-    "t6/d100/CO/CO:raise@2.5,SB:raise@100",
-    "t6/d100/HJ/HJ:raise@2.5,CO:raise@100",
-    "t6/d100/LJ/LJ:raise@2.5,HJ:raise@100",
-)
-NEVER_REACHED_CELLS = 1_031
+ONE_BASIS_POINT_IN_PPB = 100_000
 
-# The small blind open-folded to, which is the most-played spot in the chart and the one
-# opening range the cutover commits. Solve output rather than tree shape, so decision 2's
-# permitted re-solve would move it; the phase runs none.
+
+COMMITTED_SPOTS = 36
+"""Decision 1's predicate keeps 51 of the re-sourced tree's nodes and decision 20 withholds
+the fifteen where hero faces a four-bet, so 36 are committed. `selected` in
+`tests/test_chart_derivation.py` is both rulings together, which is what "a spot the chart
+holds" means; that file owns the split and this one only counts what came out of it."""
+
+
+# The most-played committed line: the small blind opened to, everybody folded. Solve output
+# rather than tree shape, so decision 14's re-source moved it - the 275,247,995 this file
+# carried was measured on the superseded `add_allin: true` build.
 BUSIEST_SPOT = "t6/d100/SB/rfi"
-BUSIEST_PPB = 275_247_995
+BUSIEST_PPB = 281_908_314
+
+
+def vacuous(what: str) -> None:
+    """Stop the test and record it as skipped rather than passed.
+
+    R2's convention from `tests/test_chart_conversion.py`, restated here rather than imported
+    so two files that share nothing else do not become coupled by a three-line helper. The rule
+    it carries is decision 6's and it applies to any check the committed data cannot exercise:
+    "a check that cannot fail must not be counted as one that passed". A skip is the one outcome
+    that is neither a green nor a permanent red against a chart the contract describes
+    correctly, and every use sits *after* an assertion that the premise still holds.
+    """
+    pytest.skip(f"VACUOUS over the committed {COMMITTED_SPOTS}: {what}")
 
 
 @pytest.fixture(scope="module")
@@ -122,10 +123,9 @@ def measured_ppb(export: SolverExport, path: tuple[int, ...]) -> int:
     agreeing with another.
 
     **How it accumulates is part of the specification, not an implementation detail.** Float
-    multiplication left to right from the root, rounded once at the end. Three of the 86 land
-    within a thousandth of a rounding boundary - 1034.5125, 576.5163 and 153589.4885 parts per
-    billion exactly - so a stage 6 that accumulated in `Decimal`, or in basis points per node,
-    could differ by one and turn this test red for something that is not a defect.
+    multiplication left to right from the root, rounded once at the end. A stage 6 that
+    accumulated in `Decimal`, or in basis points per node, could differ by one on a spot that
+    lands near a rounding boundary and turn this test red for something that is not a defect.
     """
     by_path = export.by_path()
     probability = 1.0
@@ -145,24 +145,29 @@ def test_every_committed_spot_records_how_often_its_line_is_played(
     whether a line is played is a property of the line, and the 169 classes at a node all
     share it. Recomputed from the export by this file's own walk, so the chart is compared
     against the solve rather than against itself.
+
+    Every committed line is covered rather than a sample of them, and the map may hold nothing
+    else: a spot the chart declares with no arrival recorded is a converter that did not compute
+    the field, and one recorded for a spot the chart does not declare is a figure about a line
+    the bot never asks about.
     """
     walked = walk_state(export.by_path())
+    measured = {
+        key_of(node, walked): measured_ppb(export, node.path)
+        for node in export.nodes
+        if selected(node, walked)
+    }
     recorded = dict(artifact.arrival_ppb)
 
+    assert len(measured) == COMMITTED_SPOTS
     assert set(recorded) == {spot.spot_id for spot in artifact.spots}
-    graded = 0
-    for node in export.nodes:
-        if not selected(node, walked):
-            continue
-        key = key_of(node, walked)
-        value = recorded[key]
+    assert set(recorded) == set(measured)
 
+    for key, value in recorded.items():
         assert isinstance(value, int) and not isinstance(value, bool), key
         assert 0 <= value <= PARTS_PER_BILLION, (key, value)
-        assert value == measured_ppb(export, node.path), key
-        graded += value > 0
+        assert value == measured[key], key
 
-    assert graded == len(recorded) - len(NEVER_REACHED_SPOTS)
     assert recorded[BUSIEST_SPOT] == BUSIEST_PPB
     assert recorded[BUSIEST_SPOT] == max(recorded.values())
 
@@ -170,32 +175,52 @@ def test_every_committed_spot_records_how_often_its_line_is_played(
 def test_the_spots_the_solve_never_reaches_are_recorded_as_zero_and_still_answer(
     artifact: PreflopArtifact,
 ) -> None:
-    """Option one, asserted as behaviour: the cells are committed AND they are findable.
+    """The zero case, measured empty over the committed 36 and labelled as unexercised.
 
-    Zero is the value that matters, because it is the only one that says the solve never
-    worked the line out at all rather than working it out rarely. These eight spots still
-    answer - that is what was ruled - so the assertion is that both halves hold at once: the
-    chart has not quietly blanked them, and a later reader can tell them apart from the rest
-    without re-walking the export.
+    On the build this ruling was taken against, eight committed spots were lines nobody plays:
+    four were the big blind facing a 100bb open-jam and four were a 100bb jam over an open.
+    `add_allin: false` removed both families from the tree, so every one of the 36 spots the
+    chart now commits is a line the solve reaches. **That makes the distinguishing job this
+    field was ruled for unexercised here**, and it is recorded as a measurement rather than
+    quietly dropped: a later solve that puts an unplayed line back must record it as zero and
+    must still answer there.
 
-    The cell total is asserted because it is what shows arriving reach cannot substitute for this
-    field: 1,031 rather than eight times 169, because only the four big-blind spots carry every
-    class. At the other four, reach reads like an ordinary range facing a four-bet and a reader
-    going by reach alone would see nothing wrong at all.
+    The half that is real on this build is asserted first: every committed spot holds cells at
+    all, blanking an untrained cell being what option one refused. Then the premise is asserted
+    and the test skips itself as vacuous, which is R2's convention for a check the committed
+    data cannot exercise - a green here would say the zero case was tested when nothing was.
     """
     recorded = dict(artifact.arrival_ppb)
     weights = dict(artifact.action_weights)
-    committed = 0
+    never_reached = sorted(key for key, value in recorded.items() if value == 0)
 
-    for key in NEVER_REACHED_SPOTS:
-        assert recorded[key] == 0, key
-        cells = dict(weights[key])
-        assert cells, f"{key} was ruled committed and holds no cells"
-        committed += len(cells)
+    assert all(weights[key] for key in recorded), "a committed spot with no cells is not committed"
+    assert never_reached == [], never_reached
+    vacuous("no committed spot is a line the solve never reaches, so zero is never recorded")
 
-    assert committed == NEVER_REACHED_CELLS
-    assert committed < len(NEVER_REACHED_SPOTS) * len(HAND_CLASSES)
-    assert all(value > 0 for key, value in recorded.items() if key not in NEVER_REACHED_SPOTS)
+
+def test_the_parts_per_billion_grain_is_unexercised_over_the_committed_set(
+    artifact: PreflopArtifact,
+) -> None:
+    """Decision 5's reason for parts per billion, measured on the set that shipped.
+
+    The grain was ruled because 21 of the 86 spots then committed sat at a nonzero arrival
+    below one basis point, the smallest at 2.5e-08, so in basis points all 21 would have
+    rounded to zero and become indistinguishable from the spots the solve genuinely never
+    reaches. Over the committed 36 the rarest line is played about one time in ten thousand,
+    which is 1.03 basis points, so **basis points would have lost nothing here**. The field
+    keeps the finer grain for the prospective reason decision 5 gives, and this test records
+    that the reason is prospective rather than present, because a check that cannot fail must
+    not be counted as one that passed.
+    """
+    values = [value for _, value in artifact.arrival_ppb]
+
+    assert values
+    assert min(values) >= ONE_BASIS_POINT_IN_PPB, (
+        "a committed spot now arrives below one basis point, so the parts-per-billion grain"
+        " has started doing the job decision 5 ruled it in for and this label is out of date"
+    )
+    vacuous("the rarest committed line is 1.03 basis points, so basis points would have done")
 
 
 def one_spot_artifact(arrival: tuple | None, extra_spot: str | None = None) -> PreflopArtifact:
@@ -246,7 +271,7 @@ def one_spot_artifact(arrival: tuple | None, extra_spot: str | None = None) -> P
 
 # A negative chance, a chance above certainty, a spot the artifact does not declare, and the
 # field absent altogether. Zero is deliberately not on the list: it is the whole point of the
-# field, and a schema that rejected it would delete the eight spots the ruling exists to mark.
+# field, and a schema that rejected it would delete the spots the ruling exists to mark.
 IMPOSSIBLE_ARRIVALS = [
     ("negative", ((BUSIEST_SPOT, -1),)),
     ("above certainty", ((BUSIEST_SPOT, PARTS_PER_BILLION + 1),)),
@@ -275,6 +300,19 @@ def test_an_arrival_probability_that_is_not_one_is_rejected(label: str, arrival:
         one_spot_artifact(arrival)
 
 
+def test_a_spot_the_solve_never_reaches_is_accepted_at_zero() -> None:
+    """The other side of the rejection list, and the only place the zero case is exercised.
+
+    No committed spot arrives at zero after the re-source, so this fixture is the whole of what
+    stands between the schema and a later artifact that cannot express an unplayed line at all.
+    A validator tightened to "a real probability is positive" would look like a fix and would
+    delete exactly the distinction Taylor ruled the field in to carry.
+    """
+    built = one_spot_artifact(((BUSIEST_SPOT, 0),))
+
+    assert dict(built.arrival_ppb) == {BUSIEST_SPOT: 0}
+
+
 def test_the_arrival_map_must_be_ordered_like_the_spots_it_describes() -> None:
     """The sibling rule, asked of this field too.
 
@@ -287,12 +325,12 @@ def test_the_arrival_map_must_be_ordered_like_the_spots_it_describes() -> None:
     other = spot_key(TABLE_SIZE, STACK_DEPTH_BB, "BB", (PreflopAction("SB", "raise", 2.5),))
 
     with pytest.raises(ValueError, match="(?i)arrival"):
-        one_spot_artifact(((other, 1), (key, 275_247_995)), extra_spot=other)
+        one_spot_artifact(((other, 1), (key, BUSIEST_PPB)), extra_spot=other)
 
 
 def test_the_same_artifact_with_a_real_arrival_is_accepted() -> None:
     """The rejections above are about the field and not about the fixture being malformed."""
-    built = one_spot_artifact(((BUSIEST_SPOT, 275_247_995),))
+    built = one_spot_artifact(((BUSIEST_SPOT, BUSIEST_PPB),))
 
     assert built.audit_fields.spot_count == 1
-    assert dict(built.arrival_ppb) == {BUSIEST_SPOT: 275_247_995}
+    assert dict(built.arrival_ppb) == {BUSIEST_SPOT: BUSIEST_PPB}
