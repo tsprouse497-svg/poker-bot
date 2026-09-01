@@ -1,57 +1,25 @@
 auto_advance: false
 halt_reason: >-
-  Halted. The ruling owed is decision 20 (raised 2026-08-31, frozen-into-data, unanswered): which pot
-  type the committed chart prices correctly, now that no realization model GTOpen ships prices both.
-  Decision 19 (realization=static) has been executed and is done, not pending. Decisions 17 and 18 are
-  superseded and withdrawn - ignore both. No work is owed in GTOpen and no fork exists;
-  ~/projects/gtopen is a read-only reference clone at 4aee435 and stays unmodified.
-  What the static build did. One field flipped, an unmodified GTOpen re-solved, the chart re-derived
-  and re-measured. The build is sound - 51 spots from 33,969 nodes, 0.00015672bb at iteration 1,100 of
-  2,000, 0 walk mismatches, byte-identical determinism, census and action menus exactly as the contract
-  states. It fixes what it was ruled to fix: JJ continues 0.028 -> 0.462 at the lojack four-bet lines,
-  TT 0.001 -> 0.585, and strict rank dominance falls from 85 violations to 34 over the same 51 keys.
-  Why it cannot ship. The big blind defends 76.31 / 84.51 / 91.46 / 98.19 / 100.00 percent against
-  LJ / HJ / CO / BTN / SB, against 27.28 to 49.02 on the committed chart, and folds zero combos against
-  a small-blind open - 72o calls at 1.000. That is phase 10's rejected column: its decision 2 measured
-  72.94, 97.44 and 99.71 under this same model and ruled that nothing may be committed under it.
-  Round 2's jam-composition blocker also survives with new ranks - 88 five-bets 0.508 at 9,277bp while
-  KK and AKs flat, and at three of the five lojack four-bet lines AQs five-bets for the whole stack at
-  0.999 on 9,775 to 10,000 basis points of arriving reach while KK, QQ, AKs and AKo every one of them
-  flat at 1.000. By the artifact's own arrival mass, static repairs 1.58 percent of the chart's traffic
-  and breaks 57.11, and the aggregate dominance gate the phase halted rather than freeze unproven is
-  the one check that passes on this build and fails on the committed one - which is in decision 20 as
-  the evidence for keeping it.
-  So calibrated inverts four-bet pots, static turns single-raised pots into a calling station, raw is
-  static with the positional term removed as well, and there is no fourth setting. What is left is a
-  ruling rather than a measurement, and that is decision 20; its options are written out there with
-  what each would ship.
-  Two things were added to decision 20 on 2026-08-31 so it can be answered rather than deferred. What
-  GTOpen's authors document at the pin, which settles most of it: calibrated is the shipped default and
-  the only mode they call measured, static is a sensitivity-check dropdown they describe as "too fond
-  of offsuit junk", their own validation records "BB defends 50% vs 2.5x ... vs static's junk-loving
-  94%", their standing caveat is that under calibrated "call ranges are the soft numbers; folds and
-  value-raises are robust", and the missing four-bet-pot cell is listed in the fit's own metadata as
-  unfinished work. And the contamination measurement the review asked for: on the calibrated plus
-  add_allin=false build, of the 36 spots the revert option keeps, 71.69 percent of value is fold-win and
-  never touches the model, 26.39 percent is priced inside the fitted pot types and 1.38 percent outside
-  them - so 4.96 percent of model-priced mass is contaminated. In aggregate that is smallest at the
-  busiest spots; per hand class it is not, and the per-class read argues against the option rather than
-  for it. AA, KK and AKs sit at 100 percent contamination at all fifteen three-bet-facing kept spots
-  because the only way they see a flop there is by four-betting, which is the decision those spots
-  exist to answer, and SB/rfi at 28 percent of arrival puts 21.8 percent of the premium classes' flop
-  mass in a four-bet pot. The experiment that would settle it - reprice only the four-bet terminals at
-  R=1 and see whether the kept cells move past solve noise - needs a GTOpen edit and is therefore out
-  of scope, so the phase may not be able to answer it from inside its own constraints.
-  Round 11 of the stage-01 note carries it; round 10 carries the source reading.
-  Nothing under data/artifacts/ is committed. The chart and the export themselves survive only in a
-  session scratch directory, so recovering this build means re-solving it; what is committed is its
-  source card and human report under reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/, and the two
-  checksums in round 7 of the stage-01 note (export 43a29604..., chart weights de9d62e1...) are what
-  make a re-solve checkable against it. The tracked artifact paths are restored, and the GTOpen save
-  the committed card pins was backed up before the re-solve overwrote it and put back afterwards.
-  The gate is red by design and stays red: RULED_CONFIG disagrees with the committed export on two
-  fields, and four frozen assertions name the calibrated model. Those tests migrate at stage 4, not
-  here. Never revert a ruled constant to green the gate.
+  Halted, waiting on decision 20 (frozen-into-data, unanswered): which pot type the committed chart
+  prices correctly, now that no realization model GTOpen ships prices both. Decision 19 is executed and
+  done, not pending. Decisions 17 and 18 are superseded and withdrawn; no work is owed in GTOpen and
+  ~/projects/gtopen stays an unmodified read-only clone at 4aee435.
+  Why: calibrated gets four-bet pots backwards - JJ folds pure at 40.8 percent equity into a 32.3
+  percent price while 76s calls at 29.6, because the fit has no four-bet-pot cell. static removes that
+  and turns the single-raised pots into a calling station - the big blind defends 100.00 percent
+  against a small-blind open, folding zero combos, which is the column phase 10's decision 2 ruled
+  uncommittable. raw is static without the positional term. There is no fourth setting and repairing
+  the model is out of scope, so what is left is a choice about which pot type the chart commits and
+  what happens to the other.
+  Read in this order: decision 20 for the options and the evidence, then rounds 7, 10 and 11 of
+  reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md - round 7 is the static
+  build's measurements, round 10 is what GTOpen's own authors document about the two models, round 11
+  is the four-bet contamination in the spots a revert would keep. The static build's source card and
+  human report and calibrated-build-contamination.json sit beside that note as the evidence.
+  Nothing under data/artifacts/ is committed and the artifact is writable at stage 6, so the gate is
+  red by design: RULED_CONFIG disagrees with the committed export on two fields and four frozen
+  assertions name the calibrated model. Those tests migrate at stage 4. Never revert a ruled constant
+  to green the gate.
 loop: halted
 phase_id: '14'
 schema_version: 1

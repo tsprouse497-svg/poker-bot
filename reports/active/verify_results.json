@@ -1,53 +1,7 @@
 {
   "all_passed": true,
-  "generated_at_epoch": 1788216694,
+  "generated_at_epoch": 1788221739,
   "results": [
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_backlog.py"
-      ],
-      "command_id": "generate_backlog",
-      "description": "Regenerate backlog docs",
-      "duration_seconds": 0.15,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/generate_backlog.py",
-        "--check"
-      ],
-      "command_id": "check_generated_backlog",
-      "description": "Check generated backlog freshness",
-      "duration_seconds": 0.155,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/check_contracts.py"
-      ],
-      "command_id": "check_contracts",
-      "description": "Validate phase contracts",
-      "duration_seconds": 0.075,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
     {
       "command": [
         "uv",
@@ -57,22 +11,7 @@
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.282,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/check_execplan_delegation.py"
-      ],
-      "command_id": "check_execplan_delegation",
-      "description": "Validate active ExecPlan delegation plan",
-      "duration_seconds": 0.093,
+      "duration_seconds": 0.133,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -87,26 +26,11 @@
       ],
       "command_id": "check_repo_consistency",
       "description": "Cross-check phase status, ExecPlan location, gate commands, and the phase graph",
-      "duration_seconds": 0.184,
+      "duration_seconds": 0.1,
       "passed": true,
       "returncode": 0,
       "stderr": "",
       "stdout": "repo consistency checks passed\n"
-    },
-    {
-      "command": [
-        "uv",
-        "run",
-        "python",
-        "scripts/check_file_sizes.py"
-      ],
-      "command_id": "check_file_sizes",
-      "description": "Validate file-size limits",
-      "duration_seconds": 0.057,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
-      "stdout": ""
     },
     {
       "command": [
@@ -119,28 +43,26 @@
       ],
       "command_id": "pytest_loop_fleet",
       "description": "Run parallel-loop eligibility, lane discovery, and pause board tests",
-      "duration_seconds": 0.402,
+      "duration_seconds": 0.2,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.20s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.07s ==============================\n"
     },
     {
       "command": [
         "uv",
         "run",
-        "ruff",
-        "check",
-        "--no-cache",
-        "."
+        "python",
+        "scripts/check_file_sizes.py"
       ],
-      "command_id": "ruff_check",
-      "description": "Run ruff",
-      "duration_seconds": 0.087,
+      "command_id": "check_file_sizes",
+      "description": "Validate file-size limits",
+      "duration_seconds": 0.049,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "All checks passed!\n"
+      "stdout": ""
     }
   ],
   "schema_version": 1
