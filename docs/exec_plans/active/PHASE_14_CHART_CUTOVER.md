@@ -394,6 +394,19 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
   and this lane's standing rule is that the agent that computes a number is not the only one that
   checks it.
 
+- Status, the stage-2 re-cut (2026-08-31): the decision record is a single document and is
+  coordinator-owned on the standing argument that splitting its authorship produces a document with
+  two voices and no owner. Review is not: two independent read-only reviewers ran concurrently on the
+  finished working-tree diff, neither having written any of it and neither having seen the other's
+  work - one mechanical, asked whether every reversibility class is right, whether every appended
+  figure reproduces and whether any block edited a prior ruling rather than appending to it; one on
+  the poker, asked whether the five movers are the right five, whether any amendment misdescribes
+  what the committed chart does at the table, and whether item 10's withdrawal of its own
+  tolerance-re-derivation licence is an amendment the record may make or a ruling only Taylor can
+  take. Both wrote to `stage-02-decisions.md` as new rounds beside the 2026-08-23 round, which is
+  left untouched. Both were told not to run `run_verify.py`, `check_gate_bite.py` or a bare
+  `pytest`, on the mutation hazard, and not to touch `~/projects/gtopen`.
+
 ## Slices
 
 - [x] S1 Contract. Skeleton replaced with criteria written against the backlog entries this phase
@@ -407,6 +420,20 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
       had answered itself: the export offers a jam and no named raise at 4,257 nodes where the
       GTO Wizard source had zero, so the inherited collapse rule had been ruled against a source
       where the case never arose.
+- [x] S2 re-cut, 2026-08-31. All 21 items re-taken against decisions 20 and 21, which falsify three
+      premises items 1 to 19 rest on: the phase commits 36 spots rather than 51, no committed spot
+      offers a jam, and the corpus measurement is phase 17's. Every item carries a dated disposition
+      and nothing above one was edited, corrections in a decision packet being additive. Items 7, 9,
+      11, 12 and 15 move to phase 17, decision 9's bands void rather than inherited. Items 1, 3, 6
+      and 10 are amended; 16 to 19 keep their rulings and gain a correction each, 19 recording that
+      decision 20 reverted `static` to `calibrated` the same day. Decision 7 names its pin for the
+      first time, `d046ac9`, because phase 17's contract cites it and phase 14 deletes the file. Two
+      independent reviews of the re-cut, mechanical and poker, neither having seen the other's work,
+      found four blockers. Three are corrected in place. The fourth is **decision 22**: the re-cut had
+      settled by prose which dominance relations gate the artifact, and Taylor ruled a per-cell relation
+      and that it is gated on aggregates without ever ruling that the suited-row ladder is that
+      relation's aggregate form. Filed `frozen-into-data` with an empty answer, so the lane halts at the
+      stage-3 human gate.
 - [x] S3 Human gate. Cleared 23 to 24 August. All eight `frozen-into-data` items ruled, five
       `runtime-reversible` items proceeding on their recorded defaults. Decision 1 stands as plain
       reach-at-2-percent with no depth floor. Decision 2 went round twice, because Taylor first
@@ -518,12 +545,14 @@ Ask the driver and do only what it names, then `--advance`:
 
     uv run python scripts/loop_stage.py --phase 14 [--advance]
 
-**Current state, 2026-08-31: the lane is halted at stage 1 in `contract-update` mode, waiting on
-decision 20.** Phase 14 is `active` in `phase_status.yml`. Decision 19 has been executed - the field
-is flipped, the build exists, it is measured, and it cannot ship. Read, in this order: round 7 of
-`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md`, decision 20, then round 6
-and decision 19. Rounds 3 to 5 and decisions 17 and 18 are superseded snapshots - read them for
-diagnosis, never for work.
+**Current state, 2026-08-31: the lane is at the stage-3 human gate in `contract-update` mode, halted
+on decision 22 and on nothing else.** Phase 14 is `active` in `phase_status.yml`. Decisions 20 and 21 are ruled:
+the phase solves with `realization: calibrated`, withholds the 15 four-bet-facing spots and commits
+**36** of the 51 the predicate selects, and the corpus measurement is now **phase 17**, declared
+`future` at `docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md`. Read, in this order: decisions 20 and
+21, then rounds 7, 10, 11, 13, 14 and 16 of
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md`. Rounds 3 to 5 and
+decisions 17 and 18 are superseded snapshots - read them for diagnosis, never for work.
 
 **Do not do any of these.** Do not touch, fork, branch or build anything in `~/projects/gtopen`: it
 is a read-only reference clone of a third party's repo at `4aee435`, with no licence and no push
@@ -533,9 +562,11 @@ change solver vendor. Do not revert a ruled constant to green the gate. Do not c
 `data/artifacts/`: the artifact is writable at stage 6 and the frozen tests that pin the superseded
 86-spot build migrate at stage 4 first.
 
-**What the gate is red on, so nobody mistakes an inherited red for their own.** `RULED_CONFIG` now
-disagrees with the committed export on two fields, so `config_errors` refuses to load it and every
-command that reads the chart fails. Four frozen assertions pin the superseded model by name -
+**What the gate is red on, so nobody mistakes an inherited red for their own.** It is red by design
+and stays red until stage 6. `RULED_CONFIG["add_allin"]` is `False` while the committed export was
+built with `True`, so `config_errors` refuses to load it and every command that reads the chart
+fails. That is one cause and it is expected; reverting the constant to green the gate would erase
+the correction decision 14 established. Four frozen assertions pin the superseded model by name -
 `tests/test_solver_export.py` at the config dict and at the card's `model` string,
 `tests/test_solver_expectations.py`, and `test_the_source_card_still_names_the_calibrated_realization_model`
 in `tests/test_chart_cutover_evidence.py` - and they cannot be repaired here, because `tests/**` is
@@ -544,11 +575,15 @@ entries still fail `run_full_quality_gate`'s status and phase constants, which i
 (`BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS`), and `unresolved_blockers`
 under-reports this note (`RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE`), also MAINT-29's.
 
-**What happens after Taylor answers decision 20.** Every option except `keep-static-as-solved` needs
-the same next steps, so they are worth stating once: the lane returns to stage 2 to re-cut the
-decision record against the answer, stage 4 re-cuts and re-freezes the tests that pin 86 spots, the
-calibrated model by name, the 169-class grid and the export's checksums, and stage 6 rebuilds and
-commits the artifact. The build machinery is proven and re-runs in about seven minutes end to end:
+**What comes next.** Stage 2's re-cut of the decision record against decisions 20 and 21 is done and
+the lane is advanced to stage 3, where it stops for Taylor's answer on decision 22. Stage 4 is
+the real cost: re-cutting and re-freezing the tests that pin 86 spots, the calibrated model by name,
+the 169-class grid and the export's checksums. Stage 6 rebuilds and commits the artifact, and owes
+two criteria the contract added that it must not skip - hero's four-betting range at each committed
+three-bet spot, printed by class with reach and read by a human before the freeze, and the statement
+that the group dominance gate is a regression detector, since the build being committed fails it at
+decision 10's one-point tolerance while the rejected build passes and a chart that folds nothing
+scores perfectly. The build machinery is proven and re-runs in about seven minutes end to end:
 start the server with `PREFLOP_MAX_ARENA_MB=2600 ./target/release/gto-server`, then
 `extract_gtopen_preflop.py --save-name six-max-100bb-rakefree`, then the same script
 `--determinism-only` against a restarted server, then `convert_preflop_export.py`, then
@@ -557,7 +592,12 @@ start the server with `PREFLOP_MAX_ARENA_MB=2600 ./target/release/gto-server`, t
 pins, so back it up first; and the 169-class index is `hi*13+lo` for suited, which GTOpen's own
 AGENTS.md documents transposed.
 
-Do not reopen the nineteen answered rulings. Decision 20 is the only open one.
+Do not reopen the twenty-one answered rulings. **Decision 22 is the only open one**, and it does not
+reopen decision 10's tolerance - one point, adjacent ranks, is Taylor's and stays. It asks which
+relations that tolerance gates, because the suited-row ladder has been measured twice preferring a
+transposed hand index and the committed build fails it by 23 points while the rejected build passes.
+Do not pick a default for him. If a further item needs a ruling, file it the same way, with an empty
+`Answer: []`, which is what puts it on `scripts/review_queue.py`.
 
 `check_repo_consistency` was red from stage 1 until stage 4, saying phase 14 declares
 `pytest_derived_chart` and `generate_derived_chart_report` and neither is registered in

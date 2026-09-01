@@ -3875,3 +3875,81 @@ items:
       Not urgent and not a defect in the ruling, which was correct on the evidence. It is a defect in
       how the choice was presented, and the cheapest place to fix it is the ExecPlan's decision-item
       template rather than a checker.
+  - id: SUPERSEDED-FROZEN-ITEM-STILL-PARSES-AS-ANSWERED
+    status: deferred
+    phase: contract-update
+    title: A decision list has no machine-readable way to mark an item superseded or withdrawn
+    reason: >-
+      Filed 2026-08-31 by the poker review of phase 14's stage-2 re-cut. `loop_stage.py` reads a
+      decision item as answered when its `Answer:` line is non-empty, and there is no third state. So a
+      superseded or withdrawn item goes on parsing as a live ruling: phase 14's item 17 reads
+      `Answer: [extend-the-fit-to-four-bet-pots]`, which is a refit of a third party's solver that
+      Taylor withdrew the same day, and item 18 reads `Answer: [withdrawn-see-decision-19]`, which only
+      works because a human wrote the word into the answer slot. Both needed a whole appended paragraph
+      whose only job is to stop a reader who arrives from the bottom of the item taking dead work for
+      scheduled work, and the driver cannot see either paragraph.
+      This is the mirror of `PRE-FILLED-ANSWER-HIDES-AN-ITEM-FROM-THE-PAUSE-BOARD`, filed by the same
+      file's round 1: there a pre-filled answer hid a live question from the human gate, here a
+      live-looking answer advertises dead work. One status field the driver reads - live, superseded,
+      withdrawn - retires both, and `scripts/review_queue.py` would then show what is actually open.
+      Not urgent: no ruling has yet been executed off a superseded item, and prose has caught it every
+      time. It is a check that cannot fail standing in for one that can.
+  - id: OPTION-SHEETS-SHOULD-SAY-WHICH-OPTIONS-WERE-MEASURED
+    status: deferred
+    phase: contract-update
+    title: An option sheet should mark each option measured, bounded by argument, or unexamined
+    reason: >-
+      Filed 2026-08-31 by the poker review of phase 14's stage-2 re-cut. Decision 20 closed its option
+      space with three realization models "measured or bounded", and the review found the bound on one
+      of them argued with the sign backwards: `raw` was dismissed as "`static` with the positional term
+      removed, so it cannot be better on that axis", when removing a positive positional term makes
+      `raw` **tighter** than `static` for the seat that is in position postflop - which is the big blind
+      closing against an open, the exact seat the calling-station failure lives in. `raw` was never
+      solved. The ruling is not reopened and is very unlikely to change, since realizing 100 percent of
+      raw equity still defends far too wide, but the packet should say which of its rejections rest on
+      a number and which rest on an argument.
+      The rule: every `Options:` line marks each option measured, bounded by argument, or unexamined,
+      so a human can tell what a rejection cost to establish.
+      This is the third property in one family and they should be adopted as one rule rather than three
+      entries: `DECISION-ITEMS-STATE-WHAT-AN-OPTION-COMMITS-NOT-WHAT-IT-REMOVES` is the first, and round
+      14 of phase 14's stage-01 note asking an option sheet to state the *stake* at the decisions it
+      removes - not only their frequency - is the second.
+  - id: A-DECISION-LIST-RE-CUT-FOUR-TIMES-IS-A-CONTRACT-REWRITE-IN-DISGUISE
+    status: deferred
+    phase: contract-update
+    title: AGENTS.md has a folding rewrite for a contract at its cap and no equivalent for a decision list
+    reason: >-
+      Filed 2026-08-31 by the poker review of phase 14's stage-2 re-cut. Five of that list's 22 items
+      now carry more amendment than ruling, and three have been superseded twice - each time because a
+      premise evaporated rather than because an argument lost. The append-only rule is right and must
+      not change: a decision packet is a snapshot of what a phase believed, and editing a ruling
+      destroys the only record of why the phase did what it did.
+      What is missing is the other half. `AGENTS.md` prescribes, for a contract that has accumulated
+      amendments to its cap, a rewrite that folds each amendment into the criterion it amends, taken as
+      its own `contract-update` task. There is no equivalent for a decision list, so every session that
+      meets a five-times-amended item decides for itself whether to fold or append, and the answer has
+      always been append because folding mid-phase would rewrite history the phase is still making.
+      The right time for the fold is when the phase closes and the list becomes history. The repo should
+      say so rather than leave it to each session, and should say that the fold is a separate task with
+      its own review, never done in the same task that adds an amendment.
+  - id: THE-SAME-MEASUREMENT-IS-STATED-IN-TWO-COMMITTED-DOCUMENTS-AND-NOTHING-COMPARES-THEM
+    status: deferred
+    phase: contract-update
+    title: The same figure is written as a literal in several committed documents with no check across them
+    reason: >-
+      Filed 2026-08-31 by the mechanical review of phase 14's stage-2 re-cut, which found the instance:
+      the decision list instructed the closing measurement to publish "14 retired spots refused, 64
+      gained" while phase 14's contract carried the same measurement correctly from the other side, "31
+      of its 36 keys collide with nothing the new artifact declares and only 5 collide exactly". Both
+      are committed, they disagree, and the decision list is the document that instructs the report.
+      Recomputed, the answer is 5 survivors, 31 refused, 31 gained. A second instance in the same review
+      pass: the same item's "the big blind holds 58 of the 89 human call disagreements" against a repo
+      that now computes 42 and 14.
+      This is the shape `THE-ARTIFACT-DESCRIBES-ITS-OWN-CENSUS-IN-PROSE-NOTHING-CHECKS` already names
+      inside the artifact, one level up. The contract, the decision list, the ExecPlan and the generated
+      report all restate the same census, menus, prices and collision counts today, each as a literal
+      typed by a different session.
+      The remedy is not more diligence, which is what has been tried. Either one document is generated
+      and the others cite it, or a check reads the literals out of the committed documents and compares
+      them to what the code computes - which is what `scripts/repo_facts.py` already does for ten facts
+      and is the pattern to extend.

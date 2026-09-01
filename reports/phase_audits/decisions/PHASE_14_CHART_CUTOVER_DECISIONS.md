@@ -16,7 +16,38 @@ whether it must stop for a human.
 regardless. The classes still matter, because stage 3 stops it *before* any test is authored,
 which is the only point at which a different answer is cheap.
 
+**Recount, 2026-08-31.** The list runs to **22** items, not thirteen: sixteen are
+`frozen-into-data` (1 to 6, 9, 10, 14, 16 to 22) and six are `runtime-reversible` (7, 8, 11, 12, 13,
+15). The sentence above describes the list as it stood on 2026-08-23.
+
+**One item is open.** Decision 22 was raised on 2026-08-31 by the independent review of this re-cut,
+carries an empty `Answer:`, and is `frozen-into-data`, so the loop halts at the stage-3 human gate
+until Taylor rules it. Every other item is answered.
+
+**What this list has been re-cut against, 2026-08-31.** Decisions 20 and 21 are ruled, and between
+them they falsify three things every item from 1 to 19 was written on: the phase commits **36** spots
+rather than 51, **no committed spot offers a jam**, and the **corpus measurement is phase 17's**.
+Every item from 1 to 21 now carries one of three dispositions, added on 2026-08-31: it still holds, it
+is amended with what changed, or it moves to phase 17. Items **7, 9, 11, 12 and 15 move**. Nothing here
+reopens a ruling and nothing that was committed before this re-cut was edited - a packet is a snapshot
+of what a phase believed, so the corrections are additive and each says what is no longer true.
+
+**Two independent read-only reviews read the re-cut before it was committed**, one mechanical and one
+on the poker, neither having written any of it and neither having seen the other's work. They are
+rounds 3 and 4 of `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-02-decisions.md`. Four
+blockers between them: the re-cut had settled item 10's gate question by prose when it is Taylor's,
+which is why decision 22 exists; it had over-extended item 3's realization reframing to kicker
+inversions realization does not explain; it had reinstated an "`100.0` is not in hero's menu" sentence
+that a contract review had already rejected; and it had left item 1 instructing the closing measurement
+to publish a spot count the committed 36 falsifies. All four are corrected in place with what the first
+draft said.
+
 ## What was measured first
+**Superseded snapshot, 2026-08-31. Read this section for diagnosis, never for work.** Every figure in
+it was measured on the 38,828-node export built with `add_allin: true`. Decision 14 re-sourced the
+solve to **33,969** action nodes, decision 20 fixed the committed set at **36** spots, and the
+contract requires each of these quantities measured again at stage 6 against the artifact that ships.
+
 
 Every number below was measured on this branch. Stage 1 found that the roadmap's planning figures
 for this phase were superseded and that its size estimate was low by half, so nothing here is
@@ -111,6 +142,11 @@ raising. That is about six points wider entry with 13.73 points of limping conve
 not the 19.68-point headline the raw open-frequency delta suggests.
 
 ## What the rulings changed about each other
+**Superseded, 2026-08-31.** This section reconciles four rulings against the 5,626-spot reach floor
+decision 1 no longer uses. The byte budget it protects has nothing to bite on at 36 spots, decision
+2's re-solve was overtaken by decision 14's re-source, and decision 9's bands are void and re-taken
+in phase 17. Kept as the record of how the rulings read on 2026-08-24.
+
 
 Recorded by the coordinator after stage 3, because four of the eight answers interact and a reader
 taking any single item's numbers forward would take a stale one.
@@ -323,6 +359,51 @@ freeze. Decision 8's two exclusion codes stand and now separate a larger set: th
 node the source misprices, is what a later phase reads to find the 24 by name. Decision 10's
 obligation to show that some aggregate form of its two relations passes over the retained set is
 unchanged in kind and is now owed over 86 nodes rather than 5,626.
+**Amended 2026-08-31 by decisions 14 and 20: the predicate still selects, it now selects 51, and 36
+are committed.** Neither ruling touches the predicate, which is why this is an amendment rather than a
+third supersession. Decision 14 re-sourced the solve with `add_allin: false`, and over the smaller
+tree - 33,969 action nodes against 38,828 - the same two clauses select **51** rather than 86. That is
+a strict subset: 35 lost, none gained, every one of the 35 all-in-facing and existing only because
+opponents jammed at nodes no pot size justified. Decision 20 then **withholds the 15 four-bet-facing
+spots** of those 51 for a second and different pricing reason - the fit behind `calibrated` has no
+four-bet-pot cell - so **36 are committed**. The withholding is a second exclusion standing beside this
+item's, not a narrowing of this item's rule, and the contract forbids lifting either to recover
+coverage.
+
+**What that does to the coverage cost recorded above.** The 563 of 3,048 corpus decisions was measured
+on the 86 and is not the committed set's coverage. What 36 spots answer is measured in **phase 17**,
+which owns every corpus figure per decision 21 and whose contract requires each exclusion's cost
+reported separately so one ruling is not charged with another's. The cost stated in what the bot can
+do is unchanged in kind and larger in degree: only the small blind's opening range survives, and the
+bot now also refuses every spot where it faces a four-bet - which is every spot where it could jam.
+
+**One property of the ruling that survived both moves and is worth naming.** This item was ruled twice
+on a predicate that turned out to select on a different property than the one it was ruled about, and
+`SELECTION-PREDICATE-MUST-BE-STATED-OVER-REACHABLE-TERMINALS` is the general form. Decision 20's
+withholding is stated over spots rather than terminals and knows it: every committed spot is
+backward-induced over four-bet-pot terminals whether or not the four-bet node itself is committed, so
+refusing those 15 bounds the exposure rather than removing it. That residual is
+`THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` and it is accepted, not fixed.
+**Corrected 2026-08-31 after independent review: the spot arithmetic in the 2026-08-25 block is
+falsified by the committed 36, and this block's first draft corrected only the corpus half of it.**
+That block says 22 of the retired 36 survive and 14 do not, that the cutover "gains 64 spots and gives
+up 14", and instructs the closing measurement to state "14 retired spots refused, 64 gained". Those are
+properties of the 86.
+
+**Recomputed against what ships rather than quoted.** The retired chart read at the pin decision 7 names
+holds 36 `spot_id`s; intersecting them with the committed 36 gives **5 survivors** - `BB/LJ:raise@2.5`,
+`BB/HJ:raise@2.5`, `BB/CO:raise@2.5`, `BB/BTN:raise@2.5` and `SB/rfi`. So **31 retired keys are refused
+and 31 spots are new**, and the cutover is **net zero on spot count**, not plus fifty. Phase 14's own
+contract already carries the same result from the other side - 31 of the retired 36 collide with
+nothing the new artifact declares and only 5 collide exactly - so the contract was right and this list
+was the document disagreeing with it.
+
+**What that leaves of the accepted cost.** Only the opening-coverage clause survives unchanged: the
+bot's opening coverage falls from five seats to one. The closing measurement states **5 survived, 31
+refused, 31 gained, opening coverage five seats to one**. This is a property of two files rather than
+of the corpus, so it stays with phase 14 and does not travel to phase 17 under decision 21's seam.
+
+
 
 ## 2. What happens to the non-monotone pair
 
@@ -396,6 +477,17 @@ its ruling now decides nothing. The contract accordingly reopens
 `SOLVE-TARGET-LEAVES-A-NONMONOTONE-PAIR` rather than closing it here, and the measurement is retaken
 on whatever non-monotone pairs the re-sourced chart actually contains. Taylor is told the premise
 evaporated rather than asked to re-rule a spot that no longer ships.
+**Still superseded in its premise, 2026-08-31, and the retake moves with the build.** The 2026-08-30
+supersession holds under decision 20 for the same reason and with more room: `t6/d100/SB/rfi` is the
+only committed spot with an empty action sequence, so the lojack opening range is in neither the 51
+nor the 36 and the 44-versus-33 pair this item ruled about is in no shipped cell.
+
+Two things about the retake change. It is taken on the `calibrated` plus `add_allin: false` build
+decision 20 ships, not on the `static` build that existed when the supersession was written. And it is
+a **published** measurement rather than a gated one, per decision 10's re-ruling: per-cell dominance
+is printed for a human and only the aggregate group form gates.
+`SOLVE-TARGET-LEAVES-A-NONMONOTONE-PAIR` stays reopened and is retaken over the committed 36.
+
 
 ## 3. What is done about the realization model underpricing position
 
@@ -435,6 +527,75 @@ folded 50.98 before, from a small blind opening **54.30 percent** where it opene
 `add_allin` did not touch the realization bias, which is the expected result - the bias is in how
 flops are priced, not in which raises are offered - and it is recorded here so the source card's
 number is the one this phase measured rather than the one it inherited.
+**Amended 2026-08-31: the ruling stands, its measurement is owed again, and this item now carries a
+second finding about the same model.**
+
+**The measurement.** The 51.61 percent above was taken on the `calibrated` plus `add_allin: false`
+build, which is the build decision 20 ships, so it survives decision 19's round trip through `static`
+intact. It is still not a measurement of the committed artifact, which does not exist yet, and the
+contract requires this bias retaken over the committed 36 at stage 6 and written onto the source card
+there rather than carried forward from here.
+
+**The second finding: `calibrated` carries its own training rake.** Read at the pinned `4aee435`
+rather than inferred. The fit was measured as net-of-rake EV over the **gross** pot, so the engine
+uses the gross pot and skips the rake deduction at a heads-up flop terminal (`mod.rs:1124`, in the
+comment block running 1118 to 1126), and the
+source's own `AGENTS.md:49` states the consequence - the rake dial barely moves heads-up flop leaves
+under it. So `rake_pct: 0.0` removes rake from the betting and leaves the fit's training rake in every
+calibrated flop terminal with chips behind. The solve is **not rake-free where its modelled value is
+priced**, and any claim that this cutover strikes rake off phase 08's list of explanations for the
+calling gap is weaker than it was written. Filed as `CALIBRATED-REALIZATION-CARRIES-ITS-TRAINING-RAKE`;
+it is stated on the source card rather than closed, and it binds what phase 17 may claim.
+
+**This item's disposition is now the shape of three limitations rather than one.** The source card
+states, each in poker terms with the measurement behind it: the position bias ruled here, the training
+rake above, and that the committed three-bet spots weigh hero's four-bet on a terminal the fit has no
+cell for (`THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL`). Accept-and-record was ruled once for
+one defect and is now the form of three, which is a heavier load on one mechanism than it was ruled to
+carry - the contract answers that by requiring a human to read the defence level and the four-bet
+composition before the freeze, because a caveat does not reach the player at the table.
+
+**One reframing, so this item is not read as a claim about hand strength.**
+`REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH` is a misnomer this phase carried for a day
+and the halt inherited. `R` is realized EV over raw equity, not strength, so 76s at 1.1333 above JJ at
+0.7493 is what realization means rather than an inversion - a suited connector collects more than its
+raw equity because it flops well, a middling pair collects less because it cannot improve. The defect
+is applying that table where there is almost no postflop play: the engine's `class_r` carries no SPR
+term, so a ladder fitted at SPR 20 is applied undiminished at a four-bet pot's SPR 1.67, where - in
+decision 20's wording, which is the accurate one - the flop is nearly all-in and the correct `R` is
+close to 1. The module header states only that `R` is 1 at an all-in terminal and that those terminals
+are exact; extending it to SPR 1.67 is a poker inference rather than the source's own statement. The
+fit's `meta.r2` is **0.1885**, which no packet should quote a `calibrated` figure without.
+**Corrected 2026-08-31 after independent review: the table's non-monotonicity splits in two, and only
+one half is realization.** The reframing above is right where it is aimed. Measured over `class_base`:
+22 0.9102, 33 0.8073, 44 0.7424, 55 0.7672, 66 0.8041, 77 0.7613, 88 0.7514, 99 and TT 0.7196, JJ
+0.7493, QQ 0.8556, KK 1.0473, AA 1.2823. Aces and kings are made hands that collect, deuces through
+fives are set-miners with implied odds, and nines through jacks are bluff-catchers that collect least.
+That shape is poker, and the pair-versus-connector ordering is too.
+
+**What no realization story covers.** Sixteen suited rows price a hand above the hand with the same top
+card and a strictly better kicker - `J5s` 0.8105 over `J6s` 0.5880, `T5s` 0.7601 over `T6s` 0.5847,
+`Q6s` 0.7899 over `Q7s` 0.7280, with gaps running to 22 points - and 33 at 0.8073 sits above both 44
+and 55, which no set-mining argument orders. `A5s` over `A6s` is the one real case and the fitter says
+why, "wheel aces unchained". The rest is a fit at `r2` 0.1885 patched to monotonicity only along a
+hand-picked list of domination chains, which is `fit_phase_c5.py`'s own description of itself.
+
+**That half reaches the committed cells, which is why it is not a curiosity.** Item 14 records the
+chart playing `J6s` 0.000 beside `J5s` 1.000 and `Q7s` 0.000 beside `Q6s` 1.000, and item 10's failing
+suited-row aggregate is plausibly the same noise in aggregate. A student handed a chart that folds
+jack-six suited and calls jack-five suited learns a false ladder. The SPR argument does not remove this
+half: it is noise in the fit rather than a table applied outside its pot type, so the reframing must
+not be read as saying the table is sound everywhere.
+
+**Two wording corrections that came with it.** "The module's own header says `R` should be near 1" is
+an inference rather than a quotation - the header says `R = 1` when all-in and that those terminals are
+exact, and decision 20's wording is the accurate form: at a four-bet pot's SPR 1.67 the flop is nearly
+all-in and the correct `R` is close to 1. And this item's opening paragraph carries a stale corpus
+figure, "the big blind holds 58 of the 89 human call disagreements", against a repo that now computes
+42 and 14; restating those is phase 17's by its own contract, and it is flagged here so no reader takes
+the first paragraph for a current measurement.
+
+
 
 ## 4. Whether the artifact declares its blind structure
 
@@ -461,6 +622,13 @@ solved at, so a lookup can refuse a game whose blinds are not in that ratio inst
 it silently. Closes `BLIND-STRUCTURE-VARIANTS` and
 `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE`, the second of which was phase 13's
 largest single finding. Ruled together with decision 5, which shares the version bump.
+**Still holds, 2026-08-31.** Nothing in decisions 14, 19, 20 or 21 touches it. The blind structure is a
+property of the solved game, which is unchanged at 0.5/1, six-handed, 100bb, and the
+`ARTIFACT_SCHEMA_VERSION` bump this shares with decision 5 is still owed at stage 6. The contract
+carries it as "either writes it or records why it waits, by id", so the two entries it closes -
+`BLIND-STRUCTURE-VARIANTS` and `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE` - stay assigned
+to this phase.
+
 
 ## 5. Whether committed cells carry arriving reach
 
@@ -512,6 +680,20 @@ is a second `ARTIFACT_SCHEMA_VERSION` bump and a re-derivation of everything bui
 This item is `frozen-into-data` and the amendment does not reverse it, so it proceeds. Taylor is
 told the rationale narrowed rather than asked to re-rule; dropping the field remains his call, and
 its cost is a schema bump later instead of now.
+**Amended 2026-08-31: the ruling stands and its counts are stale for the third time.** "35 of the 110
+at full reach" is a property of a set two supersessions old, and the "11 of 86" that replaced it is one
+old. No count is put in their place here: the reach distribution over the committed **36** is measured
+at stage 6 and printed by the report, which is what the contract asks for rather than a number carried
+forward from a discarded build.
+
+**The prospective reason recorded on 2026-08-24 is unchanged and is now the whole of it.** The field
+distinguishes little on a small, high-reach committed set, and adding it later is a second schema bump
+and a re-derivation of everything built on the first. It also does one job this item did not foresee:
+decision 10 publishes a per-cell dominance table for a human, and a reader cannot tell a real inversion
+from two cells at five basis points of reach without the reach beside them. That is the same argument
+the contract makes for the four-bet composition read, and it makes the field load-bearing on the
+committed set rather than only on the multiway family that returns later.
+
 
 ## 6. How the export's four action kinds become the schema's four
 
@@ -619,6 +801,53 @@ this artifact**, and a phase that lets such a test stand unlabelled has a check 
 That is the honest cost of keeping the schema, and it is recorded rather than left for a later
 reader to discover. Taylor is told the premise is gone; reverting to one price per spot remains his
 call and nothing here forecloses it.
+**Amended a fourth time, 2026-08-31, and this time the jam is gone from the committed set entirely.**
+Decision 20 withholds the 15 four-bet-facing spots, and those are exactly the 15 spots that offer a
+jam: five-betting is only legal facing a four-bet, and the 3.0 multiplier puts the fifth raise at
+67.5bb where `allin_threshold` snaps it to the stack. Over the committed **36** the distinct raise
+prices are exactly `[2.5, 7.5, 22.5]` and **`100.0` is not in hero's price menu anywhere**. This
+item's ruled question - how an all-in offer becomes a schema action - therefore decides nothing about
+what ships.
+
+**The two-price schema is not merely unexercised, it is unexercisable.** 0 of the 36 offer two prices.
+Twenty-one offer one raise price and carry a sizing entry, fifteen offer no raise at all and correctly
+carry none, so the two-directional invariant still has both sets non-empty. The declared menus are 20
+call/fold/raise, 15 call/fold and 1 fold/raise. A test asserting that a spot offering two prices is
+described by two prices **passes vacuously**, and the contract requires it labelled as such: a check
+that cannot fail must not be counted as one that passed.
+
+**Every percentage this item has been ruled and restated on is a property of a tree or a set the phase
+no longer ships** - 60.6 over the 5,626, 5.0 over the 110, and 18.6 combo-weighted or 13.7
+reach-weighted over the 51. Over the committed 36 the answer is zero. They stay as written because
+each was true of what it measured, and they must not be read as a trend, which the 2026-08-30
+restatement already warns.
+
+**What is retained, and why it is not the ruling doing the work.** The schema stays for the reason
+given on 2026-08-30 and no other: it costs nothing, the multiway family that returns once GTOpen can
+price it is where the case for it lived, and reverting a schema to fit a temporary dataset is the wrong
+direction. Reverting to one price per spot remains Taylor's call and nothing here forecloses it. One
+consequence to carry forward: the jam-inversion canary that rejected the first cutover is vacuous over
+the committed artifact - no committed spot can jam - so it is retained against the **export** instead,
+and the report prints AA's jam weight at the 15 withheld spots as excluded evidence.
+**Corrected 2026-08-31 after independent review: hero never initiates the last raise, and the chart
+still answers fifteen call-offs for a full stack.** The two sentences above - "`100.0` is not in hero's
+price menu anywhere" and no committed spot offering a jam - are true of hero's own **raise** menu and
+false as a description of what the chart tells a player to do. Fifteen of the committed 36 face a
+five-bet jam on a call/fold menu, and at them the chart puts the last 77.5bb in. Round 14 of the
+stage-01 note opened a blocker on this same sentence in the contract draft and the contract now reads
+"Hero can never initiate the last raise, and the chart still answers 15 call-offs for a full stack".
+This list must not be the document that keeps the version that was rejected.
+
+**And the canary is stated over those fifteen rather than only over the export.** The defect it exists
+to catch - a low pair or a weaker class committing a hundred blinds where aces do not - is fully
+expressible over the committed 36 in the **calling** direction. Those fifteen spots are also the
+cleanest cells in the chart: round 11 measured them at zero model-priced mass, every leaf a fold or an
+all-in showdown, so an inversion there could not be blamed on the realization model and would be a
+converter or solver defect. The check is therefore: at each of the fifteen, no lower pair and no weaker
+class calls off more often than aces do. The export version is retained beside it, so the phase holds
+one check that bites on the file the bot plays and one that bites on the source.
+
+
 
 ## 7. Where the old-versus-new comparison reads the retired chart from
 
@@ -635,6 +864,30 @@ Rejected: keeping a copy under `data/artifacts/preflop/` in a subdirectory the i
 non-recursive glob does not reach. It works, and it is exactly the arrangement that makes a
 reader ask which chart the bot plays - which is the confusion this phase exists to end. Also
 rejected: a test fixture copy, which is 264 KB of duplicated derived data under `tests/`.
+**Moves to phase 17, 2026-08-31, per decision 21 - and it owes one thing before it goes.** The
+old-versus-new comparison is a claim about poker made by comparing a file to 499 real hands, so it
+travels with the rest of the corpus work. Phase 17's contract cites "the pin phase 14's decision 7
+names". This item named no pin. It does now.
+
+**The pin is `d046ac9`**, which is what the committed derived-chart report already reads the retired
+chart from. The first draft of this block named `294a2b8` - `a386c77^`, the last commit on this branch
+before the deletion - and the mechanical review of 2026-08-31 showed why that is the worse of two right
+answers. The blob is byte-identical at both (`841ada2f`), but `d046ac9` is an ancestor of `main` today
+while `294a2b8` is on this branch only and becomes one at the merge, and naming a second commit for the
+same bytes is the confusion this item exists to prevent. One commit, named in one place, cited by both
+phases.
+
+**Phase 14 reads from the same pin, which this item has to say because two of the phase's own criteria
+need it.** That 31 of the retired chart's 36 keys collide with nothing the new artifact declares while
+5 collide exactly, and that it limps 13.73 percent from the small blind across 103 classes, are both
+measurements over a file this phase deletes. Neither is a corpus claim, so neither moves; both are
+recomputed from `d046ac9`.
+
+**The default is otherwise unchanged and both rejections stand.** A copy under
+`data/artifacts/preflop/` in a directory the importer's non-recursive glob misses is exactly the
+arrangement that makes a reader ask which chart the bot plays, which is the confusion this phase exists
+to end; a test fixture copy is a quarter of a megabyte of duplicated derived data under `tests/`.
+
 
 ## 8. What the exclusion and inexpressibility reasons are called
 
@@ -658,6 +911,31 @@ reasons: a node outside the selection rule, and a node the source misprices. Eve
 both, and the second is the fact a later phase needs to find them by - filing them under one code
 loses which nodes come back when GTOpen can price multiway. Taylor was told this proceeds on the
 default rather than asked to rule it.
+**Extended a second time and proceeded on its default again, 2026-08-31, reported rather than blocked
+because this item is `runtime-reversible`.** Decision 20 excludes nodes for a reason neither existing
+code covers: the source prices them in a pot type its fit has no cell for. The vocabulary therefore
+distinguishes **three** exclusion reasons rather than two - outside the selection rule, mispriced
+multiway, and mispriced in a four-bet pot - because one code loses which nodes come back by which
+route, and the routes genuinely differ. A solver fix at GTOpen's `KIND_POT_SHARE` terminals returns the
+multiway kind; a fitted four-bet-pot cell, or phase 16's real postflop solver, returns the four-bet
+kind.
+
+**The census the codes have to produce**, from the ruled build: **36 committed, 15
+`source-misprices-four-bet-pot`, 29,104 `source-misprices-multiway`, 4,814 `outside-selection-rule`,
+summing to 33,969.** The inexpressible bucket is still empty - every node derives a valid v2 key - and
+the report must publish that as a result rather than let a reader take the bucket for populated. Taylor
+is told this proceeds on the default rather than asked to rule it.
+**One sentence on why this stays `runtime-reversible`, added 2026-08-31 after independent review, since
+item 10 reasons oppositely from the same premise.** Item 10 calls itself frozen because a stage-4 test
+asserts it over the committed artifact and stage 5 freezes that test. A closed vocabulary is frozen the
+same way, so the distinction is not the freeze: it is that **no exclusion code reaches the artifact**.
+An excluded node is not in the chart, so the vocabulary lives in `lookup.py` and in a report that
+re-derives in minutes, and changing it re-runs a generator rather than re-deriving committed data every
+later phase is measured against. What has changed and is worth recording is that phase 17's contract now
+requires each exclusion's cost reported separately, which makes the three-way partition load-bearing for
+a later phase's measurement even though it is cheap to change here.
+
+
 
 ## 9. What the closing prediction's magnitude band is
 
@@ -703,6 +981,19 @@ is the exact failure this item was written to prevent. **The form of the ruling 
 opener, a quarter to one times that opener's defence delta, written down before the numbers are
 seen - and only the arithmetic is redone. The re-registration happens against the re-sourced export
 and before the closing measurement is run, not after.
+**Moves to phase 17, 2026-08-31, per decision 21, and the bands are void rather than inherited.** The
+form of the ruling survives and travels: per opener, a quarter to one times that opener's defence
+delta, written down before the numbers are seen. Phase 17's contract requires it re-registered in
+phase 17's own decision list, against deltas recomputed from the chart phase 14 actually commits, and
+before its measurement runs.
+
+Every number in this item was fixed against deltas measured on the 38,828-node export. Carrying them
+forward would let the closing measurement be graded against whichever set of bands happened to suit
+it, which is the failure this item exists to prevent, so they are void. What must travel with the form
+is this item's own reclassification: the pre-registration is `frozen-into-data` precisely because a
+`runtime-reversible` pre-registration proceeds on a default set by the agent that will interpret the
+result.
+
 
 ## 10. What counts as a monotonicity violation, and at what tolerance
 
@@ -789,6 +1080,62 @@ pair is in no committed spot, because the lojack opening range is not in the 51.
 therefore calibrated against data this phase does not ship and must be re-derived from the
 re-sourced chart before it is frozen - which is also what the contract's requirement to re-measure
 the aggregate gate over the 51 before freezing it demands.
+**Amended 2026-08-31: the tolerance stands as ruled, the gate is measured over the committed 36 before
+it is frozen, and the build this phase ships is the one that fails it.**
+
+**What is unchanged.** Adjacent ranks at one percentage point, the same tolerance for the
+suited-against-offsuit relation, per-cell dominance measured and published for a human, and the
+aggregate group form gated. Decision 2's ship-as-solved is what makes the per-cell result a
+publication rather than a gate.
+
+**What is stale.** Everything the tolerance was tuned against. It was chosen so that exactly one
+violation survived - the lojack opening 44 at 72.81 percent beside 33 at 99.88 - and the lojack
+opening range is in neither the 51 nor the committed 36.
+
+**What the measurement now says, and it is the uncomfortable part.** Measured chart-wide over the
+committed spot keys, combo-weighted by arriving reach and spot arrival, at this item's own one-point
+tolerance: the `calibrated` chart **fails** - 4 pair inversions worst 7.40 points, 3 suited-row
+inversions worst 23.19 - while the rejected `static` build passes at 0.06 and 0.00, and a chart edited
+to fold nothing scores 0 and 0. Transposing every suited cell with its offsuit twin makes the row
+ladder *cleaner*, and setting all 156 non-pair classes to a constant makes it perfect, because ties are
+not violations and a flat line is the gate's optimum. So the gate rewards a transposed index rather
+than catching one - which is what the 2026-08-24 correction found over the 5,626 and withdrew for want
+of a measurement on the committed set - and the artifact decision 20 commits is worse by this gate than
+the artifact decision 20 rejects.
+
+**The caveat on those numbers, stated because no ruling may rest on an unlabelled proxy.** They were
+taken on `superseded_chart_a386c77.json`, which is `calibrated` with `add_allin: true` - **the first
+cutover** - read over the same spot keys as a proxy for the ruled build. **The artifact decision 20 ships
+has not been derived**, so its group-gate result is not yet known.
+
+**What this item therefore owes stages 4 and 6.** The gate's definition is pinned as data before
+freezing - weighting, reach floor, tolerance, family exclusions, per spot or per chart - the prose
+having produced seven counts (`DOMINANCE-RELATION-IS-PROSE-AND-HAS-PRODUCED-SEVEN-COUNTS`). And the
+paragraph in this item's 2026-08-30 supersession block licensing the tolerance to be re-derived from
+the re-sourced chart is **withdrawn**: a
+tolerance widened to 24 points to admit the artifact it judges is not a check, and the contract forbids
+it in those terms. If the committed artifact fails the gate at stage 6, that is a **halt and a decision
+for Taylor** - not an edit to the tolerance. The contract's regression-detector sentence governs how a
+*pass* may be read, never as evidence the ranges are sound, and it is not a licence to publish a
+failure.
+
+**Corrected 2026-08-31 after independent review: the first draft of this block took a ruling that is
+Taylor's, and that half is withdrawn to decision 22.** It wrote "the gate is written at the ruled
+one-point tolerance and it **gates**", and *which relations* that tolerance gates was never ruled. What
+Taylor ruled on 2026-08-24 is a per-cell relation - a suited hand played at least as often as the
+offsuit hand of the same ranks - and then that the relations are measured per cell and gated on
+aggregates. He did not rule that a ladder over **suited rows keyed by high card** is that relation's
+aggregate form, and round 14 of the stage-01 note found in terms that it is not: "suited at least as
+often as the offsuit twin has no gated form at all, the suited-row ladder is a different assertion".
+The block carried the symptom - the aggregate scores a transposed index better than the right one - and
+then had it gate anyway. What survives here is the tolerance, which is his and is not reopened, and the
+pinning of the definition as data. Which relations it applies to is **decision 22**.
+
+**One correction of fact that came with it.** The licence to re-derive the tolerance sits in this
+item's 2026-08-30 supersession block, not in anything it carried on 2026-08-24; the 2026-08-24
+correction says the opposite, that the phase halts rather than freeze a gate it has not seen pass. The
+withdrawal stands and the first draft misnamed what it was withdrawing.
+
 
 ## 11. Which rate the closing conclusion is read off
 
@@ -815,6 +1162,14 @@ then read its conclusion off the permissive one, which is precisely what the con
 the reverse of the truth. **The conclusion is read off the strict sampled-action rate, with the
 permissive rate and the cell-purity statistic printed beside it as context.** Recorded here rather
 than only in decision 15 so that this item cannot be cited on its own.
+**Moves to phase 17, 2026-08-31, per decision 21.** This item is already superseded by decision 15 -
+the conclusion is read off the strict sampled-action rate, with the permissive rate and the cell-purity
+statistic printed beside it - and the report that would state either is phase 17's. Phase 17's contract
+carries the rule in its own criteria, so nothing is left here to apply. Kept rather than struck because
+decision 15 and `AGREEMENT-RATE-NEEDS-A-DENOMINATOR-POLICY` both cite it, and because the reason it was
+superseded is the thing worth carrying: a rate that a chart scores better on by being less converged is
+not a rate a conclusion may be read off.
+
 
 ## 12. How the limped-decision-point count is defined
 
@@ -828,6 +1183,16 @@ gives 15 rows and 22 points.
 Default: this phase publishes its own count under the stated definition and does not attempt to
 reproduce 12 and 21. Filed as `LIMPED-DECISION-POINT-COUNT-HAS-NO-DEFINITION`, because the older
 figure appears in three committed documents and correcting them is not this phase's scope.
+**Moves to phase 17, 2026-08-31, per decision 21.** `CHART-CANNOT-ANSWER-A-LIMPED-POT` is one of the
+four corpus-facing entries that move, and phase 17's contract owes the count with the definition it was
+counted by. The default travels unchanged: the phase that publishes the count publishes its own
+definition and does not attempt to reproduce the undefined 12 and 21.
+`LIMPED-DECISION-POINT-COUNT-HAS-NO-DEFINITION` stays filed.
+
+**What phase 14 keeps is the schema half, which is a different assertion.** No spot with an empty
+`action_sequence` carries a call weight, enforced by the artifact schema rather than measured over one
+file. That is a rule about what the artifact may hold; this item is a count of what the corpus contains.
+
 
 ## 13. Whether the sizing table stays one file
 
@@ -837,6 +1202,11 @@ The sizing table is 1,974 bytes for 36 spots today and scales with whatever deci
 Default: one file, matching the artifact, because it is small and because splitting it would need
 its own composition rule where the chart library already has one for artifacts. Revisit only if
 the selected spot count makes it large enough to matter, which at the measured rate it will not.
+**Still holds, 2026-08-31, by a wider margin than when it was ruled.** The committed set is 36 spots
+carrying 21 sizing entries, against the 36-spot, 1,974-byte table this item was ruled on, so the
+"revisit only if the selected spot count makes it large" clause has nothing to trigger it. One file,
+matching the artifact.
+
 
 ## 14. Whether the solve is re-sourced with `add_allin: false`
 
@@ -928,6 +1298,29 @@ while KK, QQ and AKs all flat and AKo folds 0.782.
 The check this item's ruling was verified against - no spot where a low pair jams and aces do not -
 passes, and is too narrow to have caught any of that. It is kept as a regression canary and is not
 evidence that the ranges are sound.
+**Amended 2026-08-31: the ruling stands untouched and two of its findings now describe spots that are
+not committed.** Decision 20 does not reopen this item. `add_allin: false` and the `0.00016` target
+both stand, and decision 19's round trip through `static` returned to the config this item ruled, so
+the build that ships is the one this item measured. What moves is which of its findings reach the
+artifact.
+
+The 15 spots that "still offer a 100bb jam" are exactly the 15 decision 20 withholds, so the surviving
+five-bet jams are **excluded rather than committed**. The jam-composition finding recorded here - AA at
+1.000 beside 87s at 0.995 at `SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5` - sits in a withheld spot,
+which is how decision 20 closes it: by refusing the cells, not by repairing them. The predicate's 51
+becomes **36 committed**.
+
+**The rank-dominance figures are unchanged as measurements and are not comparable as stated.** 54
+against 52 is one implementation of a relation that a second implementation counts as 85 against 34
+over the same keys. That is not a disagreement about the chart, it is
+`DOMINANCE-RELATION-IS-PROSE-AND-HAS-PRODUCED-SEVEN-COUNTS`, and it is why decision 10 pins the gate's
+definition as data before anything is frozen.
+
+**One thing this item said that is now settled elsewhere.** Its closing paragraph keeps the
+no-low-pair-jams check as a regression canary and calls it too narrow to have caught the surviving
+defects. Over the committed 36 it is not narrow, it is **vacuous** - no committed spot offers a jam -
+so decision 6 retargets it at the export.
+
 
 ## 15. How the corpus agreement rate is reported after the re-source
 
@@ -953,6 +1346,27 @@ it proceeds on this default and is reported afterwards. It does bear on a frozen
 this phase must still answer - whether `CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT` closes - and the
 contract now requires that entry to be restated against the strict rate rather than the permissive
 one.
+**Moves to phase 17, 2026-08-31, per decision 21.** Every rate this item governs is measured against
+the corpus, and phase 17 owns the corpus. Its contract carries this item's default as a criterion in
+its own words: the permissive rate is never reported alone, the strict sampled-action rate and the
+cell-purity statistic are printed beside it, and a fall is what a converged chart looks like rather
+than a regression. It adds one thing this item could not - every rate is measured on the chart phase 14
+commits, with the artifact checksum stated, and none is carried forward.
+
+**The purity figures quoted above do not describe the committed chart.** 2.209 nonzero actions per cell
+at 21.0 percent pure, and 1.323 at 73.0, were both measured over the 51 spots the superseded and
+re-sourced charts share, not over the committed 36.
+`AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART` moves with this item.
+**One thing corrected 2026-08-31 after independent review: cell purity does not move.** "2.209 nonzero
+actions per cell at 21.0 percent pure" against "1.323 at 73.0" needs no hand history to compute. It is
+read off the chart alone, and it is the single number that says whether the solve converged to answers
+or to menus, so on decision 21's own seam it is a claim about the file and stays with phase 14. What
+moves is its use as context for an agreement rate, which is phase 17's. Phase 14's contract carries no
+purity criterion today; the report already prints per-cell dominance and arriving reach, and purity
+belongs beside them. Recorded here as owed at the contract's next touch rather than added by this
+stage, which may not write criteria.
+
+
 
 ## 16. Whether the phase ships a chart derived from this source at all
 
@@ -1031,6 +1445,25 @@ condition stated here is superseded by item 17. The ruling to halt stands; what 
 the lane restarts against. The fitter citation in this item is also wrong - the shipped table is
 version 5 from `m5_spots/fit_phase_c5.py`, not v4 from `fit_phase_c.py` - and the corrected reading
 is in round 3 of the stage-01 review note.
+**The halt this item imposed was lifted by decision 20 on 2026-08-31, and the item stays exactly as
+written.** Recorded here additively so that no reader takes "The chart is not committed" or "the bot
+keeps playing the retired raked `six_max_nl25_100bb.json`" as current. Taylor ruled that the phase
+reverts to `calibrated`, withholds the 15 four-bet-facing spots and commits the remaining **36**.
+
+**The exit condition this item set was the wrong test twice over.** Item 17 superseded it once; the
+second reason arrived on 2026-08-31 with the source's own documentation. "Postflop pricing monotone in
+hand strength" asks a realization table to be ordered by strength, and `R` is realized EV over raw
+equity rather than strength, so the ordering it demands is false poker. What replaced the test is not a
+repair at all but a refusal: the spots priced outside the fit's support are excluded the way multiway
+spots already are.
+
+**What survives from this item unchanged.** Its diagnosis, and both of its rejections.
+Ship-as-solved does not survive several separately-ruled findings being traced to one cause with a
+measurement, and a chart whose own flag says do not study it is a training chart that cannot be used
+for training. Decision 20 rejects neither of those conclusions: it accepts a **measured and bounded**
+residual - 4.96 percent of the mass the model prices, 1.38 percent of total value, concentrated on the
+premium classes at the three-bet spots - with an id and an exit rather than a caveat.
+
 
 ## 17. What the source has to satisfy before the phase re-sources
 
@@ -1128,6 +1561,19 @@ to scope it rather than to start solving.
 
 Options: extend-the-fit-to-four-bet-pots | shrink-the-adjustment-in-short-pots | reorder-the-table
 Answer: [extend-the-fit-to-four-bet-pots]
+**Still superseded, 2026-08-31, and its ruled option is not work anybody owes.** The banner at the head
+of this item says so; it is repeated at the foot because the item's own `Answer:` line reads
+`extend-the-fit-to-four-bet-pots`, which a reader arriving from the bottom could take for scheduled
+work. It is not. No work is owed in GTOpen by anybody, `~/projects/gtopen` is a read-only reference
+clone pinned at `4aee435` with nothing in it modified, and decision 20 handles the four-bet pots by
+refusing the spots that live in them rather than by repairing the model.
+
+**What is still load-bearing is this item's diagnosis**, which decision 20 rests on: the fit has no
+four-bet-pot cell because `phase_b.py` samples no `_4bet` study lines, so the number applied at SPR
+1.67 is a marginal over pot types that excludes the pot it is being used in. The boundary condition it
+established - `R` to 1 as SPR to 0 - is not asserted anywhere by this phase, because no refit happens
+here; it is what a later phase or a fitted pot-type cell has to satisfy.
+
 
 ## 18. Where the solver fix lives, and what the source card pins
 
@@ -1148,6 +1594,10 @@ phase already owns. Both are poker-bot decisions requiring no solver work at all
 
 Options: fork-and-pin-the-fork | pin-a-local-build | pin-an-upstream-merge
 Answer: [withdrawn-see-decision-19]
+**Still withdrawn, 2026-08-31.** Nothing in decisions 19, 20 or 21 revives it. The `/solver/commit` pin
+stays at `4aee435bdeb155b25f0c8140e707a8342ce4356f`, GTOpen is unmodified, and moving that pin would
+owe its own `frozen-into-data` item before any export built against it could be committed.
+
 
 ## 19. Which realization model the committed solve uses
 
@@ -1221,6 +1671,58 @@ measured on this build and read by a human before anything derived from it is co
 carries that as a criterion, and `STATIC-REALIZATION-UNMEASURED-IN-SINGLE-RAISED-POTS` carries the
 diagnosis. If the level lands near phase 10's `static` column, this ruling needs re-taking against a
 question it was not asked, and that is a new item for Taylor rather than a caveat for this one.
+**Superseded by decision 20, 2026-08-31, the same day this was ruled.** The addendum above says that if
+the single-raised defence level landed near phase 10's `static` column this ruling would need re-taking
+against a question it was not asked, and that this would be a new item for Taylor. That is exactly what
+happened, and decision 20 is the item.
+
+**What the level was.** On the `static` build the big blind defends **76.31, 84.51, 91.46, 98.19 and
+100.00** percent against the lojack, hijack, cutoff, button and small blind, folding **zero** combos
+against a small-blind open, against phase 10's 72.94, 97.44 and 99.71 for the three openers it measured
+and 22.63 to 42.88 in the raked expectations file. The damage is in the flat call: against the small
+blind, call moves 22.59 to 81.49 while the three-bet *falls* 26.43 to 18.51. GTOpen's own author
+recorded the same comparison - the big blind defends 50 percent with textbook composition under
+`calibrated` "vs static's junk-loving 94%" - so three independent takes agree.
+
+**Taylor ruled decision 20 back to `calibrated`**, withholding the 15 four-bet-facing spots instead.
+`RULED_CONFIG["realization"]` reads `calibrated`. Nothing derived under `static` is committed; that
+build survives only as evidence beside the stage-01 review note, in
+`static-build-source-card.json` and `static-build-derived-chart-report.txt`.
+
+**What this item established and decision 20 kept.** The option space is measured out rather than
+argued: GTOpen ships three realization models, `calibrated` gets four-bet pots backwards, `static`
+turns single-raised pots into a calling station, `raw` is `static` with the positional term removed as
+well, and there is no fourth setting. That is what makes decision 20 a ruling rather than a
+measurement. The mechanism this item's addendum proposed was confirmed and is why the two models fail
+in complementary pot types: `static`'s positional term saturates at SPR 8 and it has no per-class term,
+so it has nothing to get backwards at a four-bet pot's SPR 1.67 and approaches raw realization at a
+single-raised pot's SPR 20, where calling 2.5 to reach an equity split is almost always profitable.
+**Two corrections 2026-08-31 after independent review, both inside the amendment above rather than in
+the ruling.**
+
+**The SPR direction is backwards and the conclusion survives on a simpler reason.** GTOpen's `TODO.md:44`
+gives the positional term as `R = 1 + 0.16 x pos_frac x min(SPR, 8) / 8` with `pos_frac` in
+`[-0.5, +0.5]`, so the departure from raw realization **grows** with SPR and is at its maximum,
+about eight percent, everywhere above SPR 8. `static` is therefore nearest raw at a four-bet pot's SPR
+1.67 and furthest from it at a single-raised pot's SPR 20 - the opposite of what the amendment says,
+and the opposite of this item's own body, which states it correctly. The reason `static` defends
+everything is not SPR at all: it is **class-blind at every SPR**, so 72o gets the same realization
+weight as a suited connector instead of `calibrated`'s 0.4326, and a big blind closing for 1.5 to win 4
+then defends the whole deck. And "nothing to get backwards at SPR 1.67" is contradicted by decision
+20's own measurement, where `static` five-bets AQs for the stack at 0.9998 while KK, QQ, AKs and AKo all
+flat. Neither model produces a four-bet-facing range fit to show anyone; that is round 14's finding and
+the honest form of the sentence.
+
+**`raw` was bounded by argument rather than measured, and the sign of the argument is wrong.** "`raw` is
+`static` with the positional term removed as well, so it cannot be better on that axis" does not follow.
+Removing a positive positional term makes `raw` **tighter** than `static` for the seat that is in
+position postflop, which is the big blind closing against an open - the exact seat the calling-station
+failure lives in - and `raw` is the only one of the three that satisfies the module header's boundary at
+SPR 1.67. It is very unlikely to be shippable, since realizing 100 percent of raw equity still defends
+far too wide, but nobody solved it. The option was closed by argument and the packet says so. This is
+not a reason to reopen decision 20.
+
+
 
 ## 20. Which pot type the committed chart prices correctly, now that no model prices both
 
@@ -1505,6 +2007,12 @@ well, which keeps 82.4 percent of arrival and drops every cell that is 100 perce
 the cost of the bot refusing every three-bet spot. Recorded because the contamination is a gradient
 rather than a cliff at the four-bet boundary, and a later phase reopening this should know the option
 existed and was declined rather than missed.
+**Still current, 2026-08-31.** This item and item 21 are the two rulings the rest of this list has been
+re-cut against, and nothing supersedes either. Two consequences are carried into the items above rather
+than repeated here: the committed count of 36 lands in items 1, 6, 8, 10 and 14, and the accepted
+residual `THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` lands in item 3 beside the two other
+limitations the source card states.
+
 
 ## 21. Whether this phase is one phase
 
@@ -1553,3 +2061,87 @@ stay open rather than closing with phase 14.
 
 Options: keep-one-phase-and-drop-criteria | split-into-two-phases | change-what-the-cap-covers
 Answer: [split-into-two-phases]
+**Still current, 2026-08-31, and executed.** Phase 17, "The Corpus Verdict On The Committed Chart", is
+declared `future` in `phase_status.yml` at `docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md`, 158
+lines, `depends_on: ["14"]`, with `auto_advance: false` in `verification/loop_policy.yml`. Phase 14's
+contract is at 284 lines against the 300 cap.
+
+**The five items this list moves there are 7, 9, 11, 12 and 15**, and each is marked at the foot of its
+own item rather than only here. Decision 9's bands are void rather than inherited: phase 17 re-registers
+them against the chart phase 14 commits, before its measurement runs. Decision 7's pin is named here
+first, because phase 17's contract cites it and phase 14 is the phase that deletes the file.
+
+**What did not move, checked item by item rather than assumed.** Every item that judges the artifact
+stays: 1 and 20 select it, 2, 5, 6, 10, 13 and 14 shape what it holds, 3, 4, 8, 16, 17, 18 and 19 record
+what its source does and what was ruled about it. That is the seam decision 21 names - a claim about a
+file against a claim about poker made by comparing that file to 499 real hands - and this re-cut is the
+first time it has been applied to this list.
+
+## 22. Which dominance relations gate the committed artifact
+
+Reversibility: frozen-into-data
+
+Raised 2026-08-31 by the independent poker review of this list's re-cut, which found that item 10's
+2026-08-31 amendment settled by prose a question nobody has ruled. The tolerance is not in question and
+is not reopened: one percentage point, adjacent ranks, is Taylor's from 2026-08-24, and item 10's
+withdrawal of the licence to re-derive it stands. What is in question is **which relations that
+tolerance is applied to**, as a gate.
+
+**What was actually ruled, and what was assumed.** On 2026-08-24 Taylor ruled two per-cell relations - a
+higher pair played at least as often as the pair one rank below, and a suited hand at least as often as
+the offsuit hand of the same two ranks - and then re-ruled that they are measured per cell and **gated
+on aggregates**, because among near-indifferent hands the solver's split is its considered answer and a
+per-cell gate rejects correct play. He did not rule what the aggregate form of the second relation is.
+The phase has been using a ladder over **suited rows keyed by high card** - the combo-weighted play
+frequency of each suited row at least that of the row below. Round 14 of the stage-01 review note found
+in terms that this is not that relation's aggregate form: "suited at least as often as the offsuit twin
+has no gated form at all, the suited-row ladder is a different assertion."
+
+**Why that matters rather than being a naming quarrel.** The suited-row ladder has now been measured
+twice as scoring the **wrong** index mapping better than the right one. Over the retired 5,626 it
+flagged 2,007 nodes as solved against 818 with suited and offsuit transposed. Over the committed spot
+keys, transposing every suited cell with its offsuit twin makes the ladder *cleaner*, 2 inversions to 0,
+and setting all 156 non-pair classes to a constant makes it perfect, because ties are not violations and
+a flat line is its optimum. A gate that rewards a transposed hand index does not catch one. The pair-band
+ladder is the only aggregate form ever seen clean, and only over the full-reach nodes.
+
+**And it decides the phase's outcome.** Measured chart-wide at the ruled one-point tolerance, the
+`calibrated` chart fails - 4 pair inversions worst 7.40 points, 3 suited-row inversions worst 23.19 -
+while the `static` build Taylor rejected passes at 0.06 and 0.00, and a chart edited to fold nothing
+scores 0 and 0. So under the reading item 10's amendment wrote, the artifact ruled in fails the gate by
+23 points and the artifact ruled out passes it. This is `frozen-into-data` in the strict sense: a stage-4
+test asserts it, stage 5 freezes it, and item 10's own words are that changing it afterwards is a task
+rather than an edit.
+
+**The options, stated as what each ships. This item does not recommend one.**
+
+`gate-both-ladders-at-one-point` - the pair-band ladder and the suited-row ladder both gate. On the
+evidence available the phase then halts at stage 6 on a 23-point miss, and the check that halts it is
+one whose optimum is a chart that folds nothing and which prefers a transposed index.
+
+`gate-the-pair-band-ladder-only-and-publish-the-suited-row` - gate the only aggregate form ever measured
+clean, and demote the anti-diagnostic one to a printed number beside the per-cell dominance table
+decision 10 already publishes. Keeps a real regression detector for a mis-assigned actor or a broken
+converter; gives up any gated statement about suited against offsuit, which is the relation phase 10's
+export was checked on.
+
+`gate-neither-and-publish-both` - the range check becomes entirely a human read, consistent with decision
+2's ship-as-solved and with the defence-level and four-bet-composition reads the contract already buys
+before the freeze. Costs the phase every automated check on the ranges; leaves `NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL` with nothing at all beside it.
+
+`gate-both-and-halt-if-it-fails` - what item 10's amendment wrote, ruled explicitly instead of assumed,
+so the halt is a choice rather than one the packet made for him. Distinct from the first option only in
+that it is taken knowingly.
+
+**Sequencing, because it decides when this is best answered rather than what the answer is.** Every
+figure above is taken on `superseded_chart_a386c77.json`, which is `calibrated` with `add_allin: true`,
+read over the same spot keys as a proxy. **The artifact decision 20 ships has not been derived.** The
+build machinery is proven and re-runs in about seven minutes. So one reply available here is "derive it
+and measure the gate on the real file first, then rule" - which would put a stage-6 build ahead of
+stage 4's test authoring, out of the loop's order, and is named so it can be chosen rather than
+discovered. Item 10's own rule that no ruling may rest on an unlabelled proxy applies to this ruling
+too.
+
+Options: gate-both-ladders-at-one-point | gate-the-pair-band-ladder-only-and-publish-the-suited-row |
+gate-neither-and-publish-both | gate-both-and-halt-if-it-fails
+Answer: []
