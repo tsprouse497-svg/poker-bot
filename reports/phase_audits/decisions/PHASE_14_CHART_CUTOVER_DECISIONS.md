@@ -2491,6 +2491,22 @@ decision 5's "stage 6" are superseded by this item.
 Options: build-early-then-measure | keep-the-order-and-measure-at-stage-6 | drop-the-check-entirely
 Answer: [build-early-then-measure]
 
+**Executed 2026-09-01, and the gate's premise holds.** The re-solve ran at `add_allin: false` and met
+every figure the contract's re-solve section states: target 0.00016 at a 2,000-iteration cap, achieved
+0.000155908 first at iteration 1,900 so the cap nearly binds, 33,969 action nodes, 0 determinism
+mismatches, 2.55 MB against a 20 MiB cap. The census reproduces the contract on the re-sourced tree -
+51 committed, 29,104 multiway, 4,814 outside-rule, summing to 33,969. The discrimination was then
+measured over the real committed 36 on eleven partitions: **0 flagged under the solver's own class
+ordering against 26 under the transposed one, every partition passing and none tying.** No halt, and
+nothing here is owed back to Taylor.
+
+**Nothing was committed from that build.** The chart it produced holds 51 spots rather than 36, because
+decision 20's third exclusion reason is not implemented yet, and `data/artifacts/**` is outside this
+task's scope because writing committed data is stage 6's job in `implementation` mode. The four files
+were reverted after the measurement. This item bought a measurement taken early, not a shipping build
+taken early. `stage-03-transcription-review.md` carries the tables and the raise-count histogram that
+defines the withholding.
+
 
 ## 24. What is done about the calling frequencies in the committed spots
 

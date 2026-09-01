@@ -174,3 +174,83 @@ beside the level a human reads.
 All six blockers resolved: four by correction, two by Taylor's rulings of 2026-09-01, recorded as
 decisions 23 and 24. Stage 3 may advance, and decision 23 makes the next action an out-of-order
 derivation rather than stage 4 test authoring.
+
+## Addendum, 2026-09-01: the out-of-order build decision 23 ruled
+
+Run from this worktree at stage 3, before any stage-4 test authoring, exactly as decision 23 rules.
+GTOpen was started locally at `127.0.0.1:3737` from the read-only clone at `~/projects/gtopen`; the
+solve is offline and one-time and the gate never runs it.
+
+**The re-solve.** `scripts/extract_gtopen_preflop.py --save-name six-max-100bb-rakefree`. Every figure
+the contract's "What the re-solve owes" section states is met, and none was assumed:
+
+| what the contract says | measured |
+|---|---|
+| `add_allin` is `False` | `false` in `config_posted` |
+| target `0.00016` at a 2,000-iteration cap | `target_gap_bb` 0.00016, `iteration_cap` 2000 |
+| first meets it at iteration 1,900, so the cap nearly binds | `iterations` 1900, achieved 0.000155908 |
+| determinism walk reports 0 mismatches | walked 33,969 action nodes, 0 mismatches |
+| node count equals the census sum 33,969 | `action_nodes` 33,969 |
+| `data/artifacts` inside the 20 MiB cap | 2,555,076 bytes, headroom 17,793,920 |
+
+The solve took 294.7 seconds. The re-source is what the gate has been red on since decision 14 - the
+committed export carried `add_allin: true` against a `RULED_CONFIG` of `False` - and that mismatch is
+now the only thing standing between this phase and a green gate that is about the phase rather than
+about an inherited config.
+
+**The census reproduces the contract exactly**, on the re-sourced tree rather than the retired one:
+51 committed by the predicate, 29,104 `source-misprices-multiway`, 4,814 `outside-selection-rule`,
+summing to 33,969.
+
+**The withholding, stated so the next reader does not repeat the coordinator's first error.** Decision
+20 withholds the spots where hero **faces a four-bet**, which is *three* raises in the action sequence.
+Four raises is hero facing a five-bet jam, and those stay committed - the contract says so in terms
+("fifteen committed spots face a five-bet jam, and at them the chart puts the last 77.5bb in"). The
+raise-count histogram over the 51 is 0→1, 1→5, 2→15, 3→15, 4→15, so the committed 36 are
+1 + 5 + 15 + 15 and the withheld 15 are exactly the `raises == 3` bucket. A first pass filtered on
+`raises >= 3`, which wrongly drops the five-bet spots and gives 21 committed; it was caught because 21
+is not 36. Anything measuring this set should assert the count.
+
+**The measurement decision 23 ordered.** `spots_violating_twins` under the solver's own class ordering
+against the same measure under `transpose_hand_index`, over the real committed 36, on every partition:
+
+| partition | solved | transposed | verdict |
+|---|---|---|---|
+| committed 36, all | 0 | 26 | pass |
+| hero=BB (5) | 0 | 5 | pass |
+| hero=BTN (4) | 0 | 2 | pass |
+| hero=CO (6) | 0 | 6 | pass |
+| hero=HJ (8) | 0 | 6 | pass |
+| hero=LJ (10) | 0 | 5 | pass |
+| hero=SB (3) | 0 | 2 | pass |
+| raises faced 0 (1) | 0 | 1 | pass |
+| raises faced 1 (5) | 0 | 5 | pass |
+| raises faced 2 (15) | 0 | 15 | pass |
+| raises faced 4 (15) | 0 | 5 | pass |
+
+**Every partition passes and no partition ties**, so decision 10's premise holds on the artifact the
+phase actually commits rather than on the 86 it was ruled over. No halt, and no decision is owed to
+Taylor here. Round 14 of the stage-01 note warned that transposing made the *suited-row ladder* cleaner
+over the committed keys; that warning was about a different relation and does not carry to the twins
+measure, which is what the coordinator was checking for and did not find.
+
+Worth stating plainly because it is the one number that could be read as too good: the solved count is
+**0** on every partition, meaning no committed spot holds a suited-under-offsuit cell beyond the
+one-point tolerance. That is the measure passing, not the measure being blind - the transposed arm
+flags 26, so it can tell the two mappings apart. What it still cannot see is everything
+`THE-DISCRIMINATION-GATE-CANNOT-SEE-OVER-FOLDING-OR-A-MIS-ASSIGNED-ACTOR` names.
+
+**Nothing was committed from this build, and that is deliberate.** The four files it wrote - the export,
+its source card, the chart and the sizing table - were reverted after the measurement. Two reasons.
+The chart it produced holds **51** spots, not 36, because decision 20's third exclusion reason
+(`source-misprices-four-bet-pot`) is not implemented; committing it would commit an artifact the
+contract does not describe. And `data/artifacts/**` is outside this task's `approved_scope`, correctly,
+because writing new committed data is stage 6's job in `implementation` mode and not a
+`contract-update` task's. Decision 23 bought a measurement taken early, not a shipping build taken
+early, and the distinction is what keeps the loop's ordering meaningful.
+
+**What stage 6 inherits from this.** The build machinery is proven end to end on the ruled config, the
+re-solve reproduces deterministically, the census is confirmed against the contract, and the gate's
+premise is confirmed on the real 36. What stage 6 still owes is the third exclusion reason and its
+census line, after which the same measurement is retaken on the committed artifact rather than on a
+filtered derivation of it.
