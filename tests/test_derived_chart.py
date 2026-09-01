@@ -2,35 +2,35 @@
 
 Authored before the converter, the artifact and the report exist, and frozen before any of them
 does, so this file is the specification rather than a description of what got built. It owns the
-committed data in its own right: that the library holds one chart at the new schema version,
-that it names the export it came from, that both rulings can be re-derived from the artifact's
-own keys, that it holds one opening range and it is the small blind's, that it declares the
-blind structure the solve posted, that every cell carries the arriving reach decision 5 ruled
-in, that no cell limps, and that its audit notes confess the two mispricings the census names.
+committed data in its own right: that the library holds one chart at the new schema version
+naming the export it came from, that all three rulings can be re-derived from the artifact's own
+keys, that it holds one opening range and it is the small blind's, that it declares the blind
+structure the solve posted, that every cell carries the arriving reach decision 5 ruled in, that
+no cell limps, and that its audit notes confess what is absent.
 
-**The chart holds 36 spots.** Decision 1's predicate selects 51 and decision 20 then withholds
-the fifteen where hero faces a four-bet, the `calibrated` fit having no cell for a four-bet pot.
-Hero facing a *five-bet jam* is a different spot and stays: fifteen of the 36 are hero answering
-a jam with 22.5 already in, putting the last 77.5bb in, and reading decision 20 as "three raises
-or more" drops them and commits 21. `selected`, imported from `tests/test_chart_derivation.py`,
-already means committed.
+**The chart holds 21 spots.** Decision 1's predicate selects 51; decision 20 withholds the
+fifteen where hero faces a four-bet, the `calibrated` fit having no cell for a four-bet pot; and
+Taylor's ruling of 2026-09-01 withholds the fifteen where hero answers the five-bet jam that
+follows, those cells being priced against a range computed at the very four-bet nodes decision
+20 refuses. Together the withholdings are `raises_faced >= 3`. `selected`, imported from
+`tests/test_chart_derivation.py`, means committed under all three rulings.
 
 `tests/test_chart_cutover_evidence.py` is the other half, split off at the 700-line cap: it owns
 the evidence *about* the cutover - the retired chart's overlap with what replaces it, the source
 card, the two orderings, the dominance measurements - and imports this file's table constants,
-predicate walk and cell readers rather than copying them. Both run under `pytest_derived_chart`.
+predicate walk and cell readers rather than copying them.
 
 Two habits run through both. Nothing is checked against a number this repo remembered: reach and
-the blind structure are recomputed from the committed export or read off the committed source
-card, because a chart checked against a constant typed beside it is one number agreeing with
-itself. And the walk that locates an export node is written here rather than imported from the
-conversion module, for the same reason - the conversion is what is on trial.
+the blind structure are recomputed from the committed export or read off the source card. And
+the walk that locates an export node is written here rather than imported from the conversion
+module, for the same reason - the conversion is what is on trial.
 """
 
 from __future__ import annotations
 
 import re
 import subprocess
+import sys
 from collections import Counter
 
 import pytest
@@ -79,14 +79,21 @@ SEATS = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
 OPENING_ORDER = ("LJ", "HJ", "CO", "BTN")
 
 
-COMMITTED_SPOTS = 36
-"""What the two rulings leave: the predicate keeps 51 - at most one opponent voluntarily
-invested and at most two players still live - and decision 20 withholds the 15 four-bet-facing
-spots. Both are tree facts, so a re-solve at the ruled config cannot move them."""
+COMMITTED_SPOTS = 21
+"""What the three rulings leave: the predicate keeps 51 - at most one opponent voluntarily
+invested and at most two players still live - decision 20 withholds the 15 four-bet-facing
+spots, and the 2026-09-01 ruling the 15 jam-facing ones. All tree facts, so a re-solve at the
+ruled config cannot move them."""
 
-FIVE_BET_JAM_SPOTS = 15  # the jams the chart answers: hero has 22.5 in, the call is the 100
-RAISES_FACED_AT_A_COMMITTED_SPOT = {0: 1, 1: 5, 2: 15, 4: 15}
-"""No entry at 3, and that is decision 20; the 15 at 4 are the five-bet jams it keeps."""
+RAISES_FACED_AT_A_COMMITTED_SPOT = {0: 1, 1: 5, 2: 15}
+"""No entry at 3 and none at 4: the first is decision 20, the second the 2026-09-01 ruling. Both
+withheld families number 15, so a build applying one withholding and not the other lands on 36
+either way and only the histogram tells them apart."""
+
+FULL_REACH_SPOTS = 6
+OPENING_SEATS = ("LJ", "HJ", "CO", "BTN", "SB")
+"""The five opens the big blind answers; with the small blind's own open they are the six spots
+hero reaches without having acted, which is the whole of the full-reach set."""
 
 
 # The one opening range the cutover commits. The fourteen it gives up are named in
@@ -116,27 +123,29 @@ def card() -> dict:
     return load_source_card(COMMITTED_SOURCE_CARD_PATH)
 
 
-FOLD = ("fold", None)
-OPEN = ("raise", 2.5)
-THREE_BET = ("raise", 7.5)
-FOUR_BET = ("raise", 22.5)
-FIVE_BET_JAM = ("jam", 100.0)
+FOLD, OPEN, THREE_BET = ("fold", None), ("raise", 2.5), ("raise", 7.5)
+FOUR_BET, FIVE_BET_JAM = ("raise", 22.5), ("jam", 100.0)
 
 
 # Where these tests look the export up: each plan is the actions taken from the root, and the
 # node it lands on is the one whose reach the artifact claims to carry. **Every plan lands on a
 # committed spot.** A plan ending where three players are still live is a spot the chart
-# refuses, and so now is one ending where hero faces a four-bet, so probing either would compare
-# the artifact against a cell it deliberately does not hold. The last two plans carry the
-# weight, because hero has acted there and the arriving range is a real one rather than all 169
-# classes at full weight; the last one is hero answering a five-bet jam, which is the spot
-# decision 20 is most often misread as withholding.
+# refuses, and so now is one ending where hero faces a four-bet or answers the jam after it, so
+# probing any of those would compare the artifact against a cell it deliberately does not hold.
+# The last plan carries the weight, because hero has acted there and the arriving range is a
+# real one rather than all 169 classes at full weight.
 PROBE_PLANS: dict[str, tuple[tuple[str, float | None], ...]] = {
     "SB open-folded to": (FOLD, FOLD, FOLD, FOLD),
     "BB facing a button open": (FOLD, FOLD, FOLD, OPEN, FOLD),
     "BB facing a small-blind open": (FOLD, FOLD, FOLD, FOLD, OPEN),
     "BB facing a lojack open": (OPEN, FOLD, FOLD, FOLD, FOLD),
     "SB facing a big-blind three-bet": (FOLD, FOLD, FOLD, FOLD, OPEN, THREE_BET),
+}
+
+# The two plans that land on withheld nodes, kept so the probe set can be shown to stop where
+# the rulings stop rather than merely to agree everywhere it looks.
+WITHHELD_PLANS: dict[str, tuple[tuple[str, float | None], ...]] = {
+    "BB facing a button four-bet": (FOLD, FOLD, FOLD, OPEN, FOLD, THREE_BET, FOUR_BET),
     "BTN facing a big-blind five-bet jam": (
         FOLD, FOLD, FOLD, OPEN, FOLD, THREE_BET, FOUR_BET, FIVE_BET_JAM,
     ),
@@ -144,9 +153,9 @@ PROBE_PLANS: dict[str, tuple[tuple[str, float | None], ...]] = {
 
 
 def follow(by_path: dict, plan: tuple[tuple[str, float | None], ...]):
-    """Walk the export by naming actions, and derive the spot key of where it lands. A recorded
-    action's actor is the *parent's* actor, not the node's, and getting that backwards mislabels
-    every entry in the key silently, which is why the walk is repeated here."""
+    """Walk the export by naming actions and derive the spot key of where it lands. A recorded
+    action's actor is the *parent's*, and getting that backwards silently mislabels every entry
+    in the key, which is why the walk is repeated here."""
     path: tuple[int, ...] = ()
     entries: list[PreflopAction] = []
     for kind, to in plan:
@@ -166,12 +175,11 @@ def follow(by_path: dict, plan: tuple[tuple[str, float | None], ...]):
 def live_and_invested(hero_position: str, entries) -> tuple[int, int]:
     """The ruled predicate's two counts, re-derived from a spot key's own contents.
 
-    This is what makes the selection rule checkable from the artifact rather than only from
-    the converter that applied it. The ring walk is the one `spot_key` itself describes: a
-    cursor starts at the first seat to act and moves forward, and every seat it passes without
-    a recorded action has folded there. Seats the cursor has not reached yet are still live,
-    which is the distinction that is easy to get backwards - and getting it backwards is
-    exactly the error that made a history predicate look like a subtree one.
+    This is what makes the selection rule checkable from the artifact rather than only from the
+    converter that applied it. The ring walk is the one `spot_key` describes: a cursor starts at
+    the first seat to act and moves forward, and every seat it passes without a recorded action
+    has folded there. Seats the cursor has not reached are still live, the distinction easy to
+    get backwards - and getting it backwards made a history predicate look like a subtree one.
     """
     folded: set[str] = set()
     cursor = 0
@@ -209,11 +217,8 @@ def reach_by_class(artifact: PreflopArtifact, spot_id: str) -> dict:
 
 def rfi_artifact(limping_class: str | None = None) -> PreflopArtifact:
     """A hand-built one-spot artifact: the small blind open-folded to, all 169 classes covered.
-
-    The small blind because that is the one opening range the cutover commits, and because in
-    the export it is the single spot offering hero a raise and no call at all. Legitimate in
-    every other respect, so a rejection can only be about the limp.
-    """
+    The small blind because it is the one opening range the cutover commits and the single spot
+    offering hero a raise and no call; legitimate otherwise, so a rejection is about the limp."""
     key = spot_key(TABLE_SIZE, STACK_DEPTH_BB, "SB", ())
     ordered = tuple(sorted(HAND_CLASSES, key=hand_class_grid_index))
     cells = tuple(
@@ -242,30 +247,26 @@ def rfi_artifact(limping_class: str | None = None) -> PreflopArtifact:
     )
 
 
-def test_the_library_holds_exactly_one_chart_at_the_new_schema_version(
+def test_the_library_holds_one_chart_that_names_the_export_it_came_from(
     library: PreflopChartLibrary,
 ) -> None:
-    """One chart, six-handed, 100bb, at the version decisions 4 and 5 share. The count is the
-    point rather than the name: two artifacts is the state where a reader cannot say which
-    ranges the bot plays."""
+    """One chart, six-handed, 100bb, at the version decisions 4 and 5 share, pointing at the
+    solve it was derived from.
+
+    The count is the point rather than the name: two artifacts is the state where a reader
+    cannot say which ranges the bot plays. And the provenance has to resolve to the GTOpen
+    export rather than the GTO Wizard source - both exist in this tree and both are plausible
+    strings, so a reference that merely points at something readable proves nothing.
+    """
     assert len(library.artifacts) == 1
     artifact = library.artifacts[0]
+    referenced = (REPO_ROOT / artifact.source.reference).resolve()
 
     assert artifact.artifact_schema_version == ARTIFACT_SCHEMA_VERSION == 2
     assert artifact.table_size == TABLE_SIZE
     assert artifact.stack_depth_bb == STACK_DEPTH_BB
     assert artifact.source.kind == "solver-export"
     assert len(artifact.spots) == len(library.spot_keys()) == COMMITTED_SPOTS
-
-
-def test_the_chart_names_the_committed_export_it_was_derived_from(
-    artifact: PreflopArtifact,
-) -> None:
-    """Provenance that resolves to the GTOpen export, not to the GTO Wizard source. Both files
-    exist in this tree and both are plausible strings, so a reference that merely points at
-    something readable proves nothing about which solve produced the ranges."""
-    referenced = (REPO_ROOT / artifact.source.reference).resolve()
-
     assert referenced == COMMITTED_EXPORT_PATH.resolve()
     assert referenced.parent.name == "exports"
 
@@ -273,17 +274,18 @@ def test_the_chart_names_the_committed_export_it_was_derived_from(
 def test_every_committed_spot_satisfies_the_ruled_predicate(artifact: PreflopArtifact) -> None:
     """Both rulings, re-derived from the artifact's own keys rather than trusted.
 
-    The predicate needs both clauses, because either alone is a different chart: the history
-    clause alone selects 65 nodes of the export and admits 14 whose terminals can still go
-    multiway, the subtree clause alone selects 4,865 and admits 4,814 reached through a cold
-    call. A spot with three players still live is the error the 2026-08-25 supersession
-    corrected, and it is invisible to every other check here - the cell converts cleanly,
-    imports cleanly and is priced by a model that cannot see three-way equity.
+    The predicate needs both clauses, either alone being a different chart: the history clause
+    alone selects 65 nodes and admits 14 whose terminals can still go multiway, the subtree
+    clause alone 4,865 and admits 4,814 reached through a cold call. A spot with three players
+    still live is the error the 2026-08-25 supersession corrected and is invisible to every
+    other check here - the cell converts, imports, and is priced by a model that cannot see
+    three-way equity.
 
-    Decision 20 is the second half, asserted by the raise counts rather than by the total,
-    because 36 and 21 are both totals a wrong filter produces. No committed spot faces three
-    raises; fifteen face four, hero answering a five-bet jam with 22.5 in, and there the chart
-    still puts the last 77.5bb in. A chart without them read decision 20 as "three or more".
+    The withholdings are the second half, asserted by the raise counts rather than the total,
+    because 36 and 21 are both totals a wrong filter produces and both withheld families number
+    15. No committed spot faces three raises, which is decision 20, and none faces four, which
+    is the 2026-09-01 ruling. No committed sequence quotes 100 at all, the same claim read off
+    the keys rather than the counts.
     """
     live_counts = Counter()
     raise_counts = Counter()
@@ -298,11 +300,10 @@ def test_every_committed_spot_satisfies_the_ruled_predicate(artifact: PreflopArt
     assert live_counts == {2: COMMITTED_SPOTS}
     assert dict(raise_counts) == RAISES_FACED_AT_A_COMMITTED_SPOT
     assert raise_counts[3] == 0, "decision 20 withholds every four-bet-facing spot"
-    assert raise_counts[4] == FIVE_BET_JAM_SPOTS
+    assert raise_counts[4] == 0, "the 2026-09-01 ruling withholds every jam-facing spot"
     for spot in artifact.spots:
-        last = spot.action_sequence[-1] if spot.action_sequence else None
-        if last is not None and last.size_bb == 100.0:
-            assert spot.action_sequence[-2].size_bb == 22.5, spot.spot_id
+        for entry in spot.action_sequence:
+            assert entry.size_bb != 100.0, spot.spot_id
 
 
 def test_the_chart_holds_one_opening_range_and_it_is_the_small_blinds(
@@ -312,10 +313,9 @@ def test_the_chart_holds_one_opening_range_and_it_is_the_small_blinds(
 
     Four of the five opens are among the 24 the predicate drops, so the bot cannot open a pot
     from the lojack, hijack, cutoff or button and refuses those decisions with a code. Taylor
-    confirmed that on 2026-08-25 knowing it is a regression against the chart being retired
-    rather than only against the 110. A chart carrying a second opening range is a chart built
-    on the superseded predicate, which is why the absences are asserted and not just the one
-    presence.
+    confirmed that on 2026-08-25 knowing it is a regression against the retired chart. A chart
+    with a second opening range is one built on the superseded predicate, which is why the
+    absences are asserted and not just the presence.
     """
     folded_to_hero = {spot.spot_id for spot in artifact.spots if not spot.action_sequence}
 
@@ -330,9 +330,8 @@ def test_the_chart_declares_the_blind_structure_the_solve_posted(
 ) -> None:
     """Decision 4, with the blinds read off the posted config rather than spelled here.
 
-    `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE` was phase 13's largest finding:
-    the chart was solved at 0.5/1 and nothing stopped it being asked about a 1/3 game, where
-    the same hand at the same depth is a different decision."""
+    `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE` was phase 13's largest finding: the
+    chart was solved at 0.5/1 and nothing stopped it being asked about a 1/3 game."""
     posted = card["config_posted"]
     positions, posts = list(posted["positions"]), list(posted["posts"])
     declared = artifact.blind_structure
@@ -343,8 +342,8 @@ def test_the_chart_declares_the_blind_structure_the_solve_posted(
     assert sum(posts) == declared.small_blind_bb + declared.big_blind_bb
 
 
-# No small blind, a negative one, no big blind, inverted blinds, a negative ante. A zero ante
-# is a real table and is deliberately not on the list.
+# No small blind, a negative one, no big blind, inverted blinds, a negative ante. A zero ante is
+# a real table and is deliberately not on the list.
 IMPOSSIBLE_BLINDS = [(0.0, 1.0, 0.0), (-0.5, 1.0, 0.0), (0.5, 0.0, 0.0), (1.0, 0.5, 0.0),
                      (0.5, 1.0, -0.1)]
 
@@ -353,19 +352,18 @@ IMPOSSIBLE_BLINDS = [(0.0, 1.0, 0.0), (-0.5, 1.0, 0.0), (0.5, 0.0, 0.0), (1.0, 0
 def test_a_blind_structure_that_is_not_one_is_rejected(
     small: float, big: float, ante: float
 ) -> None:
-    """Validated on construction rather than merely stored. A field nothing validates is one a
-    later artifact can fill with anything, and the lookup refusing a mismatched table would
-    then compare against a number that never described a game."""
+    """Validated on construction rather than merely stored: a field nothing validates is one a
+    later artifact can fill with anything."""
     with pytest.raises(ValueError):
         schema.BlindStructure(small_blind_bb=small, big_blind_bb=big, ante_bb=ante)
 
 
 def test_every_committed_cell_carries_an_arriving_reach(artifact: PreflopArtifact) -> None:
-    """Decision 5: one reach value per cell, covering exactly the cells the chart answers.
+    """Decision 5: one reach value per cell, covering exactly the cells the chart answers, and
+    `reach_bp_for` failing closed like every other lookup.
 
-    A per-spot summary is explicitly not on the menu, because a spot-level number cannot tell
-    one cell from another. A reach of zero is not committed either: a cell hero cannot arrive
-    at is a cell the solver never trained."""
+    A per-spot summary is not on the menu, a spot-level number being unable to tell one cell
+    from another; a reach of zero is not committed either."""
     reach = dict(artifact.arriving_reach_bp)
 
     assert set(reach) == {spot.spot_id for spot in artifact.spots}
@@ -376,17 +374,10 @@ def test_every_committed_cell_carries_an_arriving_reach(artifact: PreflopArtifac
             assert isinstance(value, int) and not isinstance(value, bool), (spot_id, name)
             assert 0 < value <= QUANTISATION_SCALE, (spot_id, name, value)
 
-
-def test_reach_answers_for_a_covered_cell_and_refuses_an_uncovered_one(
-    artifact: PreflopArtifact,
-) -> None:
-    """`reach_bp_for` is the reader's way in, and it fails closed like every other lookup."""
     covered = artifact.reach_bp_for(SB_OPEN_KEY, "AA")
-
-    assert covered == reach_by_class(artifact, SB_OPEN_KEY)["AA"]
-    assert covered > 0
-
     deeper = f"t{TABLE_SIZE}/d500/SB/rfi"
+
+    assert covered == reach_by_class(artifact, SB_OPEN_KEY)["AA"] > 0
     assert deeper not in {spot.spot_id for spot in artifact.spots}
     assert artifact.reach_bp_for(deeper, "AA") is None
 
@@ -394,13 +385,14 @@ def test_reach_answers_for_a_covered_cell_and_refuses_an_uncovered_one(
 def test_the_cells_at_full_reach_are_the_ones_hero_reaches_without_acting(
     artifact: PreflopArtifact,
 ) -> None:
-    """Decision 5's field earns its place on the committed 36.
+    """Decision 5's field earns its place on the committed 21.
 
-    Six of the 36 sit at full reach and thirty do not, so the per-cell field has something to
-    distinguish at five spots out of six. The six are named by a rule rather than listed:
-    hero's whole range arrives exactly where hero has not yet acted - the small blind
-    open-folded to, and the big blind against each of the five opens. Anything else is reach
-    that was written instead of read.
+    Six sit at full reach and fifteen do not, so the per-cell field has something to distinguish
+    at five spots out of seven. The six are named by a rule *and* listed, a count of six being
+    what a chart holding the wrong six also reports: hero's whole range arrives exactly where
+    hero has not yet acted, which is the small blind open-folded to and the big blind against
+    each of the five opens. The spot count is asserted here too - on the stale 86-spot chart
+    this file was authored against, the rule and the list both held over a set nobody committed.
     """
     full = set()
     unacted = set()
@@ -412,9 +404,12 @@ def test_the_cells_at_full_reach_are_the_ones_hero_reaches_without_acting(
         if all(entry.position != spot.hero_position for entry in spot.action_sequence):
             unacted.add(spot.spot_id)
 
+    assert len(artifact.spots) == COMMITTED_SPOTS
     assert full == unacted
-    assert len(full) == 6
-    assert SB_OPEN_KEY in full
+    assert len(full) == FULL_REACH_SPOTS
+    assert full == {SB_OPEN_KEY} | {
+        f"t{TABLE_SIZE}/d{STACK_DEPTH_BB}/BB/{seat}:raise@2.5" for seat in OPENING_SEATS
+    }
 
 
 def test_the_charts_reach_is_the_exports_reach_recomputed(
@@ -424,56 +419,64 @@ def test_the_charts_reach_is_the_exports_reach_recomputed(
 
     Recomputed by walking the export directly and indexing it with GTOpen's own class
     ordering, so this is not two copies of one number agreeing with itself. It also catches the
-    transposition defect: `hand_class_grid_index` and `gtopen_class_index` disagree on all but
-    a handful of classes, and the wrong one swaps suited for offsuit while leaving every total
-    intact. The last two plans carry the weight, since a chart writing 10,000 everywhere passes
-    the ones where hero has not acted."""
+    transposition defect: `hand_class_grid_index` and `gtopen_class_index` disagree on all but a
+    handful of classes, and the wrong one swaps suited for offsuit while leaving every total
+    intact. The last plan carries the weight, a chart writing 10,000 everywhere passing the ones
+    where hero has not acted. **The withheld plans are followed too and must land nowhere**:
+    agreeing on five probed spots is a property the stale 86-spot chart also had, and what tells
+    this chart from that one is where it stops."""
     by_path = committed_export.by_path()
+    declared = {spot.spot_id for spot in artifact.spots}
     graded = 0
     for label, plan in PROBE_PLANS.items():
         node, key = follow(by_path, plan)
         arriving = {name: node.reach_bp[gtopen_class_index(name)] for name in HAND_CLASSES}
         solved = {name: value for name, value in arriving.items() if value > 0}
 
+        assert key in declared, label
         assert reach_by_class(artifact, key) == solved, label
         if len(set(solved.values())) > 20:
             graded += 1
 
     assert graded, "no probed spot had reach varying by class, so nothing was really compared"
+    assert len(declared) == COMMITTED_SPOTS
+    for label, plan in WITHHELD_PLANS.items():
+        _, key = follow(by_path, plan)
+        assert key not in declared, (label, key)
 
 
 # The grid the export offers at the committed spots, and what the chart keeps of it. A GTOpen
 # payload is unconditional - a hand hero folded three actions ago still carries a full strategy
-# row - so all 36 nodes ship 169 classes each and `reach_bp` is the only thing saying which hero
-# can hold. 3,751 of the 6,084 never arrive.
-GRID_CELLS = 36 * 169
-COMMITTED_CELLS = 2_333
+# row - so all 21 nodes ship 169 classes and `reach_bp` alone says which hero can hold. 1,517
+# of the 3,549 never arrive.
+GRID_CELLS = 21 * 169
+COMMITTED_CELLS = 2_032
 
 # Within one basis point of 1/n, the quantisation step, so this is the untouched initialisation
-# exactly rather than near it. Every one of the 1,593 is refused, and that is checkable without
+# exactly rather than near it. Every one of the 592 is refused, and that is checkable without
 # ruling an epsilon: a row the solver never moved is still where the solve put it.
-EXACT_INITIALISATION_CELLS = 1_593
+EXACT_INITIALISATION_CELLS = 592
 
 # The same rows at the two-point tolerance `UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY` used,
-# restricted to nodes offering three or more actions, where 1/3 is not a frequency trained play
-# lands on. Over the committed 36 it catches exactly the 592 the exact reading already caught,
-# so it adds nothing today and is kept as a regression detector rather than counted as a second
-# check. At a two-action node it does not separate at all: 1/n is 50 percent, and 50 percent is
-# what an indifferent hand plays.
+# restricted to menus of three or more actions, where 1/3 is not a frequency trained play lands
+# on. **Over the committed 21 the two readings coincide exactly** - the same 592 cells, not
+# merely the same count - where over the 36 the exact reading caught 1,593 and this one 592. The
+# extra 1,001 were the jam spots' two-action rows at 5,000 and 5,000, all withheld now; the only
+# two-action node left is the small blind's open, which has no uniform row at all.
 UNIFORM_CELLS_ON_A_THREE_ACTION_MENU = 592
 UNIFORM_TOLERANCE_BP = 200
 
-# The lojack answering the hijack's five-bet jam, holding 72o. The class never arrives - nobody
-# opens it from the lojack - so the solver never trained the cell and its row is the
-# initialisation exactly: 5,000 and 5,000 across fold and call. Committed, that does not read as
-# missing, it reads as a considered coin flip, and the bot puts the last 77.5bb in half the
-# time. Which is what makes a uniform row worse than a gap rather than merely as bad.
-UNTRAINED_SPOT = "t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5,HJ:raise@100"
+# The lojack facing the hijack's three-bet, holding 72o. The class never arrives - nobody opens
+# it from the lojack - so the solver never trained the cell and its row is the initialisation:
+# 3,333, 3,333 and 3,334 across fold, call and raise. Committed, that reads as a considered
+# three-way mix rather than as missing, which is what makes a uniform row worse than a gap.
+# Until 2026-09-01 the named spot was the lojack answering the hijack's five-bet jam at 5,000
+# and 5,000; that spot is withheld now, so the example moved one street shallower. The row is
+# checked by deviation, `QUANTISATION_SCALE` not dividing by three.
+UNTRAINED_SPOT = "t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5"
 UNTRAINED_SEQUENCE = (
     PreflopAction("LJ", "raise", 2.5),
     PreflopAction("HJ", "raise", 7.5),
-    PreflopAction("LJ", "raise", 22.5),
-    PreflopAction("HJ", "raise", 100.0),
 )
 UNTRAINED_CLASS = "72o"
 UNTRAINED_HERO = "LJ"
@@ -500,23 +503,23 @@ def test_a_class_that_never_arrives_is_refused_rather_than_committed(
     `test_every_committed_cell_carries_an_arriving_reach` already requires a committed cell's
     own reach to be positive, but that is the artifact agreeing with itself: it cannot see a
     cell the converter committed while writing a reach it never read. This compares the
-    committed cells against the export's own `reach_bp`, class by class, at all 36 spots, so
-    the rule is checked where it is applied. 3,751 of the 6,084 never arrive and not one of
-    them is an answer.
+    committed cells against the export's own `reach_bp`, class by class, at all 21 spots, so the
+    rule is checked where it is applied. 1,517 of the 3,549 never arrive and none is an answer.
 
     The bound is deliberately one-sided, and the reason is a blocker rather than a shortcut.
     Committing a class that never arrives is ruled out; refusing *more* than that is the open
     question - whether an untrained-cell rule fires at a two-action node, and at what reading -
-    and no lower bound survives every candidate answer. A one-percent arriving-reach cutoff, the
-    form `CHART-MUST-REFUSE-AN-UNTRAINED-CELL` asks for in terms, refuses 1,801 cells that
-    arrive; a uniform-row epsilon refuses five. An assertion tight enough to be a real floor
-    would pick between them, which is Taylor's to do and not this file's. So what is asserted
-    is the direction that is ruled, plus the ceiling: 2,333 is what refusing exactly the cells
-    that never arrive commits, and nothing may commit more. Coverage is held by the tests either
-    side - the chart still has to answer the small blind's open, the big blind's defence and the
-    named cell below - so an empty chart does not pass by default. Both totals are solve output
-    rather than tree shape; decision 2 ships as solved.
+    and no lower bound survives every candidate answer. So what is asserted is the ruled
+    direction plus the ceiling: 2,032 is what refusing exactly the cells that never arrive
+    commits, and nothing may commit more. Coverage is held by the tests either side, so an empty
+    chart does not pass by default. Both totals are solve output; decision 2 ships as solved.
+
+    **`export_cells` is the walk, so the spot count is compared against the artifact and not
+    against itself.** Until 2026-09-01 this read `len(export_cells) == COMMITTED_SPOTS`, the
+    walk agreeing with a constant: the fixture is built from `selected` and cannot see a wrong
+    chart at all. What it has to be compared with is the artifact's own declared spots.
     """
+    declared = {spot.spot_id for spot in artifact.spots}
     committed = 0
     for key, node in export_cells.items():
         arriving = {name for name in HAND_CLASSES if node.reach_bp[gtopen_class_index(name)] > 0}
@@ -525,33 +528,42 @@ def test_a_class_that_never_arrives_is_refused_rather_than_committed(
         assert cells <= arriving, (key, sorted(cells - arriving))
         committed += len(cells)
 
-    assert len(export_cells) == COMMITTED_SPOTS
+    assert set(export_cells) == declared
+    assert len(declared) == COMMITTED_SPOTS
+    assert len(export_cells) * len(HAND_CLASSES) == GRID_CELLS
     assert 0 < committed <= COMMITTED_CELLS
 
 
-def test_an_untrained_cell_is_refused_at_the_table_rather_than_answered(
-    library: PreflopChartLibrary, export_cells: dict[str, SolverNode]
+def test_an_untrained_cell_is_refused_at_the_table_and_none_sits_at_the_initialisation(
+    library: PreflopChartLibrary, artifact: PreflopArtifact, export_cells: dict[str, SolverNode]
 ) -> None:
-    """The refusal asked as a query, because absence from a payload is not yet a refusal.
+    """The refusal asked as a query, and the same rule read off every strategy row.
 
     A cell missing from the weights is only a refusal if the lookup turns it into one with a
-    code the caller can log, which is the same standard the excluded nodes are held to. The
-    spot itself is committed and answers a hand that does arrive, so this is one cell being
-    declined rather than the chart being empty - a chart holding nothing passes the refusal
-    half on its own.
+    code the caller can log, the same standard the excluded nodes are held to. The named spot is
+    committed and answers a hand that does arrive, so one cell is being declined rather than the
+    chart being empty - a chart holding nothing passes the refusal half on its own.
+
+    Then the whole grid, off the row rather than the reach. Reach says a cell was never visited;
+    the row says the solver never touched it, and neither implies the other - 925 cells at zero
+    reach carry an ordinary row, and the row is what a reader sees. Asserted at the two
+    tolerances needing nobody's ruling: within a basis point of 1/n, and the census tolerance on
+    menus of three or more actions. Every cell either catches is refused already; over the
+    committed 21 the readings catch the identical 592, so the looser one only detects drift.
     """
     assert UNTRAINED_SPOT in export_cells, "the named untrained spot is not committed"
     node = export_cells[UNTRAINED_SPOT]
     index = gtopen_class_index(UNTRAINED_CLASS)
     menu = len(node.actions)
+    share = QUANTISATION_SCALE / menu
+    row = [node.strategy_bp[act][index] for act in range(menu)]
     query = ChartQuery(
         TABLE_SIZE, STACK_DEPTH_BB, UNTRAINED_HERO, UNTRAINED_SEQUENCE, UNTRAINED_CLASS
     )
 
     assert node.reach_bp[index] == 0
-    assert [node.strategy_bp[act][index] for act in range(menu)] == [
-        QUANTISATION_SCALE // menu
-    ] * menu
+    assert menu == 3, "the named untrained cell is no longer on a fold, call and raise menu"
+    assert max(abs(weight - share) for weight in row) < 1.0, row
 
     refused = library.lookup(query)
     answered = library.lookup(
@@ -566,57 +578,42 @@ def test_an_untrained_cell_is_refused_at_the_table_rather_than_answered(
     assert not isinstance(answered, ChartMiss), getattr(answered, "detail", "")
     assert answered.spot_key == UNTRAINED_SPOT
 
-
-def test_no_committed_cell_sits_at_the_solvers_untouched_initialisation(
-    artifact: PreflopArtifact, export_cells: dict[str, SolverNode]
-) -> None:
-    """The same rule read off the strategy row rather than off the reach, at no ruled epsilon.
-
-    Reach says a cell was never visited; the row says the solver never touched it. Neither
-    implies the other - 2,158 cells at zero reach carry a perfectly ordinary row, and the row is
-    what a reader of the chart sees. Asserted at the two tolerances that need nobody's ruling:
-    within a basis point of 1/n, the quantisation step, and the census tolerance restricted to
-    menus of three or more actions. Every cell either reading catches is refused already, which
-    is what makes the rule assertable before the epsilon question is answered. Over the 36 the
-    looser reading catches nothing the exact one misses, so it is a regression detector here
-    rather than a second check that passed.
-    """
     exact = 0
     on_a_wide_menu = 0
-    for key, node in export_cells.items():
+    for key, cell_node in export_cells.items():
         committed = set(weights_by_class(artifact, key))
-        menu = len(node.actions)
-        share = QUANTISATION_SCALE / menu
+        width = len(cell_node.actions)
+        uniform = QUANTISATION_SCALE / width
         for name in HAND_CLASSES:
-            index = gtopen_class_index(name)
-            row = [node.strategy_bp[act][index] for act in range(menu)]
-            deviation = max(abs(weight - share) for weight in row)
+            column = gtopen_class_index(name)
+            weights = [cell_node.strategy_bp[act][column] for act in range(width)]
+            deviation = max(abs(weight - uniform) for weight in weights)
             if deviation < 1.0:
                 exact += 1
                 assert name not in committed, (key, name)
-            if menu >= 3 and deviation < UNIFORM_TOLERANCE_BP:
+            if width >= 3 and deviation < UNIFORM_TOLERANCE_BP:
                 on_a_wide_menu += 1
                 assert name not in committed, (key, name)
 
     assert exact == EXACT_INITIALISATION_CELLS
     assert on_a_wide_menu == UNIFORM_CELLS_ON_A_THREE_ACTION_MENU
+    assert exact == on_a_wide_menu, "the two readings have stopped coinciding"
 
 
-def test_the_schema_rejects_an_artifact_whose_hero_limps() -> None:
+def test_the_schema_rejects_an_artifact_whose_hero_limps_and_accepts_one_that_does_not(
+) -> None:
     """A spot with an empty action sequence may not carry a positive call weight.
 
     The pot is folded to hero, so a call is a limp, and `CHART-HERO-MUST-NEVER-LIMP` asks for
-    this as a rule rather than as a measurement over one file: the export enforces it by
-    construction, "but that is a property of the data rather than a rule", and phase 14 owns
-    the schema. The chart being retired limps 13.73 percent from the small blind,
-    combo-weighted over 1,326 combos, across 103 hand classes with a nonzero call weight, so
-    this is not a hypothetical shape."""
+    this as a rule rather than a measurement over one file: the export enforces it by
+    construction, "but that is a property of the data rather than a rule", and phase 14 owns the
+    schema. The retired chart limps 13.73 percent from the small blind across 103 classes with a
+    nonzero call weight, so this is not hypothetical. The same fixture without the limp is built
+    afterwards, so the rejection is known to be about the limp.
+    """
     with pytest.raises(ValueError, match="(?i)limp"):
         rfi_artifact(limping_class="A5s")
 
-
-def test_the_same_artifact_without_the_limp_is_accepted() -> None:
-    """The rejection above is about the limp and not about the fixture being malformed."""
     built = rfi_artifact()
 
     assert built.audit_fields.spot_count == 1
@@ -624,11 +621,10 @@ def test_the_same_artifact_without_the_limp_is_accepted() -> None:
 
 
 def test_no_committed_spot_limps(artifact: PreflopArtifact) -> None:
-    """And the committed chart satisfies the rule, which the rule alone does not prove: a
-    schema rule no committed file exercises is a rule nobody has run. There is exactly one
-    folded-to-hero spot left to exercise it, and in the export it is not even offered a call -
-    the small blind's menu there is fold, raise and jam - so the rule holds by construction
-    and is asserted anyway."""
+    """And the committed chart satisfies the rule, which the rule alone does not prove: a schema
+    rule no committed file exercises is a rule nobody has run. One folded-to-hero spot is left to
+    exercise it, and the export does not even offer a call there, so the rule holds by
+    construction and is asserted anyway."""
     folded_to_hero = {spot.spot_id for spot in artifact.spots if not spot.action_sequence}
 
     assert folded_to_hero == {SB_OPEN_KEY}
@@ -638,28 +634,51 @@ def test_no_committed_spot_limps(artifact: PreflopArtifact) -> None:
             assert called == 0.0, (spot_id, name, called)
 
 
-def test_the_committed_chart_reproduces_from_the_committed_export() -> None:
-    """The export is the source of truth; the chart and its sizings are its output. A hand
-    edit to a derived file is a number with no origin, and `--check` is what tells one from a
-    conversion nobody re-ran."""
+def test_the_committed_chart_reproduces_from_the_committed_export(
+    artifact: PreflopArtifact,
+) -> None:
+    """The export is the source of truth; the chart and its sizings are its output. A hand edit
+    to a derived file is a number with no origin, and `--check` is what tells one from a
+    conversion nobody re-ran.
+
+    **Reproducible is not the same as right, so the spot count goes with it.** A chart the
+    converter regenerates byte for byte is still the wrong chart if the converter applies the
+    wrong rulings, and until 2026-09-01 the only thing between this test and a green was whether
+    somebody had run the converter - a sibling in this family used to do exactly that, mid-run.
+    The interpreter is `sys.executable`, so a second one cannot answer for this.
+    """
     result = subprocess.run(
-        ["python", str(CONVERTER), "--check"], cwd=REPO_ROOT, capture_output=True, text=True
+        [sys.executable, str(CONVERTER), "--check"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
     )
 
     assert result.returncode == 0, result.stdout + result.stderr
+    assert len(artifact.spots) == COMMITTED_SPOTS
 
 
-def test_the_chart_states_the_realization_bias_in_poker_terms(
+def test_the_chart_confesses_the_realization_bias_and_what_it_left_out(
     artifact: PreflopArtifact, committed_export: SolverExport
 ) -> None:
-    """`REALIZATION-MODEL-UNDERPRICES-POSITION`, accepted and recorded rather than corrected.
+    """Both halves of the audit note the contract requires, off the one field carrying them.
 
-    GTOpen prices postflop with a scalar realization weight rather than a solve, and the effect
-    is measured: the big blind folds far more than a real postflop solve gives facing a 2.5bb
-    small-blind open, closing the action in position. The closing measurement names it as a
-    third explanation it cannot separate, and the big blind holds 58 of the 89 human call
-    disagreements, so leaving it unnamed makes that measurement unfalsifiable. The quoted fold
-    frequency is recomputed from the export rather than compared against a remembered 50.98."""
+    `REALIZATION-MODEL-UNDERPRICES-POSITION` is accepted and recorded rather than corrected.
+    GTOpen prices postflop with a scalar realization weight rather than a solve, and the big
+    blind folds far more than a real solve gives facing a 2.5bb small-blind open, closing the
+    action in position. The closing measurement names it as a third explanation it cannot
+    separate and the big blind holds 58 of the 89 human call disagreements, so leaving it
+    unnamed makes that measurement unfalsifiable. The fold frequency is recomputed from the
+    export rather than compared against a remembered 50.98.
+
+    The other half is what is absent: `MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION` and
+    `THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` are why the chart holds 21 rather than
+    the tree, and the counts tell a reader each absence is a decision rather than an oversight.
+    **Three absences now, and the notes must distinguish the last two.** Both withheld families
+    number 15, so one "15" describes either and neither; the notes must name the four-bet pot
+    and the jam after it, so a reader can tell a node refused for its own mispricing from one
+    refused for its parent's.
+    """
     notes = artifact.audit_fields.notes
     lowered = notes.lower()
     folds = 100.0 - aggregate_frequencies(committed_export).defence_pct["SB"]
@@ -671,24 +690,9 @@ def test_the_chart_states_the_realization_bias_in_poker_terms(
     assert "2.5" in notes
     assert any(abs(value - folds) <= 0.05 for value in quoted), (folds, quoted)
 
-
-def test_the_chart_states_the_multiway_defect_and_the_nodes_it_excluded(
-    artifact: PreflopArtifact,
-) -> None:
-    """The other half of the source card's confession, and the contract requires it by count.
-
-    `MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION` and
-    `THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` are why the chart holds 36 spots rather
-    than the tree, and the two excluded counts are what tell a reader each absence is a decision
-    rather than an oversight. Without them the four missing opening ranges and the missing
-    four-bet defence read as gaps in the conversion. They are named separately because they come
-    back by different routes - a solver fix for one, a fitted pot-type cell for the other.
-    """
-    notes = artifact.audit_fields.notes
-    lowered = notes.lower()
-
     assert "multiway" in lowered
     assert "four-bet" in lowered
+    assert "jam" in lowered, "the notes do not say what happened to the answers to a five-bet"
     assert "29,104" in notes or "29104" in notes
-    assert "36" in notes
-    assert "15" in notes
+    assert "21" in notes
+    assert lowered.count("15") >= 2, "one 15 cannot describe both withheld families"

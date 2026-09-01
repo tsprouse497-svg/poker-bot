@@ -1,33 +1,38 @@
 """Phase 14: the spot-level arrival probability, and what a committed cell is not evidence of.
 
 Authored at stage 4 after Taylor's 2026-08-27 ruling on the untrained-cell blocker, and re-cut
-at stage 4 again on 2026-09-01 after decision 14 re-sourced the solve at `add_allin: false` and
-decision 20 cut the committed set from 51 spots to 36. So this file is the specification rather
-than a description of what got built. It is a separate file in the `pytest_derived_chart` family
-because two of its siblings sit at the 700-line cap exactly and there was nowhere in the family
-to put it.
+at stage 4 twice since: on 2026-09-01 after decision 14 re-sourced the solve at
+`add_allin: false`, and again the same day after Taylor withheld the five-bet jams and cut the
+committed set to 21. So this file is the specification rather than a description of what got
+built. It is a separate file in the `pytest_derived_chart` family because its siblings sit at
+the 700-line cap.
 
-**The ruling was option one: commit the cells, and record where they came from.** The chart
+**It also owns the walk, moved here from `tests/test_chart_derivation.py` on 2026-09-01.** That
+file went past the cap when the fourth exclusion code landed, and this is where the walk belongs
+of the files with room: every measurement here re-walks the export and keys a spot by hand, so
+an actor read off the wrong node breaks this file before any other. The three tests are whose
+action an action is, that folds never enter a sequence, and the one export node the contract
+asks a non-coding reviewer to follow from the solve to its artifact row.
+
+**The ruling on cells was option one: commit them, and record where they came from.** The chart
 answers every cell whose class arrives, including the ones the solve never worked out - the
 alternative was blanking them, and the reason not to is that a later heuristic layer is wanted
 for exactly those spots. That layer is the thing this field exists for. A refused cell is
 visibly empty and a heuristic can find it; a committed cell that was never computed looks
-exactly like one that was, and the reach field cannot tell them apart. On the 86-spot build the
-ruling was taken against, reach pointed the wrong way outright at four of the eight spots the
-solve never visited: the big blind facing a 100bb open-jam carried all 169 classes at 10,000
-basis points, fully arrived and never played.
+exactly like one that was, and the reach field cannot tell them apart.
 
 Arrival probability and arriving reach are orthogonal and the chart needs both. Reach is per
 cell and says whether hero can be holding that class here. Arrival is per spot and says whether
 the line is one anybody plays. A spot can have every class at full reach and never be reached
 at all.
 
-**Two things this field was ruled for are unexercised over the committed 36, and this file says
+**Two things this field was ruled for are unexercised over the committed 21, and this file says
 so rather than counting them as checks that passed.** The re-source removed the open-jam
 branches, so no committed spot is one the solve never reaches - the zero case is measured empty
-and only a hand-built fixture exercises it. And the smallest committed arrival is 1.03 basis
-points, so nothing here would have rounded to zero in basis points either; the parts-per-billion
-grain decision 5 ruled buys nothing on this set. Both are kept for the reason decision 5 gives,
+and only a hand-built fixture exercises it. And the smallest committed arrival is now 75.29
+basis points, one line in a hundred and thirty: the fifteen jam spots were the rare ones and
+they are withheld, so the parts-per-billion grain decision 5 ruled buys even less on this set
+than the 1.03 basis points measured over the 36. Both are kept for the reason decision 5 gives,
 which is prospective: the multiway family that returns once GTOpen can price it is deep and
 rare, adding the field later is a second `ARTIFACT_SCHEMA_VERSION` bump, and a check that cannot
 fail today must not be recorded as one that did.
@@ -40,7 +45,17 @@ phase can rule on it with the measurement in front of it.
 from __future__ import annotations
 
 import pytest
-from test_chart_derivation import key_of, selected, walk_state
+from test_chart_derivation import (
+    COLD_CALLED_KEY,
+    COLD_CALLED_PATH,
+    COLD_CALLED_SEQUENCE,
+    TRACED_KEY,
+    TRACED_PATH,
+    TRACED_SEQUENCE,
+    key_of,
+    selected,
+    walk_state,
+)
 
 from poker_training_bot.poker_core.positions import table_positions
 from poker_training_bot.solver_artifacts import schema
@@ -48,6 +63,7 @@ from poker_training_bot.solver_artifacts.gtopen_export import (
     COMMITTED_EXPORT_PATH,
     QUANTISATION_SCALE,
     SolverExport,
+    SolverNode,
     load_solver_export,
 )
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES, hand_class_grid_index
@@ -75,18 +91,43 @@ PARTS_PER_BILLION = 1_000_000_000
 ONE_BASIS_POINT_IN_PPB = 100_000
 
 
-COMMITTED_SPOTS = 36
-"""Decision 1's predicate keeps 51 of the re-sourced tree's nodes and decision 20 withholds
-the fifteen where hero faces a four-bet, so 36 are committed. `selected` in
-`tests/test_chart_derivation.py` is both rulings together, which is what "a spot the chart
-holds" means; that file owns the split and this one only counts what came out of it."""
+COMMITTED_SPOTS = 21
+"""Decision 1's predicate keeps 51 of the re-sourced tree's nodes, decision 20 withholds the
+fifteen where hero faces a four-bet, and the 2026-09-01 ruling the fifteen where he answers a
+five-bet jam, so 21 are committed. `selected` in `tests/test_chart_derivation.py` is all three
+rulings together, which is what "a spot the chart holds" means; that file owns the split and
+this one only counts what came out of it."""
+
+RAREST_COMMITTED_PPB = 7_529_164
+"""The lojack facing a small-blind three-bet, the rarest line the chart answers: about one hand
+in a hundred and thirty. Recorded rather than asserted as a floor - no threshold is ruled - and
+it is what makes the parts-per-billion grain unexercised here."""
 
 
 # The most-played committed line: the small blind opened to, everybody folded. Solve output
 # rather than tree shape, so decision 14's re-source moved it - the 275,247,995 this file
-# carried was measured on the superseded `add_allin: true` build.
+# carried was measured on the superseded `add_allin: true` build. The withholding did not move
+# it: the small blind's open is committed under all three rulings.
 BUSIEST_SPOT = "t6/d100/SB/rfi"
 BUSIEST_PPB = 281_908_314
+COMMITTED_ARRIVAL_PPB = 1_211_918_040
+"""What the 21 carry between them; lines nest, so this exceeds a billion. The fifteen withheld
+jams carried 4,815,347 of the 1,216,733,387 the predicate's heads-up set reaches, which is the
+0.40 percent of arrival the 2026-09-01 ruling gives up."""
+
+
+# The three nodes the walk tests use that no other file needs. LJ opens, HJ three-bets, the
+# cutoff flats, the button acts: three actions by three players, which makes it the walk's test.
+# Two opponents invested and four live, so it is never committed under any of the rulings.
+THREE_ACTOR_PATH = (1, 2, 1)
+THREE_ACTOR_KEY = "t6/d100/BTN/LJ:raise@2.5,HJ:raise@7.5,CO:call"
+THREE_ACTOR_SEQUENCE = (
+    PreflopAction("LJ", "raise", 2.5),
+    PreflopAction("HJ", "raise", 7.5),
+    PreflopAction("CO", "call"),
+)
+COLD_CALLED_FOLDS = 4
+TRACED_ACTION_KINDS = ["fold", "call", "raise"]
 
 
 def vacuous(what: str) -> None:
@@ -106,6 +147,26 @@ def vacuous(what: str) -> None:
 def export() -> SolverExport:
     assert COMMITTED_EXPORT_PATH.exists(), f"no committed export at {COMMITTED_EXPORT_PATH}"
     return load_solver_export(COMMITTED_EXPORT_PATH)
+
+
+@pytest.fixture(scope="module")
+def by_path(export: SolverExport) -> dict[tuple[int, ...], SolverNode]:
+    return export.by_path()
+
+
+@pytest.fixture(scope="module")
+def derivation():
+    """The module stage 6 finishes, reached through a fixture rather than imported at the top:
+    a module-scope import of something that may not exist yet stops the file collecting and
+    hides every assertion behind one ImportError."""
+    import poker_training_bot.solver_artifacts.chart_derivation as module
+
+    return module
+
+
+@pytest.fixture(scope="module")
+def derived(export: SolverExport, derivation):
+    return derivation.derive_chart(export)
 
 
 @pytest.fixture(scope="module")
@@ -170,20 +231,25 @@ def test_every_committed_spot_records_how_often_its_line_is_played(
 
     assert recorded[BUSIEST_SPOT] == BUSIEST_PPB
     assert recorded[BUSIEST_SPOT] == max(recorded.values())
+    assert sum(recorded.values()) == COMMITTED_ARRIVAL_PPB
+    # And no committed line records a fourth raise, which is what the withholding costs this
+    # ledger: the 0.40 percent of arrival the jams carried is simply not in the map.
+    for key in recorded:
+        assert "raise@100" not in key.split("/")[3], key
 
 
 def test_the_spots_the_solve_never_reaches_are_recorded_as_zero_and_still_answer(
     artifact: PreflopArtifact,
 ) -> None:
-    """The zero case, measured empty over the committed 36 and labelled as unexercised.
+    """The zero case, measured empty over the committed 21 and labelled as unexercised.
 
     On the build this ruling was taken against, eight committed spots were lines nobody plays:
     four were the big blind facing a 100bb open-jam and four were a 100bb jam over an open.
-    `add_allin: false` removed both families from the tree, so every one of the 36 spots the
-    chart now commits is a line the solve reaches. **That makes the distinguishing job this
-    field was ruled for unexercised here**, and it is recorded as a measurement rather than
-    quietly dropped: a later solve that puts an unplayed line back must record it as zero and
-    must still answer there.
+    `add_allin: false` removed both families from the tree, and the 2026-09-01 withholding
+    removed the deepest lines that were left, so every one of the 21 spots the chart now commits
+    is a line the solve reaches. **That makes the distinguishing job this field was ruled for
+    unexercised here**, and it is recorded as a measurement rather than quietly dropped: a later
+    solve that puts an unplayed line back must record it as zero and must still answer there.
 
     The half that is real on this build is asserted first: every committed spot holds cells at
     all, blanking an untrained cell being what option one refused. Then the premise is asserted
@@ -207,20 +273,23 @@ def test_the_parts_per_billion_grain_is_unexercised_over_the_committed_set(
     The grain was ruled because 21 of the 86 spots then committed sat at a nonzero arrival
     below one basis point, the smallest at 2.5e-08, so in basis points all 21 would have
     rounded to zero and become indistinguishable from the spots the solve genuinely never
-    reaches. Over the committed 36 the rarest line is played about one time in ten thousand,
-    which is 1.03 basis points, so **basis points would have lost nothing here**. The field
-    keeps the finer grain for the prospective reason decision 5 gives, and this test records
-    that the reason is prospective rather than present, because a check that cannot fail must
-    not be counted as one that passed.
+    reaches. Over the committed 36 the rarest line was 1.03 basis points; the 2026-09-01
+    withholding took the fifteen deepest lines out and the rarest is now **75.29** basis
+    points, about one hand in a hundred and thirty, so basis points would have lost nothing
+    here and would have lost less than before. The field keeps the finer grain for the
+    prospective reason decision 5 gives, and this test records that the reason is prospective
+    rather than present, because a check that cannot fail must not be counted as one that
+    passed. The margin is asserted rather than the value: pinning 75.29 would fix a solve
+    output decision 2 ships as solved.
     """
     values = [value for _, value in artifact.arrival_ppb]
 
     assert values
-    assert min(values) >= ONE_BASIS_POINT_IN_PPB, (
+    assert min(values) == RAREST_COMMITTED_PPB >= ONE_BASIS_POINT_IN_PPB, (
         "a committed spot now arrives below one basis point, so the parts-per-billion grain"
         " has started doing the job decision 5 ruled it in for and this label is out of date"
     )
-    vacuous("the rarest committed line is 1.03 basis points, so basis points would have done")
+    vacuous("the rarest committed line is 75.29 basis points, so basis points would have done")
 
 
 def one_spot_artifact(arrival: tuple | None, extra_spot: str | None = None) -> PreflopArtifact:
@@ -334,3 +403,83 @@ def test_the_same_artifact_with_a_real_arrival_is_accepted() -> None:
 
     assert built.audit_fields.spot_count == 1
     assert dict(built.arrival_ppb) == {BUSIEST_SPOT: BUSIEST_PPB}
+
+
+# --- The walk: whose action is it, and what does it become ---
+
+
+def test_the_actor_of_an_action_is_the_parent_node_s(
+    by_path: dict[tuple[int, ...], SolverNode], derivation
+) -> None:
+    """The single most likely conversion defect, and it is silent.
+
+    An action recorded at a node was taken by whoever was to act *at that node*, the parent of
+    the node it leads to. Read the actor off the child instead and every action shifts one seat
+    down the ring - the lojack's open becomes the hijack's - keying a spot that never happened
+    while validating perfectly. Two invested opponents is the only place three actors are found.
+    """
+    node = by_path[THREE_ACTOR_PATH]
+    assert node.actor_pos == "BTN"
+
+    walked = derivation.node_action_sequence(by_path, node)
+
+    assert walked == THREE_ACTOR_SEQUENCE
+    assert [entry.position for entry in walked] == ["LJ", "HJ", "CO"]
+    assert spot_key(TABLE_SIZE, STACK_DEPTH_BB, node.actor_pos, walked) == THREE_ACTOR_KEY
+
+    # The confusion spelled out, so this test is known to discriminate: taking each actor from
+    # the node the action leads to shifts the sequence one seat down the ring and leaves the
+    # button calling before anybody has asked it to act.
+    shifted = tuple(
+        PreflopAction(by_path[THREE_ACTOR_PATH[: i + 1]].actor_pos, e.action, e.size_bb)
+        for i, e in enumerate(walked)
+    )
+    assert shifted != walked
+    with pytest.raises(ValueError):
+        spot_key(TABLE_SIZE, STACK_DEPTH_BB, node.actor_pos, shifted)
+
+
+def test_folds_never_enter_the_sequence(
+    by_path: dict[tuple[int, ...], SolverNode], derivation
+) -> None:
+    """An empty sequence means folded to hero, so a recorded fold would be a second spelling of
+    the same spot and the two would key differently.
+
+    This node is reached through four folds and three live actions; only the live ones survive
+    the walk. Which node that is depends on tree shape rather than on the solve.
+    """
+    node = by_path[COLD_CALLED_PATH]
+    taken = [by_path[COLD_CALLED_PATH[:i]].actions[j] for i, j in enumerate(COLD_CALLED_PATH)]
+    assert sum(1 for action in taken if action.kind == "fold") == COLD_CALLED_FOLDS
+
+    walked = derivation.node_action_sequence(by_path, node)
+
+    assert walked == COLD_CALLED_SEQUENCE
+    assert all(entry.action in ("call", "raise") for entry in walked)
+    assert spot_key(TABLE_SIZE, STACK_DEPTH_BB, node.actor_pos, walked) == COLD_CALLED_KEY
+
+
+def test_one_export_node_traced_to_its_artifact_row(
+    by_path: dict[tuple[int, ...], SolverNode], derived, derivation
+) -> None:
+    """The end-to-end conversion the contract asks a non-coding reviewer to follow.
+
+    Node (0, 0, 0, 1, 0). Three folds, the button opens to 2.5, the small blind folds, and the
+    big blind closes the action holding aces. Its three offers are fold, call and a three-bet to
+    7.5 - `add_allin: false` took the duplicate all-in out, so nothing collapses here, and the
+    numbers are read off the node rather than remembered.
+    """
+    node = by_path[TRACED_PATH]
+    weights = {a.kind: node.weight_bp(i, "AA") for i, a in enumerate(node.actions)}
+
+    assert node.actor_pos == "BB"
+    assert [action.kind for action in node.actions] == TRACED_ACTION_KINDS
+    assert derivation.node_action_sequence(by_path, node) == TRACED_SEQUENCE
+    assert spot_key(TABLE_SIZE, STACK_DEPTH_BB, node.actor_pos, TRACED_SEQUENCE) == TRACED_KEY
+
+    row = derived.artifact_payload["action_weights"][TRACED_KEY]["AA"]
+
+    assert row["call"] == pytest.approx(weights["call"] / QUANTISATION_SCALE, abs=1e-6)
+    assert row["raise"] == pytest.approx(weights["raise"] / QUANTISATION_SCALE, abs=1e-6)
+    assert row.get("fold", 0.0) == pytest.approx(weights["fold"] / QUANTISATION_SCALE, abs=1e-6)
+    assert sum(row.values()) == pytest.approx(1.0, abs=1e-6)

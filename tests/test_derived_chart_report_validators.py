@@ -14,12 +14,22 @@ deliberately wrong input and made to refuse, and the command itself is run again
 cannot resolve and against artifacts that load cleanly and are wrong. Both files run under
 `pytest_derived_chart`.
 
-**Re-cut at stage 4 on 2026-09-01.** The census validator now takes **three** exclusion codes,
-because decision 20 added the reason a four-bet pot is refused for, and a validator accepting
-fewer accepts a vocabulary that cannot say which nodes come back by which route. And the
-discrimination gate is exercised over the real committed artifact on every partition, not only
-against hand-made inputs: the contract's amendment of that day states the gate per partition,
-and a validator that only ever refuses a fabricated pair has never been shown reading a chart.
+**Re-cut at stage 4 twice on 2026-09-01.** The census validator now takes **four** exclusion
+codes: decision 20 added the reason a four-bet pot is refused for, and Taylor's evening ruling
+a second for the jam-facing children of those nodes. A validator accepting fewer accepts a
+vocabulary that cannot say which nodes come back by which route, and because the two new
+families are both 15 nodes, a census folding either into the other adds up exactly - so the
+three-code census is refused here beside the two-code and one-code ones.
+
+**And the per-cell twins discrimination in this file is now the phase's ONLY gated range
+check**, ruled by Taylor on 2026-09-01. The group-order ladders in
+`tests/test_chart_cutover_evidence.py` fail over the uncut 51, pass over 36 and tie over 21, so
+their verdict tracks how many spots are in the set rather than whether the hand index is right;
+they are published for a human and gate nothing. This one passes cleanly at every size measured
+because it is per cell, and a per-cell swap does not need the tree to have a deep part. It is
+exercised over the real committed artifact on every partition rather than only against hand-made
+inputs: a validator that only ever refuses a fabricated pair has never been shown reading a
+chart.
 """
 
 from __future__ import annotations
@@ -38,6 +48,8 @@ from test_derived_chart_report import (
     EXPORTED_NODES,
     FOUR_BET_POT_CODE,
     FOUR_BET_POT_NODES,
+    JAM_INHERITS_CODE,
+    JAM_INHERITS_NODES,
     MULTIWAY_NODES,
     OUTSIDE_RULE_NODES,
     RETIRED_CHART,
@@ -93,6 +105,7 @@ def a_census(
             lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MULTIWAY_NODES,
             lookup.DERIVATION_OUTSIDE_SELECTION_RULE: OUTSIDE_RULE_NODES,
             FOUR_BET_POT_CODE: FOUR_BET_POT_NODES,
+            JAM_INHERITS_CODE: JAM_INHERITS_NODES,
         }
     return derivation.NodeCensus(
         committed=committed, excluded=dict(excluded), inexpressible={}
@@ -104,10 +117,13 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
 
     The wrong inputs are the honest ones: counts that sum to one node fewer than the export
     holds, and a reason nobody ruled. Decision 8 closes both vocabularies so a node the converter
-    merely failed to handle cannot be filed as a property of the grammar, and decision 20 makes
-    that **three** exclusion codes - a census filing all 33,933 excluded nodes under one reason
-    cannot say which come back when GTOpen prices multiway and which when the realization fit
-    gains a four-bet-pot cell, so a two-code census is refused here as well as a one-code one.
+    merely failed to handle cannot be filed as a property of the grammar, and the two 2026-09-01
+    rulings make that **four** exclusion codes - a census filing all 33,948 excluded nodes under
+    one reason cannot say which come back when GTOpen prices multiway, which when the
+    realization fit gains a four-bet-pot cell, and which when that fix reaches the jam-facing
+    children of those nodes. So one-code, two-code and three-code censuses are all refused, the
+    last because the two new families are the same size and folding either into the other still
+    adds up.
     """
     # The vocabulary first, because everything below is built out of it: a census fed a reason
     # the module does not carry is refused for the wrong reason, and the refusal would read as
@@ -116,6 +132,7 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
         lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY,
         lookup.DERIVATION_OUTSIDE_SELECTION_RULE,
         FOUR_BET_POT_CODE,
+        JAM_INHERITS_CODE,
     }
     assert lookup.DERIVATION_NO_LEGAL_SPOT_KEY in lookup.DERIVATION_INEXPRESSIBILITY_CODES
     generator.validate_census(a_census(derivation), EXPORTED_NODES)
@@ -139,17 +156,30 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
         generator.validate_census(one_code, EXPORTED_NODES)
     with pytest.raises(generator.DerivedChartReportError):
         # The vocabulary as it stood before decision 20: multiway and outside-the-rule, with the
-        # fifteen four-bet-pot nodes folded into one of them rather than named.
+        # thirty withheld nodes folded into one of them rather than named.
         two_codes = a_census(
             derivation,
             excluded={
                 lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MULTIWAY_NODES,
                 lookup.DERIVATION_OUTSIDE_SELECTION_RULE: (
-                    OUTSIDE_RULE_NODES + FOUR_BET_POT_NODES
+                    OUTSIDE_RULE_NODES + FOUR_BET_POT_NODES + JAM_INHERITS_NODES
                 ),
             },
         )
         generator.validate_census(two_codes, EXPORTED_NODES)
+    with pytest.raises(generator.DerivedChartReportError):
+        # And the vocabulary as it stood between the two rulings of 2026-09-01: the jams folded
+        # into the four-bet-pot reason. Both families are 15 nodes, so this census balances
+        # exactly and is wrong only about which fix brings which nodes back.
+        three_codes = a_census(
+            derivation,
+            excluded={
+                lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MULTIWAY_NODES,
+                lookup.DERIVATION_OUTSIDE_SELECTION_RULE: OUTSIDE_RULE_NODES,
+                FOUR_BET_POT_CODE: FOUR_BET_POT_NODES + JAM_INHERITS_NODES,
+            },
+        )
+        generator.validate_census(three_codes, EXPORTED_NODES)
     with pytest.raises(generator.DerivedChartReportError):
         invented = derivation.NodeCensus(
             COMMITTED_SPOTS, {}, {"derivation:not-ruled": EXPORTED_NODES - COMMITTED_SPOTS}
@@ -159,11 +189,14 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
 
 def test_the_artifact_spot_count_is_checked_against_the_walk_key_by_key(generator) -> None:
     """A count that matches while the keys do not is the failure this has to catch: a converter
-    that dropped one node and invented one key gives the same count. The last case is that, and
-    the key it invents is the lojack's open - one of the 24 the predicate drops, so a converter
-    built on the superseded rule fails here by name.
+    that dropped one node and invented one key gives the same count. The last two cases are that,
+    and the keys they invent are the lojack's open - one of the 24 the predicate drops - and the
+    big blind facing a button four-bet, one of the fifteen decision 20 withholds. A converter
+    built on the superseded rule fails on the first by name and one that skipped a withholding
+    on the second.
     """
     walked = {"t6/d100/SB/rfi", "t6/d100/BB/BTN:raise@2.5", "t6/d100/BB/SB:raise@2.5"}
+    withheld = "t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5"
     generator.validate_spot_count(set(walked), set(walked))
 
     with pytest.raises(generator.DerivedChartReportError):
@@ -172,6 +205,8 @@ def test_the_artifact_spot_count_is_checked_against_the_walk_key_by_key(generato
         generator.validate_spot_count(walked | {"t6/d100/LJ/rfi"}, walked)
     with pytest.raises(generator.DerivedChartReportError):
         generator.validate_spot_count((walked - {"t6/d100/SB/rfi"}) | {"t6/d100/LJ/rfi"}, walked)
+    with pytest.raises(generator.DerivedChartReportError):
+        generator.validate_spot_count((walked - {"t6/d100/SB/rfi"}) | {withheld}, walked)
 
 
 def a_grid(**overrides: float) -> dict[str, dict[str, float]]:
@@ -239,28 +274,50 @@ def test_the_group_measure_is_refused_when_it_prefers_the_transposed_hand_index(
 def test_the_group_measure_discriminates_on_every_partition_of_the_committed_set(
     generator,
 ) -> None:
-    """The gate run over the real chart, on each partition, through the validator that ships.
+    """The phase's only gated range check, run over the real chart on each partition, through
+    the validator that ships.
+
+    **Ruled by Taylor on 2026-09-01: this is THE gate.** The group-order ladders in
+    `tests/test_chart_cutover_evidence.py` returned three verdicts on three committed sets - fail
+    over the uncut 51, pass over 36, tie over 21 - so they measure set composition rather than
+    the hand index, and they now publish rather than gate. Nothing else in the phase would notice
+    a transposition, so a red here is a halt and not a number to soften.
 
     The refusal test above proves the validator says no to a bad pair of numbers. It cannot show
-    the numbers it will actually be handed are good ones, and the contract's 2026-09-01
-    amendment states the gate **on every partition** rather than over the committed set as a
-    whole. So the shipped measure is run here against the committed artifact and every partition
-    is put through `validate_group_discrimination` - the same function the report calls, not a
-    second copy of the rule, because two copies of a rule agreeing tells you nothing.
+    the numbers it will actually be handed are good ones, and the contract's 2026-09-01 amendment
+    states the gate **on every partition** rather than over the committed set as a whole. So the
+    shipped measure is run here against the committed artifact and every partition is put through
+    `validate_group_discrimination` - the same function the report calls, not a second copy of
+    the rule, because two copies of a rule agreeing tells you nothing.
 
     **What the partitions are for.** A measure can discriminate over the whole chart and still
-    be blind on the part of it that matters: a converter reading the payload by the grid
-    ordering only where hero faces a raise breaks the deep spots and leaves the shallow ones
-    right, and an aggregate over 36 spots absorbs that. Splitting by hero's seat catches a
-    mis-assigned actor the same way.
+    be blind on the part of it that matters: a converter reading the payload by the grid ordering
+    only where hero faces a raise breaks the deep spots and leaves the shallow ones right, and an
+    aggregate absorbs that. Splitting by hero's seat catches a mis-assigned actor the same way.
 
-    Measured over the real committed 36 on 2026-09-01: 0 flagged under the solver's own class
-    ordering against 26 under the transposed one over the whole set, and 0 against between 1 and
-    15 on every seat and raise-count split. Every partition passed and none tied. The counts are
-    recorded here rather than asserted, because the ruling is the direction: fixing a count
-    fixes a partition, and picking the partition that reads smallest is picking a number to go
-    green. A solved arm of 0 is the measure passing rather than the measure being blind - the
-    transposed arm flags 26, so it tells the two mappings apart.
+    **Re-measured over the committed 21 on 2026-09-01, with the shipped functions, and it still
+    holds on all ten partitions.** 0 flagged under the solver's own class ordering against 21
+    under the transposed one over the whole set; 0 against 5 at the big blind, 0 against 5 at
+    `raises faced 1`, 0 against 15 at `raises faced 2`, 0 against 1 at `raises faced 0`, and 0
+    against 2 to 5 at each of the other five seats. None tied. There are ten partitions rather
+    than eleven because the withholding took the `raises faced 4` bucket out with the jam spots.
+
+    That is what the same withholding broke in the hand-class family, whose discrimination was
+    carried entirely by those jam spots. This family survives because the twins measure is per
+    cell and the transposition is a per-cell swap, so it does not depend on the tree having a
+    deep part. The counts here are recorded rather than asserted, the ruling being the direction:
+    fixing a count fixes a partition, and picking the partition that reads smallest is picking a
+    number to go green. A solved arm of 0 is the measure passing rather than being blind - the
+    transposed arm flags 21 over the whole set, so it tells the two mappings apart.
+
+    **A trap named on 2026-09-01: `transpose_hand_index` is not the only "transposed" in this
+    repo, and it is the one that gates.** It swaps each suited hand with its offsuit twin
+    outright. `group_play_pct` in `tests/test_chart_cutover_evidence.py` instead reads row
+    position `grid_index(name)` out of GTOpen's own ordering - what a converter indexing the
+    payload by the grid ordering actually reads. The two are not equivalent and give materially
+    different numbers: a stage-4 reimplementation that substituted one for the other reproduced
+    neither family's counts. Neither may be used to predict or explain the other's result, and a
+    change to either must not be assumed to carry across.
     """
     artifact = import_preflop_artifacts(ARTIFACT_DIR)[0]
     grid = generator.play_grid(artifact)
@@ -272,6 +329,7 @@ def test_the_group_measure_discriminates_on_every_partition_of_the_committed_set
 
     assert len(artifact.spots) == COMMITTED_SPOTS
     assert set(by_label) == discrimination_partitions(artifact)
+    assert len(by_label) == 10, "the committed set no longer splits into the ten measured parts"
     for label, keys in by_label.items():
         solved = generator.spots_violating_twins({key: grid[key] for key in keys})
         transposed = generator.spots_violating_twins(

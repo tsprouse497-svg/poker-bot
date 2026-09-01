@@ -28,6 +28,41 @@ scope_change_log:
   - date: 2026-09-01
     reason: >-
       No scope change. Recorded here because implementation mode may not edit the decision record.
+      THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending decision 10 and the contract's
+      dominance criterion. Fifth implementation-mode ruling of this stage.
+      Ruled by Taylor on 2026-09-01: the per-cell twins measure over spot partitions is the gate, and
+      the hand-class group ladders are published for a human and gate nothing.
+      What forced it. Withholding the fifteen five-bet-jam spots took the committed set to 21, and at
+      21 the group-ladder family stops discriminating: single pair ranks read 12 solved against 12
+      transposed and the suited rows 21 against 21, which over 21 spots means every spot is flagged
+      under both mappings. Raised by worker lane R6 and reproduced independently by the coordinator
+      with the same shipped function, at both sizes, before it was put to Taylor.
+      The deciding evidence is not the tie itself but the pattern. The group-ladder family has now
+      returned three different verdicts on three different committed sets - it FAILS over the uncut 51
+      at 36 solved against 33 transposed, PASSES over 36 at 21 against 24, and TIES over 21. A measure
+      whose verdict tracks how many spots are in the set is measuring set composition rather than
+      whether the hand index is right. The per-cell family passes cleanly at every size measured, 0
+      against 26 over the 36 and 0 against 21 over the 21, because a per-cell swap is what it tests and
+      that does not depend on the tree having a deep part.
+      This restores consistency with Taylor's own 2026-08-26 ruling that no group ORDER is gated at
+      all. The group ladder is a group-order measure. Gating it was drift that crept back in during the
+      2026-09-01 work covering "both readings of partition", and it is removed rather than repaired.
+      The measurement is kept and published, because the numbers are evidence a human reads; only the
+      assertion is dropped.
+      Rejected: `gate-both-and-halt` stops the phase on a measure that is not distinguishing anything.
+      `gate-both-but-drop-the-two-tying-splits` chooses the splits that read best after seeing the
+      results, which is the move the contract forbids for the selection rule and is no safer here.
+      Related and not a ruling, recorded because R6 found it and nobody had: two different "transposed"
+      counterfactuals live in this repo - the pure suited-offsuit swap in `spots_violating_twins` and
+      the grid-ordering read in `group_play_pct` - and they are not equivalent. Only the first now
+      gates. R6's own first reimplementation picked the wrong one and got materially different numbers.
+      Also recorded: measured over the artifact, the cutover gains **0** spots. The 21 retired spots
+      that carry over land on exactly the committed 21, so the chart replaces raked ranges with
+      rake-free ones at the same decisions and adds no coverage. Legitimate, and not what the
+      contract's coverage framing assumes.
+  - date: 2026-09-01
+    reason: >-
+      No scope change. Recorded here because implementation mode may not edit the decision record.
       THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending decision 20, and it is the
       largest of the three implementation-mode rulings this stage has taken.
       Ruled by Taylor on 2026-09-01: the fifteen five-bet-jam spots are withheld as well, so the
