@@ -182,7 +182,31 @@ wrong says so and stops; it does not fix it.
 | R1 | `tests/test_chart_derivation.py`, `tests/test_derived_chart.py` | the 51-to-36 withholding, the third exclusion reason `source-misprices-four-bet-pot` and its census line, the four-bucket census 36/15/29,104/4,814 summing to 33,969, the menu counts, full-reach spots, untrained-cell refusal | dispatched |
 | R2 | `tests/test_chart_conversion.py` | the sizing table per hand class, prices exactly `[2.5, 7.5, 22.5]`, 21 spots carrying an entry and 15 not, the two-directional invariant, and the vacuity label decision 6 requires since 0 of 36 offer two prices | dispatched |
 | R3 | `tests/test_chart_cutover_evidence.py`, `tests/test_derived_chart_report.py`, `tests/test_derived_chart_report_validators.py`, `tests/test_chart_arrival_probability.py` | the re-solve card fields, the determinism proof, the transposition discrimination retaken over the 36, arrival probability per spot, the report census, and decision 24's flat-frequency publication | dispatched |
-| R4 | `verification/mutations.yml`, `scripts/run_verify.py` | a canary per new assertion family, so `check_gate_bite` proves the re-cut bites rather than decorates | next |
+| R4 | `verification/mutations.yml`, `scripts/run_verify.py` | a canary per new assertion family, so `check_gate_bite` proves the re-cut bites rather than decorates | coordinator-owned, in progress |
+| R5 | read-only | the stage-4 independent review, mechanical and poker | delegated, after R4 |
+
+**Why R4 is coordinator-owned, recorded before the work rather than after.** Taylor directed it on
+2026-09-01, and `AGENTS.md` is explicit that a statement about the session does not qualify as a
+reason, so here is the reason about the work. A canary is an attack on an assertion, and the attacker
+has to know what all seven test files now assert and which of the three lanes owns each count - R1's
+ledger, R2's ladder, R3's direction-not-counts. A fresh lane would have to re-read every file the three
+lanes just rewrote to find something worth attacking, which is the one piece of context integrating
+them already produced. The edit itself is small and confined to two files. This is the case the
+Coordinator Workflow's clause is for: work whose input is the integration rather than a slice of it.
+
+It does not extend to review. `AGENTS.md` is unconditional there and R5 is delegated to an agent that
+wrote none of this - including none of the canaries, which is why R4 being coordinator-owned makes R5
+more necessary rather than less.
+
+**What a stage-4 canary can and cannot prove, stated because it is easy to overclaim.** `check_gate_bite`
+wants the gate green without a mutation and red with it. The gate is not green at stage 4 and is not
+supposed to be - 30 tests are red by design. So a canary cannot be proven to bite here in the sense
+stage 7 means. What CAN be proven now, and what each new canary below is checked against, is narrower
+and still worth having: applying the mutation must break at least one test that is **currently
+passing**. A canary that changes nothing in the 82 green tests is decorative today and would very
+likely still be decorative at stage 7. Canaries whose target code stage 6 has not written yet cannot be
+authored at all, because a mutation needs a `find` string that occurs exactly once in a file that
+exists; those are listed as stage 6's debt rather than quietly skipped.
 
 **Outcome, 2026-09-01.** All three lanes returned. The suite stands at **30 failed, 82 passed, 4
 skipped, and not one non-assertion error** - every red is an assertion describing what stage 6 must

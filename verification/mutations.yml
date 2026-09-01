@@ -1133,3 +1133,78 @@ mutations:
       - generate_derived_chart_report
       - pytest_derived_chart
       - pytest
+
+  # Phase 14 stage-4 re-cut canaries, authored 2026-09-01.
+  #
+  # A stage-4 canary cannot be proven to bite the way `check_gate_bite` means it.
+  # That check wants the gate green without the mutation and red with it, and the
+  # gate is red at stage 4 by design - 30 tests describe work stage 6 has not done.
+  # What each canary below is checked against instead is narrower and still worth
+  # having: applying it must break at least one test that is CURRENTLY PASSING. Two
+  # of the three do. The one that does not is kept and labelled rather than dropped,
+  # because a canary that changes nothing is evidence about the tests, not a reason
+  # to write no canary.
+
+  - id: discrimination-tolerates-a-tie
+    description: >-
+      The group measure accepts a tie between the solved and transposed hand
+      index instead of refusing it. A measure that cannot tell the two mappings
+      apart cannot catch a transposition, and a chart that folds nothing scores
+      zero against zero - which is exactly how the retired suited-row ladder
+      passed while preferring a transposed index. Decision 10, ruled 2026-08-26.
+      Verified 2026-09-01: turns
+      test_the_group_measure_is_refused_when_it_prefers_the_transposed_hand_index
+      from passing to failing.
+    file: scripts/generate_derived_chart_report.py
+    find: "if solved >= transposed:"
+    replace: "if solved > transposed:"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: dominance-tolerance-widened-past-the-ruling
+    description: >-
+      The per-cell tolerance goes from the one percentage point Taylor ruled on
+      2026-08-24 to twenty-five, so every inversion short of a catastrophe reads
+      as within tolerance. The tolerance is the whole content of the relation -
+      without it the check says only that suited hands are not played
+      dramatically less than their offsuit twins.
+      Verified 2026-09-01: takes the two evidence files from 22 passing to 21.
+    file: scripts/generate_derived_chart_report.py
+    find: "MONOTONICITY_TOLERANCE_PCT = 1.0"
+    replace: "MONOTONICITY_TOLERANCE_PCT = 25.0"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: the-transposed-reading-is-not-transposed
+    description: >-
+      `transpose_hand_index` returns the grid unswapped, so the comparison the
+      gate rests on compares a mapping against itself and every partition ties.
+      This is an attack on the gate's own instrument rather than on the chart.
+      NOT PROVEN AT STAGE 4, and kept deliberately. Applied on 2026-09-01 it
+      changed nothing in the 22 passing tests of the two evidence files: the
+      tests that would catch it read the real artifact, and those are red today
+      for an unrelated reason - the derivation still emits 51 spots because
+      decision 20's third exclusion reason is unimplemented. STAGE 7 MUST VERIFY
+      THIS ONE SPECIFICALLY rather than accepting a green `check_gate_bite` run,
+      because a surviving mutation here means nothing checks the instrument.
+    file: scripts/generate_derived_chart_report.py
+    find: "swapped[suited], swapped[offsuit] = cells[offsuit], cells[suited]"
+    replace: "swapped[suited], swapped[offsuit] = cells[suited], cells[offsuit]"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  # Canary debt stage 6 owes, listed rather than skipped. A mutation needs a
+  # `find` string that occurs exactly once in a file that EXISTS, so an assertion
+  # about code nobody has written cannot be attacked yet. Stage 6 must add:
+  #   - a canary folding the fifteen four-bet-pot nodes into another exclusion
+  #     reason, once `derivation:source-misprices-four-bet-pot` exists. This is
+  #     the single most important one: it defends decision 20's withholding, the
+  #     ruling the whole committed set rests on.
+  #   - a canary widening the withholding from `raises_faced == 3` to `>= 3`,
+  #     which lands on 21 committed spots instead of 36. That error was made once
+  #     already during this stage and caught only because 21 is not 36.
+  #   - a canary dropping the per-partition loop back to a single aggregate call
+  #     of `validate_group_discrimination`, once the report renders per partition.
