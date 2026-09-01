@@ -38,9 +38,10 @@
   "stack": 100.0
  },
  "determinism": {
-  "max_divergence_bp": null,
-  "method": "the ruled config solved twice in a fresh process and the exports diffed",
-  "result": "PENDING - fill from --determinism-only"
+  "max_divergence_bp": 0,
+  "method": "the ruled config solved and walked a second time in a fresh process against a restarted server, and the two exports diffed node by node",
+  "result": "byte-identical",
+  "shape_differences": 0
  },
  "export_sha256": "f7182f4bbcc080c7715d8195cd0552d4604ec9856c8d7d64cd5a52483e0949e7",
  "licence": "GTOpen ships no LICENSE file upstream, and neither its README.md nor its Cargo.toml mentions licensing. This is an unresolved limitation rather than a permission anybody granted.",
@@ -60,7 +61,7 @@
   "bytes_per_expressible_spot": 50099.53,
   "bytes_per_expressible_spot_note": "the whole export divided by the 51 spots the committed chart expresses today, so it is what keeping the entire tree costs per spot currently usable rather than the size of a derived chart. The roadmap's 7.1 KB per spot was measured off the GTO Wizard chart format and is not comparable",
   "bytes_per_node": 75.22,
-  "headroom_bytes": 17793920,
+  "headroom_bytes": 17793857,
   "limit_bytes": 20971520
  },
  "solve": {

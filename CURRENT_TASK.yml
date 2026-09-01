@@ -27,6 +27,39 @@ forbidden_scope:
 scope_change_log:
   - date: 2026-09-01
     reason: >-
+      No scope change. Recorded here because implementation mode may not edit the decision record.
+      THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending decision 20, and it is the
+      largest of the three implementation-mode rulings this stage has taken.
+      Ruled by Taylor on 2026-09-01: the fifteen five-bet-jam spots are withheld as well, so the
+      committed set is 21 rather than 36. Raised by the independent stage-4 poker review and verified
+      by the coordinator against the artifact before it was put to him.
+      What was measured. At the fifteen spots where hero faces a five-bet jam, hero is calling off 77.5
+      into 123.0 and needs 38.65 percent. At all five lojack spots AKs calls 0.00 percent - hero
+      four-bets it to 22.5 at 100 percent and then folds it - and it is at or under 1.6 percent at three
+      more, so it folds at seven or eight of the fifteen. KK calls as little as 60.86 percent, and at
+      `LJ/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5,BB:raise@100` KK calls 72.84 while QQ calls 94.29,
+      which is a hard rank inversion in a committed cell.
+      Why, and why it is decision 20's own logic rather than a new principle. These cells are nothing
+      but hero's answer to the jam range computed at the four-bet nodes decision 20 already refuses as
+      mispriced. One of those parents jams AA at 100 and 87s at 99.5 and almost nothing else, with no
+      KK, no QQ and no AK in it; AKs holds about 54 percent against it and is a mandatory call. So the
+      phase was refusing the parent as untrustworthy and shipping the child that depends on it, which is
+      strictly worse than committing both: the trainee is refused the commoner decision and handed a
+      confident wrong answer to the rarer one.
+      What it costs. The fifteen carry 4,815,347 ppb of 1,216,733,387, so 0.40 percent of the arrival
+      the chart answers. The remaining 21 spots carry 99.60 percent.
+      Rejected. `keep-them-and-record` ships advice a student cannot detect as wrong, in a training
+      tool. `fix-the-parent-first` needs the four-bet pot repriced, which no config in this phase
+      reaches, so it halts phase 14 indefinitely.
+      A judgment call the coordinator took inside this ruling, flagged for ratification rather than
+      buried: the withheld jams get their own exclusion reason rather than reusing
+      `source-misprices-four-bet-pot`. The contract's stated test is which fix brings a node back, and
+      by that test one code would do, since both families return when the four-bet pot has a fitted
+      cell. Two codes are used anyway so the census stays legible - a reader can tell a node refused
+      because it is itself mispriced from one refused because its parent is. If the next
+      `contract-update` prefers one code, that is a rename and not a re-derivation.
+  - date: 2026-09-01
+    reason: >-
       No scope change. Recorded here because implementation mode may not edit the decision record and
       RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE says a ruling with nowhere to go
       is how a phase loses one. THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending
