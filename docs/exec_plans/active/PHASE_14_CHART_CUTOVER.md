@@ -64,7 +64,8 @@ measurement to retake rather than as a defect the ruling repairs.
 
 ## Halted, 2026-08-30
 
-- Paused: phase 14 is halted at stage 1 by Taylor's ruling of 2026-08-30, pending a fix to GTOpen's
+- Superseded, and kept as the record of what the lane believed on 2026-08-30: phase 14 was halted at
+  stage 1 pending a fix to GTOpen's
   calibrated realization table. The re-source with `add_allin: false` did what it was ruled to do -
   the jam inversion is gone and convergence improved roughly fortyfold - but two independent stage-1
   reviews found the chart still folds JJ, TT, 99 and 88 outright while calling 76s and 87s at

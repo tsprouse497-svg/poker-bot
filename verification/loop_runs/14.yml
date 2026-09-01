@@ -1,32 +1,6 @@
 auto_advance: false
-halt_reason: >-
-  Stage 1 is complete and the lane is ready to advance. It is left halted only because the loop was
-  halted when the ruling came in; resume it with `loop_stage.py --phase 14 --resume`, then `--advance`
-  to stage 2. Nothing is waiting on Taylor.
-  What is ruled and landed. Decision 20 (2026-08-31): solve with realization=calibrated and refuse the
-  fifteen four-bet-facing spots, committing 36 of the 51 the predicate selects; the source misprice is
-  answered by what the chart declines rather than by the field that prices the whole tree. RULED_CONFIG
-  carries calibrated, and decision 19's static is recorded as ruled-and-reverted with the measurements
-  that reverted it. Decision 21 (2026-08-31): phase 14 is split. It keeps deriving and committing the
-  artifact and checking the ranges it holds, at 284 lines; the new phase 17, "The Corpus Verdict On The
-  Committed Chart", takes the closing measurement at 158 lines and is declared future, depends_on 14,
-  auto_advance false.
-  Two independent reviews of the contract are in and closed - rounds 13 and 14 - and every blocker this
-  lane carried is dispositioned in round 16. The contract gained the two criteria they asked for: hero's
-  four-betting range at each committed three-bet spot read by a human before stage 6 freezes it, and an
-  explicit statement that the group gate is a regression detector, since the committed build fails it at
-  decision 10's tolerance while the rejected build passes.
-  What stage 2 owes: re-cut this phase's decision record against decision 20, which means the items that
-  assumed 51 committed spots, a jam in the chart, and a closing measurement inside this phase. Stage 4
-  then migrates the frozen tests that pin 86 spots, the 169-class grid and the export checksums, and
-  stage 6 rebuilds and commits the artifact. The build machinery is proven and runs in about seven
-  minutes; the test re-cut is the cost.
-  What the phase accepts rather than fixes: THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL and
-  CHART-CANNOT-ADVISE-A-FIVE-BET. Both close on a fitted pot-type cell or on phase 16.
-  The gate is red by design until stage 6: RULED_CONFIG's add_allin disagrees with the committed export,
-  which was built with it true. Never revert a ruled constant to green the gate.
-loop: halted
+loop: running
 phase_id: '14'
 schema_version: 1
-stage: 1
-stage_base: a386c77d1526dc1c17de97044373410a26a806e7
+stage: 2
+stage_base: 7de711b2ec54be816fdaa9cf81e806c56fa3b48d
