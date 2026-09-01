@@ -1,16 +1,15 @@
 task_id: PHASE_14_CHART_CUTOVER
 active_phase: "14"
-task_mode: contract-update
-base_commit: a386c77d1526dc1c17de97044373410a26a806e7
+task_mode: implementation
+base_commit: 57939269f1cded6f4839c5463e301f35f83f8bc5
 approved_scope:
-  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
-  - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
+  - tests/**
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - scripts/run_verify.py
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
-  - src/poker_training_bot/solver_artifacts/gtopen_config.py
-  - src/poker_training_bot/solver_artifacts/gtopen_export.py
-  - scripts/extract_gtopen_preflop.py
-  - docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md
-  - verification/loop_policy.yml
+  - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz
+  - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -26,6 +25,58 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-01
+    reason: >-
+      Ruled by Taylor on 2026-09-01 after the mode switch, on evidence he was shown: commit the
+      re-sourced solve, and only the solve. The two export paths join approved_scope as single
+      files rather than as `data/artifacts/**`, because exactly two files are wrong and nothing
+      else in that tree is this task's to touch.
+      What forced it. Every one of the 40 problems in `pytest_derived_chart` - 36 errors and 4
+      failures - is the same line, `config field add_allin is True, ruled False`. The committed
+      export predates decision 14 and does not load under `RULED_CONFIG`, so `load_solver_export`
+      raises before any test body runs and not one assertion about the chart executes. Authoring
+      and freezing tests in that state would freeze tests that have never run, which this repo
+      has already done once and recorded: the 2026-08-2x entry below describes a stage where "no
+      assertion in either file had executed".
+      Why the export and not the chart. The export is the source the phase re-solves once, per
+      the contract's own "What the re-solve owes" section, and committing it is that criterion
+      being met rather than this stage deriving its own answer. The chart is different: the
+      derivation currently produces 51 spots because decision 20's third exclusion reason is not
+      implemented, so committing it would commit an artifact the contract does not describe and
+      would let stage 4 build the thing its own tests are measured against. `data/artifacts` stays
+      otherwise closed and the chart, the sizing table and the expectations file are all still out.
+      The re-solve is deterministic - the 2026-09-01 stage-3 run proved it with a full re-resolve
+      walk at 0 mismatches - so re-running it to recover the file reverted at stage 3 reproduces
+      the same bytes rather than constituting a second solve.
+      RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE applies to this ruling: it
+      was taken in implementation mode, which may not edit the decision record, so it is written
+      here and in the stage-4 review note and OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE.
+  - date: 2026-09-01
+    reason: >-
+      Stage 3 is closed at 5793926, so phase 14 returns to implementation mode for its fourth
+      stint to re-cut the stage-4 tests against a specification that has moved twice since they
+      were authored. Decision 20 cut the committed set from 51 spots to 36 and added a third
+      exclusion reason, `source-misprices-four-bet-pot`, which no code implements and no test
+      asserts. The 2026-09-01 contract amendments then changed what the range gate is: the
+      dominance criterion now states the transposition discrimination that actually shipped
+      rather than the group-order ladder decision 10 ruled out on 2026-08-26, and the artifact
+      criterion asks for each spot's arrival probability beside its per-cell reach. Decisions 23
+      and 24 were ruled the same day and neither has test coverage. Tests asserting the retired
+      form describe a specification nobody holds and cannot be frozen as they stand.
+      `tests/**`, `verification/mutations.yml`, `verification/freeze.lock` and
+      `scripts/run_verify.py` return to approved_scope on the same shape this lane used for its
+      three previous implementation stints. The contract, the decision record, the two
+      solver_artifacts modules, `scripts/extract_gtopen_preflop.py`, phase 17's contract and
+      `verification/loop_policy.yml` all leave approved_scope in the same move, which is the
+      point: check_scope.py is what mechanically stops an implementation task editing the
+      specification it is building to. The review directory stays, because every stage owes
+      review notes and stage 4 is not an exception.
+      `data/artifacts/**` is deliberately NOT widened. The out-of-order build decision 23 ruled
+      was run at stage 3 and its four output files were reverted after the measurement; writing
+      committed data is stage 6's work, and stage 4 must not be able to derive the artifact its
+      own tests are measured against.
+      base_commit moves to the stage-3 closing commit, so the contract-update's own paperwork
+      does not read as uncommitted work by the task that follows it.
   - date: 2026-08-31
     reason: >-
       Taylor ruled on 2026-08-31 to split phase 14 in two, so `docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md`

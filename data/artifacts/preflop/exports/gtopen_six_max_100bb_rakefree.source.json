@@ -4,7 +4,7 @@
   "payload": "unconditional"
  },
  "config_posted": {
-  "add_allin": true,
+  "add_allin": false,
   "allin_threshold": 0.67,
   "ante": 0.0,
   "limp": false,
@@ -38,38 +38,37 @@
   "stack": 100.0
  },
  "determinism": {
-  "max_divergence_bp": 0,
-  "method": "the ruled config solved and walked a second time in a fresh process against a restarted server, and the two exports diffed node by node",
-  "result": "byte-identical",
-  "shape_differences": 0
+  "max_divergence_bp": null,
+  "method": "the ruled config solved twice in a fresh process and the exports diffed",
+  "result": "PENDING - fill from --determinism-only"
  },
- "export_sha256": "1c9e383df22e91ee1103e846077371d9b47731c10ab54110bde6d0905271a739",
+ "export_sha256": "f7182f4bbcc080c7715d8195cd0552d4604ec9856c8d7d64cd5a52483e0949e7",
  "licence": "GTOpen ships no LICENSE file upstream, and neither its README.md nor its Cargo.toml mentions licensing. This is an unresolved limitation rather than a permission anybody granted.",
  "model": "realization=calibrated. GTOpen's preflop engine resolves flops by scaled equity share rather than by playing them, so this is a preflop-only model and not a full solve.",
  "node_counts": {
-  "exported": 38828,
+  "exported": 33969,
   "reconciliation": "equal",
-  "solver_action_nodes": 38828
+  "solver_action_nodes": 33969
  },
  "saved_solve": {
-  "bytes": 112381520,
+  "bytes": 98422122,
   "path": "/Users/taylorsprouse/projects/gtopen/saves/preflop/six-max-100bb-rakefree.gtop",
-  "sha256": "64d8729a30f758f24e713976ac529bab64c741d22af4b68bdeea424864f27ab5"
+  "sha256": "1777810729942cfda30b10a1189ed5a910a5ce4f6c383f4664fd66a222312027"
  },
  "size": {
-  "bytes": 4094221,
-  "bytes_per_expressible_spot": 47607.22,
-  "bytes_per_expressible_spot_note": "the whole export divided by the 86 spots the committed chart expresses today, so it is what keeping the entire tree costs per spot currently usable rather than the size of a derived chart. The roadmap's 7.1 KB per spot was measured off the GTO Wizard chart format and is not comparable",
-  "bytes_per_node": 105.45,
-  "headroom_bytes": 15649246,
+  "bytes": 2555076,
+  "bytes_per_expressible_spot": 50099.53,
+  "bytes_per_expressible_spot_note": "the whole export divided by the 51 spots the committed chart expresses today, so it is what keeping the entire tree costs per spot currently usable rather than the size of a derived chart. The roadmap's 7.1 KB per spot was measured off the GTO Wizard chart format and is not comparable",
+  "bytes_per_node": 75.22,
+  "headroom_bytes": 17793920,
   "limit_bytes": 20971520
  },
  "solve": {
-  "achieved_gap_bb": 0.006237862362137082,
+  "achieved_gap_bb": 0.00015590818199695747,
   "iteration_cap": 2000,
-  "iterations": 300,
-  "target_gap_bb": 0.01,
-  "wall_clock_seconds": 54.2
+  "iterations": 1900,
+  "target_gap_bb": 0.00016,
+  "wall_clock_seconds": 200.4
  },
  "solver": {
   "commit": "4aee435bdeb155b25f0c8140e707a8342ce4356f",
@@ -78,6 +77,6 @@
  },
  "walk": {
   "mismatches": 0,
-  "reresolved_nodes": 38828
+  "reresolved_nodes": 33969
  }
 }
