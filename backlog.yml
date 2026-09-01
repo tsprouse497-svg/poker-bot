@@ -3953,3 +3953,35 @@ items:
       and the others cite it, or a check reads the literals out of the committed documents and compares
       them to what the code computes - which is what `scripts/repo_facts.py` already does for ten facts
       and is the pattern to extend.
+  - id: RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE
+    status: deferred
+    phase: contract-update
+    title: A ruling taken during implementation is written into a review note and nothing makes the decision list collect it
+    reason: >-
+      Filed 2026-08-31 after phase 14's stage-2 re-cut nearly put a settled question back to Taylor.
+      `AGENTS.md` forbids editing a contract or a decision record in `implementation` mode, which is
+      right - it stops a phase rewriting its own terms while building against them. The consequence
+      nobody handled is that a ruling Taylor gives *during* implementation has nowhere to go. The
+      practice that grew up instead is to write it into the stage's review note with a sentence saying
+      the decision item "owes an amendment at the next `contract-update`", and then to rely on whoever
+      opens that task noticing.
+      Phase 14 accumulated five such rulings and carried none of them into its decision list: two on
+      2026-08-26 against decision 6 (a spot offering two prices seeds the price; the price weights are
+      per hand class), one on 2026-08-26 against decision 10 (the transposition discrimination is the
+      gate and no group ORDER is gated at all), one on 2026-08-27 against decision 5 (commit the
+      untrained cells, and record each spot's arrival probability), and one on 2026-08-27 against
+      decision 1 (the three predicate-change blockers, including the reading that filed
+      `CALIBRATED-REALISATION-PRICES-FOUR-BET-POTS-UNTESTED` three days before decision 16 rediscovered
+      the same cause). The decision list contains no occurrence of the date 2026-08-26 at all.
+      What that cost. The decision-10 ruling shipped as `validate_group_discrimination` and was frozen
+      in `tests/test_chart_cutover_evidence.py`, so the code and the frozen tests were correct while the
+      governing record said the opposite. On 2026-08-31 a re-cut of the list asserted the superseded
+      form, an independent poker review correctly found that form was never ruled, and a decision 22 was
+      filed asking Taylor a question he had answered five days earlier - with an option set that did not
+      contain his answer. It was withdrawn only because the record was searched.
+      The remedy is not more diligence. Either the driver refuses to leave `contract-update` while a
+      review note under the phase carries an untranscribed "owes an amendment" pointer, or a ruling
+      taken in implementation mode is written to a queue file the next `contract-update` must empty, or
+      `scripts/review_queue.py` grows a second view showing rulings made but not yet recorded. Any of
+      the three turns a convention that depends on someone reading six review notes into something a
+      check can see.

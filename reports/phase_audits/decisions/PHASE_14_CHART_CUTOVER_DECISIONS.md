@@ -20,9 +20,13 @@ which is the only point at which a different answer is cheap.
 `frozen-into-data` (1 to 6, 9, 10, 14, 16 to 22) and six are `runtime-reversible` (7, 8, 11, 12, 13,
 15). The sentence above describes the list as it stood on 2026-08-23.
 
-**One item is open.** Decision 22 was raised on 2026-08-31 by the independent review of this re-cut,
-carries an empty `Answer:`, and is `frozen-into-data`, so the loop halts at the stage-3 human gate
-until Taylor rules it. Every other item is answered.
+**No item is open.** Decision 22 was raised on 2026-08-31 by the independent review of this re-cut and
+**withdrawn the same day**: a search of the record found that Taylor had ruled the question on
+2026-08-26 and that the ruling had shipped and been frozen while living only in a stage-4 review note.
+It is transcribed at the foot of decision 10, along with four other rulings this list had never
+carried - two on decision 6, one on decision 5, one on decision 1. All of them were taken in
+implementation mode, which may not edit a decision record, and each note said in terms that it owed a
+transcription at the next `contract-update`. This is that task.
 
 **What this list has been re-cut against, 2026-08-31.** Decisions 20 and 21 are ruled, and between
 them they falsify three things every item from 1 to 19 was written on: the phase commits **36** spots
@@ -402,6 +406,44 @@ was the document disagreeing with it.
 bot's opening coverage falls from five seats to one. The closing measurement states **5 survived, 31
 refused, 31 gained, opening coverage five seats to one**. This is a property of two files rather than
 of the corpus, so it stays with phase 14 and does not travel to phase 17 under decision 21's seam.
+**Transcribed 2026-08-31 from `stage-04-predicate-change-review.md`: Taylor ruled the three
+predicate-change blockers on 2026-08-27 and the decision list never recorded it.** Implementation mode
+may not edit a decision record, so the ruling was written into the review note with a pointer to the
+next `contract-update`. This is that task, and the transcription is owed here rather than left in a
+note nobody re-reads.
+
+**Blocker 1 was already answered.** `da05adf` had ruled the cutover onto the 86 a day earlier - both
+clauses conjoined, the disposition's third option in full - and did not clear the marker, so the board
+went on showing a question that was closed. Nothing new was decided.
+
+**Blocker 2 was withdrawn as a defect, and this is the part later phases must read with its date.** The
+four-bet continuation rows were read cell by cell, and Taylor read them by group instead. At
+`t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5`, hero adding 15 into 31.5 for 32.26 percent with
+77.5 behind, combo and reach weighted: the whole arriving range continues 65.40 percent, the premiums
+(AA to QQ, AKs, AKo) 96.15 at 39.1 percent of arriving weight, the suited connectors (JTs to 54s) 99.10
+at 12.3 percent, the suited broadways 43.38 at 18.9 percent, and the middling pairs JJ to 22 **1.21** at
+20.2 percent. Value continues, the bluffs continue, the middling pairs fold - which is what a polarised
+three-bet range does facing a four-bet, and equity losing to playability is a standard solver result.
+The reviewer's claim that "no preflop solution plays that" was withdrawn as unchecked, and so was the
+convergence hypothesis beside it, which failed its own test: cells at 5 percent reach or better run
+88.2, 85.3, 69.3, 67.1 and 83.7 percent pure by depth, so deep nodes mix **more** rather than showing
+degradation.
+
+**And the same ruling named this phase's eventual cause, three days before decision 16 found it.** One
+number was left standing: whether 65.40 percent is the right total. Taylor ruled that the thing which
+would move it is `realization: calibrated`, that a four-bet pot at 1.7 SPR is where that approximation
+is weakest, and that this is a question about the model rather than about the derivation - filed
+against **phase 16** as `CALIBRATED-REALISATION-PRICES-FOUR-BET-POTS-UNTESTED`, with phase 14 changing
+nothing for it.
+
+**How that sits with decisions 16, 19 and 20, which is why the date matters.** The 2026-08-27 reading
+is that the four-bet rows are coherent polarised poker. The 2026-08-31 controlled experiment established
+that the *class* term is causal for them - one field changed, JJ moving from folding 93.5 percent to a
+37 percent continue - and decision 20 withholds those spots. Both hold: a polarised defence is the right
+*shape* there, and which hands fill it is what the per-class table gets wrong at SPR 1.67. The
+2026-08-27 ruling was made on the shape, before anyone had varied the model, and it is not evidence that
+the cells decision 20 refuses are sound.
+
 
 
 
@@ -693,6 +735,42 @@ decision 10 publishes a per-cell dominance table for a human, and a reader canno
 from two cells at five basis points of reach without the reach beside them. That is the same argument
 the contract makes for the four-bet composition read, and it makes the field load-bearing on the
 committed set rather than only on the multiway family that returns later.
+**Transcribed 2026-08-31 from `stage-04-untrained-cell-refusal.md`, which says in terms that this item
+owes it: "Decision 5 is `frozen-into-data` and covers the reach field only, so it owes an amendment at
+the next `contract-update`. Until they land this note is the only place either is written down."** This
+is that task.
+
+**Ruled by Taylor, 2026-08-27: the chart commits the untrained cells and refuses only the classes that
+never arrive**, and the reasoning is forward-looking rather than a judgment that those cells are sound -
+heuristics for spots with no solver output are wanted eventually, and a spot with no output is precisely
+where such a layer belongs, so blanking the cells now is not the route to it.
+
+**One thing was put back to him and taken, because option one as stated defeats its own purpose, and it
+adds a second field beside this item's.** A refused cell is visibly empty and a later heuristic layer
+can find it; a committed cell that was never computed is indistinguishable from one that was, and
+**reach cannot separate them**. At four of the eight never-reached spots it points the wrong way
+outright - the big blind facing a 100bb open-jam carries all 169 classes at 10,000 basis points - and at
+the other four it looks ordinary, 86 to 95 classes at a mean of 4,753 to 7,654. So **the converter
+records each spot's arrival probability on the artifact**, in parts per billion, beside the per-cell
+reach this item ruled.
+
+**The two fields are orthogonal and the chart needs both.** Reach is per cell and says whether hero can
+hold that class here. Arrival is per spot and says whether the line is one anybody plays. Integers,
+because that is what makes the artifact checksum mean something per decision 8, and parts per billion
+rather than basis points for a reason the field has to get right: 21 of the 86 spots sat at a nonzero
+arrival below one basis point, the smallest at 2.5e-08, so in basis points all 21 would have rounded to
+zero and become indistinguishable from the eight the solve genuinely never reaches. No threshold is
+asserted anywhere - option one ruled that nothing is refused for arriving rarely - and the field exists
+so a later phase can rule on it with the measurement in front of it. Frozen in
+`tests/test_chart_arrival_probability.py` with the canary
+`every-spot-claims-its-line-is-always-played`.
+
+**What it looks like over the committed set is not yet known.** Every figure above is over the 86. The
+eight never-reached spots, the 21 sub-basis-point spots and the five undertrained all-in nodes were
+properties of that set, and decision 14's re-source and decision 20's withholding both move it. The
+distribution is re-measured over the 36 at stage 6, along with the reach distribution this item's own
+amendment already owes.
+
 
 
 ## 6. How the export's four action kinds become the schema's four
@@ -846,6 +924,40 @@ all-in showdown, so an inversion there could not be blamed on the realization mo
 converter or solver defect. The check is therefore: at each of the fifteen, no lower pair and no weaker
 class calls off more often than aces do. The export version is retained beside it, so the phase holds
 one check that bites on the file the bot plays and one that bites on the source.
+**Transcribed 2026-08-31 from `stage-04-test-recut.md`, which says in terms that this item owes it:
+"decision 6 owes an amendment at the next `contract-update` transcribing it ... Until that lands this
+note is the only place it is written down."** This is that task, and there are **two** rulings, both
+Taylor's on 2026-08-26, neither of which has ever been in this list.
+
+**Ruled 2026-08-26: a spot offering two prices seeds the price.** The runtime half of this item was
+unruled and round 1 of the migration proceeded on a fail-closed default, which the independent
+integration reviewer showed was refuted by the data rather than merely conservative: `t6/d100/SB/rfi` was
+the only opening range the chart held and it offered two prices, so failing closed stopped the bot
+opening a hand at all, from any seat. **The strategy chooses among a spot's prices with the same
+deterministic seed it already uses to choose among a mixed cell's action weights.** No second mechanism
+is introduced; `PreflopChartStrategy` has it. Rejected: failing closed, which stops the bot opening; and
+taking the highest-weight price, which is the heuristic pick `lookup-tie-picks-an-action` forbids for
+actions, has no answer at a tie, and would commit to the artifact a jam branch the bot never plays.
+
+**Ruled 2026-08-26: the price weights are per hand class, not per spot.** The seeded-price ruling settled
+*how* the strategy chooses; it did not settle what it chooses from, and this item's entry was one weight
+per price per **spot**. At `t6/d100/BB/BTN:raise@2.5`, every class at full reach, the jam's share of
+hero's aggressive volume runs AA 0.0000, KK 0.0025, TT 0.0480, JJ 0.6313, AKo 0.6641, 65s 0.8781, 44
+0.8844 - against a spot aggregate of **0.0761**. A per-spot draw therefore jams 100bb with aces about
+once in every thirteen three-bets, where the solve never jams them at all, and three-bets 44 to 7.5 more
+than nine times in ten where the solve stacks off nearly nine times in ten. That is not a mispriced cell,
+it is a different strategy, and it destroys legible poker: the solve three-bets small with the hands that
+want action and jams the ones that do not want to play a three-bet pot out of position. It is also not
+recoverable later, since `PREFLOP_ACTIONS` has no jam and the collapse leaves the per-class split
+nowhere else in the artifact.
+
+**Both rulings are unexercised over what decision 20 commits, and neither is reversed by that.** No
+committed spot offers two prices, so the seed never has a second price to choose between and the
+per-class price weight has one entry everywhere. They are transcribed because they are Taylor's, because
+the multiway and four-bet families that return later are exactly where they bite, and because a ruling
+that lives only in a stage-4 review note is one a later phase re-derives from scratch. They join this
+item's own standing caveat: a check over the two-price case passes vacuously here and must be labelled.
+
 
 
 
@@ -1135,6 +1247,55 @@ pinning of the definition as data. Which relations it applies to is **decision 2
 item's 2026-08-30 supersession block, not in anything it carried on 2026-08-24; the 2026-08-24
 correction says the opposite, that the phase halts rather than freeze a gate it has not seen pass. The
 withdrawal stands and the first draft misnamed what it was withdrawing.
+**Transcribed 2026-08-31 from `stage-04-test-recut.md`, and it answers the question this item's
+2026-08-31 amendment was about to put to Taylor a second time.** The re-cut of this list filed a
+decision 22 asking which dominance relations gate the committed artifact. They were ruled on
+**2026-08-26**, the ruling shipped, and the decision list never recorded it - the list carries no
+occurrence of that date at all. Decision 22 is withdrawn to here.
+
+**Ruled by Taylor, 2026-08-26: the transposition discrimination is the gate, and no group ORDER is
+gated at all.** The group aggregate this item's 2026-08-24 re-ruling proposed was measured over the 86
+and **no partition passed**, so the contract's own instruction was to halt rather than freeze a gate
+nobody had seen pass. The question went to Taylor with all five partitions and two candidate
+substitutes. What gates is that **the measure prefers the solved hand index to the transposed one**:
+over the committed set the group measure must flag strictly fewer spots under GTOpen's own class
+ordering than under the grid ordering, on every partition. Measured at this item's ruled one-point
+tolerance: 51 against 77, 17 against 77, 10 against 77, 1 against 77, and 41 against 70.
+
+**Why that is the half of this item that survived measurement.** The 2026-08-24 re-ruling gave the
+aggregate a job - "to keep a real check, a transposed hand index or a mis-assigned actor still failing
+it, without asserting a per-cell order the solve does not owe". Over the 5,626 it failed at exactly
+that, scoring the transposed mapping as the better one. Over the 86 it discriminates the right way on
+every reading, and the ordering between the two mappings is what is asserted rather than a violation
+count - because a count fixes a partition, and choosing the partition that reads smallest is picking a
+number to go green. Rejected: gating the two-band pair aggregate with its one violation named, for that
+reason; and gating nothing, which would leave a transposed index caught only by the reach-against-export
+comparison.
+
+**It shipped and it is frozen.** `validate_group_discrimination` in
+`scripts/generate_derived_chart_report.py` refuses on `solved >= transposed`, a tie included, and
+`test_the_group_dominance_measure_prefers_the_solved_hand_index_to_the_transposed_one` in
+`tests/test_chart_cutover_evidence.py` asserts it over every partition. That test's own docstring states
+the other half in terms: "Decision 10's literal group form does **not** hold over the 86 on any
+partition, so this file does not gate on it."
+
+**So the 2026-08-31 amendment above is wrong where it says the group order gates**, and that sentence is
+withdrawn a second time - once to decision 22 and now to this ruling, which predates both. The
+independent review that opened the question was right that the suited-row ladder was never ruled; it was
+right for a stronger reason than it knew, which is that the ladder was ruled **out** as a gate five days
+earlier and the list never said so.
+
+**What is genuinely open, and it is a measurement rather than a ruling.** The 2026-08-26 discrimination
+was measured over the **86**. The committed set is now **36**, and the one comparable figure available on
+the committed keys runs the other way: round 14 of the stage-01 note reports that transposing every
+suited cell with its offsuit twin makes the suited-row ladder *cleaner*, 2 inversions to 0. That is a
+count of ladder inversions on one partition rather than the shipped gate's count of flagged spots over
+all five, so it does not refute the ruling - it is a warning that the ruling's premise must be re-taken
+before the freeze. **The discrimination is re-measured over the committed 36 at stage 4, and if it fails
+on any partition that is a halt and a decision for Taylor**, on this item's own standing rule that the
+phase does not freeze a gate it has not seen pass. `PHASE-14-CONTRACT-STATES-A-GROUP-GATE-THAT-DID-NOT-SHIP`
+carries the other half: the contract still states the superseded group-order form and owes the amendment.
+
 
 
 ## 11. Which rate the closing conclusion is read off
@@ -2077,7 +2238,7 @@ what its source does and what was ruled about it. That is the seam decision 21 n
 file against a claim about poker made by comparing that file to 499 real hands - and this re-cut is the
 first time it has been applied to this list.
 
-## 22. Which dominance relations gate the committed artifact
+## 22. Which dominance relations gate the committed artifact (withdrawn: ruled 2026-08-26)
 
 Reversibility: frozen-into-data
 
@@ -2144,4 +2305,30 @@ too.
 
 Options: gate-both-ladders-at-one-point | gate-the-pair-band-ladder-only-and-publish-the-suited-row |
 gate-neither-and-publish-both | gate-both-and-halt-if-it-fails
-Answer: []
+Answer: [withdrawn-already-ruled-2026-08-26-see-decision-10]
+
+**WITHDRAWN 2026-08-31, hours after it was filed, because the question was already ruled.** Taylor
+ruled it on **2026-08-26** and the ruling shipped; this decision list never recorded it, and a search
+of the record was what found that. The transcription is at the foot of decision 10 and it is the
+authority - read it rather than this item.
+
+**What he ruled, in one sentence.** No group **order** is gated at all. What gates is that the group
+measure **prefers the solved hand index to the transposed one**: over the committed set it must flag
+strictly fewer spots under GTOpen's own class ordering than under the grid ordering, on every
+partition. That is a fifth answer, and none of this item's four options names it.
+
+**Why this item was written anyway, recorded because the failure is worth keeping.** The re-cut of
+this list on 2026-08-31 asserted that the group order gates. An independent poker review caught that
+the suited-row ladder underneath it was never ruled and asked for a decision item, correctly on what
+it could see. Neither the re-cut nor the review knew the ladder had been ruled **out** as a gate five
+days earlier, because the ruling lived only in `stage-04-test-recut.md`: implementation mode may not
+edit a decision record, so a stage-4 ruling is written into a review note with a pointer to the next
+`contract-update`, and this list had four such pointers outstanding. So a question that was settled,
+implemented and frozen was hours from going back to Taylor with an option set that omitted his own
+answer. `RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE` carries the general form.
+
+**What is genuinely open is a measurement, not a ruling, which is why nothing here blocks stage 3.**
+The 2026-08-26 discrimination was measured over the **86**. The committed set is **36**. Decision 10's
+transcription states the retake and where it halts: stage 4 re-measures the discrimination over the
+36, and a failure on any partition is a halt and a decision for Taylor rather than an edit to the
+measure. Decision 10's one-point tolerance is not reopened by anything here.
