@@ -154,6 +154,27 @@ measurement to retake rather than as a defect the ruling repairs.
   reframing of `REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH` (R is realized EV over raw
   equity, not strength, so the table is right and applying it at SPR 1.67 is the defect).
 
+- **Decision 20 ruled and executed, 2026-08-31: `calibrated`, and the four-bet-facing spots refused.**
+  36 of the 51 are committed. `RULED_CONFIG` carries `calibrated` again and the module docstring records
+  `static` as ruled-and-reverted with the measurement that reverted it, so the next reader who reaches
+  for that field finds the experiment already run. The two things the ruling accepts are filed with
+  exits rather than left in prose - `THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` and
+  `CHART-CANNOT-ADVISE-A-FIVE-BET` - and both close the same way, either a fitted pot-type cell or
+  phase 16's postflop solver, which plays flops exactly and carries no realization model at all.
+  Measured consequences, structural and so true under either model: menus **20 call/fold/raise, 15
+  call/fold, 1 fold/raise**, prices **`[2.5, 7.5, 22.5]`**, census 36 + 15 + 29,104 + 4,814 = 33,969.
+  The one worth stating loudest: hero can only five-bet where he faces a four-bet, so **the committed
+  chart contains no jam at all** and the bot refuses rather than advising a stack-off.
+- **The lane is halted on one question: may the contract be rewritten?** It must now say 36 rather than
+  51, carry a third exclusion reason, state that no jam survives and qualify the rake-free claim, and it
+  stands at exactly 300 of 300 lines. The draft that says all of it is 323 after cutting every level
+  measured on a discarded build. AGENTS.md's remedy is a rewrite that folds amendments into the criteria
+  they amend, as its own contract-update task and never a raised cap, and the previous such rewrite was
+  Taylor's call - so this one is put to him. The draft is preserved at
+  `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/contract-draft-decision-20.md` with what it still
+  owes; the committed contract is restored to its last coherent state so the disagreement is visible
+  rather than papered over. Round 12 of the stage-01 note carries it.
+
   Nothing under `data/artifacts/` is committed. The chart and export survive only in a session scratch
   directory, so recovering this build means re-solving it; its source card and human report are
   committed under `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/` and the checksums in round 7

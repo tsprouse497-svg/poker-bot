@@ -3773,3 +3773,80 @@ items:
       three-explanations paragraph both need a clause saying the flop leaves keep the training rake,
       and `CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT` gains back part of the explanation phase 14 was
       going to strike off. Related: NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL.
+
+  - id: THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL
+    status: deferred
+    phase: "14"
+    title: The committed three-bet spots weigh hero's four-bet on terminals the realization fit has no cell for
+    reason: >-
+      Filed 2026-08-31 as the residual decision 20 accepts. Taylor ruled `calibrated` with the
+      four-bet-facing spots refused, and said of what remains "can figure out later"; this is the
+      "later", written down so the acceptance has an id and an exit rather than living in a decision
+      item nobody re-reads.
+      What is accepted. Refusing a spot removes it from lookup, not from the solve, and every committed
+      spot is backward-induced over the terminals below it. Measured on the ruled build: of the 36
+      committed spots, arrival-weighted, 71.69 percent of value is fold-win and never touches the
+      realization model, 0.55 percent is an all-in showdown priced R=1 exactly, 26.39 percent is a
+      heads-up flop terminal inside the fit's pot types and 1.38 percent is one in a four-bet pot,
+      outside them - so 4.96 percent of model-priced mass is out of support. That aggregate is smallest
+      where the traffic is. Per hand class it reverses: at all fifteen three-bet-facing committed spots
+      AA, KK and AKs sit at 100 percent contamination and QQ at twelve of them, because four-betting is
+      the only way those hands see a flop there and four-bet-versus-call is the decision those spots
+      exist to answer. Even `t6/d100/SB/rfi`, 25 percent of committed arrival, puts 21.8 percent of the
+      premium classes' flop mass in a four-bet pot.
+      Why it is not measurable here. Mass bounds the exposure without measuring the error. The decisive
+      test is an EV comparison with only the four-bet-pot terminals repriced - R=1 below SPR 2, which is
+      what the engine already does at an all-in terminal - against the ruled build, asking whether the
+      committed cells move by more than the solve's own noise. No config reaches that: `realization` is
+      tree-wide so `static` confounds it, and `max_raises: 3` removes four-betting as an option rather
+      than repricing it. Repricing one pot type means editing GTOpen, which is out of scope.
+      Two exits, neither phase 14's. A GTOpen change, if that constraint is ever lifted. Or **phase 16**,
+      whose postflop solver plays flops exactly and carries no realization model at all, at which point
+      every cell here is re-derivable against a source without the defect - which is the better exit,
+      because it also retires CALIBRATED-REALIZATION-CARRIES-ITS-TRAINING-RAKE and
+      REALIZATION-MODEL-UNDERPRICES-POSITION at the same time.
+      Until then the source card states it, per the contract, so no packet may claim the committed set
+      is priced exactly.
+
+  - id: CHART-CANNOT-ADVISE-A-FIVE-BET
+    status: deferred
+    phase: "14"
+    title: Refusing the four-bet-facing spots removes every jam from the committed chart
+    reason: >-
+      Filed 2026-08-31 as the coverage decision 20 spends, measured rather than assumed. Hero can only
+      five-bet where he faces a four-bet, and those fifteen spots are exactly the ones withheld, so
+      `100.0` leaves hero's price menu entirely: over the committed 36 the distinct raise prices are
+      `[2.5, 7.5, 22.5]`, no committed spot lets hero jam, and the menu census is 20 call/fold/raise,
+      15 call/fold, 1 fold/raise. The bot refuses rather than advising a stack-off.
+      Three consequences the phase must state rather than let pass. The jam-inversion canary that
+      rejected the first cutover - no committed spot where a low pair takes the jam and aces do not - is
+      **vacuous** over the committed set and has to be retained against the export, where the fifteen
+      spots still exist, or it becomes a check that cannot fail being counted as one that passed. The
+      report prints AA's jam weight at those fifteen as excluded evidence rather than as committed
+      ranges. And the sizing table's two-price schema stays entirely unexercised, since a spot that
+      offers a named raise and a jam is exactly the shape now refused.
+      This is a real coverage loss at the table: facing a four-bet is not rare in the games this bot
+      trains for. It closes when the four-bet spots come back, which is the same exit as
+      THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL - a fitted pot-type cell, or phase 16.
+
+  - id: DECISION-ITEMS-STATE-WHAT-AN-OPTION-COMMITS-NOT-WHAT-IT-REMOVES
+    status: deferred
+    phase: contract-update
+    title: A frozen-into-data option sheet should say what each option takes out of the artifact
+    reason: >-
+      Filed 2026-08-31 after phase 14's decision 20 was ruled. The item stated each option's arrival
+      mass, its contamination and what it would commit, and it was ruled on that. What it did not state
+      is what the chosen option *removes*: refusing the four-bet-facing spots removes every jam from the
+      committed chart, because hero can only five-bet where he faces a four-bet - so `100.0` leaves
+      hero's price menu, the jam-inversion canary written specifically against the defect that rejected
+      the first cutover becomes vacuous over the committed set, and the sizing table's two-price schema
+      can no longer be exercised by any committed spot. All three were three levels below the summary
+      the ruling was taken on, and all three were discoverable before it.
+      The rule worth adopting: a `frozen-into-data` option sheet states, per option, what the artifact
+      loses - which decisions the bot stops being able to answer, which committed checks become vacuous,
+      and which schema features stop being exercised - beside what it commits. "A check that cannot fail
+      must not be counted as one that passed" is already this repo's phrasing for the third of those;
+      this generalises it to the moment the option is chosen rather than the moment it is measured.
+      Not urgent and not a defect in the ruling, which was correct on the evidence. It is a defect in
+      how the choice was presented, and the cheapest place to fix it is the ExecPlan's decision-item
+      template rather than a checker.

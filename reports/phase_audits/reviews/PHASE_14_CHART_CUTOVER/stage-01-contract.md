@@ -1503,3 +1503,72 @@ None new. Stated as prose because a bullet here is counted as one.
   quantity anyone should have asked for when the phase started arguing about realization tables three
   weeks ago. It also says where the model *does* bite - the 26 percent that reaches a heads-up flop -
   and that is exactly the mass phase 16's real postflop solver will eventually price properly.
+
+# Round 12, 2026-08-31: decision 20 ruled, and what it costs
+
+Not a review round. Taylor ruled decision 20 - solve with `calibrated`, refuse the four-bet-facing
+spots, commit 36 of the 51 - and said of the residual "can figure out later". This records what was
+executed, what the ruling costs in coverage, and the one thing it is blocked on.
+
+**Executed.** `RULED_CONFIG["realization"]` is back to `"calibrated"`. The module docstring now records
+`static` as ruled-and-reverted with the measurement that reverted it, so the next reader who reaches
+for that field finds the experiment already run. Decision 20 carries the answer, the rejected options
+with their reasons, and the fifth cut that was offered and declined - refusing the three-bet spots as
+well, which would keep 82.4 percent of arrival and drop every cell that is 100 percent out of support.
+The two things the ruling accepts are filed with exits rather than left in prose:
+`THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` and `CHART-CANNOT-ADVISE-A-FIVE-BET`.
+
+**What the ruling costs, measured on the ruled build rather than assumed.** 36 spots committed, 15
+withheld. The menu census over the committed set is **20 call/fold/raise, 15 call/fold, 1 fold/raise**,
+21 spots carry a sizing entry and 15 do not, and the distinct raise prices are **`[2.5, 7.5, 22.5]`**.
+The census is 36 committed, 15 `source-misprices-four-bet-pot`, 29,104 `source-misprices-multiway`,
+4,814 `outside-selection-rule`, summing to 33,969. These are structural properties of the tree, so they
+hold under either realization model, and both builds agreed on them.
+
+**The consequence worth stating loudest, because it was not obvious when the ruling was taken.** Hero
+can only five-bet where he faces a four-bet, so withholding those fifteen spots removes **every jam
+from the committed chart**. The bot will refuse rather than advise a 100bb stack-off. Three things
+follow: the jam-inversion canary that rejected the first cutover is vacuous over the committed set and
+must be retained against the export instead, or it becomes a check that cannot fail counted as one that
+passed; the report prints AA's jam weight at those fifteen as excluded evidence rather than committed
+ranges; and the sizing table's two-price schema stays entirely unexercised, since the spot shape that
+would exercise it is exactly the one refused.
+
+## Blocker
+
+- **The contract cannot say what decision 20 ruled inside its 300-line cap, and this session tried to
+  make it fit incrementally, which is the thing `AGENTS.md` warns against.** The contract must now say
+  36 committed rather than 51, carry a third exclusion reason and its census, state that no jam
+  survives, qualify the rake-free claim under `calibrated`, and pin the dominance gate's definition. It
+  stands at exactly 300 of 300; the draft that says all of it is **323**, after cutting every stated
+  level that was measured on a build the phase discarded. `AGENTS.md`'s remedy for a contract at the cap
+  is a rewrite that folds its amendments into the criteria they amend, as its own `contract-update`
+  task, and never a raised cap - and the previous such rewrite, on 2026-08-30, was Taylor's call rather
+  than a coordinator's. **So it is put to him rather than taken.** The draft is preserved at
+  `contract-draft-decision-20.md` beside this note, with a header stating what it is, why it does not
+  fit and what the rewrite still owes; it is working material and nothing in the repo reads it. The
+  committed contract is restored to its last coherent state, so `check_file_sizes` passes and the
+  contract's disagreement with the ruling is visible rather than papered over. **Open: needs a yes.**
+
+## Non-blocker
+
+- **Reverting `realization` narrows the gate's red rather than widening it.** `config_errors` now
+  reports one mismatch instead of two - `add_allin` only - and the four frozen assertions that name the
+  calibrated model by name go back to passing. The gate is still red by design until stage 6 rebuilds
+  the export, and no constant was reverted to achieve that.
+- **One figure this ruling makes checkable was confirmed rather than left orphaned.** The contract's
+  solve-target criterion says the trajectory first meets 0.00016 at iteration 1,900 of 2,000. The
+  `calibrated` plus `add_allin: false` build reproduced exactly that - 0.00015591bb at iteration 1,900 -
+  so of round 7's six falsified figures, that one is true of the build this ruling ships and was
+  falsified only by `static`. The other three orphaned levels are now checkable against a real artifact
+  at stage 4.
+
+## Alignment
+
+- **The ruling was taken on a two-line summary and its largest consequence was three levels down.**
+  "Everything but four-bet pots" is the right call on the evidence, and it also removes every jam from
+  the chart, voids a canary written specifically against the defect that rejected the first cutover,
+  and leaves a schema criterion unexercisable - none of which was in front of the person ruling. The
+  option sheet in a `frozen-into-data` item should state what each option *removes from the artifact*,
+  not only what it commits and what it costs in arrival mass. That is a defect in how decision 20 was
+  written, not in the ruling, and it belongs in `backlog.yml` as a rule for future decision items.

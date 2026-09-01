@@ -1,25 +1,32 @@
 auto_advance: false
 halt_reason: >-
-  Halted, waiting on decision 20 (frozen-into-data, unanswered): which pot type the committed chart
-  prices correctly, now that no realization model GTOpen ships prices both. Decision 19 is executed and
-  done, not pending. Decisions 17 and 18 are superseded and withdrawn; no work is owed in GTOpen and
-  ~/projects/gtopen stays an unmodified read-only clone at 4aee435.
-  Why: calibrated gets four-bet pots backwards - JJ folds pure at 40.8 percent equity into a 32.3
-  percent price while 76s calls at 29.6, because the fit has no four-bet-pot cell. static removes that
-  and turns the single-raised pots into a calling station - the big blind defends 100.00 percent
-  against a small-blind open, folding zero combos, which is the column phase 10's decision 2 ruled
-  uncommittable. raw is static without the positional term. There is no fourth setting and repairing
-  the model is out of scope, so what is left is a choice about which pot type the chart commits and
-  what happens to the other.
-  Read in this order: decision 20 for the options and the evidence, then rounds 7, 10 and 11 of
-  reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md - round 7 is the static
-  build's measurements, round 10 is what GTOpen's own authors document about the two models, round 11
-  is the four-bet contamination in the spots a revert would keep. The static build's source card and
-  human report and calibrated-build-contamination.json sit beside that note as the evidence.
-  Nothing under data/artifacts/ is committed and the artifact is writable at stage 6, so the gate is
-  red by design: RULED_CONFIG disagrees with the committed export on two fields and four frozen
-  assertions name the calibrated model. Those tests migrate at stage 4. Never revert a ruled constant
-  to green the gate.
+  Halted on one question for Taylor: may the phase 14 contract be rewritten? Decision 20 is answered
+  and everything else it implies is done.
+  What is ruled and executed. Taylor ruled decision 20 on 2026-08-31: solve with realization=calibrated
+  and refuse the fifteen four-bet-facing spots, committing 36 of the 51 the predicate selects. The
+  source misprice is answered by what the chart declines rather than by the field that prices the whole
+  tree. RULED_CONFIG carries calibrated again, decision 19's static is recorded as ruled-and-reverted
+  with the measurements that reverted it, and the two things the ruling accepts are filed with their
+  exits: THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL and CHART-CANNOT-ADVISE-A-FIVE-BET.
+  What is blocked. The contract must now say 36 committed rather than 51, carry a third exclusion
+  reason and its census, state that the committed chart contains no jam at all, and qualify the
+  rake-free claim. It stands at exactly 300 of the 300 lines check_file_sizes allows and the draft that
+  says all of it is 323, after cutting every level measured on a build the phase discarded. AGENTS.md's
+  remedy for a contract at the cap is a rewrite that folds its amendments into the criteria they amend,
+  as its own contract-update task, and never a raised cap - and the last such rewrite, on 2026-08-30,
+  was Taylor's call. So this one is put to him rather than taken. The draft is at
+  reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/contract-draft-decision-20.md with what the
+  rewrite still owes; it is working material and nothing reads it.
+  To resume: say yes to the rewrite, then it lands as this task's last edit and the lane advances to
+  stage 2 to re-cut the decision record against the ruling. Stage 4 then migrates the frozen tests that
+  pin 86 spots, the 169-class grid and the export checksums, and stage 6 rebuilds and commits the
+  artifact. The build machinery is proven and runs in about seven minutes; the test re-cut is the cost.
+  Read decision 20 for the ruling and its evidence, then rounds 7, 10 and 11 of
+  reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md - the static build's
+  measurements, what GTOpen's own authors document, and the four-bet contamination in the spots the
+  ruling keeps. calibrated-build-contamination.json beside the note is that measurement's data.
+  The gate is red by design and stays red until stage 6: RULED_CONFIG's add_allin disagrees with the
+  committed export, which was built with it true. Never revert a ruled constant to green the gate.
 loop: halted
 phase_id: '14'
 schema_version: 1

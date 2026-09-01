@@ -1,14 +1,10 @@
 """The one solve config this repo commits an export from, and the check that it was used.
 
 Phase 10's decision 2 fixed it verbatim: six-handed, 100bb, 2.5bb opens, no limp,
-rake-free, `realization: "calibrated"`, `allin_threshold: 0.67`. Phase 14 supersedes two
-fields of that ruling. Decision 14: `add_allin` is `False`, because `True` put a
-full-stack jam on the raise menu at every node where a raise was legal, with no reference
-to the pot, and genuine five-bet jams survive through `allin_threshold` instead. Decision 19,
-ruled by Taylor on 2026-08-31: `realization` is `"static"`, because `calibrated` prices every
-flop terminal from 169 per-class numbers fitted only on single-raised and three-bet pots -
-GTOpen's own fitter has no four-bet cell - and applied unchanged at SPR 1.67 it folds JJ at
-40.8 percent equity into a 32.3 percent price while calling 76s at 29.6. It lives in its own
+rake-free, `realization: "calibrated"`, `allin_threshold: 0.67`. Phase 14 supersedes one
+field of that ruling. Decision 14: `add_allin` is `False`, because `True` put a full-stack
+jam on the raise menu at every node where a raise was legal, with no reference to the pot,
+and genuine five-bet jams survive through `allin_threshold` instead. It lives in its own
 module because both the export reader and the source card have to hold an export to it, and
 neither of them owns the ruling.
 
@@ -16,19 +12,26 @@ neither of them owns the ruling.
 verifies the committed export by loading the saved solve rather than by rebuilding from the
 form.
 
-**What decision 19 owes a measurement, stated here because this is the field that carries
-it.** `realization` is absent from the config body in `docs/GTOPEN_SOLVER_NOTES.md`, so every
-run before phase 10's probe took its default - and the default is `static`. Phase 10 measured
-that default, same tree and same target with only this field changed, and found a big blind
-defending **99.71** percent against a small-blind open, 97.44 against a button open and 72.94
-against the lojack, against 49.03, 36.88 and 27.19 under `calibrated`. Its decision 2 ruled in
-those words that nothing may be committed under the default. Decision 19 was ruled on the
-four-bet pots, where `static` has no per-class term to get backwards; it does not address the
-single-raised pots, where phase 10 found that term load-bearing. One field decides both, so
-the big-blind defence figures are re-measured on this build and read by a human before
-anything derived from it is committed.
-"""
+**`realization` was moved to `"static"` on 2026-08-31 and moved back the same day. Read this
+before proposing it again.** Decision 19 ruled `static` because `calibrated` prices every flop
+terminal from 169 per-class numbers with no four-bet-pot cell, and applied at SPR 1.67 it folds
+JJ at 40.8 percent equity into a 32.3 percent price while calling 76s at 29.6. That diagnosis
+stands. The build it produced does not: measured on this tree, the big blind defends 76.31,
+84.51, 91.46, 98.19 and **100.00** percent against the lojack, hijack, cutoff, button and small
+blind, folding zero combos to a small-blind open. Phase 10 measured the same model at 72.94,
+97.44 and 99.71 and its decision 2 ruled that nothing may be committed under it; GTOpen's own
+author records the same comparison as "BB defends 50% vs 2.5x with textbook composition vs
+static's junk-loving 94%" and ships `static` as a sensitivity-check dropdown rather than a
+model. `raw` is `static` with the positional term removed as well.
 
+**Decision 20, ruled by Taylor on 2026-08-31, is what settles it:** solve with `calibrated`,
+which is right in the pot types its fit covers, and **refuse the four-bet-facing spots** rather
+than commit cells the fit has no cell for. So the misprice is answered by what the chart
+declines to answer, not by the realization field. Do not change this field to route around a
+pricing defect - one field prices the whole tree, and the pot type it is wrong in is the one to
+exclude. `THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` carries the residual that ruling
+accepts, and `CALIBRATED-REALIZATION-CARRIES-ITS-TRAINING-RAKE` the limitation it inherits.
+"""
 from __future__ import annotations
 
 RULED_CONFIG: dict = {
@@ -45,7 +48,7 @@ RULED_CONFIG: dict = {
     "rake_pct": 0.0,
     "rake_cap": 0.0,
     "no_flop_no_drop": True,
-    "realization": "static",
+    "realization": "calibrated",
 }
 
 

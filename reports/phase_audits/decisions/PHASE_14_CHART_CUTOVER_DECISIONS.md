@@ -1478,4 +1478,30 @@ freeze, and it buys that by abstracting away a line real opponents take. Either 
 neither is offered as an option here without Taylor saying so.
 
 Options: revert-to-calibrated-and-refuse-the-four-bet-spots | keep-static-as-solved | keep-static-and-refuse-the-single-raised-spots | halt-until-a-source-prices-both
-Answer: []
+Answer: [revert-to-calibrated-and-refuse-the-four-bet-spots]
+
+**Ruled by Taylor, 2026-08-31: revert to `calibrated` and refuse the four-bet-facing spots.** The
+residual is accepted rather than dismissed - his words were "can figure out later" - so what "later"
+means is written down here rather than left as a feeling. It is the three-bet spots' contamination:
+16.00 percent of committed arrival, at which AA, KK and AKs weigh four-bet-versus-call on terminals the
+fit has no cell for. It is not measurable from inside this phase's constraints, because separating it
+needs one pot type repriced and no config reaches that. Two things resolve it and neither is phase 14's:
+an EV comparison that would require editing GTOpen, which stays out of scope; or **phase 16**, whose
+postflop solver plays flops exactly and carries no realization model, at which point every cell in this
+chart is re-derivable against a source that does not have the defect. Filed as
+`THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` so the acceptance has an id and an exit rather than
+living in a decision item nobody re-reads.
+
+Rejected, and why, so the ruling is not re-litigated. `keep-static-as-solved`: the big blind defends
+100.00 percent against a small-blind open and folds zero combos, which phase 10's decision 2 already
+ruled uncommittable on the same measurement.  `keep-static-and-refuse-the-single-raised-spots`: refuses
+82 percent of the chart's traffic to keep the rare spots.  `halt-until-a-source-prices-both`: a
+defensible choice and the one this ruling trades against - it was declined because a provisional chart
+that is right in the common spots beats another cycle on the retired raked GTO Wizard chart, and
+because phase 16 will re-source this anyway.
+
+A fifth cut was priced and offered before the ruling and not taken: refusing the three-bet spots as
+well, which keeps 82.4 percent of arrival and drops every cell that is 100 percent out of support, at
+the cost of the bot refusing every three-bet spot. Recorded because the contamination is a gradient
+rather than a cliff at the four-bet boundary, and a later phase reopening this should know the option
+existed and was declined rather than missed.
