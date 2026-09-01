@@ -628,7 +628,7 @@ items:
       replay.py in the tree.
   - id: CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT
     status: deferred
-    phase: "14"
+    phase: "17"
     title: The chart defends the big blind nothing like real players do
     reason: >-
       Measured over 499 real hands. Folds agree almost always and raises agree in the
@@ -698,7 +698,7 @@ items:
       measurement of what that fix would buy, and the two should be worked together.
   - id: CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK
     status: deferred
-    phase: "14"
+    phase: "17"
     title: Real hands find three times the coverage gap that self-play finds
     reason: >-
       78 distinct refused spots against real play versus 22 from self-play, and most of the
@@ -788,7 +788,7 @@ items:
       action_sequence may carry a call weight.
   - id: CHART-CANNOT-ANSWER-A-LIMPED-POT
     status: deferred
-    phase: "14"
+    phase: "17"
     title: A no-limp solve cannot answer any spot where an opponent limped
     reason: >-
       Hero never limping and hero never facing a limp are different things, and dropping limps
@@ -3440,7 +3440,7 @@ items:
       nothing and is checkable.
 
   - id: PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP
-    status: open
+    status: done
     phase: "14"
     title: The contract sits at exactly 300 of 300 lines after a rewrite that already cut rationale
     reason: >-
@@ -3472,9 +3472,17 @@ items:
       exclusion reason and its census, and four review rounds of corrections - all criteria. The cap is
       right in general. The draft that says everything is preserved at
       reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/contract-draft-decision-20.md.
+      Closed 2026-08-31 by Taylor's ruling to split the phase - decision 21 in the phase 14 record.
+      Phase 14 keeps deriving and committing the artifact and checking the ranges it holds; phase 17
+      takes the corpus comparison and the verdict on v1's calling gap. Phase 14 now measures 284 lines
+      with every criterion the stage-01 reviews asked for, and phase 17 measures 158. The cap was not
+      raised and no criterion was dropped; what changed is what one contract is asked to cover.
+      Kept open as a lesson rather than deleted: the size was the symptom. A contract that cannot fit
+      its own cap after a genuine folding rewrite is usually a phase doing two jobs, and that is the
+      first hypothesis to test next time rather than the last.
   - id: AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART
     status: open
-    phase: charts
+    phase: "17"
     title: The permissive corpus agreement rate scores menu width, not play quality
     reason: >-
       Found while re-sourcing phase 14 with `add_allin: false`, by scoring the same corpus against

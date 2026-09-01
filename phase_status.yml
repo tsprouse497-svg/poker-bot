@@ -87,3 +87,8 @@ phases:
     status: future
     contract: docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
     audit_packet: reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md
+  - phase_id: "17"
+    title: "The Corpus Verdict On The Committed Chart"
+    status: future
+    contract: docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md
+    audit_packet: reports/phase_audits/PHASE_17_CORPUS_VERDICT.md

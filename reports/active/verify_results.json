@@ -1,7 +1,37 @@
 {
   "all_passed": true,
-  "generated_at_epoch": 1788225207,
+  "generated_at_epoch": 1788226945,
   "results": [
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_status.py"
+      ],
+      "command_id": "generate_status",
+      "description": "Regenerate STATUS.md",
+      "duration_seconds": 0.054,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_phase_ledger.py"
+      ],
+      "command_id": "generate_phase_ledger",
+      "description": "Regenerate phase ledger",
+      "duration_seconds": 0.035,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
     {
       "command": [
         "uv",
@@ -11,7 +41,39 @@
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.083,
+      "duration_seconds": 0.088,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_status.py",
+        "--check"
+      ],
+      "command_id": "check_generated_status",
+      "description": "Check generated STATUS.md freshness",
+      "duration_seconds": 0.052,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_phase_ledger.py",
+        "--check"
+      ],
+      "command_id": "check_generated_phase_ledger",
+      "description": "Check generated phase ledger freshness",
+      "duration_seconds": 0.031,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -42,7 +104,7 @@
       ],
       "command_id": "check_contracts",
       "description": "Validate phase contracts",
-      "duration_seconds": 0.037,
+      "duration_seconds": 0.04,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -57,7 +119,7 @@
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.13,
+      "duration_seconds": 0.133,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -87,7 +149,7 @@
       ],
       "command_id": "check_repo_consistency",
       "description": "Cross-check phase status, ExecPlan location, gate commands, and the phase graph",
-      "duration_seconds": 0.092,
+      "duration_seconds": 0.09,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -98,11 +160,27 @@
         "uv",
         "run",
         "python",
+        "scripts/freeze_tests.py",
+        "--check"
+      ],
+      "command_id": "check_test_freeze",
+      "description": "Check tests match verification/freeze.lock",
+      "duration_seconds": 0.078,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "test freeze intact: 35 files\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
         "scripts/check_file_sizes.py"
       ],
       "command_id": "check_file_sizes",
       "description": "Validate file-size limits",
-      "duration_seconds": 0.029,
+      "duration_seconds": 0.028,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -119,11 +197,27 @@
       ],
       "command_id": "pytest_loop_fleet",
       "description": "Run parallel-loop eligibility, lane discovery, and pause board tests",
-      "duration_seconds": 0.188,
+      "duration_seconds": 0.164,
       "passed": true,
       "returncode": 0,
       "stderr": "",
       "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.07s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-c",
+        "import poker_training_bot; print(poker_training_bot.__version__)"
+      ],
+      "command_id": "import_smoke",
+      "description": "Import package smoke test",
+      "duration_seconds": 0.02,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "0.0.0\n"
     },
     {
       "command": [
@@ -136,7 +230,7 @@
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.056,
+      "duration_seconds": 0.025,
       "passed": true,
       "returncode": 0,
       "stderr": "",

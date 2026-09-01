@@ -27,6 +27,7 @@ Completed phases: `14`
 | 14 | active | `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` | `reports/phase_audits/PHASE_14_CHART_CUTOVER.md` |
 | 15 | future | `docs/phase_contracts/PHASE_15_DRILL.md` | `reports/phase_audits/PHASE_15_DRILL.md` |
 | 16 | future | `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` | `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` |
+| 17 | future | `docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md` | `reports/phase_audits/PHASE_17_CORPUS_VERDICT.md` |
 
 ## Verification
 

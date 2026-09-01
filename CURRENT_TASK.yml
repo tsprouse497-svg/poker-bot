@@ -9,6 +9,8 @@ approved_scope:
   - src/poker_training_bot/solver_artifacts/gtopen_config.py
   - src/poker_training_bot/solver_artifacts/gtopen_export.py
   - scripts/extract_gtopen_preflop.py
+  - docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md
+  - verification/loop_policy.yml
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -24,6 +26,28 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-08-31
+    reason: >-
+      Taylor ruled on 2026-08-31 to split phase 14 in two, so `docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md`
+      and `verification/loop_policy.yml` join `approved_scope`. The trigger was mechanical rather than
+      aesthetic: with decision 20's criteria, the two criteria the stage-01 reviews asked for and the
+      corrections they found, the contract measured 305 lines against the 300 `check_file_sizes.py`
+      allows, after the Scope narrative had already been cut to orientation, every level measured on a
+      discarded build replaced by its criterion, bullets merged and the whole document reflowed.
+      AGENTS.md forbids raising the cap and prescribes a rewrite folding amendments into the criteria
+      they amend; that rewrite was done and still did not fit, so the remaining move was a ruling.
+      The seam is the one the content already had. Phase 14 derives and commits the artifact and checks
+      the ranges it holds. Phase 17 measures that artifact against the public corpus and says what the
+      result establishes about v1's calling gap - a report about a report, with different failure modes
+      and a different reader. Phase 14 lands at 284 lines with everything the reviews asked for, and
+      phase 17 at 158.
+      `verification/loop_policy.yml` is needed because a declared phase without a policy entry has no
+      auto-advance rule; 17 is `auto_advance: false` because its output is a judgement rather than data.
+      `phase_status.yml` is already `standing_scope`. What is deliberately NOT widened: `scripts/**`,
+      so this task cannot register phase 17's gate commands - it does not need to, because
+      `check_repo_consistency` requires registration only for phases that are `active` or `completed`
+      and 17 is `future`, exactly as phase 15's `pytest_drill` is unregistered today.
+      base_commit does not move.
   - date: 2026-08-31
     reason: >-
       Decision 19 is executed: `RULED_CONFIG["realization"]` moves from `calibrated` to `static`,

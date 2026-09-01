@@ -116,3 +116,14 @@ phases:
       stays open by design: the exploitability target and whether a solve is reproducible
       are inherited from phase 10's measurements rather than ruled here, so stage 3
       halts if phase 10 never produced them.
+  "17":
+    auto_advance: false
+    needs_human_data: false
+    reason: >-
+      Writes a report rather than committed data, which would normally auto-advance.
+      It does not, because its output is a verdict: the phase says whether v1's calling
+      gap was rake and price or a real defect in the ranges, and phase 08 could separate
+      none of the three explanations it offered. Which of them survives is a judgement a
+      human makes on the evidence, and the phase is designed so a miss in either
+      direction against its pre-registered prediction is a result rather than something
+      to explain away. Split from phase 14 by Taylor on 2026-08-31.

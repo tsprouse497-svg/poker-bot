@@ -165,6 +165,19 @@ measurement to retake rather than as a defect the ruling repairs.
   call/fold, 1 fold/raise**, prices **`[2.5, 7.5, 22.5]`**, census 36 + 15 + 29,104 + 4,814 = 33,969.
   The one worth stating loudest: hero can only five-bet where he faces a four-bet, so **the committed
   chart contains no jam at all** and the bot refuses rather than advising a stack-off.
+- **Decision 21, 2026-08-31: phase 14 is split, and stage 1 is complete.** The contract rewrite Taylor
+  approved was done and reviewed twice, and with decision 20's criteria plus what the reviews asked for
+  it measured 305 against a 300 cap after a genuine folding rewrite. Taylor ruled the split. Phase 14
+  keeps deriving and committing the artifact and checking its ranges, at **284** lines with both
+  criteria the reviews asked for - the human read of hero's four-betting range at each committed
+  three-bet spot, and the statement that the group gate is a regression detector the committed build
+  fails while the rejected one passes. **Phase 17, "The Corpus Verdict On The Committed Chart"**, is
+  declared `future` at 158 lines, `depends_on: ["14"]`, `auto_advance: false`, and takes the closing
+  measurement, the corpus half of the report, four corpus-facing backlog entries and decision 9's
+  pre-registration. `PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP` closes with the lesson attached: a
+  contract that will not fit after a folding rewrite is usually a phase doing two jobs. Round 16 of the
+  stage-01 note dispositions every blocker the lane carried; none is open.
+
 - **The lane is halted on one question: may the contract be rewritten?** It must now say 36 rather than
   51, carry a third exclusion reason, state that no jam survives and qualify the rake-free claim, and it
   stands at exactly 300 of 300 lines. The draft that says all of it is 323 after cutting every level

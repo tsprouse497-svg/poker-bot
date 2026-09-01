@@ -226,7 +226,7 @@ whole re-run through without a single fresh review. Filed under Alignment.
   the defect survived. That note is committed at `a386c77` and stays as written; decision 14 now
   carries the correction. **Open: this is a property of the source, not of anything this task wrote,
   and it needs a ruling.**
-- **Strict rank dominance did not improve.** Poker reviewer: 93 inversions across 31 of 51 under its
+- `[resolved]` **Strict rank dominance did not improve.** Poker reviewer: 93 inversions across 31 of 51 under its
   relation, against 95 across 35 of 86 on the superseded chart. The coordinator recounted under a
   stricter relation - same top card, same suitedness, kickers exactly one rank apart, plus adjacent
   pairs, both classes at reach 5,000bp or better, wheel-ace family excluded - and got **54 on the
@@ -237,7 +237,7 @@ whole re-run through without a single fresh review. Filed under Alignment.
   1.000. A per-spot form of the group-dominance gate the contract requires fails **36 of 385**
   adjacent pair-band comparisons at reach 1,000bp or better. The contract says the phase halts rather
   than ship a gate it has not seen pass. **Open.**
-- **The jam composition is still inverted, and the check this phase verified the repair against is
+- `[resolved]` **The jam composition is still inverted, and the check this phase verified the repair against is
   too narrow to see it.** The headline check passes and the coordinator confirms it: 15 spots offer a
   100bb jam, all are five-bet spots, AA takes it at weight 1.000 at every one, and there is no spot
   where a low pair jams and aces do not. But at
@@ -879,7 +879,7 @@ correcting it inside a generated artefact would hide it.
 
 ## Blocker
 
-- **The big blind defends 100.0 percent of hands against a small-blind open, and this build is phase
+- `[resolved]` **The big blind defends 100.0 percent of hands against a small-blind open, and this build is phase
   10's rejected column.** Measured on the artifact, combo-weighted over all 169 classes, against the
   same figure taken the same way from the superseded chart and from phase 10's decision 2:
 
@@ -899,7 +899,7 @@ correcting it inside a generated artefact would hide it.
   shipped a self-consistent, checksummed, thoroughly reported calling station. Decision 19 does not
   cite that measurement, and the 99.71 figure was sitting in `gtopen_config.py`'s own docstring while
   it was written. **Open, and it is the phase's ruling that has to move, not this measurement.**
-- **The jam-composition blocker survives, re-shaped rather than reduced, exactly as decision 19 said
+- `[resolved]` **The jam-composition blocker survives, re-shaped rather than reduced, exactly as decision 19 said
   to expect.** The specific inversion round 2 named is gone - no suited connector five-bets anywhere,
   because they are no longer in hero's three-betting range at all. What replaces it is the same error
   one family across. At `t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5` the five-bet range is AA
@@ -1442,7 +1442,7 @@ None new. Stated as prose because a bullet here is counted as one.
 
 ## Blocker
 
-- **The 5 percent averages the defect out of exactly the part of the range the chart is consulted
+- `[resolved]` **The 5 percent averages the defect out of exactly the part of the range the chart is consulted
   about, and the coordinator's first draft of this round called that "structural rather than
   alarming".** That was wrong and this is the correction. At **all fifteen** three-bet-facing kept
   spots, AA, KK and AKs sit at **100 percent** contamination, and QQ at 100 percent in twelve of them:
@@ -1456,7 +1456,7 @@ None new. Stated as prose because a bullet here is counted as one.
   that folds, not from the hands the chart is asked about. **Open: decision 20's revert option cannot be
   put to Taylor as a 4.96 percent exposure without this beside it, and the item is corrected to carry
   it.**
-- **The experiment that would settle it needs the one thing that is out of scope.** Mass bounds the
+- `[resolved]` **The experiment that would settle it needs the one thing that is out of scope.** Mass bounds the
   exposure without measuring the error. What would settle it is an EV comparison: reprice only the
   four-bet-pot terminals defensibly - `R = 1` below SPR 2, which is what the engine already does at an
   all-in terminal and what the module header says is exact - and see whether the kept cells move more
@@ -1536,7 +1536,7 @@ would exercise it is exactly the one refused.
 
 ## Blocker
 
-- **The contract cannot say what decision 20 ruled inside its 300-line cap, and this session tried to
+- `[resolved]` **The contract cannot say what decision 20 ruled inside its 300-line cap, and this session tried to
   make it fit incrementally, which is the thing `AGENTS.md` warns against.** The contract must now say
   36 committed rather than 51, carry a third exclusion reason and its census, state that no jam
   survives, qualify the rake-free claim under `calibrated`, and pin the dominance gate's definition. It
@@ -1610,7 +1610,7 @@ knowing at stage 4 so a test is not written against the other reading.
 
 ## Blocker
 
-- **The rewrite deleted a prohibition and did not relocate it: "Do not fix the multiway pricing here."**
+- `[resolved]` **The rewrite deleted a prohibition and did not relocate it: "Do not fix the multiway pricing here."**
   Old line 62 forbade two things in one bullet - repairing the source's multiway pricing inside this
   phase, and committing a mispriced spot with the defect recorded as a caveat. New lines 52 to 56 keep
   the second and replace the first with a **different** prohibition, "Do not repair a pricing defect by
@@ -1771,7 +1771,7 @@ decision per 34 deals at the table and one per 205 hands for a given seat.
 
 ## Blocker
 
-- **The committed three-bet spots four-bet suited connectors instead of wheel aces, and no criterion
+- `[resolved]` **The committed three-bet spots four-bet suited connectors instead of wheel aces, and no criterion
   requires anyone to look before they are frozen.** This is the misprice one node up from the refused
   ones, and it is visible in the cells rather than only in a terminal-mass statistic. At
   `LJ/LJ:raise@2.5,CO:raise@7.5`, a committed spot *(a386c77)*: **JJ four-bets 0.000 and flats 0.999
@@ -1790,7 +1790,7 @@ decision per 34 deals at the table and one per 205 hands for a given seat.
   freezes. If it four-bets 87s at 0.89 while jacks flat at 0.999, that is a halt and a decision, not a
   caveat. Cheap, uses evidence that already exists, and it is the only proposed check anywhere in this
   phase that would catch what decision 20 accepted.
-- **"The bot refuses rather than advising a stack-off" is false, and the 15 spots that make it false
+- `[resolved]` **"The bot refuses rather than advising a stack-off" is false, and the 15 spots that make it false
   are best responses to the ranges the phase declares unfit to publish.** Criterion at line 129-134.
   Hero cannot *initiate* the last raise, true. But 15 of the committed 36 are five-bet-jam-facing, menu
   call/fold, and at them the chart tells hero to put the last 77.5bb in: at
@@ -1805,7 +1805,7 @@ decision per 34 deals at the table and one per 205 hands for a given seat.
   the sentence to say hero can never initiate the last raise while the chart still answers 15 call-offs
   for a full stack, and name the jam-facing 15 as a **second** inheritance beside the three-bet spots,
   so the packet criterion at line 275 cannot be satisfied by listing 21 spots and calling 15 exact.
-- **Every gated range check in this phase passes on a chart that never folds, and the build being
+- `[resolved]` **Every gated range check in this phase passes on a chart that never folds, and the build being
   shipped fails the only ranged gate at its own ruled tolerance while the rejected build passes it.**
   Measured chart-wide over the committed 36, combo-weighted by arriving reach and spot arrival, rows
   keyed by high card, which reproduces decision 20's figures over the 51 exactly. **`calibrated`: 4
@@ -1963,7 +1963,7 @@ reader take a pass for evidence that the ranges are sound.
 
 ## Blocker
 
-- **The rewrite does not fit and this is the second session to hit that wall.** With round 13's
+- `[resolved]` **The rewrite does not fit and this is the second session to hit that wall.** With round 13's
   restoration and round 14's corrections the draft is **305** lines against a 300-line cap, and it still
   owes the two criteria round 14 asks for - the human read of four-bet composition, and the honest
   statement of what the dominance gate is - which are another eight or so. Compression is exhausted:
@@ -2005,3 +2005,65 @@ reader take a pass for evidence that the ranges are sound.
   of criteria about a report rather than about the ranges. That is a roadmap question and belongs in
   `backlog.yml` rather than in this note, filed as `PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP`, which
   already exists and should be restated with this measurement rather than closed.
+
+# Round 16, 2026-08-31: the split, and every open blocker's disposition
+
+Coordinator. Taylor ruled decision 21 - split phase 14 in two - and this records what landed and what
+that does to the eleven blockers this note was carrying. Rounds 13, 14 and 15 stand as written.
+
+**What landed.** Phase 14 keeps deriving and committing the artifact and checking the ranges it holds,
+at **284** lines with every criterion the two reviews asked for, including the two it did not have room
+for before: hero's four-betting range at each committed three-bet spot printed by class and read by a
+human before stage 6 freezes it, and an explicit statement that the group gate is a regression detector
+which the committed build fails at decision 10's tolerance while the rejected build passes. **Phase 17,
+"The Corpus Verdict On The Committed Chart"**, is declared `future` at **158** lines, depends on 14,
+`auto_advance: false`, and takes the closing measurement, the corpus half of the report, the four
+corpus-facing backlog entries and the pre-registration decision 9 owes. The cap was not raised and no
+criterion was dropped.
+
+**One thing the split gives up, stated because it is the cost.** Phase 14 can now reach a green gate
+with no corpus evidence that its ranges resemble how people play, and the closing measurement is what
+caught v1's calling gap in the first place. Phase 17 depends on 14 and does not auto-advance, so the
+verdict is owed before the roadmap moves past it; what it can no longer do is block phase 14's own tag.
+Decision 21 records that trade.
+
+## Blocker
+
+None open. Every blocker this note carried is dispositioned below, and each is marked in place with a
+pointer to the round that closed it. Stated as prose because a bullet here is counted as one.
+
+## Non-blocker
+
+- **The four blockers decision 20 closed by refusing the spots they were about.** Round 2's
+  jam-composition blocker and round 7's re-measurement of it both described five-bet ranges at
+  four-bet-facing spots - 87s at 0.995 beside a flatting KK, then AQs at 0.999 beside a flatting KK -
+  and those fifteen spots are now withheld, so the cells are not committed and the defect is not
+  shipped. Round 7's big-blind-defence blocker described the `static` build, which decision 20 rejects.
+  These are closed by ruling rather than by repair, which is a weaker kind of closure and is why it is
+  said here rather than left to the marker: **the underlying misprice is not fixed, it is excluded**,
+  and `THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` carries what remains of it one node up.
+- **Round 2's rank-dominance blocker is closed by a criterion rather than by a number.** It asked for
+  improvement and got none; the disposition is that the contract now states what the group gate can and
+  cannot see, requires it measured over the committed set before freezing, requires its definition
+  pinned as data, and forbids re-deriving a tolerance that admits the artifact it judges. That is the
+  most the phase can honestly do with a gate whose optimum is a chart that folds nothing.
+- **Rounds 13, 14 and 15's seven blockers are closed by the work they asked for.** The lost multiway
+  prohibition is restored; the false stack-off sentence is corrected and the jam-facing fifteen named as
+  a second inheritance; the four-bet-composition read and the regression-detector statement are now
+  criteria; the rewrite fits because the phase was split; and round 12's question about whether the
+  contract could be rewritten was answered by Taylor and then superseded by decision 21.
+- **What the split does not resolve, so nobody reads a clean blocker list as a clean phase.** The
+  committed three-bet spots still weigh hero's four-bet on a terminal the fit has no cell for. The
+  contract now buys a human read of it before the freeze, which is a check rather than a fix, and the
+  fix is phase 16 or a fitted pot-type cell. That is the residual Taylor accepted with the words "can
+  figure out later", and it has an id.
+
+## Alignment
+
+- **Three of this note's sixteen rounds were spent on a line cap, and the cap was not the problem.** The
+  contract could not fit because the phase was doing two jobs, and that was visible from the section
+  list well before it was visible from the line count: a section of criteria about a *report* sat beside
+  sections of criteria about an *artifact*. `PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP` is closed with
+  that lesson attached rather than deleted - a contract that will not fit after a genuine folding
+  rewrite is usually a phase doing two jobs, and that is the first hypothesis to test rather than the
+  last.

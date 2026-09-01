@@ -1,42 +1,30 @@
 auto_advance: false
 halt_reason: >-
-  Halted on one question for Taylor: how should the phase 14 contract fit its own 300-line cap? Decision
-  20 is answered and everything else it implies is done. The rewrite he approved was done and does not
-  fit - see PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP and round 15 of the stage-01 note. The remaining
-  moves need a ruling rather than an edit: drop criteria and say which, split phase 14 into two phases,
-  or change what the cap covers.
-  What is ruled and executed. Taylor ruled decision 20 on 2026-08-31: solve with realization=calibrated
-  and refuse the fifteen four-bet-facing spots, committing 36 of the 51 the predicate selects. The
-  source misprice is answered by what the chart declines rather than by the field that prices the whole
-  tree. RULED_CONFIG carries calibrated again, decision 19's static is recorded as ruled-and-reverted
-  with the measurements that reverted it, and the two things the ruling accepts are filed with their
-  exits: THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL and CHART-CANNOT-ADVISE-A-FIVE-BET.
-  What is blocked. The contract must now say 36 committed rather than 51, carry a third exclusion
-  reason and its census, state that the committed chart contains no jam at all, and qualify the
-  rake-free claim. It stands at exactly 300 of the 300 lines check_file_sizes allows and the draft that
-  says all of it is 323, after cutting every level measured on a build the phase discarded. AGENTS.md's
-  remedy for a contract at the cap is a rewrite that folds its amendments into the criteria they amend,
-  as its own contract-update task, and never a raised cap - and the last such rewrite, on 2026-08-30,
-  was Taylor's call. So this one is put to him rather than taken. The draft is at
-  reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/contract-draft-decision-20.md with what the
-  rewrite still owes; it is working material and nothing reads it.
-  Two independent reviews of the rewrite are in and neither disputes the ruling; the poker reviewer
-  endorses it. They found one lost prohibition (restored), one false sentence about the chart refusing
-  stack-offs (corrected - 15 committed spots face a five-bet jam and the chart calls off 77.5bb at
-  them), and two criteria the draft still owes: a human read of hero's four-bet range at the 15
-  committed three-bet spots before stage 6 freezes them, and an honest statement that the dominance gate
-  is a regression detector, since the shipped build fails it by 23 points while the rejected build
-  passes it perfectly.
-  To resume: rule on the cap, then the contract lands and the lane advances to stage 2 to re-cut the
-  decision record against the ruling. Stage 4 then migrates the frozen tests that
-  pin 86 spots, the 169-class grid and the export checksums, and stage 6 rebuilds and commits the
-  artifact. The build machinery is proven and runs in about seven minutes; the test re-cut is the cost.
-  Read decision 20 for the ruling and its evidence, then rounds 7, 10 and 11 of
-  reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md - the static build's
-  measurements, what GTOpen's own authors document, and the four-bet contamination in the spots the
-  ruling keeps. calibrated-build-contamination.json beside the note is that measurement's data.
-  The gate is red by design and stays red until stage 6: RULED_CONFIG's add_allin disagrees with the
-  committed export, which was built with it true. Never revert a ruled constant to green the gate.
+  Stage 1 is complete and the lane is ready to advance. It is left halted only because the loop was
+  halted when the ruling came in; resume it with `loop_stage.py --phase 14 --resume`, then `--advance`
+  to stage 2. Nothing is waiting on Taylor.
+  What is ruled and landed. Decision 20 (2026-08-31): solve with realization=calibrated and refuse the
+  fifteen four-bet-facing spots, committing 36 of the 51 the predicate selects; the source misprice is
+  answered by what the chart declines rather than by the field that prices the whole tree. RULED_CONFIG
+  carries calibrated, and decision 19's static is recorded as ruled-and-reverted with the measurements
+  that reverted it. Decision 21 (2026-08-31): phase 14 is split. It keeps deriving and committing the
+  artifact and checking the ranges it holds, at 284 lines; the new phase 17, "The Corpus Verdict On The
+  Committed Chart", takes the closing measurement at 158 lines and is declared future, depends_on 14,
+  auto_advance false.
+  Two independent reviews of the contract are in and closed - rounds 13 and 14 - and every blocker this
+  lane carried is dispositioned in round 16. The contract gained the two criteria they asked for: hero's
+  four-betting range at each committed three-bet spot read by a human before stage 6 freezes it, and an
+  explicit statement that the group gate is a regression detector, since the committed build fails it at
+  decision 10's tolerance while the rejected build passes.
+  What stage 2 owes: re-cut this phase's decision record against decision 20, which means the items that
+  assumed 51 committed spots, a jam in the chart, and a closing measurement inside this phase. Stage 4
+  then migrates the frozen tests that pin 86 spots, the 169-class grid and the export checksums, and
+  stage 6 rebuilds and commits the artifact. The build machinery is proven and runs in about seven
+  minutes; the test re-cut is the cost.
+  What the phase accepts rather than fixes: THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL and
+  CHART-CANNOT-ADVISE-A-FIVE-BET. Both close on a fitted pot-type cell or on phase 16.
+  The gate is red by design until stage 6: RULED_CONFIG's add_allin disagrees with the committed export,
+  which was built with it true. Never revert a ruled constant to green the gate.
 loop: halted
 phase_id: '14'
 schema_version: 1

@@ -1505,3 +1505,51 @@ well, which keeps 82.4 percent of arrival and drops every cell that is 100 perce
 the cost of the bot refusing every three-bet spot. Recorded because the contamination is a gradient
 rather than a cliff at the four-bet boundary, and a later phase reopening this should know the option
 existed and was declined rather than missed.
+
+## 21. Whether this phase is one phase
+
+Reversibility: frozen-into-data
+
+Raised and answered 2026-08-31. It is a structural question rather than a poker one, and it is here
+because it was forced by this phase's own contract failing to fit the cap the repo puts on a contract.
+
+**What forced it.** With decision 20's criteria written in - a third exclusion reason and its census,
+the disappearance of every jam from the committed set, the training-rake qualification, the unfitted-
+terminal caveat - plus the two criteria the stage-01 reviews asked for and the corrections they found,
+the contract measured **305 lines against a 300 cap**. That was after the Scope narrative was cut to
+orientation, every stated level measured on a build the phase discarded was replaced by its criterion
+and the stage it is taken at, bullets were merged and the document reflowed: 323 to 305, while the
+content that had to be added kept pace. `AGENTS.md` forbids raising the cap and prescribes a rewrite
+folding amendments into the criteria they amend. That rewrite was done. It still did not fit, which is
+the point at which the size stops being an editing problem and becomes a scope one.
+
+**Ruled by Taylor, 2026-08-31: split it.** Phase 14 derives and commits the artifact and checks the
+ranges it holds. **Phase 17** measures that artifact against the public corpus and says what the result
+does and does not establish about v1's calling gap. The seam is the one the content already had: one is
+a claim about a file, the other is a claim about poker made by comparing that file to 499 real hands,
+and they have different failure modes, different evidence and different readers. Phase 14 lands at 284
+lines with everything the reviews asked for and phase 17 at 158.
+
+**What moves.** The closing-measurement criteria in full; the corpus half of the report and its
+old-versus-new disagreement validator; the four corpus-facing backlog entries
+(`CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT`, `AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART`,
+`CHART-CANNOT-ANSWER-A-LIMPED-POT`, `CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK`); and the
+pre-registration decision 9 owes, which is re-taken in phase 17's own decision list against the chart
+phase 14 actually commits rather than inherited from bands fixed on discarded builds.
+
+**What does not move, and this is the part to get right.** Phase 14 keeps every check on the ranges
+themselves - the two dominance relations, the two orderings, the defence level read by a human, the
+no-limp rule, the arriving-reach field - because those judge the artifact rather than the corpus. It
+also keeps the four-bet-composition read the stage-01 poker review asked for, which is a range check.
+A phase that commits ranges and defers every judgement about them to a later phase would be the
+failure this split is meant to avoid.
+
+**One risk, stated because splitting is not free.** Phase 14 can now reach a green gate without any
+corpus evidence that its ranges resemble how people play, and the closing measurement is what caught
+v1's calling gap in the first place. Phase 17 is `auto_advance: false` and depends on 14, so the
+verdict is owed before the roadmap moves past it; what it cannot do is block phase 14's own tag. That
+is the trade the split makes and it is the reason `CHART-COVERAGE-EXPANSION` and the corpus entries
+stay open rather than closing with phase 14.
+
+Options: keep-one-phase-and-drop-criteria | split-into-two-phases | change-what-the-cap-covers
+Answer: [split-into-two-phases]
