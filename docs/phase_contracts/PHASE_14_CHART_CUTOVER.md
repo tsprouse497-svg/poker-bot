@@ -106,6 +106,8 @@ than remembered.
   neighbouring cell. That refusal is the point of the exclusion.
 - The committed artifact carries, per cell, enough arriving reach for a reader to tell a cell the solver
   trained from one it barely visited; the report prints the distribution over the committed set.
+  **Amended 2026-09-01 (decision 5, ruled 2026-08-27): each spot also records its arrival probability**,
+  because reach cannot separate a committed cell that was never computed from one that was.
 - `data/artifacts` stays inside the 20 MiB cap; exceeding it is a halt and a decision, never a raise.
 
 ### The derived artifact
@@ -148,10 +150,10 @@ than remembered.
 - The two relations that hold in every preflop spot - a higher pair played at least as often as the pair
   one rank below, and a suited hand at least as often as the offsuit hand of the same ranks - are
   **measured per cell and gated on aggregates only**, because among near-indifferent hands the solver's
-  split is its considered answer and a per-cell gate would reject it. Gated instead is the same
-  dominance over **groups**, where indifference cancels: the combo-weighted play frequency of each pair
-  band and each suited row is at least that of the band or row below, over hero's arriving range. No
-  wider order is asserted, because preflop strength is not totally ordered.
+  split is its considered answer and a per-cell gate would reject it. **Amended 2026-09-01 (decision
+  10, ruled 2026-08-26; `PHASE-14-CONTRACT-STATES-A-GROUP-GATE-THAT-DID-NOT-SHIP`): no group order is
+  gated.** What gates is that the group measure flags strictly fewer spots under the solver's own class
+  ordering than under the transposed one, on every partition.
 - The aggregate gate is **re-measured over the committed 36 before it is frozen**, and the phase halts
   rather than ship a gate it has not seen pass. Over the retired 5,626 no form passed: the
   suited-against-offsuit aggregate scored the wrong index mapping as better, 2,007 nodes against 818, so

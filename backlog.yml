@@ -3985,3 +3985,110 @@ items:
       `scripts/review_queue.py` grows a second view showing rulings made but not yet recorded. Any of
       the three turns a convention that depends on someone reading six review notes into something a
       check can see.
+  - id: COMMITTED-SPOTS-NEVER-FLAT-A-RAISE
+    status: deferred
+    phase: "16"
+    title: The committed chart continues about 7 percent against an open and flats under 1, where real play flats a real range
+    reason: >-
+      Accepted by Taylor on 2026-09-01 as decision 24, with phase 16 as the exit. Re-derived from the
+      committed export and verified twice: at the cutoff facing a lojack open - a spot the predicate
+      selects and decision 20 does not withhold - the chart continues 7.35 percent and flats 0.69, the
+      rest a three-bet or a jam. The button facing a cutoff open continues 8.63 with a 1.65 flat, the
+      small blind 10.04 with a 4.54 flat. Six-max at 100bb rake-free wants roughly 14 to 16 percent
+      there with a real flatting range.
+      The cause was established at stage 4 in stage-04-cold-call-verification.md: the export's tree
+      branches on every cold call, so the solver prices flatting against a continuation structure that
+      punishes it and the flat collapses. Decision 1's heads-up-only ruling kept the cold-call and
+      multiway families out of the chart's lookup, but excluding a family from lookup does not remove it
+      from the solve, so the heads-up spots the phase commits still price their own flat against that
+      tree. The defect is inside the committed cells rather than beside them, which is what separates
+      this from THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL.
+      It matters more than its size suggests because this bot exists to fix v1 calling too much, and the
+      replacement chart errs the other way at the same decision. Under decision 21's split the corpus
+      measurement that would catch it is phase 17's, which lands after phase 14 can tag.
+      Not fixable inside phase 14: separating it needs the cold-call branch repriced and no config
+      reaches that. Phase 16's postflop solver plays flops exactly and carries no realization model, at
+      which point every committed cell is re-derivable against a source without the defect.
+  - id: FOUR-BET-ROWS-WERE-CERTIFIED-BY-GROUP-AND-FAIL-CELL-BY-CELL
+    status: deferred
+    phase: contract-update
+    title: A range read taken by group certified rows that are indefensible cell by cell, and the packet cited it as evidence
+    reason: >-
+      Filed 2026-09-01 by the independent poker review of phase 14's stage-3 transcription, confirmed by
+      the coordinator against the export. The 2026-08-31 amendment to decision 1 glossed the four-bet
+      continuation rows as "coherent polarised poker" and offered shape-versus-fill as the
+      reconciliation with decision 20. Read cell by cell the group labels do not survive: KQs continues
+      28.38 percent and 76s 99.79 at the same price, the same arriving reach and the same equity against
+      the four-betting range, about 29 percent. Polarisation sorts by equity and these two are equal on
+      it, so what separates them is the realization model's per-class multiplier - which means the
+      "shape" IS the fill and there is no third thing for the fill to be wrong about. KQs also dominates
+      QJs and is played 28 against 93. The "suited broadway 43.38 percent" group is AQs jamming 49.4 and
+      AJs 51.4, each worth roughly -21bb against folding; the "middling pairs 1.21" and "suited
+      connectors 99.10" groups are three or four trained cells each, the rest arriving at 1 to 22 basis
+      points.
+      The general form, which is why this is filed rather than just corrected: a group aggregate is what
+      the phase reaches for when a cell-by-cell read is long, and it hid a 71-point inversion, a
+      dominance violation and six untrained classes inside two headline numbers. The same instinct
+      produced the suited-row ladder that decision 10 had to rule out as a gate. A range read offered as
+      evidence should state the within-group spread and the trained-cell count, or it is not a read.
+      Withdrawn in place at decision 1 rather than deleted. Taylor's 2026-08-27 ruling is untouched - he
+      withdrew a reviewer's claim as unchecked on the evidence in front of him. What was withdrawn is
+      the later session's gloss certifying the rows.
+  - id: COMMITTED-THREE-BET-SPOTS-INHERIT-AN-EXCLUDED-NODES-RANGE
+    status: deferred
+    phase: "16"
+    title: Contamination is measured on the terminals below a committed spot and never on the range arriving at it
+    reason: >-
+      Filed 2026-09-01 by the independent poker review of phase 14's stage-3 transcription. Decision 20
+      measures contamination over the terminals below each committed spot - 71.69 percent fold-win,
+      26.39 in-support, 1.38 out-of-support - and states in terms that refusal removes a spot from
+      lookup rather than from the solve. The mirror is measured nowhere. Fifteen of the committed 36 are
+      hero facing a three-bet, and the three-bet range hero faces is produced at an RFI-defence node the
+      predicate excludes as mispriced, where the flat frequency is 0.07 to 0.14 percent instead of
+      roughly ten. So hero's arriving opponent range at those spots contains TT at 95.8 percent reach,
+      JTs and QJs at about 100 and 76s at 99.8 while 65s is at 0.00 and AQo at 0.02 - not a three-bet
+      range but everything the opener plays, forced down one branch.
+      SOLVE-CAPTURE-NEEDS-A-POT-ENTRY-RATE-CHECK covers the aggregate symptom and not the inheritance,
+      and COMMITTED-SPOTS-NEVER-FLAT-A-RAISE covers hero's own flat and not the range hero faces. The
+      rule this wants: a selection predicate that declares a spot sound must state the property over the
+      range arriving at it, not only over the terminals below it. Same shape as the phase 14 finding
+      that a tree selection rule claiming a pricing property has to be stated over terminals - this is
+      the other end of the same node.
+  - id: THE-DISCRIMINATION-GATE-CANNOT-SEE-OVER-FOLDING-OR-A-MIS-ASSIGNED-ACTOR
+    status: deferred
+    phase: contract-update
+    title: The shipped range gate checks the extraction plumbing and the record claims it checks the ranges
+    reason: >-
+      Filed 2026-09-01 by the independent poker review of phase 14's stage-3 transcription. Credit
+      first: validate_group_discrimination refuses on a tie, so a chart that folds nothing scores 0
+      against 0 and is rejected, and so is one that folds everything. That closes the hole in the ladder
+      it replaced and it bites hard on the single likeliest extraction defect.
+      What it cannot see, and these are the ranges rather than the plumbing. Uniform over-folding
+      preserves suited-over-offsuit exactly, so the measured 6.63 percent hijack continuation against a
+      lojack open passes unremarked. A mis-assigned actor passes: swap two seats' grids and both still
+      obey suited-over-offsuit. Cross-family inversions are invisible because the relation is per
+      rank-pair and the pair ladder gates nothing, so the phase's largest measured range defect - 76s
+      continuing 99.8 while JJ folds 97 - cannot be seen by it, nor KQs at 28 beside QJs at 93. It also
+      tolerates the 74 suited-over-offsuit inversions among committed cells, each poker-wrong, because
+      the transposed count is higher still.
+      The record overstates it. Decision 10's job description says the measure catches "a transposed
+      hand index or a mis-assigned actor"; only the transposition was ever measured, and the
+      mis-assigned-actor half should not be carried forward as established. The gate is a good
+      extraction check and the packet should call it that.
+  - id: DECISION-ANSWER-FIELDS-DIVERGE-FROM-THE-RULINGS-BELOW-THEM
+    status: deferred
+    phase: contract-update
+    title: A decision item's machine-readable Answer names a superseded option while its body records the re-ruling
+    reason: >-
+      Filed 2026-09-01 by the independent mechanical review of phase 14's stage-3 transcription. The
+      list uses two conventions at once. Decisions 1, 18 and 22 update the Answer field when an item is
+      re-ruled or withdrawn; decisions 2 and 19 leave the superseded option standing and record the
+      change only in the body - decision 2 reads re-solve-to-a-tighter-gap with a body recording
+      Taylor's 2026-08-24 re-ruling onto ship-as-solved, and decision 19 reads static with a body
+      recording decision 20's reversion to calibrated.
+      Both readings are defensible under the append-only rule and that is the problem: the field is
+      parsed by scripts/loop_stage.py to decide whether an item is answered, so a human and the driver
+      can disagree about what a phase ruled. Either the field always carries the current answer and the
+      body carries the history, or the field is frozen at first ruling and the driver reads something
+      else. Belongs with A-DECISION-LIST-RE-CUT-FOUR-TIMES-IS-A-CONTRACT-REWRITE-IN-DISGUISE as part of
+      one rule for how a decision list ages, rather than being fixed item by item mid-phase.
