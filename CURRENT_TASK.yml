@@ -27,6 +27,56 @@ forbidden_scope:
 scope_change_log:
   - date: 2026-09-01
     reason: >-
+      No scope change. THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending decision 20 a
+      third time. Sixth and seventh implementation-mode rulings of this stage.
+      RULING ONE. Taylor ruled that the fifteen three-bet-facing spots are withheld as well, so the
+      committed set is SIX: `SB/rfi` and the big blind's defence against each of the five openers.
+      Raised by the final stage-4 independent review, verified by the coordinator before it was put to
+      him.
+      What was measured. Over the committed 21 there are TWENTY places where a higher pocket pair is
+      played less often than the pair one rank below, past decision 10's one-point tolerance, across 12
+      of the 21 spots. Seven sit at the maximum hundred-point gap: `LJ` facing a hijack, button, cutoff
+      or big-blind three-bet folds 33 outright and plays 22 at 100; `HJ` facing a cutoff three-bet the
+      same; `CO` facing a small-blind or big-blind three-bet folds 44 outright and plays 33 at 100.
+      `LJ` facing a hijack three-bet also plays 77 at 1.44 against 66 at 99.74. The contract already
+      names this exact shape and its disposition: "A shape like that is a halt and a decision, not a
+      caveat."
+      The correlation is what decided it. All twenty inversions sit in the fifteen three-bet-facing
+      spots and NONE in the other six. Those fifteen are precisely the spots whose four-bet branch
+      descends into the nodes decision 20 refuses as mispriced, so by backward induction their whole
+      fold/call/raise split is computed from a value the phase has already declared untrustworthy. That
+      is the same argument that withheld the four-bet spots and then the jams, applied a third time,
+      and the review notes the dependency here is the stronger one: the child inherits a range, the
+      parent inherits an EV. The four-bet children carry 29,160,835 ppb against the committed set's
+      1,211,918,040, which is 2.4 percent - six times the 0.40 percent that justified withholding the
+      jams.
+      What it costs. The fifteen carry 228,810,761 ppb of 1,211,918,040, so 18.9 percent. The six that
+      remain carry 983,107,279 ppb, 81.1 percent, because `SB/rfi` and big-blind defence are the
+      commonest decisions at a six-max table. The chart shrinks from 21 spots to 6 and keeps four fifths
+      of the traffic.
+      Checked before the ruling was applied: the surviving gate still discriminates over six spots -
+      per-cell twins reads 0 solved against 6 transposed over the set, 0 against 1 for the small blind
+      and 0 against 5 for the big blind. The previous withholding broke a gate and this one does not.
+      RULING TWO, and it corrects a question the coordinator put badly. The 2026-09-01 entry below
+      recording the group-ladder ruling says the family "stops discriminating" at 21 spots. That is
+      overstated and the review caught it. Only the suited rows saturate at 21 against 21; single pair
+      ranks read 12 against 12, which is a tie rather than saturation; and THREE of the five partitions
+      still separate perfectly at 0 solved against 12 transposed, as cleanly as the per-cell measure's
+      0 against 21. The option Taylor was offered as cherry-picking - gate the three clean splits - was
+      better than the framing allowed, and the rejection of it rested on a wrong premise.
+      The review also found the hole that leaving the ladder out opens, and measured it: a chart with
+      every hand rank reversed scores per-cell twins 0 solved against 21 transposed, bit for bit
+      identical to the correct chart, and passes the phase's only gated range check on every partition.
+      Such a permutation moves weights and reach together, so the cell subset relation holds, aggregate
+      defence percentages are unchanged because pairs map to pairs, and `--check` re-derives with the
+      same buggy converter. The removed group gate would have caught it outright at 12 solved against 0
+      transposed on three partitions.
+      Ruled by Taylor on 2026-09-01: keep the earlier ruling as made and close the hole properly, by
+      adding a second counterfactual arm to the per-cell measure that permutes hand RANKS rather than
+      suits. That catches what the ladder caught without reinstating a measure whose verdict tracks set
+      size, and it does not choose splits after seeing which ones pass.
+  - date: 2026-09-01
+    reason: >-
       No scope change. Recorded here because implementation mode may not edit the decision record.
       THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending decision 10 and the contract's
       dominance criterion. Fifth implementation-mode ruling of this stage.

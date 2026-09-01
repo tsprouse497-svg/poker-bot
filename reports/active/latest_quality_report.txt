@@ -14,6 +14,8 @@ FAIL  fact drift
       covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.
       does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.
       ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 42
+      ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 42
+      ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 14
       ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 14
 
 FAIL  backlog integrity
@@ -29,9 +31,9 @@ FAIL  backlog integrity
       ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label
       ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES has status 'open', which is not one of ['deferred', 'done']
       ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label
-      ! backlog PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP has status 'open', which is not one of ['deferred', 'done']
       ! backlog AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART has status 'open', which is not one of ['deferred', 'done']
       ! docs/BACKLOG.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! docs/BACKLOG.md cites backlog id 'OVER-FOLDS', which no item declares. A finding filed under an id nobody created has recorded nothing
       ! docs/BACKLOG.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing
       ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing
       ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing
