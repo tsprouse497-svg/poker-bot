@@ -3455,6 +3455,23 @@ items:
       large for one contract, or a contract's evidence prose belongs somewhere the cap does not
       reach and the criteria alone are capped.
 
+      Restated 2026-08-31 with a measurement, after a second session spent its endgame on this. Taylor
+      approved a full rewrite; it was done as AGENTS.md prescribes - Scope narrative cut to orientation,
+      every stated level measured on a discarded build replaced by the criterion and the stage it is
+      taken at, bullets merged, the whole document reflowed - and the total went from 323 to 305 against
+      a 300 cap while the content that had to be added kept pace. Two independent reviews then added
+      four more corrections and two more criteria, none of them narrative. So compression is exhausted
+      and the remaining moves need a ruling rather than an edit: drop criteria and say which, split what
+      phase 14 commits into two phases, or change what the cap covers.
+      The structural reading, offered rather than ruled: phase 14 is two phases wearing one contract.
+      Deriving and committing the artifact is one job; the closing corpus measurement is another, and
+      its section is 30 lines of criteria about a report rather than about the ranges. Splitting them
+      would put each inside the cap without dropping anything. That is a roadmap question.
+      What makes this contract a genuine outlier rather than a badly written one: two re-sources
+      (add_allin, then realization ruled and reverted), a withholding ruling that added a third
+      exclusion reason and its census, and four review rounds of corrections - all criteria. The cap is
+      right in general. The draft that says everything is preserved at
+      reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/contract-draft-decision-20.md.
   - id: AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART
     status: open
     phase: charts
