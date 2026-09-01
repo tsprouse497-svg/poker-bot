@@ -1152,9 +1152,11 @@ mutations:
       apart cannot catch a transposition, and a chart that folds nothing scores
       zero against zero - which is exactly how the retired suited-row ladder
       passed while preferring a transposed index. Decision 10, ruled 2026-08-26.
-      Verified 2026-09-01: turns
+      Verified 2026-09-01, and re-verified independently by the stage-4 mechanical
+      review: turns
       test_the_group_measure_is_refused_when_it_prefers_the_transposed_hand_index
-      from passing to failing.
+      from passing to failing, taking the report, validator and evidence files
+      from 37 passing to 36.
     file: scripts/generate_derived_chart_report.py
     find: "if solved >= transposed:"
     replace: "if solved > transposed:"
@@ -1169,7 +1171,13 @@ mutations:
       as within tolerance. The tolerance is the whole content of the relation -
       without it the check says only that suited hands are not played
       dramatically less than their offsuit twins.
-      Verified 2026-09-01: takes the two evidence files from 22 passing to 21.
+      Verified 2026-09-01: applied, the report, validator and evidence files go
+      from 37 passing to 36. An earlier form of this line said "the two evidence
+      files from 22 passing to 21", which reproduces under no pairing of files;
+      the delta of one was right and the absolute figure was invented. Corrected
+      2026-09-01 by the independent stage-4 mechanical review, and worth the
+      correction rather than the deletion because a "Verified" line nobody can
+      reproduce is worse than no line.
     file: scripts/generate_derived_chart_report.py
     find: "MONOTONICITY_TOLERANCE_PCT = 1.0"
     replace: "MONOTONICITY_TOLERANCE_PCT = 25.0"
@@ -1208,3 +1216,22 @@ mutations:
   #     already during this stage and caught only because 21 is not 36.
   #   - a canary dropping the per-partition loop back to a single aggregate call
   #     of `validate_group_discrimination`, once the report renders per partition.
+  #   - a canary blanking the `## How often the committed spots flat a raise`
+  #     section, which decision 24 requires and which has a test and no canary.
+  #   - a canary blanking the `## The withheld jams, and what aces do at each`
+  #     section, same. Both were added by the 2026-09-01 re-cut and both were
+  #     missed by the first canary pass; found by the stage-4 mechanical review.
+  #   - a canary at the 15 five-bet-jam nodes replacing hero's call weight with
+  #     `1 - call`, so he calls exactly the hands he folds. The stage-4 POKER
+  #     review showed this survives all three canaries above and, as far as it
+  #     could tell, the whole frozen suite: rows still sum to one, reach, census,
+  #     spot and menu counts are untouched, and those 15 carry no sizing entry.
+  #     Taylor's 2026-09-01 ruling withholds those spots, which removes the cell
+  #     this attacks - but the SHAPE of the hole is general, and whatever
+  #     committed spots hold a call-off need a canary of this kind.
+  #
+  # Also owed and not a canary: the three new canaries all attack
+  # `scripts/generate_derived_chart_report.py`, which stage 6 rewrites. None
+  # attacks `chart_derivation.py`, `lookup.py` or `schema.py`. The pre-existing
+  # phase-14 canaries do cover the derivation, so coverage is adequate overall,
+  # but stage 6 should redress the imbalance rather than inherit it.

@@ -105,9 +105,20 @@ scope_change_log:
       implemented, so committing it would commit an artifact the contract does not describe and
       would let stage 4 build the thing its own tests are measured against. `data/artifacts` stays
       otherwise closed and the chart, the sizing table and the expectations file are all still out.
-      The re-solve is deterministic - the 2026-09-01 stage-3 run proved it with a full re-resolve
-      walk at 0 mismatches - so re-running it to recover the file reverted at stage 3 reproduces
-      the same bytes rather than constituting a second solve.
+      The re-solve is deterministic - the 2026-09-01 stage-3 run re-resolved every node from its
+      recorded path with 0 mismatches - so re-running it to recover the file reverted at stage 3
+      reproduces the same bytes rather than constituting a second solve.
+      CORRECTED 2026-09-01 by the independent stage-4 mechanical review: an earlier form of the
+      sentence above called that "the determinism proof", which it is not. The re-resolve walk and
+      the two-process proof are two separate obligations in the contract's "What the re-solve owes",
+      and at the time this entry was written the committed card correctly read
+      `result: "PENDING - fill from --determinism-only"` with `max_divergence_bp: null`. The real
+      proof - a second full solve in a fresh process against a restarted server, diffed node by
+      node - was run afterwards and passed byte-identical at 0 divergence and 0 shape differences,
+      written onto the card by the script. The claim is now true; it was not true when first made.
+      A second correction to the same entry: it said this ruling "is written here and in the stage-4
+      review note". No stage-4 review note for this re-cut existed when that was written. The note is
+      owed and the sentence was ahead of the fact.
       RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE applies to this ruling: it
       was taken in implementation mode, which may not edit the decision record, so it is written
       here and in the stage-4 review note and OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE.
