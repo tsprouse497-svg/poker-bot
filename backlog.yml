@@ -4105,3 +4105,93 @@ items:
       body carries the history, or the field is frozen at first ruling and the driver reads something
       else. Belongs with A-DECISION-LIST-RE-CUT-FOUR-TIMES-IS-A-CONTRACT-REWRITE-IN-DISGUISE as part of
       one rule for how a decision list ages, rather than being fixed item by item mid-phase.
+  - id: GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE
+    status: deferred
+    phase: "16"
+    title: Nothing in the repo measures whether a range is right, and one cheap relation would
+    reason: >-
+      Filed 2026-09-01 by the independent stage-1 poker review of phase 14, and the coordinator's
+      judgment is that it is the single highest-value thing a successor to this phase can add.
+      Every gated range check the phase built catches a permuted or transposed hand index. Those are
+      extraction defects - did the converter read the solver's rows in the right order. Nothing measures
+      whether the range those rows describe is good poker, and the contract says so itself: "neither arm
+      passing is evidence the ranges are sound". That gap is what let phase 14 reach a contract rewrite
+      before anyone noticed the big blind was folding A7o at 50.2 percent equity while calling 53s at
+      36.5.
+      The fix needs one committed fixture and one relation. The fixture is a 169-by-169 preflop all-in
+      equity matrix, about 85 KB as basis points, computed once by Monte Carlo and committed like any
+      other derived data - range-agnostic, so it is reusable by any later phase. The relation needs no
+      realization model and no tunable constant: at a spot where hero closes the action, no hand class
+      folded above 99 percent may hold strictly more equity than any class played above 99 percent. It
+      asserts only that a chart's own fold boundary is monotone in equity, which no realization model
+      can excuse violating by fourteen points.
+      Measured on phase 14's committed six, it fires on 27 to 55 classes at each of the five big-blind
+      spots. It would have caught the defect on the day the first chart was derived rather than after
+      three withholdings and a contract rewrite.
+      A second, weaker relation is worth publishing beside it rather than gating: defence frequency must
+      be at least the share of combos clearing 0.2727 divided by a declared realization floor, with the
+      floor printed so a human argues about the floor rather than about the range. At a floor of 0.75
+      phase 14's chart was 19 to 30 points under at every spot.
+  - id: A-RANGE-CHECK-MUST-BE-STATED-OVER-EVERY-ACTION-NOT-ONLY-OVER-FOLD
+    status: deferred
+    phase: contract-update
+    title: A dominance relation defined over play-not-fold goes blind when the defect moves to another action
+    reason: >-
+      Filed 2026-09-01 by the independent stage-1 poker review of phase 14, and it is the finding that
+      halted that phase.
+      Phase 14's three dominance relations are all defined over play-not-fold. Decision 28 used a pocket
+      pair inversion to withhold fifteen spots, taking the committed set from 21 to 6. Measured on the
+      RAISE action, three of the surviving six carry the same inversion at the same severity -
+      `BB vs BTN` plays 44 at 0.0, 33 at 0.0 and 22 at 100.0, which is character for character the shape
+      decision 28 quotes as its evidence. The phase's contract had listed the pair ladder among its
+      vacuous criteria on the grounds that every pocket pair is played 100 percent at all six committed
+      spots, which is true on play-not-fold and hides the defect entirely.
+      So the phase stopped withholding when its instrument went blind rather than when the defect
+      stopped, and the blindness ran in the direction that flattered it. That is the general shape worth
+      a rule: a relation asserted about a chart must be stated over each action the chart expresses, not
+      over a binary collapse of them, or the check silently narrows as the strategy changes shape.
+      Related and not the same: `THE-DISCRIMINATION-GATE-CANNOT-SEE-OVER-FOLDING-OR-A-MIS-ASSIGNED-ACTOR`
+      is about what the gate never covered. This is about a check that did cover something and stopped.
+  - id: A-WITHHOLDING-ARGUMENT-NEEDS-A-STATED-FLOOR
+    status: deferred
+    phase: contract-update
+    title: Three rulings shared one argument with no stopping rule, and on their own thresholds it reaches zero spots
+    reason: >-
+      Filed 2026-09-01 by the independent stage-1 poker review of phase 14.
+      Phase 14 withheld three families of spots on one argument: a value computed by backward induction
+      from a node the phase has declared mispriced is not a value it may ship. The argument is sound and
+      the reviewer defends its form. What it never had is a floor. Measured, the share of each surviving
+      committed spot's decision mass flowing through a node decision 20 declares mispriced: `SB/rfi` 2.83
+      percent, `BB vs SB` 5.21, `BB vs BTN` 1.76, `BB vs CO` 1.05, `BB vs HJ` 0.94, `BB vs LJ` 0.69.
+      Decision 28 withheld at 2.4 percent and decision 26 at 0.40. Applied a fourth time at 28's own
+      threshold it takes the two largest committed spots; applied at 26's, all six go. The argument
+      terminates at zero on its own published numbers.
+      The reviewer's proposed rule, which is better than a mass threshold and is recorded here so the
+      next phase does not re-invent a worse one: a spot is committable when hero's action at it does not
+      change if the unpriced branch's value is moved by the size of the source's error. Sensitivity, not
+      mass. A spot with 20 percent of its mass through an unfitted terminal whose fold boundary does not
+      move under that perturbation is fine; a spot with 1 percent whose boundary flips is not.
+      One structural consequence that phase 14 could not act on and a successor must: at the committed
+      big-blind spots the fold-versus-continue boundary is decided at a terminal call node and is
+      insensitive to the four-bet branch, while the flat-versus-three-bet split at the same spots is
+      decided partly through it. The defect lives in an ACTION, not in a SPOT, and the artifact's grammar
+      can only withhold whole spots. That mismatch is why applying the withholding repeatedly consumes
+      everything.
+  - id: CONTRACT-LINE-CAP-COUNTS-LINES-AND-MEANS-CONTENT
+    status: deferred
+    phase: tooling
+    title: A contract can buy room under the line cap by widening its lines, which is materially raising the cap
+    reason: >-
+      Filed 2026-09-01 by the independent stage-1 mechanical review of phase 14's contract rewrite.
+      `scripts/check_file_sizes.py` caps a phase contract at 300 lines and nothing caps the column width.
+      Phase 14's rewrite landed at 295 lines and 110 columns, with 187 of its 295 lines over 100 columns;
+      at 100 columns the same text is roughly 336 lines. So the reflow is what kept it under the cap.
+      AGENTS.md says in terms "Never raise the cap to fit an amendment", and widening the line by ten
+      percent buys ten percent more assertion at the same line count, which is materially the same act.
+      The lane flagged it as a judgement call. The coordinator checked it against the other contracts,
+      found two at 155 and 151 columns, and cleared it - wrongly. Those two are 59 and 60 line skeletons
+      with a few long lines. Every contract that has actually been worked sits at 93 to 104 columns, and
+      phase 14's at 110 is both the widest and the only one where the width is load-bearing.
+      The fix is to make the checker measure what it means: characters, or lines wrapped at a declared
+      width. Until then the cap is advisory for anyone willing to reflow, and the tell that it has been
+      reached anyway is that the rewrite landed at 295 of 300 - five lines, which is two amendments.

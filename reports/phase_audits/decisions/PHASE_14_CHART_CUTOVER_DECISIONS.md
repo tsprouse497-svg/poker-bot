@@ -3000,3 +3000,90 @@ this task went looking for it. The backlog entry's three candidate remedies - a 
 leave `contract-update` while an untranscribed pointer exists, a queue file the next `contract-update`
 must empty, or a second `review_queue.py` view - all remain unbuilt, and until one is, the mitigation is
 a convention that worked once.
+
+
+## 31. Whether this phase ships a chart at all
+
+Reversibility: frozen-into-data
+
+Raised and answered 2026-09-01 by the two independent stage-1 reviews of the contract rewrite, and
+verified by the coordinator against the export before it was put to Taylor. It supersedes decisions 20,
+26 and 28 in the only way that matters: there is no committed set, because the argument those three
+rulings share does not have a floor.
+
+**Ruled by Taylor, 2026-09-01: halt the phase. No chart ships.** The retired
+`six_max_nl25_100bb.json` stays in place until a source exists that prices these spots correctly, which
+is **phase 16**, whose postflop solver plays flops exactly and carries no realization model.
+
+**Finding one, and it is the one that decides it. The criterion that took the chart from 51 spots to 6
+still fires, at full severity, on three of the six that survived.** Decision 28 withheld fifteen
+three-bet-facing spots because a higher pocket pair was played less often than the pair below it, seven
+of them at a hundred-point gap. Measured on the **raise** action at the committed six:
+
+| committed spot | pair inversion |
+|---|---|
+| `BB vs BTN` | 44 = 0.0, 33 = 0.0, **22 = 100.0** |
+| `BB vs SB` | 44 = 10.3, 33 = 0.5, **22 = 100.0** |
+| `BB vs HJ` | 66 = 0.0, 55 = 0.0, 44 = 0.0, 33 = 1.8, **22 = 70.2** |
+
+`BB vs BTN` is character for character the shape decision 28 quotes as its evidence. The phase did not
+see it because its three relations are defined over play-not-fold, and once every pair is played 100
+percent on that decision the measure reads nothing while the pathology sits in the raise. **The phase
+stopped withholding when the instrument went blind, not when the defect stopped.** The contract's claim
+that the pair ladder is vacuous over the committed six is false, and it is false in the direction that
+flattered the phase.
+
+**Finding two: the cause decision 24 names cannot reach the spots it is named about.** Decision 24
+attributes the over-folding to the export's tree branching on every cold call. That is true in general
+and false here: at all five committed big-blind nodes - paths `(1,0,0,0,0)`, `(0,1,0,0,0)`,
+`(0,0,1,0,0)`, `(0,0,0,1,0)`, `(0,0,0,0,1)` - hero closes the action and `call` is **terminal**.
+There is no cold-call branch below a committed flat. The committed defence is priced end to end by the
+`calibrated` realization fit at a single-raised-pot terminal.
+
+That is the finding that removes the floor. Decision 20's whole architecture is *commit the pot types
+the fit covers and refuse the one it does not*. The single-raised heads-up pot is the pot type the fit
+is supposed to be right in, and it is wrong there: the big blind defends 19 to 30 points too tight
+against every opener, and the error is shaped rather than directional. Against the button the chart
+folds **A7o at 50.2 percent equity** while calling **53s at 36.5 percent**; against the small blind,
+in position, it folds **T9o at 43.4** while calling **98o at 40.6**, which T9o dominates. For QJo at
+43.3 to be a fold the model must give the big blind a realization factor below 0.63, and for 53s at
+34.2 to be a call it must give above 0.80. Both cannot be true of one player at one node.
+
+**Finding three: the withholding argument terminates at zero on its own published thresholds.** The
+share of each committed spot's decision mass flowing through a node decision 20 declares mispriced:
+`SB/rfi` 2.83 percent, `BB vs SB` 5.21, `BB vs BTN` 1.76, `BB vs CO` 1.05, `BB vs HJ` 0.94,
+`BB vs LJ` 0.69. Decision 28 withheld at 2.4 percent and decision 26 at 0.40. Applied a fourth time at
+28's own threshold it takes the two largest committed spots; applied at 26's, **all six go**. Three
+rulings sharing one argument with no floor is not three rulings, and this item is where that is said.
+
+**Finding four: the coverage the phase claimed is not the coverage it has.** The 81.1 percent is a
+share of the phase's own selected subset, and its terms overlap - `SB/rfi` strictly contains
+`BB vs SB`, since the second is the first times the small blind's opening frequency. Measured against
+all 33,969 nodes at 6.1553 preflop decision points per hand, the committed six carry **15.97 percent of
+preflop decisions**, and of the five first-in opening decisions the chart answers **one**. A student
+loses 29 answers the retired chart gave and gains none.
+
+**Why halting beats shipping with the findings recorded.** A raked chart is systematically a little too
+tight for a rake-free game, which is a directional error a student can be told about in one sentence.
+This chart is not directionally tight; it is wrong about which hands are good, and it is wrong with the
+chart's full confidence behind it. This bot exists to correct a hand-selection failure. Shipping a
+hand-selection failure of the opposite sign, in a drill tool, at the six spots a beginner meets most
+often, is worse than shipping nothing.
+
+Options: halt-the-phase | add-the-equity-check-then-decide | ship-the-six-and-record-it
+Answer: [halt-the-phase]
+
+**What this does not throw away.** The re-solve stands and is committed: `add_allin: false`, 33,969
+nodes, target 0.00016 achieved at iteration 1,900, two-process determinism proof byte-identical at 0
+divergence. The predicate, the census, the derivation, the two-armed range gate and the frozen tests
+all stand as work phase 16 inherits. What is withdrawn is only the claim that any of these spots is
+ready to be played from.
+
+**The check this phase owed and never had, recorded so the next attempt starts with it.** Both gated
+arms catch a permuted or transposed hand index - extraction defects. Nothing measures whether a range
+is right. The reviews specify the cheap fix: commit a 169-by-169 preflop all-in equity matrix, roughly
+85 KB, and gate one relation that needs no model constant - **at a spot where hero closes the action,
+no class folded above 99 percent may hold strictly more equity than any class played above 99 percent**.
+It is pure internal consistency, no realization model can excuse violating it, and it currently fires on
+27 to 55 classes at every one of the five big-blind spots. Filed as
+`GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE`.
