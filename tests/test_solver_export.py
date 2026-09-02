@@ -70,13 +70,39 @@ RULED_CONFIG = {
     "open_raises": [2.5],
     "raise_mults": [3.0],
     "max_raises": 4,
-    "add_allin": True,
+    "add_allin": False,
     "allin_threshold": 0.67,
     "rake_pct": 0.0,
     "rake_cap": 0.0,
     "no_flop_no_drop": True,
     "realization": "calibrated",
 }
+"""Spelled out rather than imported, so a reader sees the game these fixtures posted and so
+widening the shipped constant cannot quietly widen what this file accepts.
+
+**Migrated on 2026-09-01 for decision 14's re-solve**, which flipped `add_allin` from True to
+False: with it true GTOpen inserts a jam beside every named raise, and the first cutover's chart
+jammed 44 at 1.0 where aces never jammed. Every fixture here built a config `load_solver_export`
+then refused by name, so nine tests in this file raised before any assertion ran. That is the
+migration the contract puts in the same task that changes the contents, and phases 11 and 12
+each paid a separate repair task for deferring it.
+
+`test_the_local_config_is_the_ruled_one` below is what stops the copy drifting a second time."""
+
+
+RESOLVED_NODES = 33_969
+"""What decision 14's re-solve produced, replacing the 38,828 of the `add_allin: true` build.
+The hand-built card fixtures below post it; the committed export is asserted against it."""
+
+
+def test_the_local_config_is_the_ruled_one() -> None:
+    """The copy above is a fixture, not a second ruling. It drifted once - decision 14 moved
+    `add_allin` and this file kept the old value until 2026-09-01, so every export it built was
+    refused before a single assertion in nine tests could run. A hand copy of a ruled constant
+    needs one check that it is still the constant, or the next re-rule repeats that."""
+    from poker_training_bot.solver_artifacts.gtopen_config import RULED_CONFIG as SHIPPED
+
+    assert RULED_CONFIG == SHIPPED
 
 
 # --------------------------------------------------------------------------- #
@@ -136,8 +162,18 @@ def test_the_captured_payload_came_from_a_solve_at_the_ruled_config() -> None:
     tree nobody is going to commit.
     """
     payload = json.loads(CAPTURED_PATH.read_text(encoding="utf-8"))
+    posted = payload["config_posted"]
 
-    assert payload["config_posted"] == RULED_CONFIG
+    # **The capture predates decision 14 and `add_allin` is the one field it moved.** Migrated
+    # on 2026-09-01: the capture is a *shape* fixture - what a node payload looks like on the
+    # wire - and the flag changes which actions a node offers, not the encoding, so the shape
+    # assertions below still describe the solver. Every other field must still match, so a
+    # capture taken at some other config fails here as it always did, and re-taking it at the
+    # ruled config is data work this test cannot do.
+    assert posted["add_allin"] is True, "the capture has been re-taken; drop this exemption"
+    assert {k: v for k, v in posted.items() if k != "add_allin"} == {
+        k: v for k, v in RULED_CONFIG.items() if k != "add_allin"
+    }
     assert re.fullmatch(r"[0-9a-f]{40}", payload["solver"]["commit"])
     assert payload["solve_status"]["state"] == "done"
     # Measured against the target this capture was actually given rather than against
@@ -459,8 +495,12 @@ def complete_card() -> dict:
             "method": "the ruled config solved twice in a fresh process and the exports diffed",
             "max_divergence_bp": 0,
         },
-        "walk": {"reresolved_nodes": 38828, "mismatches": 0},
-        "node_counts": {"exported": 38828, "solver_action_nodes": 38828, "reconciliation": "equal"},
+        "walk": {"reresolved_nodes": RESOLVED_NODES, "mismatches": 0},
+        "node_counts": {
+            "exported": RESOLVED_NODES,
+            "solver_action_nodes": RESOLVED_NODES,
+            "reconciliation": "equal",
+        },
         "conditioning": {
             "payload": "unconditional",
             "discriminator": "72o at the LJ-vs-3bet node carries a uniform row at zero reach",
@@ -545,7 +585,11 @@ def test_a_card_that_does_not_name_the_realization_setting_fails() -> None:
 
 def test_node_counts_that_disagree_need_a_reconciliation() -> None:
     card = complete_card()
-    card["node_counts"] = {"exported": 38820, "solver_action_nodes": 38828, "reconciliation": ""}
+    card["node_counts"] = {
+        "exported": RESOLVED_NODES - 8,
+        "solver_action_nodes": RESOLVED_NODES,
+        "reconciliation": "",
+    }
 
     assert any("reconcil" in error for error in source_card_errors(card))
 
@@ -577,7 +621,10 @@ def test_the_committed_export_holds_the_whole_solved_tree(committed: SolverExpor
     card = load_source_card(COMMITTED_SOURCE_CARD_PATH)
 
     assert committed.node_count == card["node_counts"]["exported"]
-    assert committed.node_count > 38000
+    assert committed.node_count == RESOLVED_NODES
+    # A floor as well as the equality: the point of this test is that the whole tree shipped, and
+    # an export that lost a subtree would still agree with a card restamped beside it.
+    assert committed.node_count > 33_000
 
 
 def test_the_committed_export_reaches_a_four_bet(committed: SolverExport) -> None:
