@@ -1,18 +1,19 @@
 """Phase 14: the spot-level arrival probability, and what a committed cell is not evidence of.
 
 Authored at stage 4 after Taylor's 2026-08-27 ruling on the untrained-cell blocker, and re-cut
-at stage 4 twice since: on 2026-09-01 after decision 14 re-sourced the solve at
-`add_allin: false`, and again the same day after Taylor withheld the five-bet jams and cut the
-committed set to 21. So this file is the specification rather than a description of what got
-built. It is a separate file in the `pytest_derived_chart` family because its siblings sit at
-the 700-line cap.
+at stage 4 three times since: on 2026-09-01 after decision 14 re-sourced the solve at
+`add_allin: false`, again the same day after Taylor withheld the five-bet jams, and again after
+he withheld the three-bet-facing spots and cut the committed set to **6**. So this file is the
+specification rather than a description of what got built. It is a separate file in the
+`pytest_derived_chart` family because its siblings sit at the 700-line cap.
 
 **It also owns the walk, moved here from `tests/test_chart_derivation.py` on 2026-09-01.** That
 file went past the cap when the fourth exclusion code landed, and this is where the walk belongs
 of the files with room: every measurement here re-walks the export and keys a spot by hand, so
-an actor read off the wrong node breaks this file before any other. The three tests are whose
-action an action is, that folds never enter a sequence, and the one export node the contract
-asks a non-coding reviewer to follow from the solve to its artifact row.
+an actor read off the wrong node breaks this file before any other. Four tests: whose action an
+action is, that folds never enter a sequence, the one export node the contract asks a non-coding
+reviewer to follow from the solve to its artifact row, and - for the same want of room next door
+- the corrected attribution of the five-bet-jam rank inversion.
 
 **The ruling on cells was option one: commit them, and record where they came from.** The chart
 answers every cell whose class arrives, including the ones the solve never worked out - the
@@ -26,16 +27,16 @@ cell and says whether hero can be holding that class here. Arrival is per spot a
 the line is one anybody plays. A spot can have every class at full reach and never be reached
 at all.
 
-**Two things this field was ruled for are unexercised over the committed 21, and this file says
+**Two things this field was ruled for are unexercised over the committed 6, and this file says
 so rather than counting them as checks that passed.** The re-source removed the open-jam
 branches, so no committed spot is one the solve never reaches - the zero case is measured empty
-and only a hand-built fixture exercises it. And the smallest committed arrival is now 75.29
-basis points, one line in a hundred and thirty: the fifteen jam spots were the rare ones and
-they are withheld, so the parts-per-billion grain decision 5 ruled buys even less on this set
-than the 1.03 basis points measured over the 36. Both are kept for the reason decision 5 gives,
-which is prospective: the multiway family that returns once GTOpen can price it is deep and
-rare, adding the field later is a second `ARTIFACT_SCHEMA_VERSION` bump, and a check that cannot
-fail today must not be recorded as one that did.
+and only a hand-built fixture exercises it. And the smallest committed arrival is now 1,280.39
+basis points, about one hand in eight: every deep line is withheld, so the parts-per-billion
+grain decision 5 ruled buys nothing at all on this set, where over the 36 the rarest was 1.03
+basis points and over the 21 it was 75.29. Both are kept for the reason decision 5 gives, which
+is prospective: the multiway family that returns once GTOpen can price it is deep and rare,
+adding the field later is a second `ARTIFACT_SCHEMA_VERSION` bump, and a check that cannot fail
+today must not be recorded as one that did.
 
 **What this file does not assert.** No threshold. Nothing here refuses a cell for arriving
 rarely, because option one ruled that the chart commits them; the field is recorded so a later
@@ -49,9 +50,14 @@ from test_chart_derivation import (
     COLD_CALLED_KEY,
     COLD_CALLED_PATH,
     COLD_CALLED_SEQUENCE,
+    FIVE_BET_JAM_KEY,
+    FIVE_BET_JAM_PATH,
+    INVERTED_JAM_KEY,
+    INVERTED_JAM_PATH,
     TRACED_KEY,
     TRACED_PATH,
     TRACED_SEQUENCE,
+    faces_a_five_bet_jam,
     key_of,
     selected,
     walk_state,
@@ -91,17 +97,17 @@ PARTS_PER_BILLION = 1_000_000_000
 ONE_BASIS_POINT_IN_PPB = 100_000
 
 
-COMMITTED_SPOTS = 21
-"""Decision 1's predicate keeps 51 of the re-sourced tree's nodes, decision 20 withholds the
-fifteen where hero faces a four-bet, and the 2026-09-01 ruling the fifteen where he answers a
-five-bet jam, so 21 are committed. `selected` in `tests/test_chart_derivation.py` is all three
-rulings together, which is what "a spot the chart holds" means; that file owns the split and
-this one only counts what came out of it."""
+COMMITTED_SPOTS = 6
+"""Decision 1's predicate keeps 51 of the re-sourced tree's nodes; decision 20 withholds the
+fifteen where hero faces a four-bet, the first 2026-09-01 ruling the fifteen where he answers
+the jam after it, and the second the fifteen where he faces a three-bet, so 6 are committed.
+`selected` in `tests/test_chart_derivation.py` is all four rulings together, which is what "a
+spot the chart holds" means; that file owns the split and this one counts what came out."""
 
-RAREST_COMMITTED_PPB = 7_529_164
-"""The lojack facing a small-blind three-bet, the rarest line the chart answers: about one hand
-in a hundred and thirty. Recorded rather than asserted as a floor - no threshold is ruled - and
-it is what makes the parts-per-billion grain unexercised here."""
+RAREST_COMMITTED_PPB = 128_039_178
+"""The big blind facing a hijack open, the rarest line the chart answers: about one hand in
+eight. Recorded rather than asserted as a floor - no threshold is ruled - and it is what makes
+the parts-per-billion grain unexercised here."""
 
 
 # The most-played committed line: the small blind opened to, everybody folded. Solve output
@@ -110,10 +116,12 @@ it is what makes the parts-per-billion grain unexercised here."""
 # it: the small blind's open is committed under all three rulings.
 BUSIEST_SPOT = "t6/d100/SB/rfi"
 BUSIEST_PPB = 281_908_314
-COMMITTED_ARRIVAL_PPB = 1_211_918_040
-"""What the 21 carry between them; lines nest, so this exceeds a billion. The fifteen withheld
-jams carried 4,815,347 of the 1,216,733,387 the predicate's heads-up set reaches, which is the
-0.40 percent of arrival the 2026-09-01 ruling gives up."""
+COMMITTED_ARRIVAL_PPB = 983_107_279
+"""What the 6 carry between them, and the ledger of what each withholding cost. The predicate's
+51 reach 1,245,894,222 - lines nest, so it exceeds a billion. The jams took 4,815,347 of it and
+the four-bet spots 29,160,835, leaving 1,211,918,040 over the 21; the three-bet spots then took
+228,810,761 of that, which is 18.9 percent. The six that remain hold the other 81.1 percent,
+because the small blind's open and big-blind defence are the commonest decisions in six-max."""
 
 
 # The three nodes the walk tests use that no other file needs. LJ opens, HJ three-bets, the
@@ -232,24 +240,28 @@ def test_every_committed_spot_records_how_often_its_line_is_played(
     assert recorded[BUSIEST_SPOT] == BUSIEST_PPB
     assert recorded[BUSIEST_SPOT] == max(recorded.values())
     assert sum(recorded.values()) == COMMITTED_ARRIVAL_PPB
-    # And no committed line records a fourth raise, which is what the withholding costs this
-    # ledger: the 0.40 percent of arrival the jams carried is simply not in the map.
+    # And no committed line records a second raise, which is what the withholdings cost this
+    # ledger: the 18.9 percent of arrival the three-bet spots carried, plus the 2.4 and 0.40
+    # percent the four-bet spots and the jams carried, are simply not in the map.
     for key in recorded:
-        assert "raise@100" not in key.split("/")[3], key
+        faced = key.split("/")[3]
+        assert "raise@100" not in faced, key
+        assert faced == "rfi" or faced.count(":raise@") == 1, key
 
 
 def test_the_spots_the_solve_never_reaches_are_recorded_as_zero_and_still_answer(
     artifact: PreflopArtifact,
 ) -> None:
-    """The zero case, measured empty over the committed 21 and labelled as unexercised.
+    """The zero case, measured empty over the committed 6 and labelled as unexercised.
 
     On the build this ruling was taken against, eight committed spots were lines nobody plays:
     four were the big blind facing a 100bb open-jam and four were a 100bb jam over an open.
-    `add_allin: false` removed both families from the tree, and the 2026-09-01 withholding
-    removed the deepest lines that were left, so every one of the 21 spots the chart now commits
-    is a line the solve reaches. **That makes the distinguishing job this field was ruled for
-    unexercised here**, and it is recorded as a measurement rather than quietly dropped: a later
-    solve that puts an unplayed line back must record it as zero and must still answer there.
+    `add_allin: false` removed both families from the tree, and the 2026-09-01 withholdings
+    removed every deep line that was left, so all six spots the chart now commits are lines the
+    solve plays in at least one hand in eight. **That makes the distinguishing job this field was
+    ruled for unexercised here**, and it is recorded as a measurement rather than quietly
+    dropped: a later solve that puts an unplayed line back must record it as zero and answer
+    there.
 
     The half that is real on this build is asserted first: every committed spot holds cells at
     all, blanking an untrained cell being what option one refused. Then the premise is asserted
@@ -273,14 +285,14 @@ def test_the_parts_per_billion_grain_is_unexercised_over_the_committed_set(
     The grain was ruled because 21 of the 86 spots then committed sat at a nonzero arrival
     below one basis point, the smallest at 2.5e-08, so in basis points all 21 would have
     rounded to zero and become indistinguishable from the spots the solve genuinely never
-    reaches. Over the committed 36 the rarest line was 1.03 basis points; the 2026-09-01
-    withholding took the fifteen deepest lines out and the rarest is now **75.29** basis
-    points, about one hand in a hundred and thirty, so basis points would have lost nothing
-    here and would have lost less than before. The field keeps the finer grain for the
-    prospective reason decision 5 gives, and this test records that the reason is prospective
-    rather than present, because a check that cannot fail must not be counted as one that
-    passed. The margin is asserted rather than the value: pinning 75.29 would fix a solve
-    output decision 2 ships as solved.
+    reaches. Over the committed 36 the rarest line was 1.03 basis points and over the 21 it was
+    75.29; the second 2026-09-01 withholding took every remaining deep line out and the rarest
+    is now **1,280.39** basis points, about one hand in eight. Basis points would lose nothing
+    at all here, and a whole number of percent would lose almost nothing. The field keeps the
+    finer grain for the prospective reason decision 5 gives, and this test records that the
+    reason is prospective rather than present, because a check that cannot fail must not be
+    counted as one that passed. The margin is asserted rather than the value: pinning 1,280.39
+    would fix a solve output decision 2 ships as solved.
     """
     values = [value for _, value in artifact.arrival_ppb]
 
@@ -289,7 +301,7 @@ def test_the_parts_per_billion_grain_is_unexercised_over_the_committed_set(
         "a committed spot now arrives below one basis point, so the parts-per-billion grain"
         " has started doing the job decision 5 ruled it in for and this label is out of date"
     )
-    vacuous("the rarest committed line is 75.29 basis points, so basis points would have done")
+    vacuous("the rarest committed line is 1,280.39 basis points, so basis points would do")
 
 
 def one_spot_artifact(arrival: tuple | None, extra_spot: str | None = None) -> PreflopArtifact:
@@ -483,3 +495,41 @@ def test_one_export_node_traced_to_its_artifact_row(
     assert row["raise"] == pytest.approx(weights["raise"] / QUANTISATION_SCALE, abs=1e-6)
     assert row.get("fold", 0.0) == pytest.approx(weights["fold"] / QUANTISATION_SCALE, abs=1e-6)
     assert sum(row.values()) == pytest.approx(1.0, abs=1e-6)
+
+
+def called_pct(node: SolverNode, hand_class: str) -> float:
+    """How often hero calls one class here, as a percentage of that class's own volume."""
+    index = next(i for i, action in enumerate(node.actions) if action.kind == "call")
+    return 100.0 * node.weight_bp(index, hand_class) / QUANTISATION_SCALE
+
+
+def test_the_named_jam_inversion_is_the_lojacks_and_not_the_buttons(
+    by_path: dict[tuple[int, ...], SolverNode]
+) -> None:
+    """A measurement this phase attributed to the wrong node, corrected on 2026-09-01.
+
+    Every stage-4 document up to that day said the button's five-bet-jam spot calls KK 72.84 and
+    QQ 94.29 - a higher pair called off less often than a lower one. Measured, that spot calls
+    AA, KK, QQ and AKs all at 100.00 and holds no inversion at all. The pair belongs to the
+    **lojack's** jam spot, where KK calls 72.84 against QQ at 94.29 and AKs calls 0.00 after
+    four-betting it to 22.5 at 100. The finding stands and the node it stands at moved, so both
+    are asserted here: a document quoting the number against the button describes a cell that
+    does not exist. It sits in this file for room rather than for fit -
+    `tests/test_chart_derivation.py` names both nodes and is at the 700-line cap.
+
+    The relation is asserted rather than the two figures, decision 2 shipping the solve as
+    solved, and both nodes are confirmed to be jam-facing so a tree that moved fails loudly.
+    """
+    walked = walk_state(by_path)
+    inverted = by_path[INVERTED_JAM_PATH]
+    named = by_path[FIVE_BET_JAM_PATH]
+
+    assert key_of(inverted, walked) == INVERTED_JAM_KEY
+    assert key_of(named, walked) == FIVE_BET_JAM_KEY
+    assert faces_a_five_bet_jam(inverted, walked) and faces_a_five_bet_jam(named, walked)
+
+    assert called_pct(inverted, "KK") < called_pct(inverted, "QQ")
+    assert called_pct(inverted, "AKs") == 0.0
+    assert called_pct(inverted, "AA") == 100.0
+    for hand_class in ("AA", "KK", "QQ", "AKs"):
+        assert called_pct(named, hand_class) == 100.0, hand_class

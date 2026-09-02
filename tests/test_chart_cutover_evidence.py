@@ -1,21 +1,23 @@
 """Phase 14: the evidence that replacing the chart was a decision rather than an accident.
 
 The companion to `tests/test_derived_chart.py`, split from it at the 700-line cap. That file
-owns the committed artifact in its own right and owns the table constants, the predicate walk and
-the two cell readers this file imports rather than copies. This file owns what the cutover has to
-be defended with: the raked chart gone from the tree with its sizing table, which of its 36 spots
-survive and which fourteen the bot gives up, the card posting the ruled game and the one re-solve
-decision 14 ordered, the two gated orderings, and the dominance measure.
+owns the committed artifact in its own right and the table constants, predicate walk and cell
+readers this file imports rather than copies. This file owns what the cutover has to be defended
+with: the raked chart gone from the tree with its sizing table, which of its 36 spots survive and
+which the bot gives up, the card posting the ruled game and the one re-solve decision 14 ordered,
+the two gated orderings, and the dominance measure.
 
-**Re-cut at stage 4 on 2026-09-01, three premises inverted.** Decision 14 re-solved at
-`add_allin: false`, so what is asserted is one re-solve at the ruled target carrying the five
-obligations one owes. Taylor withheld the fifteen jam-facing spots that evening, cutting the
-committed set to 21 - which, measured, is exactly the 21 retired spots that carry over, so **the
-cutover now gains nothing and gives up fourteen plus the limped pot**. And the group dominance
-ladder stopped gating: it fails over 51, passes over 36, ties over 21, so its verdict tracks set
-composition rather than the hand index. **The only gated range check in the phase is now the
-per-cell twins measure over spot partitions**, in
-`tests/test_derived_chart_report_validators.py`; the five ladders here are published for a human.
+**Re-cut at stage 4 twice on 2026-09-01.** Decision 14 re-solved at `add_allin: false`, so what
+is asserted is one re-solve at the ruled target carrying the five obligations one owes. Taylor
+then withheld the fifteen jam-facing spots and, the same evening, the fifteen three-bet-facing
+ones, cutting the committed set to **6**. Measured against the retired chart that is 6 carried
+over of its 36, so **the cutover gains nothing and gives up twenty-nine spots plus the limped
+pot**: four opening ranges, the fifteen three-bet spots the retired chart answered, and ten more
+the predicate never wanted. And the group dominance ladder stopped gating, its verdict tracking
+set composition rather than the hand index. **The only gated range check in the phase is the
+per-cell measure over spot partitions**, in `tests/test_derived_chart_report_validators.py`,
+which since the second ruling carries two counterfactual arms; the five ladders here are
+published for a human.
 
 **The opening frequencies are read off the export, not the chart.** The committed set holds one
 opening range, so "later position opens wider" is a property of the solve rather than of the
@@ -72,14 +74,15 @@ from scripts.repo_paths import REPO_ROOT
 
 SIZINGS_DIR = ARTIFACT_DIR / "sizings"
 SIZING_SCHEMA_VERSION = 2
-COMMITTED_SPOTS = 21
-PRICED_SPOTS = 21
-"""How many of the 21 price anything: all of them. The fifteen that offered call and fold only -
+COMMITTED_SPOTS = 6
+PRICED_SPOTS = 6
+"""How many of the 6 price anything: all of them. The fifteen that offered call and fold only -
 hero facing a five-bet jam, the last raise already in - were withheld on 2026-09-01, so the
 unpriced family is gone and the table covers the committed set exactly."""
-RULED_PRICES = (2.5, 7.5, 22.5)
-"""Every price the committed set offers, and hero's own 100 is not among them: five-betting is
-only legal facing a four-bet, and every four-bet-facing spot is withheld."""
+RULED_PRICES = (2.5, 7.5)
+"""Every price the committed set offers. Hero's own 100 is not among them, five-betting being
+legal only facing a four-bet and every four-bet-facing spot withheld; nor is 22.5, which only
+the withheld three-bet-facing spots ever quoted."""
 EXPECTATIONS_PATH = ARTIFACT_DIR / "expectations" / "six_max_nl25_100bb.json"
 GTOWIZARD_SOURCE_PATH = ARTIFACT_DIR / "sources" / "gtowizard_6max_nl25_100bb_preflop.json"
 RETIRED_CHART_NAME = "six_max_nl25_100bb.json"
@@ -95,15 +98,21 @@ RETIRED_SPOTS_LOST = (
     "t6/d100/SB/LJ:raise@2.5", "t6/d100/SB/HJ:raise@2.5", "t6/d100/SB/CO:raise@2.5",
     "t6/d100/SB/BTN:raise@2.5",
 )
-RETIRED_SPOTS_CARRIED_OVER = 21
+RETIRED_SPOTS_CARRIED_OVER = 6
+RETIRED_SPOTS_WITHHELD = 15
+"""Retired spots that pass decision 1's predicate and are then withheld anyway: every one is
+hero facing a three-bet, which is what the second 2026-09-01 ruling took. GTO Wizard's 36 stop
+there, so no retired spot lands on a four-bet or jam-facing key and those two withholdings cost
+this ledger nothing."""
 SPOTS_GAINED = COMMITTED_SPOTS - RETIRED_SPOTS_CARRIED_OVER
-"""Zero, derived rather than typed. The two withholdings between them cut the committed set to
-exactly the 21 spots the retired chart already answered, so the cutover buys no new coverage -
-what it buys is that the 21 are rake-free, correctly priced and re-solved, and what it costs is
-fourteen spots plus the limped pot."""
-RAISES_FACED_WHEN_WITHHELD = (3, 4)
-"""Three raises is hero facing a four-bet, which decision 20 withholds; four is hero answering
-the jam, which the 2026-09-01 ruling withholds. No survivor may land on either."""
+"""Zero, derived rather than typed. The three withholdings between them cut the committed set to
+exactly the 6 spots the retired chart already answered, so the cutover buys no new coverage -
+what it buys is that the 6 are rake-free, correctly priced and re-solved, and what it costs is
+twenty-nine spots plus the limped pot."""
+RAISES_FACED_WHEN_WITHHELD = (2, 3, 4)
+"""Two raises is hero facing a three-bet, taken by the second 2026-09-01 ruling; three is a
+four-bet, taken by decision 20; four is the jam, taken by the first. No survivor may land on
+any of them."""
 RETIRED_SPOT_WITH_NO_NODE = "t6/d100/BB/SB:call"
 """Passes the ruled predicate and still has no node to derive from: the solve is `limp: false`
 and the tree holds no limp branch. Counted apart from the fourteen so the two ledgers agree."""
@@ -170,8 +179,7 @@ _SUITED_OVER_OFFSUIT = tuple(
 
 RELATIONS = (("ladder", _ADJACENT_PAIRS), ("twins", _SUITED_OVER_OFFSUIT))
 """Decision 10's two relations, nothing wider. Plain card-rank dominance gives 61 to 121
-violations a node and its top hits are correct poker - the lojack opens 76s always, T6s
-never."""
+violations a node and its top hits are correct poker - the lojack opens 76s always, T6s never."""
 
 _PAIRS_HIGH_TO_LOW = tuple(f"{rank}{rank}" for rank in HIGH_TO_LOW_RANKS)
 
@@ -198,11 +206,9 @@ def play_pct(weights) -> float | None:
 
 
 def monotonicity_violations(spot_id: str, weights_by_class: dict, compared: dict | None = None):
-    """Every dominating pair the spot plays the wrong way round, past the tolerance.
-
-    A pair is skipped when either class is uncovered, a spot behind hero's own raise covering only
-    hero's arriving range. `compared` tallies per relation what was looked at: without it a
-    class-naming break compares nothing and passes."""
+    """Every dominating pair the spot plays the wrong way round, past the tolerance. A pair is
+    skipped when either class is uncovered; `compared` tallies per relation what was looked at,
+    without which a class-naming break compares nothing and passes."""
     violations: list[tuple] = []
     for relation, pairs in RELATIONS:
         for stronger, weaker in pairs:
@@ -221,11 +227,9 @@ def group_play_pct(weights_by_class: dict, reach_by_class: dict, group, transpos
     """One group's play frequency, combo-weighted over hero's arriving range.
 
     `transposed` is the counterfactual: the artifact a converter produces indexing the payload by
-    the grid ordering rather than GTOpen's own - **not** the suited-for-offsuit swap the gate in
-    `tests/test_derived_chart_report_validators.py` uses, which is a different counterfactual
-    giving different numbers. Both the weights and the reach come from the swapped class, a
-    converter reading them with one index getting both wrong together.
-    """
+    the grid ordering rather than GTOpen's own - **not** either counterfactual the gate in
+    `tests/test_derived_chart_report_validators.py` uses. Both the weights and the reach come
+    from the swapped class, a converter reading them with one index getting both wrong."""
     as_gtopen_stores_them = tuple(sorted(HAND_CLASSES, key=gtopen_class_index))
     total = weighted = 0.0
     for name in group:
@@ -260,7 +264,7 @@ def group_violating_spots(artifact: PreflopArtifact, groups, transposed: bool) -
 
 
 def solve_records(card: dict) -> list[dict]:
-    """Every solve the card records, wherever on the card it put them."""
+    """Every solve the card records, wherever it put them."""
     found: list[dict] = []
 
     def visit(value) -> None:
@@ -283,7 +287,7 @@ def git(*arguments: str) -> subprocess.CompletedProcess[str]:
 
 
 def retired_chart_from_history() -> dict:
-    """The retired chart, read out of git history rather than out of the tree. Decision 7's
+    """The retired chart, read out of git history rather than the tree - decision 7's
     arrangement, and the only one left once stage 6 deletes the file. The commit is located
     rather than pinned: a hardcoded sha stops resolving the first time somebody rebases."""
     revisions = git("rev-list", "HEAD", "--", RETIRED_CHART_PATH).stdout.split()
@@ -314,12 +318,10 @@ def retired_split() -> tuple[list[tuple[str, str, tuple]], list[str]]:
 
 
 def export_opening_pct(export: SolverExport) -> dict[str, float]:
-    """Each seat's opening frequency, read off the solve rather than the chart.
-
-    The chart holds one opening range, so "later position opens wider" is no longer a property of
-    the artifact. It remains one of the export, which is where the ordering was gated at phase 10
-    and where a mis-assigned actor or a transposed hand index still breaks it.
-    """
+    """Each seat's opening frequency, read off the solve rather than the chart. The chart holds
+    one opening range, so "later position opens wider" is no longer a property of the artifact.
+    It remains one of the export, where the ordering was gated at phase 10 and where a
+    mis-assigned actor or a transposed hand index still breaks it."""
     return dict(aggregate_frequencies(export).opening_pct)
 
 
@@ -341,7 +343,7 @@ def test_the_raked_chart_is_gone_and_the_sizing_file_left_is_at_the_per_class_sc
     reader checks before trusting the indexing; the shape is read off the file rather than
     through `PreflopSizingTable`, whose loader would make its version claim vacuous. **The
     two-price case is unexercised and labelled rather than counted as a pass** - the schema holds
-    a list because a spot may offer two prices and 0 of the 21 do. The last assertion makes that
+    a list because a spot may offer two prices and 0 of the 6 do. The last assertion makes that
     a measurement, so a later solve turns it red.
     """
     assert not (ARTIFACT_DIR / RETIRED_CHART_NAME).exists()
@@ -380,13 +382,12 @@ def test_the_retired_chart_is_not_a_subset_of_what_replaces_it() -> None:
     """The claim every stage-4 document made and the terminal-clean predicate falsified.
     "All 36 spots of the retired chart are heads-up, so nothing the bot answers today is lost"
     was verified by reading `action_sequence` values, which is a history reading. Under the ruled
-    predicate 22 of the 36 pass and 14 do not, and 21 of those 22 end up covered - the
-    twenty-second is the limped pot the solve has no branch for. So the cutover gives up 14, four
-    opening ranges among them, and gains 21 - 21 = **nothing**, the 2026-09-01 withholding having
-    cut the committed set to exactly the spots the retired chart already answered. Read out of
-    git history because the file is deleted, and asserted spot by spot rather than as a count,
-    because a count of 14 with the wrong 14 in it is the same arithmetic and a different chart.
-    """
+    predicate 22 of the 36 pass and 14 do not; of the 22, six end up covered, fifteen are
+    withheld as three-bet-facing and the twenty-second is the limped pot the solve has no branch
+    for. So the cutover gives up 29 spots and the limp, four opening ranges among them, and gains
+    6 - 6 = **nothing**. Read out of git history because the file is deleted, and asserted spot
+    by spot rather than as a count, because a count of 14 with the wrong 14 in it is the same
+    arithmetic and a different chart."""
     survivors, lost = retired_split()
     passing = [spot_id for spot_id, _, _ in survivors]
 
@@ -396,30 +397,30 @@ def test_the_retired_chart_is_not_a_subset_of_what_replaces_it() -> None:
     assert RETIRED_SPOT_WITH_NO_NODE in passing
 
 
-def test_the_retired_spots_that_survive_the_predicate_are_covered_bar_the_limp(
+def test_the_retired_spots_that_survive_are_covered_or_withheld_bar_the_limp(
     library: PreflopChartLibrary,
 ) -> None:
-    """21 of the retired 36 stay covered, and the twenty-second is the limped pot.
+    """6 of the retired 36 stay covered; 15 more pass the predicate and are withheld, and the
+    twenty-second survivor is the limped pot.
 
-    **Asked the way the bot asks it, which is the whole of why 21 is the number.** The retired
+    **Asked the way the bot asks it, which is the whole of why 6 is the number.** The retired
     chart opens the small blind to 3.5 and three-bets to 8, 11 and 13.5 while the derived chart
-    holds 2.5, 7.5 and 22.5, so exactly five keys exist verbatim and raw membership in
-    `spot_keys()` answers a different question. Phase 12's ruling 8 makes 21 true: the lookup
-    normalises an observed price to the nearest one declared for that line, so each survivor goes
-    to `library.lookup` as a `ChartQuery` and the 21 land on 21 distinct keys.
+    holds 2.5 and 7.5, so exactly five keys exist verbatim and raw membership in `spot_keys()`
+    answers a different question. Phase 12's ruling 8 makes 6 true: the lookup normalises an
+    observed price to the nearest one declared for that line, so each survivor goes to
+    `library.lookup` as a `ChartQuery` and the 6 land on 6 distinct keys.
 
     Coverage is read off the refusal code rather than one hand class, a spot behind hero's own
     raise covering only hero's arriving range. `BB/SB:call` passes the predicate with no node to
-    derive from, the solve being `limp: false`; that is `CHART-CANNOT-ANSWER-A-LIMPED-POT` and
-    the baseline the refusal-rate criterion is stated against - the rate rises on those fourteen
-    plus this one and nowhere else.
+    derive from, the solve being `limp: false`; that is `CHART-CANNOT-ANSWER-A-LIMPED-POT`.
 
-    **Neither withholding costs this ledger anything, measured rather than assumed.** GTO
-    Wizard's 36 stop at hero facing a three-bet, so the retired chart has no four-bet-facing key
-    and no jam-facing one; no survivor lands on a withheld key. What the withholding did do is
-    empty the gain side: the 21 answered keys are now the whole committed set, asserted as a set
-    rather than a count, 21 matching 21 by size while differing by membership being the shape a
-    wrong withholding takes.
+    **The three withholdings cost this ledger fifteen spots, and which fifteen is measured
+    rather than assumed.** GTO Wizard's 36 stop at hero facing a three-bet, so the retired chart
+    has no four-bet-facing key and no jam-facing one and those two withholdings cost nothing
+    here; the third takes every three-bet-facing spot, and the retired chart has fifteen of them.
+    They are asserted as a set beside the carried-over set, fifteen matching fifteen by size
+    while differing by membership being the shape a wrong withholding takes. The gain side is
+    still empty: the 6 answered keys are the whole committed set.
     """
     covered = set(library.spot_keys())
     survivors, _ = retired_split()
@@ -435,9 +436,14 @@ def test_the_retired_spots_that_survive_the_predicate_are_covered_bar_the_limp(
         assert result.spot_key is not None, spot_id
         answered[spot_id] = result.spot_key
 
+    withheld = [key for key in refused if key != RETIRED_SPOT_WITH_NO_NODE]
+
     assert len(answered) == RETIRED_SPOTS_CARRIED_OVER
     assert len(set(answered.values())) == RETIRED_SPOTS_CARRIED_OVER, answered
-    assert refused == [RETIRED_SPOT_WITH_NO_NODE]
+    assert RETIRED_SPOT_WITH_NO_NODE in refused
+    assert len(withheld) == RETIRED_SPOTS_WITHHELD, withheld
+    assert all(key.count(":raise@") == 2 for key in withheld), withheld
+    assert set(withheld).isdisjoint(answered)
     assert len([spot_id for spot_id, _, _ in survivors if spot_id in covered]) == 5
     for key in RETIRED_SPOTS_LOST:
         assert key not in covered, key
@@ -457,8 +463,8 @@ def test_the_per_cell_relations_are_measured_and_the_rule_catches_what_it_was_ru
 
     Taylor read the grids and ruled the splits correct - among near-indifferent hands every split
     has the same EV, so a per-cell gate rejects correct play. What survives as a gate is that the
-    measurement was taken: the one folded-to-hero spot covers all 169 classes, so both relations
-    compared every pair there or a run that compared nothing goes green.
+    measurement was taken: every committed spot covers all 169 classes now, so both relations
+    compared every pair or a run that compared nothing goes green.
 
     The helper is shown failing and not over-firing first, on decision 10's own cases: the real
     44-versus-33 pair at 27 points is caught, the noise pair at 0.08 points is not, and an
@@ -490,34 +496,34 @@ def test_the_group_dominance_figures_are_computed_and_published_for_every_partit
 ) -> None:
     """Published for a human, gating nothing. **Ruled by Taylor on 2026-09-01.**
 
-    **This measure has returned three verdicts on three committed sets.** Over the uncut 51 it
+    **This measure has returned four verdicts on four committed sets.** Over the uncut 51 it
     FAILS - 36 spots flagged as solved against 33 transposed, found by lane R3, so it scored the
-    wrong index mapping as the better one. Over the 36 it PASSES on all five: 14/27 on single
-    pair ranks, 1/26 on four bands, 1/26 on three, 1/24 on two, 21/24 on the suited rows. Over
-    the committed 21 it TIES on two: 12/12 on single pair ranks and 21/21 on the suited rows,
-    with 0/12 on each pair band.
+    wrong index mapping as the better one. Over the 36 it PASSES on all five partitions: 14/27
+    on single pair ranks, 1/26 on four bands, 1/26 on three, 1/24 on two, 21/24 on the suited
+    rows. Over the 21 it is mixed - the three pair-band partitions still separate perfectly at
+    0/12 each, single pair ranks TIE at 12/12, and the suited rows SATURATE at 21/21. Over the
+    committed 6 it separates nothing anywhere: the four pair partitions read 0 against 0, which
+    flags nothing under either mapping, and the suited rows read 6 against 6, which flags every
+    spot under both.
 
     A measure whose verdict tracks how many spots are in the set is measuring set composition
-    rather than whether the hand index is right, and at the suited rows over 21 it flags all 21
-    under *both* mappings - saturation, distinguishing nothing. So it does not gate, which also
-    restores Taylor's 2026-08-26 ruling that no group ORDER is gated: this is a group-order
-    measure and gating it was drift. **What gates instead is the per-cell twins measure over
-    spot partitions**, in `tests/test_derived_chart_report_validators.py`, which passes at every
-    size measured - 0 against 26 over the 36, 0 against 21 over the 21 - because a per-cell swap
-    is what it tests and that does not need the tree to have a deep part.
+    rather than whether the hand index is right. So it does not gate, which also restores
+    Taylor's 2026-08-26 ruling that no group ORDER is gated: this is a group-order measure and
+    gating it was drift. **What gates instead is the per-cell measure over spot partitions**, in
+    `tests/test_derived_chart_report_validators.py`, which separates cleanly at every size
+    measured - 0 against 26 over the 36, 0 against 21 over the 21, 0 against 6 over the 6 -
+    because a per-cell swap is what it tests and that does not need the tree to have a deep part.
 
     What survives is that the figures are *taken*: a published measurement nobody computes is a
-    blank column, so both arms must be present and bounded by the spot count on every
-    partition.
+    blank column, so both arms must be present and bounded by the spot count on every partition.
 
     **A trap named on 2026-09-01: `transposed` here is NOT the counterfactual that gates.**
     `group_play_pct` reads row position `grid_index(name)` out of GTOpen's own ordering, which is
     what a converter indexing the payload by the grid ordering reads; the gate's
-    `transpose_hand_index` swaps each suited hand with its offsuit twin outright. They are not
-    equivalent and give materially different numbers - a stage-4 reimplementation that
-    substituted one for the other reproduced neither family's counts - so neither predicts the
-    other.
-    """
+    `transpose_hand_index` swaps each suited hand with its offsuit twin outright, and its rank
+    arm permutes ranks instead. None of the three is equivalent to another and they give
+    materially different numbers - a stage-4 reimplementation that substituted one for another
+    reproduced neither family's counts - so none predicts the others."""
     ordered = {
         label: (
             group_violating_spots(artifact, groups, transposed=False),
@@ -533,6 +539,10 @@ def test_the_group_dominance_figures_are_computed_and_published_for_every_partit
         # column the report cannot print, which is the only failure left here.
         assert all(isinstance(a, int) and 0 <= a <= COMMITTED_SPOTS for a in arms), (label, arms)
     assert any(sum(arms) for arms in ordered.values()), "the measure computed nothing anywhere"
+    # And the saturation is recorded rather than left as a surprising zero elsewhere: over six
+    # spots the suited rows flag every spot under both mappings, which is what a measure that
+    # has stopped separating looks like from the inside.
+    assert ordered["suited rows"] == (COMMITTED_SPOTS, COMMITTED_SPOTS)
 
 
 def test_the_two_orderings_hold_where_each_of_them_still_lives(
@@ -544,9 +554,7 @@ def test_the_two_orderings_hold_where_each_of_them_still_lives(
     - except that the chart no longer holds four of the five opening ranges, so the opening half
     is asserted over the export and the defence half over the chart, which inherits it. The
     defence relation follows the opening frequencies wherever they land rather than a fixed seat
-    order, so the widest-opening seat is never covered by nothing. It is also the check a
-    transposed hand index or a mis-assigned actor breaks first.
-    """
+    order, so the widest-opening seat is never covered by nothing."""
     opens = export_opening_pct(committed_export)
     defends = {position: defence_pct(library, position) for position in OPENERS}
     compared = 0
@@ -567,14 +575,12 @@ def test_the_two_orderings_hold_where_each_of_them_still_lives(
 def test_the_external_expectations_file_is_untouched_and_is_not_what_shipped(
     library: PreflopChartLibrary, artifact: PreflopArtifact
 ) -> None:
-    """Pinned by content, because a reference regenerated from what it checks cannot fail.
-
-    It is a raked GTO Wizard reference and this is a rake-free GTOpen solve, so the report prints
-    one against the other and gates on nothing. All that is asserted is that the phase did not
+    """Pinned by content, because a reference regenerated from what it checks cannot fail. It is
+    a raked GTO Wizard reference and this is a rake-free GTOpen solve, so the report prints one
+    against the other and gates on nothing. All that is asserted is that the phase did not
     rewrite it - and that the derived chart is not it. The reference records the small blind
     limping 13.73 percent and this solve ran `limp: false`, so a chart agreeing with it came from
-    the wrong file; that is also the one opening range both files hold.
-    """
+    the wrong file."""
     raw = EXPECTATIONS_PATH.read_bytes()
     reference = json.loads(raw)
 
@@ -597,10 +603,7 @@ def test_the_source_card_posts_the_ruled_game_and_names_its_own_model(card: dict
     moved it: with it true GTOpen inserts a jam beside every named raise, and the first cutover's
     chart jammed 44 at 1.0 where aces never jammed. The model line is derived from the config
     rather than matched against a remembered word, a card naming one model beside a
-    `config_posted` naming another being the one claim about this export no gate command reads.
-    Decision 3's recorded bias is about `calibrated`; under the default `static` the big blind
-    defends 99.71 percent against a small-blind open, so a changed model makes it false.
-    """
+    `config_posted` naming another being the one claim about this export no gate command reads."""
     posted = card["config_posted"]
 
     assert posted == RULED_CONFIG
@@ -624,13 +627,9 @@ def test_the_one_re_solve_decision_fourteen_ruled_is_the_only_solve_on_the_card(
     checksums unmoved - because decision 2 had been re-ruled to ship as solved. Decision 14 then
     re-sourced at `add_allin: false`, on the finding that the shipped chart stacked off 100 blinds
     with a range inverted against hand strength. So what has to be loud now is a *second*
-    re-solve: one solve record, two restamped checksums, the ruled target.
-
-    The target is pinned with its iteration count because the pair is the claim: 0.00016 met
-    first at 1,900 of a 2,000 cap means the cap nearly binds, so a reader can tell a converged
-    solve from one that ran out of iterations. The achieved gap is asserted only against the
-    target, being solver output an honest re-derivation may round.
-    """
+    re-solve: one solve record, two restamped checksums, the ruled target, pinned with its
+    iteration count because the pair is the claim - 0.00016 met first at 1,900 of a 2,000 cap
+    means the cap nearly binds. The achieved gap is asserted only against the target."""
     records = solve_records(card)
     committed = card["solve"]
 
@@ -672,11 +671,9 @@ def test_the_node_counts_and_size_block_are_recomputed(
     cap stopped binding when the predicate changed but the rule did not: exceeding the
     `data/artifacts` limit is a halt and a decision, not a number to raise. Deleting the retired
     chart, re-solving and writing a smaller chart all move the directory total, so the block is
-    restamped or this fails. The node count is the third of the re-solve's five obligations.
-
-    **The reconciliation is asserted against the committed chart as well.** A card whose counts
-    match the export still describes the wrong build if the chart beside it holds a different
-    number of spots, and until 2026-09-01 nothing here looked at the chart at all."""
+    restamped or this fails. **The reconciliation is asserted against the committed chart as
+    well**: a card whose counts match the export still describes the wrong build if the chart
+    beside it holds a different number of spots."""
     counts, size = card["node_counts"], card["size"]
     total = sum(item.stat().st_size for item in ARTIFACTS.rglob("*") if item.is_file())
     per_node = size["bytes"] / committed_export.node_count

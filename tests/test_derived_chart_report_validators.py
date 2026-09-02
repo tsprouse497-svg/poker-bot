@@ -14,22 +14,33 @@ deliberately wrong input and made to refuse, and the command itself is run again
 cannot resolve and against artifacts that load cleanly and are wrong. Both files run under
 `pytest_derived_chart`.
 
-**Re-cut at stage 4 twice on 2026-09-01.** The census validator now takes **four** exclusion
-codes: decision 20 added the reason a four-bet pot is refused for, and Taylor's evening ruling
-a second for the jam-facing children of those nodes. A validator accepting fewer accepts a
-vocabulary that cannot say which nodes come back by which route, and because the two new
-families are both 15 nodes, a census folding either into the other adds up exactly - so the
-three-code census is refused here beside the two-code and one-code ones.
+**Re-cut at stage 4 three times on 2026-09-01.** The census validator now takes **five**
+exclusion codes: decision 20 added the reason a four-bet pot is refused for, Taylor's first
+evening ruling a second for the jam-facing nodes after those, and his second a third for the
+three-bet-facing nodes before them. A validator accepting fewer accepts a vocabulary that cannot
+say which nodes come back by which route, and because all three new families are 15 nodes, a
+census folding any into any other adds up exactly - so the four-code, three-code, two-code and
+one-code censuses are all refused here.
 
-**And the per-cell twins discrimination in this file is now the phase's ONLY gated range
-check**, ruled by Taylor on 2026-09-01. The group-order ladders in
-`tests/test_chart_cutover_evidence.py` fail over the uncut 51, pass over 36 and tie over 21, so
-their verdict tracks how many spots are in the set rather than whether the hand index is right;
-they are published for a human and gate nothing. This one passes cleanly at every size measured
-because it is per cell, and a per-cell swap does not need the tree to have a deep part. It is
-exercised over the real committed artifact on every partition rather than only against hand-made
-inputs: a validator that only ever refuses a fabricated pair has never been shown reading a
-chart.
+**And the per-cell discrimination in this file is the phase's ONLY gated range check**, ruled by
+Taylor on 2026-09-01. The group-order ladders in `tests/test_chart_cutover_evidence.py` fail over
+the uncut 51, pass over 36, come out mixed over 21 and separate nothing over 6, so their verdict
+tracks how many spots are in the set rather than whether the hand index is right; they are
+published for a human and gate nothing. This one separates cleanly at every size measured because
+it is per cell. It is exercised over the real committed artifact on every partition rather than
+only against hand-made inputs: a validator that only ever refuses a fabricated pair has never
+been shown reading a chart.
+
+**It carries TWO counterfactual arms since Taylor's second ruling of that day, and they are
+different measures with different names.** The suit swap, `transpose_hand_index`, reads each
+suited hand off its offsuit twin; it is what catches a hand index built on the grid ordering. The
+final stage-4 review found what it cannot catch and measured it: a chart with every hand RANK
+reversed maps pairs to pairs and suited twins to suited twins, so the suit swap scores it bit for
+bit identically to a correct chart and it passes on every partition. The rank arm,
+`reverse_hand_ranks`, reads each cell off its rank-reversed class and is scored on the row
+ladder, which is the one relation a rank permutation breaks. Both arms are asserted the same way
+- solved strictly under the counterfactual, a tie refusing - and both are proved to distinguish
+what they claim to, including the case each cannot see.
 """
 
 from __future__ import annotations
@@ -53,11 +64,14 @@ from test_derived_chart_report import (
     MULTIWAY_NODES,
     OUTSIDE_RULE_NODES,
     RETIRED_CHART,
+    THREE_BET_BRANCH_CODE,
+    THREE_BET_BRANCH_NODES,
     discrimination_partitions,
     git,
 )
 
 from poker_training_bot.solver_artifacts import lookup
+from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES
 from poker_training_bot.solver_artifacts.importer import (
     import_preflop_artifact,
     import_preflop_artifacts,
@@ -73,6 +87,41 @@ SCRIPT = REPO_ROOT / "scripts" / f"{COMMAND_ID}.py"
 
 # The hand-class rows `a_grid` builds a synthetic spot out of, strongest first.
 RANKS = "AKQJT98765432"
+
+ROW_LADDER_COMPARISONS = 132
+"""The relation the rank arm is scored on, spelled out so stage 6 builds the one that was
+measured. Within each row of the 13x13 grid - a fixed high card, suited and offsuit taken
+separately - a hand with a higher kicker must be played at least as often as the hand one rank
+below it, at decision 10's one-point tolerance. Adjacent kickers only, for the reason decision 10
+gives for the pair ladder: comparing every hand against every weaker one turns one drifting step
+into a dozen violations. That is 132 comparisons over a full grid, and it is a **third** relation
+beside decision 10's two, needed because neither of those can see a rank permutation - the twins
+relation is invariant under one, and every pocket pair is played 100 percent at all six committed
+spots so the pair ladder has nothing to read. The contract names two relations and a stage-4
+review owes it that correction."""
+
+PARTITIONS_OVER_THE_COMMITTED_SET = 5
+"""The whole set, one label per seat hero sits in, one per number of raises faced. Over six spots
+that is five labels covering three distinct sets of spots: hero sits at the small blind and the
+big blind, and faces nought raises or one, so `hero=SB` and `raises faced 0` name the same spot
+and `hero=BB` and `raises faced 1` the same five. Kept rather than pruned - pruning by hand is
+choosing which splits to publish after seeing them."""
+
+
+def published(generator, name: str):
+    """A function stage 6 owes, fetched by name rather than reached as an attribute.
+
+    Naming an attribute the module has not grown yet raises an AttributeError inside the test
+    body, which is a failure that says nothing; a `getattr` and an assertion says which function
+    is missing and what it has to do - `LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS` again, one
+    level down.
+    """
+    found = getattr(generator, name, None)
+    assert found is not None, (
+        f"scripts/{COMMAND_ID}.py must publish {name}(); the rank-permutation arm Taylor ruled"
+        " on 2026-09-01 has no implementation yet"
+    )
+    return found
 
 
 @pytest.fixture(scope="module")
@@ -104,6 +153,7 @@ def a_census(
         excluded = {
             lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MULTIWAY_NODES,
             lookup.DERIVATION_OUTSIDE_SELECTION_RULE: OUTSIDE_RULE_NODES,
+            THREE_BET_BRANCH_CODE: THREE_BET_BRANCH_NODES,
             FOUR_BET_POT_CODE: FOUR_BET_POT_NODES,
             JAM_INHERITS_CODE: JAM_INHERITS_NODES,
         }
@@ -117,13 +167,13 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
 
     The wrong inputs are the honest ones: counts that sum to one node fewer than the export
     holds, and a reason nobody ruled. Decision 8 closes both vocabularies so a node the converter
-    merely failed to handle cannot be filed as a property of the grammar, and the two 2026-09-01
-    rulings make that **four** exclusion codes - a census filing all 33,948 excluded nodes under
-    one reason cannot say which come back when GTOpen prices multiway, which when the
-    realization fit gains a four-bet-pot cell, and which when that fix reaches the jam-facing
-    children of those nodes. So one-code, two-code and three-code censuses are all refused, the
-    last because the two new families are the same size and folding either into the other still
-    adds up.
+    merely failed to handle cannot be filed as a property of the grammar, and the three 2026-09-01
+    rulings make that **five** exclusion codes - a census filing all 33,963 excluded nodes under
+    one reason cannot say which come back when GTOpen prices multiway, which when the realization
+    fit gains a four-bet-pot cell, and which when that fix reaches the jam-facing nodes after
+    those and the three-bet-facing nodes before them. So one-code, two-code, three-code and
+    four-code censuses are all refused, the last two because the new families are all the same
+    size and folding any into any other still adds up.
     """
     # The vocabulary first, because everything below is built out of it: a census fed a reason
     # the module does not carry is refused for the wrong reason, and the refusal would read as
@@ -131,6 +181,7 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
     assert set(lookup.DERIVATION_EXCLUSION_CODES) == {
         lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY,
         lookup.DERIVATION_OUTSIDE_SELECTION_RULE,
+        THREE_BET_BRANCH_CODE,
         FOUR_BET_POT_CODE,
         JAM_INHERITS_CODE,
     }
@@ -162,17 +213,20 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
             excluded={
                 lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MULTIWAY_NODES,
                 lookup.DERIVATION_OUTSIDE_SELECTION_RULE: (
-                    OUTSIDE_RULE_NODES + FOUR_BET_POT_NODES + JAM_INHERITS_NODES
+                    OUTSIDE_RULE_NODES
+                    + THREE_BET_BRANCH_NODES
+                    + FOUR_BET_POT_NODES
+                    + JAM_INHERITS_NODES
                 ),
             },
         )
         generator.validate_census(two_codes, EXPORTED_NODES)
     with pytest.raises(generator.DerivedChartReportError):
-        # And the vocabulary as it stood between the two rulings of 2026-09-01: the jams folded
-        # into the four-bet-pot reason. Both families are 15 nodes, so this census balances
-        # exactly and is wrong only about which fix brings which nodes back.
+        # The vocabulary as it stood between the first and second rulings of 2026-09-01: the
+        # jams folded into the four-bet-pot reason and the three-bet spots not yet withheld.
         three_codes = a_census(
             derivation,
+            committed=COMMITTED_SPOTS + THREE_BET_BRANCH_NODES,
             excluded={
                 lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MULTIWAY_NODES,
                 lookup.DERIVATION_OUTSIDE_SELECTION_RULE: OUTSIDE_RULE_NODES,
@@ -180,6 +234,21 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
             },
         )
         generator.validate_census(three_codes, EXPORTED_NODES)
+    with pytest.raises(generator.DerivedChartReportError):
+        # And the vocabulary as it stood after the second ruling but before the third code was
+        # written: the three-bet spots withheld and filed under the jam reason. All three
+        # families are 15 nodes, so this census balances exactly and is wrong only about which
+        # fix brings which nodes back - the one failure a total can never see.
+        four_codes = a_census(
+            derivation,
+            excluded={
+                lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MULTIWAY_NODES,
+                lookup.DERIVATION_OUTSIDE_SELECTION_RULE: OUTSIDE_RULE_NODES,
+                FOUR_BET_POT_CODE: FOUR_BET_POT_NODES,
+                JAM_INHERITS_CODE: JAM_INHERITS_NODES + THREE_BET_BRANCH_NODES,
+            },
+        )
+        generator.validate_census(four_codes, EXPORTED_NODES)
     with pytest.raises(generator.DerivedChartReportError):
         invented = derivation.NodeCensus(
             COMMITTED_SPOTS, {}, {"derivation:not-ruled": EXPORTED_NODES - COMMITTED_SPOTS}
@@ -189,14 +258,15 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
 
 def test_the_artifact_spot_count_is_checked_against_the_walk_key_by_key(generator) -> None:
     """A count that matches while the keys do not is the failure this has to catch: a converter
-    that dropped one node and invented one key gives the same count. The last two cases are that,
-    and the keys they invent are the lojack's open - one of the 24 the predicate drops - and the
-    big blind facing a button four-bet, one of the fifteen decision 20 withholds. A converter
-    built on the superseded rule fails on the first by name and one that skipped a withholding
-    on the second.
-    """
+    that dropped one node and invented one key gives the same count. The last three cases are
+    that, and the keys they invent are the lojack's open - one of the 24 the predicate drops -
+    the big blind facing a button four-bet, one of the fifteen decision 20 withholds, and the
+    button facing a big-blind three-bet, one of the fifteen the second 2026-09-01 ruling
+    withholds. A converter built on the superseded rule fails on the first by name and one that
+    skipped either withholding on the others."""
     walked = {"t6/d100/SB/rfi", "t6/d100/BB/BTN:raise@2.5", "t6/d100/BB/SB:raise@2.5"}
-    withheld = "t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5"
+    four_bet = "t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5"
+    three_bet = "t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5"
     generator.validate_spot_count(set(walked), set(walked))
 
     with pytest.raises(generator.DerivedChartReportError):
@@ -206,7 +276,9 @@ def test_the_artifact_spot_count_is_checked_against_the_walk_key_by_key(generato
     with pytest.raises(generator.DerivedChartReportError):
         generator.validate_spot_count((walked - {"t6/d100/SB/rfi"}) | {"t6/d100/LJ/rfi"}, walked)
     with pytest.raises(generator.DerivedChartReportError):
-        generator.validate_spot_count((walked - {"t6/d100/SB/rfi"}) | {withheld}, walked)
+        generator.validate_spot_count((walked - {"t6/d100/SB/rfi"}) | {four_bet}, walked)
+    with pytest.raises(generator.DerivedChartReportError):
+        generator.validate_spot_count((walked - {"t6/d100/SB/rfi"}) | {three_bet}, walked)
 
 
 def a_grid(**overrides: float) -> dict[str, dict[str, float]]:
@@ -271,75 +343,220 @@ def test_the_group_measure_is_refused_when_it_prefers_the_transposed_hand_index(
         generator.validate_group_discrimination(solved=6, transposed=6)
 
 
-def test_the_group_measure_discriminates_on_every_partition_of_the_committed_set(
+def test_the_rank_permutation_is_refused_when_it_does_not_beat_the_solved_hand_index(
     generator,
 ) -> None:
+    """The second arm's validator, and it is a second function rather than a second call.
+
+    `validate_group_discrimination` takes `solved` and `transposed`; this one takes `solved` and
+    `permuted`. Two names because this repo has already lost a day to two different "transposed"
+    counterfactuals being confused for one another, and passing a rank-permutation count into a
+    parameter called `transposed` is that confusion written into the call site. The rule is the
+    same and is asserted the same way: the solved hand index must break the row ladder in
+    strictly fewer cells than the rank-reversed one, and a tie refuses, because a measure that
+    cannot tell the two apart cannot catch a permuted index.
+    """
+    validate = published(generator, "validate_rank_discrimination")
+
+    validate(solved=14, permuted=70)
+
+    with pytest.raises(generator.DerivedChartReportError):
+        validate(solved=70, permuted=14)
+    with pytest.raises(generator.DerivedChartReportError):
+        validate(solved=14, permuted=14)
+
+
+def a_full_grid(value) -> dict[str, float]:
+    """All 169 classes with `value(name)` in each. The rank map reads a cell off another class,
+    so a partial grid would silently drop the cells whose partner is missing."""
+    return {name: value(name) for name in HAND_CLASSES}
+
+
+def kind_of(hand_class_text: str) -> int:
+    """0 for a pair, 1 for suited, 2 for offsuit - the three families a rank map cannot mix."""
+    return 0 if len(hand_class_text) == 2 else (1 if hand_class_text.endswith("s") else 2)
+
+
+def test_the_two_counterfactuals_are_different_functions_and_neither_is_the_other(
+    generator,
+) -> None:
+    """The trap this repo has already fallen into, closed by assertion rather than by comment.
+
+    `transpose_hand_index` swaps each suited hand with its offsuit twin. `reverse_hand_ranks`
+    reads each cell off the class with every rank reversed - ace becomes deuce, king becomes
+    trey, and eight maps to itself. They are different mappings and they keep different names: a
+    stage-4 reimplementation that substituted one for the other reproduced neither family's
+    counts, and `group_play_pct` in `tests/test_chart_cutover_evidence.py` is a third reading
+    again.
+
+    Four properties pin the rank map. It covers the whole grid, so no cell is quietly dropped.
+    It is its own inverse, so applying it twice is the identity and the counterfactual is well
+    defined. It maps pairs to pairs, suited to suited and offsuit to offsuit - **which is
+    precisely why the suit swap cannot see it**, the twins relation comparing a suited hand with
+    its offsuit twin and a rank map permuting those comparisons among themselves. And it is not
+    the identity, which a mapping that failed to find its classes would be.
+    """
+    reverse = published(generator, "reverse_hand_ranks")
+    ranked = a_full_grid(lambda name: float(HAND_CLASSES.index(name)))
+    kinds = a_full_grid(lambda name: float(kind_of(name)))
+    permuted = reverse(ranked)
+
+    assert set(permuted) == set(ranked) == set(HAND_CLASSES)
+    assert reverse(permuted) == ranked, "the rank map is not its own inverse"
+    assert permuted != ranked, "the rank map left the grid alone"
+    assert permuted["AA"] == ranked["22"] and permuted["22"] == ranked["AA"]
+    assert permuted["88"] == ranked["88"], "the middle rank maps to itself under a reversal"
+    assert permuted["AKs"] == ranked["32s"] and permuted["AKo"] == ranked["32o"]
+    assert reverse(kinds) == kinds, "the rank map moved a cell between pairs, suited and offsuit"
+
+    # And it is not the suit swap, which moves cells the other way: across the twins relation
+    # and never across ranks.
+    swapped = generator.transpose_hand_index(ranked)
+    assert swapped != permuted
+    assert swapped["AKs"] == ranked["AKo"] and swapped["AKo"] == ranked["AKs"]
+    assert swapped["AA"] == ranked["AA"], "the suit swap moved a pair"
+
+
+def test_both_arms_discriminate_on_every_partition_of_the_committed_set(generator) -> None:
     """The phase's only gated range check, run over the real chart on each partition, through
-    the validator that ships.
+    the validators that ship.
 
-    **Ruled by Taylor on 2026-09-01: this is THE gate.** The group-order ladders in
-    `tests/test_chart_cutover_evidence.py` returned three verdicts on three committed sets - fail
-    over the uncut 51, pass over 36, tie over 21 - so they measure set composition rather than
-    the hand index, and they now publish rather than gate. Nothing else in the phase would notice
-    a transposition, so a red here is a halt and not a number to soften.
+    **Ruled by Taylor on 2026-09-01, twice.** The group-order ladders in
+    `tests/test_chart_cutover_evidence.py` returned a different verdict on every committed set -
+    fail over the uncut 51, pass over 36, mixed over 21, blind over 6 - so they measure set
+    composition rather than the hand index, and they now publish rather than gate. Nothing else
+    in the phase would notice a wrong hand index, so a red here is a halt and not a number to
+    soften.
 
-    The refusal test above proves the validator says no to a bad pair of numbers. It cannot show
-    the numbers it will actually be handed are good ones, and the contract's 2026-09-01 amendment
+    The refusal tests above prove each validator says no to a bad pair of numbers. They cannot
+    show the numbers it will actually be handed are good ones, and the contract's amendment
     states the gate **on every partition** rather than over the committed set as a whole. So the
-    shipped measure is run here against the committed artifact and every partition is put through
-    `validate_group_discrimination` - the same function the report calls, not a second copy of
-    the rule, because two copies of a rule agreeing tells you nothing.
+    shipped measures are run here against the committed artifact and every partition is put
+    through its validator - the same functions the report calls, not second copies of the rules.
 
-    **What the partitions are for.** A measure can discriminate over the whole chart and still
-    be blind on the part of it that matters: a converter reading the payload by the grid ordering
-    only where hero faces a raise breaks the deep spots and leaves the shallow ones right, and an
+    **What the partitions are for.** A measure can separate over the whole chart and still be
+    blind on the part that matters: a converter reading the payload by the grid ordering only
+    where hero faces a raise breaks the deep spots and leaves the shallow ones right, and an
     aggregate absorbs that. Splitting by hero's seat catches a mis-assigned actor the same way.
 
-    **Re-measured over the committed 21 on 2026-09-01, with the shipped functions, and it still
-    holds on all ten partitions.** 0 flagged under the solver's own class ordering against 21
-    under the transposed one over the whole set; 0 against 5 at the big blind, 0 against 5 at
-    `raises faced 1`, 0 against 15 at `raises faced 2`, 0 against 1 at `raises faced 0`, and 0
-    against 2 to 5 at each of the other five seats. None tied. There are ten partitions rather
-    than eleven because the withholding took the `raises faced 4` bucket out with the jam spots.
+    **Re-measured over the committed 6 on 2026-09-01, with the shipped functions.** The suit
+    swap reads 0 flagged under the solver's own class ordering against 6 under the swapped one
+    over the whole set, 0 against 5 at the big blind and at `raises faced 1`, and 0 against 1 at
+    the small blind and at `raises faced 0`. The rank arm reads 14 cells against 70 over the set,
+    11 against 55 at the big blind and at `raises faced 1`, and 3 against 15 at the small blind
+    and at `raises faced 0`. None ties. There are five partitions rather than ten because the
+    three withholdings took four of hero's six seats and three of the five raise counts out.
 
-    That is what the same withholding broke in the hand-class family, whose discrimination was
-    carried entirely by those jam spots. This family survives because the twins measure is per
-    cell and the transposition is a per-cell swap, so it does not depend on the tree having a
-    deep part. The counts here are recorded rather than asserted, the ruling being the direction:
-    fixing a count fixes a partition, and picking the partition that reads smallest is picking a
-    number to go green. A solved arm of 0 is the measure passing rather than being blind - the
-    transposed arm flags 21 over the whole set, so it tells the two mappings apart.
-
-    **A trap named on 2026-09-01: `transpose_hand_index` is not the only "transposed" in this
-    repo, and it is the one that gates.** It swaps each suited hand with its offsuit twin
-    outright. `group_play_pct` in `tests/test_chart_cutover_evidence.py` instead reads row
-    position `grid_index(name)` out of GTOpen's own ordering - what a converter indexing the
-    payload by the grid ordering actually reads. The two are not equivalent and give materially
-    different numbers: a stage-4 reimplementation that substituted one for the other reproduced
-    neither family's counts. Neither may be used to predict or explain the other's result, and a
-    change to either must not be assumed to carry across.
+    **The rank arm counts cells where the suit arm counts spots, and that is measured rather
+    than stylistic.** Over six spots every rank-sensitive relation flags at least one cell at
+    every spot under both mappings, so a spot count reads 6 against 6 and saturates exactly the
+    way the group ladders do - the failure that retired them. Counting cells keeps the two
+    mappings apart at every partition. The counts here are recorded rather than asserted, the
+    ruling being the direction: fixing a count fixes a partition, and picking the partition that
+    reads smallest is picking a number to go green.
     """
+    reverse = published(generator, "reverse_hand_ranks")
+    row_ladder = published(generator, "cells_violating_the_row_ladder")
+    validate_rank = published(generator, "validate_rank_discrimination")
     artifact = import_preflop_artifacts(ARTIFACT_DIR)[0]
     grid = generator.play_grid(artifact)
+    descending = a_full_grid(lambda name: 100.0 - 5.0 * RANKS.index(name[1]))
+    ascending = a_full_grid(lambda name: 5.0 * RANKS.index(name[1]))
     by_label: dict[str, tuple[str, ...]] = {"the committed set": tuple(grid)}
     for spot in artifact.spots:
         faced = sum(1 for entry in spot.action_sequence if entry.action == "raise")
         for label in (f"hero={spot.hero_position}", f"raises faced {faced}"):
             by_label[label] = (*by_label.get(label, ()), spot.spot_id)
 
+    # The row ladder is shown counting before it is trusted to count zero anywhere. A grid whose
+    # value falls with the kicker violates nothing; the same grid with aces-king folded outright
+    # violates once, at that one step and nowhere else; a grid whose value rises with the kicker
+    # violates every comparison there is, which pins the comparison count at the ruled 132
+    # rather than at every pair in a row; and a flat grid violates nothing, so the count is of
+    # gaps strictly past the tolerance rather than of differences.
+    assert row_ladder({"probe": descending}) == 0
+    assert row_ladder({"probe": descending | {"AKs": 0.0}}) == 1
+    assert row_ladder({"probe": ascending}) == ROW_LADDER_COMPARISONS
+    assert row_ladder({"probe": a_full_grid(lambda name: 0.0)}) == 0
+
     assert len(artifact.spots) == COMMITTED_SPOTS
     assert set(by_label) == discrimination_partitions(artifact)
-    assert len(by_label) == 10, "the committed set no longer splits into the ten measured parts"
+    assert len(by_label) == PARTITIONS_OVER_THE_COMMITTED_SET, (
+        "the committed set no longer splits into the five measured parts"
+    )
     for label, keys in by_label.items():
-        solved = generator.spots_violating_twins({key: grid[key] for key in keys})
+        part = {key: grid[key] for key in keys}
+        solved = generator.spots_violating_twins(part)
         transposed = generator.spots_violating_twins(
-            {key: generator.transpose_hand_index(grid[key]) for key in keys}
+            {key: generator.transpose_hand_index(cells) for key, cells in part.items()}
         )
-        assert solved < transposed, (label, solved, transposed)
-        # Through the validator as well as beside it: a partition this test calls good and the
-        # gate calls bad is a gate nobody is testing. Asserted first so a partition that fails
-        # fails as an assertion rather than as the validator's own exception.
+        rank_solved = row_ladder(part)
+        permuted = row_ladder({key: reverse(cells) for key, cells in part.items()})
+
+        assert solved < transposed, ("suit swap", label, solved, transposed)
+        assert rank_solved < permuted, ("rank reversal", label, rank_solved, permuted)
+        # Through the validators as well as beside them: a partition this test calls good and
+        # the gate calls bad is a gate nobody is testing. Asserted first so a partition that
+        # fails fails as an assertion rather than as the validator's own exception.
         generator.validate_group_discrimination(solved=solved, transposed=transposed)
+        validate_rank(solved=rank_solved, permuted=permuted)
+
+
+def test_the_rank_arm_catches_the_reversed_chart_the_suit_swap_cannot_tell_apart(
+    generator,
+) -> None:
+    """The hole the final stage-4 review found, and the proof that the second arm closes it.
+
+    A chart with every hand rank reversed is a chart that opens 32o and folds aces. It is the
+    shape a converter produces if it reads GTOpen's rank axis the wrong way up, and nothing in
+    this phase noticed it: the suit swap moves weights and reach together, pairs map to pairs and
+    suited twins to suited twins, so the cell-subset relation holds and the aggregate defence
+    percentages are unchanged. The review measured it scoring **bit for bit identically to a
+    correct chart** and passing the only gated range check on every partition.
+
+    So the reversed chart is built here and put through both arms. The suit swap is asserted to
+    be *unable* to tell it from the real one - the same solved figure, the same transposed
+    figure, and `validate_group_discrimination` passing it - which is the hole stated as a
+    measurement rather than as a worry. The rank arm is then asserted to refuse it, on the same
+    validator that accepted the real chart a few lines above.
+
+    Both directions matter. An arm that refused everything would also refuse the reversed chart,
+    so the real chart is put through first and must pass; an arm that accepted everything would
+    pass the reversed chart, so the reversed chart must be refused.
+    """
+    reverse = published(generator, "reverse_hand_ranks")
+    row_ladder = published(generator, "cells_violating_the_row_ladder")
+    validate_rank = published(generator, "validate_rank_discrimination")
+    artifact = import_preflop_artifacts(ARTIFACT_DIR)[0]
+    grid = generator.play_grid(artifact)
+    reversed_chart = {key: reverse(cells) for key, cells in grid.items()}
+
+    def suit_arm(chart) -> tuple[int, int]:
+        swapped = {key: generator.transpose_hand_index(cells) for key, cells in chart.items()}
+        return generator.spots_violating_twins(chart), generator.spots_violating_twins(swapped)
+
+    def rank_arm(chart) -> tuple[int, int]:
+        permuted = {key: reverse(cells) for key, cells in chart.items()}
+        return row_ladder(chart), row_ladder(permuted)
+
+    assert len(artifact.spots) == COMMITTED_SPOTS
+    assert reversed_chart != grid, "the reversed chart is the same chart, so nothing is proved"
+
+    # The hole: the suit swap reads the reversed chart exactly as it reads the real one, and
+    # its validator accepts it. This is asserted rather than described.
+    assert suit_arm(reversed_chart) == suit_arm(grid)
+    blind_solved, blind_transposed = suit_arm(reversed_chart)
+    generator.validate_group_discrimination(solved=blind_solved, transposed=blind_transposed)
+
+    # The close: the rank arm accepts the real chart and refuses the reversed one.
+    solved, permuted = rank_arm(grid)
+    assert solved < permuted, (solved, permuted)
+    validate_rank(solved=solved, permuted=permuted)
+
+    reversed_solved, reversed_permuted = rank_arm(reversed_chart)
+    assert reversed_solved > reversed_permuted, (reversed_solved, reversed_permuted)
+    with pytest.raises(generator.DerivedChartReportError):
+        validate_rank(solved=reversed_solved, permuted=reversed_permuted)
 
 
 def test_the_old_versus_new_disagreement_count_is_refused_when_it_cannot_be_read(generator) -> None:
