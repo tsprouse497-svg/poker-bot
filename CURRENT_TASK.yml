@@ -1,15 +1,11 @@
 task_id: PHASE_14_CHART_CUTOVER
 active_phase: "14"
-task_mode: implementation
-base_commit: 57939269f1cded6f4839c5463e301f35f83f8bc5
+task_mode: contract-update
+base_commit: 09c23a186ba07b1853ab7475975e0964a00a1812
 approved_scope:
-  - tests/**
-  - verification/mutations.yml
-  - verification/freeze.lock
-  - scripts/run_verify.py
+  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+  - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
-  - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz
-  - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -25,6 +21,32 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-01
+    reason: >-
+      Ruled by Taylor on 2026-09-01: rewrite the contract before the freeze rather than after it. The
+      lane leaves implementation mode at stage 4 and returns to `contract-update`, and the loop pointer
+      is rewound from stage 4 to stage 1, which is the stage that owns the contract.
+      What forced it. Seven rulings were taken in implementation mode today, and the tests were written
+      to all of them because implementation mode may not edit a contract. The result is that the
+      committed set went 51 to 36 to 21 to 6, and the contract still describes 36. Thirteen of its
+      statements are now false and TEN of them are criteria whose subject no longer exists - the
+      per-cell reach field distinguishes nothing because all six committed spots are ones hero reaches
+      without acting, the two-directional sizing invariant has no instances, the five-bet criteria have
+      no subject, the prices are `[2.5, 7.5]` rather than `[2.5, 7.5, 22.5]`, and the dominance
+      criterion names two relations where the gate now needs three.
+      Amending is not available. `AGENTS.md` caps an amendment at two lines plus a backlog id, the
+      contract stands at 286 lines, and thirteen amendments land it at 310 against the 300 cap
+      `check_file_sizes.py` enforces. AGENTS.md forbids raising the cap and says a contract in that
+      state is due for a rewrite that folds its amendments into the criteria they amend, taken as its
+      own `contract-update` task. This is that task.
+      The alternative was to freeze at stage 5 against a contract contradicting the tests in thirteen
+      places, which is the failure this whole session opened on - a contract asserting a group-order
+      gate that was ruled out on 2026-08-26 and never shipped, discovered only because someone searched
+      the record. Freezing now would have rebuilt that trap deliberately.
+      `tests/**`, `verification/**`, `scripts/run_verify.py` and the two export paths leave
+      approved_scope; the contract and the decision record return. The seven implementation-mode
+      rulings are transcribed into the decision record in this task, which is what every one of their
+      OWES A DECISION ITEM flags has been pointing at.
   - date: 2026-09-01
     reason: >-
       No scope change. THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending decision 20 a

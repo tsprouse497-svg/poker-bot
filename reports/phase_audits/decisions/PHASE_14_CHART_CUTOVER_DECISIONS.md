@@ -35,6 +35,37 @@ reviews of this transcription: where the group-discrimination retake is taken, a
 the calling frequencies in the spots the phase commits. Neither reviewer had written any of the work it
 read.
 
+**A third collection, 2026-09-01, and the list runs to 30.** Seven more rulings were taken later the
+same day, every one of them in `implementation` mode at stage 4, which may not edit this record. Each
+was written into `CURRENT_TASK.yml`'s `scope_change_log` under the literal flag
+`OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE`, which is the mitigation adopted for
+`RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE` after the collection above found five
+stranded rulings. **This is the first discharge of that flag.** Six of the seven become items **25 to
+30**; the seventh corrects decision 24's finding without touching its answer and sits at that item's
+foot. Decisions 10 and 20 each gain a pointer naming the new items that amend them.
+
+**Why six got numbers rather than foot amendments, stated once and applied consistently.** A ruling
+gets a number when Taylor was given a choice and made it, because an option set that omits his answer is
+exactly what nearly happened with decision 22, and a numbered item is what a later session finds in the
+outline. A ruling goes at an existing item's foot when it corrects a finding or a premise and no choice
+was put to him. Three successive withholdings buried in the foot of a 290-line item 20 would recreate
+the failure this collection exists to end. There is also a mechanical reason no foot amendment here
+carries an `Answer:` line: `decision_items` in `scripts/loop_stage.py` reads the **last** `Answer:` line
+in an item's block as that item's answer, so an amendment carrying its own would silently change what
+the machinery reports an earlier item was ruled. The amendment at decision 24's foot restates that
+item's options and answer verbatim, which is safe only because they are unchanged.
+
+**The counts these seven move, in one place, because everything above is measured on a set the phase no
+longer commits.** The committed set went **36 to 21** (item 26, the five-bet jams withheld) to **6**
+(item 28, the three-bet-facing spots withheld): `t6/d100/SB/rfi` and the big blind's defence against
+each of the five openers. Every figure in items 1 to 24 stated over 36, 51, 86 or 5,626 spots is a
+figure about something else now.
+
+**One honesty note about the source these seven were transcribed from.** The scope-log entries are the
+whole record. No stage-4 review note for this stint existed when they were written, and one of the
+entries says so in terms. Where an item below carries an `Options:` line that was **reconstructed** from
+the entry's reasoning rather than lifted from a menu Taylor was shown, it says so in the item.
+
 **Dating note, 2026-09-01.** The amendments below that read "Transcribed 2026-08-31" were written on
 2026-09-01; the task began late on 2026-08-31 and the commit landed the next morning. The dates on the
 *rulings* - 2026-08-26, 2026-08-27 - are the dates Taylor gave them and are correct. The transcription
@@ -1407,6 +1438,19 @@ on any partition that is a halt and a decision for Taylor**, on this item's own 
 phase does not freeze a gate it has not seen pass. `PHASE-14-CONTRACT-STATES-A-GROUP-GATE-THAT-DID-NOT-SHIP`
 carries the other half: the contract still states the superseded group-order form and owes the amendment.
 
+**Amended 2026-09-01 by items 27 and 29, both taken later the same day in `implementation` mode.** The
+2026-08-26 ruling above - the transposition discrimination is the gate and no group ORDER is gated at
+all - is not reopened by either. What moved is that the group ladder had crept back in as a gate during
+the 2026-09-01 work on "both readings of partition", and **item 27** removes it a second time, now on a
+measurement rather than on the earlier ruling alone.
+
+The measurement this item's last block calls "genuinely open" was taken, twice, as the committed set
+shrank: the per-cell twins measure reads **0 solved against 26 transposed** over the 36 and **0 against
+21** over the 21 (item 27), then **0 against 6** over the committed 6 (item 28). So the premise holds
+and the phase does not freeze a gate it has not seen pass. **Item 29** then adds a second counterfactual
+arm to that measure, because the suit-swap arm alone scores a chart with every hand rank reversed
+exactly as it scores a correct one.
+
 
 
 ## 11. Which rate the closing conclusion is read off
@@ -2285,6 +2329,23 @@ than repeated here: the committed count of 36 lands in items 1, 6, 8, 10 and 14,
 residual `THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` lands in item 3 beside the two other
 limitations the source card states.
 
+**Amended 2026-09-01 by items 26 and 28, both taken later the same day in `implementation` mode.** The
+ruling above refuses the fifteen four-bet-facing spots. Two further withholdings were then taken on this
+item's own logic - refuse a node whose strategy is computed from a value the phase has already declared
+untrustworthy - and between them they take the committed set from 36 to **21** (item 26, the five-bet
+jams) and then to **6** (item 28, the three-bet-facing spots). Nothing here is reversed: this item's
+answer still names what this item ruled, and the two later items name what they ruled.
+
+**The fifth cut recorded above as "priced and offered before the ruling and not taken" was taken the
+next day, and a reader stopping here would carry it forward as declined.** That paragraph says refusing
+the three-bet spots as well keeps 82.4 percent of arrival, and it was declined on 2026-08-31. Item 28
+takes it on 2026-09-01 at **81.1** percent - the figure moved because the jams came out first and took
+part of the denominator with them - on evidence that did not exist when it was declined: twenty places
+where a higher pocket pair is played less often than the pair below it past this list's own one-point
+tolerance, **all twenty inside those fifteen spots and none outside them**. The paragraph was right that
+the contamination is a gradient rather than a cliff; what settled it was that the inversions are not a
+gradient at all.
+
 
 ## 21. Whether this phase is one phase
 
@@ -2554,3 +2615,388 @@ hands, and `CHART-COVERAGE-EXPANSION` stays open.
 
 Options: accept-and-record | reopen-decision-16 | refuse-the-affected-spots-too
 Answer: [accept-and-record]
+
+**Amended 2026-09-01, later the same day: the finding is restated, the acceptance is unchanged.** Taken
+in `implementation` mode at stage 4 under the `OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag,
+and it is a foot amendment rather than a new item because no choice was put to Taylor - the disposition
+he ruled hours earlier is the disposition that stands, and only the measurement under it moved.
+
+**What was wrong.** All three example spots above are **not in the committed set**. At `t6/d100/CO`
+facing a lojack open, five players are still live once the hijack folds, so decision 1's second clause -
+at most one opponent has voluntarily put money in beyond the blinds - excludes it, and the same holds
+for the button facing a cutoff open and for the small blind. The **7.35** percent continue and the
+**0.69** percent flat are nodes of the export that the chart refuses. The coordinator put those numbers
+to Taylor described as a committed spot, which was wrong. The independent R3 worker lane caught it at
+stage 4 and it was confirmed against the artifact before anything was written. No test baked the error
+in: R3 pinned the report's publication requirement rather than the three numbers.
+
+**What survives, measured over the artifact and combo-and-reach weighted.** The committed spots facing a
+single open are all **big blind**, and they flat about **20** percent, so "the committed spots never
+flat a raise" is struck. The narrower finding is real: **the big blind over-folds.** Continue and flat,
+against each opener - **25.70 / 19.63** against a lojack open, **28.88 / 20.98** against the hijack,
+**32.78 / 22.44** against the cutoff, **36.65 / 21.09** against the button, **48.39 / 20.30** against the
+small blind - against opening ranges that are themselves sane at LJ **18.74**, HJ **21.56**, CO **27.17**,
+BTN **39.27** and SB **54.30**. Six-max at 100bb rake-free wants the big blind nearer **40** percent
+against a lojack open.
+
+**Ruled by Taylor, 2026-09-01: restate the finding, keep the acceptance.** Accept, record, phase 16 is
+the exit. Only the finding the disposition rests on is corrected.
+
+**What the backlog id owes.** `COMMITTED-SPOTS-NEVER-FLAT-A-RAISE` is now a misnomer - the committed
+spots do flat, at about 20 percent, and what is wrong is the total defence. Its body carries the
+correction. The **id is renamed at a later `contract-update`**, not here: this item and the stage-3
+review note both cite it by name, `backlog.yml` is outside this transcription's approved scope, and a
+half-applied rename is worse than a named misnomer. Recorded so the rename has a pointer rather than
+depending on someone noticing.
+
+Options: accept-and-record | reopen-decision-16 | refuse-the-affected-spots-too
+Answer: [accept-and-record]
+
+
+## 25. What may be committed to `data/artifacts` before the tests are frozen
+
+Reversibility: frozen-into-data
+
+Raised and answered 2026-09-01 in `implementation` mode at stage 4, and transcribed here under the
+`OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag its scope-log entry carries. It is the first of
+the seven that stint took.
+
+**What forced it.** Every one of the 40 problems in `pytest_derived_chart` - 36 errors and 4 failures -
+was the same line: `config field add_allin is True, ruled False`. The committed export predates decision
+14 and does not load under `RULED_CONFIG`, so `load_solver_export` raises before any test body runs and
+**not one assertion about the chart executes**. Authoring and freezing tests in that state freezes tests
+that have never run, which this repo has done once and recorded: a stage where "no assertion in either
+file had executed".
+
+**Why the export and not the chart, which is the whole content of the ruling.** The export is the source
+the phase re-solves once, per the contract's own "What the re-solve owes" section, so committing it is
+that criterion being met rather than this stage deriving its own answer. The chart is different. The
+derivation currently produces **51** spots, because decision 20's third exclusion reason is not
+implemented, so committing it would commit an artifact the contract does not describe **and** would let
+stage 4 build the thing its own tests are measured against - which is what the loop's stage order exists
+to prevent. `data/artifacts` stays otherwise closed: the chart, the sizing table and the expectations
+file are all still out, and the two export paths joined `approved_scope` as two named files rather than
+as `data/artifacts/**`, because exactly two files are wrong and nothing else in that tree is this task's
+to touch.
+
+**The determinism claim, in its corrected form, because the first form of it was wrong.** The scope-log
+entry originally supported re-running the solve to recover the reverted file by saying the stage-3 run
+"re-resolved every node from its recorded path with 0 mismatches" and calling that **the determinism
+proof**. It is not. The re-resolve walk and the two-process proof are two separate obligations in the
+contract's "What the re-solve owes": the walk re-resolves each node from its recorded path inside the
+same process, which proves the tree is self-consistent and nothing about a second run. At the time the
+entry was written the committed source card correctly read `result: "PENDING - fill from
+--determinism-only"` with `max_divergence_bp: null`. **The real proof was run afterwards** - a second
+full solve in a fresh process against a restarted server, diffed node by node - and it passed
+**byte-identical, 0 divergence and 0 shape differences**, written onto the card by the script. So the
+claim is true now and was not true when it was first made, and the correction is recorded rather than
+folded in, because a proof asserted before it was run is the same failure class as a ruling asserted
+where it was never written.
+
+**A second correction to the same entry, and it is about this mitigation rather than about poker.** The
+entry said this ruling "is written here and in the stage-4 review note". No stage-4 review note for this
+re-cut existed when that was written. The note is owed and the sentence was ahead of the fact, which
+means the scope log was the ruling's **only** record for the interval between the two. The flag worked
+anyway; the belt-and-braces half of it did not exist.
+
+The `Options:` line below is **reconstructed** from the entry's own reasoning. The entry records the
+evidence Taylor was shown and the answer he gave, not a menu he chose from, and the alternatives are
+named here so a later phase can see what the answer was an answer to.
+
+Options: commit-the-solve-and-only-the-solve | commit-nothing-and-freeze-tests-that-cannot-run |
+commit-the-solve-and-the-derived-chart
+Answer: [commit-the-solve-and-only-the-solve]
+
+**Ruled by Taylor, 2026-09-01, after the mode switch and on evidence he was shown: commit the re-sourced
+solve, and only the solve.**
+
+Rejected, and why. `commit-nothing-and-freeze-tests-that-cannot-run` is the state stage 4 was already in
+and it is the failure the entry names by precedent - forty problems, one cause, zero assertions
+executed. `commit-the-solve-and-the-derived-chart` commits 51 spots against a contract describing 36 and
+hands stage 4 the artifact its own tests measure, which no later measurement can undo.
+
+
+## 26. Whether the five-bet-jam-facing spots are withheld too
+
+Reversibility: frozen-into-data
+
+Raised 2026-09-01 by the independent stage-4 poker review, verified by the coordinator against the
+artifact before it was put to Taylor, and answered the same day in `implementation` mode. Transcribed
+here under its `OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag. It amends **decision 20** and
+takes a number rather than a foot amendment for the reason the header gives.
+
+**The price hero is being offered.** At the fifteen spots where hero faces a five-bet jam he is calling
+off **77.5 into 123.0** and needs **38.65** percent.
+
+**What the solve does at that price.** At all five lojack jam spots **AKs calls 0.00 percent** - hero
+four-bets it to 22.5 at 100 percent and then folds it - and it is at or under **1.6** percent at three
+more, so it folds at seven or eight of the fifteen. **KK bottoms at 60.86** percent. At
+`t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5,BB:raise@100`, **KK calls 72.84 while QQ calls
+94.29**, which is a hard rank inversion in a committed cell.
+
+**That inversion belongs to the lojack spot and to no other, stated because a test attributed it
+wrongly.** At the button spot, AA, KK, QQ and AKs all call **100.00**. A later reading that carries the
+72.84/94.29 pair to the button is reading a spot where the defect is absent.
+
+**Why this is decision 20's own logic rather than a new principle.** These cells are nothing but hero's
+answer to a jam range computed at the four-bet nodes decision 20 already refuses as mispriced. One of
+those parents jams AA at 100 and 87s at 99.5 and almost nothing else, with no KK, no QQ and no AK in it.
+So the phase was refusing the parent as untrustworthy and shipping the child that depends on it, which
+is strictly worse than committing both: the trainee is refused the commoner decision and handed a
+confident wrong answer to the rarer one.
+
+**The equity figure in the scope-log entry is wrong and the corrected one is carried here.** The entry
+says AKs holds "about 54 percent" against that jam range and is therefore a mandatory call. An
+independent review measured it at **37.0** percent against that one range, which is **below** the 38.65
+price, so at that spot folding AKs is defensible and the entry's own example does not make its point.
+The finding survives at the other four lojack spots, where **AKs holds 39.3 to 42.3 percent against a
+38.65 percent price** and the solve still calls 0.00. The ruling rests on those four and on the KK/QQ
+inversion, not on the 54.
+
+**What it costs.** The fifteen carry **4,815,347** parts per billion of **1,216,733,387**, so **0.40**
+percent of the arrival the chart answers. The remaining 21 carry 99.60 percent, which is
+**1,211,918,040** ppb and is the denominator item 28 then measures against.
+
+Options: withhold-the-jams | keep-them-and-record | fix-the-parent-first
+Answer: [withhold-the-jams]
+
+**Ruled by Taylor, 2026-09-01: the fifteen five-bet-jam spots are withheld as well, so the committed set
+is 21 rather than 36.**
+
+Rejected, and why. `keep-them-and-record` ships advice a student cannot detect as wrong, in a training
+tool - the same argument decision 20's non-goal makes about caveats. `fix-the-parent-first` needs the
+four-bet pot repriced, which no config in this phase reaches, so it halts phase 14 indefinitely.
+
+**A judgment call the coordinator took inside this ruling, flagged for ratification rather than buried.**
+The withheld jams get their **own exclusion reason** rather than reusing `source-misprices-four-bet-pot`.
+The contract's stated test is which fix brings a node back, and by that test one code would do, since
+both families return when the four-bet pot has a fitted cell. Two codes are used anyway so the census
+stays legible: a reader can tell a node refused because it is itself mispriced from one refused because
+its parent is. **This has not been ratified.** If a later `contract-update` prefers one code, that is a
+rename and not a re-derivation.
+
+
+## 27. Which range measure gates the committed artifact, now that the set is 21
+
+Reversibility: frozen-into-data
+
+Raised 2026-09-01 by worker lane R6, reproduced independently by the coordinator with the same shipped
+function at both set sizes before it was put to Taylor, and answered the same day in `implementation`
+mode. Transcribed under its `OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag. It amends
+**decision 10** and the contract's dominance criterion.
+
+**What forced it.** Item 26 took the committed set to 21, and at 21 the hand-class group-ladder family
+no longer separates the way it did: single pair ranks read **12 solved against 12 transposed** and the
+suited rows **21 against 21**, so over 21 spots every spot is flagged under both mappings on those two
+partitions.
+
+**The deciding evidence is not the tie but the pattern.** The group-ladder family has now returned three
+different verdicts on three different committed sets. It **fails** over the uncut 51 at 36 solved
+against 33 transposed, **passes** over 36 at 21 against 24, and **ties** over 21. A measure whose
+verdict tracks how many spots are in the set is measuring set composition rather than whether the hand
+index is right. The per-cell twins family passes cleanly at every size measured - **0 against 26** over
+the 36 and **0 against 21** over the 21 - because a per-cell swap is what it tests, and that does not
+depend on the tree having a deep part.
+
+**It also restores consistency with a ruling already in this list.** Decision 10 carries Taylor's
+2026-08-26 ruling that **no group ORDER is gated at all**. The group ladder is a group-order measure.
+Gating it was drift that crept back in during the 2026-09-01 work covering "both readings of partition",
+and it is removed rather than repaired. The measurement is kept and **published**, because the numbers
+are evidence a human reads; only the assertion is dropped.
+
+Options: gate-the-per-cell-twins-measure-only | gate-both-and-halt |
+gate-both-but-drop-the-two-tying-splits
+Answer: [gate-the-per-cell-twins-measure-only]
+
+**Ruled by Taylor, 2026-09-01: the per-cell twins measure over spot partitions is the gate, and the
+hand-class group ladders are published for a human and gate nothing.**
+
+Rejected, and why. `gate-both-and-halt` stops the phase on a measure that is not distinguishing
+anything. `gate-both-but-drop-the-two-tying-splits` chooses the splits that read best after seeing the
+results, which is the move the contract forbids for the selection rule and is no safer here.
+
+**Corrected 2026-09-01, later the same day, by the independent review that opened item 29: the question
+above was put to Taylor on an overstated premise, and the rejection of one option rested on it.** The
+scope-log entry recording this ruling says the group-ladder family "stops discriminating" at 21 spots.
+It does not. **Only the suited rows saturate**, at 21 against 21. Single pair ranks read 12 against 12,
+which is a **tie** rather than saturation. And **three of the five partitions still separate perfectly**
+at **0 solved against 12 transposed**, as cleanly as the per-cell measure's 0 against 21. So
+`gate-both-but-drop-the-two-tying-splits` - offered to him as cherry-picking - was a **better option
+than the framing allowed**, and it was rejected on a wrong premise. The ruling is kept as made (item
+29), and this is recorded plainly rather than smoothed, because it bears on whether a later phase should
+revisit the group measure: the honest statement is that three partitions of the ladder were still
+discriminating and were dropped along with the two that were not.
+
+**A related finding that is not a ruling, recorded because R6 found it and nobody had.** Two different
+"transposed" counterfactuals live in this repo and they are **not equivalent**: the pure suited-offsuit
+swap in `spots_violating_twins`, and the grid-ordering read in `group_play_pct`. Only the first now
+gates. R6's own first reimplementation picked the wrong one and got materially different numbers, which
+is the cheapest available warning that a later re-derivation will pick the wrong one too.
+
+**Also recorded, and it is not what the contract's coverage framing assumes.** Measured over the
+artifact, the cutover gains **0** spots: the 21 retired spots that carry over land on exactly the
+committed 21, so the chart replaces raked ranges with rake-free ones at the same decisions and adds no
+coverage. Legitimate, and it needs saying. That figure was measured at 21 committed spots and item 28
+has since taken the set to 6, so **the overlap owes a re-measurement** before anything quotes it.
+
+
+## 28. Whether the three-bet-facing spots are withheld too
+
+Reversibility: frozen-into-data
+
+Raised 2026-09-01 by the final stage-4 independent review, verified by the coordinator before it was put
+to Taylor, and answered the same day in `implementation` mode. Transcribed under its
+`OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag. It amends **decision 20** a third time and it
+is the ruling that sets the set the phase ships.
+
+**What was measured.** Over the committed 21 there are **twenty** places where a higher pocket pair is
+played less often than the pair one rank below, past decision 10's ruled one-point tolerance, across
+**12 of the 21 spots**. **Seven sit at the maximum hundred-point gap**: `LJ` facing a hijack, button,
+cutoff or big-blind three-bet folds 33 outright and plays 22 at 100; `HJ` facing a cutoff three-bet does
+the same; `CO` facing a small-blind or big-blind three-bet folds 44 outright and plays 33 at 100. `LJ`
+facing a hijack three-bet also plays **77 at 1.44 against 66 at 99.74**. Decision 10 and the contract
+already name this exact shape and its disposition: a shape like that is a halt and a decision, not a
+caveat.
+
+**The correlation is what decided it.** All twenty inversions sit in the fifteen three-bet-facing spots
+and **none** in the other six. Those fifteen are precisely the spots whose four-bet branch descends into
+the nodes decision 20 refuses as mispriced, so by backward induction their whole fold/call/raise split
+is computed from a value the phase has already declared untrustworthy. That is the argument that
+withheld the four-bet spots and then the jams, applied a third time, and the review notes the dependency
+here is the **stronger** one: the child inherits a range, the parent inherits an EV. The four-bet
+children carry **29,160,835** ppb against the committed set's **1,211,918,040**, which is **2.4**
+percent - six times the 0.40 percent that justified withholding the jams.
+
+**What it costs.** The fifteen carry **228,810,761** ppb of 1,211,918,040, so **18.9** percent. The six
+that remain carry **983,107,279** ppb, **81.1** percent, because `SB/rfi` and big-blind defence are the
+commonest decisions at a six-max table. The chart shrinks from 21 spots to **6** and keeps four fifths
+of the traffic.
+
+**Checked before the ruling was applied, because the previous withholding broke a gate and this one must
+not.** The surviving per-cell twins measure still discriminates over six spots: **0 solved against 6
+transposed** over the set, **0 against 1** for the small blind and **0 against 5** for the big blind.
+
+The `Options:` line below is **reconstructed**. The entry records the measurement, the correlation and
+his answer; the alternatives are the two this list has already named at the two earlier withholdings.
+
+Options: withhold-the-three-bet-spots | keep-them-and-record | fix-the-parent-first
+Answer: [withhold-the-three-bet-spots]
+
+**Ruled by Taylor, 2026-09-01: the fifteen three-bet-facing spots are withheld as well, so the committed
+set is SIX** - `t6/d100/SB/rfi` and the big blind's defence against each of the five openers.
+
+**This is the fifth cut decision 20 priced and declined on 2026-08-31, taken a day later on evidence
+that did not then exist.** Decision 20's foot records it at 82.4 percent of arrival kept; here it is
+81.1, the difference being that item 26 removed the jams first and part of the denominator with them. It
+was declined as a gradient argument and taken as an inversion argument. Recorded in both places so
+neither reads as the whole story.
+
+**What this leaves stale elsewhere in this list, named rather than left for a reader to trip on.**
+Decision 5's per-cell reach field distinguishes nothing over six spots that hero reaches without acting;
+decision 6's two rulings are unexercised over six spots that offer one price each, on top of the
+unexercised caveat that item already carries; decision 24's flat measurement is over spots that are all
+still in the six, so it survives intact. None of these is reversed by this ruling and none is repaired
+here - item 30 is the task that rewrites the contract against the six, and the same pass owes this list
+a re-measurement rather than a re-ruling.
+
+
+## 29. What closes the hole that dropping the group ladder opens
+
+Reversibility: frozen-into-data
+
+Raised and answered 2026-09-01 in `implementation` mode, by the same independent review that corrected
+item 27's premise and in the same breath. Transcribed under its
+`OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag. It amends **decision 10** and the contract's
+dominance criterion, and it is a separate item from 27 because it is a separate choice: 27 removed a
+gate, 29 replaces what that gate was catching.
+
+**The hole, measured rather than argued.** A chart with **every hand rank reversed** scores the
+surviving per-cell twins measure **0 solved against 21 transposed** over the 21, bit for bit identical
+to what the correct chart scores, and passes the phase's only gated range check on every partition. Over
+the committed six it is the same story: the suit-swap arm reads **(0, 6)** on a rank-reversed chart,
+identical to what it reads on a correct one, and **its validator accepts it**.
+
+**Why a rank permutation is invisible to a suit swap.** Such a permutation moves weights and reach
+together, so the cell subset relation holds; aggregate defence percentages are unchanged because pairs
+map to pairs; and `--check` re-derives with the same converter, so a bug in the converter reproduces
+rather than shows up. The removed group ladder **would** have caught it outright, at 12 solved against 0
+transposed on three partitions - which is the same three partitions item 27's correction found were
+still separating.
+
+**What the new arm reads.** Permuting hand **ranks** rather than suits, the measure reads **(14, 70)**
+on a correct chart and **(70, 14)** on a rank-reversed one, and **refuses** the second. So it
+discriminates in the right direction and by a wide margin at the size the phase ships.
+
+Options: add-a-rank-permuting-arm | reinstate-the-group-ladder | leave-the-hole-and-file-it
+Answer: [add-a-rank-permuting-arm]
+
+**Ruled by Taylor, 2026-09-01: keep the earlier ruling as made and close the hole properly, by adding a
+second counterfactual arm to the per-cell measure that permutes hand RANKS rather than suits.**
+
+Why that rather than the ladder. It catches what the ladder caught **without** reinstating a measure
+whose verdict tracks set size - the three-verdicts-on-three-sets pattern item 27 rests on - and it does
+not choose splits after seeing which ones pass, which is the objection to the option item 27 rejected.
+
+Rejected, and why. `reinstate-the-group-ladder` brings back a measure that reads 12 against 12 and 21
+against 21 on two of its five partitions at the size the phase ships, so half of it asserts nothing.
+`leave-the-hole-and-file-it` ships the phase's only gated range check in a state where a chart with the
+hand index reversed passes it, which is the exact pathology decision 10's 2026-08-26 ruling was written
+to escape.
+
+**What this makes three, and it is why item 30 exists.** The contract's dominance criterion names two
+relations. After item 27 and this one the gate needs three statements: the per-cell twins measure, its
+suit-swap counterfactual arm, and its rank-permuting arm. That is one of the thirteen places the
+contract now contradicts the tests.
+
+
+## 30. Whether the contract is rewritten before the freeze or amended after it
+
+Reversibility: frozen-into-data
+
+Raised and answered 2026-09-01, and it is the ruling that ended the stage-4 implementation stint and
+opened the `contract-update` task this transcription is part of. It is classed `frozen-into-data`
+because what it decides is which specification the **stage-5 freeze** binds, and a freeze is not an edit
+away.
+
+**What forced it.** Seven rulings were taken in `implementation` mode in one day, and the tests were
+written to all seven, because implementation mode may not edit a contract. The result is that the
+committed set went **51 to 36 to 21 to 6** while the contract still describes **36**. Thirteen of its
+statements are now false, and **ten of them are criteria whose subject no longer exists**: the per-cell
+reach field distinguishes nothing, because all six committed spots are ones hero reaches without acting;
+the two-directional sizing invariant has no instances; the five-bet criteria have no subject; the prices
+are `[2.5, 7.5]` rather than `[2.5, 7.5, 22.5]`; and the dominance criterion names two relations where
+the gate now needs three.
+
+**Amending is not available, and the arithmetic is the reason.** `AGENTS.md` caps an amendment at two
+lines plus a backlog id, the contract stands at **286** lines, and thirteen amendments land it at
+**310** against the **300**-line cap `check_file_sizes.py` enforces. `AGENTS.md` forbids raising the cap
+and says a contract in that state is due for a rewrite that folds its amendments into the criteria they
+amend, taken as its own `contract-update` task.
+
+**What the alternative would have rebuilt.** Freezing at stage 5 against a contract that contradicts the
+tests in thirteen places is the failure this whole session opened on: a contract asserting a group-order
+gate that was ruled out on 2026-08-26 and never shipped, found only because someone searched the record.
+Freezing now would have rebuilt that trap deliberately, knowingly, and with a bigger contradiction.
+
+Options: rewrite-the-contract-before-the-freeze | amend-after-the-freeze |
+freeze-against-the-stale-contract
+Answer: [rewrite-the-contract-before-the-freeze]
+
+**Ruled by Taylor, 2026-09-01: rewrite the contract before the freeze rather than after it.** The lane
+leaves implementation mode at stage 4 and returns to `contract-update`, and the loop pointer is rewound
+from stage 4 to **stage 1**, which is the stage that owns the contract. `tests/**`, `verification/**`,
+`scripts/run_verify.py` and the two export paths leave `approved_scope`; the contract and this decision
+record return.
+
+Rejected, and why. `amend-after-the-freeze` does not fit under the line cap and is forbidden by
+`AGENTS.md` at that length in any case. `freeze-against-the-stale-contract` is the trap named above.
+
+**This item is also the reason the six above exist.** Every one of the seven rulings carried the flag
+`OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` in `CURRENT_TASK.yml`'s `scope_change_log`, and this
+ruling is what created the task that discharges them. The mitigation for
+`RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE` closed its own loop here for the first
+time. What it did **not** do is fire by itself: the flag is a string in a file, and it was read because
+this task went looking for it. The backlog entry's three candidate remedies - a driver that refuses to
+leave `contract-update` while an untranscribed pointer exists, a queue file the next `contract-update`
+must empty, or a second `review_queue.py` view - all remain unbuilt, and until one is, the mitigation is
+a convention that worked once.
