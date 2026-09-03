@@ -897,6 +897,23 @@ items:
       files at stage 4, and require that at least one test in the file reaches an assertion
       even when the module is missing. It belongs to whoever owns loop_stage.py, not to a phase
       that noticed it.
+
+      EXTENDED 2026-09-03 by phase 14's stage-4 re-cut review, which found the same blindness one
+      level deeper and with a cheap discriminator for it. `check_tests_authored` asks only that
+      the phase's `pytest_*` command is red on an assertion. It cannot tell a red that stage 6
+      can clear from one that no implementation can ever clear, and the re-cut shipped two of the
+      second kind: an arm comparison whose every term is defined inside `tests/` and read off the
+      frozen export, and a fixture guard asserting 249 grids move when 13 of them fold every hand
+      and so cannot. Both would have been frozen at stage 5, both would have made
+      `pytest_derived_chart` and `pytest` red forever, and `scripts/loop_stage.py --phase 14`
+      printed "this stage's checks pass; run --advance to move on" against that tree.
+      The discriminator: for each failing assertion, ask whether the failing expression reads
+      anything outside `tests/` and the committed export. If it does not, the red is not waiting
+      on stage 6 and the stage is not done. That is mechanical and belongs beside the ruff run
+      this entry already asks for.
+      Also measured that pass: `check_file_sizes` is not among stage 4's driver checks, which is
+      how two files went past the 700-line cap on the first pass and were caught only by running
+      the script by hand. Adding it costs one line and closes the same class of gap.
   - id: REALIZATION-MODEL-UNDERPRICES-POSITION
     status: deferred
     phase: "14"
@@ -4046,6 +4063,24 @@ items:
       Not fixable inside phase 14: separating it needs the cold-call branch repriced and no config
       reaches that. Phase 16's postflop solver plays flops exactly and carries no realization model, at
       which point every committed cell is re-derivable against a source without the defect.
+
+      EXTENDED 2026-09-03 by phase 14's stage-4 poker review, on the NAME rather than on the finding. "The
+      big blind over-folds" is graded above against an uncited standard, but the only reference this repo
+      commits is `expectations/six_max_nl25_100bb.json`, which is a RAKED game and so should be the tighter
+      of the two. Against it, re-derived 2026-09-03, the chart defends 48.39 against the small blind where
+      the reference says 42.88, 32.78 against the cutoff where it says 31.48, 28.88 against the hijack
+      where it says 26.20 and 25.70 against the lojack where it says 22.63; only the button reads narrower,
+      36.65 against 39.43. Four of five read WIDER, which is the expected direction for a rake-free solve.
+      `test_the_big_blind_defence_and_flat_are_published_with_the_band_at_both_ends` recomputes each row's
+      own wider/narrower verdict from that file, so the report will print "wider" four times under a
+      heading that says the big blind over-folds. That is a contradiction a non-coding reviewer will see.
+      The defect that IS measured is the flat, not the level: 19.63 against a lojack open, 20.98 against
+      the hijack, 22.44 against the cutoff, 21.09 against the button and 20.30 against the small blind, a
+      2.81-point spread against openers whose own ranges span 18.74 to 54.30 percent. A range that does
+      not respond to the opener at all is a shape defect, and the EV band computed on the level cannot see
+      it. `BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT` is that defect and is the entry the packet should
+      cite. What would settle the name is `REFERENCE-RANGES-HAVE-NO-CITED-SOURCE`: with a rake-free
+      reference committed, "over-folds" is either measurable or it is withdrawn.
   - id: FOUR-BET-ROWS-WERE-CERTIFIED-BY-GROUP-AND-FAIL-CELL-BY-CELL
     status: deferred
     phase: contract-update
@@ -4240,6 +4275,21 @@ items:
       GTOpen clone, banning the call for chosen seats, then a re-solve. That is a solver-side change and a
       new ruling, not implementation work under this contract.
 
+      EXTENDED 2026-09-03 by phase 14's stage-4 poker review, with the magnitude this entry was filed
+      without and with the observation that decides how much weight to put on the one external check the
+      phase has. Of the 25 facing-an-open spots, the 5 big-blind ones are graded against an outside number
+      and the 20 merged ones are not: `expectations/six_max_nl25_100bb.json` carries an opening frequency
+      per seat and a big-blind defence per opener and nothing else. At the same 2.5 price the solve's cold
+      call runs at 0.13 to 4.65 percent at those 20 spots against the big blind's 19.63, 20.98, 22.44,
+      21.09 and 20.30 - re-derived from the export 2026-09-03. The big blind has the worst postflop
+      realization of the six seats and every merged seat has a better one, so a model in which the
+      worst-realizing seat flats roughly forty times more often than the best-realizing one is a model
+      artifact rather than poker. The one seat carrying an external check is the one seat that matches it,
+      which is exactly the seat whose figure this defect does not distort.
+      What would change the answer is the same re-solve named above, or a committed reference that grades
+      a non-blind cold call - the second is `REFERENCE-RANGES-HAVE-NO-CITED-SOURCE` and is the cheaper of
+      the two, since it would at least turn this from an unmeasured suspicion into a measured gap.
+
   - id: PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED
     status: deferred
     phase: "14"
@@ -4360,6 +4410,26 @@ items:
       aggressively preflop", and cutting back later is a derivation change of minutes with no re-solve.
       Related: CHART-CANNOT-ADVISE-A-FIVE-BET, which is the same excluded family seen from the other side.
 
+      EXTENDED 2026-09-03 by phase 14's stage-4 poker review, which put a number on the consequence this
+      entry names and nothing measures. The tests pin the cells moved and each spot's defence against the
+      solve's raise-plus-call; neither reaches what happens after the raise. Re-derived from the export
+      2026-09-03: conditional on hero taking the merged raise a four-bet comes back 7.01 to 19.58 percent
+      of the time depending on the spot, and the four-bet node is refused, so the merge routes traffic into
+      the family this phase excludes. Per hand dealt that is 0.2282 percent added at the small blind,
+      0.1386 at the button, 0.0841 at the cutoff and 0.0049 at the hijack, against existing four-bet
+      refusal rates of 1.032, 1.032, 0.691 and 0.510 percent - increases of 22, 13, 12 and 1 percent in how
+      often those seats refuse. That is the phase's largest single change to how the bot plays and it is
+      published nowhere.
+      Two things make it worse than the size suggests. The 40 cells that go from a pure flat to a pure
+      three-bet are the hands a solver flats on purpose - `AJs` at 5 spots, `TT` at 6, `AQs` at 5, `AQo` at
+      4, `99` at 4, then `A9s`, `ATo`, `ATs`, `A3s`, `JJ`, `88`, `77`, `66` - and at the four-bet the
+      solve's own answer for them is to fold between 10.0 and 98.5 percent, weighted around 70. The bot can
+      execute neither that fold nor the call, because the node is refused. So a hand the solve wanted to
+      see a flop with is routed, about one time in eight, to a spot the trainer answers with a refusal.
+      The cheap fix is a published figure rather than a behaviour change: the report already walks the
+      tree, and printing added-refusal-rate per seat beside the merge counts would make the cost visible to
+      the human who signs off on the accepted defect. Decision 45 itself is not being reopened here.
+
   - id: KICKER-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED
     status: deferred
     phase: "14"
@@ -4383,6 +4453,21 @@ items:
       these hands are ones the solver left stuck rather than genuinely preferred; it covers this family and
       the pair family together and has not been run. Related:
       PAIR-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED, NOTHING-MEASURES-HOW-MUCH-THE-SOLVE-MIXES.
+
+      EXTENDED 2026-09-03 by phase 14's stage-4 poker review and re-derived from the export the same day.
+      Over the committed 249 the family is 181 and the exemption is 87, and the exemption is one
+      comparison: `A6s` over `A5s` at 84 spots and `A6o` over `A5o` at 3, nothing else. Preferring the
+      wheel ace there is correct poker and the exemption is right. But the trough it describes is wider
+      than the exemption: `A8s` over `A7s` fires at 15 spots and `A7s` over `A6s` at 12, and both sit in
+      the same `A6s`-to-`A9s` dip whose existence is why the wheel aces are unchained in GTOpen's fit.
+      Those 27 are filed under "no poker story", so the 94 is an upper bound on the family with no story
+      and 27 of it has at least a partial one.
+      The residue that genuinely has none is worth naming apart, because a dominated hand played while its
+      dominator folds is the one kicker case that cannot be bluff selection: `KQo` over `KJo` at 8 spots,
+      the worst of them `t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call` folding `KQo` 99.73 percent
+      while calling `KJo` 55.76, and `AQs` over `AJs` at 5. The report already has to separate the
+      wheel-ace cases; separating the ace-trough cases from the dominated-pair cases is the same edit and
+      would stop a packet reading 94 as 94 things wrong.
 
   - id: HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES
     status: deferred
@@ -4428,3 +4513,193 @@ items:
       worth recording: any chart with a three-action menu can hide a rank inversion inside the continue
       split, so a relation measured only on play-not-fold is structurally blind at every node where both
       hands are played.
+  - id: RANK-ARM-RESTRICTION-RESTED-ON-A-SPLICED-FIGURE
+    status: done
+    phase: "14"
+    title: The rank arm was restricted on a figure that spliced two comparison rules together
+    reason: >-
+      Filed and closed 2026-09-03 with decision 54. The contract restricted the rank counterfactual arm
+      to the spots closed under reversal, and its stated reason was that the unrestricted arm fails,
+      reading 149 against 69 over all 219 three-bet-facing spots. That pair does not exist. Two
+      independent walks of the export - a stage-4 reviewer, then a measurement agent working from the
+      phase's prose rather than from the code under test - both reproduced the arm under four separate
+      comparison rules. Skipping comparisons whose partner cell is absent, which is what the test's own
+      code does, gives 149 against 260. Restricting both sides to the cells present in both gives 42
+      against 69. The published figure takes the solved side of the first rule and the counterfactual
+      side of the second; under either rule taken consistently the unrestricted arm passes, and passes
+      wide. So the restriction never stood between the gate and a red. What it did do is make the result
+      fragile: the restricted arm passes 32 against 33, one cell, and four documents told the next agent
+      that this margin was load-bearing and must not be touched. Taylor ruled on 2026-09-03 to score the
+      arm over the whole partition, which removes the fragility and the false justification together.
+      The general lesson is the one HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES keeps recording:
+      a figure that no generator re-derives survives every review that reads it rather than re-walking it,
+      and this one survived four. It was quoted in six live places before anyone measured it.
+  - id: PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP
+    status: deferred
+    phase: "14"
+    title: The phase 14 contract sits at exactly 300 lines, so the next correction cannot be written
+    reason: >-
+      Noted 2026-09-03 when decision 54's edit landed. The contract is at 300 of 300 lines, and it only
+      stayed there because the criterion it corrected could be rewritten in place at a net cost of one
+      line. The next correction has nowhere to go. AGENTS.md is explicit that a contract reaching the cap
+      is due for a rewrite folding its amendments into the criteria they amend, that the rewrite is its
+      own contract-update task, and that the cap is never raised to fit an amendment. This phase has
+      already rewritten this contract once, at stage 1 on 2026-09-02, and has corrected it twice since.
+      Doing it again mid-stage would be the third rewrite of a document whose subject has not changed,
+      so it is filed rather than done: the next contract-update task that touches phase 14 for any reason
+      should fold first and edit second.
+  - id: TEST-FILES-ARE-WRITTEN-UP-TO-THE-700-LINE-CAP
+    status: deferred
+    phase: tooling
+    title: Seven test files sit at exactly 700 lines, so the next test to add forces a split first
+    reason: >-
+      Filed 2026-09-03 by phase 14's stage-4 re-cut review. `scripts/check_file_sizes.py` caps
+      `tests/**/*.py` at 700 lines. Measured in the phase-14 worktree that day: seven files sit at
+      exactly 700 - `test_table_state.py`, `test_sample_comparison.py`, `test_preflop_artifacts.py`,
+      `test_full_table_preflop.py`, `test_engine_fidelity.py`, `test_derived_chart_report_validators.py`
+      and `test_chart_derivation.py` - and two more at 699. The check passes, so this is not a finding
+      against any stage; it is the shape the tree has settled into and what that shape costs.
+      What it costs is that every future correction to those files starts with a split or with deleting
+      prose. That was paid three times inside stage 4 alone: a missing positive control lands in the
+      700-line validator file, a strengthened assertion lands in `test_full_table_preflop.py`, and a bool
+      check lands in `test_sample_comparison.py`, and each fix had to buy its own lines back out of
+      docstrings first. The lines being deleted are the explanatory docstrings this repo's own convention
+      asks for - a file's docstring says what it owns, a test's says why it exists and what a wrong build
+      would look like - so the cap and the convention are in direct tension and the cap always wins,
+      quietly, at the moment someone is trying to make a test stronger.
+      This is not an argument for raising the cap; a 900-line test file is worse to read than two 450-line
+      ones. It is an argument for splitting EARLY rather than at 700, and for the split being a normal
+      move rather than an emergency one. Two cheap changes would do it: put `check_file_sizes` into the
+      loop's stage-4 driver checks so a file crossing the line is caught when it is written rather than by
+      someone running the script by hand, and warn at 600 so the split happens while there is room to
+      choose a sensible seam. Both belong to whoever owns `loop_stage.py` and `check_file_sizes.py`.
+      Related: CONTRACT-LINE-CAP-COUNTS-LINES-AND-MEANS-CONTENT, which is the same cap gamed the other
+      way, by reflowing to wider lines rather than by cutting content.
+  - id: A-MIGRATING-STAGE-RECORDS-NO-LIST-OF-THE-GATES-IT-REDDENS
+    status: deferred
+    phase: contract-update
+    title: A stage that migrates completed phases' tests turns their gate commands red and writes down no list of which
+    reason: >-
+      Filed 2026-09-03 by phase 14's stage-4 re-cut review. The contract requires the frozen tests of
+      completed phases to be migrated at stage 4, before the freeze, rather than repaired after it, and
+      phase 14 did that correctly across ten files. The consequence is that commands belonging to already
+      completed phases go red and stay red until stage 6: `pytest_preflop`, `pytest_simulator`, and the
+      commands covering `test_full_table_preflop.py`, `test_spot_vocabulary.py`,
+      `test_table_state_strategy.py`, `test_sample_comparison.py` and `test_postflop_fallback_components.py`.
+      Measured over those files on 2026-09-03: 31 failures against 258 passes, every failure inspected
+      being chart-dependent rather than a migration error.
+      That is the right state and it is not written down anywhere. The ExecPlan's "the gate is red by
+      design until stage 6" section names only the phase's own commands, so a stage-7 reader has no way to
+      tell a command the migration reddened from one that regressed, and the contract's "previously
+      completed phase gates remain verifiable" has nothing to check against. The failure this permits is
+      quiet: a genuine regression in a completed phase, landing in the same window, reads as one more
+      expected red.
+      The fix is a required artefact rather than a tool: a migrating stage records the commands it reddens
+      and the pass count it expects back, and stage 7 checks the list rather than the impression. It is
+      filed against `contract-update` because it is a change to what the loop requires of a stage, not
+      something phase 14 can adopt unilaterally for itself. What would change the answer is a driver that
+      can diff command outcomes across a stage boundary, which would make the list derivable instead of
+      hand-written - and hand-written counts are what
+      `HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES` says go stale.
+  - id: A-COUNT-WITH-NO-OWNER-IS-COPIED-BETWEEN-TEST-FILES
+    status: deferred
+    phase: "14"
+    title: The one-owner convention for a count was adopted and applied to about half the counts
+    reason: >-
+      Filed 2026-09-03 by phase 14's stage-4 re-cut review. The convention this phase set is that a count
+      has one owner and every sibling imports it, so a set that moves breaks one line rather than drifting
+      in five. It holds for the refusal reason codes, the exposure threshold and its two extremes, and the
+      arms' permutation and parameter names, all owned once in `test_chart_derivation.py` or
+      `test_chart_cutover_evidence.py`. It does not hold for the ten-partition arm table, nor for 249,
+      18,431, 165, 132, the rank arm's five-spot floor, the four relation names, the 5/25/219 family split,
+      the price list, 86, or the one-point tolerance, each of which is a literal in two or more files.
+      The failure mode is not hypothetical and was realised inside this stage. The arm table is stated
+      twice: `PARTITIONS` in `tests/test_chart_cutover_evidence.py` and `ARM_ROWS` in
+      `tests/test_derived_chart_report.py`, the same partitions as literals in different column orders. On
+      2026-09-03 a lane re-measured the first under decision 54, which withdrew the closed-spot restriction
+      on the rank arm, and the second still carried the old figures and the withdrawn justification. Two
+      files then described two different arms and only one of them was right, which is exactly what one
+      owner and an import prevents.
+      Not fixed inside stage 4 because the import direction is not free: `test_derived_chart_report.py`
+      already imports from the evidence file's neighbours and a naive import creates a cycle, so choosing
+      the owner is a small design decision rather than a mechanical move, and it wants doing once for all
+      eleven rather than piecemeal under time pressure. What would change the answer is the phase closing
+      with the figures still duplicated, at which point this stops being drift and becomes the next
+      phase's inherited defect.
+  - id: THREE-CONSTANTS-TWO-MEANINGS-AND-ONE-VALUE-FOR-THE-SQUEEZE-TEN
+    status: deferred
+    phase: "14"
+    title: Two different sets of ten spots are both called squeeze spots and a third constant shares their value
+    reason: >-
+      Filed 2026-09-03 by phase 14's stage-4 re-cut review. `COMMITTED_WITH_A_CALLER_ALREADY_IN = 10` in
+      `tests/test_chart_derivation.py` and `NON_BLIND_SQUEEZE_SPOTS = 10` in
+      `tests/test_preflop_committed_charts.py` are the same set: the committed spots where hero is not the
+      big blind and a cold caller is already in. Neither imports the other. The word "squeeze" is also the
+      contract's term for the REFUSED bucket `derivation:big-blind-squeeze-spot`, whose count is also 10
+      and is pinned separately as `BB_SQUEEZE_REFUSED_NODES`. So three constants carry two meanings and one
+      value, in a phase whose third selection clause is about precisely the distinction between them.
+      Nothing is wrong today and every assertion holds. The hazard is a later reader wiring the wrong one,
+      and the two sets are exact opposites - one is committed and one is refused - so a mis-wiring inverts
+      a claim rather than perturbing it, and both readings pass a count check against 10. The general form
+      is worth recording beyond this phase: a value shared by a set and its complement is the one case
+      where a count assertion cannot tell you which set you have.
+      The fix is naming, not logic: `COMMITTED_NON_BLIND_COLD_CALLED_SPOTS` for the committed ten,
+      `BB_SQUEEZE_REFUSED_NODES` kept for the refused ten, and the word "squeeze" reserved for the refused
+      bucket the contract defines it as. Not done at stage 4 because a rename touches two frozen-to-be
+      files owned by different lanes and the sets are correct as they stand; it belongs with the one-owner
+      work in `A-COUNT-WITH-NO-OWNER-IS-COPIED-BETWEEN-TEST-FILES`, which moves the same constants.
+  - id: LADDER-INVERSIONS-ARE-PUBLISHED-AS-COUNTS-AND-THE-COUNT-IS-NOT-THE-COST
+    status: deferred
+    phase: "14"
+    title: 114 and 181 tell a reader neither how often the bot is dealt the wrong side nor how much information the ladder carries
+    reason: >-
+      Filed 2026-09-03 by phase 14's stage-4 poker review, with both measurements re-derived from the
+      export the same day. The phase publishes the pair ladder as 114 inversions and the row-kicker ladder
+      as 181, and accepts both as solved. Neither number answers the two questions a reader actually has.
+      How often does it bite. Weighted by how often the bot is dealt the hand on the wrong side of one,
+      0.39 percent of preflop decisions find it holding the dominant, under-played class of a non-wheel
+      inversion of 50 points or more, and 0.51 percent at any magnitude. About one decision in 256, on
+      threshold hands. As an EV matter the acceptance is right and this entry does not dispute it.
+      How much information the ladder carries. Among adjacent comparisons the chart decides past the
+      one-point tolerance, 28.15 percent of pair comparisons run the wrong way (114 of 405) and 15.17
+      percent of kicker comparisons (181 of 1,193), against 0.70 percent on the suited-over-offsuit
+      relation in the same export at the same tolerance (7 of 1,001). The suit dimension of this solve is
+      clean and the rank dimension is forty times less so. That contrast is the strongest single statement
+      available about what this export got right and what it did not, and no count published by this phase
+      contains it.
+      Two cheap report figures close it, both derivable from walks the generator already does: the
+      arrival-weighted rate at which the bot meets the wrong side, and the wrong-way share of decided
+      comparisons per relation rather than the raw inversion count. Not done here because they are new
+      report figures after the stage-4 freeze, so they belong to whichever task next opens the generator -
+      the same place `NOTHING-MEASURES-HOW-MUCH-THE-SOLVE-MIXES` is waiting.
+      One thing this does not measure and nothing in the repo does: legibility as distinct from EV.
+      `t6/d100/BTN/CO:raise@2.5` carries 2.81 percent of all preflop decisions and three-bets `22` at 100
+      percent while folding `33` and `44` outright; `t6/d100/CO/rfi` carries 10.35 percent and opens `Q6s`
+      at 100 percent while folding `Q7s`. Decision 51 is right that picking among hands the solve prices
+      alike is bluff selection and costs nothing in chips. It is still an anti-pattern to drill into a
+      human, and that is a product question rather than a phase-14 one.
+  - id: COVERAGE-IS-DECISION-MASS-AND-A-TRAINEE-MEETS-A-PER-SEAT-RATE
+    status: deferred
+    phase: "14"
+    title: The chart answers 98.59 percent of decisions and refuses one big-blind hand in twenty, and only the first is published
+    reason: >-
+      Filed 2026-09-03 by phase 14's stage-4 poker review; every figure re-derived from the export the same
+      day. The packet asks a non-coding reviewer to accept the exclusions on 98.59487 percent coverage,
+      which is 1.41 percent of preflop decisions refused. That figure is correct and it is not the number
+      a human at the table meets.
+      Per hand dealt, the share of hands containing a refused preflop decision, and what refuses it: big
+      blind 4.911 percent, of which the squeeze clause is 3.082 and the raise-depth clause 1.828; small
+      blind 1.091, of which raise-depth 1.032 and exposure 0.059; button 1.054; cutoff 0.728; hijack 0.513;
+      lojack 0.352. A bot that refuses about one hand in twenty in the big blind is playable and this entry
+      does not argue otherwise. But 4.9 percent in one seat is a different statement from 1.4 percent of
+      decisions, and the second is the only one the packet offers.
+      The coverage figure is also concentrated in a way the selection rule does not measure: the top 20 of
+      the 249 spots carry 90.17 percent of decision mass, the top 50 carry 97.53, and the 44 spots that
+      round to zero in parts per billion carry about 7e-8 percent between them, 2 of them exactly zero.
+      Carrying those 44 is harmless and removing them is not proposed. It does mean the rule that selects
+      the set is not measuring what makes the chart useful, and the arrival grain the contract already
+      requires is the right place to say so.
+      The fix is publication, not selection: print the per-seat refused-hand rate beside the coverage
+      figure, and the mass concentration beside the arrival grain. Not done at stage 4 because both are new
+      report figures after the freeze. What would change the answer is the four-bet family returning, which
+      is most of the big blind's 1.828 and all of every other seat's raise-depth share.

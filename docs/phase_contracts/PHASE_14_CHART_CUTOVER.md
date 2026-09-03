@@ -135,10 +135,10 @@ inversions, and merged flats playing differently. Nothing gates on whether a ran
 - **Four relations are measured per cell** at decision 10's one-point tolerance. Three run on
   play-not-fold: a higher pair played at least as often as the pair below; a suited hand at least as often
   as its offsuit twin; and within a grid row a higher kicker at least as often as the kicker below, suited
-  and offsuit apart, adjacent kickers only, **132 comparisons** over a full grid. **The fourth runs on the
-  raise weight** (decision 50), because the defect that halted this phase was a pair inversion on the raise
-  action that play-not-fold cannot see, and such cases sit in the committed set with both hands played 100
-  percent. **None is gated as an order**; gated is that the measurement was taken over every cell, with
+  and offsuit apart, adjacent kickers only, **132 comparisons** over a full grid. **The fourth runs on
+  the published raise weight** (decisions 50, 55), merged as the bot plays it, because the inversion that
+  halted this phase sits on the raise action with both hands played 100 percent, where play-not-fold is
+  blind. **None is gated as an order**; gated is that the measurement was taken over every cell, with
   counts and worst cases published. Their definition - weighting, reach floor, tolerance, family
   exclusions, per spot or per chart - is pinned as data before it is measured
   (`DOMINANCE-RELATION-IS-PROSE-AND-HAS-PRODUCED-SEVEN-COUNTS`).
@@ -158,11 +158,12 @@ inversions, and merged flats playing differently. Nothing gates on whether a ran
   never carried over, and dropping one is forbidden. The rank arm carries a test proving it discriminates
   where the others cannot: a rank-reversed chart scores identically on the suit arm, and the test shows
   that arm accepting it while the rank arm refuses it.
-- **The rank arm is scored only where it is defined**, `reverse_hand_ranks` being total only on a full grid
-  and most committed spots not carrying one: it is measured over the spots closed under reversal, the
-  unscored count published per partition, and **a partition scoring fewer than five spots is published and
-  not asserted**, a strict gate over one or two grids being a coin flip. Pinning that set is part of pinning
-  the relations above.
+- **The rank arm is scored over every spot in its partition**, a comparison whose partner cell is absent
+  being skipped and the skipped count published per partition: `reverse_hand_ranks` is total only on a full
+  grid. The restriction to spots closed under reversal is withdrawn, its stated justification having failed
+  to reproduce (`RANK-ARM-RESTRICTION-RESTED-ON-A-SPLICED-FIGURE`). **A partition scoring fewer than five
+  spots is published and not asserted**, a strict gate over one or two grids being a coin flip. Pinning that
+  set is part of pinning the relations above.
 - **Neither arm passing is evidence the ranges are sound.** Both are extraction checks and cannot see
   over-folding, a mis-assigned actor, or a cross-family inversion
   (`THE-DISCRIMINATION-GATE-CANNOT-SEE-OVER-FOLDING-OR-A-MIS-ASSIGNED-ACTOR`, named in the packet).
@@ -179,10 +180,10 @@ inversions, and merged flats playing differently. Nothing gates on whether a ran
   artifact. **An ordering is not a level, and only the level catches a broken realization model**, so the
   defence level per opener is measured, printed against the expectations file, and read by a human before
   the artifact is committed (`STATIC-REALIZATION-UNMEASURED-IN-SINGLE-RAISED-POTS`).
-- **The big blind over-folds and this phase accepts it deliberately** (decision 34). The report prints its
-  defence and flat per opener against the reference level, the flat's near-invariance to who opened, and
-  the EV forgone **at both ends of the realization range and never as a midpoint**. The band cannot be
-  narrowed without measuring realization in this game, which nothing here does.
+- **The big blind's flat barely moves with who opened, and this phase accepts that** (decision 34). It
+  reads wider than the raked reference against four openers and narrower only against the button, so the
+  defect is that invariance, not an over-fold. The report prints defence and flat per opener against the
+  reference and the EV forgone **at both ends of the realization range, never a midpoint**.
 - **Every published band is its family's true min and max, and a test asserts it.** No four-bet frequency
   may be offered as evidence that the unfitted terminal fails to reach the output
   (`THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL`).

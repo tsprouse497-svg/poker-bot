@@ -6,18 +6,16 @@ money: three signals, each pinned on a table where it is the only one that can s
 `tests/test_table_state.py` covers query validation, the pot reconciliation, the audit schema
 version and the all-in ceiling.
 
-**What phase 14 changed, and it is not the phase-13 behaviour.** The chart becomes the 86 spots the
-ruled predicate selects, and over those the bot opens from ONE seat and faces a single open from
-ONE seat: `t6/d100/SB/rfi` is the whole opening range and the big blind is the only seat that can
-be facing one. Every committed node leaves at most one opponent invested and at most two players
-live, so the covered surface is heads-up, and the lojack and hijack tables these claims used to be
-stated on are four of the fourteen retired spots. A green run would hide that: `decide` runs forced
-money, then depth, then the chart, so a depth test on a retired spot goes on passing with its
-subject unreachable - a claim about a table the bot can never be handed. So every query below that
-can be stated on the covered surface is stated there. Two cannot - decision 7's precedence BETWEEN
-the two villain checks needs three live seats, and signal three's straddler needs a second invested
-opponent - and both say so and read the refusal CODE, so a coverage refusal cannot be mistaken for
-the one under test.
+**What phase 14 changed, and it is not the phase-13 behaviour.** The chart becomes the 249 spots
+the three ruled clauses select: all five first-in seats open, every seat behind an opener is
+covered, and the raise-depth clause gives up the four-bet family instead. What the cutover takes
+away is narrow - the big blind's ten squeeze spots, the two-or-more-caller pots, the limped pot,
+and everything from the four-bet on. A green run can still hide a dead subject: `decide` runs
+forced money, then depth, then the chart, so a depth test on a refused spot goes on passing with
+its subject unreachable - a claim about a table the bot can never be handed. So every query below
+that can be stated on the covered surface is stated there, and the ones deliberately stated on a
+refused table say so and read the refusal CODE, so a coverage refusal cannot be mistaken for the
+one under test.
 
 Two readings a stage 6 builder needs - what makes forced money an ante, and the vocabulary a
 seat-naming refusal uses - are in the stage-04 review note rather than here.
@@ -67,7 +65,7 @@ REFUSE_NOT_COVERED = f"{LOOKUP_PREFIX}spot-not-covered"
 FORCED_MONEY_CODES = frozenset({REFUSE_STRADDLE, REFUSE_ANTE, REFUSE_BLIND_STRUCTURE})
 DEPTH_CODES = frozenset({REFUSE_RAGGED_DEPTH, REFUSE_UNEVEN_TABLE, REFUSE_SHORT_LIVE_SEAT})
 
-# Folded to the small blind, which after the cutover is the only way hero opens.
+# Folded to the small blind, the last of the five committed first-in seats.
 FOLDED_TO_SB = ("LJ", "HJ", "CO", "BTN")
 
 
@@ -80,11 +78,11 @@ def library() -> PreflopChartLibrary:
 def solved() -> tuple[int, int, str]:
     """The open in chips, the three-bet in chips, and the three-bet spot key, read out of the
     artifact because this file was authored against a chart that three-bet to 8 and the solve
-    three-bets to 7.5. Each raising point offers the named raise and an all-in, so the named
-    raise is the smaller. Behind a call rather than at module scope for the reason `seat_state`
-    gives below: mid-cutover a module-scope read fails collection and takes every assertion with
-    it. Both prices come off HERO's own keys, which is why they survive: the lojack's opening spot
-    is retired, but all fifteen it keeps still open at that price."""
+    three-bets to 7.5. `add_allin: false`, so each raising point offers one named raise and `min`
+    picks out of a single price. Behind a call rather than at module scope for the reason
+    `seat_state` gives below: mid-cutover a module-scope read fails collection and takes every
+    assertion with it. Both prices come off HERO's own keys, which is why they survive the
+    cutover: the lojack opens at 2.5 and the cutoff three-bets it to 7.5 either way."""
     open_bb = min(library().solved_prices_bb(6, 100, "LJ", (), "LJ"))
     opened = (PreflopAction("LJ", "raise", open_bb),)
     three_bet_bb = min(library().solved_prices_bb(6, 100, "LJ", opened, "CO"))
@@ -95,8 +93,8 @@ def solved() -> tuple[int, int, str]:
 @cache
 def faced_open() -> tuple[int, str]:
     """The cutoff's open in chips and the key it puts the big blind on, off the big blind's own
-    arriving prices - the only seat the cutover leaves facing an open, since every other seat
-    behind an opener has players behind it."""
+    arriving prices. The big blind is no longer the only seat left facing an open - the exposure
+    clause covers all fifteen pairs - but it is still the one that closes the action."""
     open_bb = min(library().solved_prices_bb(6, 100, "BB", (), "CO"))
     opened = (PreflopAction("CO", "raise", open_bb),)
     return int(open_bb * BIG_BLIND), spot_key(6, 100, "BB", opened)
@@ -250,10 +248,10 @@ def strategy() -> PreflopChartStrategy:
 
 def charted(strategy: PreflopChartStrategy, query: StrategyQuery) -> ChartHit:
     """The cell a query reaches, or an assertion naming what stopped it short. `chart_lookup` runs
-    the same forced-money and depth checks `decide` runs and returns None when either answered,
-    so a hit proves the shape under test was accepted AND that the spot is one of the 86. Read
-    instead of `decide` wherever the claim is about the shape rather than the action: 21 of the 86
-    offer hero two prices, and what a strategy does with two phase 14 does not answer."""
+    the same forced-money and depth checks `decide` runs and returns None when either answered, so
+    a hit proves the shape under test was accepted AND that the spot is one of the 249. Read
+    instead of `decide` wherever the claim is about the shape rather than the action, which keeps
+    the fixture from also asserting what the sizing table prices."""
     found = strategy.chart_lookup(query)
     assert found is not None, "refused before a chart was consulted at all"
     assert isinstance(found, ChartHit), found
@@ -261,12 +259,11 @@ def charted(strategy: PreflopChartStrategy, query: StrategyQuery) -> ChartHit:
 
 
 def one_price_table(spot_key_text: str, to_bb: float) -> PreflopSizingTable:
-    """A sizing table offering exactly one price at one spot, in the shape decision 6 ruled:
-    every raise size a spot offers with hero's weight on each, so an entry is a list and
-    `amount_bb` answers only where that list has one member. Hence the count in the name - a
-    two-entry table has no single price to cap, and nothing here may pick between two. Asserted
-    rather than adapted, so the stage-4 red names the missing schema instead of dying in
-    `_raise_amount` on a tuple it multiplied by the big blind."""
+    """A sizing table offering one price at one spot, in the shape decision 6 ruled: every raise
+    size a spot offers with hero's weight on each, so an entry is a list and `amount_bb` answers
+    only where that list has one member. The committed table now holds one price everywhere, so
+    the fixture's work is the *value* rather than the count - it prices at 150bb, which no stack
+    can pay, and the real 22.5 could never exercise the cap below."""
     schema = getattr(preflop_sizing_module, "SCHEMA_VERSION", 1)
     assert schema >= 2, "decision 6 moves the sizing table to schema 2"
     # Per class, not per spot: the 2026-08-26 ruling puts the entry under the hand class, and a
@@ -281,11 +278,10 @@ def one_price_table(spot_key_text: str, to_bb: float) -> PreflopSizingTable:
 
 
 def sb_open_table(**overrides) -> StrategyQuery:
-    """Folded to the small blind, which is the whole of hero's opening surface. The four folds are
-    the fixture rather than scenery: `t6/d100/SB/rfi` is a spot only because the seats in front are
-    out, and an opening query without them lands on one of the four opening ranges the cutover
-    retires. Hero owes 50 rather than a full big blind, the one arithmetic difference from the
-    lojack tables it replaces."""
+    """Folded to the small blind. The four folds are the fixture rather than scenery: they are what
+    makes the spot `t6/d100/SB/rfi` rather than one of the four opening ranges in front of it, all
+    of which the cutover now also commits. Hero owes 50 rather than a full big blind, the one
+    arithmetic difference from the lojack tables it replaces."""
     fields = {"history": folds(*FOLDED_TO_SB), "folded": FOLDED_TO_SB}
     fields.update(overrides)
     return table_query("SB", **fields)
@@ -297,10 +293,10 @@ def three_bet_table(**overrides) -> StrategyQuery:
     *held* chips: hero holds 97.5bb and the cutoff holds less again. Several claims here are this
     fixture read again, so it is written once.
 
-    Everyone but hero and the three-bettor has folded, and that is the cutover rather than
-    tidiness: a committed spot leaves at most two players live, so a fixture holding the blinds
-    in would describe a table its own node does not - and one no street produces either, since
-    the action cannot be back on the lojack while the blinds have yet to act."""
+    Everyone but hero and the three-bettor has folded, and that is the street rather than
+    tidiness: the action cannot be back on the lojack while the blinds have yet to act. It is
+    also the shape the committed node describes, the exposure clause keeping this spot because
+    every terminal past it is heads-up."""
     open_to, three_bet_to, _ = solved()
     fields = {
         "contributed": paid_in(SB=SMALL_BLIND, BB=BIG_BLIND, LJ=open_to, CO=three_bet_to),
@@ -368,9 +364,8 @@ class TestPerSeatDepth:
     ) -> None:
         """The check that exists today keeps its code, so no spot changes meaning: a refusal
         inventory that relabelled this case could not tell a genuinely new refusal from a renamed
-        old one. On hero's three-bet table rather than a lojack open, because the deep seat must
-        be one that can still act and the only live opponent a committed spot leaves is the one
-        hero is heads-up with."""
+        old one. On hero's three-bet table rather than a lojack open, because the deep seat must be
+        one that can still act, and there the cutoff is the one seat left to act."""
         deep = starting_stacks(CO=200 * BIG_BLIND)
 
         outcome = refusal(strategy.decide(three_bet_table(starting=deep)))
@@ -381,8 +376,8 @@ class TestPerSeatDepth:
         """Invisible before this phase, and answered at hero's depth as if it were flat. A
         separate code rather than the existing one: "somebody is short" and "somebody is deep" are
         different tables, and merging them would leave the inventory unable to say which shape the
-        chart is missing. The short seat is the big blind, the only seat left live in the one
-        opening spot the cutover keeps."""
+        chart is missing. The short seat is the big blind, the seat still to act behind the small
+        blind's open."""
         short = starting_stacks(BB=40 * BIG_BLIND)
 
         outcome = refusal(strategy.decide(sb_open_table(starting=short)))
@@ -412,9 +407,8 @@ class TestPerSeatDepth:
         """The whole reason starting stacks are recomputed rather than read. The cutoff holds less
         than hero's 97.5bb and neither sat down with a chip under 100bb; it is not short, it is
         three-betting, and a check reading held chips would refuse the most ordinary raised spot in
-        the chart. Read as "no depth code": this spot offers hero a named four-bet and the stack,
-        and a strategy draws between two prices with the mixed cell's own seed, ruled 2026-08-26,
-        which is another file's claim - all this one asks is that no depth code fires."""
+        the chart. Read as "no depth code": what the chart then answers with, and at what price, is
+        another file's claim - all this one asks is that no depth code fires."""
         assert code_of(strategy.decide(three_bet_table())) not in DEPTH_CODES
 
     def test_hero_depth_is_measured_from_what_he_started_with_not_what_he_holds(
@@ -435,7 +429,7 @@ class TestPerSeatDepth:
         """The case a stricter check gets wrong first, and the one the ruling exempts: effective
         stack is pairwise and against seats that can still act, so a folded 40bb seat cannot change
         a chip of hero's decision. The folded seat is the lojack, one of the four the small blind's
-        opening spot needs out of the way anyway."""
+        opening spot needs out of the way in any case."""
         short = starting_stacks(LJ=40 * BIG_BLIND)
 
         found = charted(strategy, sb_open_table(starting=short))
@@ -447,8 +441,8 @@ class TestPerSeatDepth:
     ) -> None:
         """The same exemption in the direction the current check already refuses. Today any seat
         holding more than hero refuses, folded or not, so a rule stated only for the shallower side
-        leaves this table refused - and the table is the small blind's opening spot, so leaving it
-        refused would cost the bot its only open."""
+        leaves this table refused - and the table is the small blind's opening spot, one of the
+        five opening ranges the cutover commits."""
         deep = starting_stacks(LJ=250 * BIG_BLIND)
 
         found = charted(strategy, sb_open_table(starting=deep))
@@ -458,9 +452,9 @@ class TestPerSeatDepth:
     def test_a_ragged_hero_is_reported_before_any_villain_shape(self, strategy) -> None:
         """Decision 7's order: hero first, ahead of either villain check, because a hero whose own
         depth is not a whole big blind has no depth to compare against and the other two are then
-        not well defined. Each villain shape gets its own table rather than one table tripping all
-        three, because a committed spot leaves one opponent live and one seat cannot be deeper and
-        shallower at once. The pair is the claim the single table used to make."""
+        not well defined. Each villain shape gets its own table rather than one tripping all three,
+        because one seat cannot be deeper and shallower at once. The pair is the claim the single
+        table used to make."""
         ragged = 100 * BIG_BLIND + 37
         over = sb_open_table(starting=starting_stacks(SB=ragged, BB=200 * BIG_BLIND))
         under = sb_open_table(starting=starting_stacks(SB=ragged, BB=40 * BIG_BLIND))
@@ -469,21 +463,20 @@ class TestPerSeatDepth:
         assert refusal(strategy.decide(under)).code == REFUSE_RAGGED_DEPTH
 
     def test_a_deeper_live_seat_is_reported_before_a_shallower_one(self, strategy) -> None:
-        """The rest of decision 7, and the one claim here the 86 cannot state. Deeper keeps today's
-        precedence, so a spot changes code only where this phase genuinely changed the answer for
-        it. Saying that at all takes three live seats - hero, somebody deeper, somebody shallower
-        - and every committed spot leaves at most two players live, so the table is deliberately
-        one the cutover refuses. That is the ruled cost, and the control keeps the test honest
-        about it: the same table flat reaches the chart and is turned away for want of a cell, a
-        different code, so the precedence is read off the depth check and not off the refusal
-        waiting behind it."""
+        """The rest of decision 7. Deeper keeps today's precedence, so a spot changes code only
+        where this phase genuinely changed the answer for it. Saying it takes three live seats -
+        hero, somebody deeper, somebody shallower - which the retired 86 could not state at all,
+        every committed spot there leaving at most two players live. The cutover commits the
+        lojack's own open, so the table is now one the chart holds and the control gets stronger
+        rather than weaker: the same table flat is **answered**, so the refusal above is read off
+        the depth check and cannot be the coverage refusal that used to be waiting behind it."""
         both = starting_stacks(BTN=200 * BIG_BLIND, CO=40 * BIG_BLIND)
 
         outcome = refusal(strategy.decide(table_query("LJ", starting=both)))
-        control = refusal(strategy.decide(table_query("LJ")))
+        control = strategy.decide(table_query("LJ"))
 
         assert outcome.code == REFUSE_UNEVEN_TABLE
-        assert control.code.startswith(LOOKUP_PREFIX)
+        assert isinstance(control, StrategyDecision), control
 
     def test_a_hero_who_bought_in_short_refuses_because_a_live_seat_is_then_deeper(
         self, strategy
@@ -510,8 +503,8 @@ class TestTheChartCapsWhereTheAuditDoes:
         so hero started with 10,000 and cannot raise to a chip more, while the deleted formula
         caps at the level plus the stack - more than hero has ever had, and what
         `DecisionAuditRecord` already refuses to record. The one place this file asks for a raise,
-        and the fixture is what makes that safe: the real table offers this spot two prices and so
-        answers None, and one entry is the only shape `amount_bb` is ruled to price."""
+        and the fixture is what makes that safe: the real table prices this spot at a four-bet to
+        22.5, which any 100bb hero can pay, so only a price no stack covers reaches the cap."""
         capped = PreflopChartStrategy(
             library=strategy.library, sizing=one_price_table(solved()[2], 150.0)
         )
@@ -534,8 +527,8 @@ class TestForcedMoney:
         takes the ante code because an ante does not raise the level a voluntary action is
         measured against. It sits in each seat's hand figure and not its street figure, so hero
         owes what an unanted table would charge and the ten chips show only as the gap between the
-        two - 50 here rather than a full big blind, because the one covered opening seat has
-        already posted half of it."""
+        two - 50 here rather than a full big blind, because the opening seat under test is the
+        small blind, which has already posted half of it."""
         query = sb_open_table(ante=10)
 
         assert query.to_call == BIG_BLIND - SMALL_BLIND
@@ -570,10 +563,9 @@ class TestForcedMoney:
         and hero is the seat still to act, which a straddled order does not literally produce -
         the claim under test is the arithmetic.
 
-        Coverage is the claim this test cannot also make: a straddler who has called to the level
-        is a second opponent who has voluntarily invested, so no committed spot describes this
-        pot. Forced money is decided before a chart is consulted, so the code read below is this
-        signal's rather than the cutover's."""
+        Coverage is the claim this test cannot also make: two opponents have cold-called, and the
+        exposure clause refuses the pots with two or more callers already in. Forced money is
+        decided before a chart is consulted, so the code read below is this signal's."""
         outcome = refusal(strategy.decide(multiway_table(1000)))
 
         assert sum(MULTIWAY_CONTRIBUTIONS.values()) == 1850
@@ -588,10 +580,10 @@ class TestForcedMoney:
         one would make a poker claim out of a producer's arithmetic.
 
         What the strategy does say is that it has no cell for the pot, and after the cutover that
-        is doubly true - two opponents have cold-called, so the spot is outside the selection rule
-        as well as outside this action order. That third answer is named rather than left as a
-        silence: a signal firing here would give a straddle code and a check that had stopped
-        running would give a decision, and only naming the coverage refusal tells those apart."""
+        is doubly true - two opponents have cold-called, and the exposure clause refuses a pot with
+        two or more callers in as well as this action order. That third answer is named rather than
+        left as a silence: a signal firing here would give a straddle code and a check that had
+        stopped running would give a decision, and only naming the refusal tells those apart."""
         code = code_of(strategy.decide(multiway_table(1100)))
 
         assert code not in FORCED_MONEY_CODES
@@ -605,8 +597,8 @@ class TestForcedMoney:
         still reachable. The lojack posted a dead blind on sitting down and folded. Its hundred
         chips are in the pot, no blind and no recorded action predicts them, and no live seat
         carries anything unexplained - so a reconstruction skipping folded seats would see an
-        ordinary 50/100 pot and answer it, and after the cutover the pot it would answer is hero's
-        only opening spot. It is not a straddle, because the level is still the big blind and
+        ordinary 50/100 pot and answer it, and the pot it would answer is a committed opening
+        spot. It is not a straddle, because the level is still the big blind and
         nothing has raised, and it is not an ante, because an ante is uniform and this sits on one
         seat. That is the residue decision 16 keeps the old code for."""
         contributed = paid_in(SB=SMALL_BLIND, BB=BIG_BLIND, LJ=BIG_BLIND)
@@ -623,9 +615,9 @@ class TestForcedMoney:
         `small + big + voluntary * level` bound caught: the anted table at 210 against a bound of
         150, and a 200 button straddle raised to 600 at 950 against a bound of 750. Both are now
         named rather than called too big, and both sit where the chart would otherwise answer, so
-        neither refusal can be the cutover's. The anted one is hero's opening spot; the straddled
-        one is the big blind facing a lojack raise with the straddling button folded out of it,
-        the only shape leaving one opponent invested and two players live."""
+        neither refusal can be the cutover's. The anted one is the small blind's opening spot; the
+        straddled one is the big blind facing a lojack raise with the straddling button folded out
+        of it, one of the fifteen single-open pairs the cutover keeps."""
         anted = sb_open_table(ante=10)
         straddled = paid_in(SB=SMALL_BLIND, BB=BIG_BLIND, BTN=2 * BIG_BLIND, LJ=600)
 
@@ -654,9 +646,9 @@ class TestForcedMoney:
         """Reconstruction is against the blinds *and each seat's own recorded actions*. The small
         blind holds 100 where its blind alone predicts 50, and the extra fifty is a call it is
         recorded as making; comparing against the blinds and nothing else would call the most
-        common pot in a home game an anted one. Since the cutover the chart holds no limped spot
-        at all - the solve is `limp: false`, so `t6/d100/BB/SB:call` passes the selection rule and
-        has no node to derive from - so this refuses, which is why the code is read rather than the
+        common pot in a home game an anted one. The chart holds no limped spot at all - the solve
+        is `limp: false`, so `t6/d100/BB/SB:call` passes all three clauses and has no node to
+        derive from - so this refuses, which is why the code is read rather than the
         outcome counted: a limped pot must refuse for want of a cell, never for forced money."""
         outcome = strategy.decide(
             table_query(
@@ -677,11 +669,12 @@ class TestForcedMoney:
     ) -> None:
         """The negative control the whole detection rests on. A 2.5bb cutoff open at 50/100 with
         the big blind closing the action is the most ordinary spot the chart holds, and after the
-        cutover one of only five that face an open at all. A signal firing here replaces a bound
-        that over-refused with a rule that over-refuses differently. The button and the small
-        blind fold rather than sitting behind hero, which is both the street the big blind actually
-        acts on and the shape the committed node describes. Read as a chart hit, since what the
-        chart answers with runs into the same two-price question the depth tests step around."""
+        cutover one of the 25 facing an open - five of them the big blind's, where hero keeps fold,
+        call and three-bet. A signal firing here replaces a bound that over-refused with a rule
+        that over-refuses differently. The button and the small blind fold rather than sitting
+        behind hero, which is both the street the big blind actually acts on and the shape the
+        committed node describes. Read as a chart hit, since what the chart answers with and at
+        what price is another file's claim."""
         open_to, key = faced_open()
 
         found = charted(

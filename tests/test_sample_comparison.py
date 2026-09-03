@@ -1,11 +1,9 @@
 """Phase 08: ingesting a public hand corpus, and comparing the bot against real players.
 
-These tests are authored before any implementation exists and frozen before any is written,
-so they are the specification rather than a description of what got built. The one that
-matters most is `test_every_committed_hand_settles_to_the_corpus_oracle`: every other check
-here compares something this repo wrote against something else this repo wrote, and that one
-compares our settlement against a number published by somebody else.
-"""
+Authored before any implementation existed, so these are the specification rather than a
+description. The one that matters most is `test_every_committed_hand_settles_to_the_corpus_oracle`:
+every other check compares something this repo wrote against something else it wrote, and that one
+compares our settlement against somebody else's number."""
 
 from __future__ import annotations
 
@@ -78,9 +76,7 @@ def comparison(sample):
     return compare_committed_sample(sample)
 
 
-# --------------------------------------------------------------------------- #
-# Reading the corpus format
-# --------------------------------------------------------------------------- #
+# --- Reading the corpus format ---
 
 
 def test_a_corpus_hand_parses_into_the_fields_the_phase_needs(hand_zero) -> None:
@@ -99,8 +95,8 @@ def test_a_corpus_hand_parses_into_the_fields_the_phase_needs(hand_zero) -> None
 
 
 def test_every_seat_carries_its_dealt_hole_cards(hand_zero) -> None:
-    """The corpus reveals all six hands, which is what makes a comparison possible: a player
-    who folds preflop still has cards, and that spot is the one worth asking the chart about."""
+    # The corpus reveals all six hands, which is what makes a comparison possible: a player who
+    # folds preflop still has cards, and that is the spot worth asking the chart about.
     assert hand_zero.hole_cards == (
         ("Tc", "Qc"),
         ("8s", "4c"),
@@ -135,9 +131,7 @@ def test_the_corpus_settlement_is_never_computed_from_our_own_replay(hand_zero) 
     assert sum(hand_zero.finishing_stacks) == sum(hand_zero.starting_stacks)
 
 
-# --------------------------------------------------------------------------- #
-# Seats, the button, and positions
-# --------------------------------------------------------------------------- #
+# --- Seats, the button, and positions ---
 
 
 def test_seats_and_the_button_follow_the_corpus_blind_placement(hand_zero) -> None:
@@ -176,9 +170,7 @@ def test_the_first_voluntary_preflop_actor_is_the_seat_after_the_big_blind(hand_
     assert preflop[2].seat == 2
 
 
-# --------------------------------------------------------------------------- #
-# The action vocabulary, and the two amount meanings
-# --------------------------------------------------------------------------- #
+# --- The action vocabulary, and the two amount meanings ---
 
 
 def test_a_preflop_aggressive_action_becomes_a_raise_to_its_target_total(hand_zero) -> None:
@@ -245,18 +237,13 @@ def test_a_hand_the_converter_cannot_express_raises_with_a_named_reason() -> Non
     assert raised.value.reason
 
 
-# --------------------------------------------------------------------------- #
-# The oracle
-# --------------------------------------------------------------------------- #
+# --- The oracle ---
 
 
 def _settled_stacks(hand_zero_like, normalized) -> tuple[int, ...]:
-    """Each seat's final stack as the engine settles it, not as the corpus implies it. The
-    payouts come from `replay.settlement`, never from `normalized.result`, which the converter
-    derived from the corpus's own finishing stacks: sourcing them from `result` collapses the
-    expression back to those stacks whatever the engine did, so the comparison would hold
-    against an engine paying every pot to the wrong seat and would rest entirely on
-    `replay_hand`'s own guard, which is Phase 02 code this phase does not own."""
+    """Each seat's final stack as the engine settles it. Payouts come from `replay.settlement`,
+    never `normalized.result`, which the converter derived from the corpus's own finishing
+    stacks: sourcing them there collapses the expression back to those stacks regardless."""
     replay = replay_hand(normalized)
     by_seat = {player.seat: player.starting_stack for player in normalized.players}
     for seat, amount in replay.committed_by_seat.items():
@@ -273,8 +260,8 @@ def test_one_hand_settles_to_the_corpus_finishing_stacks(hand_zero) -> None:
 
 
 def test_every_committed_hand_settles_to_the_corpus_oracle(sample) -> None:
-    """The phase's central criterion, as one assertion. A single seat off by a single chip on a
-    single hand fails: an aggregate that nets to zero hides two errors that cancel."""
+    """The phase's central criterion, as one assertion: a single seat off by a single chip
+    on a single hand fails, since an aggregate netting to zero hides two errors."""
     mismatches = []
     for record in sample.records:
         settled = _settled_stacks(record.corpus, record.normalized)
@@ -284,19 +271,16 @@ def test_every_committed_hand_settles_to_the_corpus_oracle(sample) -> None:
     assert mismatches == []
 
 
-# A committed chopped pot: seats 0 and 3 take 2550 each of a 5100 pot. Named rather
-# than searched for so the test says which hand it rests on, and so a sample that no
-# longer contains it fails loudly instead of quietly testing nothing.
+# A committed chopped pot: seats 0 and 3 take 2550 each of a 5100 pot. Named rather than searched
+# for, so a sample that no longer holds it fails loudly rather than testing nothing.
 MISALLOCATED_SETTLEMENT_HAND = "pluribus/41/18"
 
 
 def test_a_settlement_that_misallocates_one_chip_is_refused(sample) -> None:
-    """The guard that turns the published stacks into an oracle, exercised not assumed. Every
-    committed hand settles correctly, so a green run proves the comparison exists but never
-    that it is load-bearing. Moving one chip between the two winners of a chopped pot leaves
-    the pot and the winning seats identical, so the payout comparison is the only check that
-    can catch it, and `corpus-settlement-check-disabled` in `verification/mutations.yml` is the
-    mutation that proves it does."""
+    """The guard that turns the published stacks into an oracle, exercised not assumed.
+    Moving one chip between the two winners of a chopped pot leaves the pot and the winning
+    seats identical, so the payout comparison is the only check that can catch it, and
+    `corpus-settlement-check-disabled` in `verification/mutations.yml` proves it does."""
     record = next(
         item for item in sample.records if item.corpus.hand_id == MISALLOCATED_SETTLEMENT_HAND
     )
@@ -314,9 +298,7 @@ def test_a_settlement_that_misallocates_one_chip_is_refused(sample) -> None:
         replay_hand(misallocated)
 
 
-# --------------------------------------------------------------------------- #
-# The committed sample itself
-# --------------------------------------------------------------------------- #
+# --- The committed sample itself ---
 
 
 def test_the_selection_rule_is_a_stride_over_a_stable_sort() -> None:
@@ -370,10 +352,8 @@ def test_the_sidecar_covers_every_committed_hand_and_nothing_else(sample) -> Non
 
 def test_the_sidecar_says_the_same_thing_as_the_corpus_text_it_describes(sample) -> None:
     """The largest committed file in the phase, checked rather than carried. Judgment call 3 put
-    the hole cards and the published stacks in a sidecar so the oracle would never sit inside
-    the record the replayer produces. Nothing reads it at run time, so without this the biggest
-    file in `data/samples` could disagree with the hands it describes and gates would stay
-    green."""
+    the hole cards and the published stacks in a sidecar so the oracle would never sit inside the
+    record the replayer produces, and nothing reads it at run time."""
     for record in sample.records:
         entry = sample.sidecar[record.corpus.hand_id]
 
@@ -390,13 +370,10 @@ def test_the_sidecar_says_the_same_thing_as_the_corpus_text_it_describes(sample)
 def test_the_all_in_coverage_the_documents_claim_is_the_coverage_the_sample_has(
     sample,
 ) -> None:
-    """The number three committed documents state about this sample, pinned to it.
-
-    They said 7, which counts only hands containing a preflop shove of a full stack. PHH writes
-    an aggressive action as the total its actor's street bet reaches, so a later-street all-in,
-    and every all-in reached by calling one, is invisible to that count. Every seat starts on
-    exactly 10,000 here, so committing the whole starting stack is all an all-in can be.
-    """
+    """The number three committed documents state about this sample, pinned to it. They said
+    7, counting only a preflop shove of a full stack: PHH writes an aggressive action as the
+    total its actor's street bet reaches, so a later-street all-in, and every all-in reached by
+    calling one, is invisible to that count."""
     all_in_hands = sum(
         1
         for record in sample.records
@@ -422,9 +399,7 @@ def test_the_sample_is_committed_and_readable_without_the_network(sample) -> Non
         assert Path(path).is_file()
 
 
-# --------------------------------------------------------------------------- #
-# What agreement means
-# --------------------------------------------------------------------------- #
+# --- What agreement means ---
 
 
 def test_a_minority_action_the_chart_mixes_counts_as_agreement() -> None:
@@ -476,9 +451,7 @@ def test_every_reported_rate_carries_the_count_it_was_computed_over(comparison) 
         assert 0 <= rate.numerator <= rate.denominator
 
 
-# --------------------------------------------------------------------------- #
-# Who is being compared
-# --------------------------------------------------------------------------- #
+# --- Who is being compared ---
 
 
 def test_the_machine_and_the_humans_are_reported_as_separate_populations(comparison) -> None:
@@ -495,9 +468,8 @@ def test_no_human_decision_is_counted_in_the_machine_population(comparison) -> N
 
 def test_no_rate_can_be_asked_for_without_naming_a_population(comparison) -> None:
     """The pooled rate has no way to be spelled, which is the only durable version. Judgment
-    call 7 forbids averaging the machine with the humans, and the first version of the action
-    split broke that rule by filtering on the action and nothing more. A convention would have
-    been broken the same way again; a required argument cannot be."""
+    call 7 forbids averaging the machine with the humans, and a convention would be broken the
+    same way the first action split broke it; a required argument cannot be."""
     with pytest.raises(TypeError):
         comparison.agreement_within(action="call")
 
@@ -533,48 +505,72 @@ def test_the_position_split_partitions_the_population_it_splits(comparison) -> N
 def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> None:
     """The finding this split exists for, pinned so it cannot quietly stop being true.
 
-    Calls are where the chart and real players part company, and phase 08 found the gap was not
-    spread across the table: it was the big blind, which was also the seat the chart refused
-    most often, above one decision in five. Both halves were asserted, because either alone
-    reads as a smaller problem than it is. The stage-4 pass of 2026-08-24 predicted the wrong
-    direction for each, reasoning that covering the big blind against every opener, three-bet
-    and four-bet would drive its refusal rate below a fifth. Re-measured over the 86 by a walk
-    over the committed export and the committed sample:
+    Phase 08 found that calls are where the chart and real players part company, and that the
+    gap was the big blind, which was also the seat the chart refused most often. Both halves
+    were asserted, since either alone reads as a smaller problem than it is. Both move under the
+    cutover and none of their numbers survives a chart answering 249 nodes where it answered 36
+    keys, so the ruled mechanism replaces them - nothing here can re-measure before the artifact
+    exists, and an invented figure would be a guess.
 
-    - the big blind refuses 118 of 361 human decisions, 32.7 percent, so its refusal rate
-      **rises**. 52 of the 118 face two raises or more, 43 face a single raise with a cold
-      caller beside it, and 23 face no raise at all - a limp. That is the multiway exclusion
-      and `limp: false`, neither of which is blind defence.
-    - the big blind is nonetheless the *least* refused seat, by a distance. The lojack, hijack,
-      cutoff and button each refuse above 95 percent, because their opening ranges are among
-      the fourteen the predicate retires, and the small blind refuses 70 percent.
-    - the seat where calls agree worst is no longer the big blind. It is the small blind, at
-      12.50 percent over 32 decisions, against the big blind's 88.71 over 124.
+    **The calling gap is now every seat but the big blind, and the merge is why.** Decision 45
+    keeps the bot's flats and merges them into its raises at the 20 non-big-blind spots facing
+    an open, which publish raise-or-fold; the five big-blind spots keep fold, call and raise. A
+    human who flat-calls an open therefore agrees in the big blind and disagrees at every other
+    seat, by construction rather than by any disagreement about which hands are worth playing -
+    the accepted defect "merged flats play differently", scored on a real corpus. Asserted as a
+    partition and not as an ordering of percentages, which depends on what else each seat was
+    scored on and is a measurement.
 
-    So the localisation survives and changed seats, and not because of a range disagreement: 28
-    of the 32 scored small-blind calls are at `t6/d100/SB/rfi`, whose menu is fold, raise and
-    jam. The solve is `limp: false`, so a limp there carries zero weight by construction and
-    every human limp is scored a disagreement; the other four calls are at three-bet and later
-    spots and all four agree. That is `CHART-HERO-MUST-NEVER-LIMP` meeting players who limp.
-    Pinned here is the shape rather than the rates, which the report reads against a
-    pre-registered band: which seat is worst, that it is measured over enough decisions to mean
-    something, which seat is best covered, and that it still leaves a third of it refused.
+    **No decision is refused for being an opening range.** A first-in spot is committed for each
+    of the five seats that can be first in, so a refusal naming a key ending `/rfi` would mean
+    they did not arrive. Under the 86 four such families were most of the table's silence -
+    lojack, hijack, cutoff and button each refused above 95 percent, while the big blind at 118
+    of 361 came out the *least* refused seat. Which seat is most refused now is unasserted and
+    recorded as unsettled: limped pots, squeezes and beyond-raise-depth spots still refuse.
+
+    The small blind's own mechanism survives intact and is kept: `t6/d100/SB/rfi` is a committed
+    opening range and the solve is `limp: false`, so every human limp there is scored a
+    disagreement. Dropped is the share it was asserted at - more than half the small blind's
+    scored calls - which any majority satisfied and which the cutover moves by widening that
+    denominator. So is `calls["BB"].denominator > 100`: which facing-an-open keys the exposure
+    clause kept is counted at 25 and never listed, so the floor is over the whole scored call
+    population instead.
     """
     calls = {
         position: comparison.agreement_within("humans", action="call", position=position)
         for position in REPORTED_POSITIONS
     }
 
-    # Before any ordering. `Rate.percent` reports 0.0 on an empty denominator, so a seat the
-    # cutover emptied would satisfy an ordering assertion by arithmetic rather than by
-    # measurement, and four of the six now answer only their own three-bet spots.
+    # `Rate.percent` reports 0.0 on an empty denominator, so an emptied seat satisfies a claim
+    # about rates by arithmetic rather than by measurement.
     for position, rate in calls.items():
         assert rate.denominator > 0, (position, calls)
+    assert sum(rate.denominator for rate in calls.values()) > 100, calls
 
-    assert calls["BB"].denominator > 100, calls["BB"]
-    for position in REPORTED_POSITIONS:
-        if position != "SB":
-            assert calls[position].percent > calls["SB"].percent, (position, calls)
+    # A cold call facing exactly one raise: the population decision 45 rules on. A scored
+    # row cannot be a limped pot reopened by a raise, since no committed spot holds a limp.
+    flats = [
+        row
+        for row in comparison.rows
+        if row.population == "humans"
+        and row.observed_action == "call"
+        and row.raises_faced == 1
+        and row.verdict in {AGREE, DISAGREE}
+    ]
+    defended = [row for row in flats if row.position == "BB"]
+    elsewhere = [row for row in flats if row.position != "BB"]
+
+    assert defended, "no scored blind defence, so the merge has nothing to be told from"
+    assert elsewhere, "no scored flat outside the blind, so the merge is untested"
+    assert all(row.verdict == DISAGREE for row in elsewhere), [
+        (row.position, row.asked_spot_key) for row in elsewhere if row.verdict == AGREE
+    ]
+    # The other side of the partition, and the reason the line above is about the merge
+    # rather than about the chart having no calls anywhere: a build that merged the big
+    # blind too would leave this one with nothing.
+    assert any(row.verdict == AGREE for row in defended), [
+        row.asked_spot_key for row in defended
+    ]
 
     limped_open = [
         row
@@ -586,27 +582,23 @@ def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> Non
         and row.asked_spot_key == "t6/d100/SB/rfi"
     ]
 
-    assert len(limped_open) > calls["SB"].denominator // 2, len(limped_open)
+    assert limped_open, "no human limp was scored against the small blind's own open"
     assert all(row.verdict == DISAGREE for row in limped_open)
 
-    refusal_rates = {
-        position: comparison.refusal_count("humans", position=position)
-        / comparison.decision_count("humans", position=position)
-        for position in REPORTED_POSITIONS
-    }
+    opening_refusals = [
+        row.asked_spot_key
+        for row in comparison.rows
+        if row.verdict == REFUSED and (row.asked_spot_key or "").endswith("/rfi")
+    ]
 
-    assert refusal_rates["BB"] > 0.2, refusal_rates
-    for position in REPORTED_POSITIONS:
-        if position != "BB":
-            assert refusal_rates[position] > refusal_rates["BB"], (position, refusal_rates)
+    assert opening_refusals == [], sorted(set(opening_refusals))
 
 
 def test_the_price_a_decision_faced_is_banded_only_where_a_band_means_something(
     comparison,
 ) -> None:
-    """A band around an opening size is only about decisions facing a single open. Facing
-    no raise there is no price to speak of, and facing two the price is a three-bet's.
-    Banding either against an opening size labels a figure with what it did not count."""
+    """A band around an opening size is only about decisions facing a single open: facing
+    no raise there is no price, and facing two the price is a three-bet's."""
     for row in comparison.rows:
         assert row.price_faced_bb >= 1.0
         if row.price_band is not None:
@@ -627,9 +619,7 @@ def test_only_preflop_decision_points_that_were_chosen_are_compared(comparison) 
         assert row.observed_action in {"fold", "check", "call", "bet", "raise"}
 
 
-# --------------------------------------------------------------------------- #
-# The refusal inventory, and the reports
-# --------------------------------------------------------------------------- #
+# --- The refusal inventory, and the reports ---
 
 
 def test_the_refusal_inventory_is_keyed_by_the_refusal_s_own_detail(comparison) -> None:
@@ -640,34 +630,39 @@ def test_the_refusal_inventory_is_keyed_by_the_refusal_s_own_detail(comparison) 
 
 
 def test_the_self_play_cross_reference_was_read_rather_than_defaulted(comparison) -> None:
-    """The claim this column carries - that real hands reach spots self-play never does - only
-    survives if the self-play side was read. An inventory that yielded nothing would mark every
-    spot NEW and read as the strongest version of the same claim.
+    """The claim this column carries - that real hands reach spots self-play never does - survives
+    only if the self-play side was read; an inventory yielding nothing marks every spot NEW.
 
     Phase 08 asserted both halves: that self-play had reached some of the corpus's gap spots,
-    and that it had missed others. The stage-4 pass of 2026-08-24 deleted the first on the
-    retired reach floor - self-play reaching an uncovered spot with probability 0.00046 a hand,
-    so the 600-hand run behind `reports/active/latest_refusal_inventory.txt` expects 0.28
-    refusals and asserting an overlap would be asserting a coin flip. Under the ruled predicate
-    that inverts, so the half comes back. The 86 hold one opening range and it is the small
-    blind's, so at a six-handed table the lojack opens every hand into nothing and a refusal
-    ends the hand: the self-play run refuses 600 of 600 hands at `t6/d100/LJ/rfi`, one distinct
-    spot rather than today's 126 refusals over 25. That spot is the corpus's most-reached gap
-    as well - 499 hands, one per hand in the sample - so the overlap is a certainty. Both
-    halves are asserted, and the second carries the claim: the corpus still reaches spots
-    self-play never will, because self-play never gets past the first decision in a hand.
+    and that it had missed others. Both were written `any(...)`, the shape the cutover breaks
+    silently rather than loudly. They partition the inventory, so once the spot set moves
+    underneath them both can still hold while the column has stopped being a reading of anything
+    - True by default satisfies the first, False the second, each held up by rows the other half
+    was about. Asserted instead is the column's definition: `seen_in_self_play` is exactly
+    membership of `_self_play_spots()`, recomputed from the same read, then both halves on sets.
 
-    `_self_play_spots` raises on an empty read instead of returning an empty set, which is what
-    stops every spot silently becoming NEW, and the test below pins that it keeps raising. Both
-    overlap assertions read a rendered report rather than a structured file, so they depend on
-    it being regenerated in the same commit as the chart: a stale inventory naming the retired
-    chart's gaps is a cross-reference that lies. `SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS` was
-    filed on the deleted reading and needs restating against this one.
-    """
-    assert comparison_module._self_play_spots()
-    assert comparison.refusal_inventory
-    assert any(entry.seen_in_self_play for entry in comparison.refusal_inventory)
-    assert any(not entry.seen_in_self_play for entry in comparison.refusal_inventory)
+    The overlap is no longer a certainty argued from one spot. Under the 86 the lojack opened
+    every self-play hand into a retired key the corpus reached once a hand; all five opening
+    ranges are committed now, so self-play refuses past the committed raise depth instead. The
+    corpus reaches those too, by an argument this file cannot close yet, so a red at stage 6 is
+    a finding about two refusal sets rather than a threshold to loosen.
+
+    Both halves read a rendered report, so they depend on it being regenerated in the same commit
+    as the chart: a stale inventory naming the retired chart's gaps lies.
+    `SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS` was filed on the deleted reading and needs
+    restating against this one."""
+    reached = comparison_module._self_play_spots()
+    inventory = comparison.refusal_inventory
+    named = {entry.spot_key for entry in inventory}
+    seen = {entry.spot_key for entry in inventory if entry.seen_in_self_play}
+    unseen = {entry.spot_key for entry in inventory if not entry.seen_in_self_play}
+
+    assert reached
+    assert inventory
+    assert seen == named & reached, sorted(seen.symmetric_difference(named & reached))
+    assert unseen == named - reached, sorted(unseen.symmetric_difference(named - reached))
+    assert seen, "no corpus gap spot is one self-play reaches, so the overlap half is gone"
+    assert unseen, "self-play reaches every corpus gap spot, so the NEW half is gone"
 
 
 def test_an_unreadable_self_play_inventory_fails_loudly_rather_than_emptily(
@@ -695,5 +690,11 @@ def test_the_refusal_inventory_is_ordered_most_reached_first(comparison) -> None
 
 
 def test_the_inventory_says_which_spots_the_self_play_run_never_reached(comparison) -> None:
-    for entry in comparison.refusal_inventory:
-        assert entry.seen_in_self_play in {True, False}
+    """The column's values; the test above owns its definition. `in {True, False}` was the whole
+    body and admits 1, 0 and 1.0 as well as an empty inventory, so a column carrying a count read
+    the same - `render_refusal_inventory` prints NEW on falsiness and would print it for 0."""
+    flags = [entry.seen_in_self_play for entry in comparison.refusal_inventory]
+
+    assert flags
+    assert all(isinstance(flag, bool) for flag in flags)
+    assert set(flags) == {True, False}, "the column reads the same at every spot"

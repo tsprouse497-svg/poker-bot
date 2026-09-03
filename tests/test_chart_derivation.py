@@ -1,156 +1,177 @@
 """Phase 14: which solved nodes become committed spots, and why the others do not.
 
 Authored at stage 4, before the derivation the rulings require exists, so this file is the
-specification rather than a description of what got built. It owns the predicate, the three
-withholdings that take forty-five spots back, the six-way census and the five exclusion codes.
-`test_chart_conversion.py` owns what a committed row costs and `test_chart_arrival_probability.py`
-the walk's own tests; both import this file's nodes rather than copying them.
+specification rather than a description of what got built. It owns the selection rule: the three
+clauses each tested alone, no clause co-extensive with another, multiway exposure as a measured
+walk to the leaves, and the committed 249 with the coverage it carries. It is also where this
+phase's counts, walk and named nodes live, and every other file imports them from here.
 
-**Four rulings decide the committed set, and they stay separate because they are separate
-rulings.** Decision 1 keeps a node when at most one opponent has voluntarily invested beyond the
-blinds *and* at most two players are still live; it selects **51**. Decision 20 withholds the
-fifteen where hero **faces a four-bet**, the `calibrated` fit having no four-bet-pot cell.
-Taylor's first ruling of 2026-09-01 withholds the fifteen where hero **faces a five-bet jam**,
-hero's answer to a jam range computed at those very nodes. His second withholds the fifteen
-where hero **faces a three-bet**, which sit above those nodes and weigh their own raise branch
-entirely on them. That leaves **6 committed**: the small blind's open, and the big blind's
-answer to each of the five opens.
+`test_chart_census.py` owns the four-bucket census, the closed reason vocabulary and its
+disjointness from the runtime miss codes, and what an excluded node does at the table;
+`test_chart_conversion.py` and `test_derived_chart.py` what a committed row holds;
+`test_chart_arrival_probability.py` the reach and arrival fields; `test_chart_cutover_evidence.py`
+the relations and the two counterfactual arms.
 
-**The three withheld families are exactly `raises_faced >= 2`, and are still counted apart**,
-because the census has to say which nodes a later fix recovers. The histogram over the 51 is 0
-raises 1 spot, 1 raise 5, 2 raises 15, 3 raises 15, 4 raises 15, so the committed 6 are 1 + 5.
-All three withheld counts are 15, so no total catches a build that swapped two of them.
+**Three clauses select the committed set, and they stay separate because they are separate
+rulings.** A node is committed when at most **two raises** are already in, nothing deeper
+(decision 35); when the share of its decision mass reaching a **multiway flop terminal** is below
+**ten percent**, measured over the branches the bot can take (decision 46); and when it is **not**
+a big-blind squeeze spot - hero is the big blind, faces an open, and a cold caller is already in
+(decision 48). That selects **249** of 33,969: 5 first-in, 25 facing an open, 219 facing a
+three-bet, carrying **98.5949** percent of preflop decisions.
 
-**Why the three-bet spots went, in poker.** Over the twenty-one spots committed until
-2026-09-01 there are twenty places where a higher pocket pair is played less often than the pair
-one rank below, past decision 10's one-point tolerance, across twelve of the twenty-one. All
-twenty sit in three-bet-facing spots and none in the six that remain; seven are outright, the
-lojack folding 33 and playing 22 at 100 against four different three-bettors. The contract names
-that shape and its disposition - "A shape like that is a halt and a decision, not a caveat."
+**"The branches the bot can take" names one branch and no other.** Hero's **cold** call is
+removed and renormalised away; his call to a three-bet is not, and the big blind's defence never
+is (decision 52). The other readings of that phrase commit 257 with nothing removed and 361 with
+every hero call removed, so the wording is load-bearing rather than decorative, and this file
+measures the ruled one branch by branch instead of asserting the total it happens to produce.
 
-Every count is recomputed from the export by a walk written here, because a test that imports
-the rule it checks is one copy of a rule agreeing with another, and what is pinned is tree shape
-rather than solve output. **`selected` means committed** - sibling files import it - while
-`predicate_selects` is decision 1 alone and the three `faces_a_*` are the withholdings.
+**Why the third clause exists, in poker.** The ten are the only committed shape whose chart still
+offers hero a call into a multiway pot; the big blind's call stays in the measurement (decision
+52), and it is essentially all of their exposure. The filter misses them because hero's fold -
+93.33 percent at `LJ` opening and `HJ` calling - leaves that branch carrying 3.74 to 8.98 points,
+under the ten-percent line (`MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN`).
+
+Every count is recomputed from the export by a walk written here, because a test that imports the
+rule it checks is one copy of a rule agreeing with another, and what is pinned is tree shape
+rather than solve output. **`selected` means committed** - sibling files import it.
 """
 
 from __future__ import annotations
 
-import re
 from collections import Counter
+from dataclasses import dataclass
 
 import pytest
 
-# `lookup` as a module rather than by name for the derivation codes: the three decision 20 and
-# the 2026-09-01 rulings require do not exist until stage 6, and naming them here would hide
-# every assertion behind one ImportError.
-from poker_training_bot.solver_artifacts import lookup
 from poker_training_bot.solver_artifacts.gtopen_export import (
     COMMITTED_EXPORT_PATH,
-    COMMITTED_SOURCE_CARD_PATH,
-    QUANTISATION_SCALE,
     SolverExport,
     SolverNode,
-    class_combos,
-    gtopen_class_index,
     load_solver_export,
-    load_source_card,
 )
-from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES
-from poker_training_bot.solver_artifacts.lookup import MISS_CODES
 from poker_training_bot.solver_artifacts.schema import PreflopAction, spot_key
 
 TABLE_SIZE = 6
 DEPTH_BB = 100
 SEATS = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
 
-# The shape `lookup.py` uses for every refusal it publishes; the derivation codes share it.
-NAMESPACED_CODE = re.compile(r"\A[a-z]+:[a-z0-9-]+\Z")
+# --- The ruled numbers. Every one is in the contract or in the ExecPlan's ruled-numbers table,
+# and every one is re-derived below by this file's own walk of the export.
 
-# The three withholding reasons, spelled here because this file is what names them for stage 6.
-FOUR_BET_POT_CODE = "derivation:source-misprices-four-bet-pot"
-JAM_INHERITS_CODE = "derivation:inherits-a-mispriced-four-bet-node"
-THREE_BET_BRANCH_CODE = "derivation:weighs-a-mispriced-four-bet-branch"
-"""Three reasons rather than one repeated, because a reader has to tell which node is wrong.
-All three return by the same fix - a realization fit with a four-bet-pot cell - so by the
-contract's test one code would do. The four-bet node is itself mispriced; the jam node after it
-prices fine and `inherits` a range computed there; the three-bet node before it prices fine too
-and `weighs` its own raise branch on that node's value, the mispricing arriving from the child
-rather than the parent. The word is the contract's: the committed three-bet spots "weigh hero's
-four-bet on terminals the fit has no cell for"."""
-
-# Tree facts: decision 2 permits a re-solve at the ruled config and nothing else.
 EXPORTED_NODES = 33_969
-PREDICATE_NODES = 51
-COMMITTED_NODES = 6
-WITHHELD_THREE_BET_NODES = 15
-WITHHELD_FOUR_BET_NODES = 15
-WITHHELD_JAM_NODES = 15
-HISTORY_CLAUSE_NODES = 65
-SUBTREE_CLAUSE_NODES = 4_865
-HISTORY_BUT_NOT_CLEAN = 14
-RETIRED_FLOOR_BP = 200
-"""Decision 1's retired 2-percent reach floor, kept only to assert it selects nothing the ruled
-predicate does not - which is what made it a retirement rather than a retune."""
+COMMITTED_NODES = 249
+RAISES_FACED_WHEN_COMMITTED = {0: 5, 1: 25, 2: 219}
+EXPOSURE_REFUSED_NODES = 348
+BB_SQUEEZE_REFUSED_NODES = 10
+BEYOND_DEPTH_NODES = 33_362
+EXPOSURE_THRESHOLD_PCT = 10.0
+WIDEST_ADMITTED_EXPOSURE_PCT = 9.8642
+NARROWEST_REFUSED_EXPOSURE_PCT = 10.0234
+COVERAGE_PCT = 98.5949
+EXPOSURE_CODE = "derivation:multiway-exposure-above-threshold"
+SQUEEZE_CODE = "derivation:big-blind-squeeze-spot"
+DEPTH_CODE = "derivation:beyond-committed-raise-depth"
 
-# The other two buckets. A node with a multiway terminal still reachable takes the multiway
-# code, which a later phase reads to find what returns once GTOpen prices three-way.
-MISPRICED_MULTIWAY_NODES = 29_104
-OUTSIDE_RULE_NODES = 4_814
+COMMITTED_RAISE_DEPTH = 2
+"""At most two raises already in. Three is the four-bet family, which a later phase takes up."""
 
-# All three withholdings in one table: raises already in the pot, over the 51.
-RAISES_FACED_OVER_THE_PREDICATE = {0: 1, 1: 5, 2: 15, 3: 15, 4: 15}
-RAISES_FACED_WHEN_COMMITTED = {0: 1, 1: 5}
-THREE_BET_RAISE_COUNT = 2
-FOUR_BET_RAISE_COUNT = 3
-FIVE_BET_RAISE_COUNT = 4
-COMMITTED_UNDER_TWO_OR_MORE = 6
-"""What a single `raises_faced >= 2` filter commits: the right total since the second
-2026-09-01 ruling and still the wrong rule, unable to say which reason refused a node."""
+COVERAGE_BY_RAISES_FACED = {0: 51.9237, 1: 38.5422, 2: 8.1290}
+"""The three-way split of the 98.5949, decision 49. A split rather than a total, so that a build
+committing the right number of the wrong nodes is caught: the five opens alone are more than half
+of every preflop decision the bot ever faces."""
+
+NODES_AT_COMMITTED_DEPTH = 607
+"""What the raise-depth clause keeps on its own - 249 + 348 + 10 - and the domain decision 40
+measured over. The other two clauses are read here over the whole export, not over this."""
+
+EXPOSURE_REFUSALS_OVER_THE_WHOLE_EXPORT = 15_170
+BB_SQUEEZE_NODES_OVER_THE_WHOLE_EXPORT = 26
+"""Each clause read as a predicate over all 33,969 nodes rather than behind the others, which is
+the only way "no clause is co-extensive with another" is a claim about the clauses. Sixteen of the
+26 big-blind squeeze nodes are over the threshold too, so the census bucket holds ten and this
+count does not: the precedence is what makes the four buckets a partition."""
+
+COMMITTED_WITH_THREE_OR_MORE_LIVE = 186
+COMMITTED_HEADS_UP_ALREADY = 63
+"""Exposure is measured, not inferred from live players, and this is the gap between the two
+readings: 186 of the 249 still have three or more seats able to reach the flop. A live-player
+count would have refused every one of them and shipped 63 spots."""
+
+COMMITTED_WITH_A_CALLER_ALREADY_IN = 10
+COMMITTED_WITH_A_CALL_IN_THE_SEQUENCE = 194
+COMMITTED_AT_ZERO_EXPOSURE = 76
+THREE_BET_SPOTS_WITH_ANY_EXPOSURE = 149
+
+BB_SQUEEZE_FOLD_PCT = 93.33
+BB_SQUEEZE_CALL_PCT = 3.58
+BB_SQUEEZE_RAISE_PCT = 3.09
+"""Decision 48's measurement at `LJ` opens, `HJ` calls. The fold keeps hero's call branch small
+enough to slip the ten-percent threshold; it does not name the ten, three committed siblings on
+the same sequence folding harder. The test carries the rule that does."""
+
+SPLIT_LEAK_PCT = 0.05
+"""A terminal split does not close on exactly 100. Mass reaching a node no hand class arrives at
+is dropped rather than redistributed, the solve publishing no strategy to redistribute it by, and
+over the committed 249 the largest shortfall measured here is under three hundredths of a point.
+Pinned as a tolerance so that a build losing a whole branch cannot hide inside it."""
+
+# --- The nodes this file names, because this file is what names nodes for the phase. ---
+
+# The lojack's own open: the first decision of the hand, and the widest-arriving committed spot.
+LOJACK_OPEN_PATH: tuple[int, ...] = ()
+LOJACK_OPEN_KEY = "t6/d100/LJ/rfi"
+
+# The small blind opening a folded pot: the one committed spot with nobody left to act behind,
+# where `CHART-HERO-MUST-NEVER-LIMP` holds by construction and exposure is exactly zero.
+SB_OPEN_PATH = (0, 0, 0, 0)
+SB_OPEN_KEY = "t6/d100/SB/rfi"
 
 # The spot the contract asks a non-coding reviewer to follow end to end: the big blind closing
-# against a button open on fold, call and a three-bet to 7.5, six-max's most-played decision.
+# against a button open, six-max's most-played decision.
 TRACED_PATH = (0, 0, 0, 1, 0)
 TRACED_KEY = "t6/d100/BB/BTN:raise@2.5"
 TRACED_SEQUENCE = (PreflopAction("BTN", "raise", 2.5),)
 
-# The one opening range the cutover commits, and the only committed spot offering hero a raise
-# and no call - `CHART-HERO-MUST-NEVER-LIMP` holding by construction.
-SB_OPEN_PATH = (0, 0, 0, 0)
-SB_OPEN_KEY = "t6/d100/SB/rfi"
+# Decision 45's worked example: the small blind against a lojack open, defending 9.99 percent,
+# whose call weight merges into its raise because the bot may not cold-call.
+MERGED_FLAT_PATH = (1, 0, 0, 0)
+MERGED_FLAT_KEY = "t6/d100/SB/LJ:raise@2.5"
 
-# The five opens the big blind answers; with the small blind's own open they are the six spots
-# hero reaches without having acted, and since the third withholding they are the whole chart.
-OPENERS = ("LJ", "HJ", "CO", "BTN", "SB")
-FULL_REACH_SPOTS = 6
+# A cold call in front of hero, committed anyway: the cutoff answering a lojack open the hijack
+# flatted. One of the ten, and the reason the third clause is about a seat and not about a call.
+COLD_CALLED_COMMITTED_PATH = (1, 1)
+COLD_CALLED_COMMITTED_KEY = "t6/d100/CO/LJ:raise@2.5,HJ:call"
+COLD_CALLED_COMMITTED_SEQUENCE = (
+    PreflopAction("LJ", "raise", 2.5),
+    PreflopAction("HJ", "call"),
+)
 
-# The button opens, the small blind flats, the big blind three-bets, the small blind acts. One
-# of the 4,814: heads-up from here on, but reached through a cold call.
-COLD_CALLED_PATH = (0, 0, 0, 1, 1, 2, 0)
-COLD_CALLED_KEY = "t6/d100/SB/BTN:raise@2.5,SB:call,BB:raise@7.5"
-COLD_CALLED_SEQUENCE = (
-    PreflopAction("BTN", "raise", 2.5),
+# The same board with the big blind as hero, and refused: decision 48's named spot.
+BB_SQUEEZE_PATH = (1, 1, 0, 0, 0)
+BB_SQUEEZE_KEY = "t6/d100/BB/LJ:raise@2.5,HJ:call"
+BB_SQUEEZE_SEQUENCE = COLD_CALLED_COMMITTED_SEQUENCE
+
+# The margin, both ends. Sixteen hundredths of a point apart, and the report publishes both.
+WIDEST_ADMITTED_PATH = (1, 1, 2, 1, 0)
+WIDEST_ADMITTED_KEY = "t6/d100/BB/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call"
+WIDEST_ADMITTED_SPLIT = (0.7637, 89.3721, WIDEST_ADMITTED_EXPOSURE_PCT)
+NARROWEST_REFUSED_PATH = (0, 1, 1, 1, 1, 2, 0, 0)
+NARROWEST_REFUSED_KEY = "t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5"
+NARROWEST_REFUSED_SEQUENCE = (
+    PreflopAction("HJ", "raise", 2.5),
+    PreflopAction("CO", "call"),
+    PreflopAction("BTN", "call"),
     PreflopAction("SB", "call"),
     PreflopAction("BB", "raise", 7.5),
 )
 
-# One of the 14 the 2026-08-25 supersession drops, and the sharpest: the lojack's own open,
-# every terminal below it able to go multiway.
-LOJACK_OPEN_PATH: tuple[int, ...] = ()
-LOJACK_OPEN_KEY = "t6/d100/LJ/rfi"
-
-# Hero faces a three-bet: the button opens, the small blind folds, the big blind makes it 7.5,
-# the button holds fold, call or a four-bet to 22.5. The second 2026-09-01 ruling's, that 22.5
-# branch running into the node below, which decision 20 refuses.
+# Hero faces a three-bet and is committed: two raises in is the deepest the phase ships.
 THREE_BET_FACED_PATH = (0, 0, 0, 1, 0, 2)
 THREE_BET_FACED_KEY = "t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5"
-THREE_BET_FACED_SEQUENCE = (
-    PreflopAction("BTN", "raise", 2.5),
-    PreflopAction("BB", "raise", 7.5),
-)
 
-# One action later: hero faces a four-bet, holding fold, call or the stack. Decision 20's.
-FOUR_BET_FACED_PATH = (*THREE_BET_FACED_PATH, 2)
+# One action later, and refused: the four-bet family a later phase takes up.
+FOUR_BET_FACED_PATH = (0, 0, 0, 1, 0, 2, 2)
 FOUR_BET_FACED_KEY = "t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5"
 FOUR_BET_FACED_SEQUENCE = (
     PreflopAction("BTN", "raise", 2.5),
@@ -158,539 +179,522 @@ FOUR_BET_FACED_SEQUENCE = (
     PreflopAction("BTN", "raise", 22.5),
 )
 
-# One action later again, the first 2026-09-01 ruling's: the big blind jams, the button answers
-# with 22.5 in, and the 77.5bb call-off is priced against a range computed at the node above.
-FIVE_BET_JAM_PATH = (*FOUR_BET_FACED_PATH, 2)
-FIVE_BET_JAM_KEY = "t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5,BB:raise@100"
-FIVE_BET_JAM_SEQUENCE = (*FOUR_BET_FACED_SEQUENCE, PreflopAction("BB", "raise", 100.0))
-FIVE_BET_CALL_OFF_BB = 77.5
 
-# The jam spot that actually carries the rank inversion, corrected on 2026-09-01: the lojack's,
-# not the button's. Here KK calls 72.84 against QQ at 94.29 and AKs calls 0.00 after four-betting
-# it to 22.5 at 100, where at the button's jam spot above AA, KK, QQ and AKs all call 100.00 and
-# there is no inversion. Asserted in `tests/test_chart_arrival_probability.py`, which has the
-# room; the node is named here because this file names the nodes.
-INVERTED_JAM_PATH = (1, 0, 0, 0, 0, 2, 2, 2)
-INVERTED_JAM_KEY = "t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5,BB:raise@100"
-
-
-# --- fixtures, and the definitions this file refuses to import ---
+# --- The walk, and the definitions this file refuses to import ---
 
 
 def derivation():
-    """The module stage 6 finishes, imported inside the call rather than at module scope: a
-    module-scope import of something that may not exist yet stops the file collecting and hides
-    every assertion behind one ImportError - `LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS`."""
+    """The module stage 6 finishes, imported inside the call rather than at module scope, so a
+    rewrite that renames it fails one test rather than stopping the file collecting."""
     import poker_training_bot.solver_artifacts.chart_derivation as module
+
     return module
 
 
-def published_code(name: str) -> str | None:
-    """One of the three new reasons as `lookup` publishes it, or None while it is unwritten.
-    `getattr` on purpose: naming an attribute stage 6 has not added raises inside the test body
-    and proves nothing, where a None fails on an assertion naming what is missing."""
-    return getattr(lookup, name, None)
+@dataclass(frozen=True)
+class Walk:
+    """Everything this file measures, taken once over the export."""
+
+    by_path: dict[tuple[int, ...], SolverNode]
+    folded: dict[tuple[int, ...], frozenset[str]]
+    invested: dict[tuple[int, ...], frozenset[str]]
+    sequence: dict[tuple[int, ...], tuple[PreflopAction, ...]]
+    frequency: dict[tuple[int, ...], tuple[float, ...]]
+    below: dict[tuple[int, ...], tuple[float, float, float]]
+    arrival: dict[tuple[int, ...], float]
 
 
-@pytest.fixture(scope="module")
-def export() -> SolverExport:
-    assert COMMITTED_EXPORT_PATH.exists(), f"no committed export at {COMMITTED_EXPORT_PATH}"
-    return load_solver_export(COMMITTED_EXPORT_PATH)
+_WALKS: dict[int, tuple[SolverExport, Walk]] = {}
 
 
-@pytest.fixture(scope="module")
-def by_path(export: SolverExport) -> dict[tuple[int, ...], SolverNode]:
-    return export.by_path()
+def _outcome(by_path, folded, below, node: SolverNode, index: int) -> tuple[float, float, float]:
+    """Where one branch ends up: hand over preflop, heads-up flop, multiway flop.
+
+    A branch with a child carries the child's own split. A branch without one is a terminal, and
+    what it is a terminal *of* is read off the seats still live after it: one seat means
+    everybody folded, two a heads-up flop, three or more a multiway flop. That last is the
+    quantity the calibrated fit has no cell for, and it is a property of the leaf rather than of
+    the node, which is why it is walked to instead of inferred at the top.
+    """
+    child = (*node.path, index)
+    if child in by_path:
+        return below[child]
+    live = len(SEATS) - len(folded[node.path])
+    if node.actions[index].kind == "fold":
+        live -= 1
+    return (float(live == 1), float(live == 2), float(live >= 3))
 
 
-@pytest.fixture(scope="module")
-def derived(export: SolverExport):
-    return derivation().derive_chart(export)
-
-
-@pytest.fixture(scope="module")
-def counted(export: SolverExport):
-    return derivation().census(export)
-
-
-def walk_state(
-    by_path: dict[tuple[int, ...], SolverNode],
-) -> dict[tuple[int, ...], tuple[frozenset[str], frozenset[str], tuple[PreflopAction, ...]]]:
-    """Who has folded, who has voluntarily invested, and what hero faces, at every node.
-    Written here rather than imported, because the predicate is on trial. Blinds are posted and
-    never appear in the tree, so "voluntarily invested" is exactly "took a call, a raise or a
-    jam"; an opener who later folds to a three-bet still counts."""
-    state = {(): (frozenset(), frozenset(), ())}
+def _build_walk(export: SolverExport) -> Walk:
+    by_path = export.by_path()
+    folded = {(): frozenset()}
+    invested = {(): frozenset()}
+    sequence: dict[tuple[int, ...], tuple[PreflopAction, ...]] = {(): ()}
     for path in sorted(by_path, key=len):
         node = by_path[path]
-        folded, invested, entries = state[path]
         for index, action in enumerate(node.actions):
             child = (*path, index)
             if child not in by_path:
                 continue
             if action.kind == "fold":
-                state[child] = (folded | {node.actor_pos}, invested, entries)
+                folded[child] = folded[path] | {node.actor_pos}
+                invested[child] = invested[path]
+                sequence[child] = sequence[path]
             elif action.kind in ("call", "raise", "jam"):
-                called = action.kind == "call"
-                entry = PreflopAction(
-                    node.actor_pos, "call" if called else "raise", None if called else action.to
+                entry = (
+                    PreflopAction(node.actor_pos, "call")
+                    if action.kind == "call"
+                    else PreflopAction(node.actor_pos, "raise", float(action.to))
                 )
-                state[child] = (folded, invested | {node.actor_pos}, (*entries, entry))
+                folded[child] = folded[path]
+                invested[child] = invested[path] | {node.actor_pos}
+                sequence[child] = (*sequence[path], entry)
             else:
                 raise AssertionError(f"node {path} offers an unhandled kind {action.kind!r}")
-    return state
+    frequency = {
+        node.path: tuple(node.action_frequency(index) for index in range(len(node.actions)))
+        for node in export.nodes
+    }
+    below: dict[tuple[int, ...], tuple[float, float, float]] = {}
+    for path in sorted(by_path, key=len, reverse=True):
+        node = by_path[path]
+        totals = [0.0, 0.0, 0.0]
+        for index in range(len(node.actions)):
+            share = frequency[path][index]
+            if not share:
+                continue
+            outcome = _outcome(by_path, folded, below, node, index)
+            for slot in range(3):
+                totals[slot] += share * outcome[slot]
+        below[path] = (totals[0], totals[1], totals[2])
+    arrival = {(): 1.0}
+    for path in sorted(by_path, key=len):
+        for index in range(len(by_path[path].actions)):
+            child = (*path, index)
+            if child in by_path:
+                arrival[child] = arrival[path] * frequency[path][index]
+    return Walk(by_path, folded, invested, sequence, frequency, below, arrival)
 
 
-@pytest.fixture(scope="module")
-def walked(by_path: dict[tuple[int, ...], SolverNode]) -> dict:
-    state = walk_state(by_path)
-    assert len(state) == len(by_path), "the walk did not reach every node"
-    return state
+def walk_of(export: SolverExport) -> Walk:
+    """The walk for one export, built once. The export is held beside its walk so the identity
+    the cache is keyed on cannot be recycled onto a different object."""
+    cached = _WALKS.get(id(export))
+    if cached is not None and cached[0] is export:
+        return cached[1]
+    built = _build_walk(export)
+    _WALKS[id(export)] = (export, built)
+    return built
 
 
-def history_clause(node: SolverNode, state) -> bool:
-    """At most one opponent has voluntarily put money in beyond the blinds."""
-    _, invested, _ = state[node.path]
-    return len(invested - {node.actor_pos}) <= 1
-
-
-def subtree_clause(node: SolverNode, state) -> bool:
-    """At most two players are still live, so every terminal below is heads-up - the clause the
-    history reading was missing. The product approximation bites at *terminals* and a strategy
-    is worked out backwards from every terminal below the node, so heads-up-ness is a statement
-    about the reachable subtree rather than about the action history."""
-    folded, _, _ = state[node.path]
-    return len(SEATS) - len(folded) <= 2
-
-
-def predicate_selects(node: SolverNode, state) -> bool:
-    """Decision 1 on its own: the conjunction, and the 51 it keeps."""
-    return history_clause(node, state) and subtree_clause(node, state)
-
-
-def raises_faced(node: SolverNode, state) -> int:
+def raises_faced(walk: Walk, node: SolverNode) -> int:
     """How many raises are already in the pot hero is being asked about."""
-    return sum(1 for entry in state[node.path][2] if entry.action == "raise")
+    return sum(1 for entry in walk.sequence[node.path] if entry.action == "raise")
 
 
-def faces_a_three_bet(node: SolverNode, state) -> bool:
-    """The second 2026-09-01 ruling: hero faces the second raise, so his own raise branch is a
-    four-bet the fit cannot price. Exactly two, never two or more."""
-    return raises_faced(node, state) == THREE_BET_RAISE_COUNT
+def within_raise_depth(walk: Walk, node: SolverNode) -> bool:
+    """Clause one: at most two raises in, nothing deeper."""
+    return raises_faced(walk, node) <= COMMITTED_RAISE_DEPTH
 
 
-def faces_a_four_bet(node: SolverNode, state) -> bool:
-    """Decision 20: hero faces the third raise, so the pot is a four-bet pot the `calibrated`
-    fit has no cell for. Exactly three, never three or more."""
-    return raises_faced(node, state) == FOUR_BET_RAISE_COUNT
+def cold_call_index(walk: Walk, node: SolverNode) -> int | None:
+    """Hero's cold call, which is the one branch decision 46 removes.
+
+    Cold means hero has put nothing in beyond the blinds. The big blind is never cold - it has
+    posted, and decision 52 keeps its defence inside the measurement - and a seat that opened and
+    now faces a three-bet is not cold either, so its call stays. Both exemptions are load-bearing:
+    dropping the second commits 361 nodes with 321 three-bet-facing spots instead of 219.
+    """
+    if node.actor_pos == "BB" or node.actor_pos in walk.invested[node.path]:
+        return None
+    for index, action in enumerate(node.actions):
+        if action.kind == "call":
+            return index
+    return None
 
 
-def faces_a_five_bet_jam(node: SolverNode, state) -> bool:
-    """The first 2026-09-01 ruling: hero faces the fourth raise, which is the stack. Its own
-    predicate rather than "three or more" because the families take different codes."""
-    return raises_faced(node, state) == FIVE_BET_RAISE_COUNT
+def terminal_split_pct(walk: Walk, node: SolverNode) -> tuple[float, float, float]:
+    """Where a node's decision mass ends up, over the branches the bot can take.
+
+    Three percentages: the hand over before a flop, a heads-up flop, a multiway flop. Hero's cold
+    call is removed and the rest renormalised, which is what "over the branches the bot can take"
+    means and all it means.
+    """
+    cold = cold_call_index(walk, node)
+    totals = [0.0, 0.0, 0.0]
+    mass = 1.0
+    for index in range(len(node.actions)):
+        share = walk.frequency[node.path][index]
+        if index == cold:
+            mass -= share
+            continue
+        outcome = _outcome(walk.by_path, walk.folded, walk.below, node, index)
+        for slot in range(3):
+            totals[slot] += share * outcome[slot]
+    if mass <= 0.0:
+        return (0.0, 0.0, 0.0)
+    return (100.0 * totals[0] / mass, 100.0 * totals[1] / mass, 100.0 * totals[2] / mass)
 
 
-def selected(node: SolverNode, state) -> bool:
-    """Committed: the predicate keeps it and no withholding takes it back."""
-    withheld = (
-        faces_a_three_bet(node, state)
-        or faces_a_four_bet(node, state)
-        or faces_a_five_bet_jam(node, state)
-    )
-    return predicate_selects(node, state) and not withheld
+def exposure_pct(walk: Walk, node: SolverNode) -> float:
+    """Clause two's measurement: the multiway-flop share of the split."""
+    return terminal_split_pct(walk, node)[2]
 
 
-def key_of(node: SolverNode, state) -> str:
-    return spot_key(TABLE_SIZE, DEPTH_BB, node.actor_pos, state[node.path][2])
+def below_exposure_threshold(walk: Walk, node: SolverNode) -> bool:
+    return exposure_pct(walk, node) < EXPOSURE_THRESHOLD_PCT
 
 
-def measured_reach_bp(node: SolverNode) -> float:
-    """Arriving reach spelled out rather than imported from the module under test: the plain
-    mean over the 169 hand classes, in basis points, read off the node's own row."""
-    return sum(node.reach_bp) / 169.0
-
-
-def combo_weighted_reach_bp(node: SolverNode) -> float:
-    """The same figure weighted by combinations - the plausible other definition."""
-    pairs = [(node.reach_bp[gtopen_class_index(n)], class_combos(n)) for n in HAND_CLASSES]
-    return sum(reach * combos for reach, combos in pairs) / sum(c for _, c in pairs)
-
-
-# --- Decision 1: the predicate, and the three rulings that hand it back ---
-
-
-def test_the_three_withholdings_are_counted_apart_though_together_they_are_two_or_more(
-    export: SolverExport, by_path: dict[tuple[int, ...], SolverNode], walked
-) -> None:
-    """The 51 down to 6, in three rulings that a single filter cannot tell apart.
-
-    Decision 20 refuses the four-bet pot the `calibrated` fit has no cell for. The first
-    2026-09-01 ruling refuses hero's answer to the jam after it, priced against a range computed
-    at that node. The second refuses hero facing a three-bet, whose only aggressive branch runs
-    straight into it: those spots exist to answer "do I four-bet" and weigh that branch on a
-    value the phase calls wrong. All three number 15, so a build swapping two balances totals."""
-    kept = [node for node in export.nodes if predicate_selects(node, walked)]
-    committed = [node for node in kept if selected(node, walked)]
-    three_bet = [node for node in kept if faces_a_three_bet(node, walked)]
-    four_bet = [node for node in kept if faces_a_four_bet(node, walked)]
-    jams = [node for node in kept if faces_a_five_bet_jam(node, walked)]
-    two_or_more = [n for n in kept if raises_faced(n, walked) >= THREE_BET_RAISE_COUNT]
-
-    assert len(kept) == PREDICATE_NODES
-    assert dict(Counter(raises_faced(n, walked) for n in kept)) == RAISES_FACED_OVER_THE_PREDICATE
-    assert len(committed) == COMMITTED_NODES
-    assert len(three_bet) == WITHHELD_THREE_BET_NODES
-    assert len(four_bet) == WITHHELD_FOUR_BET_NODES
-    assert len(jams) == WITHHELD_JAM_NODES
-    assert dict(Counter(raises_faced(n, walked) for n in committed)) == RAISES_FACED_WHEN_COMMITTED
-    assert len(kept) - len(two_or_more) == COMMITTED_UNDER_TWO_OR_MORE == COMMITTED_NODES
-    # The three families are disjoint and none is empty, so "counted apart" has something to
-    # bite on: a build folding one into another keeps the total and loses the reason.
-    families = [{n.path for n in family} for family in (three_bet, four_bet, jams)]
-    for index, family in enumerate(families):
-        assert family
-        for other in families[index + 1 :]:
-            assert family.isdisjoint(other)
-
-    raised_at = by_path[THREE_BET_FACED_PATH]
-    faced = by_path[FOUR_BET_FACED_PATH]
-    jammed = by_path[FIVE_BET_JAM_PATH]
-
-    assert key_of(raised_at, walked) == THREE_BET_FACED_KEY
-    assert key_of(faced, walked) == FOUR_BET_FACED_KEY
-    assert key_of(jammed, walked) == FIVE_BET_JAM_KEY
-    for node in (raised_at, faced, jammed):
-        assert predicate_selects(node, walked) and not selected(node, walked)
-    assert faces_a_three_bet(raised_at, walked) and not faces_a_four_bet(raised_at, walked)
-    assert faces_a_four_bet(faced, walked) and not faces_a_five_bet_jam(faced, walked)
-    assert faces_a_five_bet_jam(jammed, walked) and not faces_a_four_bet(jammed, walked)
-    # The chain the codes claim, read off the tree: hero's only aggressive answer at the
-    # three-bet spot leads to the four-bet spot, which leads to the jam.
-    raising = [i for i, a in enumerate(raised_at.actions) if a.kind in ("raise", "jam")]
-    assert len(raising) == 1 and (*raised_at.path, raising[0]) == FOUR_BET_FACED_PATH
-    assert jammed.path[:-1] == faced.path
-    # The jam is what hero answers rather than what hero can offer: fold, or call the whole
-    # 100 with 22.5 already in. That call-off is the 77.5 the first ruling refuses to advise.
-    assert [action.kind for action in jammed.actions] == ["fold", "call"]
-    call = next(action for action in jammed.actions if action.kind == "call")
-    assert call.to == 100.0
-    assert call.to - 22.5 == FIVE_BET_CALL_OFF_BB
-    # Hero is never offered a jam at a committed spot and never has to answer one either, so
-    # nothing the chart ships puts a whole stack in preflop.
-    assert all(action.kind != "jam" for node in committed for action in node.actions)
-    assert all(action.to != 100.0 for node in committed for action in node.actions)
-
-
-def test_arriving_reach_is_the_plain_mean_and_the_retired_floor_selects_nothing_extra(
-    export: SolverExport, by_path: dict[tuple[int, ...], SolverNode], walked
-) -> None:
-    """The definition checked against the export rather than against itself, and decision 1's
-    retired 2-percent floor asserted redundant rather than deleted.
-
-    Reach stayed a published measurement after it stopped being the selection rule, so its
-    definition is still pinned, the combo-weighted reading being a different number for the same
-    words. They are separated over the whole export rather than the committed set, where since
-    the third withholding every node sits at full reach and the readings agree exactly. The floor
-    stays asserted because "no threshold is needed" is only checkable against the one replaced."""
-    def gap(node: SolverNode) -> float:
-        return abs(measured_reach_bp(node) - combo_weighted_reach_bp(node))
-
-    committed = [node for node in export.nodes if selected(node, walked)]
-
-    assert gap(max(export.nodes, key=gap)) > 1.0
-    assert len(committed) == COMMITTED_NODES
-    assert [n for n in committed if measured_reach_bp(n) >= RETIRED_FLOOR_BP] == committed
-    assert not hasattr(derivation(), "REACH_FLOOR_BP"), (
-        "the ruled predicate needs no threshold constant; a floor left in the module is a"
-        " second selection rule nobody ruled"
+def is_big_blind_squeeze(walk: Walk, node: SolverNode) -> bool:
+    """Clause three: hero is the big blind, faces an open, and a cold caller is already in."""
+    return (
+        node.actor_pos == "BB"
+        and raises_faced(walk, node) == 1
+        and any(entry.action == "call" for entry in walk.sequence[node.path])
     )
 
-    named = by_path[COLD_CALLED_PATH]
-    assert derivation().node_reach_bp(named) == pytest.approx(sum(named.reach_bp) / 169.0)
-    for node in export.nodes:
-        assert abs(derivation().node_reach_bp(node) - measured_reach_bp(node)) < 1e-6, node.path
+
+def is_committed(walk: Walk, node: SolverNode) -> bool:
+    """All three clauses, in the order the census files a refusal under."""
+    return (
+        within_raise_depth(walk, node)
+        and below_exposure_threshold(walk, node)
+        and not is_big_blind_squeeze(walk, node)
+    )
 
 
-def test_the_committed_spots_are_exactly_what_the_predicate_selects(
-    export: SolverExport, walked, derived
+def selected(export: SolverExport) -> tuple[SolverNode, ...]:
+    """The committed 249, walked here rather than asked of the rule under test."""
+    walk = walk_of(export)
+    return tuple(node for node in export.nodes if is_committed(walk, node))
+
+
+def key_of(walk: Walk, node: SolverNode) -> str:
+    return spot_key(TABLE_SIZE, DEPTH_BB, node.actor_pos, walk.sequence[node.path])
+
+
+def coverage_pct(walk: Walk, nodes) -> float:
+    """The share of preflop decisions a set of nodes carries: its arrival mass over the tree's."""
+    total = sum(walk.arrival.values())
+    return 100.0 * sum(walk.arrival[node.path] for node in nodes) / total
+
+
+@pytest.fixture(scope="session")
+def export() -> SolverExport:
+    assert COMMITTED_EXPORT_PATH.exists(), f"no committed export at {COMMITTED_EXPORT_PATH}"
+    return load_solver_export(COMMITTED_EXPORT_PATH)
+
+
+@pytest.fixture(scope="session")
+def walked(export: SolverExport) -> Walk:
+    walk = walk_of(export)
+    assert len(walk.sequence) == export.node_count, "the walk did not reach every node"
+    return walk
+
+
+@pytest.fixture(scope="session")
+def committed(export: SolverExport) -> tuple[SolverNode, ...]:
+    return selected(export)
+
+
+# --- The three clauses, each alone ---
+
+
+def test_the_raise_depth_clause_alone_keeps_607_and_names_the_four_bet_family(
+    export: SolverExport, walked: Walk
 ) -> None:
-    """The artifact holds every ruling's answer, not a subset chosen somewhere else.
+    """Clause one on its own, in the converter and never as a node list.
 
-    Computed from the export by hand, then compared against what the derivation emitted, so a
-    build that dropped an awkward spot fails even though its census adds up. The six are named
-    outright, being few enough to list and a claim a reader checks against the poker: the small
-    blind opening a folded pot, the big blind answering each open. The refused ones are named
-    apart because a build applying two withholdings and not the third lands on 21."""
-    expected = {key_of(node, walked) for node in export.nodes if selected(node, walked)}
-    committed = set(derived.artifact_payload["action_weights"])
-    named = {SB_OPEN_KEY} | {
-        f"t{TABLE_SIZE}/d{DEPTH_BB}/BB/{opener}:raise@2.5" for opener in OPENERS
-    }
+    Two raises in is the deepest the phase ships. The clause is a statement about the pot hero is
+    being asked about rather than about the actions in front of him: a seat that opened, got
+    three-bet and is now choosing is at two raises and stays, and the seat answering the four-bet
+    after it is at three and goes. It owns the one bucket big enough to hide a whole family in,
+    so its two halves are asserted against the export's own node total as well as apart.
+    """
+    module = derivation()
+    kept = [node for node in export.nodes if within_raise_depth(walked, node)]
+    beyond = [node for node in export.nodes if not within_raise_depth(walked, node)]
 
-    assert len(expected) == COMMITTED_NODES, "the committed spots collide in the key grammar"
-    assert expected == named
-    assert committed == expected
-    assert THREE_BET_FACED_KEY not in committed
-    assert FOUR_BET_FACED_KEY not in committed
-    assert FIVE_BET_JAM_KEY not in committed
-    for position in ("LJ", "HJ", "CO", "BTN"):
-        assert f"t{TABLE_SIZE}/d{DEPTH_BB}/{position}/rfi" not in committed
-    # No committed key records a second raise or a 100bb price, which is the three withholdings
-    # read off the artifact's own keys rather than off the walk that produced them.
-    for key in committed:
-        faced = key.split("/")[3]
-        assert "raise@100" not in faced, key
-        assert faced == "rfi" or faced.count(":raise@") <= 1, key
-
-
-def test_the_committed_set_has_the_measured_seat_depth_reach_and_menu_shape(
-    export: SolverExport, walked
-) -> None:
-    """The distributions the rulings that rest on the committed set were re-taken against.
-
-    Decisions 5, 6 and 10 were each first ruled on a count over a set this phase no longer
-    commits and each was restated against these; they are tree facts, so a re-solve at the ruled
-    config cannot move them. **Only depths 4 and 5 survive**: 6 is where hero faces a three-bet,
-    7 a four-bet, 8 the jam, so each withholding takes a whole layer. The three withheld seat
-    tables are asserted apart, and the three-bet and jam tables are identical seat for seat,
-    which is why a seat table cannot tell them apart and the codes must.
-
-    **Reach is folded in because it stopped distinguishing anything.** Every committed spot is
-    one hero reaches without having acted, so all six sit at full reach and all 1,014 cells read
-    10,000 basis points. Asserted as a measurement rather than left implied: decision 5's
-    argument for the field, telling a trained cell from a barely visited one, is unexercised over
-    what ships.
-
-    **And the menus, because a build that dropped an action passes every other check here.** Two
-    survive: five offering fold, call and a raise, and the small blind's own open offering fold
-    and a raise and no call, where `CHART-HERO-MUST-NEVER-LIMP` holds by construction. All six
-    carry a sizing entry, and every menu offers a fold, which is what makes "played rather than
-    folded" a quantity the dominance measurements can be taken in. **The prices are 2.5 and 7.5
-    and nothing else** - 22.5 was only offered facing a three-bet and 100 only facing a four-bet
-    - so the contract's "exactly [2.5, 7.5, 22.5]" is stale by one price."""
-    kept = [n for n in export.nodes if predicate_selects(n, walked)]
-    committed = [n for n in kept if selected(n, walked)]
-    three_bet = [n for n in kept if faces_a_three_bet(n, walked)]
-    four_bet = [n for n in kept if faces_a_four_bet(n, walked)]
-    jams = [n for n in kept if faces_a_five_bet_jam(n, walked)]
-    heads_up = [n for n in export.nodes if history_clause(n, walked)]
-    dropped = [n for n in heads_up if not subtree_clause(n, walked)]
-    dropped_by_seat = Counter(n.actor_pos for n in dropped)
-    deep = {"LJ": 5, "HJ": 4, "CO": 3, "BTN": 2, "SB": 1}
-
-    assert Counter(node.actor_pos for node in committed) == {"SB": 1, "BB": 5}
-    assert sorted(Counter(len(node.path) for node in committed).items()) == [(4, 1), (5, 5)]
-    assert Counter(n.actor_pos for n in three_bet) == deep
-    assert Counter(n.actor_pos for n in jams) == deep
-    assert Counter(n.actor_pos for n in four_bet) == {"BB": 5, "SB": 4, "BTN": 3, "CO": 2, "HJ": 1}
-    three_deep = [(6, WITHHELD_THREE_BET_NODES)]
-    assert sorted(Counter(len(n.path) for n in three_bet).items()) == three_deep
-    assert sorted(Counter(len(n.path) for n in four_bet).items()) == [(7, WITHHELD_FOUR_BET_NODES)]
-    assert sorted(Counter(len(n.path) for n in jams).items()) == [(8, WITHHELD_JAM_NODES)]
-    assert dropped_by_seat == {"LJ": 1, "HJ": 2, "CO": 3, "BTN": 4, "SB": 4}
-    assert "BB" not in dropped_by_seat
-
-    top = QUANTISATION_SCALE - 1e-9
-    full = {key_of(n, walked) for n in committed if measured_reach_bp(n) >= top}
-    unacted = {
-        key_of(n, walked)
-        for n in committed
-        if all(entry.position != n.actor_pos for entry in walked[n.path][2])
-    }
-
-    assert full == unacted
-    assert len(full) == FULL_REACH_SPOTS == COMMITTED_NODES
-    assert full == {SB_OPEN_KEY} | {
-        f"t{TABLE_SIZE}/d{DEPTH_BB}/BB/{opener}:raise@2.5" for opener in OPENERS
-    }
-    assert TRACED_KEY in full
-    for node in committed:
-        assert set(node.reach_bp) == {QUANTISATION_SCALE}, key_of(node, walked)
-
-    menus = Counter(tuple(action.kind for action in node.actions) for node in committed)
-    prices = {act.to for node in committed for act in node.actions if act.kind == "raise"}
-
-    assert menus == {("fold", "call", "raise"): 5, ("fold", "raise"): 1}
-    assert sum(menus.values()) == COMMITTED_NODES
-    assert sorted(prices) == [2.5, 7.5]
-    for node in committed:
-        assert "fold" in {action.kind for action in node.actions}
-
-
-# --- The six-way census, over two closed vocabularies ---
-
-
-def test_the_six_way_census_accounts_for_every_node_the_source_card_publishes(
-    export: SolverExport, walked, counted, derived
-) -> None:
-    """The predicate, then the buckets: committed, five exclusion reasons, inexpressible, and
-    nothing falling between them.
-
-    **6 committed, 15 weighing a mispriced four-bet branch, 15 mispriced in a four-bet pot, 15
-    inheriting a mispriced four-bet node, 29,104 mispriced multiway, 4,814 outside the selection
-    rule, summing to 33,969.** Buckets are compared as sets of paths rather than counts, the
-    three fifteens being the same size, so a build filing each under another's code adds up and
-    describes a different chart. The total is checked against the source card, what a reader of
-    the report has, and the inexpressible bucket publishes empty."""
-    card = load_source_card(COMMITTED_SOURCE_CARD_PATH)
-    subtree_paths = {n.path for n in export.nodes if subtree_clause(n, walked)}
-    history_paths = {n.path for n in export.nodes if history_clause(n, walked)}
-    kept = subtree_paths & history_paths
-    multiway = {n.path for n in export.nodes} - subtree_paths
-    outside = subtree_paths - history_paths
-    three_bet = kept & {n.path for n in export.nodes if faces_a_three_bet(n, walked)}
-    four_bet = kept & {n.path for n in export.nodes if faces_a_four_bet(n, walked)}
-    jams = kept & {n.path for n in export.nodes if faces_a_five_bet_jam(n, walked)}
-    committed = kept - three_bet - four_bet - jams
-    buckets = (multiway, outside, three_bet, four_bet, jams, committed)
-
-    # Decision 1 is the conjunction and neither clause alone. The history clause alone keeps 65
-    # and admits 14 whose terminals can still go multiway, all five opens among them; the subtree
-    # clause alone keeps 4,865 and admits 4,814 reached through a cold call. Both bite as sets
-    # rather than totals, and the module's own predicate is that conjunction at every node.
-    by_path = export.by_path()
     assert export.node_count == EXPORTED_NODES
-    assert len(history_paths) == HISTORY_CLAUSE_NODES
-    assert len(subtree_paths) == SUBTREE_CLAUSE_NODES
-    assert len(kept) == PREDICATE_NODES
-    assert 0 < len(kept) < len(history_paths) < len(subtree_paths) < export.node_count
-    assert kept == {n.path for n in export.nodes if predicate_selects(n, walked)}
+    assert len(kept) == NODES_AT_COMMITTED_DEPTH
+    assert len(beyond) == BEYOND_DEPTH_NODES
+    assert len(kept) + len(beyond) == EXPORTED_NODES
+    assert module.COMMITTED_RAISE_DEPTH == COMMITTED_RAISE_DEPTH
+    assert max(raises_faced(walked, node) for node in kept) == COMMITTED_RAISE_DEPTH
+    assert min(raises_faced(walked, node) for node in beyond) == COMMITTED_RAISE_DEPTH + 1
+    # The clause keeps every depth it keeps entirely: no node at two raises is refused here, so
+    # what it does and does not carry cannot be confused with what the exposure filter carries.
+    assert set(Counter(raises_faced(walked, node) for node in kept)) == {0, 1, 2}
+
+    faced = walked.by_path[FOUR_BET_FACED_PATH]
+    kept_here = walked.by_path[THREE_BET_FACED_PATH]
+    assert key_of(walked, faced) == FOUR_BET_FACED_KEY
+    assert key_of(walked, kept_here) == THREE_BET_FACED_KEY
+    assert raises_faced(walked, faced) == 3
+    assert raises_faced(walked, kept_here) == COMMITTED_RAISE_DEPTH
     for node in export.nodes:
-        assert derivation().is_committed_node(by_path, node) is predicate_selects(
-            node, walked
+        assert module.raises_faced(walked.by_path, node) == raises_faced(walked, node), node.path
+        assert module.within_committed_raise_depth(
+            walked.by_path, node
+        ) is within_raise_depth(walked, node), node.path
+
+
+def test_the_exposure_clause_alone_is_a_walk_to_the_leaves_not_a_live_player_count(
+    export: SolverExport, walked: Walk, committed: tuple[SolverNode, ...]
+) -> None:
+    """Clause two on its own, and the reading of it that is not the ruled one.
+
+    Exposure is the share of a node's decision mass that reaches a flop with three or more
+    players, walked from the node to its leaves. It is not "can three players still be in", which
+    is where an earlier cut had it: **186 of the 249 committed nodes still have three or more
+    seats live**, and a live-player count would have refused every one of them and shipped 63
+    spots. The two readings are separated by measurement here rather than argued about.
+
+    The threshold is ten percent and the margin is sixteen hundredths of a point, so both ends
+    are named nodes rather than statistics: the widest admitted is the big blind facing a cutoff
+    three-bet with two callers in at **9.8642**, and the narrowest refused is the button facing a
+    big-blind three-bet into a four-handed pot at **10.0234**.
+    """
+    module = derivation()
+    refused = [node for node in export.nodes if not below_exposure_threshold(walked, node)]
+    at_depth = [node for node in export.nodes if within_raise_depth(walked, node)]
+    still_multiway = [node for node in committed if len(SEATS) - len(walked.folded[node.path]) > 2]
+
+    assert module.MULTIWAY_EXPOSURE_THRESHOLD_PCT == EXPOSURE_THRESHOLD_PCT
+    assert len(refused) == EXPOSURE_REFUSALS_OVER_THE_WHOLE_EXPORT
+    assert len(still_multiway) == COMMITTED_WITH_THREE_OR_MORE_LIVE
+    assert len(committed) - len(still_multiway) == COMMITTED_HEADS_UP_ALREADY
+
+    widest = walked.by_path[WIDEST_ADMITTED_PATH]
+    narrowest = walked.by_path[NARROWEST_REFUSED_PATH]
+    assert key_of(walked, widest) == WIDEST_ADMITTED_KEY
+    assert key_of(walked, narrowest) == NARROWEST_REFUSED_KEY
+    assert round(exposure_pct(walked, widest), 4) == WIDEST_ADMITTED_EXPOSURE_PCT
+    assert round(exposure_pct(walked, narrowest), 4) == NARROWEST_REFUSED_EXPOSURE_PCT
+    assert widest is max(committed, key=lambda node: exposure_pct(walked, node))
+    assert narrowest is min(
+        (node for node in at_depth if not below_exposure_threshold(walked, node)),
+        key=lambda node: exposure_pct(walked, node),
+    )
+    assert WIDEST_ADMITTED_EXPOSURE_PCT < EXPOSURE_THRESHOLD_PCT < NARROWEST_REFUSED_EXPOSURE_PCT
+
+    for node in at_depth:
+        measured = module.multiway_exposure_pct(walked.by_path, node)
+        assert measured == pytest.approx(exposure_pct(walked, node), abs=1e-9), node.path
+        assert module.below_multiway_exposure_threshold(
+            walked.by_path, node
+        ) is below_exposure_threshold(walked, node), node.path
+
+
+def test_the_exposure_measurement_removes_heros_cold_call_and_nothing_else(
+    export: SolverExport, walked: Walk
+) -> None:
+    """Decision 52's wording, which selects a different set under each of its readings.
+
+    Removing nothing commits 257; removing hero's call wherever it is cold, the big blind exempt,
+    commits 259 before the third clause takes ten of them; removing hero's call at every node he
+    acts at commits 361. This asserts which branch the ruled measurement drops, node by node,
+    rather than asserting the total it happens to produce - a total three rules can reach.
+    """
+    module = derivation()
+    at_depth = [node for node in export.nodes if within_raise_depth(walked, node)]
+    cold = [node for node in at_depth if cold_call_index(walked, node) is not None]
+    big_blind_calls = [
+        node
+        for node in at_depth
+        if node.actor_pos == "BB" and any(a.kind == "call" for a in node.actions)
+    ]
+
+    assert cold, "no node offers hero a cold call, so the clause is untested"
+    assert big_blind_calls, "no big blind is offered a call, so the exemption is untested"
+    for node in big_blind_calls:
+        assert cold_call_index(walked, node) is None, node.path
+    for node in at_depth:
+        index = cold_call_index(walked, node)
+        if index is None:
+            continue
+        assert node.actions[index].kind == "call", node.path
+        assert node.actor_pos != "BB", node.path
+        assert node.actor_pos not in walked.invested[node.path], node.path
+        # Nobody is offered a cold call before there is a raise to call.
+        assert raises_faced(walked, node) >= 1, node.path
+
+    opener_facing_a_three_bet = walked.by_path[THREE_BET_FACED_PATH]
+    assert opener_facing_a_three_bet.actor_pos in walked.invested[THREE_BET_FACED_PATH]
+    assert cold_call_index(walked, opener_facing_a_three_bet) is None
+    for node in (
+        walked.by_path[COLD_CALLED_COMMITTED_PATH],
+        walked.by_path[BB_SQUEEZE_PATH],
+        opener_facing_a_three_bet,
+    ):
+        assert module.cold_call_index(walked.by_path, node) == cold_call_index(
+            walked, node
         ), node.path
 
-    assert len(multiway) == MISPRICED_MULTIWAY_NODES
-    assert len(outside) == OUTSIDE_RULE_NODES
-    assert len(three_bet) == WITHHELD_THREE_BET_NODES
-    assert len(four_bet) == WITHHELD_FOUR_BET_NODES
-    assert len(jams) == WITHHELD_JAM_NODES
-    assert len(committed) == COMMITTED_NODES
-    for index, bucket in enumerate(buckets):
-        for other in buckets[index + 1 :]:
-            assert bucket.isdisjoint(other)
-    assert len(set().union(*buckets)) == sum(len(b) for b in buckets) == EXPORTED_NODES
-    assert committed == {n.path for n in export.nodes if selected(n, walked)}
 
-    assert counted.total == card["node_counts"]["exported"] == EXPORTED_NODES
-    assert counted.committed == COMMITTED_NODES
-    assert counted.excluded == {
-        lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: MISPRICED_MULTIWAY_NODES,
-        lookup.DERIVATION_OUTSIDE_SELECTION_RULE: OUTSIDE_RULE_NODES,
-        THREE_BET_BRANCH_CODE: WITHHELD_THREE_BET_NODES,
-        FOUR_BET_POT_CODE: WITHHELD_FOUR_BET_NODES,
-        JAM_INHERITS_CODE: WITHHELD_JAM_NODES,
-    }
-    assert counted.committed + sum(counted.excluded.values()) == counted.total
-    assert dict(counted.inexpressible) == {}
-    assert len({key_of(n, walked) for n in export.nodes}) == export.node_count == EXPORTED_NODES
-    assert set(counted.excluded) == set(lookup.DERIVATION_EXCLUSION_CODES)
-    assert set(counted.inexpressible).issubset(lookup.DERIVATION_INEXPRESSIBILITY_CODES)
-    assert derived.census.committed == counted.committed
-    assert dict(derived.census.excluded) == dict(counted.excluded)
-
-    # The 14 heads-up-by-history nodes sit inside the multiway bucket rather than beside it,
-    # which is the point of the precedence: they are outside the rule *because* the source
-    # misprices what is still reachable below them.
-    dropped = history_paths - subtree_paths
-    assert len(dropped) == HISTORY_BUT_NOT_CLEAN
-    assert dropped <= multiway
-
-
-def test_each_node_is_given_the_reason_that_names_what_is_wrong_with_it(
-    export: SolverExport, by_path: dict[tuple[int, ...], SolverNode], walked
+def test_the_big_blind_squeeze_clause_alone_names_the_ten_the_other_two_admit(
+    export: SolverExport, walked: Walk
 ) -> None:
-    """The code per node, not merely the totals, because five wrong buckets can sum right.
+    """Clause three on its own, and the poker that forced it.
 
-    The lojack's own open is heads-up by history and misprices below, so it takes the multiway
-    code; the cold-called node prices exactly from here on and takes the selection-rule code. The
-    big blind facing a button four-bet takes the four-bet-pot code, the button answering the jam
-    after it the inherited code - that node prices fine and its parent does not - and the button
-    facing the three-bet before it the branch code, for the mirror-image reason."""
-    code_for = derivation().exclusion_code
-    multiway = lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY
-    outside = lookup.DERIVATION_OUTSIDE_SELECTION_RULE
+    Hero is the big blind, faces an open, and a cold caller is already in. Twenty-six nodes in the
+    export are that shape; sixteen fail the exposure clause too, so the census bucket holds the
+    ten that would otherwise have shipped.
 
-    assert code_for(by_path, by_path[LOJACK_OPEN_PATH]) == multiway
-    assert code_for(by_path, by_path[COLD_CALLED_PATH]) == outside
-    assert code_for(by_path, by_path[THREE_BET_FACED_PATH]) == THREE_BET_BRANCH_CODE
-    assert code_for(by_path, by_path[FOUR_BET_FACED_PATH]) == FOUR_BET_POT_CODE
-    assert code_for(by_path, by_path[FIVE_BET_JAM_PATH]) == JAM_INHERITS_CODE
-    assert code_for(by_path, by_path[TRACED_PATH]) is None
+    **What names the ten is hero's own published call, not the size of his fold.** The fold does
+    not separate them: on the identical sequence `LJ:raise@2.5,HJ:call` the big blind folds 93.33
+    percent and is refused at 3.7368 exposure, while the small blind folds 95.50 and ships at
+    3.7873, the button 95.44 at 5.1382 and the cutoff 95.68 at 6.1947 - the refused spot has the
+    smallest fold and the lowest exposure of the four. What differs is whose branch the exposure
+    is. `cold_call_index` exempts the big blind, which posted and whose defence decision 52 keeps
+    inside the measurement, so at these ten the figure is hero's own call landing him in a
+    three-way pot the calibrated fit has no cell for: take that branch out and all ten fall under
+    a point. At the 20 merged spots decision 46 removes hero's cold call from the measurement and
+    decision 45 removes it from the chart, so their 3.8-to-6.2 is flops hero is not in; at the
+    five big-blind spots with no caller in, hero's call is heads-up and the figure is exactly 0.
 
-    for node in export.nodes:
-        code = code_for(by_path, node)
-        if selected(node, walked):
-            assert code is None, node.path
-        elif not subtree_clause(node, walked):
-            assert code == multiway, node.path
-        elif not history_clause(node, walked):
-            assert code == outside, node.path
-        elif faces_a_three_bet(node, walked):
-            assert code == THREE_BET_BRANCH_CODE, node.path
-        elif faces_a_four_bet(node, walked):
-            assert code == FOUR_BET_POT_CODE, node.path
-        else:
-            assert code == JAM_INHERITS_CODE, node.path
+    So the clause is not a second exposure rule: it refuses the only committed shape whose chart
+    offers a call that puts hero in a multiway pot, which the exposure clause cannot reach because
+    the fold leaves that branch at 3.74 to 8.98 points, the widest a point under the threshold."""
+    module = derivation()
+    squeezes = [node for node in export.nodes if is_big_blind_squeeze(walked, node)]
+    slipping_through = [node for node in squeezes if below_exposure_threshold(walked, node)]
 
-    # And the chain each code names, read off the tree rather than asserted as prose: every
-    # jam-coded node's parent is four-bet-coded, and every three-bet-coded node's one aggressive
-    # branch leads to a four-bet-coded node. That is what makes the three reasons a chain rather
-    # than three labels for one thing, and it is the only thing that says which way a fix runs.
-    for node in export.nodes:
-        code = code_for(by_path, node)
-        if code == JAM_INHERITS_CODE:
-            assert code_for(by_path, by_path[node.path[:-1]]) == FOUR_BET_POT_CODE, node.path
-        if code == THREE_BET_BRANCH_CODE:
-            raising = [i for i, a in enumerate(node.actions) if a.kind in ("raise", "jam")]
-            assert len(raising) == 1, node.path
-            child = by_path[(*node.path, raising[0])]
-            assert code_for(by_path, child) == FOUR_BET_POT_CODE, node.path
+    assert len(squeezes) == BB_SQUEEZE_NODES_OVER_THE_WHOLE_EXPORT
+    assert len(slipping_through) == BB_SQUEEZE_REFUSED_NODES
+    for node in squeezes:
+        assert node.actor_pos == "BB", node.path
+        assert raises_faced(walked, node) == 1, node.path
+        assert within_raise_depth(walked, node), "every squeeze node is inside the depth clause"
+        assert module.is_big_blind_squeeze_spot(walked.by_path, node) is True, node.path
 
-
-def test_both_reason_vocabularies_are_closed_and_enumerated_here() -> None:
-    """The contract asks for "a closed vocabulary the phase's tests enumerate", so it is
-    enumerated literally: a code added without a ruling fails this file rather than passing
-    quietly, and a node the build merely failed to handle cannot be filed as a property of the
-    grammar. `DERIVATION_BELOW_REACH_FLOOR` is asserted gone, a code nothing files telling a
-    reader a selection rule that is not in force."""
-    multiway = lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY
-    outside = lookup.DERIVATION_OUTSIDE_SELECTION_RULE
-    no_key = lookup.DERIVATION_NO_LEGAL_SPOT_KEY
-    everything = lookup.DERIVATION_EXCLUSION_CODES + lookup.DERIVATION_INEXPRESSIBILITY_CODES
-
-    assert multiway == "derivation:source-misprices-multiway"
-    assert outside == "derivation:outside-selection-rule"
-    assert no_key == "derivation:no-legal-spot-key"
-    assert published_code("DERIVATION_SOURCE_MISPRICES_FOUR_BET_POT") == FOUR_BET_POT_CODE, (
-        "decision 20 needs a third exclusion reason; `lookup.py` must publish"
-        f" DERIVATION_SOURCE_MISPRICES_FOUR_BET_POT = {FOUR_BET_POT_CODE!r}"
-    )
-    assert published_code("DERIVATION_INHERITS_A_MISPRICED_FOUR_BET_NODE") == JAM_INHERITS_CODE, (
-        "the first 2026-09-01 ruling needs a fourth exclusion reason; `lookup.py` must publish"
-        f" DERIVATION_INHERITS_A_MISPRICED_FOUR_BET_NODE = {JAM_INHERITS_CODE!r}"
-    )
-    branch = published_code("DERIVATION_WEIGHS_A_MISPRICED_FOUR_BET_BRANCH")
-    assert branch == THREE_BET_BRANCH_CODE, (
-        "the second 2026-09-01 ruling needs a fifth exclusion reason; `lookup.py` must publish"
-        f" DERIVATION_WEIGHS_A_MISPRICED_FOUR_BET_BRANCH = {THREE_BET_BRANCH_CODE!r}"
-    )
-    assert set(lookup.DERIVATION_EXCLUSION_CODES) == {
-        multiway,
-        outside,
-        THREE_BET_BRANCH_CODE,
-        FOUR_BET_POT_CODE,
-        JAM_INHERITS_CODE,
+    named = walked.by_path[BB_SQUEEZE_PATH]
+    assert key_of(walked, named) == BB_SQUEEZE_KEY
+    assert named in slipping_through
+    kinds = [action.kind for action in named.actions]
+    assert kinds == ["fold", "call", "raise"]
+    assert {
+        kind: round(named.action_frequency(index) * 100.0, 2) for index, kind in enumerate(kinds)
+    } == {
+        "fold": BB_SQUEEZE_FOLD_PCT,
+        "call": BB_SQUEEZE_CALL_PCT,
+        "raise": BB_SQUEEZE_RAISE_PCT,
     }
-    assert len(lookup.DERIVATION_EXCLUSION_CODES) == 5
-    assert lookup.DERIVATION_INEXPRESSIBILITY_CODES == (no_key,)
-    assert not hasattr(lookup, "DERIVATION_BELOW_REACH_FLOOR")
-    for code in everything:
-        assert NAMESPACED_CODE.fullmatch(code), code
-        assert code.split(":")[0] == "derivation"
-    # They live beside the refusal codes and must not shadow one: `lookup:` tells a reader a
-    # query was refused, `derivation:` that a node never shipped.
-    assert set(everything).isdisjoint(MISS_CODES)
-    for code in MISS_CODES:
-        assert NAMESPACED_CODE.fullmatch(code), code
+
+    # The argument, asserted rather than described: at every one of the ten the exposure is hero's
+    # own call, so removing that branch and renormalising leaves under a point everywhere.
+    for node in slipping_through:
+        kinds = [action.kind for action in node.actions]
+        assert "call" in kinds, key_of(walked, node)
+        multiway = mass = 0.0
+        for index in range(len(node.actions)):
+            if index == kinds.index("call"):
+                continue
+            share = walked.frequency[node.path][index]
+            mass += share
+            out = _outcome(walked.by_path, walked.folded, walked.below, node, index)
+            multiway += share * out[2]
+        assert 100.0 * multiway / mass < 1.0, (key_of(walked, node), multiway, mass)
+        assert exposure_pct(walked, node) < EXPOSURE_THRESHOLD_PCT
+
+    # The five big-blind spots with no caller in stay, so the clause is about the squeeze and not
+    # about the seat: its 48 committed nodes carry 14.09 percent of preflop decisions and the
+    # five no-caller spots alone carry 11.39, so a blanket exclusion is a fourteen-point hole in
+    # the seat a beginner plays worst.
+    kept_bb = [
+        node
+        for node in export.nodes
+        if node.actor_pos == "BB" and raises_faced(walked, node) == 1 and is_committed(walked, node)
+    ]
+    assert len(kept_bb) == 5
+    for node in kept_bb:
+        assert not any(entry.action == "call" for entry in walked.sequence[node.path])
+    assert module.is_big_blind_squeeze_spot(walked.by_path, walked.by_path[TRACED_PATH]) is False
+
+
+def test_no_clause_is_co_extensive_with_another(export: SolverExport, walked: Walk) -> None:
+    """Each clause refuses something the other two admit, so none is idle behind another.
+
+    Decision 40 dropped a clause for failing exactly this: no node failed exposure while passing
+    the opponent-investment test, so investment was strictly the stronger rule and exposure was
+    inert behind it, and a criterion asserting that all three bit was written anyway. The check
+    is taken over all 33,969 nodes rather than over the 607 the depth clause leaves, because a
+    clause evaluated only where another has already passed cannot be shown to do work of its own.
+    """
+    deep = {node.path for node in export.nodes if not within_raise_depth(walked, node)}
+    exposed = {node.path for node in export.nodes if not below_exposure_threshold(walked, node)}
+    squeezed = {node.path for node in export.nodes if is_big_blind_squeeze(walked, node)}
+    refusals = {"raise depth": deep, "exposure": exposed, "big-blind squeeze": squeezed}
+
+    assert len(deep) == BEYOND_DEPTH_NODES
+    assert len(exposed) == EXPOSURE_REFUSALS_OVER_THE_WHOLE_EXPORT
+    assert len(squeezed) == BB_SQUEEZE_NODES_OVER_THE_WHOLE_EXPORT
+    for name, refused in refusals.items():
+        for other_name, other in refusals.items():
+            if name == other_name:
+                continue
+            assert refused - other, (
+                f"the {name} clause refuses nothing the {other_name} clause admits, so it is"
+                " idle behind it and one of the two is not doing any selecting"
+            )
+    # The stronger form of the same claim: each clause is the sole reason for refusing somebody.
+    assert len(exposed - deep) == EXPOSURE_REFUSED_NODES
+    assert len(squeezed - exposed - deep) == BB_SQUEEZE_REFUSED_NODES
+    assert deep - exposed - squeezed
+
+
+def test_the_three_clauses_select_the_committed_249(
+    export: SolverExport, walked: Walk, committed: tuple[SolverNode, ...]
+) -> None:
+    """The set every later measurement in this phase is taken over.
+
+    **249 of 33,969** - 5 first-in, 25 facing an open, 219 facing a three-bet - carrying
+    **98.5949 percent** of preflop decisions, split 51.9237 across the five opens, 38.5422 across
+    the answers to an open and 8.1290 across the answers to a three-bet. The split is asserted
+    and not only the total, because a build committing 249 of the wrong nodes reaches the same
+    total from a different shape.
+
+    Compared as keys as well as counts: 249 nodes are not self-evidently 249 spots, and a grammar
+    collision shows up here as a set that is short rather than as a merge nobody noticed.
+    """
+    module = derivation()
+    keys = {key_of(walked, node) for node in committed}
+
+    assert len(committed) == COMMITTED_NODES
+    assert len(keys) == COMMITTED_NODES, "two committed nodes collide in the key grammar"
+    assert dict(Counter(raises_faced(walked, node) for node in committed)) == (
+        RAISES_FACED_WHEN_COMMITTED
+    )
+    assert sum(RAISES_FACED_WHEN_COMMITTED.values()) == COMMITTED_NODES
+    assert round(coverage_pct(walked, committed), 4) == COVERAGE_PCT
+    for depth, share in COVERAGE_BY_RAISES_FACED.items():
+        family = [node for node in committed if raises_faced(walked, node) == depth]
+        assert len(family) == RAISES_FACED_WHEN_COMMITTED[depth]
+        assert round(coverage_pct(walked, family), 4) == share, depth
+    assert round(sum(COVERAGE_BY_RAISES_FACED.values()), 4) == COVERAGE_PCT
+
+    for path, key in (
+        (LOJACK_OPEN_PATH, LOJACK_OPEN_KEY),
+        (SB_OPEN_PATH, SB_OPEN_KEY),
+        (TRACED_PATH, TRACED_KEY),
+        (MERGED_FLAT_PATH, MERGED_FLAT_KEY),
+        (COLD_CALLED_COMMITTED_PATH, COLD_CALLED_COMMITTED_KEY),
+        (THREE_BET_FACED_PATH, THREE_BET_FACED_KEY),
+        (WIDEST_ADMITTED_PATH, WIDEST_ADMITTED_KEY),
+    ):
+        node = walked.by_path[path]
+        assert key_of(walked, node) == key
+        assert is_committed(walked, node), key
+    for path, key in (
+        (BB_SQUEEZE_PATH, BB_SQUEEZE_KEY),
+        (NARROWEST_REFUSED_PATH, NARROWEST_REFUSED_KEY),
+        (FOUR_BET_FACED_PATH, FOUR_BET_FACED_KEY),
+    ):
+        node = walked.by_path[path]
+        assert key_of(walked, node) == key
+        assert not is_committed(walked, node), key
+
+    for node in export.nodes:
+        assert module.is_committed_node(walked.by_path, node) is is_committed(
+            walked, node
+        ), node.path

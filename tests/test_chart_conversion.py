@@ -1,42 +1,45 @@
-"""Phase 14: what one committed export node costs, and where its price came from.
+"""Phase 14: what a committed spot costs, and where its price came from.
 
-The companion to `tests/test_chart_derivation.py`, split from it at the 700-line cap. That file
-owns *which* nodes get committed, and the named nodes and walk helpers this file imports rather
-than copies. This one owns the price: the sizing table, the prices hero is offered, the
-perturbation pair proving prices are read from the export's own labels, the refusal a withheld
-node gets at the table, and the external oracle.
+Authored at stage 4, before the converter it specifies. The companion to
+`tests/test_derived_chart.py`, split from it at the 700-line cap: that file owns the shape of
+the artifact - the keys, the merge, the blind structure, the rows - and this one owns the
+**price**.
 
-**The sizing table holds every raise size a spot offers, with the weight hero gives each, per
-hand class** - decision 6, ruled 2026-08-23 and amended five times as the tree under it moved.
-Over the **6** spots the four rulings commit, hero is offered exactly one price at each and two
-at none, so the schema's headline case is unexercisable and its checks are labelled `VACUOUS`
-rather than counted as passes: decision 6 says in terms that a check that cannot fail must not
-be counted as one that passed. Three things carry that label - two prices at one spot, a jam
-beside a named raise, and a committed spot that prices nothing.
+**What this file owns.** The sizing table rederived in the same run as the chart while the
+expectations file is not; the table holding every raise size a spot offers with hero's weight
+on each, keyed by what hero faces; the prices being exactly `[2.5, 7.5, 22.5]`; the proof
+that the converter reads a size off the export's own action label rather than off a constant,
+taken by perturbing a synthetic export; both directions of the sizing invariant, the
+no-raise half of which is vacuous here; the two-price schema, also vacuous here and proved
+against a synthetic; and the jam-inversion canary, which runs against the export because
+hero's own jam lives only at the four-bet-facing spots this phase excludes.
 
-**Two prices left the chart with the spots that quoted them.** Until 2026-09-01 fifteen
-committed spots were hero facing a five-bet jam on a fold-or-call menu, the whole of decision
-6's "a spot the table prices nothing at" half, and fifteen more were hero facing a three-bet,
-the only spots quoting 22.5. Taylor withheld both, so hero's menu is 2.5 and 7.5 and nothing
-else - the contract's "exactly `[2.5, 7.5, 22.5]`" is stale by one price.
+**What siblings own.** `tests/test_chart_derivation.py` owns which nodes are committed and
+the census; this file imports its `selected` through `test_derived_chart`, which owns the
+keying walk, the family split and the `vacuous` helper - imported here rather than copied so
+that one file defines each. `tests/test_derived_chart_report.py` owns what gets printed.
+
+Counts are recomputed here from the export by walks written in this file. Where a walk is
+already written in `test_derived_chart.py` it is imported, because two copies of a walk is
+two rules that can disagree, and the point of recomputing is to disagree with the *converter*.
 """
 
 from __future__ import annotations
 
-import json
 import subprocess
 import sys
-from array import array
-from collections import Counter
 
 import pytest
 
-# The sibling as a module rather than by name: two dozen node paths, keys, sequences and
-# walk helpers, whose import block ran to a twenty-fifth of the line budget. `spec.` also
-# says at each use that the fact came from the file where the predicate is on trial.
-import test_chart_derivation as spec
+# The sibling that owns the artifact's shape, as a module: it carries this lane's walk, the
+# family split, the `vacuous` label and the committed-node keying, and reaching them through
+# the module means a rename lands as a per-test `AttributeError` rather than a collection
+# error that would stop every assertion in both files from running.
+import test_derived_chart as shape
 
-from poker_training_bot.solver_artifacts import lookup
+# The derivation as a module for the same reason: the merge and the re-cut sizing table do
+# not exist until stage 6.
+from poker_training_bot.solver_artifacts import chart_derivation
 from poker_training_bot.solver_artifacts.gtopen_export import (
     COMMITTED_EXPORT_PATH,
     QUANTISATION_SCALE,
@@ -48,63 +51,52 @@ from poker_training_bot.solver_artifacts.gtopen_export import (
     load_solver_export,
 )
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES
-from poker_training_bot.solver_artifacts.importer import import_preflop_artifact
-from poker_training_bot.solver_artifacts.lookup import (
-    MISS_CODES,
-    MISS_SPOT_NOT_COVERED,
-    ChartMiss,
-    ChartQuery,
-    PreflopChartLibrary,
-)
-from poker_training_bot.solver_artifacts.schema import PreflopAction
 from scripts.repo_paths import REPO_ROOT
 
 PREFLOP_DIR = REPO_ROOT / "data" / "artifacts" / "preflop"
 EXPECTATIONS_PATH = PREFLOP_DIR / "expectations" / "six_max_nl25_100bb.json"
+SIZINGS_PATH = PREFLOP_DIR / "sizings" / "six_max_100bb_rakefree.json"
 CONVERTER = REPO_ROOT / "scripts" / "convert_preflop_export.py"
 
-# Counted here as well as in the sibling, because two files reaching 6 independently is the
-# check and importing the number would make it one file twice. `spec.selected` is all four
-# rulings and means committed; `spec.predicate_selects` is decision 1 alone, which keeps 51.
-PREDICATE_SPOTS = 51
-THREE_BET_FACED_SPOTS = 15
-FOUR_BET_FACED_SPOTS = 15
-FIVE_BET_FACING_SPOTS = 15
-COMMITTED_SPOTS = 6
-
-# Tree facts. The open is 2.5 and `raise_mults` is 3.0, so hero's price is the open times the
-# multiplier once per raise he faces - 2.5, 7.5, 22.5 - until the fourth, where 67.5 crosses
-# `allin_threshold` and snaps to the stack. The chart keeps the first two rungs: 22.5 is only
-# ever offered where hero faces a three-bet, and 100 only where he faces a four-bet.
-HERO_PRICES = (2.5, 7.5)
-SPOTS_OFFERING_PRICE = {2.5: 1, 7.5: 5}
-FOUR_BET_PRICE = 22.5
-STACK_BB = 100.0
-COMMITTED_MENUS = {("call", "fold", "raise"): 5, ("fold", "raise"): 1}
-
-# Walked out of the export: 6 priced spots carrying 320 class entries, every one a single price,
-# and none with nothing to price. A build that kept the three-bet spots lands on 21 keys with
-# 320 + 428 entries, one that kept the jams too on 36, and one that kept everything on 51.
 SIZING_SCHEMA_VERSION = 2
-PRICED_SPOTS = 6
-UNPRICED_SPOTS = 0
-ONE_PRICE_CLASS_ENTRIES = 320
+STACK_BB = 100.0
 
-# The two named spots: how many arriving classes take the one price each offers.
-TRACED_PRICED_CLASSES = 47
-SB_OPEN_PRICED_CLASSES = 121
-PURE_CLASS = "AA"
+HERO_PRICES = (2.5, 7.5, 22.5)
+"""Exactly the three the contract names. The ladder is the 2.5 open times the 3.0 multiplier
+once per raise already in, so it is derived from `RULED_CONFIG` below rather than trusted
+here; the fourth rung is 67.5, which `allin_threshold` snaps to the stack, and it lives only
+at the four-bet-facing spots this phase excludes."""
 
+PRICE_BY_RAISES_FACED = {0: 2.5, 1: 7.5, 2: 22.5}
+"""A spot's price is a function of what hero *faces* and of nothing else - not of his seat,
+not of how many cold callers are in. That is what "keyed by what hero faces" means, and it is
+the property `CHART-CANNOT-EXPRESS-TWO-RAISE-SIZES-AT-ONE-SPOT` is stated against."""
 
-def vacuous(what: str) -> None:
-    """Stop the test and record it as skipped rather than passed.
+SPOTS_OFFERING_A_PRICE = 249
+SPOTS_OFFERING_NO_PRICE = 0
+"""The two directions of decision 6's invariant over the committed set. The second is one of
+the phase's three vacuous criteria: every committed spot offers hero a raise, so the half
+that says a spot offering none carries no key has nothing to fire on."""
 
-    Decision 6, on the schema it keeps over data that cannot exercise it: "a check that cannot
-    fail must not be counted as one that passed". The guard this repo usually writes -
-    `assert found, "...otherwise vacuous"` - is the wrong tool, the case being ruled absent
-    rather than accidentally absent, so it would be a permanent red against a chart the contract
-    describes correctly. A skip is neither; every use sits after an assertion of the premise."""
-    pytest.skip(f"VACUOUS over the committed {COMMITTED_SPOTS}: {what}")
+PRICED_CELLS = 2_562
+"""Cells across the 249 whose *published* raise weight is positive, so the strategy has to be
+able to ask what the raise is. It counts the merged flats: after decision 45 a class that the
+solve only called publishes a raise, and a chart that says raise and cannot say how much is
+the defect decision 6 exists to prevent."""
+
+FOUR_BET_RAISES_FACED = 3
+JAM_NODES = 4_257
+JAM_NODES_BELOW_A_COMMITTED_SPOT = 219
+JAM_NODES_WHERE_ACES_ARRIVE = 168
+ACES_JAM_THE_WHOLE_RANGE_AT = 57
+PAIR_INVERSIONS_ON_THE_JAM = 97
+"""The jam canary's own figures, over the export rather than the chart. Every node offering
+hero a jam faces three raises, so all 4,257 sit in the family this phase withholds; 219 of
+them are one action below a committed spot, which is where a player following this chart
+would walk into them. See the canary's own docstring for why the inversions are pinned as a
+measurement and not gated."""
+
+PAIRS = ("AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "33", "22")
 
 
 @pytest.fixture(scope="module")
@@ -120,328 +112,240 @@ def by_path(export: SolverExport) -> dict[tuple[int, ...], SolverNode]:
 
 @pytest.fixture(scope="module")
 def derived(export: SolverExport):
-    return spec.derivation().derive_chart(export)
+    return chart_derivation.derive_chart(export)
 
 
-@pytest.fixture(scope="module")
-def walked(by_path: dict[tuple[int, ...], SolverNode]) -> dict:
-    state = spec.walk_state(by_path)
-    assert len(state) == len(by_path), "the walk did not reach every node"
-    return state
+def published_raise_bp(
+    by_path: dict[tuple[int, ...], SolverNode], node: SolverNode, hand_class_text: str
+) -> int:
+    """What the chart publishes as this cell's raise weight, in basis points.
 
-
-def committed_keys(export: SolverExport, state) -> dict[str, SolverNode]:
-    """The 21 the chart holds, keyed. `spec.selected` is all three rulings together."""
-    return {spec.key_of(n, state): n for n in export.nodes if spec.selected(n, state)}
-
-
-def withheld_keys(export: SolverExport, state, family: str) -> dict[str, SolverNode]:
-    """One withheld family, keyed. `three-bet` is the 15 where hero's only aggressive answer is
-    a four-bet to 22.5, `four-bet` the 15 where it is the stack, and `jam` the 15 where he
-    answers that stack. Named rather than flagged, three families needing three names."""
-    faces = {
-        "three-bet": spec.faces_a_three_bet,
-        "four-bet": spec.faces_a_four_bet,
-        "jam": spec.faces_a_five_bet_jam,
-    }[family]
-    kept = (n for n in export.nodes if spec.predicate_selects(n, state))
-    return {spec.key_of(n, state): n for n in kept if faces(n, state)}
-
-
-def artifact_menu(node: SolverNode) -> tuple[str, ...]:
-    """The node's offers in the artifact's vocabulary, where a jam is a raise."""
-    return tuple(sorted({"raise" if a.kind == "jam" else a.kind for a in node.actions}))
-
-
-def raising_classes(row: dict[str, dict[str, float]]) -> set[str]:
-    """The classes at this spot that put any weight on raising."""
-    return {n for n, weights in row.items() if weights.get("raise", 0.0) > 0.0}
-
-
-def measured_class_sizes(node: SolverNode) -> dict[str, tuple[tuple[float, float], ...]]:
-    """Every price hero may raise to here, per hand class, with his weight on each.
-    Recomputed from the node, because which class takes which price is solve output and a test
-    reading it from the table under test is one copy of a number agreeing with another. A class
-    is read off its own row - no combo or reach weighting, both of which mix classes.
+    Decision 45's merge is part of the price question and not only of the row: at the twenty
+    spots where the bot may not cold-call, a class the solve only *called* now publishes a
+    raise, so the sizing table owes it a price. Recomputed from the solve rather than read
+    off the chart, the chart being what is on trial.
     """
-    offers = [(i, a) for i, a in enumerate(node.actions) if a.kind in ("raise", "jam")]
-    sized: dict[str, tuple[tuple[float, float], ...]] = {}
-    for name in HAND_CLASSES:
-        column = gtopen_class_index(name)
-        if node.reach_bp[column] <= 0:
-            continue
-        volumes = [(action.to, node.strategy_bp[i][column]) for i, action in offers]
-        total = sum(basis_points for _, basis_points in volumes)
-        if total <= 0:
-            continue
-        sized[name] = tuple(sorted((to, bp / total) for to, bp in volumes if bp > 0))
-    return sized
+    solved = shape.solve_weights(node, hand_class_text)
+    merged = shape.family_of(by_path, node) == shape.MERGED
+    return solved["raise"] + (solved["call"] if merged else 0)
 
 
-def priced_classes(sizing_payload: dict, key: str) -> dict[str, tuple[tuple[float, float], ...]]:
-    """One spot's whole entry: every priced class, in the order the table stored them, read
-    positionally - a reader that sorted cannot tell an unordered table from an ordered one."""
+def offered_prices(node: SolverNode) -> list[float]:
+    """Every price hero may raise to at a node, off the node's own action labels."""
+    return sorted({float(a.to) for a in node.actions if a.kind in ("raise", "jam")})
+
+
+def table_entries(payload: dict, key: str) -> dict[str, list[tuple[float, float]]]:
+    """One spot's whole entry, read positionally - a reader that sorted the entries first
+    could not tell an unordered table from an ordered one, and the order is what lets a
+    reader pick the small price out without knowing the ladder."""
     return {
-        hand_class: tuple((float(e["to_bb"]), float(e["weight"])) for e in entries)
-        for hand_class, entries in sizing_payload["raise_to_bb"][key].items()
+        name: [(float(e["to_bb"]), float(e["weight"])) for e in entries]
+        for name, entries in payload["raise_to_bb"][key].items()
     }
 
 
-def priced_entries(sizing_payload: dict, key: str, hand_class: str):
-    """One class's prices at one spot: what `sizes_bb` is ruled to return."""
-    return priced_classes(sizing_payload, key)[hand_class]
-
-
 def entries_agree(
-    entries: tuple[tuple[float, float], ...], measured: tuple[tuple[float, float], ...]
+    entries: list[tuple[float, float]], expected: list[tuple[float, float]]
 ) -> bool:
     """Whether a class's entry matches a recomputed one, price by price and in order. The
-    tolerance is tight because nothing rules this field may be rounded, and rounding would drop
-    a price a class takes rarely, turning one the chart cannot price into one it can."""
-    if len(entries) != len(measured):
+    tolerance is tight because nothing rules this field may be rounded, and rounding would
+    drop a price a class takes rarely - turning one the chart cannot price into one it can."""
+    if len(entries) != len(expected):
         return False
     return all(
         price == pytest.approx(other_price)
         and weight == pytest.approx(other_weight, rel=1e-9, abs=1e-12)
-        for (price, weight), (other_price, other_weight) in zip(entries, measured, strict=True)
+        for (price, weight), (other_price, other_weight) in zip(entries, expected, strict=True)
     )
 
 
-# --- What the committed 6 offer hero, and at what price ---
+# --- The prices the committed 249 offer hero -------------------------------------------
 
 
-def test_every_price_the_export_offers_hero_is_in_the_table_with_his_weight_on_it(
-    export: SolverExport, walked, derived
+def test_the_price_ladder_is_the_one_the_solved_config_produces(
+    export: SolverExport, by_path, derived
 ) -> None:
-    """The ruling over all 6, with the price ladder it produces.
+    """Prices exactly `[2.5, 7.5, 22.5]`, derived rather than listed, and keyed by what hero
+    faces.
 
-    Hero's price is the 2.5 open times the 3.0 multiplier once per raise in front of him, so the
-    ladder is derived rather than listed. The chart keeps the first two rungs: the third, 22.5,
-    is quoted only where hero faces a three-bet, and the fourth is 67.5 snapped to the stack by
-    `allin_threshold` and quoted only where he faces a four-bet, both families being withheld.
-    Every committed node is walked and every class recomputed. Each property hides a defect:
-    prices drawn from the node's own offers and never repeated; ordered, so a reader can tell
-    the small one without sorting; strictly positive; summing to one, so weights are shares of
-    *that class's* volume."""
+    The ladder is the config's own opening size times its own multiplier once per raise
+    already in front of hero, so a re-solve at the ruled config cannot move it and a test
+    that spelled the three numbers would be pinning a coincidence. The fourth rung, 67.5
+    snapped to the stack by `allin_threshold`, is quoted only where hero faces a four-bet,
+    and that family is withheld - so `100.0` is in no committed key and in no committed
+    entry.
+
+    **One price per spot is asserted, not assumed.** It is what makes the price a function of
+    the spot key; a spot offering two would be the case decision 6's schema exists for, and
+    over this artifact there is none.
+    """
     open_to = float(RULED_CONFIG["open_raises"][0])
     multiplier = float(RULED_CONFIG["raise_mults"][0])
+    keyed = shape.committed_nodes(export, by_path)
+    by_faced: dict[int, set[float]] = {}
+    for node in keyed.values():
+        prices = offered_prices(node)
+        faced = shape.raises_faced_of(by_path, node)
+
+        assert len(prices) == 1, (faced, prices)
+        assert prices[0] == pytest.approx(open_to * multiplier**faced)
+        by_faced.setdefault(faced, set()).add(prices[0])
+
+    quoted = {price for prices in by_faced.values() for price in prices}
+
+    assert {faced: sorted(p)[0] for faced, p in by_faced.items()} == PRICE_BY_RAISES_FACED
+    assert tuple(sorted(quoted)) == HERO_PRICES
+    assert STACK_BB not in quoted
+    assert all("@100" not in key for key in derived.artifact_payload["action_weights"])
+
+
+def test_every_price_a_spot_offers_is_in_the_table_with_heros_weight_on_it(
+    export: SolverExport, by_path, derived
+) -> None:
+    """The table against the export, spot by spot and class by class.
+
+    Each property here hides a different defect. The table's keys are the committed spots
+    exactly, so a table carrying a spot the chart does not hold prices a range nobody has.
+    Its classes at a spot are the classes whose *published* raise weight is positive - which
+    after decision 45's merge includes the flats - so a chart that says raise and cannot say
+    how much fails here rather than at runtime. Weights are shares of that class's own
+    published aggressive volume, so they sum to one and a fold does not dilute them; entries
+    are ordered by price and never repeat a price; and every weight is strictly positive,
+    a zero-weight entry being a price the solve never takes recorded as one it does.
+    """
+    keyed = shape.committed_nodes(export, by_path)
     sizes = derived.sizing_payload["raise_to_bb"]
-    keyed = committed_keys(export, walked)
-    lengths: Counter = Counter()
-    spot_lengths: Counter = Counter()
-    offered: Counter = Counter()
+    priced_cells = 0
 
     for key, node in keyed.items():
-        prices = {float(a.to) for a in node.actions if a.kind in ("raise", "jam")}
-        measured = measured_class_sizes(node)
-        rung = open_to * multiplier ** spec.raises_faced(node, walked)
+        prices = offered_prices(node)
+        expected = {
+            name: [(prices[0], 1.0)]
+            for name in shape.arriving_classes(node)
+            if published_raise_bp(by_path, node, name) > 0
+        }
+        table = table_entries(derived.sizing_payload, key)
 
-        assert prices == {rung}, key
-        assert measured, f"{key} offers a price and prices no class"
-        for price in prices:
-            offered[price] += 1
-        table = priced_classes(derived.sizing_payload, key)
-        assert set(table) == set(measured), key
-        for hand_class, entries in table.items():
+        assert set(table) == set(expected), key
+        for name, entries in table.items():
             quoted = [price for price, _ in entries]
             weights = [weight for _, weight in entries]
 
-            assert entries_agree(entries, measured[hand_class]), (key, hand_class, entries)
-            assert set(quoted) <= prices and len(set(quoted)) == len(quoted), (key, hand_class)
-            assert quoted == sorted(quoted), (key, hand_class)
-            assert all(weight > 0.0 for weight in weights), (key, hand_class)
-            assert sum(weights) == pytest.approx(1.0, abs=1e-9), (key, hand_class)
-            lengths[len(entries)] += 1
-        spot_lengths[max(len(entries) for entries in table.values())] += 1
+            assert entries_agree(entries, expected[name]), (key, name, entries)
+            assert set(quoted) <= set(prices), (key, name)
+            assert len(set(quoted)) == len(quoted), (key, name)
+            assert quoted == sorted(quoted), (key, name)
+            assert all(weight > 0.0 for weight in weights), (key, name)
+            assert sum(weights) == pytest.approx(1.0, abs=1e-9), (key, name)
+        priced_cells += len(table)
 
     assert derived.sizing_payload["schema_version"] == SIZING_SCHEMA_VERSION
     assert set(sizes) == set(keyed), "the table and the committed set differ"
-    assert dict(offered) == SPOTS_OFFERING_PRICE
-    assert tuple(sorted(offered)) == HERO_PRICES
-    assert STACK_BB not in offered and FOUR_BET_PRICE not in offered
-    assert lengths == {1: ONE_PRICE_CLASS_ENTRIES}
-    assert spot_lengths == {1: PRICED_SPOTS}
-    assert len(sizes) == PRICED_SPOTS == COMMITTED_SPOTS
+    assert priced_cells == PRICED_CELLS
 
 
-@pytest.mark.parametrize(
-    ("label", "path", "key", "kinds", "price", "priced"),
-    [
-        # The most-played decision in six-max: fold, flat, or three-bet to 7.5. With
-        # `add_allin: false` there is no fourth offer, which is what emptied decision 6 out.
-        ("the big blind closing against a button open", spec.TRACED_PATH, spec.TRACED_KEY,
-         ["fold", "call", "raise"], 7.5, TRACED_PRICED_CLASSES),
-        # The only opening range committed. The retired `add_allin: true` build offered an
-        # open-shove here that six classes took at one to three basis points, which made "the
-        # small blind's open is a two-price spot" this file's headline case; the re-sourced
-        # solve has no shove here, so that claim is false of what ships.
-        ("the small blind's open, the only spot with no call on the menu", spec.SB_OPEN_PATH,
-         spec.SB_OPEN_KEY, ["fold", "raise"], 2.5, SB_OPEN_PRICED_CLASSES),
-    ],
-)
-def test_a_named_committed_spot_prices_every_class_that_raises_and_no_other(
-    by_path, derived, label: str, path: tuple[int, ...], key: str, kinds: list[str],
-    price: float, priced: int,
+def test_a_spot_that_offers_a_raise_carries_a_key_and_a_class_that_never_raises_does_not(
+    export: SolverExport, by_path, derived
 ) -> None:
-    """What is on trial at a one-price spot is the *grain*, not the split.
+    """The direction of the invariant that bites over the committed set.
 
-    Both spots offer hero one price, so every weight is 1.0 and the per-class weight the
-    2026-08-26 ruling fixed is unexercised. The per-class *membership* is not: 47 of the 169
-    arriving classes three-bet a button open and 121 of 169 open the small blind. A per-spot
-    table would price all 169 - an opening price for 48 hands the solve never opens - or price
-    the spot once and lose which hands it was for.
+    Every spot offering hero a raise carries a key for every size it offers - all 249 do -
+    and within a spot, a class absent from the table is a hand hero only folds or flats. The
+    second half is what stops the table being a per-spot number wearing a per-class shape:
+    at the small blind's open 121 of the 169 classes raise and 48 do not, and a table that
+    priced all 169 would be quoting an opening price for hands the solve never opens.
     """
-    node = by_path[path]
-    classes = priced_classes(derived.sizing_payload, key)
-    measured = measured_class_sizes(node)
-    row = derived.artifact_payload["action_weights"][key]
-
-    assert [action.kind for action in node.actions] == kinds, label
-    assert "jam" not in kinds, "add_allin is false, so the two-price case cannot arise"
-    assert len(row) == len(HAND_CLASSES), "every class arrives here, folding ones included"
-    assert set(classes) == set(measured) == raising_classes(row), label
-    assert len(classes) == priced, label
-    assert len(classes) < len(row), "every arriving class raises, so membership is untested"
-    for hand_class, entries in classes.items():
-        assert entries_agree(entries, measured[hand_class]), (hand_class, entries)
-        assert entries_agree(entries, ((price, 1.0),)), (hand_class, entries)
-    for hand_class in set(row) - set(classes):
-        assert row[hand_class]["raise"] == 0.0, hand_class
-    assert entries_agree(priced_entries(derived.sizing_payload, key, PURE_CLASS), ((price, 1.0),))
-
-
-def test_the_two_menus_decide_which_spots_carry_a_size_and_none_carry_none(
-    export: SolverExport, walked, derived
-) -> None:
-    """The two menus enumerated, and the one direction of the invariant that still bites.
-
-    Five spots offer fold, call and a raise: the big blind closing against each open. One offers
-    fold and a raise and no call, the small blind's own, where `CHART-HERO-MUST-NEVER-LIMP`
-    holds by construction. **All 6 carry a sizing entry**, which is what the first 2026-09-01
-    withholding did to decision 6's two-directional invariant: the fold-and-call menu it was
-    stated over went with the jams. What survives is the per-class direction - a *class* absent
-    from a priced spot is a hand hero only folds or flats. Menus are read off the rows rather
-    than the export's kinds: a converter that read a node right and dropped an action passes the
-    sibling's reading and fails here."""
+    keyed = shape.committed_nodes(export, by_path)
     sizes = derived.sizing_payload["raise_to_bb"]
-    rows = derived.artifact_payload["action_weights"]
-    keyed = committed_keys(export, walked)
-    priced = {key for key in keyed if raising_classes(rows[key])}
-    unpriced = set(keyed) - priced
-
-    assert len(keyed) == COMMITTED_SPOTS
-    assert Counter(artifact_menu(node) for node in keyed.values()) == COMMITTED_MENUS
-    for key, node in keyed.items():
-        declared = {action for weights in rows[key].values() for action in weights}
-        assert tuple(sorted(declared)) == artifact_menu(node), key
-
-    assert priced == set(sizes), "the table's keys are the committed spots that raise, exactly"
-    assert priced == set(keyed)
-    assert len(priced) == PRICED_SPOTS
-    assert len(unpriced) == UNPRICED_SPOTS == 0
-
+    priced = {key for key, node in keyed.items() if offered_prices(node)}
     silent = 0
-    for key in priced:
-        assert set(sizes[key]) == raising_classes(rows[key]), key
+
+    assert len(priced) == SPOTS_OFFERING_A_PRICE == len(keyed)
+    assert set(sizes) == priced
+    for key, node in keyed.items():
+        raising = {
+            name
+            for name in shape.arriving_classes(node)
+            if published_raise_bp(by_path, node, name) > 0
+        }
+
+        assert set(sizes[key]) == raising, key
         assert all(entries for entries in sizes[key].values()), key
-        silent += len(rows[key]) - len(sizes[key])
+        silent += len(shape.arriving_classes(node)) - len(raising)
+
     assert silent, "no committed row holds a class that never raises, so nothing was tested"
 
 
-def test_a_committed_spot_that_prices_nothing_is_absent_from_the_table(
-    export: SolverExport, walked, derived
+def test_a_committed_spot_that_prices_nothing_carries_no_key_at_all(
+    export: SolverExport, by_path, derived
 ) -> None:
-    """The other direction of decision 6's invariant, `VACUOUS` since 2026-09-01.
-    A committed spot whose menu offers no raise must have no key in the sizing table at all,
-    rather than a key holding an empty map - the second wears the first's shape and a reader
-    cannot tell "nothing to price" from "priced nothing". The fifteen spots that exercised the
-    rule were hero answering a five-bet jam and Taylor withheld them; the multiway family that
-    returns once GTOpen can price it brings fold-or-call menus back."""
-    rows = derived.artifact_payload["action_weights"]
+    """The other direction, and the second of the phase's three vacuous criteria.
 
-    assert {k for k in committed_keys(export, walked) if not raising_classes(rows[k])} == set()
-    vacuous("every committed spot offers hero a raise, so no spot prices nothing")
+    A committed spot whose menu offers hero no raise must be absent from the table entirely
+    rather than carry a key holding an empty map: the second wears the first's shape and a
+    reader cannot tell "nothing to price" from "priced nothing". The strategy then refuses
+    when asked for a size rather than inventing one.
 
+    Over the committed 249 no spot offers zero raises, so the rule has nothing to fire on.
+    The premise is asserted before the label, and the rule is retained because the multiway
+    family that returns once GTOpen can price it brings fold-or-call menus back with it.
+    """
+    keyed = shape.committed_nodes(export, by_path)
+    unpriced = {key for key, node in keyed.items() if not offered_prices(node)}
 
-# --- What the committed 6 cannot exercise, labelled rather than counted ---
+    # The premise before the label. "No committed spot lacks a price" is equally true of no
+    # committed spots at all, and the intersection below is then empty against anything, so
+    # an empty walk would skip as VACUOUS having measured nothing.
+    assert len(keyed) == SPOTS_OFFERING_A_PRICE
+    assert len(unpriced) == SPOTS_OFFERING_NO_PRICE
+    assert not (unpriced & set(derived.sizing_payload["raise_to_bb"]))
+    shape.vacuous("every committed spot offers hero a raise, so none prices nothing")
 
 
 def test_a_spot_offering_two_prices_is_described_by_both_of_them(derived) -> None:
-    """Decision 6's headline case, and `VACUOUS` over what this phase commits.
+    """Decision 6's headline case, and the first of the three vacuous criteria.
 
-    The schema holds a list per hand class so that a spot offering two raise sizes is described
+    The schema holds a *list* per hand class so a spot offering two raise sizes is described
     by two, which is how `CHART-CANNOT-EXPRESS-TWO-RAISE-SIZES-AT-ONE-SPOT` closes. Over the
-    committed 6 the case does not arise - every spot offers hero exactly one price - so every
-    entry is a one-element list and the two-price assertion holds for want of anything to hold
-    of. The schema costs nothing, and the multiway family that returns once GTOpen can price it
-    is where the case lived."""
-    sizes = derived.sizing_payload["raise_to_bb"]
-    lengths = Counter(len(entries) for spot in sizes.values() for entries in spot.values())
-
-    assert set(lengths) == {1}, "a committed spot now offers two prices at one hand class"
-    vacuous("no spot offers two prices, so the multi-size schema is unexercisable here")
-
-
-def test_a_jam_and_a_named_raise_collapse_into_one_raise_whose_parts_add(export) -> None:
-    """`PREFLOP_ACTIONS` holds one raise, so two aggressive offers cannot both survive as
-    actions - and `VACUOUS`, over the whole re-sourced export rather than only the 6.
-
-    The rule is real and the artifact needs it: hero's weight on raising is the named raise plus
-    the jam, a row saying what hero does rather than at what price, so dropping the jam leaves a
-    row that does not sum to one. Decision 14 re-sourced with `add_allin: false` and the
-    consequence is stronger than decision 6 recorded: **not one node in the export offers both**,
-    so nothing anywhere is left for the addition to add.
+    committed 249 the case does not arise - `add_allin: false` removed the jam from every
+    node that also offers a named raise, and the four-bet family that still jams is withheld
+    - so every entry is a one-element list and the two-price assertion holds for want of
+    anything to hold of. Decision 6 keeps the schema anyway, and requires this said plainly:
+    a check that cannot fail must not be counted as one that passed. The case is proved
+    against a synthetic export in the test below instead.
     """
-    both = [n for n in export.nodes if {"raise", "jam"} <= {a.kind for a in n.actions}]
-    assert both == []
-    vacuous("no node in the export offers a named raise and a jam, so nothing collapses")
+    table = derived.sizing_payload["raise_to_bb"]
+    lengths = {len(entries) for spot in table.values() for entries in spot.values()}
+
+    # The premise before the label, for the same reason as the sibling above: `{1}` is what a
+    # table holding a single one-element entry reads too, so the span is asserted first.
+    assert len(table) == SPOTS_OFFERING_A_PRICE
+    assert lengths == {1}, "a committed spot now offers two prices at one hand class"
+    shape.vacuous("no committed spot offers two prices, so the multi-size schema is idle")
 
 
-def test_two_prices_at_one_spot_are_both_priced_and_their_weights_add(derived) -> None:
-    """Where the two vacuous rules above are actually proved: a synthetic export.
-
-    A node offering hero fold, an open to 2.5, and the stack is the shape the multiway family
-    will bring back and the shape the 2026-08-24 extension was ruled on. Converting it does both
-    halves of decision 6 at once: the table holds both prices in ascending order with hero's
-    weight on each, and the row holds one `raise` weight equal to their sum, so it still says
-    what hero does and sums to one. A converter dropping the jam fails only here.
-    """
-    chart = spec.derivation().derive_chart(synthetic_export(2.5, jam=True))
-    rfi_key = f"t{spec.TABLE_SIZE}/d{spec.DEPTH_BB}/SB/rfi"
-    entries = priced_entries(chart.sizing_payload, rfi_key, PURE_CLASS)
-    row = chart.artifact_payload["action_weights"][rfi_key][PURE_CLASS]
-    named, shoved = SYNTHETIC_RAISE_BP, SYNTHETIC_JAM_BP
-
-    assert [price for price, _ in entries] == pytest.approx([2.5, STACK_BB])
-    assert [weight for _, weight in entries] == pytest.approx(
-        [named / (named + shoved), shoved / (named + shoved)]
-    )
-    assert sum(weight for _, weight in entries) == pytest.approx(1.0, abs=1e-9)
-    assert set(row) == {"fold", "raise"}
-    assert row["raise"] == pytest.approx((named + shoved) / QUANTISATION_SCALE)
-    assert row["raise"] > named / QUANTISATION_SCALE, "the jam's weight was dropped"
-
-    # And the committed chart has neither shape, which is why this had to be synthetic.
-    assert all(
-        len(entries) == 1
-        for spot in derived.sizing_payload["raise_to_bb"].values()
-        for entries in spot.values()
-    )
-
-
-# --- The sizes come from the export's own labels, proved by perturbing them ---
+# --- The synthetic exports, where the vacuous cases are actually proved ------------------
 
 FOLD_CONTINUES = SolverAction("Fold", "fold", 0.0, False)
 FOLD_ENDS_IT = SolverAction("Fold", "fold", 0.0, True)
 SYNTHETIC_RAISE_BP = 7_000
 SYNTHETIC_JAM_BP = 2_000
+SYNTHETIC_SPOTS = 6
+"""Every node of the synthetic tree is committed: four seats fold with nothing multiway
+below them, the small blind opens and the big blind answers heads-up, so no node's exposure
+is above zero and none faces a third raise. The four folding seats offer no raise at all,
+which is what makes this tree - and not the committed 249 - the place the no-raise half of
+the invariant is actually exercised."""
 
 
 def uniform_node(
     path: tuple[int, ...], actor: str, actions: list[SolverAction], split: tuple[int, ...]
 ) -> SolverNode:
-    """A node whose every hand class plays the same mix and arrives in full - the trade
-    `tests/test_solver_export.py` makes too, these exercising a converter and not poker."""
+    """A node whose every class plays the same mix and arrives in full. These exercise a
+    converter rather than poker, so a flat range is the honest fixture."""
+    from array import array
+
     return SolverNode(
         path,
         actor,
@@ -452,12 +356,13 @@ def uniform_node(
 
 
 def synthetic_export(open_to: float, jam: bool = False) -> SolverExport:
-    """The smallest tree that carries an opening price *and* satisfies the ruled predicate.
-    Four seats fold, the small blind opens, the big blind answers - the folds being what the
-    predicate needs, six players live failing the subtree clause however heads-up the history
-    is. `config` stays the ruled one while the labels move, a converter reading
-    `config["open_raises"][0]` being as hardcoded as one with 2.5 in it. Both nodes are
-    committed under every ruling: the open faces no raise and the answer faces one."""
+    """The smallest tree carrying an opening price that every ruled clause admits.
+
+    Four seats fold, the small blind opens, the big blind answers. `config` stays the ruled
+    one while the *labels* move, because a converter reading `config["open_raises"][0]` is as
+    hardcoded as one with 2.5 written into it - and it is the label the artifact has to
+    follow, the config describing the solve rather than any one node.
+    """
     opening = SolverAction(f"Raise {open_to}", "raise", open_to, False)
     call = SolverAction(f"Call {open_to}", "call", open_to, True)
     shove = SolverAction("All-in 100", "jam", STACK_BB, True)
@@ -478,47 +383,85 @@ def synthetic_export(open_to: float, jam: bool = False) -> SolverExport:
     )
 
 
+def test_two_prices_at_one_spot_are_both_priced_and_their_weights_add() -> None:
+    """Where the two vacuous rules above are actually proved.
+
+    A node offering hero fold, an open to 2.5 and the stack is the shape the multiway family
+    will bring back and the shape decision 6's 2026-08-24 extension was ruled on. Converting
+    it does both halves at once: the table holds both prices in ascending order with hero's
+    weight on each, and the artifact row holds one `raise` weight equal to their sum, so the
+    row still says what hero *does* and still sums to one. A converter that dropped the jam
+    fails only here.
+
+    The four folding seats are the second proof: they offer no raise, so they must be absent
+    from the table entirely rather than carry an empty entry.
+    """
+    chart = chart_derivation.derive_chart(synthetic_export(2.5, jam=True))
+    rfi_key = f"t{shape.TABLE_SIZE}/d{shape.STACK_DEPTH_BB}/SB/rfi"
+    entries = table_entries(chart.sizing_payload, rfi_key)["AA"]
+    row = chart.artifact_payload["action_weights"][rfi_key]["AA"]
+    named, shoved = SYNTHETIC_RAISE_BP, SYNTHETIC_JAM_BP
+
+    assert [price for price, _ in entries] == pytest.approx([2.5, STACK_BB])
+    assert [weight for _, weight in entries] == pytest.approx(
+        [named / (named + shoved), shoved / (named + shoved)]
+    )
+    assert sum(weight for _, weight in entries) == pytest.approx(1.0, abs=1e-9)
+    assert set(row) == {"fold", "raise"}
+    assert row["raise"] == pytest.approx((named + shoved) / QUANTISATION_SCALE)
+    assert row["raise"] > named / QUANTISATION_SCALE, "the jam's weight was dropped"
+
+    assert chart.census.committed == SYNTHETIC_SPOTS
+    assert set(chart.sizing_payload["raise_to_bb"]) == {rfi_key}
+    for seat in ("LJ", "HJ", "CO", "BTN"):
+        folding = f"t{shape.TABLE_SIZE}/d{shape.STACK_DEPTH_BB}/{seat}/rfi"
+        assert folding in chart.artifact_payload["action_weights"]
+        assert folding not in chart.sizing_payload["raise_to_bb"], seat
+
+
 @pytest.mark.parametrize("open_to", [2.5, 3.75, 4.0])
-def test_the_converter_reads_its_sizes_from_the_export_s_own_labels(open_to: float) -> None:
+def test_the_converter_reads_its_sizes_from_the_exports_own_labels(open_to: float) -> None:
     """The contract's unfalsifiability criterion, and the hardest thing in this file.
-    The solved config has one opening size and one multiplier, so a converter with the prices
-    written into it produces a byte-identical artifact and passes every other test here;
-    perturbing the label is the only thing that tells the two apart. 2.5 is the control - if the
-    perturbed cases pass and it fails, prices are transformed rather than read.
+
+    The solved config has one opening size and one multiplier, so a converter with the three
+    prices written into it produces a byte-identical artifact and passes every other test
+    here. Perturbing the label is the only thing that tells the two apart: the fixture keeps
+    the ruled config and moves only the action's own `to`, so a converter reading the config,
+    a constant, or a ladder derived from either lands on 2.5 and fails at 3.75 and 4.0.
+
+    2.5 is the control. If the perturbed cases pass and the control fails, prices are being
+    transformed rather than read, which is a different defect with the same symptom.
     """
     built = synthetic_export(open_to)
-    chart = spec.derivation().derive_chart(built)
-    rfi_key = f"t{spec.TABLE_SIZE}/d{spec.DEPTH_BB}/SB/rfi"
-    facing_key = f"t{spec.TABLE_SIZE}/d{spec.DEPTH_BB}/BB/SB:raise@{open_to:g}"
-    opened = priced_classes(chart.sizing_payload, rfi_key)
+    chart = chart_derivation.derive_chart(built)
+    rfi_key = f"t{shape.TABLE_SIZE}/d{shape.STACK_DEPTH_BB}/SB/rfi"
+    facing_key = f"t{shape.TABLE_SIZE}/d{shape.STACK_DEPTH_BB}/BB/SB:raise@{open_to:g}"
+    opened = table_entries(chart.sizing_payload, rfi_key)
 
-    # The fixture is evidence only if it is a real export the reader accepts; were it rejected,
-    # everything below would be red for a reason with nothing to do with the converter.
-    assert built.node_count == 6 and built.node(()).actor_pos == "LJ"
+    # The fixture is evidence only if the reader accepts it as a real export; were it
+    # rejected, everything below would be red for a reason with nothing to do with prices.
+    assert built.node_count == SYNTHETIC_SPOTS and built.node(()).actor_pos == "LJ"
     assert built.node((0, 0, 0, 0)).actor_pos == "SB"
     assert [a.label for a in built.node((0, 0, 0, 0)).actions] == ["Fold", f"Raise {open_to}"]
 
-    assert set(chart.artifact_payload["action_weights"]) == {rfi_key, facing_key}
+    assert facing_key in chart.artifact_payload["action_weights"]
     assert set(chart.sizing_payload["raise_to_bb"]) == {rfi_key}
     assert set(opened) == set(HAND_CLASSES)
-    assert all(entries_agree(e, ((open_to, 1.0),)) for e in opened.values()), opened
-    assert chart.census.committed == 2
-    # The four folded seats are excluded by the subtree clause, which is the mispricing code:
-    # with more than two players live, every terminal below them is one GTOpen cannot price.
-    assert chart.census.excluded == {lookup.DERIVATION_SOURCE_MISPRICES_MULTIWAY: 4}
-    assert sum(chart.census.inexpressible.values()) == 0
+    assert all(entries_agree(e, [(open_to, 1.0)]) for e in opened.values()), opened
 
 
-def test_a_node_the_converter_cannot_handle_raises_rather_than_being_filed() -> None:
-    """The closure is load-bearing or it is decoration.
+def test_a_node_the_converter_cannot_classify_raises_rather_than_being_filed() -> None:
+    """The closed reason vocabulary is load-bearing or it is decoration.
+
     An action kind nothing in this repo has a rule for is not "inexpressible in the spot
-    vocabulary" - it is a converter meeting something it does not understand, and filing that as
+    grammar" - it is a converter meeting something it does not understand, and filing that as
     a property of the grammar turns a bug into a documented limitation. Nor is it excluded:
-    neither clause of the predicate can be evaluated at a node whose kinds the walk cannot
-    classify. The reader accepts the tree, so the converter must refuse by name."""
+    no clause of the selection rule can be evaluated at a node whose kinds the walk cannot
+    classify. The reader accepts the tree, so the converter must refuse by name.
+    """
     straddle = SolverAction("Straddle 2", "straddle", 0.0, False)
     call = SolverAction("Call 2", "call", 2.0, True)
-    export = SolverExport.from_nodes(
+    built = SolverExport.from_nodes(
         [
             uniform_node((), "LJ", [FOLD_ENDS_IT, straddle], (3_000, 7_000)),
             uniform_node((1,), "HJ", [FOLD_ENDS_IT, call], (6_000, 4_000)),
@@ -528,156 +471,29 @@ def test_a_node_the_converter_cannot_handle_raises_rather_than_being_filed() -> 
     )
 
     with pytest.raises(ValueError, match="straddle"):
-        spec.derivation().census(export)
+        chart_derivation.census(built)
     with pytest.raises(ValueError, match="straddle"):
-        spec.derivation().derive_chart(export)
+        chart_derivation.derive_chart(built)
 
 
-# --- An excluded node is a refusal at the table, never a neighbouring cell ---
+# --- The table is rederived; the external oracle is not ---------------------------------
 
 
-@pytest.fixture(scope="module")
-def committed_library(derived, tmp_path_factory) -> PreflopChartLibrary:
-    """The derived artifact, written out and imported the way the runtime imports it."""
-    directory = tmp_path_factory.mktemp("derived-chart")
-    path = directory / "six_max_100bb_rakefree.json"
-    text = json.dumps(derived.artifact_payload, indent=2, sort_keys=False) + "\n"
-    path.write_text(text, encoding="utf-8")
-    return PreflopChartLibrary.from_artifacts([import_preflop_artifact(path)])
+def test_the_sizing_table_is_rederived_in_the_same_run_and_the_oracle_is_not() -> None:
+    """Two files, two opposite obligations, asserted against the converter's own outputs.
 
+    The sizing table is derived from the export and must be rewritten whenever the chart is,
+    or the bot reads new ranges at old prices. The expectations file holds the only figures
+    in this phase this repo did not produce - which is what catches a chart uniformly wrong
+    rather than merely self-consistent - so the thing being checked must not be able to
+    regenerate its own oracle.
 
-@pytest.mark.parametrize(
-    ("label", "path", "key", "sequence", "kept"),
-    [
-        # The two the predicate never wanted. Re-derived on the 33,969-node export: the history
-        # clause alone selects 65 and the subtree clause alone 4,865, so the two ways a node can
-        # miss the conjunction are 14 and 4,814.
-        ("the lojack's own open, one of the 14", spec.LOJACK_OPEN_PATH,
-         spec.LOJACK_OPEN_KEY, (), False),
-        ("a cold-called line, one of the 4,814", spec.COLD_CALLED_PATH,
-         spec.COLD_CALLED_KEY, spec.COLD_CALLED_SEQUENCE, False),
-        # The three the predicate keeps and a later ruling withholds.
-        ("the button facing a big-blind three-bet", spec.THREE_BET_FACED_PATH,
-         spec.THREE_BET_FACED_KEY, spec.THREE_BET_FACED_SEQUENCE, True),
-        ("the big blind facing a button four-bet", spec.FOUR_BET_FACED_PATH,
-         spec.FOUR_BET_FACED_KEY, spec.FOUR_BET_FACED_SEQUENCE, True),
-        ("the button answering the jam it drew", spec.FIVE_BET_JAM_PATH,
-         spec.FIVE_BET_JAM_KEY, spec.FIVE_BET_JAM_SEQUENCE, True),
-    ],
-)
-def test_a_node_the_chart_does_not_hold_is_refused_rather_than_answered_from_a_neighbour(
-    committed_library: PreflopChartLibrary, by_path, walked, label: str,
-    path: tuple[int, ...], key: str, sequence: tuple[PreflopAction, ...], kept: bool,
-) -> None:
-    """The point of every exclusion, asked as a query rather than asserted as prose.
-    One node from each of the five reasons, so a chart refusing only the obvious ones fails. All
-    five are legal spots with legal keys whose ranges were never committed: answering the
-    lojack's open from the small blind's range is a range hero never had, and nothing downstream
-    could tell.
-
-    **The withheld ones were checked only as missing keys until 2026-09-01, and that gap is
-    dangerous here specifically.** Phase 12's ruling 8 normalises an observed price to the
-    nearest one the chart declares for that line, so a withheld spot is where a neighbouring
-    answer could arrive: a 22.5 four-bet quietly reading as the 7.5 three-bet the chart does
-    hold, handing hero a three-bet-pot range in a four-bet pot, the query resolving and the
-    weights looking ordinary. The three-bet-facing spot is the sharpest, being one action from a
-    spot the chart *does* answer. `price_substitutions` is deliberately not consulted - a
-    substitution that produced an answer is the defect, not the evidence. `kept` is the one way
-    the five differ: the first two fail decision 1's predicate, the last three pass it."""
-    node = by_path[path]
-    query = ChartQuery(spec.TABLE_SIZE, spec.DEPTH_BB, node.actor_pos, sequence, PURE_CLASS)
-    refused = committed_library.lookup(query)
-
-    assert spec.predicate_selects(node, walked) is kept, label
-    assert not spec.selected(node, walked), label
-    assert spec.key_of(node, walked) == key
-    assert query.spot_key == key
-    assert key not in committed_library.spot_keys()
-    assert isinstance(refused, ChartMiss), (label, getattr(refused, "spot_key", None))
-    assert refused.code == MISS_SPOT_NOT_COVERED
-    assert refused.code in MISS_CODES
-    assert refused.spot_key == key and key in refused.detail
-
-
-def test_a_committed_spot_is_still_answered(committed_library) -> None:
-    """A chart that refused everything would satisfy the test above.
-    Both are what the cutover is defended on: the big blind closing against a button open, the
-    most-played decision in six-max, and the one opening range that survives. They are also all
-    the shapes there are - since the third withholding the chart holds one open and five
-    defences and nothing else. A five-bet call-off was a third example until 2026-09-01."""
-    for position, sequence, key, action in (
-        ("BB", spec.TRACED_SEQUENCE, spec.TRACED_KEY, "raise"),
-        ("SB", (), spec.SB_OPEN_KEY, "raise"),
-    ):
-        answered = committed_library.lookup(
-            ChartQuery(spec.TABLE_SIZE, spec.DEPTH_BB, position, sequence, PURE_CLASS)
-        )
-        assert not isinstance(answered, ChartMiss), getattr(answered, "detail", "")
-        assert answered.spot_key == key
-        assert answered.price_substitutions == ()
-        assert dict(answered.action_weights)[action] > 0.0, key
-
-
-def test_no_withheld_family_is_priced_or_answered_anywhere(
-    export: SolverExport, walked, derived
-) -> None:
-    """All three withholdings read as prices, over whole families rather than named nodes.
-
-    The button opens, the big blind three-bets, the button four-bets to 22.5 and the big blind
-    jams 100; all three of those decisions leave the chart. At the four-bet node the `calibrated`
-    fit has no four-bet-pot cell, so decision 20 withholds it and 100.0 is never quoted. At the
-    node *after* it, where the chart put hero's last 77.5bb in as a call, the price is set by a
-    range computed at that refused parent. At the node *before* it, hero's only aggressive answer
-    is the 22.5 four-bet that walks into it, so 22.5 leaves the menu too. The 77.5 arithmetic is
-    kept as the measurement of what is no longer advised."""
-    sizes = derived.sizing_payload["raise_to_bb"]
-    rows = derived.artifact_payload["action_weights"]
-    names = ("three-bet", "four-bet", "jam")
-    families = {name: withheld_keys(export, walked, name) for name in names}
-    every = set().union(*(set(keys) for keys in families.values()))
-
-    for name, keys in families.items():
-        assert len(keys) == 15, name
-    assert len(every) == THREE_BET_FACED_SPOTS + FOUR_BET_FACED_SPOTS + FIVE_BET_FACING_SPOTS
-    assert len(committed_keys(export, walked)) + len(every) == PREDICATE_SPOTS
-    assert not every & (set(rows) | set(sizes))
-
-    for key, node in families["three-bet"].items():
-        assert artifact_menu(node) == ("call", "fold", "raise"), key
-        assert {a.to for a in node.actions if a.kind == "raise"} == {FOUR_BET_PRICE}, key
-    for key, node in families["four-bet"].items():
-        assert {a.to for a in node.actions if a.kind == "jam"} == {STACK_BB}, key
-    for key, node in families["jam"].items():
-        called = [action.to for action in node.actions if action.kind == "call"]
-        four_bet = max(e.size_bb for e in walked[node.path][2] if e.size_bb and e.size_bb < 100)
-
-        assert artifact_menu(node) == ("call", "fold"), key
-        assert called == [STACK_BB], key
-        assert STACK_BB - four_bet == pytest.approx(spec.FIVE_BET_CALL_OFF_BB), key
-
-    # And nothing committed quotes or answers either price, the claim in three lines.
-    quoted = {float(e["to_bb"]) for spot in sizes.values() for c in spot.values() for e in c}
-    assert STACK_BB not in quoted and FOUR_BET_PRICE not in quoted
-    assert all("100" not in key.split("/")[3] for key in rows)
-    assert all("22.5" not in key.split("/")[3] for key in rows)
-
-
-# --- The external oracle is not regenerated by the thing it checks ---
-
-
-def test_the_converter_does_not_write_the_expectations_file() -> None:
-    """The contract's non-goal, asserted as behaviour rather than as intent.
-
-    The expectations file holds the only numbers in this phase this repo did not produce, which
-    is what catches a range uniformly wrong rather than merely self-consistent. The mtime is
-    checked as well as the bytes: rewriting with identical content is still a rewrite.
-
-    **This test used to run the converter's writing mode, and that was a defect in the suite
-    rather than an untidiness.** The write landed in `data/artifacts/preflop/`, repairing a stale
-    chart mid-run, and under the gate's plain `pytest` this file sorts before every file that
-    checks reproduction. What replaces it touches nothing: the converter's own `outputs()` is the
-    list of files it writes and the oracle must not be in it, and `--check` then runs for real
-    rather than after a write that guaranteed its answer."""
+    `outputs()` is the converter's own list of what it writes, so this is asserted against
+    the converter rather than against a run that happened to touch nothing. The mtime is
+    checked beside the bytes because rewriting a file with identical content is still a
+    write, and `--check` is then run for real rather than after a write that guaranteed its
+    answer.
+    """
     import scripts.convert_preflop_export as converter
 
     assert EXPECTATIONS_PATH.exists(), f"the external oracle is missing at {EXPECTATIONS_PATH}"
@@ -685,7 +501,8 @@ def test_the_converter_does_not_write_the_expectations_file() -> None:
     before_mtime = EXPECTATIONS_PATH.stat().st_mtime_ns
     writes = {path.resolve() for path, _ in converter.outputs()}
 
-    assert writes, "the converter declares no outputs, so this proves nothing about the oracle"
+    assert writes, "the converter declares no outputs, so this proves nothing about either"
+    assert SIZINGS_PATH.resolve() in writes, sorted(str(path) for path in writes)
     assert EXPECTATIONS_PATH.resolve() not in writes, sorted(str(path) for path in writes)
 
     checked = subprocess.run(
@@ -698,3 +515,114 @@ def test_the_converter_does_not_write_the_expectations_file() -> None:
     assert EXPECTATIONS_PATH.read_bytes() == before
     assert EXPECTATIONS_PATH.stat().st_mtime_ns == before_mtime
     assert checked.returncode == 0, checked.stdout + checked.stderr
+
+
+# --- The jam canary, which runs against the export because the chart cannot jam ---------
+
+
+def test_heros_own_jam_lives_only_at_the_four_bet_facing_spots_the_phase_excludes(
+    export: SolverExport, by_path, derived
+) -> None:
+    """The containment half of the canary, and the half that is strict.
+
+    The canary that rejected the first cutover caught a chart telling hero to put a hundred
+    blinds in where the solve raises to seven and a half. This export cannot produce that at
+    a committed spot: every one of the 4,257 nodes offering hero a jam faces three raises
+    already, and `raises_faced <= 2` withholds all of them. So the claim is asserted where it
+    can fail - the jam family is exactly the four-bet-facing family, none of it is committed,
+    and neither `100.0` nor a `@100` key reaches the chart or its table.
+    """
+    jam_nodes = [n for n in export.nodes if any(a.kind == "jam" for a in n.actions)]
+    keyed = shape.committed_nodes(export, by_path)
+    quoted = {
+        entry["to_bb"]
+        for spot in derived.sizing_payload["raise_to_bb"].values()
+        for entries in spot.values()
+        for entry in entries
+    }
+
+    assert len(jam_nodes) == JAM_NODES
+    assert {shape.raises_faced_of(by_path, n) for n in jam_nodes} == {FOUR_BET_RAISES_FACED}
+    assert not ({n.path for n in jam_nodes} & {n.path for n in keyed.values()})
+    assert STACK_BB not in quoted
+    assert all("@100" not in key for key in derived.sizing_payload["raise_to_bb"])
+
+
+def test_no_committed_node_offers_a_jam_beside_a_named_raise(export, by_path) -> None:
+    """The third of the contract's three vacuous criteria, with its premise asserted.
+
+    `_cell_weights` records a jam and a named raise as one `raise` and adds their weights,
+    because `PREFLOP_ACTIONS` holds one raise and dropping either would leave a row that does
+    not sum to one. Under `add_allin: false` no committed node offers both, so over the 249
+    the collapse never fires and the artifact's raise weight is always a single action's.
+
+    The rule is retained because `add_allin: true`, or a solve whose `allin_threshold` snaps a
+    named raise to the stack inside the committed depth, reactivates it; it is proved on a
+    synthetic above. The premise is asserted first so that solve turns this red rather than
+    leaving a stale skip, and it is asserted over the whole menu rather than over the jam
+    alone: a node offering only a jam would not collapse either, and would not be this rule.
+    """
+    keyed = shape.committed_nodes(export, by_path)
+    jamming = {key for key, node in keyed.items() if any(a.kind == "jam" for a in node.actions)}
+    both = {
+        key
+        for key, node in keyed.items()
+        if any(a.kind == "jam" for a in node.actions)
+        and any(a.kind == "raise" for a in node.actions)
+    }
+
+    assert len(keyed) == SPOTS_OFFERING_A_PRICE
+    assert jamming == set()
+    assert both == set()
+    shape.vacuous("no committed node offers a jam, so the collapse to one raise never fires")
+
+
+def test_the_jam_inversion_canary_is_measured_against_the_export(export, by_path) -> None:
+    """The canary retained against the export, and what it finds there, pinned.
+
+    Decision 6 keeps this check on the ground that the defect it exists to catch - a weaker
+    class committing a hundred blinds where aces do not - has to stay measured even after
+    the family that can express it leaves the chart. Over this export the family is the 4,257
+    four-bet-facing nodes; the 219 that sit one action below a committed spot are the ones a
+    player following this chart walks into, so they are where the canary is taken.
+
+    **What it finds is not clean, and the number is recorded rather than softened.** Aces
+    arrive at 168 of the 219 and jam their whole range at 57. At the rest, 97 comparisons
+    have a lower pocket pair jamming more often than aces do, both classes arriving - kings
+    jamming 100 percent where aces jam 12 is the worst of them. That is decision 50's
+    raise-action inversion in the family this phase withholds, and decisions 41, 47, 50 and
+    51 accept inversions of that kind as solved, so it is **not** gated here: gating it would
+    be this lane overturning four rulings. It is pinned as a measurement instead, so a later
+    solve that repairs the family turns this red and whoever sees it re-reads the exclusion
+    rather than inheriting it. The report prints aces' jam weight at these spots.
+    """
+    committed_paths = {node.path for node in shape.committed_nodes(export, by_path).values()}
+    below = [
+        node
+        for node in export.nodes
+        if node.path[:-1] in committed_paths and any(a.kind == "jam" for a in node.actions)
+    ]
+
+    def jam_bp(node: SolverNode, name: str) -> int:
+        column = gtopen_class_index(name)
+        return sum(
+            node.strategy_bp[index][column]
+            for index, action in enumerate(node.actions)
+            if action.kind == "jam"
+        )
+
+    with_aces = [n for n in below if n.reach_bp[gtopen_class_index("AA")] > 0]
+    pure = [n for n in with_aces if jam_bp(n, "AA") == QUANTISATION_SCALE]
+    inversions = [
+        (node.path, name)
+        for node in with_aces
+        for name in PAIRS[1:]
+        if node.reach_bp[gtopen_class_index(name)] > 0
+        and jam_bp(node, name) > jam_bp(node, "AA")
+    ]
+
+    assert len(below) == JAM_NODES_BELOW_A_COMMITTED_SPOT
+    assert len(with_aces) == JAM_NODES_WHERE_ACES_ARRIVE
+    assert len(pure) == ACES_JAM_THE_WHOLE_RANGE_AT
+    assert len(inversions) == PAIR_INVERSIONS_ON_THE_JAM
+    assert set(PAIRS) <= set(HAND_CLASSES)

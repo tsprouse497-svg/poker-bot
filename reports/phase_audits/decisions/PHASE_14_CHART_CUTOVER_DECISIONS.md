@@ -1,12 +1,20 @@
 # Phase 14 judgment calls
 
-## READ THIS FIRST: what is live, as of 2026-09-02
+## READ THIS FIRST: what is live, as of 2026-09-03
 
-This list runs to **47** items and 64 supersession notices. Four restarts have begun with an agent
-reconstructing the current rules from it and getting them wrong. **Do not read this record front to
-back to find out what the bot does.** The live rule set is in the `Next Agent Bootstrap` section of
-`docs/exec_plans/active/PHASE_14_CHART_CUTOVER.md`, which is maintained as the single source; this
-record is where the reasoning and the measurements live.
+This list runs to **55** items and **38** dated correction notices, counted 2026-09-03. A dated
+correction notice is a bolded lead inside a numbered item that carries a date and one of the words
+superseded, withdrawn, amended, corrected or moot, and that says so about an earlier statement rather
+than announcing the item's own ruling. The rule is written down so the count can be re-derived rather
+than believed, which is the whole complaint against the number it replaces. The "47 items and 64
+supersession notices" this line carried until 2026-09-03 was wrong twice: the item count was eight short
+of the list underneath it, and the 64 reproduces under no counting rule that could be reconstructed, so
+it is withdrawn rather than adjusted.
+
+Four restarts have begun with an agent reconstructing the current rules from it and getting them wrong.
+**Do not read this record front to back to find out what the bot does.** The live rule set is in the
+`Next Agent Bootstrap` section of `docs/exec_plans/active/PHASE_14_CHART_CUTOVER.md`, which is maintained
+as the single source; this record is where the reasoning and the measurements live.
 
 **Live rulings, in the order they matter.** Everything the committed chart does traces to these:
 
@@ -24,6 +32,12 @@ record is where the reasoning and the measurements live.
 | **38** | a chart ships |
 | **19**, **20** | `realization: calibrated`, and why neither `static` nor `raw` replaces it |
 | **43** | corrections to 32, 35 and 39, all of which had wrong figures |
+| **48** | the big blind's ten squeeze spots are excluded; the committed set is **249 nodes**, not 259 |
+| **49** | the figures table for the committed 249, as corrected by 53 |
+| **50**, **55** | the fourth relation, on the merged raise weight: **41** inversions, **25** visible only there |
+| **51** | what ships is GTOpen's preflop output as solved, minus the four-bet family |
+| **52** | the exposure rule names the removed branch; the exclusion code is `derivation:big-blind-squeeze-spot` |
+| **54** | the rank arm is scored over every spot in its partition, an absent partner skipped and counted |
 
 **Superseded or withdrawn. Read for diagnosis, never for work.**
 
@@ -40,6 +54,8 @@ record is where the reasoning and the measurements live.
 | 32 | its pair-inversion dismissal was wrong, superseded by 41; its cut-by-action ruling stands |
 | 33 | its publication rule superseded by 45; its hero-side-only ruling stands |
 | 36 | ruled but **not executed**, on a coordinator error; back with Taylor |
+| 50 | its **27** inversions and its BB-versus-cutoff example are both superseded by 55; the fourth relation stands |
+| 53 | its rank-arm paragraph superseded by 54; its five figure corrections stand |
 
 **Live and never superseded, but named by no summary until now** - the contract's criteria implement all
 of them: **2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 21, 23, 24, 25, 27, 29, 30**. Of those, 4
@@ -47,16 +63,19 @@ of them: **2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 21, 23, 24, 25, 2
 vocabulary), 10 (one-point tolerance, pinned relation definition) and 14 (`add_allin: false`) are the ones
 a reader will hit first.
 
-**Later items to add to the live table**: **48** the big blind's squeeze spots excluded, 249 nodes; **49**
-corrected counts, superseding every figure taken over an earlier set; **50** the fourth relation, on the
-raise action, which is the defect that actually halted the phase.
+**The side-list is gone, 2026-09-03.** Items 48 to 55 were carried here as items "to add to the live
+table" rather than in the table itself, which is how the table came to stop at 43 while the record ran to
+53. They are in the table above now. A new decision is not finished until it is in one of these two
+tables.
 
-**Partially superseded items are the trap.** 32, 33, 35, 40 and 46 each carry a ruling that stands and a
-figure or sub-rule that does not. Where they conflict with 43 to 50, the later item wins. **Every count in
-items 1 to 48 was taken over a set that has since moved; decision 49 is the only figures table to trust.**
+**Partially superseded items are the trap.** 32, 33, 35, 40, 46, 50 and 53 each carry a ruling that
+stands and a figure or sub-rule that does not. Where they conflict with 43 to 55, the later item wins.
+**Every count in items 1 to 48 was taken over a set that has since moved. Decision 49 is the figures table
+to start from, as corrected by 53; 54 and 55 then correct two figures published after it - the rank arm's
+"149 against 69", and decision 50's 27 raise-action inversions.**
 
 **Everything below this line is the record's original preamble and its counts are historical.** It says
-thirteen items, then twenty-four, then thirty; there are 50. It says the committed set went 36 to 21 to 6;
+thirteen items, then twenty-four, then thirty; there are 55. It says the committed set went 36 to 21 to 6;
 it is now 249.
 
 
@@ -3857,6 +3876,25 @@ That is accepted on the same terms as decisions 41 and 47, and it is now visible
 Options: publish-a-fourth-relation | gate-it | leave-it-unmeasured
 Answer: [publish-a-fourth-relation]
 
+**Its count is superseded by decision 55, 2026-09-03. The ruling stands; the figure does not.** The
+**27** above does not reproduce. Run as this phase defines the relation - adjacent pair ladder, twelve
+comparisons, decision 10's one-point tolerance, strict, reach floor zero, every committed spot - the
+raise-action relation reads **43** inversions in total and **28** visible only on the raise action before
+decision 45's merge, and **41** and **25** after it. Taylor ruled on 2026-09-03 that the relation reads
+the **merged** weight, which is the action the bot actually takes, so the pinned figures are **41 total,
+25 visible-only**. The three cases named above are all present in the measured set and nothing about the
+acceptance changes. Decision 55 carries the working and the ruling.
+
+**A second correction to the same item, 2026-09-03, and this one is about the label rather than the
+arithmetic.** "`BB vs CO` raises `99` at 0.0 and `88` at **71.8**" above is a correct reading of
+`t6/d100/BB/CO:raise@2.5,SB:call` - the big blind facing a cutoff open with the small blind already cold
+called. **That node is not in the committed 249.** Decision 48's third clause refuses it as a big-blind
+squeeze spot; its raise depth is fine and its exposure is 8.98 percent, under the threshold, so the
+squeeze clause alone is what removes it. What is no longer true is this item's "Measured over the
+committed 249" for that case. The committed spot of that name, `t6/d100/BB/CO:raise@2.5`, carries exactly
+one inversion, `33` over `22` at **0.00 against 8.13**, and no `99`-over-`88` inversion at all: both raise
+100.00 there. The other two named cases confirm exactly. Decision 55 carries all three.
+
 ## 51. What ships: GTOpen's preflop output as solved, minus the four-bet family
 
 Reversibility: frozen-into-data
@@ -3988,3 +4026,144 @@ and that a change to which grids count as full is the change that would break it
 
 Options: correct-all-five | correct-the-record-only-and-leave-the-contract | defer-to-stage-9
 Answer: [correct-all-five]
+
+**The rank-arm paragraph above is superseded by decision 54, 2026-09-03.** It reports the unrestricted
+arm as reading "**149 against 69** and fails" over all 219 three-bet-facing spots. That pair does not
+reproduce, and it was never one measurement: **149** is the solved side of the rule that skips a
+comparison whose partner cell is absent, and **69** is the counterfactual side of the rule that restricts
+both sides to the cells present in both. Taken whole, either rule passes the unrestricted arm - 149
+against 260 under the first, 42 against 69 under the second. **What is no longer true is that the
+"scored only where it is defined" clause is load-bearing.** Taylor ruled on 2026-09-03 to score the arm
+over every spot in its partition, and the restriction is withdrawn. Nothing else in this item moves: all
+five corrections are confirmed, and the one-cell margin reported here for the restricted arm reproduces
+at 32 against 33.
+
+The paragraph that carried the spliced pair is the one arguing the restriction was load-bearing rather
+than tidiness, it sits in the item whose entire subject is correcting figures that did not reproduce, and
+it was written after a second independent walk confirmed the five corrections beside it. It is left as
+written, per this record's rule that a packet is a snapshot of what a phase believed.
+
+## 54. The rank arm is scored over every spot in its partition
+
+Reversibility: frozen-into-data
+Why that class: it changes which comparisons the gate counts, and the arm freezes with the tests at
+stage 5.
+
+**Ruled by Taylor 2026-09-03.** The contract restricted the rank counterfactual arm to the spots closed
+under reversal. Its stated justification was that the unrestricted arm **fails, reading 149 against 69**
+over all 219 three-bet-facing spots.
+
+**That pair does not exist.** Two independent walks reproduced the arm - a stage-4 reviewer, then a
+measurement agent working from this phase's prose rather than from the code under test - under four
+comparison rules:
+
+| comparison rule | solved | permuted | verdict |
+|---|---|---|---|
+| restricted to spots closed under reversal, the arm as shipped | **32** | **33** | passes by one cell |
+| all 219, absent-partner comparisons skipped, the test's own rule | **149** | **260** | passes |
+| all 219, common cell set on both sides | **42** | **69** | passes |
+| spots whose present cell set is closed under the map | **32** | **33** | the identical spots, passes |
+
+**"149 against 69" splices two rules together.** 149 is the solved side of the skip rule; 69 is the
+counterfactual side of the common-cell rule. There is no rule under which both numbers are read off the
+same walk. Under either rule taken consistently the unrestricted arm passes, and passes wide.
+
+**So the restriction never stood between the gate and a red.** What it did was make the result fragile.
+The restricted arm passes by one cell, and four live documents told the next agent that this margin was
+load-bearing and must never be touched, on a justification nobody had re-walked.
+
+**The ruling: the arm is scored over every spot in its partition**, a comparison whose partner cell is
+absent being skipped, and the skipped count published per partition. That removes the fragility and the
+false justification in the same edit. Filed and closed as
+`RANK-ARM-RESTRICTION-RESTED-ON-A-SPLICED-FIGURE`.
+
+**The contract criterion was rewritten in place rather than amended.** The contract sits at the 300-line
+cap, and only a rewrite of the criterion itself fitted; it now opens "**The rank arm is scored over every
+spot in its partition**" and cites the backlog id. The cap is a live problem for the next correction and
+is filed as `PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP`.
+
+**No partition rows are typed here.** All ten per-partition rows move under the new rule and are being
+re-measured. They are published by `generate_derived_chart_report` into
+`reports/active/latest_derived_chart_report.txt`, one row per partition with its skipped count, and the
+contract requires the generator to re-derive every figure it publishes. A table in this item would be one
+more hand-typed count over a set that has just moved, which is exactly
+`HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES`.
+
+**Decision 53 is superseded on this one point** and carries the notice at its foot. Its other five
+corrections stand.
+
+Options: score-over-the-whole-partition | keep-the-restriction-and-fix-the-false-reason | publish-both-readings-and-gate-on-neither
+Answer: [score-over-the-whole-partition]
+
+## 55. The accepted raise-action pair inversions stand at their true count
+
+Reversibility: frozen-into-data
+Why that class: it fixes which weight the fourth relation reads, and the relation freezes with the tests
+at stage 5.
+
+**Ruled by Taylor 2026-09-03: the acceptance stands and the number is corrected.**
+
+Decision 50 added a fourth relation on the raise weight and pinned **27** raise-action pair inversions.
+**27 does not reproduce.** Run exactly as this phase defines the relation - adjacent pair ladder, twelve
+comparisons, decision 10's one-point tolerance, strict, reach floor zero, every committed spot - it reads
+**43** inversions in total and **28** visible only on the raise action before decision 45's merge. Under
+the merge, which is the action the bot actually takes, it reads **41** and **25**.
+
+A stage-4 reviewer and an independent measurement agent arrived at 43 separately. **Neither could
+construct a scoping that reaches 27**; the nearest either found are 26 and 28. The best account of the
+figure is that it was walked under a reading nobody wrote down, most likely against a superseded cut - 86
+spots, or 143 nodes - and then carried into the re-cut without being re-derived.
+
+**Taylor also ruled, separately on 2026-09-03, that the relation reads the merged weight** - what the bot
+plays - rather than the solve's raw raise weight. Measured over the 20 merged spots, the pre-merge reading
+finds **11** inversions and the post-merge reading **9**. Three of the eleven do not exist in play: `JJ`
+under `TT` at `t6/d100/HJ/LJ:raise@2.5` (94.66 against 99.76), `JJ` under `TT` at
+`t6/d100/CO/HJ:raise@2.5` (88.34 against 100.00), and `88` under `77` at `t6/d100/BTN/HJ:raise@2.5`
+(60.84 against 74.54). One that the bot really plays was invisible before the merge:
+`t6/d100/CO/HJ:raise@2.5` three-bets `66` at 66.23 and `77` at 49.21. So the pinned figures become **41
+total, 25 visible-only**.
+
+**The relation is not vacuous. Two of decision 50's three named cases stand as written; the third is
+re-labelled, not re-measured.** An independent walk of all 33,969 nodes settled all three.
+`t6/d100/BB/HJ:raise@2.5` raises `33` over `22` at **1.80 against 70.15**, which is the record's 1.8 and
+70.2, and it carries a second inversion the record never named, `44` over `33` at 0.00 against 1.80.
+`t6/d100/CO/CO:raise@2.5,BB:raise@7.5` raises `33` over `22` at **0.00 against 81.45**, which is the
+record's 0.0 and 81.5.
+
+**The third case is measured off a node the selection rule discards.** Decision 50 reports the big blind
+facing a cutoff open raising `99` at 0.0 and `88` at 71.8. That is a correct reading of
+`t6/d100/BB/CO:raise@2.5,SB:call`, the big blind facing that open **with the small blind already cold
+called**, where `99` raises 0.00 and `88` raises 71.82 and both hands are played 100 percent. **That node
+is not in the committed 249**: decision 48's third clause refuses it as a big-blind squeeze spot, its
+raise depth being fine and its exposure 8.98 percent, under the threshold, so the squeeze clause alone
+removes it. The arithmetic is right and the label is wrong.
+
+**The committed spot of that name carries one inversion and a far smaller gap.**
+`t6/d100/BB/CO:raise@2.5` has no cold caller and is not a merged spot, so its pre-merge and post-merge
+readings are the same, and it carries exactly `33` over `22` at **0.00 against 8.13**. `99` and `88` both
+raise 100.00 there, so the `99`-over-`88` inversion does not exist at that spot. Eight points is nothing
+like the 71.8 the record published.
+
+**What this does not change.** Taylor ruled on 2026-09-03 that the acceptance stands at the true count,
+and the severity behind it survives in a committed spot: `t6/d100/BB/HJ:raise@2.5` raises `22` at 70.15
+against `33` at 1.80, which is the "three-bet `22` seven times in ten and `33` almost never" the record
+describes. The headline example moved spots rather than disappeared.
+
+**Twice over, the same cause.** `RAISE_ACTION_INVERSIONS = 27` is unreachable at the pinned tolerance,
+and one of the three cases pinned beside it was walked over an excluded node. Both are decision 50's
+numbers taken against a set that has since moved
+(`HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES`).
+
+**The correction does not reopen the acceptance.** Taylor accepted these inversions on reasoning that
+does not depend on how many there are: the cost is near zero by the solver's own reckoning, the teaching
+cost is real, and the fix is a build-time smoothing rule a later phase can apply with no re-solve. A
+larger count is the same argument about more cells.
+
+The counts move with the committed set, so they are printed per family by
+`generate_derived_chart_report` and re-derived there rather than restated in this record
+(`HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES`). Decision 50's figure is superseded and carries
+the notice at its foot; `RAISE-ACTION-INVERSIONS-WERE-INVISIBLE-TO-EVERY-RELATION` still carries the
+diagnosis and the fix nobody has taken.
+
+Options: acceptance-stands-and-the-number-is-corrected | show-the-41-individually-before-ruling | acceptance-does-not-stand-at-41
+Answer: [acceptance-stands-and-the-number-is-corrected]

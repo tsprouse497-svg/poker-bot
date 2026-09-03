@@ -3,12 +3,23 @@
 Three properties carry this file and are the three a simulator can get wrong unnoticed:
 `TestChipConservation` checks the books per hand, since an aggregate netting to zero hides two
 errors that cancel; `TestDeterminism`, that a run is a pure function of seed, seating and profiles;
-`TestReplayAgreement`, that the frozen replayer agrees. **The cutover moves which seating carries
-them.** The 86 hold one opening range, the small blind's, so the lojack opens every hand into the
-retired `t6/d100/LJ/rfi` and phase 07's judgment call 2 has no table left to run on. The three move
-to `contested` - one caller, one raiser, four check-folds - while `self_play` keeps the refusal,
-asserted rather than deleted. Over the chart seating the books balance and the replayer agrees, of
-nothing, so each moved claim carries its own counter; a counter in a sibling test is no guard.
+`TestReplayAgreement`, that the frozen replayer agrees. All three sit on `contested` - one caller,
+one raiser, four check-folds - which reads no chart at all, so no cutover can empty them out. That
+placement was made when the retired 86 held one opening range and six chart seats produced 36
+refusals and nothing else; the cutover commits a first-in spot for every seat that can be first in,
+so `self_play` plays hands again, but a claim about the simulator's own books belongs on a seating
+whose behaviour no artifact decides. Each moved claim carries its own counter: a counter in a
+sibling test is no guard.
+
+Every chart-driven figure here is measured by the run rather than pinned. The contract expects the
+simulator's figures and every refusal count to move a long way in both directions, and the ruled
+list of counts for this cutover holds none of them.
+
+What a run is allowed to *claim* - chips per hand, its standard error, and which profile a refusal
+is booked against - is the companion's, `tests/test_simulator_reports.py`, which imports this
+harness rather than copying it. The refusal work list stays here, because two of this
+command's mutation canaries aim at it. Both files run under `pytest_simulator`, which names
+them both.
 """
 
 # `simulator.run` and `profiles.seating` do not exist yet. Until they land, import sorting
@@ -42,16 +53,18 @@ BIG_BLIND = 100
 STARTING_STACK = 100 * BIG_BLIND
 
 # One full orbit is six hands, so every count that has to come out even needs a multiple of
-# six. No run length is sized to reach a refusal any more: `t6/d100/LJ/rfi` is not one of the
-# 86 the ruled predicate keeps, so the chart seating's refusal probability per hand is 1.
+# six. No run length is sized to reach a refusal: the chart seating refuses on its own tree
+# depth rather than at a rate any run length here could be set against.
 ORBIT = SEATS
 RUN_HANDS = 6 * ORBIT
 
 TERMINAL_OUTCOMES = frozenset({"showdown", "uncontested", "refused"})
 
-# The opening range every chart-seated hand now dies on, one of the fourteen retired spots,
-# named so a chart answering it again fails loudly. Its sibling `t6/d100/SB/rfi` survives.
-RETIRED_OPEN_KEY = "t6/d100/LJ/rfi"
+# A first-in key ends `/rfi`, and the cutover commits one for each of the five seats that can
+# be first in. That suffix is how this file says "a spot the chart is ruled to hold" without
+# naming a facing-an-open key, which the ruled census counts at 25 without listing them.
+FIRST_IN_SUFFIX = "/rfi"
+FIRST_IN_POSITIONS = frozenset({"LJ", "HJ", "CO", "BTN", "SB"})
 CHART_PROFILE = "composite-preflop-chart-postflop-fallback"  # the composite's own strategy_id
 
 # Measured over `contested_config()` at `SEED`: 372 decisions, every hand collecting a pot.
@@ -140,9 +153,9 @@ class RaisesPairsAndAces:
 def contested_config(**overrides) -> SimulationConfig:
     """One caller, one raiser and four check-folds: a raised pot played to showdown, reading no
     chart. Conservation, the stack reset, replay agreement and determinism are claims about the
-    simulator and the chart seating carries none, refusing at the lojack's open so every offender
-    list comes out empty. Measured: 36 hands, 11 min-raises, 11 flop jams, 30 layered settlements,
-    a 20,150 pot; over a caller and five check-folds, no raise and a 250-chip largest pot."""
+    simulator, and a seating whose behaviour an artifact decides is the wrong place to make one.
+    Measured: 36 hands, 11 min-raises, 11 flop jams, 30 layered settlements, a 20,150 pot; over a
+    caller and five check-folds, no raise and a 250-chip largest pot."""
     seated = (
         Profile("caller", AlwaysCalls()),
         Profile("raiser", RaisesPairsAndAces()),
@@ -163,7 +176,8 @@ def actions_taken(result: SimulationResult) -> Counter:
     """The action histogram of a run, so a claim made over it is not a claim about nothing.
     Measured over `contested_config()` at `SEED` by a walk written for this file: 372
     decisions - 149 checks, 149 folds, 52 calls, 11 min-raises, 11 flop jams - over 31
-    showdowns and 5 uncontested hands. Over `config()` after the cutover: none of it."""
+    showdowns and 5 uncontested hands. That seating reads no chart, so the cutover does not
+    move it. Over `config()` the histogram is the chart's, and nothing here pins it."""
     return Counter(record.outcome.action for hand in result.hands for record in hand.decisions)
 
 
@@ -173,21 +187,37 @@ class TestEveryHandReachesATerminalState:
         assert len(self_play.hands) == RUN_HANDS
         assert {hand.outcome for hand in self_play.hands} <= TERMINAL_OUTCOMES
 
-    def test_six_chart_seats_refuse_the_lojacks_open_before_a_chip_moves(self, self_play) -> None:
-        """The ruled cost of the cutover, confirmed 2026-08-25. This read "six copies of a
-        chart bot produce both showdowns and uncontested wins"; inverted rather than deleted,
-        since a chart on the 110 answers the lojack's open and a run that plays says so."""
-        outcomes = Counter(hand.outcome for hand in self_play.hands)
+    def test_six_chart_seats_play_the_hand_out_rather_than_dying_on_the_open(
+        self, self_play
+    ) -> None:
+        """Phase 07's own claim, restored with its premise.
 
-        assert outcomes == Counter({"refused": RUN_HANDS}), outcomes
-        for hand in self_play.hands:
-            assert hand.refusal_code.endswith("spot-not-covered"), hand.refusal_code
-            assert dict(hand.refusal_detail).get("spot_key") == RETIRED_OPEN_KEY, hand.hand_id
-            assert not hand.decisions, hand.hand_id
+        It read "six copies of a chart bot produce both showdowns and uncontested wins"
+        until the 2026-08-25 pass inverted it: the 86 held one opening range, so the lojack
+        opened every hand into a spot the chart did not hold and all 36 died before a chip
+        moved. The cutover commits a first-in spot for each of the five seats that can be
+        first in, so nothing dies there and the run plays.
+
+        Two claims, and the second is the one that fails loudly if the five opening ranges
+        did not arrive: no refused hand names a first-in key. Refusals themselves are not
+        asserted away - a four-bet is past the committed raise depth and six chart seats
+        reach one - so their count is left to the run rather than pinned here.
+        """
+        outcomes = Counter(hand.outcome for hand in self_play.hands)
+        died_first_in = [
+            hand.hand_id
+            for hand in self_play.hands
+            if dict(hand.refusal_detail).get("spot_key", "").endswith(FIRST_IN_SUFFIX)
+        ]
+
+        assert died_first_in == [], died_first_in
+        assert sum(outcomes.values()) == RUN_HANDS, outcomes
+        assert outcomes["showdown"] > 0, outcomes
+        assert outcomes["uncontested"] > 0, outcomes
 
     def test_both_played_outcomes_occur_where_hands_are_played(self, contested) -> None:
-        """Both non-refusal outcomes happen, so `TERMINAL_OUTCOMES` is not one value. Same
-        claim, moved to a seating that plays, where the raiser's gate keeps both reachable."""
+        """Both non-refusal outcomes happen, so `TERMINAL_OUTCOMES` is not one value, on a
+        seating no artifact can empty: the raiser's gate keeps both reachable."""
         outcomes = Counter(hand.outcome for hand in contested.hands)
 
         assert outcomes["showdown"] > 0, outcomes
@@ -195,10 +225,15 @@ class TestEveryHandReachesATerminalState:
         assert outcomes["refused"] == 0, outcomes
 
     def test_a_refused_hand_names_the_refusal_that_ended_it(self, limped, contested) -> None:
-        """Both halves need a run they can fail in and no single run supplies both: every
-        hand in `limped` refuses, so the else branch is unreachable there, and `contested`
-        refuses none. Nothing proved either branch was entered, and a pair of empty runs
-        satisfies both; the counters pin the split at all 36 of each."""
+        """Both halves need a run they can fail in and no single run supplies both, and a
+        pair of empty runs satisfies an unqualified for-each either way, so the counters are
+        what stop this claiming nothing.
+
+        The split was 36 and 36 while every hand in `limped` refused at the lojack's open.
+        It moves: the limper only creates a limped pot in the seats where it acts first, and
+        closing the action from the big blind it puts the table into a hand the chart plays
+        out. So both counters are asserted non-zero and their total is pinned, which no
+        empty run can satisfy, rather than a share being invented for either side."""
         named = 0
         silent = 0
         for run in (limped, contested):
@@ -210,7 +245,9 @@ class TestEveryHandReachesATerminalState:
                     silent += 1
                     assert hand.refusal_code is None, hand.hand_id
 
-        assert (named, silent) == (RUN_HANDS, RUN_HANDS), (named, silent)
+        assert named > 0, "no hand refused, so the named branch never ran"
+        assert silent > 0, "no hand settled, so the silent branch never ran"
+        assert named + silent == 2 * RUN_HANDS, (named, silent)
 
     # Judgment call 4. Every other refusal assertion here reads "for each refused hand, ...",
     # so converting a refusal into a fold was invisible to all of them and a canary proved it.
@@ -225,7 +262,8 @@ class TestEveryHandReachesATerminalState:
     def test_the_refusal_is_the_missing_cell_not_a_declined_table(self, limped) -> None:
         """Which code the deterministic driver exercises, stated rather than assumed.
         `spot-not-covered` names a cell somebody could fill; table-shape codes are rejected at
-        setup. The lojack's open misses too now, so the limped key is asserted present."""
+        setup. The limped key is asserted present, because the limp is meant to be the driver
+        and the cutover leaves other families - a four-bet, a multiway spot - refused too."""
         refused = [hand for hand in limped.hands if hand.outcome == "refused"]
         first_actions = [
             dict(hand.refusal_detail).get("spot_key", "").split("/")[-1].split(",")[0]
@@ -243,8 +281,8 @@ class TestChipConservation:
     # Per hand, since an aggregate netting to zero hides two errors that cancel.
     def test_the_books_are_checked_over_a_raised_all_in_pot(self, contested) -> None:
         """Both directions a run can go vacuous, excluded here: a table where nothing was
-        collected keeps perfect books, which is what six chart seats produce, and so does one
-        never putting in a chip beyond the price it was asked."""
+        collected keeps perfect books, and so does one never putting in a chip beyond the
+        price it was asked."""
         moved = [
             hand.hand_id
             for hand in contested.hands
@@ -287,8 +325,8 @@ class TestChipConservation:
 
     def test_every_seat_appears_in_every_hands_books(self, self_play, contested) -> None:
         """Both runs, because a voided hand still owes a complete set of books: it reports a
-        zero for every seat rather than nothing. `booked` counts the hands walked, an
-        unqualified for-each over two empty runs making the same claim about nothing."""
+        zero for every seat rather than nothing. `booked` counts the hands walked, since an
+        unqualified for-each over two empty runs makes the same claim about nothing."""
         booked = 0
         for run in (self_play, contested):
             for hand in run.hands:
@@ -392,9 +430,9 @@ class TestTheSimulatorOwnsNoPokerRules:
 
 
 class TestDeterminism:
-    # A simulation is a pure function of its seed, its seating and its profiles - and not on
-    # the chart seating after the cutover, where every hand refuses before an action is
-    # applied, so every claim below would pass for a simulator that decides nothing.
+    # A simulation is a pure function of its seed, its seating and its profiles. Asserted on
+    # `contested`, whose behaviour no artifact decides, so no cutover can turn these into
+    # claims about a run that took no decision at all.
     def test_the_same_config_produces_an_identical_run(self) -> None:
         first = run_simulation(contested_config())
         second = run_simulation(contested_config())
@@ -405,8 +443,8 @@ class TestDeterminism:
         assert first == second
 
     def test_the_same_config_produces_identical_audit_lines(self) -> None:
-        """The chart seating records no decision, so both sides of this comparison flattened
-        to an empty tuple and it held for any simulator. Non-emptiness is asserted first."""
+        """Two empty tuples compare equal, so this held for any simulator whatever until
+        non-emptiness was asserted first. It still is."""
         first = run_simulation(contested_config())
         second = run_simulation(contested_config())
         lines = [
@@ -418,8 +456,8 @@ class TestDeterminism:
         assert lines[0] == lines[1]
 
     def test_a_different_seed_produces_a_different_run(self) -> None:
-        """The cards dealt have to differ, not just the integer each hand records: over the
-        chart seating the runs differed in their seed fields alone, as one fixed deck would."""
+        """The cards dealt have to differ, not just the integer each hand records: a run
+        that refuses everything differs in its seed fields alone, as one fixed deck would."""
         first = run_simulation(contested_config())
         other = run_simulation(contested_config(seed=SEED + 1))
         dealt = [tuple(hand.normalized for hand in run.hands) for run in (first, other)]
@@ -429,8 +467,8 @@ class TestDeterminism:
         assert first != other
 
     # The usual way a "seeded" simulation turns out not to be: it reaches for the random
-    # module's global state somewhere. Over the chart seating the only card reaching the
-    # record is a refusal's `hand_class`; here it is 36 dealt hands, boards and actions.
+    # module's global state somewhere. Over a run that refuses everything the only card
+    # reaching the record is a refusal's `hand_class`; here it is 36 hands, boards, actions.
     def test_the_run_is_unaffected_by_the_random_modules_global_state(self) -> None:
         import random
 
@@ -472,13 +510,16 @@ class TestReplayAgreement:
             assert len(hand.normalized.players) == SEATS
 
     # A refused hand stops mid-round, so it is not a completed history and the replayer rejects
-    # it. Stays on the chart seating, where all 36 refuse after the cutover.
-    def test_a_refused_hand_carries_no_completed_hand_history(self, self_play) -> None:
-        refused = [hand for hand in self_play.hands if hand.outcome == "refused"]
+    # it. It moved off the chart seating with the cutover: `self_play` refused all 36 hands
+    # while the lojack's open was uncovered and refuses an unpinned number now, so the run
+    # that is built to refuse - `limped`, whose limper asks for a cell `limp: false` forbids -
+    # is the one that can carry the claim without a count nobody has measured.
+    def test_a_refused_hand_carries_no_completed_hand_history(self, limped) -> None:
+        refused = [hand for hand in limped.hands if hand.outcome == "refused"]
 
         assert refused, "no hand was refused, so this assertion is vacuous"
         assert all(hand.normalized is None for hand in refused)
-        settled_ids = {hand.hand_id for hand in self_play.settled_hands()}
+        settled_ids = {hand.hand_id for hand in limped.settled_hands()}
         assert settled_ids.isdisjoint({hand.hand_id for hand in refused})
 
     def test_the_replayer_finds_the_same_points_the_simulator_asked_about(self, contested) -> None:
@@ -574,89 +615,13 @@ class TestProfiles:
             run_simulation(config(profiles=seat_profiles("self-play", SEATS)[:-1]))
 
 
-class TestWhatTheComparisonMayClaim:
-    # Judgment call 2 gave self-play the symmetry criteria; the chart seating now meets them only
-    # because it never plays, so the assertion moves to where chips move.
-    def test_the_table_nets_to_zero_across_every_seat(self, contested) -> None:
-        totals = Counter()
-        for hand in contested.hands:
-            totals.update(hand.stack_deltas)
-
-        assert sum(totals.values()) == 0
-        assert any(total != 0 for total in totals.values()), totals
-
-    # And the floor run carries one directional number, which must come out positive.
-    def test_the_chart_bot_beats_a_bot_that_folds_everything(self, floor) -> None:
-        chart = floor.chips_per_hand(CHART_PROFILE)
-
-        assert chart > 0, floor.chips_per_hand_by_profile()
-
-    def test_the_floor_run_counts_the_hands_the_committed_chart_can_actually_play(
-        self, floor
-    ) -> None:
-        """The one place this file can tell the ruled chart from an empty one. Every other
-        played-poker claim runs on a seating that never consults the chart, and the two that do
-        assert only that it refuses, which an empty chart does too. Masking the library and
-        rerunning: under the 86 the composite refuses 24 and counts 12; without the small blind's
-        open, and under a chart holding nothing, 30 and 6. So the pair asserts the one surviving
-        opening range survived. `chips_per_hand` is not pinned beside them - it reads 50.0 under
-        all three, counting the button rotation rather than any decision."""
-        assert floor.refusal_counts() == {CHART_PROFILE: 24, "reference-check-fold": 0}
-        assert floor.hands_counted() == 12
-
-    # Judgment call 3: the figure is reported with its own standard error, and no winner is
-    # named when the run cannot separate the profiles.
-    def test_every_reported_figure_carries_a_standard_error(self, contested) -> None:
-        """`>= 0` was not a claim: a standard error cannot be negative, and the zero a
-        profile with no counted hand returns satisfies it, so it held for a constant."""
-        errors = {name: contested.standard_error(name) for name in contested.profile_names()}
-
-        assert len(errors) == 3, errors
-        assert all(error > 0 for error in errors.values()), errors
-
-    def test_a_difference_inside_the_noise_is_not_reported_as_a_finding(self, contested) -> None:
-        """Six identical profiles are one profile, so the old form asserted `() == ()` for
-        any simulator whatever. Over `contested` the rule bites both ways: the raiser holds
-        the largest figure at +1,402.78 chips a hand and is not named, its variation being
-        898.09, while the four check-folds lose 37.50 and are named, theirs being 16.83.
-        Ranking by chips names the raiser, the finding judgment call 3 exists to refuse."""
-        figures = contested.chips_per_hand_by_profile()
-        errors = {name: contested.standard_error(name) for name in contested.profile_names()}
-        biggest = max(figures, key=lambda name: abs(figures[name]))
-        reported = contested.separated_profiles()
-
-        assert all(figure != 0 for figure in figures.values()), figures
-        assert biggest not in reported, (biggest, figures, errors)
-        assert abs(figures[biggest]) < 2 * errors[biggest], (figures, errors)
-        assert reported == ("reference",), (reported, figures, errors)
-
-    # Refusal coverage is a headline number. The key set cannot fail - `refusal_counts` seeds a
-    # zero per name and only increments those keys - so the counts are pinned instead, both ends.
-    def test_refusal_coverage_is_reported_per_profile(self, self_play, contested) -> None:
-        assert self_play.refusal_counts() == {CHART_PROFILE: RUN_HANDS}
-        assert contested.refusal_counts() == {"caller": 0, "raiser": 0, "reference": 0}
-
-    def test_refused_hands_leave_the_chips_per_hand_denominator(self, self_play, contested) -> None:
-        """Pinned at both ends: over the chart seating alone the identity is 0 == 0."""
-        for run in (self_play, contested):
-            played = sum(1 for hand in run.hands if hand.outcome != "refused")
-
-            assert run.hands_counted() == played
-
-        assert self_play.hands_counted() == 0
-        assert contested.hands_counted() == RUN_HANDS
-
-    def test_the_seed_and_the_hand_count_are_carried_on_the_result(self, self_play) -> None:
-        assert self_play.seed == SEED
-        assert self_play.hands_dealt() == RUN_HANDS
-
-
 class TestRefusalsAreActionable:
     """The half of this phase that turns a coverage count into a work list. The first
     simulator reported the charts silent 128 times and could not say where, its record being
-    built from whole streets where a refusal never completes one. Every
-    assertion here guards against vacuity first. On `limped` the refusals are two families,
-    the limped cell and the lojack's retired open, and the inventory accounts for both."""
+    built from whole streets where a refusal never completes one. Every assertion here guards
+    against vacuity first. On `limped` the refusals are the limped cell the ruled `limp: false`
+    solve can hold no node for, together with whatever the limper's flatting drives the table
+    into past the committed raise depth, and the inventory accounts for all of them."""
 
     def test_a_refused_hand_keeps_every_action_taken_before_the_refusal(self, limped) -> None:
         refused = [hand for hand in limped.hands if hand.outcome == "refused"]

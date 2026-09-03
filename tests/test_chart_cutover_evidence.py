@@ -1,696 +1,666 @@
-"""Phase 14: the evidence that replacing the chart was a decision rather than an accident.
+"""Phase 14: the four relations over the committed ranges, and the machinery both arms run on.
 
-The companion to `tests/test_derived_chart.py`, split from it at the 700-line cap. That file
-owns the committed artifact in its own right and the table constants, predicate walk and cell
-readers this file imports rather than copies. This file owns what the cutover has to be defended
-with: the raked chart gone from the tree with its sizing table, which of its 36 spots survive and
-which the bot gives up, the card posting the ruled game and the one re-solve decision 14 ordered,
-the two gated orderings, and the dominance measure.
+**This file owns the measurement of the ranges** and every number in it, the two arms and the
+ten partitions included. `test_chart_counterfactual_arms.py` runs those arms and holds the scoring
+functions alone, split out at the 700-line cap and reaching every constant here rather than
+restating one; `test_chart_derivation.py` owns which nodes are committed and this file imports its
+`selected`.
 
-**Re-cut at stage 4 twice on 2026-09-01.** Decision 14 re-solved at `add_allin: false`, so what
-is asserted is one re-solve at the ruled target carrying the five obligations one owes. Taylor
-then withheld the fifteen jam-facing spots and, the same evening, the fifteen three-bet-facing
-ones, cutting the committed set to **6**. Measured against the retired chart that is 6 carried
-over of its 36, so **the cutover gains nothing and gives up twenty-nine spots plus the limped
-pot**: four opening ranges, the fifteen three-bet spots the retired chart answered, and ten more
-the predicate never wanted. And the group dominance ladder stopped gating, its verdict tracking
-set composition rather than the hand index. **The only gated range check in the phase is the
-per-cell measure over spot partitions**, in `tests/test_derived_chart_report_validators.py`,
-which since the second ruling carries two counterfactual arms; the five ladders here are
-published for a human.
+**None of the four relations is gated as an order.** Decisions 41, 47, 50 and 51 accept the pair,
+kicker and raise-action inversions as solved: among hands the solve prices alike the split is the
+solver's considered answer, and gating an ordering rejects correct play. Gated is that the
+measurement was *taken*, over every cell, with counts and worst cases published, and that its
+definition is pinned as data first - `DOMINANCE-RELATION-IS-PROSE-AND-HAS-PRODUCED-SEVEN-COUNTS`,
+seven counts having come out of seven readings of the same prose. The kicker family separates the
+wheel-ace cases, which are correct poker, and nothing here calls either half noise.
 
-**The opening frequencies are read off the export, not the chart.** The committed set holds one
-opening range, so "later position opens wider" is a property of the solve rather than of the
-chart; the defence ordering is asserted over the chart.
+Every count is recomputed by a walk written here rather than imported from the rule under test.
+`scripts/generate_derived_chart_report.py` is reached as a module, so a name stage 6 has yet to
+add is one `AttributeError` here rather than a collection error in every file.
 """
 
 from __future__ import annotations
 
-import hashlib
-import json
-import subprocess
+from dataclasses import dataclass
 
 import pytest
-from test_derived_chart import (
-    ARTIFACT_DIR,
-    ARTIFACTS,
-    OPENING_ORDER,
-    SB_OPEN_KEY,
-    STACK_DEPTH_BB,
-    TABLE_SIZE,
-    live_and_invested,
-    reach_by_class,
-    weights_by_class,
-)
+import test_chart_derivation as derivation
+import test_derived_chart_report as report_tests
+import yaml
 
-from poker_training_bot.solver_artifacts.gtopen_config import RULED_CONFIG
-from poker_training_bot.solver_artifacts.gtopen_expectations import aggregate_frequencies
+import scripts.generate_derived_chart_report as report
 from poker_training_bot.solver_artifacts.gtopen_export import (
     COMMITTED_EXPORT_PATH,
-    COMMITTED_SOURCE_CARD_PATH,
+    QUANTISATION_SCALE,
     SolverExport,
+    SolverNode,
     class_combos,
-    export_checksum,
     gtopen_class_index,
     load_solver_export,
-    load_source_card,
-    source_card_errors,
 )
-from poker_training_bot.solver_artifacts.hand_classes import (
-    HAND_CLASSES,
-    HIGH_TO_LOW_RANKS,
-    hand_class_grid_index,
-)
-from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
-from poker_training_bot.solver_artifacts.lookup import (
-    MISS_SPOT_NOT_COVERED,
-    ChartMiss,
-    ChartQuery,
-    PreflopArtifact,
-    PreflopChartLibrary,
-)
-from poker_training_bot.solver_artifacts.schema import PreflopAction
+from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES, HIGH_TO_LOW_RANKS
 from scripts.repo_paths import REPO_ROOT
 
-SIZINGS_DIR = ARTIFACT_DIR / "sizings"
-SIZING_SCHEMA_VERSION = 2
-COMMITTED_SPOTS = 6
-PRICED_SPOTS = 6
-"""How many of the 6 price anything: all of them. The fifteen that offered call and fold only -
-hero facing a five-bet jam, the last raise already in - were withheld on 2026-09-01, so the
-unpriced family is gone and the table covers the committed set exactly."""
-RULED_PRICES = (2.5, 7.5)
-"""Every price the committed set offers. Hero's own 100 is not among them, five-betting being
-legal only facing a four-bet and every four-bet-facing spot withheld; nor is 22.5, which only
-the withheld three-bet-facing spots ever quoted."""
-EXPECTATIONS_PATH = ARTIFACT_DIR / "expectations" / "six_max_nl25_100bb.json"
-GTOWIZARD_SOURCE_PATH = ARTIFACT_DIR / "sources" / "gtowizard_6max_nl25_100bb_preflop.json"
-RETIRED_CHART_NAME = "six_max_nl25_100bb.json"
-RETIRED_CHART_PATH = f"data/artifacts/preflop/{RETIRED_CHART_NAME}"
+# --- The four relations, pinned as data before anything is measured ------------------------ #
 
-OPENERS = ("LJ", "HJ", "CO", "BTN", "SB")
+TOLERANCE_PCT = 1.0
+"""Decision 10, ruled 2026-08-24 and never reopened: adjacent ranks, one point, every relation. It
+catches the real 44-versus-33 pair at 27 points and ignores two cells a solver plays almost always
+sitting 0.08 apart. Re-deriving it from the chart it judges was blocked on 2026-08-31."""
+
+REACH_FLOOR_BP = 0
+"""No reach floor selects cells. A cell is present when the class arrives at all, which is the
+converter's own rule - it drops zero-reach classes - and reach is otherwise only a weighting."""
+
+FULL_GRID_CELLS = 169
+ROW_COMPARISONS_PER_FULL_GRID = 132
+"""Adjacent kickers only, suited and offsuit apart: for each high card, one comparison between
+each neighbouring pair of lower kickers, twice over. 2 x (11 + 10 + ... + 0) = 132."""
+
+RANK_ARM_SPOT_FLOOR = 5
+"""A partition scoring fewer than five spots publishes and does not assert, a strict gate over one
+or two grids being a coin flip. Over the committed 249 none falls below it - the smallest, `raises
+faced 0`, scores exactly five - so it is a rule kept against a set that moves."""
+
+SPOTS_FOLDING_EVERY_HAND = 13
+"""Committed spots whose play-not-fold grid reads zero at every arriving class: eleven small
+blind, one cutoff, one button, all deep multiway spots facing a three-bet where one to five
+classes arrive and the solve folds all of them. No over-folding can move such a grid, which is why
+`test_chart_counterfactual_arms.py` counts the spots its fixture moved rather than all 249."""
+
+SEATS = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
+NON_BLIND_OPENERS = ("LJ", "HJ", "CO", "BTN")
 
 
-RETIRED_SPOTS_LOST = (
-    "t6/d100/LJ/rfi", "t6/d100/HJ/rfi", "t6/d100/CO/rfi", "t6/d100/BTN/rfi",
-    "t6/d100/HJ/LJ:raise@2.5", "t6/d100/CO/LJ:raise@2.5", "t6/d100/CO/HJ:raise@2.5",
-    "t6/d100/BTN/LJ:raise@2.5", "t6/d100/BTN/HJ:raise@2.5", "t6/d100/BTN/CO:raise@2.5",
-    "t6/d100/SB/LJ:raise@2.5", "t6/d100/SB/HJ:raise@2.5", "t6/d100/SB/CO:raise@2.5",
-    "t6/d100/SB/BTN:raise@2.5",
+@dataclass(frozen=True)
+class Relation:
+    """One relation's whole definition, as data rather than as prose. The shared fields carry
+    defaults so that a relation departing from them has to say so on its own line."""
+
+    name: str
+    measure: str
+    comparisons_per_full_grid: int
+    excluded_families: tuple[str, ...] = ()
+    tolerance_pct: float = TOLERANCE_PCT
+    reach_floor_bp: int = REACH_FLOOR_BP
+    scope: str = "per cell, every committed spot, never pooled across spots"
+    gated_as_an_order: bool = False
+
+
+RELATIONS = (
+    Relation("pair ladder", "play-not-fold", 12),
+    Relation("suited over its offsuit twin", "play-not-fold", 78),
+    Relation(
+        "row kicker ladder",
+        "play-not-fold",
+        ROW_COMPARISONS_PER_FULL_GRID,
+        ("suited and offsuit are never compared to each other here",),
+    ),
+    Relation(
+        "pair ladder on the raise weight",
+        "raise-weight",
+        12,
+        ("hero's jam, which lives only at the excluded four-bet spots",),
+        scope="per cell, every committed spot, the merged raise weight the bot plays",
+    ),
 )
-RETIRED_SPOTS_CARRIED_OVER = 6
-RETIRED_SPOTS_WITHHELD = 15
-"""Retired spots that pass decision 1's predicate and are then withheld anyway: every one is
-hero facing a three-bet, which is what the second 2026-09-01 ruling took. GTO Wizard's 36 stop
-there, so no retired spot lands on a four-bet or jam-facing key and those two withholdings cost
-this ledger nothing."""
-SPOTS_GAINED = COMMITTED_SPOTS - RETIRED_SPOTS_CARRIED_OVER
-"""Zero, derived rather than typed. The three withholdings between them cut the committed set to
-exactly the 6 spots the retired chart already answered, so the cutover buys no new coverage -
-what it buys is that the 6 are rake-free, correctly priced and re-solved, and what it costs is
-twenty-nine spots plus the limped pot."""
-RAISES_FACED_WHEN_WITHHELD = (2, 3, 4)
-"""Two raises is hero facing a three-bet, taken by the second 2026-09-01 ruling; three is a
-four-bet, taken by decision 20; four is the jam, taken by the first. No survivor may land on
-any of them."""
-RETIRED_SPOT_WITH_NO_NODE = "t6/d100/BB/SB:call"
-"""Passes the ruled predicate and still has no node to derive from: the solve is `limp: false`
-and the tree holds no limp branch. Counted apart from the fourteen so the two ledgers agree."""
+"""Decision 50 added the fourth, and it is the reason this phase halted: the pair inversion
+decision 31 named is invisible to play-not-fold, both hands being played 100 percent and only the
+raise-versus-call split differing.
 
-PROBE_HAND_CLASS = "AA"
-"""Which class is immaterial: a query reaching a covered spot with a class outside hero's
-arriving range still refuses with `lookup:hand-class-not-covered`, naming the spot."""
+**The fourth is read on the raise weight the bot actually plays** - at the 20 merged spots the
+solve's raise plus its cold call, everywhere else the solve's raise unchanged. Taylor ruled that
+on 2026-09-03, superseding the pre-merge reading this file first pinned, because a relation
+defined on an *action* has to be stated over the action the bot takes. Over those 20 spots the
+pre-merge reading finds 11 inversions and the merged one 9: three of the eleven do not exist in
+play, the merge filling each flat into the raise, and one the bot really commits was invisible
+before it - `t6/d100/CO/HJ:raise@2.5` three-bets `66` at 66.23 against `77` at 49.21. Decision 55
+carries the working, and decision 50's three named cases survive either reading."""
 
-MONOTONICITY_TOLERANCE_PCT = 1.0
-"""Decision 10, ruled 2026-08-24: adjacent ranks, one percentage point, both relations."""
+_RANKS = HIGH_TO_LOW_RANKS
 
-# The external oracle this phase must not rederive: a reference regenerated from what it
-# checks cannot fail, so it is pinned by content.
-EXPECTATIONS_SHA256 = "39a80b67ae9d47b86656e42092b2ed97bd5829e28b86d56087a1805e3c90e373"
+ADJACENT_PAIRS = tuple(
+    (f"{high}{high}", f"{low}{low}") for high, low in zip(_RANKS, _RANKS[1:], strict=False)
+)
+SUITED_OVER_OFFSUIT = tuple(
+    (f"{high}{low}s", f"{high}{low}o")
+    for index, high in enumerate(_RANKS)
+    for low in _RANKS[index + 1 :]
+)
+ROW_KICKERS = tuple(
+    (f"{high}{better}{suit}", f"{high}{worse}{suit}")
+    for index, high in enumerate(_RANKS)
+    for better, worse in zip(_RANKS[index + 1 :], _RANKS[index + 2 :], strict=False)
+    for suit in ("s", "o")
+)
 
-# The re-solve decision 14 ruled, pinned by content: the checksums are what make a SECOND one
-# loud, any further restamp being a solve nobody ruled with five obligations of its own. The
-# superseded `add_allin: true` build checksummed 1c9e383d and its save 64d8729a.
-COMMITTED_EXPORT_SHA256 = "f7182f4bbcc080c7715d8195cd0552d4604ec9856c8d7d64cd5a52483e0949e7"
-COMMITTED_SAVE_SHA256 = "1777810729942cfda30b10a1189ed5a910a5ce4f6c383f4664fd66a222312027"
+COMPARISONS = {
+    "pair ladder": ADJACENT_PAIRS,
+    "suited over its offsuit twin": SUITED_OVER_OFFSUIT,
+    "row kicker ladder": ROW_KICKERS,
+    "pair ladder on the raise weight": ADJACENT_PAIRS,
+}
 
-COMMITTED_ACTION_NODES = 33_969
-"""What the re-sourced tree holds, and what the census has to sum to."""
+WHEEL_ACE_KICKERS = ("A5", "A4", "A3", "A2")
+"""Decision 47: a suited wheel ace makes the nut straight and is less dominated than a middling
+suited ace, so the lojack opening `A5s` while folding `A6s` is correct poker. GTOpen's fit leaves
+them unchained on purpose, and they are never recorded among the accepted defects."""
 
-SOLVE_TARGET_GAP_BB = 0.00016
-SOLVE_ITERATION_CAP = 2_000
-COMMITTED_SOLVE_ITERATIONS = 1_900
-"""The ruled target first met at iteration 1,900 of a 2,000 cap, so the cap **nearly binds** - the
-fact worth freezing rather than the achieved gap, a tighter target running out of iterations and
-leaving `achieved < target` false."""
+KICKER_LABELS = ("wheel-ace premium, correct poker", "no poker story, accepted as solved")
+FORBIDDEN_LABELS = ("noise", "mixing noise", "coin flip", "arbitrary")
+"""Decision 51: a pick among hands the solve prices alike is bluff selection, which is further
+from noise rather than closer to it, and it ships unmeasured with nothing waiting on a value
+gap. No label this file publishes may call the family noise."""
 
-
-@pytest.fixture(scope="module")
-def library() -> PreflopChartLibrary:
-    return PreflopChartLibrary.from_artifacts(import_preflop_artifacts(ARTIFACT_DIR))
-
-
-@pytest.fixture(scope="module")
-def artifact(library: PreflopChartLibrary) -> PreflopArtifact:
-    return library.artifacts[0]
+# --- The two arms, pinned as data ---------------------------------------------------------- #
 
 
-@pytest.fixture(scope="module")
-def committed_export() -> SolverExport:
+@dataclass(frozen=True)
+class Arm:
+    """One counterfactual arm. Both are strict and a tie refuses on each."""
+
+    name: str
+    permutation: str
+    parameter: str
+    unit: str
+    scored_over: str
+    spot_floor: int | None
+
+
+ARMS = (
+    Arm("suit", "transpose_hand_index", "spots_violating_twins", "spots",
+        "every committed spot", None),
+    Arm("rank", "reverse_hand_ranks", "cells_violating_rows", "cells",
+        "every committed spot, absent-partner comparisons skipped", RANK_ARM_SPOT_FLOOR),
+)
+"""Two arms rather than one, because the suit arm alone scores a chart with every rank reversed
+exactly as it scores a correct one - `test_chart_counterfactual_arms.py` runs that. Each keeps its
+own permutation, scoring unit and parameter name, so one arm's number can never be read through
+the other's validator. `transpose_hand_index` and `spots_violating_twins` are already committed in
+the report generator; `reverse_hand_ranks` and `cells_violating_rows` are stage 6's to add."""
+
+RANK_REVERSAL = dict(zip(_RANKS, reversed(_RANKS), strict=True))
+"""A<->2, K<->3, Q<->4, J<->5, T<->6, 9<->7, 8<->8. Its own inverse, and it preserves pair,
+suited and offsuit, so it maps the 169 classes onto themselves."""
+
+
+@dataclass(frozen=True)
+class PartitionFigures:
+    """What the arms read on one partition. Decision 53 as re-measured under decision 54's
+    withdrawal of the closed-spot restriction, by two walks written independently of each other."""
+
+    name: str
+    spots: int
+    suit_solved: int
+    suit_counterfactual: int
+    rank_scored_spots: int
+    rank_solved: int
+    rank_counterfactual: int
+    rank_skipped: int
+    rank_skipped_permuted: int
+
+
+PARTITIONS = (
+    PartitionFigures("the committed set", 249, 7, 167, 208, 181, 433, 19774, 20279),
+    PartitionFigures("raises faced 0", 5, 0, 5, 5, 11, 61, 0, 0),
+    PartitionFigures("raises faced 1", 25, 0, 25, 25, 21, 112, 0, 0),
+    PartitionFigures("raises faced 2", 219, 7, 137, 178, 149, 260, 19774, 20279),
+    PartitionFigures("hero=LJ", 32, 7, 32, 32, 75, 96, 3224, 3410),
+    PartitionFigures("hero=HJ", 36, 0, 15, 36, 23, 59, 3972, 4102),
+    PartitionFigures("hero=CO", 44, 0, 18, 32, 22, 72, 4777, 4876),
+    PartitionFigures("hero=BTN", 47, 0, 28, 33, 14, 66, 4351, 4416),
+    PartitionFigures("hero=SB", 52, 0, 36, 37, 17, 65, 3450, 3475),
+    PartitionFigures("hero=BB", 38, 0, 38, 38, 30, 75, 0, 0),
+)
+"""All ten, and dropping one is forbidden - the whole set, one per raises faced, one per hero
+seat. Every column sums by seat and by raises faced to the whole set's own figure, which is what
+stops a partition being quietly re-cut.
+
+**The rank arm now scores every spot in its partition**, skipping a comparison whose partner cell
+is absent, so the two skipped columns say how much of a partition it could look at: `hero=LJ`
+skips 3,224 of its 4,224 possible comparisons on the solved side and 3,410 on the permuted one.
+The sides skip different comparisons, the reversal carrying a present cell onto a different row,
+so one number for both would be the splice that produced the withdrawn "149 against 69". The
+tightest margin is `hero=LJ`, 75 against 96, and no partition is near refusing."""
+
+EQUITY_BACKLOG_ID = "GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE"
+"""Decision 42: a correct chart fails the equity relation, so it is published, it gates nothing,
+and this entry stays deferred. No test or packet here may claim it closed."""
+
+
+# --- The walk, written here rather than imported, so this file is not one copy of a rule -- #
+
+
+def load_committed_export() -> SolverExport:
     assert COMMITTED_EXPORT_PATH.exists(), f"no committed export at {COMMITTED_EXPORT_PATH}"
     return load_solver_export(COMMITTED_EXPORT_PATH)
 
 
-@pytest.fixture(scope="module")
-def card() -> dict:
-    return load_source_card(COMMITTED_SOURCE_CARD_PATH)
+def select_committed(export: SolverExport) -> tuple[SolverNode, ...]:
+    """The committed set, from the lane that owns the selection rule rather than re-derived."""
+    nodes = tuple(derivation.selected(export))
+    assert len(nodes) == derivation.COMMITTED_NODES
+    return nodes
 
 
-_ADJACENT_PAIRS = tuple(
-    (f"{high}{high}", f"{low}{low}")
-    for high, low in zip(HIGH_TO_LOW_RANKS, HIGH_TO_LOW_RANKS[1:], strict=False)
-)
-
-_SUITED_OVER_OFFSUIT = tuple(
-    (f"{high}{low}s", f"{high}{low}o")
-    for index, high in enumerate(HIGH_TO_LOW_RANKS)
-    for low in HIGH_TO_LOW_RANKS[index + 1 :]
-)
-
-RELATIONS = (("ladder", _ADJACENT_PAIRS), ("twins", _SUITED_OVER_OFFSUIT))
-"""Decision 10's two relations, nothing wider. Plain card-rank dominance gives 61 to 121
-violations a node and its top hits are correct poker - the lojack opens 76s always, T6s never."""
-
-_PAIRS_HIGH_TO_LOW = tuple(f"{rank}{rank}" for rank in HIGH_TO_LOW_RANKS)
-
-GROUPS = {
-    "pairs, 13 single ranks": tuple((pair,) for pair in _PAIRS_HIGH_TO_LOW),
-    "pairs, 4 bands": tuple(_PAIRS_HIGH_TO_LOW[start : start + 3] for start in (0, 3, 6, 9)),
-    "pairs, 3 bands": tuple(_PAIRS_HIGH_TO_LOW[start : start + 4] for start in (0, 4, 8)),
-    "pairs, 2 bands": (_PAIRS_HIGH_TO_LOW[:6], _PAIRS_HIGH_TO_LOW[6:]),
-    "suited rows": tuple(
-        tuple(f"{high}{low}s" for low in HIGH_TO_LOW_RANKS[index + 1 :])
-        for index, high in enumerate(HIGH_TO_LOW_RANKS[:-1])
-    ),
-}
-"""Every partition decision 10's group form could be read as: it ruled "each pair band and each
-suited row" without fixing the bands, so all are measured rather than one chosen."""
-
-
-def play_pct(weights) -> float | None:
-    """How often a hand is played rather than folded, the only quantity decision 10's relations
-    are monotone in: a per-action rule is false wherever hero can call."""
-    if weights is None:
-        return None
-    return 100.0 * (1.0 - sum(weight for action, weight in weights if action == "fold"))
-
-
-def monotonicity_violations(spot_id: str, weights_by_class: dict, compared: dict | None = None):
-    """Every dominating pair the spot plays the wrong way round, past the tolerance. A pair is
-    skipped when either class is uncovered; `compared` tallies per relation what was looked at,
-    without which a class-naming break compares nothing and passes."""
-    violations: list[tuple] = []
-    for relation, pairs in RELATIONS:
-        for stronger, weaker in pairs:
-            played = play_pct(weights_by_class.get(stronger))
-            dominated = play_pct(weights_by_class.get(weaker))
-            if played is None or dominated is None:
+def build_tree(export: SolverExport) -> tuple[dict, dict]:
+    """Two facts only the path to the root carries: how many raises are in when hero acts, and
+    which seat put the last one in. A plain function with a fixture over it, because a fixture
+    does not cross a module import and `test_chart_counterfactual_arms.py` needs the same one."""
+    by_path = {node.path: node for node in export.nodes}
+    faced = {(): 0}
+    raiser: dict[tuple[int, ...], str | None] = {(): None}
+    for path in sorted(by_path, key=len):
+        node = by_path[path]
+        for index, action in enumerate(node.actions):
+            if action.terminal:
                 continue
-            if compared is not None:
-                compared[relation] = compared.get(relation, 0) + 1
-            if played < dominated - MONOTONICITY_TOLERANCE_PCT:
-                violations.append((spot_id, stronger, weaker, played, dominated))
-    return violations
+            raised = action.kind in ("raise", "jam")
+            faced[path + (index,)] = faced[path] + (1 if raised else 0)
+            raiser[path + (index,)] = node.actor_pos if raised else raiser[path]
+    return faced, raiser
 
 
-def group_play_pct(weights_by_class: dict, reach_by_class: dict, group, transposed: bool):
-    """One group's play frequency, combo-weighted over hero's arriving range.
+@pytest.fixture(scope="module")
+def export() -> SolverExport:
+    return load_committed_export()
 
-    `transposed` is the counterfactual: the artifact a converter produces indexing the payload by
-    the grid ordering rather than GTOpen's own - **not** either counterfactual the gate in
-    `tests/test_derived_chart_report_validators.py` uses. Both the weights and the reach come
-    from the swapped class, a converter reading them with one index getting both wrong."""
-    as_gtopen_stores_them = tuple(sorted(HAND_CLASSES, key=gtopen_class_index))
-    total = weighted = 0.0
-    for name in group:
-        # Row position `grid_index(name)` in GTOpen's own ordering holds a different class,
-        # which is exactly what a converter indexing the payload by the grid ordering reads.
-        source = as_gtopen_stores_them[hand_class_grid_index(name)] if transposed else name
-        played = play_pct(weights_by_class.get(source))
-        if played is None or source not in reach_by_class:
+
+@pytest.fixture(scope="module")
+def committed(export: SolverExport) -> tuple[SolverNode, ...]:
+    return select_committed(export)
+
+
+@pytest.fixture(scope="module")
+def tree(export: SolverExport) -> tuple[dict, dict]:
+    return build_tree(export)
+
+
+def play_not_fold(node: SolverNode) -> dict[str, float]:
+    """How often each arriving class puts money in, which is what three of the four relations are
+    stated over. One number per cell rather than a distribution: a stronger hand raising where a
+    weaker one calls is not an inversion, both continuing. Invariant to decision 45's merge."""
+    return {name: 100.0 - folded for name, folded in _weight(node, ("fold",)).items()}
+
+
+def _weight(node: SolverNode, kinds: tuple[str, ...]) -> dict[str, float]:
+    indices = [i for i, action in enumerate(node.actions) if action.kind in kinds]
+    return {
+        name: 100.0
+        * sum(node.strategy_bp[i][gtopen_class_index(name)] for i in indices)
+        / QUANTISATION_SCALE
+        for name in HAND_CLASSES
+        if node.reach_bp[gtopen_class_index(name)] > REACH_FLOOR_BP
+    }
+
+
+def is_merged_spot(node: SolverNode, faced: dict) -> bool:
+    """One of decision 45's twenty: hero faces an open and is not the big blind, so his cold call
+    is folded into his raise and the published menu is raise or fold."""
+    return faced[node.path] == 1 and node.actor_pos != "BB"
+
+
+def raise_weight(node: SolverNode, faced: dict) -> dict[str, float]:
+    """How often each arriving class **raises in the published chart**, which is where decision
+    50's inversions live and where play-not-fold reads nothing, both hands being played 100
+    percent. At the twenty merged spots that is the solve's raise plus its cold call, because that
+    is the action the bot takes there; everywhere else the solve's raise is already what it plays.
+    Taylor ruled the merged reading on 2026-09-03: the raw raise row reports three inversions the
+    bot never commits and hides one it does."""
+    raised = _weight(node, ("raise", "jam"))
+    if not is_merged_spot(node, faced):
+        return raised
+    called = _weight(node, ("call",))
+    return {name: value + called.get(name, 0.0) for name, value in raised.items()}
+
+
+def inversions(cells: dict[str, float], pairs, tally: dict | None = None) -> list[tuple]:
+    """Every comparison the grid plays the wrong way round, past the tolerance. A comparison is
+    skipped when either class is absent, and `tally` counts what was looked at - without which a
+    class-naming break compares nothing and reports a clean grid."""
+    found = []
+    for stronger, weaker in pairs:
+        high, low = cells.get(stronger), cells.get(weaker)
+        if high is None or low is None:
             continue
-        weight = class_combos(name) * reach_by_class[source]
-        if not weight:
-            continue
-        total += weight
-        weighted += weight * played
-    return weighted / total if total else None
-
-
-def group_violating_spots(artifact: PreflopArtifact, groups, transposed: bool) -> int:
-    """How many committed spots play a group less often than the group below it."""
-    bad = 0
-    for spot_id, _ in artifact.action_weights:
-        cells = weights_by_class(artifact, spot_id)
-        reach = reach_by_class(artifact, spot_id)
-        values = [group_play_pct(cells, reach, group, transposed) for group in groups]
-        values = [value for value in values if value is not None]
-        if any(
-            higher < lower - MONOTONICITY_TOLERANCE_PCT
-            for higher, lower in zip(values, values[1:], strict=False)
-        ):
-            bad += 1
-    return bad
-
-
-def solve_records(card: dict) -> list[dict]:
-    """Every solve the card records, wherever it put them."""
-    found: list[dict] = []
-
-    def visit(value) -> None:
-        if isinstance(value, dict):
-            if "iterations" in value and "achieved_gap_bb" in value:
-                found.append(value)
-                return
-            for item in value.values():
-                visit(item)
-        elif isinstance(value, list):
-            for item in value:
-                visit(item)
-
-    visit(card)
+        if tally is not None:
+            tally["compared"] = tally.get("compared", 0) + 1
+        if low - high > TOLERANCE_PCT:
+            found.append((stronger, weaker, high, low))
     return found
 
 
-def git(*arguments: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(["git", *arguments], cwd=REPO_ROOT, capture_output=True, text=True)
+def transpose_hand_index(cells: dict[str, float]) -> dict[str, float]:
+    """The suit arm's counterfactual: every suited hand reads its offsuit twin's row. Both the
+    value and the cell's presence come from the swapped class - taking one without the other
+    measures sparsity rather than the mapping, which decision 10 records as the classic error."""
+    swapped = dict(cells)
+    for suited, offsuit in SUITED_OVER_OFFSUIT:
+        if suited in cells and offsuit in cells:
+            swapped[suited], swapped[offsuit] = cells[offsuit], cells[suited]
+    return swapped
 
 
-def retired_chart_from_history() -> dict:
-    """The retired chart, read out of git history rather than the tree - decision 7's
-    arrangement, and the only one left once stage 6 deletes the file. The commit is located
-    rather than pinned: a hardcoded sha stops resolving the first time somebody rebases."""
-    revisions = git("rev-list", "HEAD", "--", RETIRED_CHART_PATH).stdout.split()
-    assert revisions, f"git history holds no {RETIRED_CHART_PATH}"
-    for commit in revisions:
-        found = git("cat-file", "-e", f"{commit}:{RETIRED_CHART_PATH}").returncode == 0
-        if found:
-            return json.loads(git("show", f"{commit}:{RETIRED_CHART_PATH}").stdout)
-    raise AssertionError(f"no commit in history carries {RETIRED_CHART_PATH}")
+def reverse_rank(name: str) -> str:
+    """A class with both ranks reversed, re-ordered high card first. Its own inverse, and it
+    preserves pair, suited and offsuit."""
+    high, low = RANK_REVERSAL[name[0]], RANK_REVERSAL[name[1]]
+    if _RANKS.index(low) < _RANKS.index(high):
+        high, low = low, high
+    return f"{high}{low}{name[2:]}"
 
 
-def retired_split() -> tuple[list[tuple[str, str, tuple]], list[str]]:
-    """The retired 36 put through the ruled predicate - one walk for both ledgers below, so
-    what passes and what stays covered cannot be two readings of the same file."""
-    survivors: list[tuple[str, str, tuple]] = []
-    lost: list[str] = []
-    for spot in retired_chart_from_history()["spots"]:
-        entries = tuple(
-            PreflopAction(entry["position"], entry["action"], entry.get("size_bb"))
-            for entry in spot["action_sequence"]
-        )
-        live, invested = live_and_invested(spot["hero_position"], entries)
-        if invested <= 1 and live <= 2:
-            survivors.append((spot["spot_id"], spot["hero_position"], entries))
-        else:
-            lost.append(spot["spot_id"])
-    return survivors, lost
+def reverse_hand_ranks(cells: dict[str, float]) -> dict[str, float]:
+    """The rank arm's counterfactual: every cell reads the class with its ranks reversed. Total
+    only on a full grid, so on a sparse one it returns the image of the present classes under the
+    map, and a comparison whose partner did not survive is skipped rather than scored on what did.
+    It is its own inverse on a sparse grid too."""
+    return {
+        name: cells[reverse_rank(name)] for name in HAND_CLASSES if reverse_rank(name) in cells
+    }
 
 
-def export_opening_pct(export: SolverExport) -> dict[str, float]:
-    """Each seat's opening frequency, read off the solve rather than the chart. The chart holds
-    one opening range, so "later position opens wider" is no longer a property of the artifact.
-    It remains one of the export, where the ordering was gated at phase 10 and where a
-    mis-assigned actor or a transposed hand index still breaks it."""
-    return dict(aggregate_frequencies(export).opening_pct)
+def is_closed_under_reversal(cells: dict[str, float]) -> bool:
+    """A full grid, on which the reversal is total and nothing is skipped. It no longer selects
+    what the rank arm scores - that restriction was withdrawn on 2026-09-03 - and what it names
+    here is the coverage floor the four relations are held to."""
+    return len(cells) == FULL_GRID_CELLS
 
 
-def defence_pct(library: PreflopChartLibrary, opener: str) -> float:
-    key = f"t{TABLE_SIZE}/d{STACK_DEPTH_BB}/BB/{opener}:raise@2.5"
-    assert key in library.spot_keys(), f"the chart does not cover the big blind versus {opener}"
-    return 100.0 - library.action_frequency_pct(key, "fold")
+def partitioned(nodes, faced: dict) -> dict[str, tuple[SolverNode, ...]]:
+    """The ten partitions, built here so a dropped one is a missing key rather than a silence."""
+    groups = {"the committed set": tuple(nodes)}
+    for count in (0, 1, 2):
+        groups[f"raises faced {count}"] = tuple(n for n in nodes if faced[n.path] == count)
+    for seat in SEATS:
+        groups[f"hero={seat}"] = tuple(n for n in nodes if n.actor_pos == seat)
+    return groups
 
 
-def test_the_raked_chart_is_gone_and_the_sizing_file_left_is_at_the_per_class_schema() -> None:
-    """Deleted, because absence of a duplicate-key collision is not retirement; and decision 6's
-    2026-08-26 re-cut, one weight per price per *hand class*, on the one sizing file left.
-    The retired chart three-bets to 8, 11 and 13.5 and opens the small blind to 3.5 while the
-    export three-bets to 7.5 and opens to 2.5, so 31 of its 36 keys collide with nothing the new
-    artifact declares and only five exist verbatim: the library would build clean with both
-    loaded and the bot would answer every three-bet spot from raked ranges.
+def combo_weighted_play(node: SolverNode) -> float:
+    """One spot's play-not-fold frequency over hero's arriving range, combo-weighted."""
+    cells, total, weighted = play_not_fold(node), 0.0, 0.0
+    for name, value in cells.items():
+        weight = class_combos(name) * node.reach_bp[gtopen_class_index(name)]
+        total += weight
+        weighted += weight * value
+    return weighted / total if total else 0.0
 
-    Version 1 held a bare float per spot and version 2 a list per class, so the version is what a
-    reader checks before trusting the indexing; the shape is read off the file rather than
-    through `PreflopSizingTable`, whose loader would make its version claim vacuous. **The
-    two-price case is unexercised and labelled rather than counted as a pass** - the schema holds
-    a list because a spot may offer two prices and 0 of the 6 do. The last assertion makes that
-    a measurement, so a later solve turns it red.
-    """
-    assert not (ARTIFACT_DIR / RETIRED_CHART_NAME).exists()
-    assert RETIRED_CHART_NAME not in {path.name for path in ARTIFACT_DIR.glob("*.json")}
-    assert not (SIZINGS_DIR / RETIRED_CHART_NAME).exists()
 
-    paths = sorted(SIZINGS_DIR.glob("*.json"))
-    assert len(paths) == 1, paths
-    payload = json.loads(paths[0].read_text(encoding="utf-8"))
-    sizes = payload["raise_to_bb"]
-    widths = set()
+# --- The four relations -------------------------------------------------------------------- #
 
-    assert payload["schema_version"] == SIZING_SCHEMA_VERSION
-    assert len(sizes) == PRICED_SPOTS == COMMITTED_SPOTS
-    for key, spot in sizes.items():
-        assert isinstance(spot, dict) and spot, key
-        for hand_class, entries in spot.items():
-            cell = (key, hand_class)
-            assert hand_class in HAND_CLASSES, cell
-            assert isinstance(entries, list) and 1 <= len(entries) <= 2, cell
-            assert all(set(entry) == {"to_bb", "weight"} for entry in entries), cell
-            prices = [entry["to_bb"] for entry in entries]
-            assert prices == sorted(prices), cell
-            assert set(prices) <= set(RULED_PRICES), cell
-            assert all(entry["weight"] > 0.0 for entry in entries), cell
-            assert sum(entry["weight"] for entry in entries) == pytest.approx(1.0), cell
-            widths.add(len(entries))
 
-    assert widths == {1}, (
-        "a committed spot now offers hero two prices at one hand class, so decision 6's"
-        f" two-price branch is no longer vacuous and the label above is out of date: {widths}"
+def test_the_four_relations_are_pinned_as_data_before_they_are_measured() -> None:
+    """`DOMINANCE-RELATION-IS-PROSE-AND-HAS-PRODUCED-SEVEN-COUNTS`. The prose form of this rule
+    produced seven counts over the same export, so what is frozen is the record above: weighting,
+    reach floor, tolerance, family exclusions, scope, and the comparison list each relation runs.
+    Three measure play-not-fold and the fourth the raise weight, which is the only reason decision
+    50's inversions are visible. None is gated as an order, and that is a property of the data, so
+    a later hand that flips one has to flip it here."""
+    assert len(RELATIONS) == 4
+    assert {relation.measure for relation in RELATIONS} == {"play-not-fold", "raise-weight"}
+    assert sum(1 for r in RELATIONS if r.measure == "raise-weight") == 1
+    assert {relation.name for relation in RELATIONS} == set(COMPARISONS)
+
+    for relation in RELATIONS:
+        assert relation.tolerance_pct == TOLERANCE_PCT == 1.0, relation
+        assert relation.reach_floor_bp == REACH_FLOOR_BP == 0, relation
+        assert relation.gated_as_an_order is False, relation
+        assert relation.scope.startswith("per cell, every committed spot"), relation
+        pairs = COMPARISONS[relation.name]
+        assert len(pairs) == relation.comparisons_per_full_grid, relation
+        assert len(set(pairs)) == len(pairs), relation
+
+    assert len(ROW_KICKERS) == ROW_COMPARISONS_PER_FULL_GRID == 132
+    assert all(stronger[2:] == weaker[2:] for stronger, weaker in ROW_KICKERS)
+    assert all(stronger[0] == weaker[0] for stronger, weaker in ROW_KICKERS)
+    assert all(
+        _RANKS.index(weaker[1]) - _RANKS.index(stronger[1]) == 1 for stronger, weaker in ROW_KICKERS
     )
 
 
-def test_the_retired_chart_is_not_a_subset_of_what_replaces_it() -> None:
-    """The claim every stage-4 document made and the terminal-clean predicate falsified.
-    "All 36 spots of the retired chart are heads-up, so nothing the bot answers today is lost"
-    was verified by reading `action_sequence` values, which is a history reading. Under the ruled
-    predicate 22 of the 36 pass and 14 do not; of the 22, six end up covered, fifteen are
-    withheld as three-bet-facing and the twenty-second is the limped pot the solve has no branch
-    for. So the cutover gives up 29 spots and the limp, four opening ranges among them, and gains
-    6 - 6 = **nothing**. Read out of git history because the file is deleted, and asserted spot
-    by spot rather than as a count, because a count of 14 with the wrong 14 in it is the same
-    arithmetic and a different chart."""
-    survivors, lost = retired_split()
-    passing = [spot_id for spot_id, _, _ in survivors]
+def test_the_relation_walk_fires_where_it_was_ruled_to_and_nowhere_else() -> None:
+    """The helper shown working before any count is read off it, one that never fires satisfying
+    the coverage assertion below and reporting a clean chart. Decision 10's own cases: the real
+    44-versus-33 pair at 27 points is caught, the noise pair at 0.08 is not, an offsuit hand
+    beating its suited twin is caught. Then decision 50's: two hands played 100 percent with their
+    raise weights inverted reads clean on play-not-fold and fires on the raise weight."""
+    real = {"44": 72.81, "33": 99.88}
+    noise = {"44": 99.91, "33": 99.99}
+    twin = {"T9s": 10.0, "T9o": 40.0}
+    both_played = {"33": 100.0, "22": 100.0}
+    raises = {"33": 1.8, "22": 70.2}
+    tally: dict[str, int] = {}
 
-    assert len(passing) + len(lost) == 36
-    assert sorted(lost) == sorted(RETIRED_SPOTS_LOST)
-    assert len(passing) == 22
-    assert RETIRED_SPOT_WITH_NO_NODE in passing
+    assert [row[:2] for row in inversions(real, ADJACENT_PAIRS)] == [("44", "33")]
+    assert inversions(noise, ADJACENT_PAIRS) == []
+    assert [row[:2] for row in inversions(twin, SUITED_OVER_OFFSUIT)] == [("T9s", "T9o")]
+    assert inversions(both_played, ADJACENT_PAIRS) == []
+    assert [row[:2] for row in inversions(raises, ADJACENT_PAIRS)] == [("33", "22")]
+
+    inversions({}, ADJACENT_PAIRS, tally)
+    assert tally == {}, "an empty grid must compare nothing rather than pass quietly"
 
 
-def test_the_retired_spots_that_survive_are_covered_or_withheld_bar_the_limp(
-    library: PreflopChartLibrary,
+def test_every_committed_cell_is_measured_by_all_four_relations(
+    committed: tuple[SolverNode, ...], tree: tuple[dict, dict]
 ) -> None:
-    """6 of the retired 36 stay covered; 15 more pass the predicate and are withheld, and the
-    twenty-second survivor is the limped pot.
+    """What is gated is that the measurement was taken over every cell, not its verdict. Every
+    committed spot is walked by all four relations and a full grid contributes at least the
+    comparison count its relation declares. Nothing asserts a count is zero - decisions 41, 47, 50
+    and 51 accept these inversions as solved, and the chart the solve produced fails an order gate.
 
-    **Asked the way the bot asks it, which is the whole of why 6 is the number.** The retired
-    chart opens the small blind to 3.5 and three-bets to 8, 11 and 13.5 while the derived chart
-    holds 2.5 and 7.5, so exactly five keys exist verbatim and raw membership in `spot_keys()`
-    answers a different question. Phase 12's ruling 8 makes 6 true: the lookup normalises an
-    observed price to the nearest one declared for that line, so each survivor goes to
-    `library.lookup` as a `ChartQuery` and the 6 land on 6 distinct keys.
+    **The fourth relation's two counts are asserted at decision 55's figures**, because the 27
+    they replace was carried through four documents without ever being re-derived and reproduces
+    under no reading anyone could construct. They come off the export by the walk in this file: 41
+    pair inversions on the merged raise weight, 25 of them invisible to play-not-fold. A zero
+    there means the relation stopped measuring or the defect left the set, and either is a halt."""
+    faced, _ = tree
+    counts = {relation.name: 0 for relation in RELATIONS}
+    tallies: dict[str, dict] = {relation.name: {} for relation in RELATIONS}
+    full_grids = invisible_to_play_not_fold = 0
 
-    Coverage is read off the refusal code rather than one hand class, a spot behind hero's own
-    raise covering only hero's arriving range. `BB/SB:call` passes the predicate with no node to
-    derive from, the solve being `limp: false`; that is `CHART-CANNOT-ANSWER-A-LIMPED-POT`.
+    for node in committed:
+        played, raised = play_not_fold(node), raise_weight(node, faced)
+        full_grids += is_closed_under_reversal(played)
+        for relation in RELATIONS:
+            cells = raised if relation.measure == "raise-weight" else played
+            found = inversions(cells, COMPARISONS[relation.name], tallies[relation.name])
+            counts[relation.name] += len(found)
+        for stronger, weaker, _, _ in inversions(raised, ADJACENT_PAIRS):
+            if not inversions(played, ((stronger, weaker),)):
+                invisible_to_play_not_fold += 1
 
-    **The three withholdings cost this ledger fifteen spots, and which fifteen is measured
-    rather than assumed.** GTO Wizard's 36 stop at hero facing a three-bet, so the retired chart
-    has no four-bet-facing key and no jam-facing one and those two withholdings cost nothing
-    here; the third takes every three-bet-facing spot, and the retired chart has fifteen of them.
-    They are asserted as a set beside the carried-over set, fifteen matching fifteen by size
-    while differing by membership being the shape a wrong withholding takes. The gain side is
-    still empty: the 6 answered keys are the whole committed set.
-    """
-    covered = set(library.spot_keys())
-    survivors, _ = retired_split()
-    answered: dict[str, str] = {}
-    refused = []
-    for spot_id, hero, entries in survivors:
-        result = library.lookup(
-            ChartQuery(TABLE_SIZE, STACK_DEPTH_BB, hero, entries, PROBE_HAND_CLASS)
-        )
-        if isinstance(result, ChartMiss) and result.code == MISS_SPOT_NOT_COVERED:
-            refused.append(spot_id)
-            continue
-        assert result.spot_key is not None, spot_id
-        answered[spot_id] = result.spot_key
-
-    withheld = [key for key in refused if key != RETIRED_SPOT_WITH_NO_NODE]
-
-    assert len(answered) == RETIRED_SPOTS_CARRIED_OVER
-    assert len(set(answered.values())) == RETIRED_SPOTS_CARRIED_OVER, answered
-    assert RETIRED_SPOT_WITH_NO_NODE in refused
-    assert len(withheld) == RETIRED_SPOTS_WITHHELD, withheld
-    assert all(key.count(":raise@") == 2 for key in withheld), withheld
-    assert set(withheld).isdisjoint(answered)
-    assert len([spot_id for spot_id, _, _ in survivors if spot_id in covered]) == 5
-    for key in RETIRED_SPOTS_LOST:
-        assert key not in covered, key
-    for spot_id, landed in answered.items():
-        faced = landed.split("/")[3]
-        raises = 0 if faced == "rfi" else sum(1 for e in faced.split(",") if ":raise@" in e)
-        assert raises not in RAISES_FACED_WHEN_WITHHELD, (spot_id, landed)
-    assert set(answered.values()) == covered, "the carried-over keys are not the committed set"
-    assert len(covered) == COMMITTED_SPOTS
-    assert COMMITTED_SPOTS - RETIRED_SPOTS_CARRIED_OVER == SPOTS_GAINED == 0
+    assert len(committed) == derivation.COMMITTED_NODES
+    assert full_grids > 0, "no committed spot carries a full grid, so nothing was measured whole"
+    for relation in RELATIONS:
+        floor = full_grids * relation.comparisons_per_full_grid
+        assert tallies[relation.name].get("compared", 0) >= floor, (relation.name, tallies)
+        assert isinstance(counts[relation.name], int)
+    assert counts["pair ladder on the raise weight"] == report_tests.RAISE_ACTION_INVERSIONS
+    assert invisible_to_play_not_fold == report_tests.RAISE_ACTION_INVERSIONS_INVISIBLE > 0, (
+        "the fourth relation no longer finds the inversions play-not-fold misses, which is the"
+        " one thing decision 50 added it for"
+    )
 
 
-def test_the_per_cell_relations_are_measured_and_the_rule_catches_what_it_was_ruled_to(
-    artifact: PreflopArtifact,
+def test_the_fourth_relation_reads_the_raise_weight_the_bot_plays(
+    export: SolverExport, committed: tuple[SolverNode, ...], tree: tuple[dict, dict]
 ) -> None:
-    """Decision 10 re-ruled: the two relations are measured per cell and gate nothing.
+    """Taylor's ruling of 2026-09-03, measured rather than described. At each of the twenty merged
+    spots the relation reads the solve's raise plus its cold call, which is what the bot commits
+    there: the pre-merge reading finds 11 pair inversions over those spots and the merged one 9,
+    three of the eleven being resolved by the merge and one the bot really does commit - `66`
+    three-bet more often than `77` at `t6/d100/CO/HJ:raise@2.5` - appearing only after it.
 
-    Taylor read the grids and ruled the splits correct - among near-indifferent hands every split
-    has the same EV, so a per-cell gate rejects correct play. What survives as a gate is that the
-    measurement was taken: every committed spot covers all 169 classes now, so both relations
-    compared every pair or a run that compared nothing goes green.
+    Decision 50's three named cases survive the change and all three stay invisible to
+    play-not-fold, which is the whole reason the relation exists. None of the three merges, so
+    they were never what the reading turned on; the twenty that do merge were."""
+    faced, _ = tree
+    keyed = {derivation.key_of(derivation.walk_of(export), node): node for node in committed}
+    merged = [node for node in committed if is_merged_spot(node, faced)]
+    raw = {node.path: _weight(node, ("raise", "jam")) for node in merged}
+    before = sum(len(inversions(cells, ADJACENT_PAIRS)) for cells in raw.values())
+    after = sum(len(inversions(raise_weight(node, faced), ADJACENT_PAIRS)) for node in merged)
 
-    The helper is shown failing and not over-firing first, on decision 10's own cases: the real
-    44-versus-33 pair at 27 points is caught, the noise pair at 0.08 points is not, and an
-    offsuit hand beating its suited twin is caught. Without that a helper that never fires would
-    satisfy the coverage half below.
-    """
-    real = {"44": (("fold", 0.2719), ("raise", 0.7281)), "33": (("raise", 1.0),)}
-    noise = {"44": (("fold", 0.0009), ("raise", 0.9991)),
-             "33": (("fold", 0.0001), ("raise", 0.9999))}
-    inverted = {"T9s": (("fold", 0.9), ("raise", 0.1)), "T9o": (("fold", 0.6), ("raise", 0.4))}
+    assert len(merged) == report_tests.MERGED_SPOTS == 20
+    for node in merged:
+        called = _weight(node, ("call",))
+        assert raise_weight(node, faced) == {n: v + called[n] for n, v in raw[node.path].items()}
+    assert (before, after) == (11, 9), (before, after)
 
-    assert [entry[1:3] for entry in monotonicity_violations("spot", real)] == [("44", "33")]
-    assert monotonicity_violations("spot", noise) == []
-    assert [entry[1:3] for entry in monotonicity_violations("spot", inverted)] == [("T9s", "T9o")]
-
-    compared: dict[str, int] = {}
-    for spot_id, _ in artifact.action_weights:
-        monotonicity_violations(spot_id, weights_by_class(artifact, spot_id), compared)
-    full = sum(1 for spot in artifact.spots if not spot.action_sequence)
-
-    assert len(artifact.spots) == COMMITTED_SPOTS
-    assert full == 1
-    assert compared.get("ladder", 0) >= len(_ADJACENT_PAIRS) * full, compared
-    assert compared.get("twins", 0) >= len(_SUITED_OVER_OFFSUIT) * full, compared
+    gained = keyed["t6/d100/CO/HJ:raise@2.5"]
+    assert inversions(raise_weight(gained, faced), (("77", "66"),))
+    assert not inversions(raw[gained.path], (("77", "66"),))
+    for key in ("t6/d100/BB/HJ:raise@2.5", "t6/d100/BB/CO:raise@2.5",
+                "t6/d100/CO/CO:raise@2.5,BTN:raise@7.5"):
+        played = play_not_fold(keyed[key])
+        found = inversions(raise_weight(keyed[key], faced), ADJACENT_PAIRS)
+        assert not is_merged_spot(keyed[key], faced), key
+        assert found and all(not inversions(played, (row[:2],)) for row in found), key
 
 
-def test_the_group_dominance_figures_are_computed_and_published_for_every_partition(
-    artifact: PreflopArtifact,
+def test_the_kicker_family_separates_the_wheel_aces_from_the_ones_with_no_poker_story(
+    committed: tuple[SolverNode, ...],
 ) -> None:
-    """Published for a human, gating nothing. **Ruled by Taylor on 2026-09-01.**
+    """Decision 47. A count of the whole family overstates the defect by nearly four and a count
+    of the rest understates the family's size, so the two are measured apart and both published.
+    A wheel-ace case is an ace row where the hand played more often is `A5`, `A4`, `A3` or `A2`:
+    correct poker, the nut-straight ace being less dominated than a middling suited one, and not
+    an accepted defect. The split is asserted disjoint and exhaustive rather than at a count, a
+    split of the right size with the wrong members being the same arithmetic and a different
+    chart, and both labels are checked against the forbidden ones - decision 51 ruled this bluff
+    selection, so no label here may call it noise."""
+    published: dict[str, list[tuple]] = {label: [] for label in KICKER_LABELS}
 
-    **This measure has returned four verdicts on four committed sets.** Over the uncut 51 it
-    FAILS - 36 spots flagged as solved against 33 transposed, found by lane R3, so it scored the
-    wrong index mapping as the better one. Over the 36 it PASSES on all five partitions: 14/27
-    on single pair ranks, 1/26 on four bands, 1/26 on three, 1/24 on two, 21/24 on the suited
-    rows. Over the 21 it is mixed - the three pair-band partitions still separate perfectly at
-    0/12 each, single pair ranks TIE at 12/12, and the suited rows SATURATE at 21/21. Over the
-    committed 6 it separates nothing anywhere: the four pair partitions read 0 against 0, which
-    flags nothing under either mapping, and the suited rows read 6 against 6, which flags every
-    spot under both.
+    for node in committed:
+        for stronger, weaker, high, low in inversions(play_not_fold(node), ROW_KICKERS):
+            row = (node.path, stronger, weaker, high, low)
+            wheel = stronger[0] == "A" and weaker[:2] in WHEEL_ACE_KICKERS
+            published[KICKER_LABELS[0 if wheel else 1]].append(row)
 
-    A measure whose verdict tracks how many spots are in the set is measuring set composition
-    rather than whether the hand index is right. So it does not gate, which also restores
-    Taylor's 2026-08-26 ruling that no group ORDER is gated: this is a group-order measure and
-    gating it was drift. **What gates instead is the per-cell measure over spot partitions**, in
-    `tests/test_derived_chart_report_validators.py`, which separates cleanly at every size
-    measured - 0 against 26 over the 36, 0 against 21 over the 21, 0 against 6 over the 6 -
-    because a per-cell swap is what it tests and that does not need the tree to have a deep part.
+    wheel_ace, no_story = published[KICKER_LABELS[0]], published[KICKER_LABELS[1]]
 
-    What survives is that the figures are *taken*: a published measurement nobody computes is a
-    blank column, so both arms must be present and bounded by the spot count on every partition.
+    assert wheel_ace, "no wheel-ace case found, and that family is the one decision 47 exempts"
+    assert no_story, "every case read as correct poker, which decision 47 measured false"
+    assert len(wheel_ace) + len(no_story) == sum(
+        len(inversions(play_not_fold(node), ROW_KICKERS)) for node in committed
+    )
+    assert all(row[1][0] == "A" and row[2][:2] in WHEEL_ACE_KICKERS for row in wheel_ace)
+    assert not any(row[1][0] == "A" and row[2][:2] in WHEEL_ACE_KICKERS for row in no_story)
+    assert not [label for label in KICKER_LABELS if label in FORBIDDEN_LABELS]
+    assert not [word for word in FORBIDDEN_LABELS if any(word in t for t in KICKER_LABELS)]
 
-    **A trap named on 2026-09-01: `transposed` here is NOT the counterfactual that gates.**
-    `group_play_pct` reads row position `grid_index(name)` out of GTOpen's own ordering, which is
-    what a converter indexing the payload by the grid ordering reads; the gate's
-    `transpose_hand_index` swaps each suited hand with its offsuit twin outright, and its rank
-    arm permutes ranks instead. None of the three is equivalent to another and they give
-    materially different numbers - a stage-4 reimplementation that substituted one for another
-    reproduced neither family's counts - so none predicts the others."""
-    ordered = {
-        label: (
-            group_violating_spots(artifact, groups, transposed=False),
-            group_violating_spots(artifact, groups, transposed=True),
-        )
-        for label, groups in GROUPS.items()
+
+def test_the_group_order_ladders_are_measured_on_every_partition_and_asserted_on_none(
+    committed: tuple[SolverNode, ...], tree: tuple[dict, dict]
+) -> None:
+    """Published for a human, gating nothing, and that is a ruling rather than an omission. The
+    family returned a different verdict on every committed set it has been run over - failed on
+    the 5,626, passed on the 86, tied on the 21, saturated on the 6 - so it measures set
+    composition rather than whether the hand index is right. Taylor ruled on 2026-08-26 that no
+    group ORDER is gated, and it has crept back twice since. What survives is that the figures are
+    taken, a published measurement nobody computes being a blank column, so every partition is
+    measured and no comparison between the numbers appears below."""
+    faced, _ = tree
+    high_to_low = tuple(f"{rank}{rank}" for rank in _RANKS)
+    ladders = {
+        "pairs, 13 single ranks": tuple((pair,) for pair in high_to_low),
+        "pairs, 4 bands": tuple(high_to_low[s : s + 3] for s in (0, 3, 6, 9)),
+        "pairs, 3 bands": tuple(high_to_low[s : s + 4] for s in (0, 4, 8)),
+        "pairs, 2 bands": (high_to_low[:6], high_to_low[6:]),
+        "suited rows": tuple(
+            tuple(f"{high}{low}s" for low in _RANKS[index + 1 :])
+            for index, high in enumerate(_RANKS[:-1])
+        ),
     }
 
-    assert len(ordered) == len(GROUPS)
-    assert len(artifact.spots) == COMMITTED_SPOTS
-    for label, arms in ordered.items():
-        # Computed and publishable, not compared: a `None` or a figure outside the set is a
-        # column the report cannot print, which is the only failure left here.
-        assert all(isinstance(a, int) and 0 <= a <= COMMITTED_SPOTS for a in arms), (label, arms)
-    assert any(sum(arms) for arms in ordered.values()), "the measure computed nothing anywhere"
-    # And the saturation is recorded rather than left as a surprising zero elsewhere: over six
-    # spots the suited rows flag every spot under both mappings, which is what a measure that
-    # has stopped separating looks like from the inside.
-    assert ordered["suited rows"] == (COMMITTED_SPOTS, COMMITTED_SPOTS)
+    def band_pct(cells, node, group):
+        total = weighted = 0.0
+        for name in group:
+            if name not in cells:
+                continue
+            weight = class_combos(name) * node.reach_bp[gtopen_class_index(name)]
+            total += weight
+            weighted += weight * cells[name]
+        return weighted / total if total else None
+
+    def flagged(nodes, groups) -> int:
+        bad = 0
+        for node in nodes:
+            cells = play_not_fold(node)
+            values = [band_pct(cells, node, group) for group in groups]
+            values = [value for value in values if value is not None]
+            bad += any(
+                high < low - TOLERANCE_PCT
+                for high, low in zip(values, values[1:], strict=False)
+            )
+        return bad
+
+    groups = partitioned(committed, faced)
+    published = {
+        (name, label): flagged(nodes, ladders[label])
+        for name, nodes in groups.items()
+        for label in ladders
+    }
+
+    assert len(groups) == len(PARTITIONS) == 10
+    assert len(published) == 10 * len(ladders)
+    for (name, label), value in published.items():
+        assert isinstance(value, int) and 0 <= value <= len(groups[name]), (name, label, value)
+    assert any(published.values()), "every group ladder computed nothing anywhere"
 
 
-def test_the_two_orderings_hold_where_each_of_them_still_lives(
-    library: PreflopChartLibrary, committed_export: SolverExport
+# --- What is published and gates nothing --------------------------------------------------- #
+
+
+def test_the_equity_relation_gates_nothing_and_its_backlog_entry_stays_open() -> None:
+    """Decision 42. A correct chart fails the equity relation at any tolerance - `A9s` folded
+    while `87s` and `76s` are played is a real solver pattern and good poker, a weak suited ace
+    being dominated by the three-bettor's broadway aces where a suited connector keeps its
+    playability. So it prints for a human on every committed spot and refuses nothing, and this is
+    the check that it never quietly became a gate: the generator exposes no equity validator at
+    all. `test_derived_chart_report.py` owns the printing; here is the negative half and the
+    backlog status, nothing in this repo measuring whether a published range is good poker."""
+    entries = yaml.safe_load((REPO_ROOT / "backlog.yml").read_text(encoding="utf-8"))
+    rows = entries["items"] if isinstance(entries, dict) else entries
+    matching = [row for row in rows if row.get("id") == EQUITY_BACKLOG_ID]
+    validators = [name for name in dir(report) if name.startswith("validate_")]
+
+    assert len(matching) == 1, EQUITY_BACKLOG_ID
+    assert matching[0]["status"] == "deferred", matching[0]
+    assert not [name for name in validators if "equity" in name], validators
+
+
+def test_the_two_orderings_the_export_was_gated_on_survive_into_the_committed_set(
+    committed: tuple[SolverNode, ...], tree: tuple[dict, dict]
 ) -> None:
-    """Later position opens wider, and the big blind defends more against whoever opens wider.
-
-    Both are properties of the game, so they survive the conversion or the conversion broke them
-    - except that the chart no longer holds four of the five opening ranges, so the opening half
-    is asserted over the export and the defence half over the chart, which inherits it. The
-    defence relation follows the opening frequencies wherever they land rather than a fixed seat
-    order, so the widest-opening seat is never covered by nothing."""
-    opens = export_opening_pct(committed_export)
-    defends = {position: defence_pct(library, position) for position in OPENERS}
+    """Later position opens wider among the four non-blind seats, and the big blind defends more
+    against whoever opens wider. Both are properties of the game, so they survive the selection or
+    the selection broke them, and both are readable off the committed set now that it holds all
+    five first-in spots and the big blind's answer to each. The defence half follows the opening
+    frequencies wherever they land rather than a fixed seat order, so the widest-opening seat is
+    never the one nothing covers. **An ordering is not a level**, and only the level catches a
+    broken realization model: that is printed for a human and gated on nothing
+    (`STATIC-REALIZATION-UNMEASURED-IN-SINGLE-RAISED-POTS`), the big blind's over-folding being
+    decision 34's accepted defect rather than a failure of either ordering."""
+    faced, raiser = tree
+    opens = {n.actor_pos: combo_weighted_play(n) for n in committed if faced[n.path] == 0}
+    defends = {
+        raiser[n.path]: combo_weighted_play(n)
+        for n in committed
+        if n.actor_pos == "BB" and faced[n.path] == 1
+    }
     compared = 0
 
-    assert set(opens) >= set(OPENERS)
-    for tighter, wider in zip(OPENING_ORDER, OPENING_ORDER[1:], strict=False):
+    assert set(opens) == {"LJ", "HJ", "CO", "BTN", "SB"}, opens
+    assert set(defends) == set(opens), defends
+    for tighter, wider in zip(NON_BLIND_OPENERS, NON_BLIND_OPENERS[1:], strict=False):
         assert opens[wider] > opens[tighter], opens
-    for wider in OPENERS:
-        for tighter in OPENERS:
-            if wider == tighter or not opens[wider] > opens[tighter]:
+    for wider in opens:
+        for tighter in opens:
+            if opens[wider] <= opens[tighter]:
                 continue
             compared += 1
             assert defends[wider] > defends[tighter], (wider, tighter, opens, defends)
-
-    assert compared >= len(OPENERS), (opens, defends)
-
-
-def test_the_external_expectations_file_is_untouched_and_is_not_what_shipped(
-    library: PreflopChartLibrary, artifact: PreflopArtifact
-) -> None:
-    """Pinned by content, because a reference regenerated from what it checks cannot fail. It is
-    a raked GTO Wizard reference and this is a rake-free GTOpen solve, so the report prints one
-    against the other and gates on nothing. All that is asserted is that the phase did not
-    rewrite it - and that the derived chart is not it. The reference records the small blind
-    limping 13.73 percent and this solve ran `limp: false`, so a chart agreeing with it came from
-    the wrong file."""
-    raw = EXPECTATIONS_PATH.read_bytes()
-    reference = json.loads(raw)
-
-    assert hashlib.sha256(raw).hexdigest() == EXPECTATIONS_SHA256
-    assert set(reference["open_frequency_pct"]) == set(OPENERS)
-    assert set(reference["big_blind_defence_pct"]) == set(OPENERS)
-    assert GTOWIZARD_SOURCE_PATH.exists()
-
-    assert reference["limp_frequency_pct"]["SB"] > 0.0
-    assert library.action_frequency_pct(SB_OPEN_KEY, "call") == 0.0
-    assert weights_by_class(artifact, SB_OPEN_KEY)
-
-
-def test_the_source_card_posts_the_ruled_game_and_names_its_own_model(card: dict) -> None:
-    """The re-solve changes `add_allin` and the solve target and nothing else.
-
-    Field for field against `RULED_CONFIG`, which is what `config_errors` refuses an unruled
-    export by, then the forbidden fields by name - equality against an imported constant passes
-    just as happily if somebody widens the constant. `add_allin` is named because the re-solve
-    moved it: with it true GTOpen inserts a jam beside every named raise, and the first cutover's
-    chart jammed 44 at 1.0 where aces never jammed. The model line is derived from the config
-    rather than matched against a remembered word, a card naming one model beside a
-    `config_posted` naming another being the one claim about this export no gate command reads."""
-    posted = card["config_posted"]
-
-    assert posted == RULED_CONFIG
-    assert posted["add_allin"] is False
-    assert posted["open_raises"] == [2.5]
-    assert posted["limp"] is False
-    assert posted["stack"] == 100.0
-    assert posted["ante"] == 0.0
-    assert len(posted["positions"]) == TABLE_SIZE
-    assert (posted["rake_pct"], posted["rake_cap"]) == (0.0, 0.0)
-    assert f"realization={posted['realization']}" in card["model"]
-    assert posted["realization"] == RULED_CONFIG["realization"]
-
-
-def test_the_one_re_solve_decision_fourteen_ruled_is_the_only_solve_on_the_card(
-    card: dict, committed_export: SolverExport
-) -> None:
-    """The inverted premise. A re-solve **did** replace the solve phase 10 captured.
-
-    Until 2026-08-30 this asserted the opposite - one solve at phase 10's 300 iterations,
-    checksums unmoved - because decision 2 had been re-ruled to ship as solved. Decision 14 then
-    re-sourced at `add_allin: false`, on the finding that the shipped chart stacked off 100 blinds
-    with a range inverted against hand strength. So what has to be loud now is a *second*
-    re-solve: one solve record, two restamped checksums, the ruled target, pinned with its
-    iteration count because the pair is the claim - 0.00016 met first at 1,900 of a 2,000 cap
-    means the cap nearly binds. The achieved gap is asserted only against the target."""
-    records = solve_records(card)
-    committed = card["solve"]
-
-    assert len(records) == 1, records
-    assert committed["target_gap_bb"] == SOLVE_TARGET_GAP_BB
-    assert committed["iteration_cap"] == SOLVE_ITERATION_CAP
-    assert committed["iterations"] == COMMITTED_SOLVE_ITERATIONS
-    assert committed["iterations"] < committed["iteration_cap"]
-    assert committed["achieved_gap_bb"] < committed["target_gap_bb"]
-    assert card["export_sha256"] == export_checksum(committed_export)
-    assert card["export_sha256"] == COMMITTED_EXPORT_SHA256
-    assert card["saved_solve"]["sha256"] == COMMITTED_SAVE_SHA256
-
-
-def test_the_determinism_proof_and_the_walk_were_retaken_on_the_re_solve(
-    card: dict, committed_export: SolverExport
-) -> None:
-    """Two of the five obligations a re-solve carries, retaken rather than carried over.
-    Neither could be inherited: both are claims about a particular export and decision 14
-    replaced it. The determinism result arrives as a structured field because nothing in the gate
-    can re-run a solve, and the contract makes the script write it per `--determinism-only` - so
-    the extractor's placeholder is refused by name, PENDING being a proof nobody took that still
-    reads as an answer.
-    """
-    determinism, walk = card["determinism"], card["walk"]
-
-    assert "PENDING" not in str(determinism["result"]), determinism
-    assert determinism["max_divergence_bp"] == 0
-    assert determinism.get("shape_differences") == 0
-    assert walk["mismatches"] == 0
-    assert walk["reresolved_nodes"] == committed_export.node_count
-    assert walk["reresolved_nodes"] == COMMITTED_ACTION_NODES
-
-
-def test_the_node_counts_and_size_block_are_recomputed(
-    card: dict, committed_export: SolverExport
-) -> None:
-    """The reconciliation and the byte budget, both against the file that is actually there. The
-    cap stopped binding when the predicate changed but the rule did not: exceeding the
-    `data/artifacts` limit is a halt and a decision, not a number to raise. Deleting the retired
-    chart, re-solving and writing a smaller chart all move the directory total, so the block is
-    restamped or this fails. **The reconciliation is asserted against the committed chart as
-    well**: a card whose counts match the export still describes the wrong build if the chart
-    beside it holds a different number of spots."""
-    counts, size = card["node_counts"], card["size"]
-    total = sum(item.stat().st_size for item in ARTIFACTS.rglob("*") if item.is_file())
-    per_node = size["bytes"] / committed_export.node_count
-
-    assert committed_export.node_count == COMMITTED_ACTION_NODES
-    assert counts["exported"] == committed_export.node_count
-    assert counts["solver_action_nodes"] == committed_export.node_count
-    assert size["limit_bytes"] == 20 * 1024 * 1024
-    assert size["bytes"] == COMMITTED_EXPORT_PATH.stat().st_size
-    assert size["bytes_per_node"] == pytest.approx(per_node, abs=0.01)
-    assert total < size["limit_bytes"]
-    assert size["headroom_bytes"] == size["limit_bytes"] - total
-    assert len(import_preflop_artifacts(ARTIFACT_DIR)[0].spots) == COMMITTED_SPOTS
-
-
-def test_the_committed_card_answers_every_field_it_owes(card: dict) -> None:
-    """A field left at a placeholder is the drift defect phase 09 exists to have closed. The
-    re-solve restamped the whole card, so every field is owed again; today this catches the
-    determinism block, which the extractor leaves null until `--determinism-only` runs."""
-    assert source_card_errors(card) == []
+    assert compared >= len(opens), (opens, defends)

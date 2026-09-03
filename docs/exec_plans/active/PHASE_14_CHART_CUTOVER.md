@@ -301,7 +301,7 @@ still holds; sibling files import a count's owner rather than copying it.
 | L1 selection and census | `test_chart_derivation.py` | the two filters each alone, the third clause, no clause co-extensive with another, the four-bucket census summing to 33,969, the closed reason vocabulary and its disjointness from the runtime miss codes, exposure measured by a walk to leaves with the admitted and refused extremes |
 | L2 artifact shape | `test_derived_chart.py`, `test_chart_conversion.py` | byte-for-byte reproduction and `--check`, the retired chart absent from the directory, its glob and `sizings/`, 249 keys checked key by key, the two-directional sizing invariant, prices exactly `[2.5, 7.5, 22.5]`, sizes read from action labels via a perturbed synthetic export, the blind-structure refusals, the merged-flat menu shapes 5/20/219 and defence to the basis point, the no-limp schema rule, zero uniform-initialisation rows under both readings, zero-reach classes dropped |
 | L3 arrival and reach | `test_chart_arrival_probability.py` | reach as the plain mean over 169 classes with no reach floor selecting cells, arrival as one left-to-right product rounded once at the end, arrival above one refused at construction, arrival claimed for an undeclared spot refused, the grain printed with its zero count, and the zero-arrival case asserted non-vacuous |
-| L4 relations and arms | `test_chart_cutover_evidence.py` | the four relations at one point tolerance with 132 row comparisons on a full grid, the fourth on the raise weight, none gated as an order, both arms strict with a tie refusing, ten partitions, the rank arm scored only over spots closed under reversal with the unscored count published, the five-spot floor publishing rather than asserting, and the discrimination test where a rank-reversed chart passes the suit arm and fails the rank arm |
+| L4 relations and arms | `test_chart_cutover_evidence.py` | the four relations at one point tolerance with 132 row comparisons on a full grid, the fourth on the raise weight, none gated as an order, both arms strict with a tie refusing, ten partitions, the rank arm scored over every spot in its partition with the skipped count published, the five-spot floor publishing rather than asserting, and the discrimination test where a rank-reversed chart passes the suit arm and fails the rank arm |
 | L5 report and validators | `test_derived_chart_report.py`, `test_derived_chart_report_validators.py` | every figure the contract names as an obligation being printed and re-derived, the generator exiting non-zero when one does not hold, the three vacuous labels, the equity relation labelled as gating nothing, the cutover ledger balancing, the refusal inventory, the old-versus-new disagreement count with its direction rows |
 | L6 migration and canaries | `test_preflop_committed_charts.py`, every frozen test of a completed phase that asserts against the chart's contents, `verification/mutations.yml`, `scripts/run_verify.py` | the migration the contract requires before the freeze rather than after it, and the two mutation canaries authored before the implementation - one proving a wrong artifact fails the command rather than being rendered, one committing a spot above the exposure threshold |
 
@@ -310,6 +310,79 @@ having written any of it and neither having seen the other's work, writing to
 `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-recut-review.md` under `## Blocker`,
 `## Non-blocker` and `## Alignment`. A blocker holds the stage until it is marked with the bare literal
 `[resolved]`; an alignment item goes to `backlog.yml`.
+
+### Where the re-cut stood when it was picked up again, 2026-09-03
+
+The previous session left the re-cut uncommitted and partly done. Recorded here because nothing else
+records it and the driver cannot see any of it.
+
+**Landed, uncommitted:** L1 (`test_chart_derivation.py`, split into `test_chart_census.py`), L2
+(`test_derived_chart.py`, `test_chart_conversion.py`), L3 (`test_chart_arrival_probability.py`), L4
+(`test_chart_cutover_evidence.py`), L5's first file (`test_derived_chart_report.py`), and L6's migration
+(`test_preflop_committed_charts.py`, split into `test_preflop_committed_lookup.py`, registered in
+`run_verify.py`). About 4,100 lines added against 3,600 removed across nine files.
+
+**Left broken, and the reason it hid.** `test_derived_chart_report_validators.py` was never re-cut. It is
+L5's second file and still imports `COMMITTED_SPOTS` and nine other names the rewrite deleted, which raises
+`ImportError` at collection - the precise shape the import-shape section above forbids. `pytest_derived_chart`
+therefore reports `Interrupted: 1 error during collection` and **no assertion in any of the seven files
+runs**. This is the same defect that once froze a completed phase's 32 tests having never executed them, and
+it is why the driver's complaint reads as a broken file rather than as a missing re-cut.
+
+**Two smaller holes.** `test_chart_census.py` asks for a `committed` fixture that lives in
+`test_chart_derivation.py`; fixtures do not cross a module import, so two of its tests error at setup
+instead of running. And the census file is not in `pytest_derived_chart`, so once stage 5 freezes it no gate
+command would ever run it.
+
+**Lanes opened to close this,** disjoint files, neither reviewing its own work:
+
+| lane | files | owes |
+|---|---|---|
+| L5b | `test_derived_chart_report_validators.py` | the re-cut against the 249: the generator exiting non-zero when a published figure does not hold, both arms discriminating on the ten partitions, the rank arm catching a rank-reversed chart, a wrong artifact failing the command rather than being rendered |
+| L6b | `verification/mutations.yml`, `test_chart_census.py`, `scripts/run_verify.py` | the two canaries the lane table owes - a wrong artifact, and a spot committed above the ten-percent exposure threshold - plus the fixture repair and the census registration, and an audit of what else still asserts against the retired chart |
+| L4b | `test_chart_cutover_evidence.py` | 870 lines against the 700 cap: trim prose, then split relations from arms if that is not enough |
+| L5c | `test_derived_chart_report.py` | 1,092 lines against the 700 cap: a real split, with every module-scope name kept at the original path because L5b imports them |
+
+**A third hole, found by running the check rather than by reading.** Two re-cut files breach the 700-line
+cap the brief set - the same mistake the first pass made on all eight - and `check_file_sizes` is not in
+this stage's driver checks, so nothing would have said so before stage 5 froze them.
+
+**The migration was never done, and it is nine files.** L6b's audit found nine frozen tests of completed
+phases still asserting the retired 86-spot chart - `test_full_table_preflop.py`, `test_spot_vocabulary.py`,
+`test_spot_vocabulary_downstream.py`, `test_table_state_strategy.py`, `test_sample_comparison.py`,
+`test_sample_comparison_report.py`, `test_simulator.py`, `test_postflop_fallback.py`,
+`test_postflop_fallback_components.py`. All nine are green today and every one breaks or silently passes
+wrongly when stage 6 replaces the artifact. The contract's regression criterion requires them migrated at
+stage 4 before the freeze. Two lanes carry it: **M1** the four that assert the chart's shape, **M2** the five
+downstream ones. `t6/d100/LJ/rfi` is the common break - a refusal under the 86, a committed first-in spot
+under the 249 - and the silent passes matter more than the reds: `any(...)` assertions and
+fraction-of-collection thresholds keep holding for reasons their docstrings deny.
+
+Coordinator owns none of the six. Registration of any split file in `run_verify.py` is held until L6b is
+done with it. The two reviews above are still owed once all four land.
+
+### The stage-4 re-cut closed, 2026-09-03
+
+All six re-cut lanes landed, both independent reviews are written, and all five blockers they raised are
+marked `[resolved]` in their own notes. The stage's review record is
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-recut-review.md`, which indexes the
+mechanical and poker notes rather than restating them.
+
+Two of the blockers needed Taylor and got him on 2026-09-03. **Decision 54**: the rank arm is scored over
+every spot in its partition, because the claim that the unrestricted reading fails at 149 against 69
+spliced two comparison rules and reproduces under neither. **Decision 55**: the fourth relation reads the
+merged weight the bot plays, and the accepted raise-action inversions stand at their true count of 41, with
+25 invisible to every other check, the pinned 27 being unreachable at the ruled tolerance.
+
+**A process point recorded rather than hidden.** This work ran in `contract-update` mode because decision 54
+required a contract edit, and AGENTS.md says that mode must not mix with unrelated implementation. It did
+mix. The test changes flowing from the two rulings are covered by the scope-change entry, but the triage
+lane's eleven non-blocker fixes are ordinary implementation and were taken in the same working tree and the
+same commit. Splitting them afterwards would have produced a commit whose contract and tests contradict
+each other, which is worse than the smudge. The next task should not read this as precedent.
+
+**The contract is at 300 of 300 lines and two corrections were only landed by rewording rather than
+appending.** A third would not fit. `PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP` carries it.
 
 ### The numbers a lane may use, and where each is ruled
 
@@ -335,10 +408,10 @@ No lane invents a count. Anything not on this list is measured by the test's own
 - Solve card: target **0.00016**, cap **2,000**, first met at **1,900**, achieved **0.00015591**.
 - Retired chart: **86** spots, **36** carrying a sizing entry, all 36 priced at a jam. Decision 53.
 
-**The rank arm's one-cell margin is the fragile thing in this stage.** It passes the 219-spot partition 32
-against 33. Its restriction to spots closed under reversal is load-bearing - over all 219 spots it reads
-149 against 69 and fails. A lane that finds the arm red does not adjust the tolerance, the closed-spot
-definition, or which comparisons count. It halts and says so.
+**The rank arm's restriction was withdrawn on 2026-09-03, decision 54.** The claim that made it look
+fragile - that unrestricted it reads 149 against 69 and fails - spliced two comparison rules together and
+does not reproduce under either. Scored over every spot it reads 149 against 260 and passes wide. A lane
+that finds the arm red still does not adjust the tolerance or which comparisons count: it halts and says so.
 
 ### The 700-line cap on a test file
 
@@ -653,11 +726,26 @@ Work only in `~/projects/poker-bot-worktrees/phase-14` on `phase/14-chart-cutove
   one blocker (decision 52) and five figures that do not reproduce; a second, independent measurement agent
   re-derived all five and confirmed every one, and decision 53 corrects them. Nothing from that review is
   still open except finding 5, which is a recorded margin and not a task.
-- **The rank counterfactual arm passes the 219-spot partition by one cell**, 32 against 33, on the
-  partition holding 219 of the 249. Its restriction to spots closed under reversal is load-bearing: over
-  all 219 spots the arm reads 149 against 69 and fails. Anyone touching the tolerance, the closed-spot
-  definition, or which comparisons count is touching the only thing between that gate and a red. Do not
-  soften it to buy margin; a failure there is a halt and a decision for Taylor (decision 53).
+- **The rank arm is scored over every spot in its partition** since decision 54, 2026-09-03. It used to be
+  restricted to the spots closed under reversal, where it passed by a single cell, 32 against 33. The
+  justification for that - "over all 219 it reads 149 against 69 and fails" - was two comparison rules
+  spliced together and reproduces under neither: the skip rule gives 149 against 260 and the common-cell
+  rule 42 against 69, both passing. The restriction was never holding back a red; it was the only thing
+  making the result fragile (`RANK-ARM-RESTRICTION-RESTED-ON-A-SPLICED-FIGURE`). Do not soften the arm to
+  buy margin; a failure there is still a halt and a decision for Taylor.
+
+### The retired chart is read at a git pin, and a squash merge would break it
+
+`retired_chart_spot_ids()` in `tests/test_spot_vocabulary_downstream.py` reads the retired 86-spot chart
+with `git show db08304538c26361f3e692230e8cb544a9bf91c0:data/artifacts/preflop/six_max_100bb_rakefree.json`
+rather than off disk, and that is deliberate: stage 6 replaces that path **in place**, so a helper reading
+the working tree would compare the new chart against itself the moment the cutover lands - green, and
+meaningless. The pin is byte-identical to the working tree and to `a386c77`, and the read self-checks for
+86 spots and no duplicate ids. `scripts/generate_derived_chart_report.py` already reads at a pin the same
+way. **The commit is reachable only from `phase/14-chart-cutover`.** A normal merge keeps it; a squash or a
+rebase that rewrites the lane's history does not, and the pin would have to be re-taken against whatever
+commit carries the retired chart afterwards. Integration is serial merges by design, so this holds, but it
+is a reason not to squash this lane.
 
 ### Do not
 

@@ -1,22 +1,16 @@
 """Postflop fallback tests, written from the contract before the implementation existed.
 
 What this file pins is the one thing a continuity device has to be: total, legal, and
-never inventing an investment. It owns the harness the pair shares - the engine-derived
-betting shapes, the named card scenarios, and the query builders - and every test of what
+never inventing an investment. It owns the harness the pair shares and every test of what
 `PostflopFallbackStrategy.decide` returns.
 
-`TestTotalityAndLegality` proves coverage by enumeration rather than by sampling, and the
-shapes it enumerates are read out of the engine's own `legal_actions` rather than listed
-here, so the sweep follows the engine if the engine changes. Legality is not asserted by
-eye: every decision goes through the Phase 03 `DecisionAuditRecord`, which rejects an
-action outside `legal_actions`, an amount above all-in, and one below the minimum raise.
+`TestTotalityAndLegality` proves coverage by enumeration rather than by sampling, over
+shapes read out of the engine's own `legal_actions`. Legality is not asserted by eye:
+every decision goes through the Phase 03 `DecisionAuditRecord`.
 
 Everything in the pair that never calls `decide` lives in the companion,
 `tests/test_postflop_fallback_components.py`, which imports this harness rather than
-copying it: the outcome-code vocabulary, the `hand_cannot_lose` predicate the single
-postflop call rests on, and the `CompositeStrategy` this strategy is a component of. That
-line is what lets the companion need none of the fixtures defined here. Both files run
-under `pytest_postflop_fallback`.
+copying it. Both files run under `pytest_postflop_fallback`.
 """
 
 from __future__ import annotations
@@ -250,6 +244,31 @@ def preflop_seat_of(position: str) -> int:
     raise AssertionError(f"no seat holds {position}")
 
 
+def _table_fields(
+    hero: int, street_bets: dict[int, int], folders: tuple[int, ...], full: int
+) -> dict[str, Any]:
+    """Who has put in what and who is gone: shared by the three builders below."""
+    return {
+        "street": "preflop",
+        "seat": hero,
+        "button_seat": PREFLOP_BUTTON,
+        "board": (),
+        "pot": sum(street_bets.values()),
+        "seat_states": tuple(
+            SeatState(
+                seat,
+                street_bets.get(seat, 0),
+                street_bets.get(seat, 0),
+                seat in folders,
+                street_bets.get(seat, 0) >= full,
+            )
+            for seat in PREFLOP_SEATS
+        ),
+        "stacks": tuple((seat, full - street_bets.get(seat, 0)) for seat in PREFLOP_SEATS),
+        "blinds": (PREFLOP_SB, PREFLOP_BB),
+    }
+
+
 def preflop_query(
     hole_cards: tuple[str, ...] = ("As", "Ah"),
     depth_bb: int = 100,
@@ -258,16 +277,14 @@ def preflop_query(
 ) -> StrategyQuery:
     """Hero in the big blind closing the action against a single button open.
 
-    It used to seat hero at the lojack with the pot unopened. The cutover retires
-    `t6/d100/LJ/rfi` - four opponents are still live behind an under-the-gun open, so it
-    fails the ruled predicate - and the bot now opens from the small blind and faces an
-    open from the big blind and nowhere else. A fixture that still means what it meant has
-    to sit at one of those two, and this is the second: everyone folds to the button, which
-    comes in at `open_to_bb`, the small blind folds, and hero closes the action.
+    Everyone folds to the button, which comes in at `open_to_bb`, the small blind folds,
+    and hero closes the action. At the default price that keys `t6/d100/BB/BTN:raise@2.5`;
+    setting `open_to_bb` to `depth_bb` makes it an open-shove.
 
-    At the default price that is `t6/d100/BB/BTN:raise@2.5`, the spot the phase traces end
-    to end. Setting `open_to_bb` to `depth_bb` makes it an open-shove, a committed spot too,
-    which offers hero fold and call and nothing else.
+    Used for the street-routing tests, which hold whatever the chart would have said.
+    Neither file asserts this spot is committed: the ruled census names 5 first-in, 25
+    facing an open and 219 facing a three-bet without saying which facing-an-open keys the
+    exposure clause keeps, so every chart claim here is made at `first_in_preflop_query`.
     """
     hero = preflop_seat_of("BB")
     opener = preflop_seat_of("BTN")
@@ -277,12 +294,9 @@ def preflop_query(
     acted = tuple(preflop_seat_of(position) for position in ("LJ", "HJ", "CO", "BTN", "SB"))
     folders = tuple(seat for seat in acted if seat != opener)
     fields: dict[str, Any] = {
+        **_table_fields(hero, street, folders, full),
         "hand_id": "preflop-hand",
-        "street": "preflop",
-        "seat": hero,
-        "button_seat": PREFLOP_BUTTON,
         "hole_cards": hole_cards,
-        "board": (),
         # An open for the whole stack leaves hero nothing to raise with, and the contract
         # refuses a query that offers one.
         "legal_actions": ("fold", "call") if open_to >= full else ("fold", "call", "raise"),
@@ -290,19 +304,6 @@ def preflop_query(
         "to_call": min(open_to - PREFLOP_BB, full - PREFLOP_BB),
         "current_bet": open_to,
         "min_raise_target": open_to + (open_to - PREFLOP_BB),
-        "pot": sum(street.values()),
-        "seat_states": tuple(
-            SeatState(
-                seat,
-                street.get(seat, 0),
-                street.get(seat, 0),
-                seat in folders,
-                street.get(seat, 0) >= full,
-            )
-            for seat in PREFLOP_SEATS
-        ),
-        "stacks": tuple((seat, full - street.get(seat, 0)) for seat in PREFLOP_SEATS),
-        "blinds": (PREFLOP_SB, PREFLOP_BB),
         # The folds travel with the raise. A spot key drops them, but the history and the
         # seat states are read by different code and a reader should see one hand.
         "preflop_actions": tuple(
@@ -316,36 +317,68 @@ def preflop_query(
     return StrategyQuery(**fields)
 
 
-def retired_preflop_query(**overrides: Any) -> StrategyQuery:
-    """The lojack opening an unopened 100bb pot: what `preflop_query` used to build.
+FIRST_IN_KEY = "t6/d100/LJ/rfi"
+# Three raises are already in, so this sits past the cutover's at-most-two-raises clause
+# whatever the exposure measurement says. The retired 86 answered it, which is what makes
+# swapping to it a migration rather than a rename.
+BEYOND_RAISE_DEPTH_KEY = "t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5"
 
-    Kept rather than deleted, because the cutover turns it from a covered spot into a
-    refused one. `t6/d100/LJ/rfi` leaves four opponents live behind an under-the-gun open,
-    so it fails the predicate's subtree clause and the chart declines a decision the bot
-    answers today. That is the ruled cost, and refusal being the common preflop answer is
-    exactly why a component that routed one wrongly would be invisible.
+
+def first_in_preflop_query(**overrides: Any) -> StrategyQuery:
+    """The lojack opening an unopened 100bb pot: `t6/d100/LJ/rfi`.
+
+    This builder was `retired_preflop_query`, and its premise inverted. The chart holds
+    five first-in spots, one per seat that can be first in, so the lojack's open is
+    answered rather than refused - the one family a test here can assert a chart answer at
+    without guessing which facing-an-open keys the exposure clause kept. Its menu carries
+    no call: the ruled solve is `limp: false`, so no committed spot weights a limp.
     """
     hero = preflop_seat_of("LJ")
     posted = {preflop_seat_of("SB"): PREFLOP_SB, preflop_seat_of("BB"): PREFLOP_BB}
     full = 100 * PREFLOP_BB
     fields: dict[str, Any] = {
-        "hand_id": "retired-preflop-hand",
-        "street": "preflop",
-        "seat": hero,
-        "button_seat": PREFLOP_BUTTON,
+        **_table_fields(hero, posted, (), full),
+        "hand_id": "first-in-preflop-hand",
         "hole_cards": ("As", "Ah"),
-        "board": (),
         "legal_actions": ("fold", "call", "raise"),
         "to_call": PREFLOP_BB,
         "current_bet": PREFLOP_BB,
         "min_raise_target": 2 * PREFLOP_BB,
-        "pot": PREFLOP_SB + PREFLOP_BB,
-        "seat_states": tuple(
-            SeatState(seat, posted.get(seat, 0), posted.get(seat, 0), False, False)
-            for seat in PREFLOP_SEATS
+    }
+    fields.update(overrides)
+    return StrategyQuery(**fields)
+
+
+def beyond_raise_depth_query(**overrides: Any) -> StrategyQuery:
+    """Hero in the big blind facing a four-bet: a spot the cutover refuses.
+
+    Everyone folds to the button, which opens to 2.5; hero three-bets to 7.5 and the
+    button four-bets to 22.5. That is three raises already in and the rule keeps at most
+    two, so the key is outside the committed set - the ruled census is 5 first-in plus 25
+    facing an open plus 219 facing a three-bet, with no facing-a-four-bet family anywhere.
+    Its exclusion code is `beyond-committed-raise-depth`. Chosen over a limped or a squeeze
+    spot because a raise count can be argued from the contract without reading the export.
+    """
+    hero = preflop_seat_of("BB")
+    opener = preflop_seat_of("BTN")
+    full = 100 * PREFLOP_BB
+    street = {preflop_seat_of("SB"): PREFLOP_SB, hero: 750, opener: 2250}
+    folders = tuple(preflop_seat_of(position) for position in ("LJ", "HJ", "CO", "SB"))
+    fields: dict[str, Any] = {
+        **_table_fields(hero, street, folders, full),
+        "hand_id": "beyond-raise-depth-hand",
+        "hole_cards": ("As", "Ah"),
+        "legal_actions": ("fold", "call", "raise"),
+        "to_call": 2250 - 750,
+        "current_bet": 2250,
+        "min_raise_target": 2250 + (2250 - 750),
+        "preflop_actions": (
+            *(SeatAction(seat, "fold") for seat in folders[:3]),
+            SeatAction(opener, "raise", 250),
+            SeatAction(folders[3], "fold"),
+            SeatAction(hero, "raise", 750),
+            SeatAction(opener, "raise", 2250),
         ),
-        "stacks": tuple((seat, full - posted.get(seat, 0)) for seat in PREFLOP_SEATS),
-        "blinds": (PREFLOP_SB, PREFLOP_BB),
     }
     fields.update(overrides)
     return StrategyQuery(**fields)

@@ -1,8 +1,10 @@
 task_id: PHASE_14_CHART_CUTOVER
 active_phase: "14"
-task_mode: implementation
+task_mode: contract-update
 base_commit: e2ee0ac5da52387cbe01703a7a0b2110f515fb76
 approved_scope:
+  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+  - reports/phase_audits/decisions/**
   - tests/**
   - verification/mutations.yml
   - verification/freeze.lock
@@ -23,6 +25,28 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-03
+    reason: >-
+      Stage 4's two independent reviews found five blockers, and one of them cannot be fixed in
+      implementation mode because the contract froze the thing that is wrong. The rank counterfactual arm
+      is scored only over the spots closed under reversal, and the contract's stated reason is that the
+      unrestricted arm fails, reading 149 against 69. That figure does not exist. An independent
+      measurement agent, walking the export from the phase's own prose rather than from the code under
+      test, reproduced the arm under four separate comparison rules and got 149 against 260 under the
+      test's own rule and 42 against 69 under the common-cell rule. The published pair splices the solved
+      side of one rule to the counterfactual side of the other. Under every rule taken consistently the
+      unrestricted arm passes, so the restriction was never protecting the gate from a red - it is the
+      only reason the result is fragile, the restricted arm passing by a single cell at 32 against 33.
+      Taylor ruled on 2026-09-03 to score the arm over the whole partition. That changes which comparisons
+      count, which the contract pins as data, so it is a semantic contract change and needs this mode.
+      `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` and `reports/phase_audits/decisions/**` enter
+      approved_scope for that edit and the two decisions recording it. The second decision is Taylor's
+      ruling on the same day that the accepted raise-action pair inversions stand at their true count:
+      27 was pinned, 41 reproduces, 25 of them invisible to every other check, and 27 reproduces under no
+      scoping either the reviewer or the independent walk could construct. That one moves no contract
+      line - the contract names the obligation, not the figure - but it belongs in the same decision pair.
+      tests/** stays in scope because the arm's ten published partition rows are frozen test data and all
+      ten move with the ruling.
   - date: 2026-09-02
     reason: >-
       The contract rewrite is committed, so phase 14 returns to implementation mode for the

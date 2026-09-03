@@ -1204,6 +1204,94 @@ mutations:
       - pytest_derived_chart
       - pytest
 
+  # Phase 14 stage-4 re-cut against the 249, authored 2026-09-02.
+  #
+  # The one below attacks a line that DOES NOT EXIST YET, and that is the point
+  # rather than an oversight. The three canaries above were written against the
+  # report because the report was already written, which is the same order of work
+  # the block comment above them warns about: a canary written after the code can
+  # only ever describe it. The selection rule the phase turns on has not been built,
+  # so the only way to attack it before it is built is to name the line the frozen
+  # tests force stage 6 to write - `MULTIWAY_EXPOSURE_THRESHOLD_PCT` is asserted by
+  # name in `test_the_exposure_clause_alone_is_a_walk_to_the_leaves_not_a_live_player_count`,
+  # so stage 6 has no choice about the name and this canary is a specification of the
+  # literal beside it.
+  #
+  # Two things go red until stage 6 writes the line, and both were checked rather than
+  # assumed, because a canary that quietly reddens a command outside its own phase is a
+  # regression dressed as rigour:
+  #   - `check_gate_bite` reports zero occurrences for it. That command is already red at
+  #     stage 4 for every phase-14 canary anyway: after restoring a mutation it re-runs
+  #     `pytest_derived_chart` and requires it to pass, and that command is red by design.
+  #   - `tests/test_loop_machinery.py::test_every_mutation_applies_exactly_once_to_its_file`
+  #     fails on its own assertion, since it counts each `find` in its file and wants one.
+  #     That test is frozen, it was green against HEAD - all 71 entries there resolve - and
+  #     it runs under no command but the catch-all `pytest`, which is itself red at stage 4
+  #     because it runs this phase's own files. So no green command is turned red, and both
+  #     reds clear the moment stage 6 writes the constant, which is the whole shape of a
+  #     specification: it fails until the thing it specifies exists.
+  # Stage 6 must write the constant as a bare `NAME = 10.0`, matching every other module
+  # constant in `chart_derivation.py`; an annotated form would leave the find string
+  # unmatched and the loop-machinery test red for a reason that is not the ruled one.
+
+  - id: a-spot-above-the-exposure-threshold-is-committed
+    description: >-
+      The multiway exposure threshold moves off the ten percent Taylor ruled on
+      2026-09-02 by five hundredths of a point, so the chart commits a spot the rule
+      refuses. That is one node and it is the named one: the button facing a big-blind
+      three-bet into a four-handed pot,
+      `t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5`, measured at
+      **10.0234** percent against a widest admitted **9.8642**. Ten-point-oh-five is
+      not an arbitrary widening: the next refused node above it sits at 10.1189, so
+      every value in that gap admits exactly this one spot and no other, and the
+      canary therefore attacks the threshold at its own margin instead of at a
+      catastrophe. The committed set goes from 249 to 250 and the census bucket from
+      348 to 347.
+      Decision 46 is the whole reason this filter exists, and it is the clause with
+      the least margin behind it: a sixteen-hundredths gap between the widest spot the
+      bot may be taught and the narrowest it may not. Nothing else in the gate is a
+      statement about that gap. The raise-depth clause has a whole family behind it and
+      the big-blind squeeze clause names a seat, so both fail loudly if they move; a
+      threshold is a number, and a number that has quietly drifted still selects a set,
+      still balances a census, still converts, still imports, and still answers every
+      query. What it does at the table is teach a student to play a pot GTOpen priced
+      with a product approximation the flop-pricing fit never covered - which is the
+      one thing decisions 35 and 46 exist to keep out of the chart.
+      `generate_derived_chart_report` is named deliberately and is the load-bearing
+      entry in the list. The pytest commands can kill this mutation by reading the
+      constant back - the frozen test asserts `MULTIWAY_EXPOSURE_THRESHOLD_PCT` equals
+      ten - and a kill of that kind proves only that the constant is pinned, not that
+      the rule uses it. The report cannot read the constant: it compares the artifact's
+      spot set against the walk's key by key, so it fails only if the moved threshold
+      actually moved a spot. If stage 6 declares the constant and then hardcodes ten in
+      the predicate beside it, the pytest commands still go red, the report exits 0, and
+      `check_gate_bite` reports this mutation as having survived a command it named -
+      which is the finding, not a reason to drop the command.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "MULTIWAY_EXPOSURE_THRESHOLD_PCT = 10.0"
+    replace: "MULTIWAY_EXPOSURE_THRESHOLD_PCT = 10.05"
+    must_fail:
+      - pytest_derived_chart
+      - generate_derived_chart_report
+      - pytest
+
+  # The lane table's other stage-4 canary - "a wrong artifact fails the command
+  # rather than being rendered" - is NOT written here, because it already exists as
+  # `the-derived-chart-report-renders-whatever-it-is-handed` and a second entry
+  # attacking the same line would be one canary counted twice. Its find string,
+  # `    if validation_errors:`, occurs exactly once in
+  # `scripts/generate_derived_chart_report.py`, measured against the re-cut tree.
+  # What kills it is `test_a_wrong_artifact_fails_the_command_rather_than_being_rendered`
+  # in `tests/test_derived_chart_report_validators.py`, and both of its parameters do:
+  # `drop-a-spot` removes the artifact's first committed spot and restamps the audit
+  # fields, so only a comparison against the walk sees it, and
+  # `commit-a-spot-above-the-exposure-threshold` appends the narrowest spot the filter
+  # refuses at 10.0234 percent - the same node
+  # `a-spot-above-the-exposure-threshold-is-committed` names above - with its cells
+  # copied off a committed spot, so the file stays internally consistent and loads.
+  # The two canaries meet at that node from opposite ends: one moves the rule and
+  # regenerates, the other moves the artifact and leaves the rule alone.
+
   # Canary debt stage 6 owes, listed rather than skipped. A mutation needs a
   # `find` string that occurs exactly once in a file that EXISTS, so an assertion
   # about code nobody has written cannot be attacked yet. Stage 6 must add:
