@@ -340,6 +340,15 @@ against 33. Its restriction to spots closed under reversal is load-bearing - ove
 149 against 69 and fails. A lane that finds the arm red does not adjust the tolerance, the closed-spot
 definition, or which comparisons count. It halts and says so.
 
+### The 700-line cap on a test file
+
+`scripts/check_file_sizes.py` caps `tests/**/*.py` at **700 lines**, and every one of this phase's eight
+files was written past it on the first pass because the brief did not say so. Trim prose before anything
+else - a file's docstring says what it owns and why a test exists, never a restatement of the contract.
+Where trimming would gut a test, **split the file**: `tests/**` is in `approved_scope` as a whole, a second
+file is legal, and a compressed test is worse than an extra file because stage 5 freezes it perfectly.
+When a file splits, the module-scope interface other lanes import stays at the original path.
+
 ### The import shape, which is not optional
 
 Stage-4 tests import names stage 6 will create, and there is one shape that is red for a reason the driver
