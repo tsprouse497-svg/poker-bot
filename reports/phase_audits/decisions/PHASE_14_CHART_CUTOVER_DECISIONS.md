@@ -1,5 +1,65 @@
 # Phase 14 judgment calls
 
+## READ THIS FIRST: what is live, as of 2026-09-02
+
+This list runs to **47** items and 64 supersession notices. Four restarts have begun with an agent
+reconstructing the current rules from it and getting them wrong. **Do not read this record front to
+back to find out what the bot does.** The live rule set is in the `Next Agent Bootstrap` section of
+`docs/exec_plans/active/PHASE_14_CHART_CUTOVER.md`, which is maintained as the single source; this
+record is where the reasoning and the measurements live.
+
+**Live rulings, in the order they matter.** Everything the committed chart does traces to these:
+
+| item | what it settles |
+|---|---|
+| **44** | the rule set stated once, as amended by 45, 46 and 47 |
+| **46** | selection: two filters, multiway exposure under 10% over reachable branches, **259 nodes** |
+| **35** | four-bet pots and deeper are excluded |
+| **32** | cut by action, not by spot |
+| **33** | the bot never cold-calls; opponents do, and the solve stays unconstrained |
+| **45** | the bot's flats are merged into its raises, not deleted |
+| **34** | the tight big blind is accepted, cost published as a band |
+| **41**, **47** | pair- and kicker-ladder inversions accepted; wheel aces are not defects |
+| **42** | the equity relation is published, gates nothing |
+| **38** | a chart ships |
+| **19**, **20** | `realization: calibrated`, and why neither `static` nor `raw` replaces it |
+| **43** | corrections to 32, 35 and 39, all of which had wrong figures |
+
+**Superseded or withdrawn. Read for diagnosis, never for work.**
+
+| item | status |
+|---|---|
+| 1 | second clause replaced by 39, then dropped entirely by 40 |
+| 17, 18 | withdrawn 2026-08-31; no solver work is owed by anybody |
+| 22 | withdrawn 2026-08-26 |
+| 26, 28 | the withholding cascade, superseded by 32 |
+| 31 | the halt, superseded by 38 |
+| 37 | the gated equity relation, superseded by 42 |
+| 39 | the three-clause predicate, superseded by 40 |
+| 40 | its 1% threshold superseded by 46; its two-filter ruling stands |
+| 32 | its pair-inversion dismissal was wrong, superseded by 41; its cut-by-action ruling stands |
+| 33 | its publication rule superseded by 45; its hero-side-only ruling stands |
+| 36 | ruled but **not executed**, on a coordinator error; back with Taylor |
+
+**Live and never superseded, but named by no summary until now** - the contract's criteria implement all
+of them: **2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 21, 23, 24, 25, 27, 29, 30**. Of those, 4
+(blind structure), 5 (arriving reach), 6 (two-price schema, un-gated expectations), 8 (the closed reason
+vocabulary), 10 (one-point tolerance, pinned relation definition) and 14 (`add_allin: false`) are the ones
+a reader will hit first.
+
+**Later items to add to the live table**: **48** the big blind's squeeze spots excluded, 249 nodes; **49**
+corrected counts, superseding every figure taken over an earlier set; **50** the fourth relation, on the
+raise action, which is the defect that actually halted the phase.
+
+**Partially superseded items are the trap.** 32, 33, 35, 40 and 46 each carry a ruling that stands and a
+figure or sub-rule that does not. Where they conflict with 43 to 50, the later item wins. **Every count in
+items 1 to 48 was taken over a set that has since moved; decision 49 is the only figures table to trust.**
+
+**Everything below this line is the record's original preamble and its counts are historical.** It says
+thirteen items, then twenty-four, then thirty; there are 50. It says the committed set went 36 to 21 to 6;
+it is now 249.
+
+
 These are the choices that decide which ranges the bot plays. Every phase after this one is
 measured against what is committed here, so the balance of this list runs the other way from
 phase 13's: eight of thirteen items are `frozen-into-data` against that phase's one.
@@ -3087,3 +3147,793 @@ no class folded above 99 percent may hold strictly more equity than any class pl
 It is pure internal consistency, no realization model can excuse violating it, and it currently fires on
 27 to 55 classes at every one of the five big-blind spots. Filed as
 `GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE`.
+
+## 32. Whether the selection rule cuts by spot or by action
+
+Reversibility: frozen-into-data
+
+Raised and answered 2026-09-01 in a review of the halt, on measurements the coordinator took against the
+committed export rather than from this record's prose. It supersedes the withholding cascade that decisions
+20, 26 and 28 built and the halt decision 31 took from it.
+
+**Ruled by Taylor, 2026-09-01: cut by action.** The chart publishes an answer for a decision, not for a
+spot, and a decision the source prices badly is withheld wherever it occurs rather than taking its whole
+spot with it.
+
+**What the measurements say, action by action.** Every figure below is combo-weighted over the committed
+export at `add_allin: false`, and every standard quoted is for rake-free six-max 100bb at a 2.5bb open.
+
+| decision | export | standard | verdict |
+|---|---|---|---|
+| open or fold | LJ 18.7, HJ 21.6, CO 27.2, BTN 39.3, SB 54.3 | 18-20, 22-25, 26-30, 42-48, 44-52 | sound |
+| 3-bet an open | BB vs BTN 15.6, SB vs BTN 13.7 | 13-16, 11-14 | sound |
+| BB 3-bet vs SB | 28.1 | 14-18 | high, and it is the flat's displaced mass |
+| cold-call an open | HJ 0.1, CO 1.0, BTN 3.1, SB 4.6 facing an LJ open | 3-8 | collapsed |
+| BB flat an open | 19.6, 21.0, 22.4, 21.1, 20.3 against the five openers | should widen sharply against late seats | opener-invariant |
+| opener calling a 3-bet | continues 57.0-63.1, calls 45.2-52.6, 4-bets 10.2-11.9 | continue 50-60, 4-bet 10-13 | sound |
+| facing a 4-bet | continues 48.7-59.8 | 28-35 | broken |
+
+**Why the cascade ran to zero, stated as the diagnosis rather than as blame.** Almost every node carries a
+call, so a spot-shaped withholding reads a call defect as a whole-spot defect. Decisions 20, 26 and 28
+applied the same argument at three thresholds and decision 31 was right that it has no floor. What it
+missed is that the argument was measuring the wrong unit: the defect is one action wide, and the raise and
+fold structure around it measures sound.
+
+**The correction this owes decision 31.** Its finding one - `BB vs BTN` 3-betting 22 at 100 percent while
+44 and 33 never 3-bet - is real in the data and is **not** evidence the ranges are wrong. All three pairs
+are played 100 percent at that node; only the call/raise split differs, and for small pairs facing a button
+open those two are near enough equal in value that the solver's split among them is arbitrary. That is
+mixing noise. It reads badly on a chart shown to a student, which is a publication problem, and decision 37
+is where that is answered.
+
+Options: cut-by-action | keep-cutting-by-spot | halt
+Answer: [cut-by-action]
+
+## 33. Whether the chart publishes a cold-call answer
+
+Reversibility: frozen-into-data
+
+**Ruled by Taylor, 2026-09-01: no. Every seat but the big blind is raise-or-fold facing an open, and the
+solve is left exactly as it is.** The rule binds what the chart publishes, not what the solver explores.
+
+**What it removes.** The cold call is the action the source prices worst, and the mechanism is on the
+record: the export's tree branches on every cold call, so flatting is priced against a continuation
+structure that punishes it and the flat collapses. Measured, the seats that would carry a cold-call answer
+flat 0.1, 1.0, 3.1 and 4.6 percent facing a lojack open where a solve of the real game is at 3 to 8, so
+almost nothing is being withheld that the source was willing to say.
+
+**Why the solve is not constrained to match.** Taylor was offered the alternative - patch the local GTOpen
+clone with the mirror of `call_only_seats` so no seat but the big blind may call, then re-solve - and
+declined it. The reason is recorded because it is the better argument: banning the cold call for every seat
+solves a game in which opponents never flat an open, which is not the game this bot trains for, and the
+opening and 3-bet ranges would then be equilibria against villains who do not exist. Leaving the solve
+alone keeps the villains honest and costs only that hero's published ranges are computed against cold-call
+branches priced at the model's bad number.
+
+**The residual, stated rather than buried.** The opening and 3-bet ranges this phase commits are best
+responses to a field that cold-calls at a collapsed frequency. The direction is knowable: villains who
+under-flat make opening and 3-betting look slightly better than they are. The size is not measured here.
+Filed as `PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS`.
+
+Options: hero-side-rule-only | constrain-the-solve-and-re-solve | publish-cold-calls-anyway
+Answer: [hero-side-rule-only]
+
+## 34. What is done about the big blind's tight defence
+
+Reversibility: frozen-into-data
+
+Supersedes decision 24, which accepted the same defect on a weaker argument and routed the exit to phase 16.
+
+**Ruled by Taylor, 2026-09-01: accept it, and accept it deliberately rather than as a residual.** The big
+blind keeps fold, call and 3-bet, its flat stays where the source puts it, and no adjustment is applied.
+
+**The defect, measured.** The big blind defends 25.7, 28.9, 32.8, 36.7 and 48.4 percent against the lojack,
+hijack, cutoff, button and small blind, where rake-free solves are roughly 40 through 65. Fifteen to twenty
+points tight against every opener. Its flat sits at 19.6 to 22.4 percent regardless of who opened, when it
+should widen sharply against a late seat, and that opener-invariance is the fingerprint. The cause is not
+the cold-call branch - at all five of these nodes hero closes the action and `call` is terminal, which
+decision 31 established - but the fit's own measured realization for facing a bet in a single-raised pot,
+**0.405**, taken from raked games where flatting genuinely is worse.
+
+**Why accepting it is right here and not merely cheap.** The bot has no postflop strategy. Phase 06 ships
+what its own contract calls a continuity device that never invests unless the investment cannot lose, and
+forbids the repo from describing it as strategy, so after the flop the bot checks and folds. A chart that
+taught wide big-blind defence would be teaching a student to take marginal hands out of position to flops
+this bot cannot help them play. The tightness error and the missing postflop half point the same way, and
+this is the uncommon case where accepting one defect is better than correcting it alone. It is also the
+cheapest place in the tree to be wrong, marginal defends being near zero either way.
+
+**The cost, bounded rather than asserted.** The EV forgone depends on the realization number in dispute,
+so it is published as a range and not as a figure: at R = 0.65 the over-folding costs 0.10 to 0.70 bb per
+100 occurrences of the spot, and at R = 0.85 it costs 8.76 to 13.04. The band cannot be narrowed without
+measuring realization in this game, which no work in this repo does. The packet prints the band, both ends
+labelled, and never a midpoint.
+
+Options: accept-deliberately | correct-with-a-stated-adjustment | withhold-the-big-blind-spots
+Answer: [accept-deliberately]
+
+## 35. Which raise depths the chart commits
+
+Reversibility: frozen-into-data
+
+**Ruled by Taylor, 2026-09-01: commit first-in, facing-an-open and facing-a-3-bet. Exclude facing-a-4-bet
+and everything beyond it.** This keeps decision 20's exclusion and drops its spot-shaped extension.
+
+**What it costs, measured over the whole tree.** Decision mass by how many raises are already in, from a
+left-to-right walk of all 33,969 nodes: first-in **51.92** percent, facing an open **39.05**, facing a
+3-bet **8.15**, facing a 4-bet **0.78**, facing a 5-bet or jam **0.10**. The walk totals **6.155** preflop
+decisions per hand dealt, matching the 6.1553 this record already carries, which is the check that it
+counts the same thing. So the exclusion costs **0.88 percent** of preflop decisions and the committed set
+covers **99.1**, against the **15.97** decision 31 measured for the six surviving spots.
+
+**Why the 4-bet family and no shallower one.** A four-bet pot is SPR 1.70 after the call. The realization
+fit was measured on solves spanning SPR 3 to 74 and its lowest bucket edge is 2.5, so 1.70 is below every
+observation it has. It extrapolates the trend it learned - suited hands +0.20, gaps -0.23, value hands
+over-realizing convexly in equity - which is right at SPR 20 where implied odds exist and wrong at 1.70
+where there is no money behind to win. It prices JJ at 0.749 of its equity and 76s at **1.133**, and the
+export duly continues 48.7 to 59.8 percent against a standard 28 to 35, calling JJ, TT and 99 at 0 to 12
+percent while calling 76s and JTs at 100. A three-bet pot is SPR 5.97 and a single-raised pot 17.7, both
+inside the fitted range, which is why both measure sound on the raise and fold structure.
+
+**The residual the 3-bet family carries.** A committed facing-a-3-bet spot must price hero's own 4-bet
+option, and that routes through the terminal the fit has no cell for. `THREE-BET-SPOTS-ARE-PRICED-ON-AN-
+UNFITTED-TERMINAL` already carries it. Measured, the 4-bet frequency in those spots comes out at 10.2 to
+11.9 percent against a standard 10 to 13, so the bad terminal is not visibly reaching the output. Accepted
+as a residual with that measurement beside it; it is not a reason to withhold 8.15 percent of decisions.
+
+Options: exclude-from-the-4-bet | exclude-from-the-3-bet | commit-everything
+Answer: [exclude-from-the-4-bet]
+
+## 36. Whether the re-raise size is corrected
+
+Reversibility: frozen-into-data
+
+Raised 2026-09-01 by Taylor, who asked whether the four-bet-facing defect was an artifact of `max_raises: 4`
+truncating the tree before a five-bet.
+
+**It is not, and that was checked before this item was written.** The ladder on the button-versus-big-blind
+line reads open 2.5, 3-bet 7.5, 4-bet 22.5, then fold / call 22.5 / **all-in 100**, and the four-bettor
+then folds or calls the jam. The five-bet exists; it appears as a jam because 22.5 x 3 = 67.5 crosses the
+`allin_threshold` of 0.67 and snaps to a shove, which is correct poker at 100bb. `max_raises` counts the
+open as the first raise, so four covers open, 3-bet, 4-bet and 5-bet. Nothing is truncated.
+
+**What the question did surface.** `raise_mults` is `[3.0]`, so the 4-bet is 7.5 x 3 = **22.5** where a
+standard 4-bet is about 2.2 to 2.4 times the 3-bet, or 17 to 18. We solve a 4-bet roughly a quarter larger
+than anyone plays.
+
+**Ruled by Taylor, 2026-09-01: fix it in the same re-solve. Recorded here as not done, with the reason,
+because the ruling rests on a statement of mine that was wrong.** `raise_mults` is one global list applied
+at every re-raise depth - `mults_of()` in `crates/solver/src/preflop/mod.rs` varies it by seat and never by
+depth - so no value of it gives a standard 3-bet at 7.5 and a standard 4-bet at 17 to 18 together. The
+reachable forms are a two-entry menu offered at **every** re-raise node, which adds a second solved 3-bet
+price of 5.625 and grows the tree, or a patch to the local clone making the multiplier depth-aware. The
+second is the same class of change Taylor declined in decision 33, and this is a smaller reason to take it.
+
+The size is therefore left at 3.0 and filed as `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED`, whose route
+back is a depth-aware multiplier. It reaches only the excluded four-bet family and the 4-bet option inside
+the committed 3-bet family, whose measured frequency decision 35 records as landing inside standard. This
+item stands as a ruling taken on bad information and is put back to Taylor rather than executed.
+
+Options: leave-at-3.0-and-file | two-size-menu-at-every-reraise | patch-for-depth-aware-mults
+Answer: [leave-at-3.0-and-file] (pending Taylor, the ruling above having rested on an error)
+
+## 37. Which check proves a published range is good poker
+
+Reversibility: frozen-into-data
+
+The gap decision 31 identified and named: both gated arms catch a permuted or transposed hand index, which
+are extraction defects, and nothing measures whether a range is right. `GATE-ONE-RELATION-AGAINST-A-
+COMMITTED-EQUITY-TABLE` carries it.
+
+**Ruled by Taylor, 2026-09-01: add it, and exempt the big blind's flat explicitly.**
+
+**The check.** Commit the 169-by-169 preflop all-in equity matrix - GTOpen builds and disk-caches it at
+`cache/preflop_eq169.bin`, 114,248 bytes, deterministic and regenerable - and gate one relation that needs
+no model constant: at a spot where hero closes the action, no class folded above 99 percent may hold
+strictly more equity against the opponent's actual arriving range than any class played above 99 percent.
+It is internal consistency and no realization model can excuse violating it.
+
+**It currently fails, and by how much is published rather than discovered later.** Over the five big-blind
+spots it fires on 46, 45, 41, 41 and 33 classes - 440, 428, 412, 404 and 300 combos - against the lojack,
+hijack, cutoff, button and small blind. Against a button open the chart folds A7o at 49.2 percent equity
+while calling 53s at 36.0.
+
+**The exemption, and why it is narrow.** Decision 34 accepts a tight big blind on purpose, so this relation
+would fail by construction there. It is therefore binding on every committed decision **except** the big
+blind's flat, and the packet states the exemption in words with the failing counts above beside it. What is
+forbidden is the alternative: dropping the check, or loosening it until it admits the artifact it judges. A
+second, weaker reading of the same measurement is published un-gated for a human - that defending the same
+number of combos chosen purely by equity would raise the defended range's average equity by 1.15, 1.16,
+1.15, 1.05 and 0.39 points - because part of that gap is legitimate poker and it must not be read as error.
+
+Options: exempt-the-big-blind-and-record | drop-the-check | bind-it-everywhere
+Answer: [exempt-the-big-blind-and-record]
+
+## 38. Whether the phase ships a chart after all
+
+Reversibility: frozen-into-data
+
+Supersedes decision 31, whose halt was taken on the withholding cascade decision 32 replaces.
+
+**Ruled by Taylor, 2026-09-01: yes. The phase resumes at stage 1 and a chart ships.** The retired
+`six_max_nl25_100bb.json` is still deleted, and the committed set is the 99.1 percent of preflop decisions
+decision 35 names rather than the six spots decision 31 refused.
+
+**What changed, and it is not that anybody re-measured the source more kindly.** Decision 31 halted on
+three findings. Finding one, the pair inversion at `BB vs BTN`, is mixing noise among hands all played 100
+percent, per decision 32. Finding three, that the withholding argument terminates at zero on its own
+thresholds, is correct and is why the argument is replaced rather than re-thresholded. Finding two stands
+entirely and is now decision 34's accepted cost rather than a blocker: the fit is wrong in the
+single-raised pot it was supposed to be right in. Finding four's coverage arithmetic was measured over the
+six spots and does not describe the set this ruling commits.
+
+**What decision 31 got right and this keeps.** No packet may claim the committed set is priced exactly.
+The equity relation it specified is now decision 37 and is gated. And its closing argument - that shipping
+a hand-selection failure in a drill tool is worse than shipping nothing - is exactly why decision 34 is a
+recorded acceptance with a published cost band rather than a caveat.
+
+Options: ship | stay-halted
+Answer: [ship]
+
+## 39. What replaces decision 1's live-player clause
+
+Reversibility: frozen-into-data
+
+Raised 2026-09-01 while transcribing decisions 32 to 38 into the contract, because the coverage decision 35
+claims is unreachable under decision 1 as written and the conflict had to be resolved rather than papered
+over. Supersedes decision 1's second clause. Its first clause, at most one opponent voluntarily invested,
+is kept.
+
+**The conflict.** Decision 1 makes a node eligible only when **at most two players are still live**. An
+opening decision has five or six players live by definition, so the clause excludes four of the five
+opening ranges and every facing-an-open spot except the big blind's. Measured against the export, decision
+1's predicate admits **21** of 33,969 nodes. Decision 35's 99.1 percent was measured over raise depth
+alone and does not survive the predicate; the honest figure under both is far smaller.
+
+**Why the clause was too blunt, measured rather than argued.** The clause exists to keep out pots the source
+misprices, and the mispricing is real: GTOpen's postflop engine is heads-up only, so multiway flop terminals
+are priced by a product approximation the fit never covers. But live players at the node is a proxy for
+multiway *terminals*, and on this build it is a very loose one. Walking all 33,969 nodes to their leaves:
+**58.45 percent of hands end preflop, 41.27 reach a heads-up flop, and 0.28 reach a multiway flop** - so
+multiway is **0.67 percent of every flop seen**. Per candidate node the exposure is smaller still: LJ first
+in 0.278 percent, HJ 0.207, CO 0.116, BTN 0.051, SB 0.000, and every big-blind and three-bet-facing spot
+**exactly 0.000**. The widest exposure of any candidate is CO facing a lojack open at **0.618 percent**.
+
+**Ruled by Taylor, 2026-09-01: replace the live-player count with a measured exposure threshold.** A node is
+eligible when at most one opponent has voluntarily invested **and** the share of its own decision mass
+reaching a multiway flop terminal is **below one percent**, measured by a left-to-right walk from that node
+to its leaves and published per committed spot. The threshold is the ruling; the counts follow from it.
+
+**What it admits.** **143** nodes: 5 first-in, 15 facing an open, 123 facing a three-bet, carrying
+**98.23 percent** of preflop decisions (51.92 + 38.25 + 8.06). Against the 15.97 percent decision 31
+measured for its six spots. The 42 facing-an-open and 422 facing-a-three-bet nodes at depth two or less that
+fail are the ones reached **through** a cold call, where two opponents are already invested and exposure
+runs to 100 percent. Those are correctly refused, and the consequence is worth stating plainly: if a villain
+cold-calls, the bot refuses the resulting spot rather than answering it from a mispriced pot.
+
+**The circularity, stated because it is the weakness of this ruling and not a footnote.** Multiway flops are
+rare in this build *because* the model under-flats, which is the same defect decisions 33 and 34 accept. If
+the flats were correct at 3 to 8 percent, multiway pots would be materially more common and this threshold
+would exclude more. So the exposure figures are a property of **this solve**, not of six-max poker, and they
+are re-measured on any future build rather than carried forward. A build whose flats are repaired must
+re-run this measurement before reusing this rule, and the contract carries that as a criterion. Filed as
+`MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN`.
+
+Options: measured-exposure-threshold | keep-the-live-player-clause | drop-the-multiway-guard
+Answer: [measured-exposure-threshold]
+
+## 40. The selection rule, final: two filters, not three
+
+Reversibility: frozen-into-data
+
+Supersedes decision 39's three-clause form. Raised by both stage-1 independent reviews, which found
+the same defect separately and which the coordinator then reproduced.
+
+**What the reviews found.** Decision 39's contract text says a node is committed when **all three** of
+"at most one opponent voluntarily invested", "at most two raises in" and "multiway exposure under one
+percent" hold, "each tested alone so none is idle", and that this selects 143. It does not. The 143 was
+computed from the last two clauses only. With all three the set is **35** nodes (5 first-in, 15 facing an
+open, 15 facing a three-bet) carrying 93.89 percent. The coordinator dropped the investment clause from
+its own count and then wrote a criterion asserting it.
+
+**The clauses were never independent, which is the part that decides this.** Over the 607 nodes at raise
+depth two or less, **no node fails the exposure clause while passing the investment clause**: 464 fail
+both and 108 fail investment alone. Investment is therefore strictly the stronger test, and exposure is
+inert behind it. There is no reading in which three clauses each bite. The honest choice is 143 on two
+filters or 35 on three.
+
+**Ruled by Taylor, 2026-09-02: two filters. 143 nodes.** "Trust everything but four-bet pots and
+multiway." The investment clause is dropped, not because it was wrong, but because the multiway
+mispricing is what it was a proxy for and exposure measures that directly. Raise depth carries the
+four-bet exclusion; exposure carries the multiway exclusion; nothing else selects.
+
+**The set.** 143 nodes - **5** first-in, **15** facing an open, **123** facing a three-bet - carrying
+**98.23** percent of preflop decisions (51.92 + 38.25 + 8.06). Census: 143 committed, **464**
+`derivation:multiway-exposure-above-threshold`, **33,362** `derivation:beyond-committed-raise-depth`,
+summing to 33,969.
+
+**What the margin actually is, since decision 39 overstated it.** The widest exposure among the committed
+143 is **0.8855** percent and the narrowest refused is **1.0028**, so the threshold has **0.12** points of
+room, not the 0.4 that decision 39's "widest candidate is 0.618 percent" implied. That 0.618 is the
+widest of the depth-one spots only; 53 of the 123 three-bet-facing spots carry non-zero exposure, and
+only the 5 big-blind facing-an-open spots are exactly zero. `MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-
+FLATS-ARE-BROKEN` carries the real margin.
+
+Options: two-filters-143 | three-filters-35 | depth-only-607
+Answer: [two-filters-143]
+
+## 41. What is done about the pair inversions
+
+Reversibility: frozen-into-data
+
+Supersedes decision 32's dismissal of them as mixing noise, which was wrong and which decision 38 rested
+on. Raised by the stage-1 poker review and reproduced by the coordinator.
+
+**The dismissal was checked at one node and does not generalise.** Decision 32's claim - that the pairs
+are all played 100 percent and only the call-raise split differs, so the split is arbitrary - is true at
+`BB vs BTN` and false elsewhere. At `SB vs BTN`, a committed spot: 55 three-bets 100, **44 folds 100, 33
+folds 100**, 22 three-bets 100. At `LJ` first in, where the menu is raise or fold and there is no third
+action to hide in: 55 raises 100, **44 folds 99.4**, 33 raises 100, 22 raises 100.
+
+**And there is no mixing to be noise.** Over the committed spots only **6.93 percent** of reachable cells
+are mixed at all, on a genuine cumulative average, so a 100-versus-0 split across a rank boundary is a
+preference the solver holds rather than a coin it left in the air. Decision 31's finding one stands.
+
+**Ruled by Taylor, 2026-09-02: accept it.** "Fine for the model to be wrong a little on pair inversion."
+It joins decision 34's tight big blind as a defect accepted on purpose rather than one explained away.
+
+**Why accepting is defensible, and what the cost actually is.** At a first-in node folding is worth
+exactly zero, so the solve is asserting that raising 33 and 22 is profitable and raising 44 is not,
+across a strict dominance relation no correct model produces. The EV at stake is therefore near zero by
+the solver's own reckoning - these are hands it prices at the indifference boundary. The cost is
+pedagogical, not monetary: a student drilled on this chart learns "raise 33 and 22, fold 44", which is
+false and which transfers to every hand they play.
+
+**Why it does not need fixing now.** The artifact is derived from the export by a committed script, so
+frequencies inside a committed spot can be smoothed into rank order at derivation time without
+re-solving anything. That is a later `contract-update` with its own decision item, because this
+contract forbids adjusting a published frequency by hand and a smoothing rule is exactly that. Filed as
+`PAIR-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED`. The suspected mechanism, worth one experiment before
+any smoothing rule is written: GTOpen prunes low-regret actions and only periodically revives them, so
+44 may simply be stuck pruned. `PREFLOP_PRUNE=0` and a re-solve would settle it in about 200 seconds.
+
+Options: accept-as-solved | smooth-at-derivation-now | withhold-the-affected-spots
+Answer: [accept-as-solved]
+
+## 42. Whether the equity relation is a gate
+
+Reversibility: frozen-into-data
+
+Supersedes decision 37, which gated it. Both stage-1 reviews rejected that, from different directions,
+and the coordinator then tested three forms of the relation and found none of them gateable.
+
+**What decision 37 gated.** At a spot where hero closes the action, no class folded above 99 percent may
+hold strictly more equity against the opponent's arriving range than any class played above 99 percent.
+
+**Why it cannot be a gate: correct poker fails it, at any tolerance.** Measured over the 93 committed
+spots where hero closes the action, using the opponent's actual arriving range:
+
+- unrestricted, as decision 37 wrote it: fires at **23** spots
+- restricted to like against like, suited versus suited and offsuit versus offsuit: **21**
+- with a five-point equity margin on top: **22**, of which **17** are outside the exempt big-blind spots
+
+The firings are not near-ties that a tolerance removes. They are `A9s` folded while `87s` and `76s` are
+played, at six-point gaps, at the opener-facing-a-three-bet spots. That is a real solver pattern and good
+poker: in a three-bet pot a weak suited ace is dominated by the three-bettor's broadway aces while a
+suited connector keeps its playability. The narrower readings fire on `A9s` folded at 39.6 against `A5s`
+played at 39.0, which is the wheel-ace premium GTOpen's own fit measures and documents.
+
+So all-in equity is not the property that orders preflop hands. A chart that played perfectly would trip
+this relation, which makes it evidence of nothing when it fires.
+
+**Ruled 2026-09-02: publish it, gate nothing on it.** The relation, its counts and its worst cases are
+printed for a human on every committed spot, labelled as a measurement rather than a check, in the same
+way this repo already publishes the group-order ladders. A reader is told in words that firing is not by
+itself a defect.
+
+**What this leaves open, stated rather than closed.** `GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-
+TABLE` is **not** closed by this phase and its status stays `deferred`. Nothing in this repo measures
+whether a published range is good poker. That is the gap that let this phase run a month finding defects
+by human eye, and the honest position is that phase 14 publishes a measurement toward it and does not
+fill it. Any future attempt needs a criterion equity cannot express - domination, or playability at a
+stated stack depth - and that is a research question rather than a checker.
+
+Options: publish-un-gated | gate-like-with-like | gate-with-a-margin | drop-entirely
+Answer: [publish-un-gated]
+
+## 43. Corrections to decisions 32, 35 and 39, taken 2026-09-02
+
+Reversibility: runtime-reversible (a record correction, not a change to what ships)
+
+Filed additively rather than by editing the rulings, per this record's convention. Every figure here was
+measured by an independent review and reproduced by the coordinator.
+
+**Decision 32's verdict table was graded selectively.** Its export figures all reproduce; its verdict
+column does not follow from them.
+- `open or fold`, graded sound: BTN 39.3 sits outside the row's own 42-48 band, and the poker review puts
+  the true standard at 45-52, so the button is 6 to 13 points tight rather than sound. SB 54.3 sits
+  outside its own 44-52 band.
+- `3-bet an open`, graded sound on two figures: the other five measurable cases are all low - BB 6.07 vs
+  LJ against 10-13, 7.90 vs HJ against 11-14, 10.34 vs CO against 12-15, SB 5.34 vs LJ against 7-9.
+- `opener calling a 3-bet`, graded sound at "continues 57.0-63.1, calls 45.2-52.6, four-bets 10.2-11.9":
+  that is a seven-node subset. Over all 15 the true bands are **continue 44.64-63.09, call 26.09-52.61,
+  four-bet 9.74-18.54**. The omitted spot is `SB opens / BB three-bets`, the largest in the family by
+  arrival, which continues 44.64 and four-bets 18.54, failing both quoted standards.
+- Consequence for decision 35: "the four-bet frequency landing inside standard is the evidence the
+  unfitted terminal is not reaching the output" **is not supported**. The largest committed spot in that
+  family is the one outside standard. The exclusion of the four-bet family stands on its own measurement,
+  not on this.
+
+**Decision 35's coverage figure.** Its 99.1 percent is a correct measurement of all 607 nodes at depth two
+or less. The committed set is **98.23** percent. Decision 40 carries the operative number.
+
+**Decision 39's three errors.** Decision 1's predicate admits **51** nodes, not 21 - the 21 was this
+phase's earlier set, which added a since-retired two-percent reach floor. The terminal split is
+**70.89 percent of hands ending preflop, 28.84 reaching a heads-up flop, 0.278 reaching a multiway flop**,
+so multiway is **0.956 percent of every flop seen**, not 0.67; the published 58.45/41.27 counted folds to
+a three-bet as reaching a flop. And "exactly 0.000 for every big-blind and three-bet-facing spot" is
+false, per decision 40.
+
+**Decision 35's facing-a-four-bet band.** Published as 48.7-59.8 continue; measured over the 35 canonical
+nodes it is **43.41-67.80** against a standard 28-35. The defect is worse than published, so the ruling
+strengthens.
+
+## 44. The rules the bot plays by, stated once in one place
+
+Reversibility: frozen-into-data
+
+Taylor's closing ruling of 2026-09-02, recorded as a single statement because it has been given in
+pieces across decisions 33, 34, 35, 40, 41 and 42 and a reader should not have to assemble it.
+
+1. **Trust the source everywhere except four-bet pots and multiway pots.** Raise depth carries the first,
+   measured multiway exposure the second. Nothing else is withheld.
+2. **The bot never cold-calls a raise.** Every seat except the big blind publishes fold and raise only
+   when facing an open. The big blind keeps fold, call and raise: its defence is what decision 34 accepts
+   as tight, and it is not what this rule removes.
+3. **Opponents do cold-call the bot.** The solve is left unconstrained, so the villains in it still flat.
+   The bot's published ranges are therefore best responses to a field that flats, which is the game being
+   trained for, at the cost recorded in `PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS`.
+4. **Two defects are accepted on purpose, with their measurements published**: the big blind defends 15 to
+   20 points too tight (decision 34), and the pair ladder inverts at some spots (decision 41).
+5. **Nothing gates on whether a range is good poker**, because no such check survived testing
+   (decision 42). Two counterfactual arms gate extraction defects only, and the packet says so.
+
+Options: trust-the-source-except-four-bets-and-multiway | trust-the-source-everywhere | withhold-more
+Answer: [trust-the-source-except-four-bets-and-multiway]
+
+## 45. What the chart prints where the solve says pure call
+
+Reversibility: frozen-into-data
+
+Supersedes decision 33's publication rule, which said every seat but the big blind "publishes fold and
+three-bet only" and never said where a flat's weight goes. The stage-1 fresh review found that hole and
+the coordinator then found it is wider than reported.
+
+**The hole.** At 9 of the committed facing-an-open spots the solve puts a hand's entire weight on `call` -
+no fold weight, no raise weight. Decision 33's rule deletes the only action those cells have. Every
+disposal was forbidden by another criterion: printing fold publishes a fold on `AQs` and `AJs`, printing
+raise is adjusting a published frequency by hand, and an all-zero row is the untouched initialisation the
+contract requires be absent at non-zero reach. At `SB` facing a lojack open the affected hands include
+`99`, `88`, `77` and `66`, so printing fold there would publish "fold pocket nines to an open".
+
+**This chart barely mixes, which is why the hole is large rather than marginal.** Over the committed set
+**93.9 percent** of cells with non-zero reach put 99 percent or more on a single action and only **3.6
+percent** are genuinely mixed below 90 percent. **866** cells are a pure call, 10.3 percent of the chart.
+So "the solver was near-indifferent, take the other action" was never available.
+
+**Ruled by Taylor, 2026-09-02: merge. Every cell's call weight is added to its raise weight at every
+committed spot where the bot may not cold-call.** The published action set there is raise or fold, the
+published raise weight is the solve's raise plus its call, and no range is lost. The big blind is
+unaffected and keeps fold, call and raise.
+
+**Why merging rather than folding, measured.** Merging preserves the range exactly: `SB` facing a lojack
+open defends 9.9 percent before and after, all of it as raises. Printing fold would have discarded 0.1 to
+4.6 points of range at each affected spot. The resulting frequencies are sane: all six non-blind spots
+land inside the standard three-bet band, and the four small-blind spots sit over it by 0.1 to 1.0 points.
+The composition is ordinary - from the small blind against a lojack open it gains `AQs AJs ATs AQo KTs
+QTs` and `99 88 77 66`.
+
+**The cost, which is not cosmetic and is recorded rather than waved through.** A merged flat plays
+differently, not just under a different label. Three-betting `66` commits 7.5bb and can face a four-bet,
+where the solve would have seen a cheap flop. The middle pairs are the thin part of this and the packet
+says so. Taylor's ruling accepts it: "it's fine to play a little bit too aggressively preflop." Filed as
+`MERGED-FLATS-PLAY-DIFFERENTLY-NOT-JUST-DIFFERENTLY-LABELLED`.
+
+**Scale.** 165 cells across the 20 affected spots carry call weight that merges into the raise, 73 of them
+pure calls.
+
+Options: merge-into-the-raise | print-fold | refuse-the-spot
+Answer: [merge-into-the-raise]
+
+## 46. The multiway exposure threshold, and why it moves to ten percent
+
+Reversibility: frozen-into-data
+
+Supersedes decision 40's one-percent threshold and the contract's prohibition on raising it. Raised by
+Taylor on 2026-09-02: preflop multiway spots matter and postflop multiway can be handled by heuristics
+later, so a spot should not be refused merely because its flop might go multiway.
+
+**Two things the coordinator got wrong first, both corrected before this was ruled.** Recomputing exposure
+over only the branches the bot can take was pitched as admitting the squeeze spots at the same threshold.
+It does not: the committed set stays at **143** and admits **zero** squeeze spots, because the multiway
+risk at a squeeze node comes from the two opponents behind rather than from hero's own flat. And a
+reported 295-node figure was wrong, having removed the big blind's call as well, which Taylor keeps.
+
+**What the measurement supports.** Over the 42 squeeze nodes - an open, at least one cold call, hero to
+act - exposure over the bot's reachable branches runs: min 3.74, 25th percentile 5.79, median 93.40, max
+99.74 percent. **Twenty** sit under ten percent and the next one is at **93**. That gap is what makes ten
+percent a line rather than an arbitrary number: any threshold from 10 to 25 percent admits the same
+twenty and refuses the twenty-two that already have two or more callers in.
+
+**Ruled by Taylor, 2026-09-02: ten percent, measured over the branches the bot can take.** The rule is
+the threshold plus the reachability, not one without the other.
+
+**The committed set.** **259** nodes - 5 first-in, 35 facing an open, 219 facing a three-bet - carrying
+**99.09** percent of preflop decisions (51.92 + 39.03 + 8.13). Census: 259 committed, **348**
+`derivation:multiway-exposure-above-threshold`, **33,362** `derivation:beyond-committed-raise-depth`,
+summing to 33,969. Of the 35 facing-an-open spots, **15** are big blind and keep the call, **20** merge
+per decision 45.
+
+**What is being accepted, in the terms it was put to Taylor.** At the newly admitted spots roughly one
+hand in ten reaches a flop with three or more players, and those terminals are priced by the product
+approximation rather than the calibrated fit. The other nine in ten are priced inside the fit. The
+decision the bot makes there is raise or fold, and folding is worth exactly zero with no model in it, so
+the mispricing must be large to flip a raise into a fold. That is the whole argument and the packet states
+it in those words.
+
+**The margin is thin and is published rather than implied.** Widest committed exposure **9.86** percent,
+narrowest refused **10.02**. Sixteen hundredths of a point. As with decision 40, this is a property of
+this solve: multiway is rare here because the model under-flats, so a build with repaired flats
+re-measures before reusing this threshold
+(`MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN`).
+
+**Coverage was not the argument and the packet must not present it as one.** All 348 refused nodes
+together carry 0.89 percent of preflop decisions, so the 143-to-259 move is worth under a point of
+coverage. The reason is that a squeeze is a spot a student meets constantly and the chart refused it.
+
+Options: one-percent-143 | ten-percent-259 | no-multiway-filter-607
+Answer: [ten-percent-259]
+
+## 47. What is done about the kicker-ladder inversions
+
+Reversibility: frozen-into-data
+
+Raised by the fresh stage-1 review, which reported 89 kicker inversions against the pair ladder's 42 and
+noted that no ruling covered them. The coordinator then split the family, which changes what was being
+asked.
+
+**The split, measured over the committed set.** 86 kicker inversions, and they are not one thing:
+
+- **43 are the wheel-ace premium and are correct poker.** `LJ` opens `A5s`, `A4s`, `A3s` and `A2s` at 100
+  percent while folding `A6s` and `A7s`. A suited wheel ace makes the nut straight and is less dominated
+  than a middling suited ace, so it genuinely outplays its kicker. GTOpen's own fit does this on purpose:
+  its domination chains cover broadway aces and K/Q kickers with **wheel aces deliberately unchained**, and
+  it publishes a measured wheel premium. These are not defects and must not be recorded as accepted ones.
+- **23 have no poker story and a gap of 50 points or more.** `BB` plays `Q6s` at 100 while `Q7s` sits at 0;
+  `SB` plays `92s` at 100 while `93s` sits at 8; `SB` plays `T3s` at 99.8 while `T4s` sits at 0.2; `HJ`
+  plays `J8s` at 89 while `J9s` sits at 2. There is no reading of poker in which `92s` is always played and
+  `93s` folded.
+- **20 have no story and a gap under 50 points**, which are mixed cells near indifference.
+
+**Ruled by Taylor, 2026-09-02: accept the 23, on the same terms as the pair ladder.** The wheel-ace cases
+need no acceptance because they are not wrong. The near-ties are published with the rest.
+
+**Why acceptance is the same ruling as decision 41's and not a new argument.** It is the same defect in a
+second family: near-zero EV by the solver's own reckoning, a real pedagogical cost because a student
+drilled on this learns "always play `92s`, fold `93s`", and fixable later by a derivation rule without
+re-solving. The `PREFLOP_PRUNE=0` experiment that would show whether these hands are stuck rather than
+preferred covers this family too and has still not been run.
+
+**What the phase owes because of the split.** The report must separate the two, because a count of 86
+overstates the defect by a factor of nearly four and a count of 23 understates the family's size. The
+contract requires the wheel-ace cases be labelled as correct poker where the family is published, so no
+later reader mistakes them for accepted defects, and no packet may cite 86 as the number of things wrong.
+
+Options: accept-the-23 | fix-at-derivation-now | withhold-the-affected-spots
+Answer: [accept-the-23]
+
+## 48. The big blind's squeeze spots are excluded
+
+Reversibility: frozen-into-data
+
+Raised by the fourth stage-1 review, which found that decision 46 admitted ten big-blind spots without
+anyone re-measuring the defect decision 34 accepts.
+
+**What the review found, reproduced by the coordinator.** At the ten committed spots where the big blind
+faces an open with a cold caller already in, it defends **6.67 to 15.01 percent** while closing the action
+for 1.5 into a 6.5 pot - 4.3 to 1, needing about 19 percent equity. At `LJ opens, HJ calls` it folds
+**93.33** percent, calls 3.58 and three-bets 3.09. Every part of that is far too tight. Decision 34's
+published cost band was measured over the five no-caller spots only, so the contract's own prohibition on
+publishing a band over a subset of the family it names was being violated by the committed set.
+
+**And the exposure filter admitted them for a self-fulfilling reason, which is the more important finding.**
+Those spots pass at 3.74 to 8.98 percent exposure **because** the big blind folds 93 percent, so almost no
+mass reaches the three-way flop. Decision 46's filter asks how often a node leads to a multiway pot under
+the model's own strategy, and the model avoids multiway pots because it misprices them. So the filter is
+blindest exactly where the mispricing has already turned a call into a fold. This is a defect in the rule,
+not in its application, and it is recorded as such rather than patched away.
+
+**Ruled by Taylor, 2026-09-02: drop the big blind's squeeze spots.** A node is excluded when hero is the
+big blind, faces an open, and a cold caller is already in. The five no-caller big-blind spots stay.
+
+**The set.** **249** nodes - 5 first-in, 25 facing an open, 219 facing a three-bet - carrying **98.5949**
+percent of preflop decisions (51.9237 + 38.5422 + 8.1290). Census: 249 committed, **348**
+`derivation:multiway-exposure-above-threshold`, **10** `derivation:hero-closes-into-a-multiway-pot`,
+**33,362** `derivation:beyond-committed-raise-depth`, summing to 33,969. Of the 25 facing-an-open spots, 5
+are big blind and 20 merge per decision 45. Exposure margin: widest admitted 9.8642, narrowest refused
+10.0234.
+
+**Cost: 0.49 percent of preflop decisions.** Dropping the big blind wholesale was measured and rejected:
+its 48 committed nodes carry 14.09 percent, and the five no-caller spots alone carry 11.39, so a blanket
+exclusion is a fourteen-point hole in the seat a beginner plays worst.
+
+**A wider rule was available and is recorded as not taken.** "Hero closes the action and hero's call
+creates a multiway flop" excludes 68 nodes rather than 10 - the same ten plus 58 three-bet-facing spots
+where the opener calls into a multiway pot - at 98.5613 percent, so 0.03 points more coverage cost. It is
+the more consistent rule and it is available whenever someone wants it. Taylor ruled the narrow version.
+
+**Two coordinator errors in getting here, both corrected before the ruling.** "Hero's own call would create
+a multiway flop" was offered as picking out exactly these ten; it excludes **99** nodes, because at
+three-bet-facing spots an already-invested opener can also call into a multiway pot. And decision 34's
+"15 to 20 points too tight" was compared by the review against
+`expectations/six_max_nl25_100bb.json`, which shows the big blind **wider** at four of five openers - but
+that file is `GTO Wizard 6-max 100bb NL25 **rake**`, and a rake-free solve should defend wider than a raked
+reference. The direction claim does not hold; the packet must state the reference is raked so a reader can
+reconcile the two numbers.
+
+Options: drop-the-bb-squeeze-spots | drop-every-bb-spot | keep-all-259 | the-wider-closing-rule
+Answer: [drop-the-bb-squeeze-spots]
+
+## 49. Corrected figures for the committed 249, superseding every count taken on an earlier set
+
+Reversibility: runtime-reversible (a record correction; it changes no ruling)
+
+The fourth stage-1 review found that many published counts do not reproduce. It was right, and more often
+than the coordinator first credited. Every figure below is re-derived over the final 249-node set. **Where
+an earlier item states a different number, this item wins.**
+
+| quantity | published | corrected |
+|---|---|---|
+| committed nodes | 259 (5/35/219) | **249 (5/25/219)** |
+| coverage | 99.09% | **98.5949%** |
+| census | 259 + 348 + 33,362 | **249 + 348 + 10 + 33,362** |
+| cells pure at 99%+ | 93.9% | **93.20%** |
+| cells mixed below 90% | 3.6% | **3.85%** |
+| pure-call cells | 866 (10.3%) | **1,179 (6.40%)** |
+| spots where hero closes | 93 | **120** |
+| pair inversions, play-not-fold | 42 | **114** |
+| kicker inversions, total | 86 | **181** |
+| of which wheel-ace (correct poker) | 43 | **87** |
+| of which no story, 50+ point gap | 23 | **29** |
+| of which no story, under 50 points | 20 | **65** |
+
+**What this does and does not change.** No ruling moves. Decisions 41 and 47 accept the ladder inversions
+and they are larger than stated, not different in kind; the wheel-ace exemption still accounts for about
+half. Decision 45's merge is unaffected. Decision 42's conclusion stands - a correct chart still fails the
+equity relation - but its firing counts were taken over the wrong spot set and are withdrawn pending
+re-measurement by the report.
+
+**Two published claims are withdrawn outright.** The "6.93 percent of cells are mixed" figure in decision
+41 and in `NOTHING-MEASURES-HOW-MUCH-THE-SOLVE-MIXES` was taken from a review report and never re-derived;
+it conflicts with decision 45's 3.6 percent, and both are superseded by **3.85** percent here. And
+decision 45's "all six non-blind spots land inside the standard three-bet band" is false against decision
+43's own corrected bands: measured merged defence is HJ vs LJ 6.88, CO vs LJ 7.70, CO vs HJ 8.94, BTN vs LJ
+9.98, BTN vs HJ 10.72, BTN vs CO 11.96, and three of those sit below decision 43's bands. Decision 45
+repeated the selective-grading error decision 43 exists to correct.
+
+**The lesson, recorded because it has now happened four times.** Every one of these errors is a figure
+typed into a document by hand from a measurement taken over a set that later changed. The structural fix
+is already half-applied - the contract states obligations and the generator validates the numbers - and it
+should be finished: no count belongs in a committed document unless a gate command re-derives it. Filed as
+`HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES`.
+
+## 50. The raise-action inversions, which are what actually halted the phase
+
+Reversibility: frozen-into-data
+
+Raised by the fourth stage-1 review. Decision 31's halt reason, in its own words, was that the pair
+inversion "still fires at full severity on the **raise** action, where the phase's play-not-fold relations
+cannot see it." Decisions 41 and 47 accept the inversions visible on play-not-fold. **Nothing has ever
+addressed the raise-action blindness**, and the halt was lifted without it being answered.
+
+**Measured over the committed 249: 27 pair inversions are visible only on the raise action**, invisible to
+every relation and both counterfactual arms. `BB vs HJ` raises `33` at 1.8 percent and `22` at **70.2**;
+`BB vs CO` raises `99` at 0.0 and `88` at **71.8**; `CO` facing a three-bet raises `33` at 0.0 and `22` at
+81.5. In each the two hands are played 100 percent, so play-not-fold reads nothing.
+
+**Ruled 2026-09-02: a fourth relation is measured on the raise weight, published un-gated beside the other
+three.** It gates nothing, for the same reason none of the other three is gated as an order: the split
+between a raise and a call among near-indifferent hands is the solver's considered answer, and this repo
+has already learned that gating an ordering rejects correct play. What it stops is the specific failure
+decision 31 named and decision 32 walked past - a defect that no instrument in the phase can see being
+treated as a defect that is not there.
+
+The chart tells a student to three-bet `22` seven times in ten from the big blind and `33` almost never.
+That is accepted on the same terms as decisions 41 and 47, and it is now visible. Filed as
+`RAISE-ACTION-INVERSIONS-WERE-INVISIBLE-TO-EVERY-RELATION`.
+
+Options: publish-a-fourth-relation | gate-it | leave-it-unmeasured
+Answer: [publish-a-fourth-relation]
+
+## 51. What ships: GTOpen's preflop output as solved, minus the four-bet family
+
+Reversibility: frozen-into-data
+
+**Taylor's ruling, 2026-09-02: the phase ships what GTOpen has to offer preflop.** The four-bet family is
+withheld and a later phase figures it out. The multiway spots the exposure filter refuses are withheld on
+the same terms. Everything else the solve produced is committed as solved, and a hand somebody finds odd
+is not a reason to hold the phase: questioning the solve costs a measurement, and until someone takes one
+the source stands.
+
+This is decision 44's first rule restated as a shipping posture rather than as a selection rule, because
+the question that forced it was not which nodes get committed but how much argument one cell owes before
+it goes out. The answer is an argument with a number in it, or none.
+
+**What forced the restatement.** The fifth stage-1 review came at the contract cold and made two claims
+about the committed ranges. Both were put to Taylor and both were rejected. They are recorded because the
+working was reproduced from the export, and the rejection is the ruling that lets the phase move.
+
+**The first claim, withdrawn.** The review reported the non-blind seats' defence facing an open - 4.32 to
+14.98 percent, the button folding 90 percent to a lojack open - as a defect nobody had listed. Checked on
+the node viewer, the export reads fold 90, call 3, three-bet 7 at `BTN` facing `LJ`, over exactly 25
+classes: AA AKs AQs AJs ATs A5s A4s AKo KK KQs KJs KTs AQo QQ QJs QTs JJ JTs TT 99 88 87s 77 76s 66. That
+is an ordinary button response to an early open, and the review's "standard" bands had no source - the
+same fault the review itself raises against decision 34.
+
+**The second claim, also withdrawn.** Narrowed to the pair ladder at `BTN` facing a `CO` open: `66`
+through `TT` at 100, `55` at 56, `44` and `33` at 0, `22` at 100, all pure three-bets at full reach.
+
+**Taylor's ruling, 2026-09-02.** Once the flats are merged into the raise, the spot is three-bet or fold,
+and the small pairs are near-indifferent bluff candidates in that range. Which one the solve picks is
+free. Not three-betting `33`, `44` and `55` while three-betting `22` is bluff selection and mixing, not a
+hand the solver got wrong, and questioning it without a measurement is questioning the solve on nothing.
+
+**The measurement that was offered and declined.** The review proposed walking the saved solve for the
+per-hand action values GTOpen computes internally (`crates/solver/src/query.rs`) and comparing the value
+gap between `22` and `33` at one spot against the solve's own convergence gap of 0.00016 bb: under it the
+solver cannot tell the hands apart and "defect" over-states the case, over it the label is right. It is a
+walk rather than a re-solve, so it was available. **Ruled: not a blocker, ship with what we have.**
+
+**What this settles.** Nothing in the artifact changes. What it closes is whether decision 47's
+"no poker story" cases owe a value-gap measurement before the chart ships. They do not, and no later stage
+may hold the phase for one. The contract's inversion criterion now says so in one line, and its
+prohibition on calling the family mixing noise is kept: this is deliberate selection among equals, which
+is further from noise, not closer to it.
+
+**The cost, recorded rather than waved through.** If the free-pick reading is right for part of decision
+47's 29, then the packet's defect count over-states what is wrong with the chart, in the opposite
+direction from every earlier correction in this record. The entries stay filed as they are, with the
+value-gap walk as the route back, and a later phase that wants the true count runs it.
+
+Options: ship-as-solved | measure-the-value-gap-first | fix-at-derivation-now
+Answer: [ship-as-solved]
+
+## 52. Three corrections to the contract, taken 2026-09-02
+
+Reversibility: frozen-into-data (one of the three is a code string that lands in committed data)
+
+Raised by the fifth stage-1 review and approved by Taylor the same day. All three were taken in
+`contract-update` mode, which is the only mode that may take them, and none changes which nodes ship.
+
+**The exposure rule now says which branch is removed.** "Measured over the branches the bot can take" has
+four readings and they do not agree. Re-derived from the export: no restriction commits 257 nodes; removing
+hero's call only where it would be a **cold** call, big blind exempt, commits **259** and reproduces the
+published margin of 9.8642 admitted against 10.0234 refused; removing hero's call at every hero node
+commits **361**, with 321 three-bet-facing spots instead of 219. Only the second is the ruled rule, so the
+contract now says so: hero's cold call is removed, his call to a three-bet is not. The
+"threshold and reachability together, neither alone" phrasing is dropped as covered by the new wording;
+measured, the reachability half is worth two spots of the 249.
+
+**The exclusion code is renamed** from `derivation:hero-closes-into-a-multiway-pot` to
+`derivation:big-blind-squeeze-spot`. The old name states the wider rule decision 48 measured at 68 nodes
+and explicitly did not take, while the bucket holds the ten big-blind squeeze spots. A later phase reading
+the bucket by its name would have got the wrong set, which is the one job the closed reason vocabulary has.
+
+**A sentence that contradicted the third clause is corrected.** "An excluded node ... does **not** refuse
+spots reached through a cold call" was true before decision 48 and false after it: the third clause refuses
+exactly those spots when hero is the big blind. It now reads "a cold call in front of hero refuses nothing
+on its own", which is what holds - the ten committed non-blind squeeze spots prove the general form, and
+the big blind's ten are refused for being the big blind's.
+
+Options: take-all-three | take-the-wording-only-and-keep-the-code-name | defer-to-stage-6
+Answer: [take-all-three]

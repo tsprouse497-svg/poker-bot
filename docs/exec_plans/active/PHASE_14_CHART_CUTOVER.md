@@ -17,6 +17,122 @@ before it: phases 11, 12 and 13 changed what the bot is told and left the ranges
 wrong range here becomes the reference every later phase is measured against.
 `verification/loop_policy.yml` has it `auto_advance: false` for that reason.
 
+## Rulings of 2026-09-02, second batch
+
+Decisions 45 and 46, taken after the fresh review and after the coordinator corrected itself twice in the
+course of putting them to Taylor. They supersede parts of 33 and 40 and change the committed set.
+
+**Decision 45, merge.** The bot's flat calls outside the big blind are added to its raise weight rather
+than deleted. Deleting was unimplementable: at 9 committed spots the solve puts a hand's whole weight on
+`call`, and this chart is 93.9 percent pure so near-indifference offered no way out. Merging loses no
+range and lands every non-blind spot inside the standard three-bet band.
+
+**Decision 46, ten percent.** The multiway exposure threshold moves from one percent to ten, measured over
+the branches the bot can take. **259** nodes now, 5 first-in / 35 facing an open / 219 facing a three-bet,
+carrying **99.09** percent of preflop decisions. It admits the 20 single-cold-caller squeeze spots and
+refuses the 22 that already have two or more callers in; there is a real gap in the data between them, 20
+under ten percent and the next at 93.
+
+**Two corrections I owed Taylor mid-conversation, both recorded in decision 46.** I said recomputing
+exposure over reachable branches would admit the squeeze spots at the same threshold; it admits none,
+because the multiway risk there is the two opponents behind rather than hero's flat. And I quoted a
+295-node figure that had removed the big blind's call as well, which Taylor keeps. Both were caught before
+the ruling was taken, but the pattern is the same one the reviews convicted the earlier codification of:
+generalising from one measured node.
+
+**The cap is now a blocker rather than a squeeze.** The contract carries decisions 45 and 46 correctly and
+stands at **304 lines against the 300 cap**, at 109 columns with no width left. Five compression passes got
+it here and the last three each traded clarity for a line or two, which is what
+`PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP` says not to do a third time. The structural fix already
+applied - a contract states obligations, the report carries the measurements, the generator validates them
+- bought about thirty lines and is genuinely better. It is not enough. This needs a ruling from Taylor
+before stage 1 can close: raise the cap, split the contract, or rewrite it at a higher altitude with the
+decision record as the authority for specifics.
+
+**Still open, and not to be invented by an implementer.** Taylor has ruled on the pair-ladder inversions
+and has NOT ruled on the kicker family, which is 23 real cases after the 43 wheel-ace ones are set aside
+as correct poker and the 20 near-ties are discounted. And the `PREFLOP_PRUNE=0` experiment, 200 seconds,
+which would show whether any of these inversions are hands the solver left stuck rather than genuinely
+preferred, has not been run.
+
+## Re-scoped again after review, 2026-09-02
+
+The 2026-09-01 codification below went to two independent stage-1 reviews, mechanical and poker, and did
+not survive. Decisions 40 to 44 are the result and they govern. Read them before anything else here.
+
+**What the reviews broke, and all three were coordinator errors.** The three-clause predicate does not
+select 143; two clauses do, and all three select 35. The clauses were never independent - no node fails
+the exposure clause while passing the investment clause, so investment is strictly stronger and exposure
+inert behind it. The pair-inversion dismissal in decision 32 was checked at one node and is false at two
+others, one of them a raise-or-fold menu with no third action to hide in, and the export is 93 percent
+pure so mixing was never an available explanation. And decision 32's verdict table was graded on the
+passing cases: the three-bet-facing band was a seven-node subset whose omitted member is the family's
+largest by arrival and outside the band on two measures.
+
+**What Taylor ruled on 2026-09-02, and decision 44 states it once.** Trust the source except four-bet and
+multiway pots. Two filters, 143 nodes, 98.23 percent. The bot never cold-calls a raise; opponents do, so
+the solve stays unconstrained. The tight big blind and the pair inversions are both accepted on purpose
+with published costs.
+
+**One recommendation of mine was tested and withdrawn.** I proposed narrowing the equity relation to
+compare like with like so it could stay a gate. Measured, it fires at 21 of 93 spots narrowed and 22 with
+a five-point margin, on `A9s` folded while `87s` and `76s` play - which is correct poker in a three-bet
+pot. No form of it is gateable. Decision 42 publishes it un-gated and leaves
+`GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE` open, so this phase does not close the gap it was
+meant to.
+
+**The contract fits at exactly 300 lines and 109 columns, and how it fits is worth recording.** Three
+passes of word-shaving got it to 303 and stalled, which is what
+`PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP` predicted. What made it fit was structural: a contract states
+obligations, and a measurement pinned in a contract goes stale and forces a rewrite - which is exactly why
+this contract has now been rewritten three times. So the measured figures moved to the report, with a
+criterion requiring the generator to validate every figure the contract names as an obligation. That is a
+better contract, not a compressed one, but it is a convention change that arrived under cap pressure and
+it deserves a ruling rather than a precedent set quietly.
+
+**Owed before `--advance`.** A fresh stage-1 review of decisions 40 to 44 and this rewrite, by an agent
+that reviewed none of the previous round. The two reviews that produced this are spent: they have seen the
+work and are no longer independent of it.
+
+## Unhalted and re-scoped, 2026-09-01 - superseded by the section above
+
+Decision 31 halted the phase on 2026-09-01 and decisions 32 to 39, ruled by Taylor the same day, resume it.
+Read those nine items before anything below; the sections after this one describe states that are history.
+
+**What was ruled.** The selection rule cuts by **action**, not by spot (32), which is what supersedes the
+withholding cascade of decisions 20, 26 and 28 and the halt taken from it. The chart publishes **no
+cold-call answer** outside the big blind, and the solve is deliberately left unconstrained so the villains
+in it still flat (33). The big blind's tight defence is **accepted on purpose** (34), because this bot has
+no postflop strategy and teaching wide big-blind defence would send a student to flops it cannot help them
+play. Facing a four-bet and beyond is **excluded** (35), costing 0.88 percent of decisions. The four-bet
+size is left at 22.5 and filed (36), on a ruling that rested on a coordinator error and is put back to
+Taylor. The equity relation is **gated with the big blind exempt** and its failing counts published (37).
+A chart **ships** (38). Decision 1's live-player clause is replaced by a measured multiway exposure
+threshold (39), because the clause excluded four of the five opening ranges to avoid a defect that reaches
+at most 0.618 percent of any candidate node.
+
+**What the phase now commits.** 143 nodes - 5 first-in, 15 facing an open, 123 facing a three-bet - carrying
+**98.23 percent** of preflop decisions, against the 15.97 percent decision 31 measured for its six spots.
+Of the 15 facing-an-open spots the 5 big-blind ones publish fold/call/three-bet and the other 10 publish
+fold/three-bet only, which is where decision 33 lives in the artifact.
+
+**Done in this task, all inside the `contract-update` scope already approved:** decisions 32 to 39 appended;
+the contract rewritten to the new selection rule at 300 of 300 lines; three backlog entries filed
+(`PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS`, `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED`,
+`MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN`); the loop pointer unhalted at stage 1.
+
+**Owed before `--advance`, and not done here.** The stage-1 independent review, mechanical and poker, by an
+agent that wrote none of this. `AGENTS.md` is unconditional that the writer never reviews its own work, and
+this session was instructed not to spawn subagents, so it is reported as a blocker rather than waived or
+self-certified. The reviewer should start at decision 39, which is the newest reasoning and the one whose
+weakness is recorded in its own backlog entry, and at the contract's census, whose four buckets are the only
+counts here derived by the coordinator rather than by committed code.
+
+**Also owed, and flagged rather than fixed:** the contract sits at 300 of 300 lines and 109 columns, and
+`CONTRACT-LINE-CAP-COUNTS-LINES-AND-MEANS-CONTENT` says that width is how a contract buys room under a cap
+that counts lines. At 100 columns this text is roughly 330 lines. The rewrite did not widen further than the
+one that item was filed against, but it does rely on the same width, and it has no headroom left at all.
+
 ## The restart, 2026-08-30
 
 The phase reached stage 6 and was sent back to stage 1. What follows is why, so a fresh reader does
@@ -162,109 +278,15 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
 
 ## Delegation Plan
 
-### Stage 4 re-cut, 2026-09-01 - the live lane assignment
+### Stage 4 re-cut, 2026-09-01 - superseded, folded away 2026-09-01
 
-This supersedes the lane table below for stage 4 only; the rest of it still describes the phase.
-Stage 4 is a **re-cut**, not fresh authoring. The tests on disk were written against a
-specification that has moved twice: decision 20 cut the committed set from 51 spots to 36 and
-added a third exclusion reason no code implements, and the 2026-09-01 contract amendments changed
-the dominance criterion to the transposition discrimination and added arrival probability beside
-per-cell reach. 29 tests fail and 83 pass against the re-sourced export, all on assertions.
-
-Every lane may write **only** `tests/**`, `verification/mutations.yml`,
-`verification/freeze.lock` and `scripts/run_verify.py`. No lane may touch `src/**`,
-`scripts/convert_preflop_export.py`, the contract, or the decision record - stage 4 authors the
-specification as tests and stage 6 makes them pass. A lane that believes the implementation is
-wrong says so and stops; it does not fix it.
-
-| lane | owns | the re-cut it is responsible for | status |
-|---|---|---|---|
-| R1 | `tests/test_chart_derivation.py`, `tests/test_derived_chart.py` | the 51-to-36 withholding, the third exclusion reason `source-misprices-four-bet-pot` and its census line, the four-bucket census 36/15/29,104/4,814 summing to 33,969, the menu counts, full-reach spots, untrained-cell refusal | dispatched |
-| R2 | `tests/test_chart_conversion.py` | the sizing table per hand class, prices exactly `[2.5, 7.5, 22.5]`, 21 spots carrying an entry and 15 not, the two-directional invariant, and the vacuity label decision 6 requires since 0 of 36 offer two prices | dispatched |
-| R3 | `tests/test_chart_cutover_evidence.py`, `tests/test_derived_chart_report.py`, `tests/test_derived_chart_report_validators.py`, `tests/test_chart_arrival_probability.py` | the re-solve card fields, the determinism proof, the transposition discrimination retaken over the 36, arrival probability per spot, the report census, and decision 24's flat-frequency publication | dispatched |
-| R4 | `verification/mutations.yml`, `scripts/run_verify.py` | a canary per new assertion family, so `check_gate_bite` proves the re-cut bites rather than decorates | coordinator-owned, in progress |
-| R5 | read-only | the stage-4 independent review, mechanical and poker | delegated, after R4 |
-
-**Why R4 is coordinator-owned, recorded before the work rather than after.** Taylor directed it on
-2026-09-01, and `AGENTS.md` is explicit that a statement about the session does not qualify as a
-reason, so here is the reason about the work. A canary is an attack on an assertion, and the attacker
-has to know what all seven test files now assert and which of the three lanes owns each count - R1's
-ledger, R2's ladder, R3's direction-not-counts. A fresh lane would have to re-read every file the three
-lanes just rewrote to find something worth attacking, which is the one piece of context integrating
-them already produced. The edit itself is small and confined to two files. This is the case the
-Coordinator Workflow's clause is for: work whose input is the integration rather than a slice of it.
-
-It does not extend to review. `AGENTS.md` is unconditional there and R5 is delegated to an agent that
-wrote none of this - including none of the canaries, which is why R4 being coordinator-owned makes R5
-more necessary rather than less.
-
-**What a stage-4 canary can and cannot prove, stated because it is easy to overclaim.** `check_gate_bite`
-wants the gate green without a mutation and red with it. The gate is not green at stage 4 and is not
-supposed to be - 30 tests are red by design. So a canary cannot be proven to bite here in the sense
-stage 7 means. What CAN be proven now, and what each new canary below is checked against, is narrower
-and still worth having: applying the mutation must break at least one test that is **currently
-passing**. A canary that changes nothing in the 82 green tests is decorative today and would very
-likely still be decorative at stage 7. Canaries whose target code stage 6 has not written yet cannot be
-authored at all, because a mutation needs a `find` string that occurs exactly once in a file that
-exists; those are listed as stage 6's debt rather than quietly skipped.
-
-**Outcome, 2026-09-01.** All three lanes returned. The suite stands at **30 failed, 82 passed, 4
-skipped, and not one non-assertion error** - every red is an assertion describing what stage 6 must
-satisfy, which is the state stage 4 exists to reach.
-
-Each lane found something the coordinator had wrong, which is the argument for delegating it:
-
-- **R1** found that commit `188e0a9` had carried the 51-spot chart and its sizing table despite saying
-  "the solve, and only the solve". The phase's own test command regenerates them, and the scope check
-  had been run before the suite rather than after. Corrected at `db08304`.
-- **R2** found the small blind's open no longer offers two prices under `add_allin: false`, so a test
-  asserting six open-shoving classes was asserting a tree that no longer exists. It also found that
-  **no node anywhere in the export offers both a jam and a named raise**, so the collapse rule is not
-  merely vacuous over the committed 36 - it never fires at all.
-- **R3** found that decision 24's three example spots are **not in the committed 36**. See the
-  correction recorded below and in `CURRENT_TASK.yml`.
-
-Two conventions came out of the lanes and are adopted for the phase. A vacuous check is labelled with
-a `vacuous()` helper that skips, placed **after** an assertion that the vacuity premise still holds, so
-a build that stops being vacuous stops skipping and starts checking. And a count is owned by exactly
-one file: R3 declined to re-assert the 51/15 ledger that R1 owns, on the grounds that two owners for
-one number is how numbers drift.
-
-**The correction to decision 24, ruled by Taylor 2026-09-01.** The finding that item records was
-measured on `t6/d100/CO` facing a lojack open, which the chart **refuses** - with the hijack folded
-five players are still live, so decision 1's second clause excludes it. The committed spots facing a
-single open are all big blind, and they flat about 20 percent rather than 0.69. Measured over the
-artifact: BB continues 25.70 percent against a lojack open with a 19.63 flat, 28.88 / 20.98 against the
-hijack, 32.78 / 22.44 against the cutoff, 36.65 / 21.09 against the button, 48.39 / 20.30 against the
-small blind. Opening frequencies for context, all sane: LJ 18.74, HJ 21.56, CO 27.17, BTN 39.27, SB
-54.30.
-
-So "the committed spots never flat a raise" is false and is struck. What survives is narrower and still
-real: **the big blind over-folds.** 25.70 percent against an 18.74 percent opening range wants to be
-nearer 40, and 48.39 against a 54.30 percent small-blind open wants to be well past that. Taylor's
-ruling stands unchanged in substance - accept, record, phase 16 is the exit - against the corrected
-finding. The backlog id `COMMITTED-SPOTS-NEVER-FLAT-A-RAISE` is now a misnomer and is renamed at the
-next `contract-update`; the entry's body carries the correction today. This ruling was taken in
-implementation mode and **owes a decision item at the next `contract-update`**.
-
-R3 pinned the publication requirement rather than the three numbers, deliberately, so no test baked the
-error in.
-
-**Sequencing.** R1, R2 and R3 run in parallel; they own disjoint files and their only shared
-input is the committed export, which is now correct and which none of them may write. R4 is held
-deliberately: a canary written against an assertion that is still being reworded pins the wording
-rather than the behaviour, and this lane has filed that mistake once already.
-
-**Why this is delegated rather than coordinator-owned.** The coordinator authored the transcription
-these tests are being re-cut against and ruled on the two open questions with Taylor, so it is the
-wrong agent to judge whether the tests state the specification faithfully. Nothing about this work
-is unsuited to a lane: each slice is a bounded set of files with a written contract criterion
-behind it.
-
-**Review.** Each lane returns its diff and the commands it ran; none of them reviews its own work.
-The stage-4 review is a separate read-only pass by an agent that wrote none of the tests, and it
-owes a poker read as well as a mechanical one, because a test that pins the wrong frequency is a
-poker error wearing a mechanical costume.
+The four-lane stage-4 re-cut against the six-spot set ran and landed at 30 failed / 82 passed / 4 skipped,
+every red an assertion. It is superseded: decisions 32 to 39 replace the six-spot set with 143 nodes, so the
+tests are re-cut again against the new selection rule. Nothing is lost - the lane assignments, the three
+findings the lanes returned against the coordinator, and the two conventions adopted from them (a `vacuous()`
+helper placed after an assertion that the vacuity premise still holds, and one owner per count) are in git
+history at 09c23a1 and earlier and in the stage-04 review notes. The R4 no-delegation exception and the
+argument for it stand as written and are not re-argued.
 
 ### The phase-level lanes, as originally written
 
@@ -488,7 +510,12 @@ poker error wearing a mechanical costume.
 - [ ] S10 Closeout.
 - [ ] S11 Advance. Policy says `auto_advance: false`, so this lane stops for Taylor here.
 
-## Measurements this plan is written against
+## Measurements this plan is written against - SUPERSEDED, retired export
+
+**Every figure in this section describes the pre-decision-14 export**: 4,094,221 bytes, 38,828 action
+nodes, `add_allin: true`, 300 iterations to 0.0062bb. The committed export is 2,555,076 bytes, 33,969
+nodes, `add_allin: false`, target 0.00016 met at iteration 1,900. Read for history, never for work.
+
 
 Taken from the committed files rather than from the roadmap, because the roadmap's own
 mitigations document says its estimates do not reproduce.
@@ -527,119 +554,78 @@ mitigations document says its estimates do not reproduce.
 
 ## Next Agent Bootstrap
 
-Work only in `~/projects/poker-bot-worktrees/phase-14` on `phase/14-chart-cutover`.
-Never work in `~/projects/poker-bot` or the main worktree.
+**This section is the single source for what is true now.** The decision record is 47 items with 64
+supersession notices and four restarts have begun with someone reconstructing the rules from it. Read
+this, then the contract, then only the decision items named below.
 
-Ask the driver and do only what it names, then `--advance`:
+Work only in `~/projects/poker-bot-worktrees/phase-14` on `phase/14-chart-cutover`. Never in
+`~/projects/poker-bot`. Ask the driver and do only what it names, then `--advance`:
 
     uv run python scripts/loop_stage.py --phase 14 [--advance]
 
-**Current state, 2026-08-31: the lane is at the stage-3 human gate in `contract-update` mode, halted
-on decision 22 and on nothing else.** Phase 14 is `active` in `phase_status.yml`. Decisions 20 and 21 are ruled:
-the phase solves with `realization: calibrated`, withholds the 15 four-bet-facing spots and commits
-**36** of the 51 the predicate selects, and the corpus measurement is now **phase 17**, declared
-`future` at `docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md`. Read, in this order: decisions 20 and
-21, then rounds 7, 10, 11, 13, 14 and 16 of
-`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md`. Rounds 3 to 5 and
-decisions 17 and 18 are superseded snapshots - read them for diagnosis, never for work.
+### The rule set, as of 2026-09-02
 
-**Do not do any of these.** Do not touch, fork, branch or build anything in `~/projects/gtopen`: it
-is a read-only reference clone of a third party's repo at `4aee435`, with no licence and no push
-access, and no work is owed there by anybody. Do not refit or patch GTOpen's realization table
-(decision 17, superseded), do not restore the fork (decision 18, withdrawn and deleted), and do not
-change solver vendor. Do not revert a ruled constant to green the gate. Do not commit anything under
-`data/artifacts/`: the artifact is writable at stage 6 and the frozen tests that pin the superseded
-86-spot build migrate at stage 4 first.
+1. **Source.** GTOpen's committed export, `add_allin: false`, `realization: calibrated`, 33,969 nodes.
+   Not re-solved. `static` turns the big blind into a calling station and `raw` was never run; there is no
+   fourth setting (decisions 19, 20).
+2. **Trust it everywhere except four-bet pots and multiway pots.** A four-bet pot is SPR 1.70, below every
+   observation the flop-pricing fit has; multiway terminals use a product approximation the fit never
+   covered (decisions 35, 46).
+3. **Selection is three clauses.** At most two raises already in; multiway exposure under **ten percent**
+   over the branches the bot can take (46); and not a big-blind squeeze spot (48). **249 nodes**: 5
+   first-in, 25 facing an open, 219 facing a three-bet, **98.5949 percent** of preflop decisions. Census
+   249 + 348 + 10 + 33,362 = 33,969. Do **not** reinstate decision 1's opponent clause (40).
+4. **The bot never cold-calls; opponents do.** The solve is deliberately left unconstrained, so villains
+   still flat (decision 33). Every seat but the big blind is raise-or-fold facing an open.
+5. **The bot's flats are merged into its raises, not deleted** (decision 45). At the 20 non-big-blind
+   facing-an-open spots the published raise weight is the solve's raise plus its call. The big blind keeps
+   fold, call and raise. Deleting was unimplementable: the solve puts some hands' whole weight on calling
+   and this chart is 93.9 percent pure.
+6. **Defects accepted on purpose, each with a published cost.** The big blind defends too tight (34). The
+   pair ladder inverts (41), the kicker ladder inverts (47) - its wheel-ace cases being **correct poker and
+   not defects** - and 27 pair inversions sit on the raise action where play-not-fold is blind, now
+   measured by a fourth relation (50). Merged flats play differently from flats (45). **Decision 49 carries
+   every corrected count; earlier items state figures taken over sets that have since moved.**
+7. **Nothing gates on whether a range is good poker** (42). Three relations and two counterfactual arms are
+   measured; the arms catch extraction defects only. `GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE`
+   stays open and this phase does not close it.
+8. **Also load-bearing and not superseded**, because the contract's criteria implement them and no summary
+   named them before: **4** blind structure, **5** arriving reach, **6** the two-price schema and the
+   un-gated expectations comparison, **8** the closed `namespace:reason` vocabulary, **10** the one-point
+   tolerance and the pinned relation definition, **14** `add_allin: false`.
 
-**What the gate is red on, so nobody mistakes an inherited red for their own.** It is red by design
-and stays red until stage 6. `RULED_CONFIG["add_allin"]` is `False` while the committed export was
-built with `True`, so `config_errors` refuses to load it and every command that reads the chart
-fails. That is one cause and it is expected; reverting the constant to green the gate would erase
-the correction decision 14 established. Four frozen assertions pin the superseded model by name -
-`tests/test_solver_export.py` at the config dict and at the card's `model` string,
-`tests/test_solver_expectations.py`, and `test_the_source_card_still_names_the_calibrated_realization_model`
-in `tests/test_chart_cutover_evidence.py` - and they cannot be repaired here, because `tests/**` is
-frozen and its migration is stage 4's by the contract's own regression expectation. Twelve backlog
-entries still fail `run_full_quality_gate`'s status and phase constants, which is MAINT-29's
-(`BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS`), and `unresolved_blockers`
-under-reports this note (`RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE`), also MAINT-29's.
+### Open, and not to be invented
 
-**What comes next.** Stage 2's re-cut of the decision record against decisions 20 and 21 is done and
-the lane is advanced to stage 3, where it stops for Taylor's answer on decision 22. Stage 4 is
-the real cost: re-cutting and re-freezing the tests that pin 86 spots, the calibrated model by name,
-the 169-class grid and the export's checksums. Stage 6 rebuilds and commits the artifact, and owes
-two criteria the contract added that it must not skip - hero's four-betting range at each committed
-three-bet spot, printed by class with reach and read by a human before the freeze, and the statement
-that the group dominance gate is a regression detector, since the build being committed fails it at
-decision 10's one-point tolerance while the rejected build passes and a chart that folds nothing
-scores perfectly. The build machinery is proven and re-runs in about seven minutes end to end:
-start the server with `PREFLOP_MAX_ARENA_MB=2600 ./target/release/gto-server`, then
-`extract_gtopen_preflop.py --save-name six-max-100bb-rakefree`, then the same script
-`--determinism-only` against a restarted server, then `convert_preflop_export.py`, then
-`generate_derived_chart_report.py`. Two traps in that sequence: the extraction overwrites
-`~/projects/gtopen/saves/preflop/six-max-100bb-rakefree.gtop`, whose sha256 the committed source card
-pins, so back it up first; and the 169-class index is `hi*13+lo` for suited, which GTOpen's own
-AGENTS.md documents transposed.
+- **The `PREFLOP_PRUNE=0` experiment was run on 2026-09-02 and came back negative.** Re-solved at 1,900
+  iterations to a better gap than the committed solve (0.000149 against 0.000156); every inversion
+  reproduced identically, `44` at 0.6 percent from the lojack and the rest unmoved. Pruning is not the
+  cause, so there is nothing stuck to free and the acceptances stand on a measured property of the source.
+- **The stage-1 review of the 2026-09-02 rewrite is owed**, by an agent that reviewed none of the three
+  previous rounds. Three rounds have run; every one found coordinator errors in the write-up rather than in
+  the analysis, so this is not a formality.
 
-Do not reopen the twenty-one answered rulings. **Decision 22 is the only open one**, and it does not
-reopen decision 10's tolerance - one point, adjacent ranks, is Taylor's and stays. It asks which
-relations that tolerance gates, because the suited-row ladder has been measured twice preferring a
-transposed hand index and the committed build fails it by 23 points while the rejected build passes.
-Do not pick a default for him. If a further item needs a ruling, file it the same way, with an empty
-`Answer: []`, which is what puts it on `scripts/review_queue.py`.
+### Do not
 
-`check_repo_consistency` was red from stage 1 until stage 4, saying phase 14 declares
-`pytest_derived_chart` and `generate_derived_chart_report` and neither is registered in
-`scripts/run_verify.py`. Stage 4 registered both, which is where registration belongs: the same
-check demands a registered `pytest_*` command name a real test file holding at least one test, so
-it cannot land before the tests do.
+- Do not touch, fork, branch or build anything in `~/projects/gtopen`. It is a read-only reference clone at
+  `4aee435` with no licence and no push access, and decisions 33 and 36 both declined to patch it.
+- Do not revert a ruled constant to green the gate. Do not commit under `data/artifacts/`: the artifact is
+  writable at stage 6, and the frozen tests migrate at stage 4 first.
+- Do not adjust a published frequency by hand. Do not raise the exposure threshold again.
 
-**Everything below is red on purpose until stage 6.** The phase's own three test files are red
-because the modules they import do not exist; the migrated tests of completed phases are red
-because the artifact has not been rebuilt; eight canaries in `verification/mutations.yml` name
-`find` strings the builder has not written yet, so `test_every_mutation_applies_exactly_once_to_its_file`
-is red too. None of that is a defect to repair. What would be a defect is a red from a broken test
-file - a syntax error, a typo, a fixture that raises - and stage 4's own check cannot see one,
-because it accepts a `ModuleNotFoundError` as a legitimate red. `LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS`
-is that gap, and phase 10 paid two separate repair tasks to it, which is why every lane at this
-stage ran `ruff --no-cache` and read its own pytest output rather than trusting the driver.
+### The gate is red by design until stage 6
 
-Read before doing anything: this plan, then `docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md`
-and `reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md`, where the config
-this phase converts was ruled; then `docs/V2_RULING_MITIGATIONS.md` sections 2 and 3, which name
-what this phase owes; then `scripts/convert_preflop_export.py`, which already does this
-conversion from a different source and whose docstring states the three transformations that
-lose information on purpose.
+`tests/**` is frozen against the superseded six-spot and 143-node specifications, so the phase's own
+commands fail on assertions. That is expected and is stage 4's to re-cut. Reverting a ruled constant to
+clear it erases the correction that produced it. Separately, twelve backlog entries fail
+`run_full_quality_gate`'s status and phase constants, which is MAINT-29's, not this lane's
+(`BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS`).
 
-Six things that will bite if they are not carried forward.
+## What stage 4 froze as a specification for stage 6 - SUPERSEDED, retired export and retired rule
 
-1. The committed export has no limps. Any plan quoting 1,691 spots or 12 MB is quoting the
-   superseded limps-included estimate.
-2. The export cannot be committed whole and should not be - and as of 2026-08-24 the reason is
-   neither the byte cap nor convergence but the multiway pricing. The selection rule is the phase,
-   and as of 2026-08-25 it is the history clause **conjoined with** "at most two players are still
-   live" - the subtree statement the 110 was missing, not a replacement for the history one. Either
-   clause alone is wrong: 110 and 5,472. The byte cap no longer binds at 86 spots and any plan that
-   reasons from it is reasoning from a retired premise.
-3. The retired chart is deleted rather than left to a duplicate-key collision. 17 of its 36 keys
-   do not collide, and every one of those is a three-bet spot or a small-blind open.
-4. The closing measurement must state that price is uncontrolled, and now the realization model
-   too - two of the three candidate explanations survive the cutover. It must also report the
-   retained sample and the refusal rate beside the agreement rate, because an agreement rate means
-   different things on 40 percent of a sample and on 95.
-5. `PREFLOP_ACTIONS` in the artifact schema is `fold, check, call, raise` and the export's action
-   kinds are `fold, call, raise, jam`. The jam has no home, so hero's raise offers collapse the
-   way the existing converter already collapses them, and the sizes go to the sizing table.
-   Decision 6 settled where the price comes from: a shove is a raise **to hero's whole stack**,
-   and `build_sizings` gains an entry for every jam-only spot the filter keeps. Its 4,257 and 313
-   counts are pre-supersession; over the 86 it is 15 jam-only spots and 21 offering both, against
-   313 and 60.6 percent when the ruling was made. The multi-size table survives on that narrower
-   ground, restated in decision 6, and 50 of the 86 offer hero no raise at all.
-6. `docs/CORPUS_COMPARISON_LIMITS.md` carries a sentence saying spot keys hold no size, which
-   phase 12 made false. It is out of this stage's scope and is filed as
-   `CORPUS-LIMITS-DOC-STILL-SAYS-KEYS-CARRY-NO-SIZE`.
+**Also pre-decision-14.** It carries `REACH_FLOOR_BP = 200`, an 86-spot selection, 5,626 committed nodes
+and a `DERIVATION_BELOW_REACH_FLOOR` code. There is no reach floor now, the committed set is 249, and the
+exclusion codes are the four decision 48 names. Read for history, never for work.
 
-## What stage 4 froze as a specification for stage 6
 
 Tests authored before an implementation are a specification, and so are the canaries. Both were
 written against names the builder has to produce, on the phase 11, 12 and 13 precedent: a canary

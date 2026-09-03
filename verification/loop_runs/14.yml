@@ -1,10 +1,6 @@
 auto_advance: false
-halt_reason: 'Taylor ruled 2026-09-01: no chart ships. The pair-inversion criterion
-  that took the committed set from 51 spots to 6 still fires at full severity on three
-  of the six survivors, on the raise action, where the phase''s play-not-fold relations
-  cannot see it. Decision 31 carries the ruling and the evidence.'
-loop: halted
+loop: running
 phase_id: '14'
 schema_version: 1
 stage: 1
-stage_base: 09c23a186ba07b1853ab7475975e0964a00a1812
+stage_base: 57284813c0797f699b35a9c5850f74ace2c16116
