@@ -3543,7 +3543,8 @@ Answer: [publish-un-gated]
 
 ## 43. Corrections to decisions 32, 35 and 39, taken 2026-09-02
 
-Reversibility: runtime-reversible (a record correction, not a change to what ships)
+Reversibility: runtime-reversible
+Why that class: a record correction, not a change to what ships.
 
 Filed additively rather than by editing the rulings, per this record's convention. Every figure here was
 measured by an independent review and reproduced by the coordinator.
@@ -3786,7 +3787,8 @@ Answer: [drop-the-bb-squeeze-spots]
 
 ## 49. Corrected figures for the committed 249, superseding every count taken on an earlier set
 
-Reversibility: runtime-reversible (a record correction; it changes no ruling)
+Reversibility: runtime-reversible
+Why that class: a record correction; it changes no ruling.
 
 The fourth stage-1 review found that many published counts do not reproduce. It was right, and more often
 than the coordinator first credited. Every figure below is re-derived over the final 249-node set. **Where
@@ -3910,7 +3912,8 @@ Answer: [ship-as-solved]
 
 ## 52. Three corrections to the contract, taken 2026-09-02
 
-Reversibility: frozen-into-data (one of the three is a code string that lands in committed data)
+Reversibility: frozen-into-data
+Why that class: one of the three is a code string that lands in committed data.
 
 Raised by the fifth stage-1 review and approved by Taylor the same day. All three were taken in
 `contract-update` mode, which is the only mode that may take them, and none changes which nodes ship.
