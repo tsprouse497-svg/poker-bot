@@ -322,21 +322,31 @@ def test_the_big_blind_defence_and_flat_are_published_with_the_band_at_both_ends
 ) -> None:
     """The defect this phase accepts on purpose, published where it is signed off.
 
-    **The defect is the flat, not the level.** The big blind's flat barely moves with who opened -
-    a 2.81-point spread across openers whose ranges span far more than that - and the cause is the
-    fit's own realization number for facing a bet in a single-raised pot, taken from raked games
-    where flatting genuinely is worse, rather than the cold-call branch, since hero closes the
-    action at all five of these nodes. The **level** runs the other way from the name it used to
-    carry: measured against the raked reference the chart defends wider at four of the five
-    openers and narrower only against the button, so a section headed "the big blind over-folds"
-    would print "wider" four times underneath itself. That direction is asserted below.
+    **The accepted defect is the over-folding, and it is what the band prices.** Decision 34 ruled
+    it in those words and is unamended: the big blind defends too tight against every opener, and
+    the flat's near-invariance to who opened - a 2.81-point spread across openers whose own ranges
+    span 18.74 to 54.30 - is the fingerprint it named, not a separate defect and not what the cost
+    below is measured on. The cause is the fit's own realization number for facing a bet in a
+    single-raised pot, taken from raked games where flatting genuinely is worse, rather than the
+    cold-call branch, since hero closes the action at all five of these nodes.
 
-    **The reference is raked and the report has to say so.**
-    `expectations/six_max_nl25_100bb.json` is GTO Wizard 6-max 100bb NL25 rake, and a rake-free
-    solve should defend wider than a raked reference, so a chart reading wider is expected rather
-    than contradictory. Decision 48 records the review that compared the two without that and got
-    the direction claim wrong, so each row carries its own wider/narrower verdict and the verdict
-    is recomputed here from the row's own columns.
+    **Two things are printed here and each names its own reference, because they read opposite
+    ways.** `expectations/six_max_nl25_100bb.json` is GTO Wizard 6-max 100bb NL25 **with rake**,
+    and the chart defends wider than it at four of the five openers, narrower only against the
+    button. That direction is asserted below and is expected rather than contradictory - a
+    rake-free solve should defend wider than a raked reference. It is therefore the floor a
+    rake-free solve has to clear and never evidence the level is sound; the repo commits no
+    rake-free reference to read the level against at all
+    (`NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE`). Decision 48 records the
+    review that compared the two without saying which reference it meant and got the direction
+    claim wrong, so each row carries its own wider/narrower verdict, recomputed here from the
+    row's own columns, and the section has to name the reference each verdict is against.
+
+    **Both backlog entries are cited, so neither reading can be followed alone.** The level is
+    `COMMITTED-SPOTS-NEVER-FLAT-A-RAISE`, which the contract renames onto the over-folding and
+    which carries the 14-to-21-point figure; the flat is
+    `BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT`. A reader given only the second never reaches the
+    first.
 
     The cost is a band because it turns on a realization number nothing in this repo measures, so
     both ends are printed and a midpoint is forbidden - a single figure would be a measurement
@@ -376,8 +386,9 @@ def test_the_big_blind_defence_and_flat_are_published_with_the_band_at_both_ends
     wider = sorted(seat for seat, row in rows.items() if row[3] == "wider")
     assert wider == ["CO", "HJ", "LJ", "SB"], (
         "the chart's defence against the raked reference no longer reads wider at four of the five"
-        f" openers and narrower only against the button, but at {wider}; the accepted defect is"
-        " named for the flat's near-invariance and this is the row that says so"
+        f" openers and narrower only against the button, but at {wider}; this row says which"
+        " reference the verdict is against and is not a reading on the accepted defect, which is"
+        " the over-folding and is graded against a rake-free level the repo does not commit"
     )
 
     assert set(bands) == set(report.EV_BAND), f"the EV forgone is published at {sorted(bands)}"
@@ -389,7 +400,19 @@ def test_the_big_blind_defence_and_flat_are_published_with_the_band_at_both_ends
     assert re.search(r"rake-free[^.]*wider|wider[^.]*rake-free", body), (
         "the section does not say a rake-free solve should defend wider than a raked reference"
     )
+    assert "six_max_nl25_100bb" in body, (
+        "the section publishes wider/narrower verdicts without naming the reference file they are"
+        " against, which is what lets 'wider than the reference' be read as 'does not over-fold'"
+    )
+    assert re.search(r"over-fold", body), (
+        "the section does not name the over-folding as what the band prices, so decision 34's cost"
+        " travels to the packet attached to whatever defect the heading happens to name"
+    )
     assert "BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT" in body
+    assert "COMMITTED-SPOTS-NEVER-FLAT-A-RAISE" in body, (
+        "the flat entry is cited without the level entry the band actually prices, so a reader"
+        " following the section's one citation never reaches the over-folding measurement"
+    )
 
 
 def test_every_published_band_is_its_familys_true_extremes(report_text, artifact) -> None:

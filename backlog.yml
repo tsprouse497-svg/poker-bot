@@ -4040,7 +4040,7 @@ items:
       never flat a raise" is false: the committed spots facing a single open are all big blind and they
       flat about 20 percent.
       What is true, measured over the artifact's own 36 and combo-and-reach weighted, is narrower and
-      still worth an id: THE BIG BLIND OVER-FOLDS. It continues 25.70 percent against a lojack open with
+      still worth an id: the big blind over-folds. It continues 25.70 percent against a lojack open with
       a 19.63 flat, 28.88 / 20.98 against the hijack, 32.78 / 22.44 against the cutoff, 36.65 / 21.09
       against the button, and 48.39 / 20.30 against the small blind. The opening ranges those defend
       against are sane - LJ 18.74 percent, HJ 21.56, CO 27.17, BTN 39.27, SB 54.30 - so the defence is
@@ -4081,6 +4081,24 @@ items:
       it. `BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT` is that defect and is the entry the packet should
       cite. What would settle the name is `REFERENCE-RANGES-HAVE-NO-CITED-SOURCE`: with a rake-free
       reference committed, "over-folds" is either measurable or it is withdrawn.
+
+      EXTENDED AGAIN 2026-09-03, same day, after the stage-4 confirmation review of the poker read the
+      contract edit the extension above produced. The contract had been reworded to name the flat's
+      near-invariance as the accepted defect while keeping decision 34's EV band beside it, and that does
+      not follow. The band is decision 34's cost of the over-folding in its own words, decision 34 is
+      unamended, and the band's shape confirms it: a near-zero floor at R = 0.65 climbing to 8.76-13.04 at
+      R = 0.85 is a one-sided fold-too-much cost, since folding equity you cannot realize costs nothing and
+      folding equity you can costs a lot. A flat that ignores the opener is a two-sided error - too wide
+      against the lojack, too narrow against the button and small blind - and a two-sided error does not
+      collapse to 0.10 bb at low realization; it is worst there. Converted to the five spots' 70.12 percent
+      of hands dealt, the mis-attributed band is 6.14 to 9.14 bb per 100 hands at R = 0.85, a winrate.
+      The wider-than-the-reference measurement in the extension above is correct and is NOT evidence about
+      the level, because the reference is raked and beating a raked reference is the floor for a rake-free
+      solve. The contract was reverted on 2026-09-03 to decision 34's ruled language, with the flat named
+      as the fingerprint decision 34 already called it, and the report now has to name which reference each
+      comparison is read against and cite this entry beside
+      BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT. What would settle the name is filed as
+      NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE.
   - id: FOUR-BET-ROWS-WERE-CERTIFIED-BY-GROUP-AND-FAIL-CELL-BY-CELL
     status: deferred
     phase: contract-update
@@ -4387,6 +4405,11 @@ items:
       so the comparison is reproducible and the next phase does not re-argue from memory. It is not done
       here because sourcing published solver ranges is external work this phase has no budget for, and
       because a wrong reference file committed as data would be worse than a stated absence.
+      EXTENDED 2026-09-03: the one reference this repo does commit,
+      `expectations/six_max_nl25_100bb.json`, is a RAKED game and carries no flat-versus-three-bet split,
+      so it cannot grade the phase's own headline accepted defect in either direction. Filed separately as
+      NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE, which is the narrower and more urgent
+      half of this entry.
 
   - id: MERGED-FLATS-PLAY-DIFFERENTLY-NOT-JUST-DIFFERENTLY-LABELLED
     status: deferred
@@ -4513,6 +4536,32 @@ items:
       worth recording: any chart with a three-action menu can hide a rank inversion inside the continue
       split, so a relation measured only on play-not-fold is structurally blind at every node where both
       hands are played.
+
+      EXTENDED 2026-09-03 by phase 14's stage-4 confirmation review of the poker, on the fourth relation's
+      SCOPE rather than on the defect. Decision 55 reads the relation on the merged raise weight, count 41
+      with 25 invisible to play-not-fold. At the twenty spots where a flat was merged into the raise, the
+      only action kinds present are fold, call and raise, so the merged raise weight equals play-not-fold
+      exactly: every cell at all twenty checked, 0 differing, maximum difference 1.4e-14. Over those spots
+      relation four IS relation one, by definition rather than by coincidence. Nine of the 41 sit there and
+      all nine are therefore already among the 114 pair-ladder inversions the phase publishes - including
+      the case decision 55 names as the merge's gain, `CO/HJ:raise@2.5` publishing 66 at 66.23 against 77
+      at 49.21, which was invisible to relation four before the merge and never invisible to relation one.
+      The merge moved a known case into a second column rather than finding a new one.
+      Decision 55 is still right that the merged weight is what the bot plays: the three inversions it
+      removes read 100.00 against 100.00 after the merge and are inversions the bot never commits. The cost
+      is to the count a human reads. "41 accepted inversions on the raise action" reads as 41 things wrong
+      with how often the chart raises; 25 are genuinely only visible there, 16 are also pair-ladder cases
+      and 9 of those 16 are structurally guaranteed duplicates. The 25 is published beside the 41 and is
+      the honest number. What nothing publishes is that 20 of the 249 spots are a partition on which the
+      relation has no independent content, which belongs as one line in the relation's own scope note.
+      Also measured there and worth carrying: 6 of the 41 sit at spots that round to zero arrival in parts
+      per billion, combined arrival 1.4e-12 percent of decisions, and two of those carry 59 and 47 point
+      gaps - the biggest-looking entries in the tail, at four-way and five-way nodes a player is never
+      dealt. A further 6 sit within one point of the one-point tolerance. The 41 are broadly the right 41
+      and the acceptance is sound as an EV matter - exposure weighted by how often the bot is dealt the
+      under-raised better pair at an inverted spot is 0.2852 percent of preflop decisions, 0.1530 percent
+      restricted to inversions of 50 points or more - but a reader prices a count by its worst entries, so
+      the six that never occur have to be said.
   - id: RANK-ARM-RESTRICTION-RESTED-ON-A-SPLICED-FIGURE
     status: done
     phase: "14"
@@ -4557,7 +4606,7 @@ items:
       `tests/**/*.py` at 700 lines. Measured in the phase-14 worktree that day: seven files sit at
       exactly 700 - `test_table_state.py`, `test_sample_comparison.py`, `test_preflop_artifacts.py`,
       `test_full_table_preflop.py`, `test_engine_fidelity.py`, `test_derived_chart_report_validators.py`
-      and `test_chart_derivation.py` - and two more at 699. The check passes, so this is not a finding
+      and `test_chart_derivation.py` - and two more at 699. Later the same day the pin fix for the retired chart put `test_spot_vocabulary_downstream.py` at exactly 700 as well, an eighth, after its own prose was trimmed twice to fit. The check passes, so this is not a finding
       against any stage; it is the shape the tree has settled into and what that shape costs.
       What it costs is that every future correction to those files starts with a split or with deleting
       prose. That was paid three times inside stage 4 alone: a missing positive control lands in the
@@ -4703,3 +4752,62 @@ items:
       figure, and the mass concentration beside the arrival grain. Not done at stage 4 because both are new
       report figures after the freeze. What would change the answer is the four-bet family returning, which
       is most of the big blind's 1.828 and all of every other seat's raise-depth share.
+
+  - id: NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE
+    status: deferred
+    phase: "14"
+    title: The accepted defect is a level, and the only committed reference is a raked game the chart is meant to beat
+    reason: >-
+      Filed 2026-09-03 by phase 14's stage-4 confirmation review of the poker, and it is the measurement
+      that would settle a name this phase has now changed twice. Decision 34 accepts the big blind's
+      over-folding and prices it at 0.10 to 0.70 bb per 100 occurrences at R = 0.65 and 8.76 to 13.04 at
+      R = 0.85. The only reference the repo commits is `expectations/six_max_nl25_100bb.json`, GTO Wizard
+      6-max 100bb NL25 WITH RAKE. Against it the chart defends wider at four of the five openers - SB 48.39
+      against 42.88, CO 32.78 against 31.48, HJ 28.88 against 26.20, LJ 25.70 against 22.63 - and narrower
+      only against the button, 36.65 against 39.43.
+      That comparison cannot grade the level in either direction. A rake-free solve should defend wider
+      than a raked reference, so reading wider is the floor a rake-free chart has to clear, not evidence
+      the level is sound; and reading narrower against one opener is not evidence it is broken either. The
+      only rake-free figure the repo has is decision 34's own uncited "roughly 40 through 65", which puts
+      the chart 14 to 21 points tight at all five openers and is the number the accepted defect actually
+      rests on.
+      This is narrower than REFERENCE-RANGES-HAVE-NO-CITED-SOURCE, which is about the verdict bands used
+      to grade the export generally. This one is about the phase's own headline accepted defect: the
+      quantity the packet prices is the one quantity nothing outside the repo checks. The reference file
+      also carries no flat-versus-three-bet split, so the flat's near-invariance is not externally
+      checkable either; both halves of the big blind's story rest on figures asserted from memory.
+      The fix is one committed rake-free 6-max 100bb big-blind defence reference with a citation, diffed
+      by the report per opener, at which point "over-folds" is measured or withdrawn. Not done here because
+      sourcing it is external work this phase has no budget for, and a wrong reference committed as data
+      would be worse than a stated absence.
+
+  - id: THE-RANK-ARMS-KEPT-RESTRICTION-IS-ONE-CELL-NOT-A-SECOND-OPINION
+    status: deferred
+    phase: "14"
+    title: The withdrawn full-grid rule is kept as a second assertion that 52 of its 53 spots cannot fail
+    reason: >-
+      Filed 2026-09-03 by phase 14's stage-4 confirmation review of the poker, measured by an independently
+      written walk of the export. Decision 54 withdrew the restriction of the rank counterfactual arm to
+      the spots closed under reversal, and `tests/test_chart_counterfactual_arms.py:275-281` keeps the old
+      reading as a second assertion so that "a later hand that wants the restriction back has to make one
+      of them fail first". Measured over the 53 three-bet-facing spots carrying a full grid, the per-spot
+      pairs are 21 spots at 0 against 0, 31 spots at 1 against 1, and exactly one spot at 1 against 2. The
+      whole margin of the published 32 against 33 is one cell at
+      `t6/d100/BB/BTN:raise@2.5,SB:raise@7.5`; delete that single spot from the committed set and the
+      assertion goes red, and removing any of the other 52 leaves it passing.
+      The reason is poker rather than arithmetic. At a three-bet-facing spot hero's continuing range is
+      tiny, so those grids average 1.6 percent mixed cells and are otherwise pure 0 or 100. A monotone pure
+      row scores no kicker inversion, and the rank reversal carries the ace row onto the deuce-kicker
+      column, which in a three-bet-facing range holds no continues, so it scores none either. Both sides
+      read near zero and tie. The arm is close to blind on the family that is 88 percent of the committed
+      set once it is restricted to full grids, which is the same shape
+      THE-DISCRIMINATION-GATE-CANNOT-SEE-OVER-FOLDING-OR-A-MIS-ASSIGNED-ACTOR records for the arms
+      generally, measured here on one partition.
+      Removing the assertion is not what is asked. Keeping the withdrawn rule visible is right. What is
+      wrong is the file describing it as a second reading that must fail before the restriction returns:
+      it is a coin flip that has landed the right way once, and the sentence beside it should carry the
+      52-of-53 tie rather than the 32 against 33, which reads like a measurement with content. Not done at
+      stage 4 because the sentence sits in a docstring the freeze then covers, and rewording it after the
+      confirmation review would ship a claim no third reader has checked. This is not
+      RANK-ARM-RESTRICTION-RESTED-ON-A-SPLICED-FIGURE, which is closed: that one is about the
+      justification, this one is about what was kept afterwards.

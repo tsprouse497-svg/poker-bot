@@ -126,10 +126,22 @@ EV_BAND = {0.65: (0.10, 0.70), 0.85: (8.76, 13.04)}
 realization range it depends on. Two ends and never a midpoint: the band cannot be narrowed
 without measuring realization in this game, which nothing here does.
 
-What it prices is the big blind defending at the fit's own realization number for a single-raised
-pot. Measured against the raked reference the level reads **wider** at four of the five openers
-and narrower only against the button, so "the big blind over-folds" is not what this phase
-measured; the flat's near-invariance to who opened is."""
+**What it prices is the over-folding**, in decision 34's own words: the big blind defending too
+tight at the fit's own realization number for a single-raised pot. The band's shape is that of a
+one-sided fold-too-much cost - near zero at R = 0.65, where equity that is folded away could not
+have been realized anyway, and up to 125 times that at R = 0.85, where it could. It does not price
+the flat's near-invariance to who opened, which is a two-sided shape error and is carried by
+`BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT`.
+
+Two separate measurements sit under this and must not be confused, which is why every printed
+comparison names the reference it is read against. The chart does read **wider** than
+`expectations/six_max_nl25_100bb.json` at four of the five openers, narrower only against the
+button. That file is a **raked** game, so a rake-free solve reading wider than it is the floor
+rather than evidence the level is sound, and nothing in this repo commits a rake-free reference to
+read the level against (`REFERENCE-RANGES-HAVE-NO-CITED-SOURCE`,
+`NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE`). The flat separately spans 2.81
+points across those five openers, which is the fingerprint decision 34 names, not a second defect
+wearing this band's price."""
 
 RETIRED_SPOTS = 86
 RETIRED_SIZING_ENTRIES = 36

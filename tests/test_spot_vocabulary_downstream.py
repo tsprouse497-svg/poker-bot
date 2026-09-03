@@ -11,8 +11,8 @@ empty when every price was exact.
 
 from __future__ import annotations
 
+import hashlib
 import json
-import subprocess
 
 import pytest
 
@@ -308,35 +308,134 @@ def acts_twice(spot_key_text: str) -> bool:
 
 
 RETIRED_CHART_PATH = "data/artifacts/preflop/six_max_100bb_rakefree.json"
-RETIRED_CHART_COMMIT = "db08304538c26361f3e692230e8cb544a9bf91c0"
+RETIRED_CHART_SHA256 = "0111b5c943b5bcfc836ef656603970ab31fa99befe915a2970ab1f3e8d7c5c3f"
 RETIRED_CHART_SPOTS = 86
-"""The chart this phase retires, and where to read it.
+RETIRED_CHART_SPOT_IDS = tuple(
+    """
+t6/d100/BB/BTN:raise@100 t6/d100/BB/BTN:raise@2.5
+t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@100
+t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5 t6/d100/BB/CO:raise@100
+t6/d100/BB/CO:raise@2.5 t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@100
+t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5 t6/d100/BB/HJ:raise@100 t6/d100/BB/HJ:raise@2.5
+t6/d100/BB/HJ:raise@2.5,BB:raise@7.5,HJ:raise@100
+t6/d100/BB/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5 t6/d100/BB/LJ:raise@100 t6/d100/BB/LJ:raise@2.5
+t6/d100/BB/LJ:raise@2.5,BB:raise@7.5,LJ:raise@100
+t6/d100/BB/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5 t6/d100/BB/SB:raise@100 t6/d100/BB/SB:raise@2.5
+t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@100
+t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5 t6/d100/BTN/BTN:raise@2.5,BB:raise@100
+t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5
+t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5,BB:raise@100
+t6/d100/BTN/BTN:raise@2.5,SB:raise@100 t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5
+t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5,SB:raise@100
+t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@100
+t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5
+t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@100
+t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5
+t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@100
+t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5 t6/d100/CO/CO:raise@2.5,BB:raise@100
+t6/d100/CO/CO:raise@2.5,BB:raise@7.5
+t6/d100/CO/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5,BB:raise@100
+t6/d100/CO/CO:raise@2.5,BTN:raise@100 t6/d100/CO/CO:raise@2.5,BTN:raise@7.5
+t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5,BTN:raise@100
+t6/d100/CO/CO:raise@2.5,SB:raise@100 t6/d100/CO/CO:raise@2.5,SB:raise@7.5
+t6/d100/CO/CO:raise@2.5,SB:raise@7.5,CO:raise@22.5,SB:raise@100
+t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@100
+t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5
+t6/d100/CO/LJ:raise@2.5,CO:raise@7.5,LJ:raise@100
+t6/d100/CO/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5 t6/d100/HJ/HJ:raise@2.5,BB:raise@100
+t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5
+t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5,BB:raise@100
+t6/d100/HJ/HJ:raise@2.5,BTN:raise@100 t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5
+t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5,BTN:raise@100
+t6/d100/HJ/HJ:raise@2.5,CO:raise@100 t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5
+t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5,CO:raise@100
+t6/d100/HJ/HJ:raise@2.5,SB:raise@100 t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5
+t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5,SB:raise@100
+t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@100
+t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5 t6/d100/LJ/LJ:raise@2.5,BB:raise@100
+t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5
+t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5,BB:raise@100
+t6/d100/LJ/LJ:raise@2.5,BTN:raise@100 t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5
+t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5,BTN:raise@100
+t6/d100/LJ/LJ:raise@2.5,CO:raise@100 t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5
+t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5,CO:raise@100
+t6/d100/LJ/LJ:raise@2.5,HJ:raise@100 t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5
+t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5,HJ:raise@100
+t6/d100/LJ/LJ:raise@2.5,SB:raise@100 t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5
+t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5,SB:raise@100
+t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@100
+t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5
+t6/d100/SB/CO:raise@2.5,SB:raise@7.5,CO:raise@100
+t6/d100/SB/CO:raise@2.5,SB:raise@7.5,CO:raise@22.5
+t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@100
+t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5
+t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@100
+t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5 t6/d100/SB/SB:raise@2.5,BB:raise@100
+t6/d100/SB/SB:raise@2.5,BB:raise@7.5
+t6/d100/SB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5,BB:raise@100 t6/d100/SB/rfi
+""".split()
+)
+"""The chart this phase retires, generated from it and carried here rather than read at a git pin.
 
-**Out of git history rather than off disk, because stage 6 replaces that path in place**: a
-helper reading `ARTIFACT_DIR` would return the committed 249 the moment the cutover lands, and
-every cost below would be the new chart compared against itself. The pin carries the retired
-bytes and matches the working tree today, so the two readings agree at stage 4 and only this
-one still means the old chart afterwards. 86 is decision 53's count, asserted as the blob is
-read so a pin that drifted fails there rather than as a wrong cost downstream - the hardcoded
-shape list this replaces went on describing the 36-spot GTO Wizard chart deleted at `a386c77`,
-the very commit that introduced the 86 it was standing in for."""
+**Not read off `ARTIFACT_DIR` at test time, because stage 6 replaces that path in place**: a helper
+reading the working tree would return the committed 249 the moment the cutover lands, and every
+cost below would be the new chart compared against itself - green, and measuring nothing.
+
+**And not out of git history either, because no git object survives this lane's workflow.** Commit
+`db08304538c26361f3e692230e8cb544a9bf91c0` is reachable from one unpushed local branch, and
+`AGENTS.md` has this lane rebase onto `main` whenever a sibling merges, which rewrites it and takes
+the pin with it - permanently, and after stage 5 froze this file. Blob
+`9bde32b4631d6c266b521b4b4c90653126a7d587` survives a rebase, content addressing being what it is,
+but a blob no reachable commit names is a garbage-collection candidate, so it trades a certain
+failure for a slower one. A tuple in a frozen test depends on no object, ref, remote or clone depth.
+
+**What that costs is a copy, the shape that produced the defect this replaces**, so the copy is
+generated rather than typed and is checked against its source while that source is on disk.
+`RETIRED_CHART_SHA256` is the sha256 of that file's bytes - blob `9bde32b`, byte-identical to the
+pin - and `test_the_retired_chart_fixture_agrees_with_its_source` compares the two every run, both
+ways. Regenerate the pair together: hash the file, sort the `spot_id` of every entry in its `spots`.
+86 is decision 53's count and is asserted on every read, so a fixture that lost an entry fails here
+rather than as a wrong cost downstream - the hardcoded shape list this replaces went on describing
+the 36-spot chart deleted at `a386c77`, the very commit that introduced the 86 it stood in for."""
 
 
 def retired_chart_spot_ids() -> tuple[str, ...]:
-    """Every spot id the retired chart declares, read rather than transcribed."""
-    blob = subprocess.run(
-        ["git", "show", f"{RETIRED_CHART_COMMIT}:{RETIRED_CHART_PATH}"],
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
+    """Every spot id the retired chart declares, sorted, generated rather than transcribed."""
+    assert len(RETIRED_CHART_SPOT_IDS) == RETIRED_CHART_SPOTS, (
+        f"the fixture holds {len(RETIRED_CHART_SPOT_IDS)} spots, not {RETIRED_CHART_SPOTS}"
     )
+    assert len(set(RETIRED_CHART_SPOT_IDS)) == RETIRED_CHART_SPOTS, "the fixture repeats a spot id"
+    return RETIRED_CHART_SPOT_IDS
 
-    assert blob.returncode == 0, f"{RETIRED_CHART_PATH} is not at the pin: {blob.stderr}"
-    ids = tuple(spot["spot_id"] for spot in json.loads(blob.stdout)["spots"])
 
-    assert len(ids) == RETIRED_CHART_SPOTS, f"the pin holds {len(ids)} spots, not 86"
-    assert len(set(ids)) == len(ids), "the retired chart repeats a spot id"
-    return ids
+def retired_chart_on_disk() -> tuple[str, ...]:
+    """The spot ids at `RETIRED_CHART_PATH` right now, empty if nothing is there to read."""
+    source = REPO_ROOT / RETIRED_CHART_PATH
+    if not source.exists():
+        return ()
+    document = json.loads(source.read_text(encoding="utf-8"))
+    return tuple(sorted(spot["spot_id"] for spot in document["spots"]))
+
+
+def test_the_retired_chart_fixture_agrees_with_its_source() -> None:
+    """The fixture is a copy, so it is compared against the file it came from, both ways.
+
+    While `RETIRED_CHART_PATH` still holds the retired chart - which its sha256 decides, not its
+    name - the ids must match. Once stage 6 writes the 249 there the bytes change and the ids must
+    then differ, which is the same claim read the other way and is what stops a stale checksum
+    passing quietly. Neither branch skips, so this never goes dormant."""
+    source = REPO_ROOT / RETIRED_CHART_PATH
+    digest = hashlib.sha256(source.read_bytes()).hexdigest() if source.exists() else ""
+
+    if digest == RETIRED_CHART_SHA256:
+        assert retired_chart_on_disk() == retired_chart_spot_ids(), (
+            f"{RETIRED_CHART_PATH} is still the retired chart and the fixture no longer matches it"
+        )
+    else:
+        assert retired_chart_on_disk() != retired_chart_spot_ids(), (
+            f"{RETIRED_CHART_PATH} declares exactly the fixture's 86 ids but hashes to"
+            f" {digest or 'nothing'}, not {RETIRED_CHART_SHA256}, so the checksum is stale"
+        )
 
 
 def retired_chart_shapes() -> frozenset[tuple[str, tuple[str, ...]]]:

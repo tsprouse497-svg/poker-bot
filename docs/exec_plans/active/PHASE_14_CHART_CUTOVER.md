@@ -94,44 +94,19 @@ it deserves a ruling rather than a precedent set quietly.
 that reviewed none of the previous round. The two reviews that produced this are spent: they have seen the
 work and are no longer independent of it.
 
-## Unhalted and re-scoped, 2026-09-01 - superseded by the section above
+## Unhalted and re-scoped, 2026-09-01 - superseded, folded away 2026-09-03
 
-Decision 31 halted the phase on 2026-09-01 and decisions 32 to 39, ruled by Taylor the same day, resume it.
-Read those nine items before anything below; the sections after this one describe states that are history.
+Decisions 32 to 39 lifted decision 31's halt on 2026-09-01 and set the phase at 143 committed nodes with a
+three-clause selection rule. All of it is superseded: the two sections above carry decisions 40 to 46, the
+selection rule is two clauses, and the committed set is 249. The narrative was ~35 lines describing a state
+no longer true and was folded away here so the plan keeps headroom under the 800-line cap that
+`check_file_sizes.py` enforces.
 
-**What was ruled.** The selection rule cuts by **action**, not by spot (32), which is what supersedes the
-withholding cascade of decisions 20, 26 and 28 and the halt taken from it. The chart publishes **no
-cold-call answer** outside the big blind, and the solve is deliberately left unconstrained so the villains
-in it still flat (33). The big blind's tight defence is **accepted on purpose** (34), because this bot has
-no postflop strategy and teaching wide big-blind defence would send a student to flops it cannot help them
-play. Facing a four-bet and beyond is **excluded** (35), costing 0.88 percent of decisions. The four-bet
-size is left at 22.5 and filed (36), on a ruling that rested on a coordinator error and is put back to
-Taylor. The equity relation is **gated with the big blind exempt** and its failing counts published (37).
-A chart **ships** (38). Decision 1's live-player clause is replaced by a measured multiway exposure
-threshold (39), because the clause excluded four of the five opening ranges to avoid a defect that reaches
-at most 0.618 percent of any candidate node.
-
-**What the phase now commits.** 143 nodes - 5 first-in, 15 facing an open, 123 facing a three-bet - carrying
-**98.23 percent** of preflop decisions, against the 15.97 percent decision 31 measured for its six spots.
-Of the 15 facing-an-open spots the 5 big-blind ones publish fold/call/three-bet and the other 10 publish
-fold/three-bet only, which is where decision 33 lives in the artifact.
-
-**Done in this task, all inside the `contract-update` scope already approved:** decisions 32 to 39 appended;
-the contract rewritten to the new selection rule at 300 of 300 lines; three backlog entries filed
-(`PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS`, `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED`,
-`MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN`); the loop pointer unhalted at stage 1.
-
-**Owed before `--advance`, and not done here.** The stage-1 independent review, mechanical and poker, by an
-agent that wrote none of this. `AGENTS.md` is unconditional that the writer never reviews its own work, and
-this session was instructed not to spawn subagents, so it is reported as a blocker rather than waived or
-self-certified. The reviewer should start at decision 39, which is the newest reasoning and the one whose
-weakness is recorded in its own backlog entry, and at the contract's census, whose four buckets are the only
-counts here derived by the coordinator rather than by committed code.
-
-**Also owed, and flagged rather than fixed:** the contract sits at 300 of 300 lines and 109 columns, and
-`CONTRACT-LINE-CAP-COUNTS-LINES-AND-MEANS-CONTENT` says that width is how a contract buys room under a cap
-that counts lines. At 100 columns this text is roughly 330 lines. The rewrite did not widen further than the
-one that item was filed against, but it does rely on the same width, and it has no headroom left at all.
+Nothing is lost. It is in git history at `8006516` and earlier, and the rulings themselves are items 32 to 39
+of `reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md`, which is their authority in any
+case. Two things it recorded are still live and are kept: `CONTRACT-LINE-CAP-COUNTS-LINES-AND-MEANS-CONTENT`
+on the contract buying room by running at 109 columns, and the three backlog entries filed with those
+rulings.
 
 ## The restart, 2026-08-30
 
@@ -383,6 +358,13 @@ each other, which is worse than the smudge. The next task should not read this a
 
 **The contract is at 300 of 300 lines and two corrections were only landed by rewording rather than
 appending.** A third would not fit. `PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP` carries it.
+
+**Two independent confirmation reviews then raised two more blockers, both fixed 2026-09-03.** The contract's
+big-blind criterion is reverted to decision 34's language: it had been reworded to name the flat's near-invariance as
+the accepted defect while keeping the EV band, which prices the over-folding, and beating a **raked** reference is a
+rake-free solve's floor rather than a reading on the level
+(`NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE`). The git pin below is now a fixture, and two
+runner-up poker findings are filed in `backlog.yml`.
 
 ### The numbers a lane may use, and where each is ruled
 
@@ -734,18 +716,14 @@ Work only in `~/projects/poker-bot-worktrees/phase-14` on `phase/14-chart-cutove
   making the result fragile (`RANK-ARM-RESTRICTION-RESTED-ON-A-SPLICED-FIGURE`). Do not soften the arm to
   buy margin; a failure there is still a halt and a decision for Taylor.
 
-### The retired chart is read at a git pin, and a squash merge would break it
+### The retired chart is a generated fixture in a frozen test, not a git pin
 
-`retired_chart_spot_ids()` in `tests/test_spot_vocabulary_downstream.py` reads the retired 86-spot chart
-with `git show db08304538c26361f3e692230e8cb544a9bf91c0:data/artifacts/preflop/six_max_100bb_rakefree.json`
-rather than off disk, and that is deliberate: stage 6 replaces that path **in place**, so a helper reading
-the working tree would compare the new chart against itself the moment the cutover lands - green, and
-meaningless. The pin is byte-identical to the working tree and to `a386c77`, and the read self-checks for
-86 spots and no duplicate ids. `scripts/generate_derived_chart_report.py` already reads at a pin the same
-way. **The commit is reachable only from `phase/14-chart-cutover`.** A normal merge keeps it; a squash or a
-rebase that rewrites the lane's history does not, and the pin would have to be re-taken against whatever
-commit carries the retired chart afterwards. Integration is serial merges by design, so this holds, but it
-is a reason not to squash this lane.
+`retired_chart_spot_ids()` no longer reads the retired 86-spot chart at a git pin. That commit was reachable only from
+this unpushed branch, so a fresh clone could not run the tests and the prescribed rebase onto a new `main` would have
+killed the pin after the freeze. The 86 ids are now a generated tuple in the frozen file beside the source's sha256,
+checked both ways every run by `test_the_retired_chart_fixture_agrees_with_its_source`, whose docstring carries the
+reasoning including why reading disk is still wrong. The generator's own pin at `d046ac9` is stage 6's to re-take and
+is untouched.
 
 ### Do not
 

@@ -180,10 +180,10 @@ inversions, and merged flats playing differently. Nothing gates on whether a ran
   artifact. **An ordering is not a level, and only the level catches a broken realization model**, so the
   defence level per opener is measured, printed against the expectations file, and read by a human before
   the artifact is committed (`STATIC-REALIZATION-UNMEASURED-IN-SINGLE-RAISED-POTS`).
-- **The big blind's flat barely moves with who opened, and this phase accepts that** (decision 34). It
-  reads wider than the raked reference against four openers and narrower only against the button, so the
-  defect is that invariance, not an over-fold. The report prints defence and flat per opener against the
-  reference and the EV forgone **at both ends of the realization range, never a midpoint**.
+- **The big blind over-folds and this phase accepts it deliberately** (decision 34), the flat's near-invariance
+  to who opened being the fingerprint. The report prints defence and flat per opener, each naming the reference
+  it reads against - the committed one is **raked**, so reading wider than it is a rake-free solve's floor and
+  not a sound level - and the over-folding's cost **at both ends of the realization range, never a midpoint**.
 - **Every published band is its family's true min and max, and a test asserts it.** No four-bet frequency
   may be offered as evidence that the unfitted terminal fails to reach the output
   (`THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL`).

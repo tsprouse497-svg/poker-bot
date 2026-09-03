@@ -35,7 +35,6 @@ FAIL  backlog integrity
       ! backlog CONTRACT-LINE-CAP-COUNTS-LINES-AND-MEANS-CONTENT is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label
       ! backlog TEST-FILES-ARE-WRITTEN-UP-TO-THE-700-LINE-CAP is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label
       ! docs/BACKLOG.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing
-      ! docs/BACKLOG.md cites backlog id 'OVER-FOLDS', which no item declares. A finding filed under an id nobody created has recorded nothing
       ! docs/BACKLOG.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing
       ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'COMMITTED-EQUITY-TABLE', which no item declares. A finding filed under an id nobody created has recorded nothing
       ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'CONTRACT-UPDATE', which no item declares. A finding filed under an id nobody created has recorded nothing
