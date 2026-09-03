@@ -594,47 +594,11 @@ argument for it stand as written and are not re-argued.
 - [ ] S10 Closeout.
 - [ ] S11 Advance. Policy says `auto_advance: false`, so this lane stops for Taylor here.
 
-## Measurements this plan is written against - SUPERSEDED, retired export
+## Measurements this plan is written against - folded away 2026-09-03
 
-**Every figure in this section describes the pre-decision-14 export**: 4,094,221 bytes, 38,828 action
-nodes, `add_allin: true`, 300 iterations to 0.0062bb. The committed export is 2,555,076 bytes, 33,969
-nodes, `add_allin: false`, target 0.00016 met at iteration 1,900. Read for history, never for work.
-
-
-Taken from the committed files rather than from the roadmap, because the roadmap's own
-mitigations document says its estimates do not reproduce.
-
-- The export: `data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz`, 4,094,221
-  bytes, 38,828 action nodes, 105.45 bytes per node. Solved in 54.2 seconds over 300 iterations
-  to an achieved gap of 0.0062bb against a 0.01bb target, and byte-identical across two runs in
-  separate processes against a restarted server.
-- The config solved: six-handed, 100bb, `open_raises: [2.5]`, `raise_mults: [3.0]`,
-  `max_raises: 4`, `add_allin: true` at a 0.67 threshold, `ante: 0.0`, `limp: false`,
-  rake-free, calibrated realization.
-- The chart it replaces: `data/artifacts/preflop/six_max_nl25_100bb.json`, 264,462 bytes, 36
-  spots, so 7,346 bytes per spot in the artifact format - which is what the roadmap's "7.1 KB"
-  is, and it is measured off a GTO Wizard-shaped source rather than a GTOpen one.
-- The directory cap: `data/artifacts` is limited to 20 MB in `scripts/check_file_sizes.py`, and
-  the tree holds 4.4 MB of which 4.0 MB is the gzipped export itself. Deleting the retired chart
-  frees 0.25 MB, so the budget is about 15.9 MB - roughly 2,100 spots at the retired chart's own
-  rate, against 38,828 nodes.
-- What committing the whole export would cost, measured three ways rather than extrapolated:
-  272 MiB at the retired chart's 7,346 bytes per spot, 131 MiB at its compact-JSON rate, and 407
-  MiB if every node keeps all 169 hand classes the way a GTOpen node carries them. Filtering each
-  spot to hero's own arriving range, which is what the retired chart does, brings the whole export
-  to 71 MiB. All four are over the cap by between 4.5x and 26x. There is no version of "commit
-  the tree" that fits.
-- Convergence is not uniform over that tree. The solve target is a summed best-response gap in
-  big blinds, so it says nothing about a node carrying negligible mass. Over the eleven grids the
-  export publishes, the two airtight dominance relations give one violation across the ten
-  shallow reference nodes and 42 at the single deep four-bet node.
-- The corpus today: 499 hands, 3,048 preflop decision points, 290 refusals across 159 distinct
-  spots, 206 of the 290 in the two blinds. Calls agree 59.5 percent for Pluribus on 37 decisions
-  and 60.8 percent for humans on 227, against a 96.3 and 93.6 percent headline dominated by the
-  72 percent of decisions that are folds. The stricter sampled-action match is 89.0 and 85.3.
-- The deltas the closing measurement's prediction must be built from: big-blind defence widens
-  4.65 points against the lojack, 3.72 against the hijack, 2.64 against the cutoff and 6.14
-  against the small blind, and comes back 2.67 points tighter against the button.
+Described the pre-decision-14 export: 4,094,221 bytes, 38,828 action nodes, `add_allin: true`, 300
+iterations to 0.0062bb. The committed export is 2,555,076 bytes and 33,969 nodes. Not one figure in it
+survived, so it is in git history at 62f1375 and earlier rather than here.
 
 ## Next Agent Bootstrap
 
@@ -713,86 +677,12 @@ clear it erases the correction that produced it. Separately, twelve backlog entr
 `run_full_quality_gate`'s status and phase constants, which is MAINT-29's, not this lane's
 (`BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS`).
 
-## What stage 4 froze as a specification for stage 6 - SUPERSEDED, retired export and retired rule
+## What stage 4 froze as a specification for stage 6 - folded away 2026-09-03
 
-**Also pre-decision-14.** It carries `REACH_FLOOR_BP = 200`, an 86-spot selection, 5,626 committed nodes
-and a `DERIVATION_BELOW_REACH_FLOOR` code. There is no reach floor now, the committed set is 249, and the
-exclusion codes are the four decision 48 names. Read for history, never for work.
-
-
-Tests authored before an implementation are a specification, and so are the canaries. Both were
-written against names the builder has to produce, on the phase 11, 12 and 13 precedent: a canary
-written after the code can only describe what was already written, which is how phases 08, 09 and
-10 each ended up with no canary for the one behaviour their phase existed to add. A `find` string
-that does not occur at stage 6 is the builder having drifted, not the canary being wrong.
-
-Five of the eight canaries target `chart_derivation.py`, one `schema.py`, and two the report
-generator. Two were re-aimed at stage 4 after an independent mechanical review, and both would
-otherwise have failed silently rather than loudly, which is worth recording because it is the
-failure mode a canary is least able to report about itself. The jam-pricing canary named
-`scripts/convert_preflop_export.py` while the frozen tests put the collapse rule in the `src/`
-module, and `check_gate_bite` requires the find string to occur exactly once in the file it names,
-so stage 7 would have halted on zero occurrences. The blind-structure canary replaced a line in
-`PreflopArtifact.to_payload()` and would have bitten only if the derived payload happened to be
-assembled through it; the one committed test that exercises `to_payload` round-trips it, so both
-dumps would have carried the same wrong structure and agreed with each other.
-
-**New module `solver_artifacts/chart_derivation.py`.** *Superseded in part on 2026-08-24: the
-selection predicate is no longer a reach floor, so `REACH_FLOOR_BP = 200` and everything that reads
-it are stage-4 work to be re-cut, not a design to build to.* What survives unchanged:
-`node_action_sequence` walks a node's path into a `PreflopAction` sequence, taking each action's
-actor from the **parent** node's `actor_pos` and dropping folds; `census(export)` returns a
-`NodeCensus` whose buckets sum to the source card's own node count; and it is verified on the
-committed export that all 38,828 nodes derive a valid key, 38,828 distinct, with zero collisions.
-What replaces the floor is a two-clause predicate needing no threshold constant at all: at most one
-non-actor seat has taken a call, raise or jam, **and** at most two seats are not yet folded. Together
-they select 86. *Do not build either clause on its own: the history clause was ruled on 2026-08-24,
-selects 110, and was superseded on 2026-08-25 because 24 of those 110 still reach a multiway
-terminal; the subtree clause alone selects 5,472, admitting nodes reached through a cold call whose
-arriving ranges the same defect already distorted.* The
-reach mean stays as a *published measurement* rather than a filter, and note its definition: the
-plain unweighted mean over the 169 classes, which is what reproduced 891 / 1,424 / 3,296 / 5,626 /
-9,407 / 13,575 at the 20, 10, 5, 2, 1 and 0.5 percent floors. A combo-weighted reading gives 4,856
-at 2 percent and is a different number for the same words.
-
-**Reason codes in `lookup.py`**, which is decision 8's ruling that a reader meets one vocabulary
-rather than two. `DERIVATION_NO_LEGAL_SPOT_KEY` stands and its bucket publishes at zero, which is a
-result rather than an omission. `DERIVATION_BELOW_REACH_FLOOR` is superseded: decision 8's amendment
-requires **two** exclusion codes rather than one - a node outside the selection rule, and a node the
-source misprices - because one code cannot say which of the 38,742 excluded nodes come back when
-GTOpen can price multiway. The two codes now genuinely differ: the 24 that the 2026-08-25 ruling
-drops are outside the rule *because* the source misprices them, and 5,386 terminal-clean nodes are
-outside the rule for the separate reason that they are reached through a cold call.
-
-**Schema at version 2**, carrying `BlindStructure` (decision 4) and `arriving_reach_bp` per cell
-(decision 5), plus the rule that a spot with an empty `action_sequence` may not carry a positive
-`call` weight. That last one is `CHART-HERO-MUST-NEVER-LIMP`, and it closes on the schema rather
-than on a measurement: the export enforces it by construction, but that is a property of the data
-and this phase owns the schema.
-
-**Paths.** The artifact becomes `data/artifacts/preflop/six_max_100bb_rakefree.json` with its
-sizings alongside; `six_max_nl25_100bb.json` and its sizing table are deleted; the expectations
-file and the GTO Wizard source it came from stay untouched, because a reference regenerated from
-what it checks cannot fail.
-
-**What the cutover does to coverage, measured rather than assumed.** The kept chart holds exactly
-four raise prices - 2.5, 7.5, 22.5 and 100 - so none of the retired chart's 3.5, 8, 11 or 13.5
-survives, which is the 17-of-36 non-collision the contract cites. *Revised 2026-08-24:* the squeeze
-after an open and a cold call is no longer gained - it is the family the ruling excludes. Gained is
-the big blind facing a four-bet and the rest of the heads-up three-bet and four-bet skeleton, 86
-spots against the retired chart's 36 - *revised again 2026-08-25, and four of the five opening
-ranges are now excluded with it, leaving only the small blind's.* The retired 36 are all heads-up by
-the superseded history predicate but **only 22 of them are terminal-clean**, so 14 spots the bot
-answers today are refused after the cutover and the "nothing currently answered is lost" claim dies
-with the 110. Beyond those 14 the limped pot is lost too, absent from the tree because the solve is
-`limp: false`, so
-`t6/d100/BB/SB:call` moves from covered to refused. That is the accepted cost of phase 10's human
-gate, filed as `CHART-CANNOT-ANSWER-A-LIMPED-POT`, and stage 4 migrated the tests to assert the
-refusal rather than deleting the claim. So of the retired 36, **22 pass the ruled predicate but only
-21 are actually covered** - `BB/SB:call` passes it and still has no node, because the tree has no limp
-branch to hold one. **Spot count rises 36 to 86 and the refusal rate rises with it**, on those 15 and
-on nothing else; a rise outside the 15 named spots is a defect rather than the cost of this ruling.
-The 2026-08-25 note reversing the direction of this criterion is in
+Pre-decision-14: `REACH_FLOOR_BP = 200`, an 86-spot selection, 5,626 committed nodes and a
+`DERIVATION_BELOW_REACH_FLOOR` code. There is no reach floor now, the committed set is 249, and the
+exclusion codes are decision 52's three. Superseded twice over and folded to git history at 62f1375; the
+2026-08-25 note reversing that criterion's direction is in
 `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-eighty-six-coverage.md`.
 
 ## What stage 6 will have to face that stage 4 could not settle
@@ -811,47 +701,9 @@ committed chart and pins them into live documents, and the cutover moves several
 territory a phase task may not reach, so it is likely to need its own maintenance task between
 stage 6 commits, on the MAINT-24 and MAINT-25 precedent.
 
-## Verification brief for the next agent: the cold-call finding
+## Verification brief for the next agent: the cold-call finding - folded away 2026-09-03
 
-**Discharged 2026-08-24.** This brief was executed; the result is
-`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-cold-call-verification.md`, which
-reproduced all seven claims and found the mechanism. It is kept as the record of what was asked,
-and it is history rather than instruction - in particular its item 4, that both cold-call nodes
-clear the 2 percent floor and are therefore committed spots, is no longer true of what this phase
-commits.
-
-Written at the stage-4 halt, 2026-08-24. Everything below is a claim to be **falsified**, not a
-result to be confirmed. It was measured by the agent that also wrote the tests, which is exactly
-the arrangement this repo distrusts, so recompute rather than quote.
-
-    Work only in ~/projects/poker-bot-worktrees/phase-14 on phase/14-chart-cutover. The loop is
-    halted at stage 4; do not advance it. Read reports/phase_audits/reviews/
-    PHASE_14_CHART_CUTOVER/stage-04-tests.md and verification/loop_runs/14.yml first.
-
-    Verify or refute, independently, from
-    data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz. Write your own walk;
-    do not import chart_derivation, which does not exist yet, and do not reuse the scratch
-    scripts.
-
-    1. At node path [1,0,0,0,0] the big blind faces a 2.5bb lojack open and defends 27.28% of
-       its range, combo-weighted, with KQo calling 99.9% and AA raising to 7.5 at 99.7%.
-    2. At node path [1,1,0,0,0], the same spot plus one hijack cold-call, it defends 7.44%,
-       KQo folds 99.9%, AJo 99.5%, T9s 99.9%, K9s 99.2%, and AA jams 100bb at 94.3%.
-    3. The price improves from needing 27.3% equity to needing 18.8%.
-    4. Both nodes clear the ruled 2% reach floor, so both are committed spots.
-    5. Across the 26 committed spots where the big blind faces one 2.5bb open plus one to four
-       cold calls, defence never rises above 40.57% and falls as low as 4.01%, and is not
-       monotone in the number of callers.
-
-    Then answer the question the numbers cannot: is this a defect, or is it correct for a
-    100bb six-max game with no rake? State which hands you would defend at node 2 and why, in
-    poker terms, before you look at what the solver did.
-
-    Two claims to check separately, because they change what the phase does rather than what it
-    believes. First: `reach_bp` in the export is the ACTOR's own range survival, not the
-    probability the line occurs, so decision 1's floor keeps every node where hero has not yet
-    acted however rare the line. Second: no aggregate form of decision 10's two relations passes
-    over all 5,626 committed nodes, and over the 351 full-reach nodes the suited-versus-offsuit
-    aggregate gives 6 violations as solved against 97 with suited and offsuit transposed.
-
-    Report findings only. Change no test, contract or artifact.
+Discharged 2026-08-24. The brief was executed and the result is
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-cold-call-verification.md`, which reproduced
+all seven claims and found the mechanism. Its item 4 - that both cold-call nodes clear the 2 percent reach
+floor and are therefore committed - stopped being true when the floor was dropped. Git history at 62f1375.
