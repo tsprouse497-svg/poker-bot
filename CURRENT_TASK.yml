@@ -1,10 +1,12 @@
 task_id: PHASE_14_CHART_CUTOVER
 active_phase: "14"
-task_mode: contract-update
-base_commit: 09c23a186ba07b1853ab7475975e0964a00a1812
+task_mode: implementation
+base_commit: e2ee0ac5da52387cbe01703a7a0b2110f515fb76
 approved_scope:
-  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
-  - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
+  - tests/**
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - scripts/run_verify.py
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
 standing_scope:
   - CURRENT_TASK.yml
@@ -21,6 +23,31 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-02
+    reason: >-
+      The contract rewrite is committed, so phase 14 returns to implementation mode for the
+      stage-4 re-cut. Three stages ran in contract-update: stage 1 rewrote the contract against the
+      249-spot set and took decisions 51 and 52, stage 2 fixed three reversibility lines the driver
+      could not parse, and stage 3 cleared the human gate and took decision 53, which corrects five
+      published figures that a second independent walk of the export confirmed do not reproduce.
+      What stage 4 now owes. The frozen tests were authored against a six-spot set and, before
+      that, a 143-node one. Both are superseded by the 249 - 5 first-in, 25 facing an open, 219
+      facing a three-bet - so the 112 test functions across this phase's eight files describe a
+      specification that no longer exists and cannot be frozen as they stand. This is a full
+      re-cut, not a repair.
+      tests/**, verification/mutations.yml, verification/freeze.lock and scripts/run_verify.py
+      return to approved_scope on the same shape this lane used for its three previous
+      implementation stints. tests/** as a whole rather than this phase's own eight files, because
+      the contract requires every frozen test of a completed phase that asserts against the chart's
+      contents to be migrated here before the freeze rather than repaired afterwards - which phases
+      11 and 12 each deferred and each paid a separate repair task for. scripts/run_verify.py is
+      for command registration only.
+      The contract and the decision record leave approved_scope in the same move, which is the
+      point: check_scope.py is what mechanically stops an implementation task editing the
+      specification it is building to. data/artifacts/** stays out - the artifact is writable at
+      stage 6 and not before, and the 86-spot chart in the tree is the retired one.
+      base_commit moves to the contract-update's own commit, so the rewrite's paperwork does not
+      read as uncommitted work by the task that follows it.
   - date: 2026-09-01
     reason: >-
       Ruled by Taylor on 2026-09-01: rewrite the contract before the freeze rather than after it. The
