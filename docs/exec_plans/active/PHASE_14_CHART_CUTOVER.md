@@ -278,6 +278,81 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
 
 ## Delegation Plan
 
+### Stage 4 re-cut against the 249, 2026-09-02 - ACTIVE
+
+The frozen tests describe a six-spot set, and before that a 143-node one and an 86-spot one. Both are
+superseded. Nearly every module constant in this phase's eight files is now false: the committed count, the
+raises-faced histogram, the refusal vocabulary (three `derivation:*-four-bet-*` codes replaced by
+`multiway-exposure-above-threshold`, `big-blind-squeeze-spot`, `beyond-committed-raise-depth`), the retired
+chart's name, the price list, the relation count and the arm count. This is a re-cut, not a repair.
+
+**The driver cannot see this.** `check_tests_authored` asks only that the phase's `pytest_*` command is red
+on an assertion, which it already is. It has no way to tell a test that describes the 249 from one that
+describes six. Do not read "this stage's checks pass" as the stage being done.
+
+**Six worker lanes, one owner per count, no lane reviews its own file.** Each lane owns whole files and
+rewrites them against the contract, keeping the conventions the earlier cuts earned: a file's docstring
+states what it owns; counts are recomputed from the export by a walk written in the test file rather than
+imported from the rule under test; `vacuous()` is called only after an assertion that the vacuity premise
+still holds; sibling files import a count's owner rather than copying it.
+
+| lane | files | owns |
+|---|---|---|
+| L1 selection and census | `test_chart_derivation.py` | the two filters each alone, the third clause, no clause co-extensive with another, the four-bucket census summing to 33,969, the closed reason vocabulary and its disjointness from the runtime miss codes, exposure measured by a walk to leaves with the admitted and refused extremes |
+| L2 artifact shape | `test_derived_chart.py`, `test_chart_conversion.py` | byte-for-byte reproduction and `--check`, the retired chart absent from the directory, its glob and `sizings/`, 249 keys checked key by key, the two-directional sizing invariant, prices exactly `[2.5, 7.5, 22.5]`, sizes read from action labels via a perturbed synthetic export, the blind-structure refusals, the merged-flat menu shapes 5/20/219 and defence to the basis point, the no-limp schema rule, zero uniform-initialisation rows under both readings, zero-reach classes dropped |
+| L3 arrival and reach | `test_chart_arrival_probability.py` | reach as the plain mean over 169 classes with no reach floor selecting cells, arrival as one left-to-right product rounded once at the end, arrival above one refused at construction, arrival claimed for an undeclared spot refused, the grain printed with its zero count, and the zero-arrival case asserted non-vacuous |
+| L4 relations and arms | `test_chart_cutover_evidence.py` | the four relations at one point tolerance with 132 row comparisons on a full grid, the fourth on the raise weight, none gated as an order, both arms strict with a tie refusing, ten partitions, the rank arm scored only over spots closed under reversal with the unscored count published, the five-spot floor publishing rather than asserting, and the discrimination test where a rank-reversed chart passes the suit arm and fails the rank arm |
+| L5 report and validators | `test_derived_chart_report.py`, `test_derived_chart_report_validators.py` | every figure the contract names as an obligation being printed and re-derived, the generator exiting non-zero when one does not hold, the three vacuous labels, the equity relation labelled as gating nothing, the cutover ledger balancing, the refusal inventory, the old-versus-new disagreement count with its direction rows |
+| L6 migration and canaries | `test_preflop_committed_charts.py`, every frozen test of a completed phase that asserts against the chart's contents, `verification/mutations.yml`, `scripts/run_verify.py` | the migration the contract requires before the freeze rather than after it, and the two mutation canaries authored before the implementation - one proving a wrong artifact fails the command rather than being rendered, one committing a spot above the exposure threshold |
+
+**Reviews.** Two read-only reviewers at the end of the stage, one mechanical and one on the poker, neither
+having written any of it and neither having seen the other's work, writing to
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-recut-review.md` under `## Blocker`,
+`## Non-blocker` and `## Alignment`. A blocker holds the stage until it is marked with the bare literal
+`[resolved]`; an alignment item goes to `backlog.yml`.
+
+### The numbers a lane may use, and where each is ruled
+
+No lane invents a count. Anything not on this list is measured by the test's own walk of the export.
+
+- **249 committed** = 5 first-in + 25 facing an open + 219 facing a three-bet. Census 249 + 348 + 10 +
+  33,362 = **33,969**. Coverage **98.5949** percent = 51.9237 + 38.5422 + 8.1290. Contract, decision 49.
+- Exposure threshold **ten percent**; widest admitted **9.8642**, narrowest refused **10.0234**. Decision 46.
+- Of the 25 facing an open, **5** are big blind and publish fold/call/raise; **20** merge and publish
+  raise-or-fold; the merge moves **165** cells, **40** of them pure on the entire-weight reading and **73**
+  at 99 percent or more. Decisions 45, 53.
+- Cells at non-zero reach **18,431**; pure-call **748** entire-weight, **1,179** at 99 percent or more;
+  **93.20** percent of cells pure at 99 percent or more, **3.85** percent mixed below 90. Decisions 49, 53.
+- Prices exactly **2.5, 7.5, 22.5**, one per spot. Hero's own jam lives only at the excluded four-bet-facing
+  spots, so the jam canary runs against the export.
+- Arrival: **44** of the 249 round to zero in parts per billion under `round(p * 1e9) == 0`; only **2** are
+  exactly zero. Decision 53, `A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT`.
+- Arms, ten partitions, solved against counterfactual - suit arm on spots, rank arm on cells over closed
+  spots: whole set 7/167 and 64/206 over 83 closed; raises 0, 0/5 and 11/61 over 5; raises 1, 0/25 and
+  21/112 over 25; raises 2, 7/137 and **32/33** over 53; LJ 7/32 and 1/9 over 1; HJ 0/15 and 3/14 over 2;
+  CO 0/18 and 6/21 over 5; BTN 0/28 and 9/33 over 12; SB 0/36 and 15/54 over 25; BB 0/38 and 30/75 over 38.
+  LJ and HJ fall under the five-spot floor and publish rather than assert. Decision 53.
+- Solve card: target **0.00016**, cap **2,000**, first met at **1,900**, achieved **0.00015591**.
+- Retired chart: **86** spots, **36** carrying a sizing entry, all 36 priced at a jam. Decision 53.
+
+**The rank arm's one-cell margin is the fragile thing in this stage.** It passes the 219-spot partition 32
+against 33. Its restriction to spots closed under reversal is load-bearing - over all 219 spots it reads
+149 against 69 and fails. A lane that finds the arm red does not adjust the tolerance, the closed-spot
+definition, or which comparisons count. It halts and says so.
+
+### The import shape, which is not optional
+
+Stage-4 tests import names stage 6 will create, and there is one shape that is red for a reason the driver
+accepts without freezing a lint error. For a name being added to a module that already exists, import the
+**module** and reach the attribute at the point of use: a missing attribute is a per-test `AttributeError`
+rather than a collection error. For a module that does not exist at all, put `import ... as module` in the
+**function body**, which isort does not sort, so it lints identically on both sides of stage 6 and raises
+the `ModuleNotFoundError` naming `poker_training_bot` that `red_for_the_right_reason` accepts.
+`from pkg.sub import missing_module` raises `ImportError`, which the driver refuses **and** which
+interrupts collection so that no assertion in any file runs - which is how a previous cut froze a completed
+phase's 32 tests having never executed them once. Every lane runs the registered command itself and greps
+for `Interrupted: N errors during collection`. `LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS`.
+
 ### Stage 4 re-cut, 2026-09-01 - superseded, folded away 2026-09-01
 
 The four-lane stage-4 re-cut against the six-spot set ran and landed at 30 failed / 82 passed / 4 skipped,
