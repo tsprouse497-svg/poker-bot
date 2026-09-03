@@ -3940,3 +3940,51 @@ the big blind's ten are refused for being the big blind's.
 
 Options: take-all-three | take-the-wording-only-and-keep-the-code-name | defer-to-stage-6
 Answer: [take-all-three]
+
+## 53. Five figures corrected, and what a second independent walk found beside them, taken 2026-09-02
+
+Reversibility: runtime-reversible
+Why that class: a record correction plus two prose fixes; it changes no ruling and no committed data.
+
+The fifth stage-1 review flagged five published figures that do not reproduce. Because those figures were
+about to be carried into a committed contract, a **second** measurement agent re-derived all five from the
+export without seeing the first agent's script. Its walk reproduces the four census buckets, the three-way
+coverage split to four decimals (51.9237 + 38.5422 + 8.1290) and the exposure margin (9.8642 against
+10.0234) from the export alone, so it was measuring under the ruled selection rule. **All five corrections
+are confirmed.** Where an earlier item states a different number, this item wins.
+
+| where | published | corrected | definition the corrected figure is under |
+|---|---|---|---|
+| decision 46 | 348 refused nodes carry **0.89** percent | **0.0342 percent** | arrival mass of the 348, as a share of the 33,969 |
+| decision 46 | - | the **0.88 percent** is the four-bet-and-deeper family | arrival mass of the 33,362 nodes at three or more raises in |
+| decision 49 | pure-call cells **1,179** (6.40%) | **748** (4.06%) | decision 45's own reading: the hand's *entire* weight on call |
+| decision 45 | 165 cells, **73** of them pure calls | 165 cells, **40** pure | same entire-weight reading; the 165 reproduces exactly |
+| contract Scope | retired chart, **half** priced at a jam | **36** of the 86, and **all 36** carry a jam | a `raise_to_bb` entry offering `to_bb == 100.0` |
+| contract, export | a lower target makes `achieved < target` false | achieved **0.00015591** clears `0.00016` by 2.6 percent | the source card's own `solve` block |
+
+Four notes that change how the corrections read.
+
+**Decision 46's ruling gets stronger, not weaker.** Raising the exposure threshold cost 0.0342 points, not
+0.89 - a factor of twenty-six less than the item claimed while arguing the cost was acceptable.
+
+**1,179 and 73 are not wrong numbers, they are the wrong measure under the right name.** Both are the
+`>= 99 percent` reading and both reproduce exactly under it; the entire-weight reading decision 45 defines
+gives 748 and 40. The denominator, 18,431 cells at non-zero reach, is right under both. The packet states
+which measure each figure is under, because two measures under one name is how this pair got published.
+
+**"Half priced at a jam" has a traceable origin and it is a different claim.** 50 of the retired chart's 86
+spot keys carry `@100` in the action sequence - hero *faces* a jam at 58 percent of spots. Being priced at
+one is 36 of 86. The contract now states the measured figure.
+
+**The rank arm's "scored only where it is defined" clause is load-bearing, not tidiness.** Re-derived: on
+the 219-spot partition the arm reads **32 solved against 33 permuted** - one cell - which confirms the
+review. Run instead over all 219 spots with absent-partner comparisons skipped, it reads **149 against 69
+and fails**, and fails at four other partitions too. The two readings of "closed under reversal" - all 169
+classes present, or the present set closed under the map - select the identical spots at all ten
+partitions, so that clause moves nothing. Tolerance does not flip it either: the arm passes at 0.0, 0.5,
+1.0, 2.0 and 5.0 points, with a margin of one to three cells everywhere above the ruled tolerance. **None
+of this softens the arm**; it records that a one-cell margin sits on the partition holding 219 of the 249,
+and that a change to which grids count as full is the change that would break it.
+
+Options: correct-all-five | correct-the-record-only-and-leave-the-contract | defer-to-stage-9
+Answer: [correct-all-five]

@@ -3212,6 +3212,30 @@ items:
       parent action frequencies down the path, and achieved_gap_bb divided by that probability
       compared against the pot. Nothing in this repo reads either. Related:
       INTERIOR-MIX-COUNT-BOUNDS-A-TWO-ACTION-NODE.
+      Every count above is over phase 14's retired 86-spot set and none of them survives the
+      cutover; the figure on the committed 249 is in
+      A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT.
+  - id: A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT
+    status: deferred
+    phase: "15"
+    title: 44 of the 249 committed spots have an arrival that rounds to zero, and a drill built on them drills nothing
+    reason: >-
+      Filed 2026-09-02 from the fifth stage-1 review of phase 14 and confirmed by a second
+      independent walk of the export. Of the 249 committed spots, 44 have an arrival probability
+      that rounds to zero in parts per billion under the repo's own rule in
+      chart_derivation.node_arrival_ppb, which is round(p * 1e9) == 0, so strictly below half a
+      part per billion. Under truncation instead of rounding it is 45; one spot sits between 0.5
+      and 1.0 ppb. Only 2 of the 249 have an arrival of exactly zero. The smallest non-zero
+      arrivals are 2.76e-26, 4.83e-24 and 8.18e-23. Phase 14 is right to commit them and right to
+      print the count - a spot that is rare is still solved, and the arrival grain is published
+      precisely so this is visible rather than inferred. The item is for phase 15. A drill that
+      samples committed spots uniformly spends a sixth of a student's time on situations they will
+      not meet in a lifetime of play, and a drill that samples by arrival never shows them a
+      three-bet pot at all, since the committed arrival is dominated by the five first-in spots.
+      Neither is right and phase 15 has to choose deliberately rather than inherit whichever falls
+      out of the artifact's iteration order. What would settle it is a stated sampling policy on
+      the drill with the arrival distribution printed beside it. Related:
+      ARRIVING-REACH-IS-NOT-A-TRAINED-NESS-MEASURE.
   - id: UNIFORM-ROW-TEST-IS-BLIND-AT-A-BINARY-NODE
     status: deferred
     phase: charts

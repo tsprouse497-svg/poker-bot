@@ -18,8 +18,8 @@ required_phase_audit: reports/phase_audits/PHASE_14_CHART_CUTOVER.md
 ## Scope
 **What is on disk right now, stated first because three rewrites of this contract described a state that
 had already changed.** The GTO Wizard chart is **already deleted**, and what is committed is
-`six_max_100bb_rakefree.json`, **86 spots from the superseded export**, half of them priced at a jam the
-ruled config cannot produce. Stage 6 replaces it, and a test asserts the artifact's source checksum equals
+`six_max_100bb_rakefree.json`, **86 spots from the superseded export**, **36** carrying a sizing entry and
+every one of the 36 priced at a jam the ruled config cannot produce. Stage 6 replaces it, and a test asserts the artifact's source checksum equals
 the export's - the check that would have caught it. Phase 10 captured a GTOpen solve of the game this bot
 trains for: six-handed, 100bb, rake-free. This phase derives the artifact from it and commits the ranges
 every later phase is measured against; hence `auto_advance: false` in `verification/loop_policy.yml`. The
@@ -64,7 +64,7 @@ inversions, and merged flats playing differently. Nothing gates on whether a ran
   by node, at **0 divergence and 0 shape differences**; and every node re-derived from its recorded path at
   **0** mismatches over all 33,969.
 - **The target is `0.00016` at a 2,000-iteration cap**, first met at iteration 1,900, so the cap nearly
-  binds and a lower target would make `achieved < target` false. The card carries one solve record,
+  binds; the achieved `0.00015591` clears the target by 2.6 percent. The card carries one solve record,
   refreshed checksums and a refreshed `size` block, its `bytes_per_expressible_spot` note being stale at 51
   spots. `data/artifacts` stays inside the 20 MiB cap; exceeding it is a halt, never a raise.
 - **The card must describe the export it ships beside**: node count, checksum and size are asserted

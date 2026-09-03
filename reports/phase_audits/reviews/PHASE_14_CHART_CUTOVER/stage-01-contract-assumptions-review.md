@@ -180,7 +180,15 @@ rest, which is what the contract already demands of the packet.
 ## Blockers, non-blockers, alignment
 
 - **Blockers**: finding 2 - **resolved 2026-09-02**, decision 52.
-- **Non-blockers**: findings 3 and 4 **fixed 2026-09-02** (decision 52); 5, 6 and 7 stand.
+- **Non-blockers**: findings 3 and 4 **fixed 2026-09-02** (decision 52). Findings 6 and 7
+  **fixed 2026-09-02** (decision 53), after a second measurement agent re-derived all five
+  figures from the export without seeing this review's script and confirmed every one; the two
+  contract lines are corrected and the record now says which measure each figure is under.
+  Finding 5 **stands and is confirmed**: the second walk also reads 32 against 33, and it adds
+  that the arm's restriction to spots closed under reversal is load-bearing - run over all 219
+  spots it reads 149 against 69 and fails. Recorded in decision 53, not acted on; the arm is not
+  softened. The 44 zero-arrival spots of finding 7 are filed for phase 15 as
+  `A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT`.
 - **Withdrawn**: finding 1, on Taylor's objection, re-checked against the export.
 - **Alignment**: finding 8, and the uncited big-blind band in finding 1. `HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES` already
   carries it; nothing in this stage can fix it.

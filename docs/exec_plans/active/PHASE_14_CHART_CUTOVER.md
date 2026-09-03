@@ -580,7 +580,7 @@ Work only in `~/projects/poker-bot-worktrees/phase-14` on `phase/14-chart-cutove
 5. **The bot's flats are merged into its raises, not deleted** (decision 45). At the 20 non-big-blind
    facing-an-open spots the published raise weight is the solve's raise plus its call. The big blind keeps
    fold, call and raise. Deleting was unimplementable: the solve puts some hands' whole weight on calling
-   and this chart is 93.9 percent pure.
+   and this chart is **93.20** percent pure at 99 percent or more (decision 49).
 6. **Defects accepted on purpose, each with a published cost.** The big blind defends too tight (34). The
    pair ladder inverts (41), the kicker ladder inverts (47) - its wheel-ace cases being **correct poker and
    not defects** - and 27 pair inversions sit on the raise action where play-not-fold is blind, now
@@ -600,9 +600,16 @@ Work only in `~/projects/poker-bot-worktrees/phase-14` on `phase/14-chart-cutove
   iterations to a better gap than the committed solve (0.000149 against 0.000156); every inversion
   reproduced identically, `44` at 0.6 percent from the lojack and the rest unmoved. Pruning is not the
   cause, so there is nothing stuck to free and the acceptances stand on a measured property of the source.
-- **The stage-1 review of the 2026-09-02 rewrite is owed**, by an agent that reviewed none of the three
-  previous rounds. Three rounds have run; every one found coordinator errors in the write-up rather than in
-  the analysis, so this is not a formality.
+- **The stage-1 review of the 2026-09-02 rewrite is done**, in
+  `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract-assumptions-review.md`. It found
+  one blocker (decision 52) and five figures that do not reproduce; a second, independent measurement agent
+  re-derived all five and confirmed every one, and decision 53 corrects them. Nothing from that review is
+  still open except finding 5, which is a recorded margin and not a task.
+- **The rank counterfactual arm passes the 219-spot partition by one cell**, 32 against 33, on the
+  partition holding 219 of the 249. Its restriction to spots closed under reversal is load-bearing: over
+  all 219 spots the arm reads 149 against 69 and fails. Anyone touching the tolerance, the closed-spot
+  definition, or which comparisons count is touching the only thing between that gate and a red. Do not
+  soften it to buy margin; a failure there is a halt and a decision for Taylor (decision 53).
 
 ### Do not
 
@@ -615,7 +622,9 @@ Work only in `~/projects/poker-bot-worktrees/phase-14` on `phase/14-chart-cutove
 ### The gate is red by design until stage 6
 
 `tests/**` is frozen against the superseded six-spot and 143-node specifications, so the phase's own
-commands fail on assertions. That is expected and is stage 4's to re-cut. Reverting a ruled constant to
+commands fail on assertions. That is expected and is stage 4's to re-cut against the **249**. The committed
+`data/artifacts/preflop/six_max_100bb_rakefree.json` in the tree is still the retired 86-spot chart; stage 6
+replaces it and it is not writable before then. Reverting a ruled constant to
 clear it erases the correction that produced it. Separately, twelve backlog entries fail
 `run_full_quality_gate`'s status and phase constants, which is MAINT-29's, not this lane's
 (`BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS`).
