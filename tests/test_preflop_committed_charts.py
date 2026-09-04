@@ -14,7 +14,9 @@ spot goes, and the price list is exactly 2.5, 7.5 and 22.5 with no jam anywhere.
 
 **And hero stopped cold-calling.** At the 20 non-big-blind facing-an-open spots each cell's call
 weight is added to its raise weight (decision 45), so the published menu there is raise or fold.
-The big blind's five keep fold, call and raise. The 219 publish fold, call and four-bet.
+The big blind's five keep fold, call and raise. The 219 publish fold, call and four-bet - offered,
+which at 81 of them is a four-bet no arriving hand takes, hero reaching those only by calling a
+raise then facing a re-raise. A helper filtering on weight reads five shapes, not four families.
 
 Every claim the cutover reverses is kept as its reversal rather than deleted: the four opening
 ranges that were refused are now answered, and the big blind's four-bet defence that was answered
@@ -134,12 +136,18 @@ def committed_export() -> SolverExport:
 
 
 def menus(library: PreflopChartLibrary) -> dict[str, tuple[str, ...]]:
-    """Per spot, the actions any class puts weight on, sorted. The published menu shape."""
+    """Per spot, every action the chart names in any class's row, sorted. The published menu shape.
+
+    The names, not the ones some hand takes. This filtered on `weight > 0.0` while calling its
+    result a menu, and over the 249 the two come apart: 81 spots offer a four-bet no arriving class
+    takes, hero reaching them only by calling a raise then facing a re-raise. Taken, the 249 read
+    as five shapes - 142, 65, 26, 13, 3 - not the two below, and the four families dissolve.
+    """
     found: dict[str, set[str]] = {}
     for spot_id, hand_classes in library.artifacts[0].action_weights:
         offered = found.setdefault(spot_id, set())
         for _, weights in hand_classes:
-            offered.update(action for action, weight in weights if weight > 0.0)
+            offered.update(action for action, _ in weights)
     return {spot_id: tuple(sorted(actions)) for spot_id, actions in found.items()}
 
 
@@ -148,15 +156,23 @@ def solved_line(
 ) -> tuple[PreflopAction, ...]:
     """`hero`'s line where each named seat raises at the price the chart solved there.
 
-    Each raising point now offers exactly one price, the jam having left with the four-bet family,
-    so `min` picks the only entry. It still works for a line the chart *refuses*, which the
-    refusal tests depend on: a refused query is still priced from the chart and misses anyway, so
-    nothing about the price refused it.
+    "There" is the spot **that seat** is acting at, not hero's. `solved_prices_bb` is addressed by
+    the spot's own hero, so hero's own raise is priced only by keys deeper than it - and for hero's
+    three-bet that key is the four-bet-facing one the depth clause withholds, which is why reading
+    it there worked on the retired chart and stopped working here. The sizing table prices each
+    committed spot directly, so each step reads the key its own raiser faces; `min` is the entry.
+
+    The line the refusal tests want is then built entirely out of committed spots even though the
+    spot it arrives at is not - `CO/rfi`, `BB/CO:raise@2.5` and `CO/CO:raise@2.5,BB:raise@7.5`
+    price 2.5, 7.5 and 22.5 - and each step asserts its own spot is committed as it goes.
     """
+    sizing = PreflopSizingTable.from_repo()
+    declared = set(library.spot_keys())
     sequence: list[PreflopAction] = []
     for raiser in raisers:
-        prices = library.solved_prices_bb(6, DEPTH_BB, hero, tuple(sequence), raiser)
-        assert prices, (hero, raiser, tuple(sequence))
+        key = derive_spot_key(6, DEPTH_BB, raiser, tuple(sequence))
+        prices = {size for name in HAND_CLASSES for size, _ in (sizing.sizes_bb(key, name) or ())}
+        assert key in declared and prices, (hero, raiser, key)
         sequence.append(PreflopAction(raiser, "raise", min(prices)))
     return tuple(sequence)
 
@@ -361,7 +377,7 @@ def test_the_published_menu_shapes_are_only_the_two(library: PreflopChartLibrary
     assert dict(counted) == {
         ("call", "fold", "raise"): BB_FACING_AN_OPEN + FACING_A_THREE_BET_SPOTS,
         ("fold", "raise"): FIRST_IN_SPOTS + MERGED_FACING_AN_OPEN,
-    }
+    }, counted
 
 
 def test_first_orbit_spots_cover_all_169_classes(library: PreflopChartLibrary) -> None:
@@ -409,8 +425,7 @@ def measured_aggregates(library: PreflopChartLibrary, export: SolverExport) -> A
             seat: library.action_frequency_pct(rfi_key(seat), "raise") for seat in OPENERS
         },
         defence_pct={
-            opener: 100.0
-            - library.action_frequency_pct(solved_key(library, "BB", opener), "fold")
+            opener: 100.0 - library.action_frequency_pct(solved_key(library, "BB", opener), "fold")
             for opener in OPENERS
         },
         limp_pct={"SB": 0.0},
@@ -465,8 +480,7 @@ class TestSourceFrequencies:
         """
         reference = load_expectations(EXPECTATIONS_PATH)
         as_measured = Aggregates(
-            opening_pct=reference.opening_pct,
-            defence_pct=reference.defence_pct,
+            opening_pct=reference.opening_pct, defence_pct=reference.defence_pct,
             limp_pct=reference.limp_pct,
         )
         measured = measured_aggregates(library, committed_export)
@@ -475,9 +489,7 @@ class TestSourceFrequencies:
         assert ordering_errors(measured) == []
         assert ordering_errors(as_measured) == []
         for tighter, wider in zip(OPENING_ORDER, OPENING_ORDER[1:], strict=False):
-            assert measured.opening_pct[wider] > measured.opening_pct[tighter], (
-                measured.opening_pct
-            )
+            assert measured.opening_pct[wider] > measured.opening_pct[tighter], measured
         for opener in OPENERS:
             assert measured.opening_pct[opener] == pytest.approx(
                 solved.opening_pct[opener], abs=0.01
@@ -547,10 +559,8 @@ class TestSizingTable:
         for spot_id, hand_classes in library.artifacts[0].action_weights:
             for hand_class_text, weights in hand_classes:
                 entries = sizing.sizes_bb(spot_id, hand_class_text)
-                assert (entries is not None) == (dict(weights).get("raise", 0.0) > 0.0), (
-                    spot_id,
-                    hand_class_text,
-                )
+                cell = (spot_id, hand_class_text)
+                assert (entries is not None) == (dict(weights).get("raise", 0.0) > 0.0), cell
                 cells[0 if entries is None else len(entries)] += 1
 
         assert sum(cells.values()) == CELLS_AT_NON_ZERO_REACH
@@ -562,13 +572,15 @@ class TestSizingTable:
         offering no raise carries no key, and the 249 contain no such spot. Every family ends in an
         aggressive action - the five open, the twenty-five raise or three-bet, the two hundred and
         nineteen four-bet - so the case cannot be exercised. Asserted as an equality rather than
-        skipped, because the equality *is* the measurement and a later solve moves it."""
+        skipped, because the equality *is* the measurement and a later solve moves it.
+
+        Whether the spot carries a key, not whether some class takes a price under it. This asked
+        `sizes_bb` per class, which answers None where a class does not raise, so it counted the 168
+        spots an arriving hand raises at, not the 249 that carry a key - 81 hold an empty map.
+        """
         sizing = PreflopSizingTable.from_repo()
-        priced = {
-            spot_id
-            for spot_id, hand_classes in library.artifacts[0].action_weights
-            if any(sizing.sizes_bb(spot_id, name) for name, _ in hand_classes)
-        }
+        rows = library.artifacts[0].action_weights
+        priced = {key for key, _ in rows if key in sizing.raise_to_bb}
 
         assert len(priced) == COMMITTED_SPOTS
         assert set(library.spot_keys()) - priced == set()
@@ -659,10 +671,8 @@ class TestSizingTable:
                 if entries is None:
                     continue
                 answered += 1
-                assert sizing.amount_bb(spot_id, name) == pytest.approx(entries[0][0]), (
-                    spot_id,
-                    name,
-                )
+                cell = (spot_id, name)
+                assert sizing.amount_bb(spot_id, name) == pytest.approx(entries[0][0]), cell
 
         assert answered > 0
 

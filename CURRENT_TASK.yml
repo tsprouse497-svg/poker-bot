@@ -11,6 +11,8 @@ approved_scope:
   - scripts/convert_preflop_export.py
   - scripts/generate_derived_chart_report.py
   - scripts/generate_preflop_equity_matrix.py
+  - tests/test_preflop_committed_charts.py
+  - verification/freeze.lock
   - pyproject.toml
   - uv.lock
   - data/artifacts/preflop/**
@@ -35,6 +37,30 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-04
+    reason: >-
+      `tests/test_preflop_committed_charts.py` fails three assertions against the committed 249 and sits
+      in the gate twice, on `pytest_preflop_artifacts` and on the base `pytest`. It was not among the
+      nine files the stage-4 migration touched and nobody had run it against the new chart until the
+      blocker-resolution lane did, so this is a tenth, eleventh and twelfth instance of the defect the
+      other nine were, found after the re-freeze rather than before it.
+      All three are one cause and I measured it directly rather than taking it on report. Every
+      assertion in the file expects the menu a spot **offers**; every helper measures what a hand
+      **takes**. `menus()` filters `weight > 0.0` while its own docstring calls the result "the
+      published menu shape", and the assertion beside it expects 224 and 25 - which is exactly what the
+      chart publishes on the offered reading, 5 + 219 with a call and 5 + 20 without. On the taken
+      reading it reads five shapes, including 13 spots that fold every hand and 3 that only call. The
+      sizing test reads through `sizes_bb`, which answers None where a class does not raise, and expects
+      the 249 that carry a key.
+      So the correction is to the **helpers**, not to a single expected count, which is the safest form
+      any of the twelve has taken: the assertions and the docstrings already say the right thing and the
+      measurement underneath them does not. `verification/freeze.lock` rejoins for the third re-freeze.
+      Taylor ruled the principle on 2026-09-03 and again on 2026-09-04 - corrections authored by a lane
+      that wrote none of the implementation, intent preserved, no count moved to match the code, both
+      reviewers reading the diff. I am applying it a third time rather than asking a third time about an
+      identical question, and disclosing that the surface has grown from the five files and seven
+      assertions he ruled on to seven files and twelve. That growth is itself a finding about the
+      stage-4 migration and is filed rather than buried.
   - date: 2026-09-04
     reason: >-
       The re-freeze is committed at d635b49 and the narrowing goes back on. All five test paths,
