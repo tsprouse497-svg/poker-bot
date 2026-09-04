@@ -88,11 +88,11 @@ def strip_sizes(spot_key_text: str) -> str:
     say, and the two can disagree.
 
     What it is for is now the worked example alone: the report shows one committed key
-    beside its own v1 form, so a reader sees what the size suffix added. The re-derivation
-    section that mapped every key this way was retired with the chart cutover, along with
-    the two checks over it - the old keys are no longer a bijection with the new ones, 86
-    committed keys stripping to 51, and the phase 12 weights checksum belongs to a solve the
-    repo no longer ships.
+    beside its own v1 form. The re-derivation section that mapped every key this way was
+    retired with the cutover: the chart it compared against is gone from the tree, and the
+    phase 12 weights checksum belongs to a solve the repo no longer ships. The reason given
+    here before - "86 committed keys stripping to 51" - does not hold; measured 2026-09-04,
+    the 249 committed keys strip to 249 distinct forms, so stripping is still injective.
     """
     return _SIZE_SUFFIX.sub("", spot_key_text)
 
@@ -369,9 +369,9 @@ class Restated:
     `since_branch` names what would have moved the figure away from its branch-point value,
     for the rows where something has. "Moved" on its own is the smallest useful cause a
     reader can be given: the branch column already says the number changed, and what the
-    restatement owes is why. It is per row because the causes are not the same - the corpus
-    refusal total moves because the chart cutover gave fifteen spots up, while a self-play
-    figure moves because re-keying re-seeds the draws.
+    restatement owes is why. It is per row because the causes differ. It must not say which
+    WAY a figure moved - this row once read "gave fifteen retired spots up" beside a total
+    that had fallen - and direction is derived in `vocabulary_corpus_report._movement_lines`.
     """
 
     label: str
@@ -438,7 +438,7 @@ def restated_numbers() -> tuple[Restated, ...]:
             lambda result: str(
                 sum(1 for row in result.rows if row.refusal is not None)
             ),
-            since_branch="the chart cutover, which gave fifteen retired spots up",
+            since_branch="the chart cutover",
         ),
         Restated(
             "Pluribus agreement",

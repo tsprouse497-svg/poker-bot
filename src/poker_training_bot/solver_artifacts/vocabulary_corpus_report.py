@@ -47,9 +47,16 @@ def inventory_lines(result: ComparisonResult) -> list[str]:
     The direction is computed from the count rather than asserted beside it. An earlier
     version of this prose argued the total had risen while the table under it printed a total
     that had fallen, which is worse than a stale figure: a reader trusts the sentence and
-    distrusts the number. Nothing here states a live figure it does not derive, and the two
-    retired-chart counts named below are historical constants read off the artifact
-    `data/artifacts/preflop/six_max_nl25_100bb.json` carried at this branch's merge base.
+    distrusts the number. Nothing here states a live figure it does not derive.
+
+    The retired-chart figures below cannot be derived, and this is where they come from
+    rather than a place they are asserted. The retired artifact is not in the tree: it was
+    deleted by the cutover, so a gate command cannot read it, and reading it out of a
+    revision would make a report depend on git history. So they are historical constants,
+    measured 2026-09-04 against
+    `git show ada5205:data/artifacts/preflop/six_max_nl25_100bb.json`, where `ada5205` is
+    this branch's merge base with `main` - 36 spots, and 17 of its keys absent from the
+    committed 249, of which 16 have a same-shape counterpart once prices are stripped.
     """
     catch_all = [
         entry for entry in result.refusal_inventory if entry.spot_key == "(no expressible spot)"
@@ -90,9 +97,8 @@ def inventory_lines(result: ComparisonResult) -> list[str]:
         "facing a single raise, 15 facing a three-bet, and the big blind facing a small-blind",
         "limp. The chart committed now holds the count this report's header prints, it keeps",
         "all five of those first-in ranges, and it goes much further into the spots facing a",
-        f"three-bet. So the total above is {_direction(len(refused), 290)}",
-        "the 290 the vocabulary phase measured, and that is the whole of the direction this",
-        "section claims.",
+        f"three-bet. The total above is {_direction(len(refused), 290)} the 290 the vocabulary",
+        "phase measured, and that direction is the whole of what this section claims.",
         "",
         "What it still does not hold is a spot where hero is answering a four-bet. Every",
         "committed key has hero facing at most two raises - it prices hero's own four-bet as",
@@ -101,11 +107,29 @@ def inventory_lines(result: ComparisonResult) -> list[str]:
         "earlier version of this section said four-bet and five-bet continuations were",
         "committed heads-up. They are not, and they were not.",
         "",
-        "One situation the retired chart answered is gone at every price, and it is the only",
-        "one: the big blind facing a small-blind limp. This solve was run with limping",
-        "switched off, so the small blind's first-in range never limps and the tree has no",
-        "such node to price. That is a ruling's consequence rather than a gap, and the limped",
-        "pots the sample does contain are refused for it.",
+        "Every retired-chart figure in the two paragraphs above and the two below is a",
+        "historical constant rather than a measurement taken on this run, and it is labelled",
+        "that way because the module it lives in forbids the two sharing a column. The retired",
+        "artifact was deleted by the cutover, so nothing here can read it: the figures were",
+        "measured on 2026-09-04 against the copy carried at this branch's merge base with",
+        "`main`, and a later chart would leave them describing a comparison nobody re-ran.",
+        "",
+        "Seventeen of the retired chart's 36 keys are absent from the committed set, and that",
+        "is the figure a reader is most likely to be handed as what the cutover cost. It is",
+        "not what it cost. Sixteen of the seventeen are the same situation at a price this",
+        "solve moved: one is the small blind's open, which went from 3.5 to 2.5, and fifteen",
+        "are three-bets, which went from 8, 10.5, 11 or 13.5 to a single 7.5. Strip the prices",
+        "out and all sixteen have a counterpart in the committed set.",
+        "",
+        "The seventeenth is gone at every price, and it is the only situation that is: the big",
+        "blind facing a small-blind limp. This solve was run with limping switched off, so the",
+        "small blind's first-in range never limps and the tree holds no such node to price.",
+        "That is a ruling's consequence rather than a gap, and the limped pots the sample does",
+        "contain are refused for it.",
+        "",
+        "Keys given up and situations given up are different claims, and the difference here",
+        "is sixteen against one. Only the second kind is a cost, which is why this section",
+        "counts both rather than reporting the larger number on its own.",
         "",
         "The deepest sequence the committed sample reached, now expressible:",
         "",
