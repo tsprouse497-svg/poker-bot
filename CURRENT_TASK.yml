@@ -1,9 +1,8 @@
 task_id: PHASE_14_BUILD
 active_phase: "14"
 task_mode: implementation
-base_commit: c45013bd14ce2bc666415740350f17295b54f85a
+base_commit: d635b492a89ddf2b6bdd7a98855727daa9cd2a6b
 approved_scope:
-  - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/chart_*.py
   - src/poker_training_bot/solver_artifacts/schema.py
   - src/poker_training_bot/solver_artifacts/lookup.py
@@ -19,13 +18,6 @@ approved_scope:
   - src/poker_training_bot/data_pipeline/**
   - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
   - src/poker_training_bot/solver_artifacts/vocabulary_report.py
-  - tests/test_spot_vocabulary_report.py
-  - verification/mutations.yml
-  - tests/test_derived_chart_report_validators.py
-  - tests/test_spot_vocabulary.py
-  - tests/test_spot_vocabulary_downstream.py
-  - tests/test_sample_comparison.py
-  - tests/test_sample_comparison_report.py
   - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
 standing_scope:
@@ -43,6 +35,21 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-04
+    reason: >-
+      The re-freeze is committed at d635b49 and the narrowing goes back on. All five test paths,
+      `verification/mutations.yml` and `verification/freeze.lock` leave `approved_scope`, so from here
+      nothing in this phase may write a test, a canary or the lock - which is the protection stage 5
+      exists for, restored for the run to the gate. What stays open is the implementation: the two
+      scripts, the package modules, `data/artifacts/preflop/**`, the decision list and the review
+      directory.
+      `base_commit` moves to d635b49 on the same argument that moved it to the stage-5 freeze. Scope is
+      measured as the diff from `base_commit`, and the nine corrections and the canary repair were
+      legitimately in scope under their own dated entries; left at c45013b they would read from here on
+      as the builder writing tests and canaries, which is exactly what this narrowing exists to stop.
+      Taylor's condition for re-opening either was that both independent stage-6 reviewers read the
+      diff. They read it against this commit, so the corrections and the canaries are in front of them
+      whether or not the paths are still writable.
   - date: 2026-09-04
     reason: >-
       `verification/freeze.lock` re-enters approved_scope for the re-freeze alone. All nine frozen-test
