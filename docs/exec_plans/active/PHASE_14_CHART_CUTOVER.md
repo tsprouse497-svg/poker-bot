@@ -432,14 +432,61 @@ is `frozen-into-data` it stops for Taylor.
 - Expected outputs: each lane returns a patch confined to the files it owns, the commands it ran with
   their output, a changed-file summary, and the frozen tests it made pass or found failing, plus any
   figure that would not reproduce stated as a finding rather than fixed by moving a tolerance.
-- Status: wave 1 assigned 2026-09-03, A and C1 running concurrently on disjoint files. Waves 2 and 3
-  planned. Reviews planned.
+- Status: waves 1 and 2 landed and committed at a0f32a2 - A, C1 and B all green on the files they
+  own, 64 passed and 4 skipped across the phase's five selection and conversion files. Wave 3 (C2,
+  the report) is held until lane M's loader repair lands, because the generator loads the sizing
+  table. Lane M (the two runtime repairs) and an independent read-only triage of the nine migrated
+  frozen tests are running. Reviews planned.
 - Integration order: A and C1 concurrently, then B on the artifact, then C2 on the report. The
   coordinator runs the phase's two command IDs after each wave and the full gate only after C2.
 - Review handoff: two read-only reviewers at the end of the stage, mechanical and poker, neither
   having written any of it and neither having seen the other's work, to
   `stage-06-build-review-mechanical.md` and `stage-06-build-review-poker.md` with the index in
   `stage-06-build-review.md`, under the three required headings.
+
+### What the build found that stage 4 did not, 2026-09-03
+
+Four things, each measured rather than argued, and none of them a number a lane adjusted.
+
+**A frozen test that cannot pass, and Taylor's ruling on it.**
+`test_derived_chart_report_validators.py::test_the_per_cell_relations_are_counted_at_the_tolerance_decision_10_pinned`
+builds a full 169-class monotone grid and then applies decision 10's boundary overrides, which were
+written for a bare two-cell grid. `monotone` puts `55` at 71.2, so setting `44` to 90.0 fires the
+adjacent `("55","44")` comparison the two-cell case never had. Three assertions are unsatisfiable and
+the proof needs no code: one case requires a gap of 1.01 to count, another requires a gap of 18.80
+not to. Two independent measurement passes confirmed it and a third swept the other eight frozen
+files of this phase and found nothing else of the shape. **Taylor ruled on 2026-09-03 to correct the
+fixture rather than the expected counts**, keeping the boundary the docstring states: `44` and `33`
+move to 70.0 and 71.0 / 71.01, and the 27-point case names `55` at 72.0 so only the `("44","33")`
+pair fires. Held for one ruling and one re-freeze with whatever the migrated-test triage returns.
+
+**Eighty-one committed spots price nothing, and all eighty-one are reached only by a call the bot
+never makes.** The sizing table holds a key for all 249 and 81 of the maps are empty: the menu offers
+hero a raise and no hand he can be holding takes it. Every one faces a three-bet, none is the big
+blind, and every one has hero's own call in its action sequence - 106 of the 249 do, and these are
+the 81 of those where hero never raises. Since decision 45 merges the bot's flats into its raises
+outside the big blind, the bot's own published strategy cannot reach them; the solve does, and an
+opponent does. That is the other face of
+`MERGED-FLATS-PLAY-DIFFERENTLY-NOT-JUST-DIFFERENTLY-LABELLED` and it is a finding for the packet and
+the poker review, not a reason to reopen a ruled selection.
+
+**The sizing loader and a corpus constant were both written for the 86.**
+`PreflopSizingTable.from_json` refuses an empty class map by name, which is every one of the 130
+setup errors in the nine migrated files, and `comparison.py`'s `OPEN_SIZE_SPOTS` names one first-in
+spot where the chart now has five. Both are stale code rather than defects in the cutover, both are
+in scope under the 2026-09-03 entry, and lane M owns them.
+
+**Two canaries no longer apply.** `derivation-predicate-drops-its-subtree-clause` attacks the
+superseded two-clause predicate and is dead rather than relocated;
+`a-spot-above-the-exposure-threshold-is-committed` needs only its `file:` field moved to
+`chart_selection.py`, where `MULTIWAY_EXPOSURE_THRESHOLD_PCT` now lives and where the predicate reads
+it rather than hardcoding ten beside it. `check_gate_bite` refuses a stale find string rather than
+planting anything, so both fail clean. Taylor ruled the file re-opened for a lane that wrote none of
+the implementation.
+
+**The ledger's pin is re-taken at `6f15724`**, the last commit carrying the retired 86-spot chart and
+its 36 jam-priced sizing entries. The generator still names `d046ac9`, which is the GTO Wizard chart
+deleted before the phase restarted, and the frozen cutover test reads the 86-spot pair.
 
 ### The numbers a lane may use, and where each is ruled
 

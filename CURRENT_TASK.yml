@@ -11,6 +11,9 @@ approved_scope:
   - scripts/convert_preflop_export.py
   - scripts/generate_derived_chart_report.py
   - data/artifacts/preflop/**
+  - src/poker_training_bot/strategy/preflop_sizing.py
+  - src/poker_training_bot/data_pipeline/comparison.py
+  - verification/mutations.yml
   - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
 standing_scope:
@@ -28,6 +31,32 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-03
+    reason: >-
+      Three paths open at stage 6 that the freeze narrowing did not anticipate, each for a reason the
+      build measured rather than assumed.
+      `src/poker_training_bot/strategy/preflop_sizing.py`: the committed sizing table now holds a key
+      for all 249 spots, and at 81 of them the class map is empty - the spot's menu offers hero a
+      raise and no hand he can be holding there ever takes it. All 81 face a three-bet and all 81 are
+      reached only through hero's own cold call. The frozen conversion spec requires the key to be
+      present, asserting `set(sizes) == set(keyed)` over the 249 and reading each key's classes as
+      exactly the classes with a positive published raise; the loader written for the 86-spot chart
+      refuses an empty map by name, and that single `ValueError` is every one of the 130 errors in the
+      nine migrated files. Keeping the key is what lets a reader tell "the menu offers a raise nobody
+      takes" from "the menu offers none", which the conversion spec draws as a distinction in as many
+      words, so the loader is what moves.
+      `src/poker_training_bot/data_pipeline/comparison.py`: `OPEN_SIZE_SPOTS` is a one-element tuple
+      naming `t6/d100/SB/rfi`, hand-typed when the chart held 86 spots and opened from one seat. The
+      chart now opens from all five, so the constant is stale in exactly the way
+      `HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES` names.
+      `verification/mutations.yml`: it left scope at the freeze so a builder could not defang the
+      canaries, and two of them now point at lines the selection rewrite legitimately moved or
+      deleted, which `check_gate_bite` reports as a clean refusal rather than a plant. Stage 4's own
+      notes already list canary debt for stage 6, so this was foreseen. Taylor ruled on 2026-09-03 to
+      re-open the one file, on the condition that a lane which wrote none of the implementation
+      authors it and both stage-6 reviewers read it.
+      `tests/**` stays out. The frozen-test corrections this stage has found are held for one ruling
+      and one re-freeze rather than taken file by file.
   - date: 2026-09-03
     reason: >-
       Phase 14 stage 5 freezes the tests and narrows scope for the build. The freeze at c45013b
