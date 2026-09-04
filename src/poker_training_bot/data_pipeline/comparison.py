@@ -355,14 +355,13 @@ def _self_play_spots() -> frozenset[str]:
     Read rather than recomputed. The point of the cross-reference is "did the
     simulator already find this", and only the simulator's own output can answer it.
 
-    It fails loudly when it finds nothing, and that is the important part. This is the
-    one input to the comparison that is not the committed sample, and it is recovered
-    by pattern from a rendered report rather than from a structured file. An empty
-    result is therefore indistinguishable from a real answer: every spot silently
-    becomes NEW, and the phase's most actionable claim - that real hands find spots
-    self-play never reaches - inverts into a claim that they find all of them, with a
-    passing gate underneath it. A missing or unrecognisable inventory is a broken
-    cross-reference, not an empty one.
+    It fails loudly when it finds nothing, and that is the important part. This is the one input
+    to the comparison that is not the committed sample, and it is recovered by pattern from a
+    rendered report rather than from a structured file. An empty result is therefore
+    indistinguishable from a real answer: every spot silently becomes NEW, and the phase's most
+    actionable claim - that real hands find spots self-play never reaches - inverts into a claim
+    that they find all of them, with a passing gate underneath it. A missing or unrecognisable
+    inventory is a broken cross-reference, not an empty one.
     """
     if not SELF_PLAY_INVENTORY.is_file():
         raise FileNotFoundError(
@@ -371,7 +370,8 @@ def _self_play_spots() -> frozenset[str]:
         )
     spots = set()
     for line in SELF_PLAY_INVENTORY.read_text(encoding="utf-8").splitlines():
-        for token in line.split():
+        # A key prints twice per spot, bare and as `<key>:` heading its hand classes.
+        for token in (word.rstrip(":") for word in line.split()):
             if token.startswith("t") and token.count("/") >= 3:
                 spots.add(token)
     if not spots:

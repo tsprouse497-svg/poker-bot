@@ -276,22 +276,25 @@ def test_the_sampled_action_match_rate_is_reported_as_judgment_call_5_ruled(
     mostly measures the seed - but the ruling said both would be there, and the fallback the
     ruling offered a disagreeing reader was that both are in the report.
 
-    **The equality between the two denominators comes back.** Its own docstring named the
+    **The equality between the two denominators does not come back.** Its own docstring named the
     condition before it happened: "a spot whose weights are readable but whose raise size is
     not committed would give no draw". Decision 6 holds every price a spot offers, and 21 of
     the 86 committed spots offered two - a named raise and the 100bb jam - so `amount_bb`
     answered None at every one of them and the round-4 rewrite dropped `drawn == denominator`
     for a nine-in-ten floor. The cutover holds prices exactly 2.5, 7.5 and 22.5, one per
     spot, with hero's own jam only at the four-bet-facing spots the selection rule excludes.
-    No committed spot offers two prices, so no scored decision can come back undrawn, and the
-    floor goes back to being the equality it was written as. A sizing table answering None
-    anywhere now fails it by exactly the rows it could not price.
+    This test asserted the equality back on that reasoning, and the reasoning does not reach:
+    one price per spot stops a spot being unpriceable, not a raise being illegal. Two scored
+    human decisions do come back undrawn. The lookup moved a 13.5 and a 13.25 three-bet down
+    to the solved 7.5, and over the price hero actually faced the chart's four-bet no longer
+    clears the minimum, so there is no legal size to draw. Both carry the substitution that
+    caused it, so `stranded` is empty - and `stranded` is the check that was always intended.
 
-    That leaves the legality guard, which the equality covers: a charted raise the table
-    refuses in front of hero because it does not clear the minimum. That can only happen
-    where the lookup moved the price it was asked about, since over a price the tree itself
-    solved the next raise up is always legal - 7.5 over 2.5, 22.5 over 7.5 - so every undrawn
-    decision would carry a substitution, and `stranded` names any that does not.
+    It is the legality guard and it is the whole of it: a charted raise the table refuses in
+    front of hero because it does not clear the minimum. That can only happen where the lookup
+    moved the price it was asked about, since over a price the tree itself solved the next
+    raise up is always legal - 7.5 over 2.5, 22.5 over 7.5 - so every undrawn decision must
+    carry a substitution, and `stranded` names any that does not.
 
     `exact` is floored in the other direction and stays at one in five. Non-emptiness would
     be satisfied by one unsubstituted decision in the whole sample, and a normaliser that
@@ -300,6 +303,14 @@ def test_the_sampled_action_match_rate_is_reported_as_judgment_call_5_ruled(
     and 1,490 of 2,302 under the 86, 23 of 72 and 165 of 447 under the six-spot reading - and
     the direction it moves now is up: a first-in decision carries no price in its key at all,
     and four more first-in families are committed than were before.
+
+    **The three-point margin between the two rates is gone**, because no chart could meet it.
+    The measures differ only where a cell is mixed, and the cutover's cells are far purer than
+    the retired chart's: 14 of the 475 scored Pluribus decisions sit on a mixed cell, which
+    caps the gap at 2.947 points before a seed is drawn. Measured, it is 1.895 there and 1.653
+    for the humans. Kept is the part still alive - the draw must be the stricter measure, and
+    it must fall the other way from the weight on at least one row, 9 of them and 40 today - so
+    a build printing the looser number twice still fails.
     """
     text = render_comparison_report(comparison)
     assert "sampled-action match rate" in text.lower()
@@ -322,12 +333,17 @@ def test_the_sampled_action_match_rate_is_reported_as_judgment_call_5_ruled(
         assert nonzero_weight.denominator == len(scored)
         assert sampled.denominator == len(drawn)
         assert not stranded, stranded
-        assert undrawn == [], [row.spot_key for row in undrawn]
         assert len(exact) * 5 >= len(scored), (population, len(exact), len(scored))
 
         # And it must be the stricter measurement, not a second printing of the looser
         # one. A mixed cell that draws the other way agrees and does not match.
-        assert sampled.percent < nonzero_weight.percent - 3.0
+        diverged = [
+            row
+            for row in drawn
+            if (row.verdict == AGREE) != (row.sampled_action == row.observed_action)
+        ]
+        assert diverged, (population, "the draw never falls the other way from the weight")
+        assert sampled.percent < nonzero_weight.percent
 
 
 def test_the_comparison_is_a_pure_function_of_the_committed_sample(sample) -> None:

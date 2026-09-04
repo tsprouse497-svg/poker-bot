@@ -39,6 +39,7 @@ from poker_training_bot.hand_history.schema import (
     StreetName,
 )
 from poker_training_bot.poker_core.positions import seat_positions
+from poker_training_bot.solver_artifacts.vocabulary_measures import strip_sizes
 
 # The first hand of the corpus, verbatim. Embedded rather than read from the committed
 # sample so the conversion tests describe the format itself and keep working even if
@@ -550,8 +551,7 @@ def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> Non
     # A cold call facing exactly one raise: the population decision 45 rules on. A scored
     # row cannot be a limped pot reopened by a raise, since no committed spot holds a limp.
     flats = [
-        row
-        for row in comparison.rows
+        row for row in comparison.rows
         if row.population == "humans"
         and row.observed_action == "call"
         and row.raises_faced == 1
@@ -562,19 +562,15 @@ def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> Non
 
     assert defended, "no scored blind defence, so the merge has nothing to be told from"
     assert elsewhere, "no scored flat outside the blind, so the merge is untested"
-    assert all(row.verdict == DISAGREE for row in elsewhere), [
-        (row.position, row.asked_spot_key) for row in elsewhere if row.verdict == AGREE
-    ]
+    agreed = [(row.position, row.asked_spot_key) for row in elsewhere if row.verdict == AGREE]
+    assert not agreed, agreed
     # The other side of the partition, and the reason the line above is about the merge
     # rather than about the chart having no calls anywhere: a build that merged the big
     # blind too would leave this one with nothing.
-    assert any(row.verdict == AGREE for row in defended), [
-        row.asked_spot_key for row in defended
-    ]
+    assert any(row.verdict == AGREE for row in defended), [r.asked_spot_key for r in defended]
 
     limped_open = [
-        row
-        for row in comparison.rows
+        row for row in comparison.rows
         if row.population == "humans"
         and row.position == "SB"
         and row.observed_action == "call"
@@ -641,11 +637,10 @@ def test_the_self_play_cross_reference_was_read_rather_than_defaulted(comparison
     was about. Asserted instead is the column's definition: `seen_in_self_play` is exactly
     membership of `_self_play_spots()`, recomputed from the same read, then both halves on sets.
 
-    The overlap is no longer a certainty argued from one spot. Under the 86 the lojack opened
-    every self-play hand into a retired key the corpus reached once a hand; all five opening
-    ranges are committed now, so self-play refuses past the committed raise depth instead. The
-    corpus reaches those too, by an argument this file cannot close yet, so a red at stage 6 is
-    a finding about two refusal sets rather than a threshold to loosen.
+    The overlap half is measured on price-stripped SHAPES, ruled on 2026-09-03. On full keys it is
+    0 and cannot be otherwise: self-play plays only the three solved prices while the corpus plays
+    the prices humans played, so one three-bet pot is `CO:raise@7.5,HJ:raise@23` here and `@7.5,
+    @22.5` there. Five shapes overlap, so this is a live reading rather than an unfailable claim.
 
     Both halves read a rendered report, so they depend on it being regenerated in the same commit
     as the chart: a stale inventory naming the retired chart's gaps lies.
@@ -661,7 +656,8 @@ def test_the_self_play_cross_reference_was_read_rather_than_defaulted(comparison
     assert inventory
     assert seen == named & reached, sorted(seen.symmetric_difference(named & reached))
     assert unseen == named - reached, sorted(unseen.symmetric_difference(named - reached))
-    assert seen, "no corpus gap spot is one self-play reaches, so the overlap half is gone"
+    shared = {strip_sizes(spot) for spot in named} & {strip_sizes(spot) for spot in reached}
+    assert shared, "no corpus gap shape is one self-play reaches, so the overlap half is gone"
     assert unseen, "self-play reaches every corpus gap spot, so the NEW half is gone"
 
 
@@ -692,9 +688,13 @@ def test_the_refusal_inventory_is_ordered_most_reached_first(comparison) -> None
 def test_the_inventory_says_which_spots_the_self_play_run_never_reached(comparison) -> None:
     """The column's values; the test above owns its definition. `in {True, False}` was the whole
     body and admits 1, 0 and 1.0 as well as an empty inventory, so a column carrying a count read
-    the same - `render_refusal_inventory` prints NEW on falsiness and would print it for 0."""
+    the same - `render_refusal_inventory` prints NEW on falsiness and would print it for 0. It
+    then asked for both values, which this chart cannot give: the column compares full keys and
+    that overlap is 0 for the reason above, so every row reads NEW; the shape is the live half."""
     flags = [entry.seen_in_self_play for entry in comparison.refusal_inventory]
+    shapes = {strip_sizes(entry.spot_key) for entry in comparison.refusal_inventory}
 
     assert flags
     assert all(isinstance(flag, bool) for flag in flags)
-    assert set(flags) == {True, False}, "the column reads the same at every spot"
+    assert set(flags) == {False}, "a spot reads SEEN, so the key overlap is no longer empty"
+    assert shapes & {strip_sizes(s) for s in comparison_module._self_play_spots()}, "no shape"

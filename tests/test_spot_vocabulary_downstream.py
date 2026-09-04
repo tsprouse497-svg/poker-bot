@@ -459,8 +459,7 @@ def keyed_rows(comparison) -> tuple:
 def test_no_corpus_decision_refuses_as_unrepresentable(comparison) -> None:
     """CORPUS-INEXPRESSIBLE-SPOTS closed. All 19 were a position acting twice."""
     unrepresentable = [
-        row
-        for row in comparison.rows
+        row for row in comparison.rows
         if row.refusal is not None and row.refusal.code.endswith(MISS_UNREPRESENTABLE_SPOT)
     ]
     assert unrepresentable == []
@@ -469,9 +468,7 @@ def test_no_corpus_decision_refuses_as_unrepresentable(comparison) -> None:
 def test_the_inventory_has_no_catch_all_row(comparison) -> None:
     """19 points, the inventory's largest row and the one nobody could act on."""
     catch_all = [
-        entry
-        for entry in comparison.refusal_inventory
-        if entry.spot_key == "(no expressible spot)"
+        entry for entry in comparison.refusal_inventory if entry.spot_key == "(no expressible spot)"
     ]
     assert catch_all == []
 
@@ -486,9 +483,12 @@ def test_the_second_orbit_rows_are_refused_by_name_rather_than_as_a_catch_all(
 ) -> None:
     """Phase 12 gave these 19 decision points a key and left them uncovered, expecting phase 14
     to fill them. It does the opposite, and that is the ruling rather than a regression: the
-    raise-depth clause commits nothing past two raises in, so no committed key names a seat
-    twice and every four-bet-and-beyond continuation is refused. `CHART-COVERAGE-EXPANSION` is
-    restated with its node count and a route back, not closed.
+    raise-depth clause commits nothing past two raises in, so every four-bet-and-beyond
+    continuation is refused. `CHART-COVERAGE-EXPANSION` is restated with its node count and a
+    route back, not closed. This used to add "so no committed key names a seat twice", which does
+    not follow from the depth clause and is false here: 22 committed keys do name one, each a seat
+    that called and then acted again after a re-raise behind it - one raise deep, inside the ruled
+    depth. So the depth itself is asserted, and the 19 are refused for exceeding it.
 
     What phase 12 bought survives and is the whole claim here. Each of the 19 is refused **by
     name**: before the widened key they were the inventory's catch-all row, 19 points naming no
@@ -498,12 +498,10 @@ def test_the_second_orbit_rows_are_refused_by_name_rather_than_as_a_catch_all(
     arrive there wearing a covered shape and read as absent coverage."""
     covered = {spot_shape(key) for key in library.spot_keys()}
     second_orbit = [row for row in keyed_rows(comparison) if acts_twice(row.asked_spot_key)]
-    inventory = [
-        entry for entry in comparison.refusal_inventory if acts_twice(entry.spot_key)
-    ]
+    inventory = [entry for entry in comparison.refusal_inventory if acts_twice(entry.spot_key)]
 
     assert len(second_orbit) == 19
-    assert [key for key in library.spot_keys() if acts_twice(key)] == []
+    assert [key for key in library.spot_keys() if raises_in(key) > 2] == []
     assert sum(entry.count for entry in inventory) == len(second_orbit)
     for row in second_orbit:
         assert row.miss_code == lookup_module.MISS_SPOT_NOT_COVERED, row.asked_spot_key
@@ -535,18 +533,19 @@ def test_the_two_raise_decisions_split_where_the_ruling_puts_them(comparison, li
     here, and every such key is one the library declares, so a normaliser landing between two
     committed spots fails too.
 
-    The squeeze family is no longer refused wholesale and is not asserted to be. That reader was
-    the retired history clause and decision 40 dropped it as strictly weaker than exposure; the
-    contract forbids reinstating it. What is asserted instead is the two clauses a key *can* carry.
-    At most two raises are in - which is what retires every four-bet key - and hero is never the big
-    blind with a cold caller in front, which is decision 48's ten. The nearest-spot guard moves to
-    the family that is still ruled out to the last row: anything with three or more raises in.
+    The squeeze family is no longer refused wholesale and is not asserted to be: the contract
+    forbids reinstating the reader decision 40 dropped. What is asserted instead is the two clauses
+    a key *can* carry. At most two raises are in - which retires the four-bet keys - and decision
+    48's ten are absent: the big blind facing **exactly one** raise with a cold caller in. This read
+    "the big blind with any call in the key", wider than the ruling and false - 23 committed keys
+    are the big blind with a call somewhere and none faces exactly one raise, so none is a squeeze.
+    It is stated as a set equality against the five no-caller siblings that *are* committed, so it
+    cannot pass by naming nothing. The nearest-spot guard moves to the family ruled out last.
     """
     covered = {spot_shape(key) for key in library.spot_keys()}
     declared = set(library.spot_keys())
     two_raise = [
-        row
-        for row in keyed_rows(comparison)
+        row for row in keyed_rows(comparison)
         if raises_in(row.asked_spot_key) == 2 and not acts_twice(row.asked_spot_key)
     ]
     squeezes = [row for row in two_raise if opponents_invested(row.asked_spot_key) >= 2]
@@ -560,7 +559,9 @@ def test_the_two_raise_decisions_split_where_the_ruling_puts_them(comparison, li
 
     for key in declared:
         assert raises_in(key) <= 2, key
-        assert not (key.split("/")[2] == "BB" and ":call" in key), key
+    assert {key for key in declared if key.split("/")[2] == "BB" and raises_in(key) == 1} == {
+        f"t6/d{DEPTH}/BB/{seat}:raise@2.5" for seat in ("LJ", "HJ", "CO", "BTN", "SB")
+    }
     assert beyond, "no corpus decision past two raises, so the clause below is untested"
     for row in beyond:
         assert row.miss_code == lookup_module.MISS_SPOT_NOT_COVERED, row.asked_spot_key
@@ -640,8 +641,7 @@ def test_no_limped_pot_is_answered_from_a_neighbouring_cell(comparison, library)
     closing it. Both charts are held to it, one by key and one by shape."""
     covered = {spot_shape(key) for key in library.spot_keys()}
     limped = [
-        row
-        for row in keyed_rows(comparison)
+        row for row in keyed_rows(comparison)
         if row.asked_spot_key.split("/")[-1].split(",")[0].endswith(":call")
     ]
 

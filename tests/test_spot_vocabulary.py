@@ -150,10 +150,17 @@ def test_rendering_is_injective_over_the_committed_sizes(library, sizing) -> Non
     The committed tree offers three prices - 2.5, 7.5 and 22.5 - which is tree shape and is
     pinned here. The 100bb stack went with the cutover: the export is solved `add_allin:
     false`, so hero's own jam lives only at the four-bet-facing spots the raise-depth clause
-    refuses. The counter is the spots that contributed a price: all 249, because the no-raise
-    half of the sizing invariant has no instance over the committed set - every committed
-    spot offers hero a raise - so a table answering None anywhere fails here as well as in
-    the invariant below rather than passing an empty union.
+    refuses. The counter is the spots that contributed a price: 168 of the 249.
+
+    That counter read 249 when this was written, on the claim that "every committed spot
+    offers hero a raise". The claim is true, and it is a claim about the spot's MENU; this
+    reads it through `sizes_bb`, which answers about what an arriving HAND takes. At 81
+    committed spots the menu offers a raise that no hand class ever takes. All 81 face a
+    three-bet and all 81 are reached only through hero's own cold call, so hero arrives
+    holding a calling range the solve never four-bets. `tests/test_chart_conversion.py`
+    draws the same line and permits exactly what the old literal forbade. Only the literal
+    was wrong: the union is still gathered over every class, so a table answering None where
+    the chart does raise still fails here as well as in the invariant below.
     """
     priced = {
         spot: {
@@ -168,7 +175,7 @@ def test_rendering_is_injective_over_the_committed_sizes(library, sizing) -> Non
 
     assert prices == [2.5, 7.5, 22.5]
     assert len(set(rendered)) == len(prices)
-    assert sum(1 for found in priced.values() if found) == 249
+    assert sum(1 for found in priced.values() if found) == 168
 
 
 # --------------------------------------------------------------------------- #
@@ -503,12 +510,19 @@ def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> N
     """The key says what hero faces; the sizing table says what hero may raise to.
 
     They are indexed the same way, so a re-keying that moved one and not the other would
-    leave every raise refusing for no committed size. After the cutover the table holds all
-    249: the no-raise half of the invariant has no instance, because every committed spot
-    offers hero a raise - the first-in spots open, the facing-an-open spots three-bet, and
-    the three-bet-facing spots four-bet. Absence would still be `sizes_bb` returning None
-    rather than an empty list, because an empty list is a spot that raises for no price
-    wearing the shape of a spot that cannot raise.
+    leave every raise refusing for no committed size. After the cutover the table prices 168
+    of the committed 249.
+
+    This read "all 249, the no-raise half has no instance" when it was written, and that
+    conflated two questions. Every committed spot's MENU does offer hero a raise - the
+    first-in spots open, the facing-an-open spots three-bet, the three-bet-facing spots
+    four-bet - but `sizes_bb` answers about the hand classes that arrive, and at 81 of those
+    spots no arriving class raises. All 81 face a three-bet and all 81 are reached only
+    through hero's own cold call: hero flatted, someone re-raised behind, and the flatting
+    range hero arrives with holds nothing this solve four-bets. So the no-raise half has 81
+    instances and is measured here rather than labelled vacuous. Absence is still `sizes_bb`
+    returning None rather than an empty list, because an empty list is a spot that raises for
+    no price wearing the shape of a spot that cannot raise.
 
     The invariant is two-directional on purpose. A priced spot the ranges never raise at
     is a price for an action the chart does not offer; an unpriced spot the ranges do
@@ -540,8 +554,12 @@ def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> N
 
     assert {spot for spot, classes in priced.items() if classes} == raising
     assert set(sizing.raise_to_bb) <= covered
-    assert len(raising) == 249
-    assert covered - raising == set()
+    assert len(raising) == 168
+    assert len(covered - raising) == 81
+    for spot in covered - raising:
+        hero_seat, sequence = spot.split("/")[2], spot.split("/", 3)[3]
+        assert sequence.count(":raise@") == 2, spot
+        assert f"{hero_seat}:call" in sequence, spot
 
     for spot in sorted(covered):
         charted = {
