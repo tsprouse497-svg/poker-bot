@@ -366,6 +366,81 @@ rake-free solve's floor rather than a reading on the level
 (`NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE`). The git pin below is now a fixture, and two
 runner-up poker findings are filed in `backlog.yml`.
 
+### Stage 6, the build, 2026-09-03 - ACTIVE
+
+Everything the phase ships is written here: the selection rule as code, the artifact it produces, and
+the report that re-derives every figure the contract names. The frozen tests are the specification and
+no lane may write one. 57 of this phase's own assertions are red and 66 more sit in the migrated
+frozen tests of completed phases, which go green only when the artifact moves.
+
+**The old code describes a phase that no longer exists.** `chart_derivation.py` opens by saying the
+export holds 38,828 nodes and the chart holds 86, selected by a two-clause predicate over invested
+opponents and live players, filed under two exclusion codes. Every one of those statements is false
+now. This is a rewrite, not a repair, and a lane that reads the module's docstring as a description
+of what it should build will build the superseded phase again.
+
+**Four lanes in three waves, one owner per file, no lane reviewing its own work.**
+
+| wave | lane | owns | makes green |
+|---|---|---|---|
+| 1 | A selection | `solver_artifacts/chart_selection.py` (new), the selection half of `chart_derivation.py`, the three exclusion codes in `lookup.py` | `test_chart_derivation.py`, `test_chart_census.py` |
+| 1 | C1 relations | `solver_artifacts/chart_relations.py` (new) | the arm and relation surface `test_chart_cutover_evidence.py` and `test_chart_counterfactual_arms.py` pin |
+| 2 | B conversion | the conversion half of `chart_derivation.py`, `scripts/convert_preflop_export.py`, `data/artifacts/preflop/**` | `test_chart_conversion.py`, `test_derived_chart.py`, `test_chart_arrival_probability.py`, and the nine migrated frozen tests |
+| 3 | C2 report | `scripts/generate_derived_chart_report.py` | `test_derived_chart_report.py`, `_ranges`, `_cutover`, `_validators` |
+
+A and C1 are disjoint files and run concurrently: C1's functions are pure over a grid and
+`test_chart_cutover_evidence.py` states them completely, so it does not wait on an artifact. B waits on
+A because it consumes the selection. C2 waits on B because a report cannot re-derive figures from an
+artifact that does not exist yet. `chart_derivation.py` passes from A to B between waves rather than
+being held by both.
+
+**Why the module split.** `src/**/*.py` is capped at 500 lines and `chart_derivation.py` is at 490
+already. The exposure walk to leaves, the merge, and the two arms do not fit in it, and
+`src/poker_training_bot/solver_artifacts/chart_*.py` is in `approved_scope` as a pattern for exactly
+this reason. `scripts/` is uncapped, so the report stays one file.
+
+**The new surface the frozen tests pin**, and a lane that renames one of these breaks a test it may
+not edit: `count_dominance_violations(play=, raise_weight=)`, `reverse_hand_ranks`,
+`cells_violating_rows`, `is_closed_under_reversal`, `validate_rank_discrimination`,
+`raises_faced(by_path, node)`, `within_committed_raise_depth(by_path, node)`,
+`MULTIWAY_EXPOSURE_THRESHOLD_PCT`, `COMMITTED_RAISE_DEPTH`. `transpose_hand_index` and
+`spots_violating_twins` already exist and keep their names and their own parameter names - the two
+arms never share a validator. Two purity readings are pinned separately, `_SOLVED` against the
+solve and `_PUBLISHED` against the merged artifact; a generator computing off the artifact it just
+wrote reads the published pair.
+
+**Reviews.** Two read-only reviewers at the end of the stage, one mechanical and one on the poker,
+neither having written any of it and neither having seen the other's work, writing to
+`stage-06-build-review-mechanical.md` and `stage-06-build-review-poker.md` with the index in
+`stage-06-build-review.md`. The poker reviewer judges the ranges, not the code's fidelity to the
+contract.
+
+**A red that should not be red is a halt.** No lane softens an assertion, widens a tolerance or
+reverts a ruled constant to make a test pass. A figure that does not reproduce is a finding, and if it
+is `frozen-into-data` it stops for Taylor.
+
+**The six labelled fields the delegation check reads, for this stage.**
+
+- Worker lanes: A selection, C1 relations, B conversion, C2 report - four lanes in three waves, the
+  table above.
+- Ownership: A owns `solver_artifacts/chart_selection.py`, the selection half of
+  `chart_derivation.py` and the three exclusion codes in `lookup.py`; C1 owns
+  `solver_artifacts/chart_relations.py`; B owns the conversion half of `chart_derivation.py`,
+  `scripts/convert_preflop_export.py` and `data/artifacts/preflop/**`; C2 owns
+  `scripts/generate_derived_chart_report.py`. The coordinator owns `CURRENT_TASK.yml`, this plan,
+  `backlog.yml`, the integration, the gate and the audit packet, and writes no implementation.
+- Expected outputs: each lane returns a patch confined to the files it owns, the commands it ran with
+  their output, a changed-file summary, and the frozen tests it made pass or found failing, plus any
+  figure that would not reproduce stated as a finding rather than fixed by moving a tolerance.
+- Status: wave 1 assigned 2026-09-03, A and C1 running concurrently on disjoint files. Waves 2 and 3
+  planned. Reviews planned.
+- Integration order: A and C1 concurrently, then B on the artifact, then C2 on the report. The
+  coordinator runs the phase's two command IDs after each wave and the full gate only after C2.
+- Review handoff: two read-only reviewers at the end of the stage, mechanical and poker, neither
+  having written any of it and neither having seen the other's work, to
+  `stage-06-build-review-mechanical.md` and `stage-06-build-review-poker.md` with the index in
+  `stage-06-build-review.md`, under the three required headings.
+
 ### The numbers a lane may use, and where each is ruled
 
 No lane invents a count. Anything not on this list is measured by the test's own walk of the export.
@@ -427,135 +502,30 @@ helper placed after an assertion that the vacuity premise still holds, and one o
 history at 09c23a1 and earlier and in the stage-04 review notes. The R4 no-delegation exception and the
 argument for it stand as written and are not re-argued.
 
-### The phase-level lanes, as originally written
+### The phase-level lanes, as originally written - folded away 2026-09-03
 
+Five lanes in three waves over an 86-spot cutover, with the ownership tables, the six dated status
+blocks for the 2026-08-24 contract-update, the 2026-08-27 stage-6 wave plan, the 2026-08-30 restart,
+decision 19's execution, decision 20's evidence and the 2026-08-31 stage-2 re-cut. All of it is
+written against a committed set that has moved three times since, so none of the file assignments
+survive. Git history at 8399385 and earlier. Two things from it are still in force and are restated
+here rather than left to be reconstructed for the fifth time:
 
-- Worker lanes: L1 the GTOpen tree walk, the three-way node census, and the reach statistics the
-  selection rule is ruled against; L2 the converter, from node payloads to artifact rows at the
-  v2 vocabulary, plus the retirement of the old chart; L3 the sizing table rederived from the new
-  source - the expectations file is external and stays put; L4 the corpus comparison rerun and
-  its report; L5 the phase's own tests and canaries, authored at stage 4 before any
-  implementation.
-- Ownership: L1 owns the walk and the census it publishes; L2 owns
-  `scripts/convert_preflop_export.py`, the artifact it writes, and the deletion of
-  `six_max_nl25_100bb.json`; L3 owns the sizings file under `data/artifacts/preflop/`; L4 owns the
-  closing measurement and the report generator; L5 owns `tests/**` at stage 4 only. The
-  coordinator owns `CURRENT_TASK.yml`, the contract, this plan, `backlog.yml`,
-  `verification/mutations.yml`, command registration in `scripts/run_verify.py`, every merge, the
-  gate, and the audit packet.
-- Expected outputs: each lane returns a patch confined to the files it owns, the commands it ran
-  with their output, a changed-file summary, and the frozen tests it made pass or found failing.
-  L1 also returns the enumeration as data rather than as prose, because every later lane's
-  denominators come from it. L4 returns the measurement with its prediction stated before the
-  numbers.
-- Status: stages 1 to 3 were coordinator work by construction - a contract, a decision list and a
-  human gate are each a single document, and splitting their authorship produces a document with
-  two voices and no owner - and two independent read-only reviewers read the contract before
-  stage 2 opened. Stage 4 is the first delegated stage. Four lanes ran concurrently on disjoint
-  files: three authoring one new test file each, and a fourth migrating the frozen tests of
-  completed phases that the cutover makes false. The coordinator kept `CURRENT_TASK.yml`, the
-  command registration, `verification/mutations.yml`, this plan and the review.
-- Integration order: L1 first and alone, because the census and the reach distribution are what
-  the selection rule is ruled against at stage 3 and what every other lane counts against. Then
-  L2, then L3 in parallel with L2 once the artifact's shape is fixed, then L4 last, because the
-  closing measurement is not real until the artifact it measures is committed. The coordinator
-  runs the phase's own commands after each merge and the full gate only after L4.
-- Status, second contract-update (2026-08-24): coordinator work by the same argument as stages 1
-  to 3 - the contract, the decision record and this plan are single documents. Two independent
-  read-only reviewers ran concurrently on the finished diff before it was committed, one
-  mechanical (re-measuring every count in the new text against the committed export, and checking
-  the rewrite dropped no criterion the previous contract carried) and one on the poker (whether
-  "at most one opponent voluntarily invested" is the right line, whether the unconverged four-bet
-  continuations should ship, and whether decision 6 still makes sense on the new set).
-- Status, stage 6 (2026-08-27): five lanes, run in three waves because the dependencies are
-  real rather than stylistic. Wave 1 is one lane on the container - `lookup.py`'s two exclusion
-  codes, `schema.py` at version 2 with `BlindStructure`, `arriving_reach_bp`, `arrival_ppb` and
-  the no-limp rule, the importer that reads them, and `preflop_sizing.py` at the per-class
-  shape - because every other lane imports those names and two lanes inventing them
-  concurrently produces two shapes. Wave 2 is one lane on `chart_derivation.py`, the converter,
-  the committed artifact, the sizing table, the deletion of the retired chart and the source
-  card's restamped size block; it is one lane rather than three because the artifact, its
-  sizings and its census come out of one `derive_chart` call the frozen tests read as a unit.
-  Wave 3 is three lanes on disjoint files over the artifact wave 2 committed: L3C the report
-  generator and its four validators, L3D the runtime price draw in `preflop_chart.py` plus
-  phase 08's `comparison.py`, L3E the three other completed-phase gate commands
-  (`generate_preflop_strategy_report.py`, `repo_facts.py`, `vocabulary_report.py`) and the
-  re-measured `CORPUS_REFUSALS` in `table_state/measures.py`.
-- Ownership at stage 6: L1 owns `solver_artifacts/{schema,lookup,importer}.py` and
-  `strategy/preflop_sizing.py`; L2 owns `solver_artifacts/chart_derivation.py`,
-  `scripts/convert_preflop_export.py`, `data/artifacts/preflop/**`; L3C owns
-  `scripts/generate_derived_chart_report.py`; L3D owns `strategy/preflop_chart.py` and
-  `data_pipeline/{comparison,comparison_report}.py`; L3E owns
-  `scripts/generate_preflop_strategy_report.py`, `scripts/repo_facts.py`,
-  `solver_artifacts/{vocabulary_report,vocabulary_measures}.py` and `table_state/measures.py`.
-  The coordinator owns the waves, the integration, the gate, `CURRENT_TASK.yml`, this plan and
-  the review notes, and writes no implementation itself.
-- Operational rules given to every lane: `tests/**`, `verification/mutations.yml` and
-  `verification/freeze.lock` are read-only and outside `approved_scope`; the canary `find`
-  strings in `verification/mutations.yml` are a specification and are written verbatim,
-  indentation included; no lane runs a bare `pytest` or two mutating invocations at once, and
-  `check_scope.py` runs after anything that may apply a mutation.
-- Review handoff: an independent read-only reviewer reads the stage diff against the question
-  the driver prints, writes to
-  `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-NN-name.md` with the three required
-  headings, and never edits what it reviews. Stage 6 gets two, one mechanical and one on the
-  poker, and the poker reviewer is briefed to judge the ranges rather than the code's fidelity
-  to the contract - a chart that converts cleanly and plays badly passes every mechanical check
-  in this repo.
+**Operational rules given to every lane.** `tests/**`, `verification/mutations.yml` and
+`verification/freeze.lock` are read-only and outside `approved_scope` from stage 5 onwards. No lane
+runs a bare `pytest`, `scripts/run_verify.py` or `scripts/check_gate_bite.py`, and no lane runs two
+mutating invocations at once; `check_gate_bite.py` plants live mutations in the working tree and a
+lane that meets one must never `git checkout`, `stash` or `restore` to clean up after it. Nothing in
+`~/projects/gtopen` is touched. A lane returns the commands it ran with their output, a changed-file
+summary, and the frozen tests it made pass or found failing.
 
-- Status, restart (2026-08-30): the contract rewrite, the two constants and the decision-record
-  amendments are coordinator work on the same argument stages 1 to 3 used - a contract and a
-  decision record are single documents, and splitting their authorship produces a document with
-  two voices and no owner. What is delegated from this stage is the measurement the rewrite is
-  written against: a lane solves the re-sourced tree against the live GTOpen at `4aee435`, walks
-  it, and returns the census, the chart, the action menus, the relationship to the superseded 86,
-  the blind-defence comparison and the jam retest, writing nothing into the repo because
-  `approved_scope` holds five paths and none of them is `data/artifacts/**`. The coordinator
-  re-derives the headline figures from the lane's serialised export rather than taking them on
-  report, on the stage-6 precedent that a reviewer's report is not evidence either. Independent
-  read-only review of the finished contract-update diff before it is committed, as at stage 1 and
-  at the 2026-08-24 contract-update.
-
-- Status, decision 19's execution (2026-08-31): the one-field flip, the contract's two clauses naming
-  `calibrated`, the decision-record addendum, decision 20 and this plan are coordinator work on the
-  standing argument that a contract and a decision record are single documents. One worker lane owned
-  the build and its measurements - it started the GTOpen server, ran the extraction, the determinism
-  proof, the converter and the report, and wrote its own measurement code with the coordinator's
-  explicitly withheld, so that the two measurements are two measurements. It was told to write nothing
-  outside `data/artifacts/` and its own scratch directory, to run no gate command and no bare
-  `pytest`, and to leave the tracked artifact paths dirty for the coordinator to restore rather than
-  clean up after itself. One lane rather than three because the solve, the walk and the derivation are
-  one sequential pipeline through a single server on one port and a single writable path. The
-  coordinator re-derived every headline figure from the artifact itself; the two agree to the unit on
-  the dominance counts and differ on one census figure, where the coordinator's stands and both are
-  recorded. An independent read-only reviewer reads the finished diff before it is committed, as at
-  every previous contract-update in this lane.
-
-- Status, decision 20's evidence (2026-08-31): the source reading and the two document findings are
-  coordinator work, because they are a read of four files in a third-party repo and a correction to
-  this repo's own prose. One worker lane owned the contamination measurement: it solved
-  `calibrated` plus `add_allin: false` against the live GTOpen by posting the config to the API
-  directly rather than through `extract_gtopen_preflop.py`, so no tracked path could move, walked
-  33,969 nodes, classified every leaf below every committed spot by pricing mechanism, and wrote its
-  own analysis code. The coordinator re-derived the headline from the lane's per-spot splits
-  independently of its aggregation and the two agree at 4.959 percent; the lane's leaf classification
-  carries its own label cross-check at 0 mismatches and per-spot masses summing to 1 within 5e-8.
-  Delegated rather than coordinator-owned because it is a measurement whose number decides a ruling,
-  and this lane's standing rule is that the agent that computes a number is not the only one that
-  checks it.
-
-- Status, the stage-2 re-cut (2026-08-31): the decision record is a single document and is
-  coordinator-owned on the standing argument that splitting its authorship produces a document with
-  two voices and no owner. Review is not: two independent read-only reviewers ran concurrently on the
-  finished working-tree diff, neither having written any of it and neither having seen the other's
-  work - one mechanical, asked whether every reversibility class is right, whether every appended
-  figure reproduces and whether any block edited a prior ruling rather than appending to it; one on
-  the poker, asked whether the five movers are the right five, whether any amendment misdescribes
-  what the committed chart does at the table, and whether item 10's withdrawal of its own
-  tolerance-re-derivation licence is an amendment the record may make or a ruling only Taylor can
-  take. Both wrote to `stage-02-decisions.md` as new rounds beside the 2026-08-23 round, which is
-  left untouched. Both were told not to run `run_verify.py`, `check_gate_bite.py` or a bare
-  `pytest`, on the mutation hazard, and not to touch `~/projects/gtopen`.
+**Review handoff.** An independent read-only reviewer reads the stage diff against the question the
+driver prints, writes to `reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-NN-name.md` under
+`## Blocker`, `## Non-blocker` and `## Alignment`, and never edits what it reviews. A blocker holds
+the stage until it is marked with the bare literal `[resolved]`; an alignment item goes to
+`backlog.yml`. Stage 6 gets two, one mechanical and one on the poker, and the poker reviewer is
+briefed to judge the ranges rather than the code's fidelity to the contract - a chart that converts
+cleanly and plays badly passes every mechanical check in this repo.
 
 ## Slices
 
