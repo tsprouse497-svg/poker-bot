@@ -434,18 +434,23 @@ No lane invents a count. Anything not on this list is measured by the test's own
   spots, so the jam canary runs against the export.
 - Arrival: **44** of the 249 round to zero in parts per billion under `round(p * 1e9) == 0`; only **2** are
   exactly zero. Decision 53, `A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT`.
-- Arms, ten partitions, solved against counterfactual - suit arm on spots, rank arm on cells over closed
-  spots: whole set 7/167 and 64/206 over 83 closed; raises 0, 0/5 and 11/61 over 5; raises 1, 0/25 and
-  21/112 over 25; raises 2, 7/137 and **32/33** over 53; LJ 7/32 and 1/9 over 1; HJ 0/15 and 3/14 over 2;
-  CO 0/18 and 6/21 over 5; BTN 0/28 and 9/33 over 12; SB 0/36 and 15/54 over 25; BB 0/38 and 30/75 over 38.
-  LJ and HJ fall under the five-spot floor and publish rather than assert. Decision 53.
+- Arms, ten partitions, solved against counterfactual - suit arm on spots, rank arm on cells over
+  **every spot in the partition** since decision 54, with the scored count and the two skipped counts
+  beside it. Read off the report's own rows rather than restated: whole set 7/167 and 181/433 over 208
+  scored (19,774 and 20,279 skipped); raises 0, 0/5 and 11/61 over 5; raises 1, 0/25 and 21/112 over 25;
+  raises 2, 7/137 and 149/260 over 178; LJ 7/32 and 75/96 over 32; HJ 0/15 and 23/59 over 36; CO 0/18 and
+  22/72 over 32; BTN 0/28 and 14/66 over 33; SB 0/36 and 17/65 over 37; BB 0/38 and 30/75 over 38. No
+  partition falls under the five-spot floor, so every row is asserted. Decisions 53, 54.
 - Solve card: target **0.00016**, cap **2,000**, first met at **1,900**, achieved **0.00015591**.
 - Retired chart: **86** spots, **36** carrying a sizing entry, all 36 priced at a jam. Decision 53.
 
 **The rank arm's restriction was withdrawn on 2026-09-03, decision 54.** The claim that made it look
 fragile - that unrestricted it reads 149 against 69 and fails - spliced two comparison rules together and
-does not reproduce under either. Scored over every spot it reads 149 against 260 and passes wide. A lane
-that finds the arm red still does not adjust the tolerance or which comparisons count: it halts and says so.
+does not reproduce under either. **149 against 260 is the raises-faced-2 partition, not the whole set**,
+which reads 181 against 433; the figure that replaced the splice named the wrong partition and the
+stage-6 mechanical review caught it. Both pass wide, and the closest of the ten is LJ at 75 against 96. A
+lane that finds the arm red still does not adjust the tolerance or which comparisons count: it halts and
+says so.
 
 ### The 700-line cap on a test file
 
