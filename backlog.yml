@@ -4519,6 +4519,28 @@ items:
       answer an opponent's line rather than the bot's own, and phase 15 rules on whether its drill sampler
       draws from them before it samples anything.
 
+  - id: THE-CHARTS-REPRODUCE-CHECK-IS-COUPLED-TO-EVERY-OTHER-ARTIFACT
+    status: deferred
+    phase: "14"
+    title: Adding any file under data/artifacts turns the chart's own byte-for-byte check red
+    reason: >-
+      Found 2026-09-04 by the lane correcting the frozen tests, which noticed two green tests going red
+      for a reason that had nothing to do with them. `scripts/convert_preflop_export.py` restamps the
+      source card's `headroom_bytes` from `ARTIFACTS_DIR.rglob("*")`, a byte total over the **whole**
+      `data/artifacts` tree, because the figure it publishes is headroom against phase 10's 20 MiB cap on
+      that directory. So when this phase committed the all-in equity matrix under
+      `data/artifacts/preflop/equity/`, the committed card's 15,891,726 and the recomputed 15,775,496
+      diverged by exactly the 116,230 bytes of the new directory, and
+      `test_the_converter_reproduces_the_artifact_byte_for_byte` and
+      `test_the_artifact_re_derives_from_its_source` both failed.
+      Restamping the card fixes the instance and not the shape. The coupling is deliberate in that the
+      cap is a directory cap and headroom against it is genuinely a property of the whole tree; what is
+      wrong is that the **chart's** reproduce check is the thing that fails, so a future phase adding an
+      unrelated artifact will see the chart go red and will reasonably start looking at the chart. Either
+      the headroom figure moves off the card the chart's `--check` compares, or the check learns to say
+      which of the two disagreements it found - a chart that no longer reproduces, or a tree that grew.
+      The first is a defect and the second is Tuesday, and today they are the same red.
+
   - id: HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES
     status: deferred
     phase: "14"

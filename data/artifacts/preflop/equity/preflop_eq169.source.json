@@ -1,0 +1,34 @@
+{
+ "checks": {
+  "22 vs AKo": "52.65 against a published 52.0",
+  "88 vs AKo": "55.16, measured and reported rather than anchored: the 52 that is quoted for a pair against two overcards is the low pair's figure, not a middle pair's",
+  "AA vs 72o": "88.20 against a published 87.7",
+  "AA vs KK": "81.95 against a published 82.4",
+  "AKo vs QQ": "43.24 against a published 43.0",
+  "AKs vs QQ": "46.05 against a published 46.0",
+  "diagonal": "every class against itself is exactly 0.500000",
+  "symmetry": "equity[i][j] + equity[j][i] differs from 1 by at most 2.980e-08, which is float32 rounding of an identity the counting makes exact"
+ },
+ "class_order": {
+  "index": "gtopen_class_index, from src/poker_training_bot/solver_artifacts",
+  "note": "ranks 0 to 12 as 2 through A; a pair at hi*13+hi, a suited class at hi*13+lo, an offsuit class at lo*13+hi. Not the 13x13 grid ordering a chart report prints, which transposes suited and offsuit",
+  "row_0": "AA"
+ },
+ "layout": {
+  "bytes": 114244,
+  "dtype": "float32",
+  "endianness": "little",
+  "header": "none",
+  "order": "row-major, 169 rows of 169",
+  "reading": "value[i][j] is the share of the pot class i takes all-in preflop against class j, ties split. A share in 0 to 1, not a percentage"
+ },
+ "method": {
+  "boards": "every one of the 2,598,960 boards, counted as 134,459 representatives up to suit relabelling weighted by orbit size",
+  "card_removal": "a cell averages over the ordered pairs of combinations the deck can deal at once and no others, so AA against AA is 6 ordered pairs and AKs against AKs is 12, where ignoring the deck would say 36 and 16",
+  "sampling": "none; the enumeration is exhaustive and the result is exact",
+  "ties": "split, counted as half a pot each"
+ },
+ "regenerate": "uv run python scripts/generate_preflop_equity_matrix.py",
+ "sha256": "d982b854cf382c5906e58317438e6f77e209affbdd89e3c66ca8424fa7245779",
+ "verify": "uv run python scripts/generate_preflop_equity_matrix.py --check"
+}

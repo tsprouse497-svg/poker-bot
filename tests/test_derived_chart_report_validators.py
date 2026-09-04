@@ -263,9 +263,7 @@ def a_grid(**overrides: float) -> dict[str, dict[str, float]]:
     return {derivation_tests.SB_OPEN_KEY: a_full_grid(monotone) | overrides}
 
 
-def test_the_per_cell_relations_are_counted_at_the_tolerance_decision_10_pinned(
-    generator,
-) -> None:
+def test_the_per_cell_relations_are_counted_at_the_tolerance_decision_10_pinned(generator) -> None:
     """Four relations, measured per cell at a one-point tolerance, and none of them a gate.
 
     Decision 10 measures and gates nothing, because a generator that *refused* a violating grid
@@ -280,7 +278,9 @@ def test_the_per_cell_relations_are_counted_at_the_tolerance_decision_10_pinned(
 
     The boundary cases are the tolerance itself: a gap of exactly a point is not a violation, a
     hundredth past it is, and a ladder drifting nine tenths a step counts nothing though the top
-    pair ends ten points under the bottom one, only adjacent ranks being compared."""
+    pair ends ten points under the bottom one, only adjacent ranks being compared. They ride
+    inside `monotone`'s ladder: the cases came from a two-cell grid where `44` had no neighbour,
+    and a full grid gives it `55` at 71.2 - which is why the 27-point case lifts `55`."""
     assert generator.MONOTONICITY_TOLERANCE_PCT == 1.0
     parameters = set(inspect.signature(generator.count_dominance_violations).parameters)
     assert parameters == {"play", "raise_weight"}, (
@@ -297,12 +297,12 @@ def test_the_per_cell_relations_are_counted_at_the_tolerance_decision_10_pinned(
         return found
 
     assert set(counted(flat).values()) == {0}, "the monotone grid violates something"
-    assert set(counted(a_grid(**{"44": 90.0, "33": 91.0})).values()) == {0}
+    assert set(counted(a_grid(**{"44": 66.0, "33": 67.0})).values()) == {0}
     drift = a_grid(**{f"{rank}{rank}": 88.0 + 0.9 * index for index, rank in enumerate(RANKS)})
     assert set(counted(drift).values()) == {0}, "the ladder was compared past adjacent ranks"
 
-    assert counted(a_grid(**{"44": 72.81, "33": 99.88}))["pair ladder"] == 1
-    assert counted(a_grid(**{"44": 90.0, "33": 91.01}))["pair ladder"] == 1
+    assert counted(a_grid(**{"55": 73.6, "44": 72.81, "33": 99.88}))["pair ladder"] == 1
+    assert counted(a_grid(**{"44": 66.0, "33": 67.01}))["pair ladder"] == 1
     # `32s` and `32o` are the one twin pair in no row comparison at all - the deuce row has no
     # second kicker to compare against - so this counts the twins relation and nothing else.
     assert counted(a_grid(**{"32o": 70.0}))["suited over its offsuit twin"] == 1

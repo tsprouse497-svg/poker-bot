@@ -12,9 +12,11 @@ approved_scope:
   - scripts/generate_derived_chart_report.py
   - scripts/generate_preflop_equity_matrix.py
   - pyproject.toml
+  - uv.lock
   - data/artifacts/preflop/**
   - src/poker_training_bot/strategy/preflop_sizing.py
-  - src/poker_training_bot/data_pipeline/comparison.py
+  - src/poker_training_bot/data_pipeline/**
+  - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
   - verification/mutations.yml
   - tests/test_derived_chart_report_validators.py
   - tests/test_spot_vocabulary.py
@@ -38,6 +40,27 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-04
+    reason: >-
+      Taylor's ruling of 2026-09-03 on the self-play cross-reference was that comparing price-stripped
+      shapes "makes the column mean something again". The first pass changed only the tests' comparison
+      and left the published column on full spot keys, where it reads NEW on all 61 rows and carries no
+      information. Measured under shapes it reads SEEN on 7 and NEW on 54, and every one of the 7 is a
+      four-bet spot self-play refuses on every run, so the column recovers exactly the signal the report
+      claims for it. The column is what the ruling was about, so it changes.
+      Three paths open because the lane measured that the change does not fit in the one file already
+      approved, and stopped rather than forcing it. `comparison.py` is at 500 of its 500-line cap and the
+      change measures 507 documented, 501 stripped of every explanatory line - it does not fit even
+      undocumented - so the directory is approved rather than the file, for a split.
+      `solver_artifacts/vocabulary_measures.py` owns `strip_sizes` and imports `ComparisonResult` from
+      `comparison` at module level, so importing it back raises on a partially initialised module; that
+      import is annotations-only under `from __future__ import annotations` and belongs under
+      `TYPE_CHECKING`, which is a one-line fix and the only way to keep one definition of the shape rule
+      rather than two. The alternative, a function-body import, would be the first in `src/` and is a
+      convention this phase should not start.
+      `data_pipeline/comparison_report.py` renders the column's heading and the prose describing it, both
+      of which say it compares what the self-play run found by key. Leaving those while the measurement
+      changes underneath would have the report tell a reader something false.
   - date: 2026-09-03
     reason: >-
       The contract says the 169-by-169 all-in equity matrix is committed and deterministic. It is not
@@ -58,7 +81,9 @@ scope_change_log:
       bot's runtime dependency list stays empty, which is a standing property of this repo and not one this
       phase may spend. The matrix itself lands under `data/artifacts/preflop/**`, already in scope, at
       114,244 bytes against a 20 MiB cap that is not the difficulty - producing it is, at roughly fifty
-      billion hand comparisons, which the repo's own pure-Python evaluator cannot do.
+      billion hand comparisons, which the repo's own pure-Python evaluator cannot do. `uv.lock` joins
+      it because adding a dev dependency makes `uv run` regenerate the lock, and a lock that disagrees
+      with the manifest it locks is worse than either.
   - date: 2026-09-03
     reason: >-
       Five frozen test files re-enter approved_scope for eight assertions that cannot pass against any
