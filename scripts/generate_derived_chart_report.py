@@ -37,6 +37,7 @@ import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 try:
     from repo_paths import REPO_ROOT
@@ -155,6 +156,21 @@ COMMITTED_ARTIFACT = ARTIFACT_DIR / "six_max_100bb_rakefree.json"
 EXPECTATIONS_NAME = "six_max_nl25_100bb"
 
 EXPECTATIONS = ARTIFACT_DIR / "expectations" / f"{EXPECTATIONS_NAME}.json"
+
+REFERENCE_SOURCE = ARTIFACT_DIR / "sources" / "gtowizard_6max_nl25_100bb_preflop.json"
+"""The outside reference the expectations file is distilled from, read here in full.
+
+`expectations/six_max_nl25_100bb.json` carries two families - open frequency and big-blind
+defence - and the file it comes from carries per-hand strategies for thirty-six spots: five
+first-in, fifteen facing an open, fifteen facing a three-bet and the blind-versus-blind limp.
+Until this section was written, the one measurement in this repo able to catch a range that is
+uniformly wrong was applied to two of the five committed families, and those were the two that
+pass. It is still a raked NL25 solve, so reading wider than it is still a floor and never a pass,
+and none of it gates anything.
+"""
+
+REFERENCE_SEAT = {"LJ": "UTG", "HJ": "HJ", "CO": "CO", "BTN": "BTN", "SB": "SB", "BB": "BB"}
+"""This repo's seat names against the reference's. Only the first seat is named differently."""
 
 SOURCE_CARD_NAME = "data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json"
 
@@ -433,6 +449,167 @@ def spot_frequencies(artifact: PreflopArtifact, action: str) -> dict[str, float]
     return found
 
 
+def _reference_payload() -> dict[str, Any]:
+    """The committed reference, parsed once. A halt if it is not there, never a silent skip."""
+    if not REFERENCE_SOURCE.exists():
+        raise DerivedChartReportError(
+            f"{REFERENCE_SOURCE.relative_to(REPO_ROOT)} is not in the tree, so the families the"
+            " expectations file drops cannot be measured against anything"
+        )
+    return json.loads(REFERENCE_SOURCE.read_text(encoding="utf-8"))
+
+
+def reference_frequencies() -> dict[str, dict[str, float]]:
+    """Every reference spot's raise, call and the two together, in points.
+
+    A raise is any of its named raise sizes plus its all-in leg, because the reference offers a
+    shove at the vs-three-bet spots and dropping that leg would understate the very family this
+    reads it for. `defence` is raise plus call, which is the same quantity this report's own
+    `plays` column measures - money in with, either way - so the two columns are comparable.
+    """
+    found: dict[str, dict[str, float]] = {}
+    for spot in _reference_payload()["spots"]:
+        actions = {str(entry["label"]): float(entry["pct"]) for entry in spot["actions"]}
+        raised = sum(
+            weight
+            for label, weight in actions.items()
+            if label.startswith("Raise") or label.startswith("Allin")
+        )
+        called = actions.get("Call", 0.0)
+        found[str(spot["key"])] = {
+            "raise": raised,
+            "call": called,
+            "defence": raised + called,
+        }
+    return found
+
+
+def reference_action_pct(kinds: tuple[str, ...]) -> dict[str, float]:
+    """One of the three columns above, per reference spot, so a caller names what it wants."""
+    return {
+        key: sum(columns[kind] for kind in kinds)
+        for key, columns in reference_frequencies().items()
+    }
+
+
+def reference_prices() -> dict[str, dict[str, float]]:
+    """Per reference spot, the largest named raise it offers and the raise it is answering.
+
+    A frequency comparison between two solves that price the same decision differently is part
+    strategy and part price, and the only way to say which is to publish both prices. The raise
+    hero is answering is the last raise in the reference's own `action_path`, so it is read off
+    the spot rather than assumed from its name.
+    """
+    found: dict[str, dict[str, float]] = {}
+    for spot in _reference_payload()["spots"]:
+        sizes = [
+            float(str(entry["label"]).split()[1])
+            for entry in spot["actions"]
+            if str(entry["label"]).startswith("Raise")
+        ]
+        answering = [
+            float(step[1:]) for step in str(spot["action_path"]).split("-") if step.startswith("R")
+        ]
+        found[str(spot["key"])] = {
+            "raise_to_bb": max(sizes) if sizes else 0.0,
+            "answering_bb": answering[-1] if answering else 0.0,
+        }
+    return found
+
+
+def chart_raise_to_bb(sizing: Mapping[str, Any], spot_key_text: str) -> float:
+    """The largest price the committed sizing table offers hero at one spot, in big blinds."""
+    return max(
+        (
+            float(price["to_bb"])
+            for prices in dict(sizing.get(spot_key_text) or {}).values()
+            for price in prices
+        ),
+        default=0.0,
+    )
+
+
+def raise_faced_to_bb(spot_key_text: str) -> float:
+    """The size of the last raise already in when hero is asked, read off the key."""
+    steps = [step for step in spot_key_text.split("/", 3)[3].split(",") if ":raise@" in step]
+    return float(steps[-1].split("@")[1]) if steps else 0.0
+
+
+def reference_hand_raises() -> dict[str, dict[str, float]]:
+    """Per reference spot, how much of each hand class goes into a raise, in points.
+
+    The aggregate frequencies already published can agree to within a point while the ranges
+    disagree hand for hand, which is what a range that is the right size with the wrong contents
+    looks like. Only a per-hand read sees that, and no relation in this phase can: they all
+    compare a grid against its own other cells.
+    """
+    found: dict[str, dict[str, float]] = {}
+    for spot in _reference_payload()["spots"]:
+        weights: dict[str, float] = {}
+        for label, listing in spot["strategy"].items():
+            if not (label.startswith("Raise") or label.startswith("Allin")):
+                continue
+            for item in str(listing).split(","):
+                if not item:
+                    continue
+                name, _, weight = item.partition(":")
+                weights[name] = weights.get(name, 0.0) + 100.0 * float(weight)
+        found[str(spot["key"])] = weights
+    return found
+
+
+def reference_key_for(spot_key_text: str) -> str | None:
+    """The reference spot this committed key asks the same question as, or None.
+
+    Same seat, same history. Hero first in is `RFI_<HERO>`; hero facing one open with nobody
+    else in is `<HERO>_vs_<OPENER>_open`; hero having opened and facing one three-bet is
+    `<HERO>_vs_<THREE-BETTOR>_3bet`. Everything else - an open plus a cold call, a squeeze, the
+    blind-versus-blind limp - has no counterpart in the reference and returns None rather than
+    being matched to something nearby, which is the mistake that would make the comparison look
+    complete while pricing two different decisions against each other.
+    """
+    hero = hero_seat(spot_key_text)
+    history = spot_key_text.split("/", 3)[3]
+    if history == "rfi":
+        return f"RFI_{REFERENCE_SEAT[hero]}"
+    steps = history.split(",")
+    if len(steps) == 1 and ":raise@" in steps[0] and not steps[0].startswith(f"{hero}:"):
+        return f"{REFERENCE_SEAT[hero]}_vs_{REFERENCE_SEAT[steps[0].split(':')[0]]}_open"
+    if len(steps) == 2 and steps[0].startswith(f"{hero}:raise@") and ":raise@" in steps[1]:
+        return f"{REFERENCE_SEAT[hero]}_vs_{REFERENCE_SEAT[steps[1].split(':')[0]]}_3bet"
+    return None
+
+
+def _wrapped(names: Sequence[str], indent: str, per_line: int = 12) -> list[str]:
+    """A long list of hand classes as indented rows, so a row stays readable in a text report."""
+    return [
+        indent + " ".join(names[start : start + per_line])
+        for start in range(0, len(names), per_line)
+    ]
+
+
+def spot_menus(artifact: PreflopArtifact, *, positive: bool = False) -> dict[str, frozenset[str]]:
+    """Each committed spot's menu, under either of the two readings of "offers".
+
+    By default the menu is every action any of the spot's cells NAMES, whatever weight it carries,
+    which is the reading a schema rule about the shape of a spot is stated over. With `positive`
+    it is only the actions some class actually takes, which is the reading `tests/**` publishes as
+    the menu shape. The two coincided until the arriving classes came apart from the menu and they
+    now differ at 81 of the 249, so anything saying "offers hero a raise" has to say which it
+    means: a criterion labelled under one reading and measured under the other is how a real
+    measurement comes to be reported as empty.
+    """
+    return {
+        spot_id: frozenset(
+            action
+            for actions in classes.values()
+            for action, weight in actions.items()
+            if weight > 0.0 or not positive
+        )
+        for spot_id, classes in cell_weights(artifact).items()
+    }
+
+
 def hero_seat(spot_key_text: str) -> str:
     """The seat hero sits in, read off the key rather than off the declared field, so a spot whose
     key and whose declared seat disagree is visible from the report."""
@@ -568,6 +745,30 @@ def kicker_split(play: Mapping[str, Mapping[str, float]]) -> tuple[int, int, int
             else:
                 narrow += 1
     return wheel, wide, narrow
+
+
+def wheel_ace_cases(
+    play: Mapping[str, Mapping[str, float]],
+) -> tuple[tuple[str, str, str, float, float], ...]:
+    """Every case the wheel-ace exemption covers, carrying the spot each was found at.
+
+    `kicker_split` returns three counts, which is what the defect row needs and not what a
+    reader needs. The exemption is a name match on the more-played hand: it asks whether that
+    hand is `A5`, `A4`, `A3` or `A2` and asks nothing about the gap or about the spot. The
+    poker story behind it - a suited wheel ace is the canonical three-bet bluff, nut-straight
+    potential plus an ace blocker, so picking it over a middling suited ace is bluff selection
+    - is a story about a spot where there is bluff selection to do. A first-in raise has none:
+    nobody polarises an opening range, the hands that show a profit are opened, and a hand
+    that dominates the wheel ace on kicker and on high card gives up only the A2345 straight.
+    So the cases are returned rather than only counted, and the section splits them by how
+    many raises are already in.
+    """
+    found: list[tuple[str, str, str, float, float]] = []
+    for spot_id, cells in play.items():
+        for stronger, weaker, high, low in inversions(cells, ROW_KICKERS):
+            if stronger[0] == "A" and weaker[:2] in WHEEL_ACE_KICKERS:
+                found.append((spot_id, stronger, weaker, high, low))
+    return tuple(sorted(found))
 
 
 def raise_inversions_invisible(
@@ -1126,6 +1327,7 @@ class Measured:
     coverage: dict[str, tuple[int, int]]
     plays: dict[str, float]
     calls: dict[str, float]
+    raises: dict[str, float]
     retired: RetiredChart
     before: ComparisonResult
     after: ComparisonResult
@@ -1163,6 +1365,7 @@ def census_section(measured: Measured) -> list[str]:
     keys against the artifact's."""
     counts = measured.walk.census
     artifact_keys = {spot.spot_id for spot in measured.artifact.spots}
+    squeezed = counts.excluded.get(lookup.DERIVATION_BIG_BLIND_SQUEEZE_SPOT, 0)
     histogram: dict[int, int] = {}
     for key in artifact_keys:
         faced = raises_faced_in_key(key)
@@ -1187,7 +1390,8 @@ def census_section(measured: Measured) -> list[str]:
         "names a different way back. The multiway family returns when GTOpen can price a pot with",
         "three or more players in it - it values one as the product of hero's equity against each",
         "opponent separately, which understates true three-way equity by about ten and a half",
-        "points. The ten big-blind squeeze spots return when the flats are repaired. Everything",
+        f"points. The {squeezed} big-blind squeeze spots return when the flats are repaired."
+        " Everything",
         "beyond the committed raise depth returns when a later phase takes up the four-bet. A",
         "census folding any two of them together adds to the same total and is wrong only about",
         "which fix brings which back, which is the one failure a total can never see.",
@@ -1200,9 +1404,9 @@ def census_section(measured: Measured) -> list[str]:
         "nodes. The four-bet family is the great majority of the nodes and a little over one",
         "percent of the play, which is why the two readings are so far apart.",
         "",
-        "And 249 nodes are not self-evidently 249 keys. A converter that dropped one node while",
-        "inventing one key publishes the identical count, so the artifact and the walk are",
-        "compared key by key and both directions are named:",
+        f"And {counts.committed} nodes are not self-evidently {counts.committed} keys. A converter",
+        "that dropped one node while inventing one key publishes the identical count, so the",
+        "artifact and the walk are compared key by key and both directions are named:",
         "",
         f"  artifact keys  {len(artifact_keys)}  walked keys  {len(measured.walk.spot_keys)}"
         f"  invented  {len(artifact_keys - measured.walk.spot_keys)}"
@@ -1228,6 +1432,7 @@ def census_section(measured: Measured) -> list[str]:
 def exposure_section(measured: Measured) -> list[str]:
     """The filter's margin is sixteen hundredths of a point, so it is published, not described."""
     splits = measured.walk.splits
+    squeezed = measured.walk.census.excluded.get(lookup.DERIVATION_BIG_BLIND_SQUEEZE_SPOT, 0)
     lines = [
         "A node ships only where under a tenth of its decision mass reaches a flop with three or",
         "more players in it, measured by walking to the leaves rather than by counting who is",
@@ -1247,11 +1452,22 @@ def exposure_section(measured: Measured) -> list[str]:
         "in it. The two are the halves of one mass and add to a hundred, so a row publishing",
         "exposure alone could be over any denominator at all.",
         "",
+        "A row has three columns and only two quantities, and that is said here rather than left",
+        "for a reader to notice by adding them up. `exposure` and `multiway` are the SAME number",
+        "printed twice - `terminal_split_pct` returns folded, heads-up and multiway, and both",
+        "columns read its multiway leg, so they are one quantity by definition rather than two",
+        "that happen to agree. The pair a reader should add is `multiway` and `heads-up`, which",
+        "make a hundred; adding all three columns gives a hundred plus the multiway figure again.",
+        "A frozen test requires the first two columns to be equal, so this stage cannot collapse",
+        "them, and a later phase that gives the second column a measurement of its own - the",
+        "un-renormalised exposure with hero's cold call left in would be the informative one -",
+        "has to change that test with it.",
+        "",
         "The filter is blindest exactly where the mispricing has already turned a call into a",
-        "fold. The ten big-blind squeeze spots passed this clause BECAUSE the big blind folds 93",
-        "percent of its range there, so almost nothing of its mass reaches the three-way flop, and",
-        "they are refused by a clause of their own instead. Any later build re-measures these",
-        "rather than carrying them forward",
+        f"fold. The {squeezed} big-blind squeeze spots passed this clause BECAUSE the big blind",
+        "folds 93 percent of its range there, so almost nothing of its mass reaches the three-way",
+        "flop, and they are refused by a clause of their own instead. Any later build re-measures",
+        "these rather than carrying them forward",
         "(MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN).",
         "",
     ]
@@ -1331,6 +1547,10 @@ def arrival_section(measured: Measured) -> list[str]:
     arrivals = dict(measured.artifact.arrival_ppb)
     rounding = sum(1 for value in arrivals.values() if value == 0)
     exactly = sum(1 for key in arrivals if measured.walk.arrivals.get(key, 1.0) == 0.0)
+    downstream = tuple(key for key in sorted(arrivals) if f"{hero_seat(key)}:call" in key)
+    total_ppb = sum(arrivals.values())
+    family_ppb = sum(arrivals[key] for key in downstream)
+    ratio = percent(len(downstream), len(arrivals)) / (100.0 * family_ppb / total_ppb)
     return [
         "Arrival is how often a spot's line is played at all, and over the committed set it spans",
         "many orders of magnitude. So the grain it is published at is stated, with the count of",
@@ -1346,6 +1566,29 @@ def arrival_section(measured: Measured) -> list[str]:
         "first counts spots whose arrival falls below half a part per billion once rounded; the",
         "second counts the spots the solve genuinely never reaches, read off the unrounded product",
         "rather than off the field. Only the second is a spot nobody plays.",
+        "",
+        "The same grain settles a count this phase can otherwise be read two ways about. The chart",
+        "merges hero's cold call away, so a committed spot whose own key records hero calling is a",
+        "spot the bot's own play cannot reach. There are a lot of them by count and almost none of",
+        "them by weight, and both readings are printed because either one alone misleads:",
+        "",
+        f"  downstream of hero's own call  {len(downstream)} of {len(arrivals)} spots"
+        f"  {percent(len(downstream), len(arrivals)):.1f} percent by count",
+        f"  the same family by arrival  {family_ppb:,} of {total_ppb:,} ppb"
+        f"  {100.0 * family_ppb / total_ppb:.4f} percent by weight",
+        "",
+        "Read it as: as the tree the BOT plays, every one of these is dead and no packet may count",
+        "them toward what the bot answers - but what they are worth is the weight row and not the",
+        f"count row, and the two rows differ by a factor of {ratio:,.0f}.",
+        "",
+        "As a reference a HUMAN is drilled on they are legitimate, because the range at each is",
+        "the solve's own range for a cold-caller and a human student does cold-call: the right",
+        "range at the right spot for a student, at a spot this bot's own upstream merge means it",
+        "never sees. Those are two claims and this report makes them separately.",
+        "",
+        "What it may not do, and does not do, is offer `the bot never cold-calls` as the",
+        "justification for the merge and then count the spots downstream of a cold call under",
+        "that same sentence.",
     ]
 
 
@@ -1510,6 +1753,13 @@ def defects_section(measured: Measured) -> list[str]:
     """Accepted defects, never caveats, each with the number the phase accepted it on."""
     counted = {name: len(rows) for name, rows in measured.relations.items()}
     wheel, wide, narrow = kicker_split(measured.play)
+    exempted = wheel_ace_cases(measured.play)
+    by_depth: dict[int, list[tuple[str, str, str, float, float]]] = {}
+    for case in exempted:
+        by_depth.setdefault(raises_faced_in_key(case[0]), []).append(case)
+    first_in = tuple(by_depth.get(0, ()))
+    wide_gap = sum(1 for case in exempted if case[4] - case[3] >= WIDE_KICKER_GAP_PCT)
+    near_pure = sum(1 for case in exempted if case[3] < 5.0 and case[4] > 95.0)
     invisible = raise_inversions_invisible(measured.play, measured.raise_weight)
     solve_cells, solve_pure, solve_mixed = measured.walk.solve_purity
     _, published_pure, published_mixed = purity(cell_weights(measured.artifact))
@@ -1519,7 +1769,7 @@ def defects_section(measured: Measured) -> list[str]:
     raise_action = counted["pair ladder on the raise weight"]
     merged_spots = len(measured.walk.merged_spot_keys)
     moved = measured.walk.merged_cell_count
-    return [
+    lines = [
         "Four defects this phase accepts on purpose, each with the measurement it was accepted on.",
         "They are defects and are recorded as defects; none is small print, and the packet",
         "requirements forbid that word for exactly this list.",
@@ -1529,20 +1779,67 @@ def defects_section(measured: Measured) -> list[str]:
         " flat barely moves with who opened",
         f"  defect  the pair ladder inverts   {pair} cases on play-not-fold and {raise_action} on"
         f" the raise weight the bot plays, {invisible} of those invisible to play-not-fold",
-        f"  defect  the kicker row ladder inverts   {kicker} cases, of which {wheel} are the"
-        f" wheel-ace premium and correct poker, {wide} have no poker story at a 50 point gap or"
-        f" wider, and {narrow} below it",
+        f"  defect  the kicker row ladder inverts   {kicker} cases, of which {wheel} are exempted"
+        f" as the wheel-ace premium - correct poker at {wheel - len(first_in)} of them and a name"
+        f" match with no poker story at the {len(first_in)} first-in spots below - {wide} have no"
+        f" poker story at a 50 point gap or wider, and {narrow} below it",
         f"  defect  the merged flats play differently   {moved} cells move at {merged_spots}"
         " spots, and three-betting 66 commits 7.5 big blinds and can face a four-bet where the"
         " solve would have seen a cheap flop",
         "",
-        "The wheel-ace cases are separated out because they are correct poker, and lumping them in",
-        "overstates what is wrong with the chart by about half: a suited wheel ace makes the nut",
-        f"straight and is less dominated than a middling suited ace, so {wheel} of the"
-        f" {kicker} are",
-        "the premium GTOpen's own fit measures rather than a defect. The three parts add back to",
-        "the family, which is the check that the split has the right members rather than merely",
-        "the right size.",
+        "The wheel-ace cases are separated out because at almost all of them they are correct",
+        "poker, and lumping them in overstates what is wrong with the chart by about half: a",
+        "suited wheel ace makes the nut straight and is less dominated than a middling suited ace,",
+        f"so {wheel} of the {kicker} are the premium GTOpen's own fit measures and not a defect.",
+        "The three parts add back to the family, which is the check that the split has the right",
+        "members rather than merely the right size.",
+        "",
+        "What the exemption itself cannot see, published because the sentence above would",
+        "otherwise claim more than the measurement supports. `kicker_split` exempts a case",
+        "whenever the more-played hand is A5, A4, A3 or A2, and it tests nothing else - not the",
+        "size of the gap, and not the spot. The gap it is not testing is usually large:",
+        "",
+        f"  exempted cases  {wheel}"
+        f"  with a gap of {WIDE_KICKER_GAP_PCT:.0f} points or wider  {wide_gap}"
+        f"  with the better ace under 5 percent and the wheel ace over 95  {near_pure}",
+        "",
+        "And the spot it is not testing is the one the poker story turns on. A suited wheel ace is",
+        "the canonical three-bet bluff - nut-straight potential plus an ace blocker - so choosing",
+        "it over a middling suited ace is bluff selection, and bluff selection is what a strong",
+        "player does at a three-bet, a squeeze or a defence. A FIRST-IN raise has no bluff",
+        "selection in it at all: nobody polarises an opening range, the hands that show a profit",
+        "are opened, and a better ace dominates the wheel ace on kicker and on high card while",
+        "giving up only the A2345 straight, worth on the order of a point of equity. So the split",
+        "that matters is by how many raises are already in when hero is asked:",
+        "",
+    ]
+    for faced in sorted(by_depth):
+        where = {
+            0: "first-in, no bluff selection to justify it",
+            1: "facing an open - three-bet, squeeze or defence",
+            2: "facing a three-bet",
+        }.get(faced, "deeper")
+        lines.append(f"  exempted at raises faced  {faced}  {len(by_depth[faced])}  {where}")
+    lines += [
+        "",
+        f"The {wheel - len(first_in)} exempted at a raise already in are the ruled case and this",
+        "report does not reopen them. The first-in ones are named, because a reader owed the",
+        "claim is owed the instances:",
+        "",
+    ]
+    for spot_id, stronger, weaker, high, low in first_in:
+        lines.append(
+            f"  first-in exempted  {spot_id}  {stronger} played {high:.2f}"
+            f"  under {weaker} played {low:.2f}  gap {low - high:.2f}"
+        )
+    lines += [
+        "",
+        f"All {len(first_in)} are exempted by name and the exemption's argument reaches none of",
+        "them, so the packet may not carry them as correct poker. They are also the smaller half",
+        "of what is wrong at those spots, because a ladder compares neighbours and a hole two",
+        "cells wide hides in it. The opening range's own composition against the outside",
+        "reference is measured further down, under the expectations, where the hole is visible",
+        "whole.",
         "",
         "The mixed-cell share sits here because it is what makes the merged flats a real cost",
         "rather than a relabelling, and each reading says which grid it is measured over, both",
@@ -1560,6 +1857,7 @@ def defects_section(measured: Measured) -> list[str]:
         "off the file it just wrote would read only that one. Both are printed and each is",
         "labelled, because this phase has already shipped one figure under two meanings.",
     ]
+    return lines
 
 
 def orderings_section(measured: Measured) -> list[str]:
@@ -1622,6 +1920,10 @@ def big_blind_section(measured: Measured) -> list[str]:
             f"  raked reference {cited:.3f}  {verdict}"
         )
     spread = max(flats.values()) - min(flats.values())
+    cited_flats = {
+        position: reference_action_pct(("call",))[f"BB_vs_{REFERENCE_SEAT[position]}_open"]
+        for position in OPENERS
+    }
     lines += [
         "",
         f"  flat spread  {spread:.2f} points",
@@ -1630,6 +1932,34 @@ def big_blind_section(measured: Measured) -> list[str]:
         "openers whose own ranges span more than thirty-five points",
         "(BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT). It is a separate finding from the level and",
         "it is not what the cost below prices.",
+        "",
+        "The flat does not merely fail to move, and the direction is published because an",
+        "invariant flat could be a tolerance artifact and an inverted one cannot. The reference's",
+        "own big-blind calls climb the whole way through the four non-blind openers; this chart's",
+        "climb to the cutoff and then fall for the button and the small blind, the two widest",
+        "openers of the five, which are the two a correct chart's flat rises fastest against:",
+        "",
+    ]
+    for position in OPENERS:
+        lines.append(
+            f"  flat vs {position}  chart {flats[position]:.3f}"
+            f"  raked reference {cited_flats[position]:.3f}"
+        )
+    cited_span = max(cited_flats.values()) - min(cited_flats.values())
+    lines += [
+        "",
+        f"  spread  chart {spread:.2f} points  raked reference {cited_span:.2f} points",
+        "",
+        "The reference column is the SHAPE and not the level. It is a raked solve and its flats",
+        "are not a target, but the order it puts them in does not turn on the rake basis, and this",
+        "chart does not reproduce it. That belongs under the entry above rather than anywhere new.",
+        "",
+        "And the over-folding is not confined to this seat. The same realization fit prices every",
+        "seat that has to answer an open, and where the outside reference reaches those spots the",
+        "chart reads narrower there too - the measurement is under the expectations below, on the",
+        "merged family. A reader who takes this section's naming of the big blind as meaning the",
+        "merged three-bet ranges are sound is being misled, and the defect list above names the",
+        "seat where the cost was priced rather than the only seat where the level is wrong.",
         "",
         "What the cost prices is the over-folding, and the over-folding is the accepted defect,",
         "which COMMITTED-SPOTS-NEVER-FLAT-A-RAISE now carries under that name. A reader given only",
@@ -1689,7 +2019,16 @@ def bands_section(measured: Measured) -> list[str]:
         "price hero's own four-bet, and that routes through a flop terminal the realization fit",
         "has no observation for (THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL). The family",
         "that would show the damage is the four-bet-facing one, and that is exactly the family",
-        "this phase withholds, so a comfortable four-bet frequency here would show nothing at all.",
+        "this phase withholds.",
+        "",
+        "That argument holds against a four-bet frequency that looks comfortable and does not hold",
+        "against one that does not, and the frequency is not comfortable. It is published against",
+        "the outside reference under the expectations below, where it is BELOW the reference at",
+        "every spot the reference can reach while total defence is wider at every one of them - so",
+        "the chart answers a three-bet by calling far more and four-betting far less. None of that",
+        "is evidence about the unfitted terminal, for the reason the paragraph above gives; it is",
+        "a measurement a reader is owed instead of a sentence saying a measurement would be empty,",
+        "and it is where a later phase taking up the four-bet family starts.",
     ]
     return lines
 
@@ -1733,6 +2072,14 @@ def menus_section(measured: Measured) -> list[str]:
         "three-bets: 66 commits 7.5 big blinds and can face a four-bet, where the solve would have",
         "seen a cheap flop with it. The range is preserved and the way it plays is not",
         "(MERGED-FLATS-PLAY-DIFFERENTLY-NOT-JUST-DIFFERENTLY-LABELLED).",
+        "",
+        "The merge preserving the range is not the same claim as the range being right, and the",
+        "level at these spots is measured against the outside reference under the expectations",
+        "below. It reads narrower there at almost every spot the reference can reach, in the one",
+        "direction a rake-free solve is not supposed to go - the same over-folding the defect list",
+        "names in the big blind, from the same realization fit, at a family the defect list does",
+        "not name. A reader may not take the merged three-bet ranges as sound on the strength of",
+        "the two columns above.",
     ]
     return lines
 
@@ -1744,6 +2091,17 @@ def expectations_section(measured: Measured) -> list[str]:
         "opens": reference["open_frequency_pct"],
         "big blind defends": reference["big_blind_defence_pct"],
     }
+    defence = reference_action_pct(("defence",))
+    faced = sorted(
+        (key, str(reference_key_for(key)))
+        for key in measured.family("the merged spots")
+        if (reference_key_for(key) or "").endswith("_open")
+    )
+    three_bet = sorted(
+        (key, str(reference_key_for(key)))
+        for key in measured.family("the three-bet-facing spots")
+        if (reference_key_for(key) or "").endswith("_3bet")
+    )
     lines = [
         "GTO Wizard's own published frequencies for a raked NL25 six-max game, beside what this",
         "phase measured. They are the only numbers here this repo did not produce, which is what",
@@ -1772,6 +2130,153 @@ def expectations_section(measured: Measured) -> list[str]:
         "The small blind's gap is the largest and has a second cause on top of that: the reference",
         "solve limps 13.73 percent of the time from the small blind, where this one has no limp",
         "branch at all, so the hands that limped there open here.",
+        "",
+        "Those two families are two of the five this chart ships, and until this block was written",
+        "they were the only two anything outside the repo was read against - and they are the two",
+        "that pass. The file the expectations are distilled from carries full per-hand strategies",
+        f"for {len(defence)} spots ({REFERENCE_SOURCE.relative_to(REPO_ROOT)}), so the rest of",
+        "what it can reach is read below. The same caveat holds throughout and it is the whole",
+        "caveat: the reference is RAKED, so this chart reading WIDER than it is a floor cleared",
+        "and never a level confirmed, and this chart reading NARROWER than it is a direction a",
+        "rake-free solve is not supposed to go. Nothing below gates anything.",
+        "",
+        f"First, defence against a single open at the merged family - the {len(faced)} spots where",
+        "hero has posted nothing, faces one open and nobody else is in. These are the same spots",
+        "whose raise-plus-call the menu section prints; here they are beside a figure from",
+        "outside:",
+        "",
+    ]
+    deltas: list[float] = []
+    for key, reference_key in faced:
+        cited = defence[reference_key]
+        derived = measured.plays[key]
+        deltas.append(derived - cited)
+        lines.append(
+            f"  vs one open  {key}  defends {derived:.4f}  raked reference {cited:.3f}"
+            f"  {'wider' if derived > cited else 'narrower'}  {derived - cited:+.4f}"
+        )
+    tighter = [-delta for delta in deltas if delta < 0.0]
+    lines += [
+        "",
+        f"  narrower at  {len(tighter)} of {len(deltas)} spots"
+        f"  mean shortfall over all  {-sum(deltas) / len(deltas):.4f} points"
+        f"  over the narrower  {sum(tighter) / len(tighter):.4f} points",
+        f"  widest shortfall  {max(tighter):.4f} points"
+        f"  narrowest  {min(tighter):.4f} points",
+        "",
+        "Read that as the finding it is. The accepted defect above says the BIG BLIND over-folds",
+        "and names the cause as the fit's own realization number for facing a bet in a",
+        f"single-raised pot. That same fit prices these {len(deltas)} spots, and at"
+        f" {len(tighter)} of the {len(deltas)} this chart is narrower than a solve that is",
+        "paying rake and that, from the small blind, is three-betting at a worse price than this",
+        "one does.",
+        "So the over-folding is a property of every seat that has to answer an open rather than of",
+        "the big blind, and a reader may not take the defect list's naming of one seat as clearing",
+        "the merged three-bet ranges. What this measurement does not do is re-price anything or",
+        "move a weight: the four accepted defects are the four that were ruled, and whether the",
+        "list is extended to name this family is a ruling and not a measurement.",
+        "",
+        f"Second, hero's own four-bet at the {len(three_bet)} spots where he opened and then faced",
+        "a three-bet - the family the bands section declines to publish a band over. Both columns",
+        "are printed because they go opposite ways:",
+        "",
+    ]
+    raised = reference_action_pct(("raise",))
+    prices = reference_prices()
+    sizing = PreflopSizingTable.from_repo().raise_to_bb
+    shortfalls: list[float] = []
+    below = wider = dearer = 0
+    for key, reference_key in three_bet:
+        cited_raise = raised[reference_key]
+        cited_defence = defence[reference_key]
+        own = measured.raises[key]
+        shortfalls.append(100.0 * (cited_raise - own) / cited_raise)
+        below += own < cited_raise
+        wider += measured.plays[key] > cited_defence
+        multiple = chart_raise_to_bb(sizing, key) / raise_faced_to_bb(key)
+        cited = prices[reference_key]
+        cited_multiple = cited["raise_to_bb"] / cited["answering_bb"]
+        dearer += multiple > cited_multiple
+        lines.append(
+            f"  vs one three-bet  {key}  four-bets {own:.2f}"
+            f"  raked reference {cited_raise:.2f}"
+            f"  defends {measured.plays[key]:.2f}  raked reference {cited_defence:.2f}"
+            f"  price {multiple:.2f}x  raked reference {cited_multiple:.2f}x"
+        )
+    lines += [
+        "",
+        f"  four-bet below the reference at  {below} of {len(three_bet)} spots"
+        f"  by {min(shortfalls):.1f} to {max(shortfalls):.1f} percent relatively",
+        f"  total defence wider at  {wider} of {len(three_bet)} spots",
+        f"  four-bet priced dearer than the reference's at  {dearer} of {len(three_bet)} spots",
+        "",
+        "So this chart answers a three-bet by calling far more and four-betting far less. The",
+        "defence column clears the floor at every spot and the four-bet column is below at every",
+        "spot, which is a shape rather than a scatter.",
+        "",
+        "The price column is why it is published and not accepted as a fifth defect. It is the",
+        "four-bet as a multiple of the three-bet being answered, and this chart's four-bet is the",
+        "dearer of the two at every one of these spots - the reference answers a bigger three-bet",
+        "with a raise that is proportionally smaller. A dearer four-bet is four-bet less often by",
+        "construction, so part of this gap is a price difference rather than a strategy",
+        "difference, which is PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED showing up in the",
+        "output rather than a new finding. Separating the two halves needs a rake-free reference",
+        "at this solve's own prices, which this repo does not commit",
+        "(NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE). It is also not evidence",
+        "about the unfitted terminal, for the reason the bands section gives. What it is: the",
+        "measurement a reader is owed in place of a sentence saying a measurement would be empty,",
+        "and the number a later phase taking up the four-bet family starts from.",
+        "",
+        "Third, the first-in family, per HAND rather than per aggregate. The aggregate figures at",
+        "the top of this section agree with the reference to about a point, and a range can be",
+        "the right size with the wrong contents. So every hand class whose weight differs by"
+        f" {WIDE_KICKER_GAP_PCT:.0f} points or more is counted and named, and the direction is",
+        "counted on each side:",
+        "",
+    ]
+    hand_raises = reference_hand_raises()
+    for position in OPENERS:
+        key = f"t6/d100/{position}/rfi"
+        reference_key = str(reference_key_for(key))
+        cited_cells = hand_raises[reference_key]
+        cells = measured.play[key]
+        disagreeing = [
+            name
+            for name in sorted(set(cells) | set(cited_cells))
+            if abs(cells.get(name, 0.0) - cited_cells.get(name, 0.0)) >= WIDE_KICKER_GAP_PCT
+        ]
+        folded = [n for n in disagreeing if cells.get(n, 0.0) < cited_cells.get(n, 0.0)]
+        opened = [n for n in disagreeing if cells.get(n, 0.0) > cited_cells.get(n, 0.0)]
+        lines += [
+            f"  first-in  {position}  opens {measured.plays[key]:.3f}"
+            f"  raked reference {raised[reference_key]:.2f}"
+            f"  hands differing by {WIDE_KICKER_GAP_PCT:.0f} points or more  {len(disagreeing)}",
+            f"    folded here, opened there  {len(folded)}",
+            *_wrapped(folded, "      "),
+            f"    opened here, folded there  {len(opened)}",
+            *_wrapped(opened, "      "),
+        ]
+    lines += [
+        "",
+        "The small blind row is not a comparison and is printed only so the family is complete:",
+        "the reference limps from that seat and this solve has no limp branch, so its opening",
+        "range absorbs the limps and every hand that differs is on that one side.",
+        "",
+        "The other four rows are the finding. The aggregates agree to about a point while the",
+        "contents disagree in dozens of places, and the disagreement has a direction rather than",
+        "being scatter: offsuit broadways and high-card suited hands out, small pairs and suited",
+        "connectors and gappers in. The concrete case is the ace row at the lightest-opening seat,",
+        "where the exempted first-in kicker inversion in the defects section sits - the two suited",
+        "aces beside the wheel aces are folded pure while all four wheel aces open pure, and the",
+        "reference opens all twelve suited aces from that seat. A ladder relation compares",
+        "neighbours, so a hole two cells wide shows up as one case, and the wheel-ace exemption",
+        "then reports that one case as correct poker. This row is where the hole is visible whole.",
+        "",
+        "None of this is a re-solve and none of it moves a weight. It is the measurement the four",
+        "internal relations cannot make - every one of them compares a grid against its own other",
+        "cells, so a chart that is uniformly wrong reads clean on all four - and it is taken",
+        "against a raked file, per hand, gating nothing",
+        "(THE-DISCRIMINATION-GATE-CANNOT-SEE-OVER-FOLDING-OR-A-MIS-ASSIGNED-ACTOR).",
     ]
     return lines
 
@@ -1808,8 +2313,22 @@ def ledger_section(measured: Measured, commit: str) -> list[str]:
     ]
 
 
-def vacuous_section() -> list[str]:
-    """Three criteria with no instance over the committed set, labelled wherever reported."""
+def vacuous_section(measured: Measured) -> list[str]:
+    """Three criteria with no instance over the committed set, labelled wherever reported.
+
+    The second of the three has two readings and only one of them is vacuous, so the split that
+    tells them apart is printed here. Nothing in the label was wrong; what was missing is the
+    two denominators, and a reader given the word without them reads a real 81-instance
+    measurement as an empty one.
+    """
+    menus = spot_menus(measured.artifact)
+    taken = spot_menus(measured.artifact, positive=True)
+    named_a_raise = sum(1 for actions in menus.values() if actions & {"raise", "jam"})
+    took_a_raise = sum(1 for actions in taken.values() if actions & {"raise", "jam"})
+    priced = PreflopSizingTable.from_repo().raise_to_bb
+    entries = {key: classes for key, classes in priced.items() if key in menus}
+    with_a_price = sum(1 for classes in entries.values() if classes)
+    raising = sum(1 for weight in measured.raises.values() if weight > 0.0)
     return [
         "Three criteria this phase keeps have no instance over the committed set. A criterion that",
         "cannot fire did not pass, and none of these three is counted anywhere as a check that",
@@ -1829,6 +2348,37 @@ def vacuous_section() -> list[str]:
         "Wherever one of these is reported it carries this label, because a vacuous criterion is",
         "not a check that passed. It is never counted as one, and a packet counting one would be",
         "claiming coverage the phase does not have.",
+        "",
+        "The middle one of the three is labelled under one reading of `offers hero a raise` and is",
+        "measured under another, and the word alone does not say which, so all three readings are",
+        "printed. `Offers` can mean the spot carries a sizing KEY at all, or that its cells NAME a",
+        "raise, or that some arriving class actually TAKES one - and the three came apart when the",
+        "arriving classes came apart from the menu:",
+        "",
+        f"  spots carrying a sizing key  {len(entries)} of {len(measured.raises)}"
+        f"  carrying none  {len(measured.raises) - len(entries)}",
+        f"  menus naming a raise for hero  {named_a_raise} of {len(menus)}"
+        f"  naming none  {len(menus) - named_a_raise}",
+        f"  spots where some arriving class takes a raise  {took_a_raise} of {len(taken)}",
+        f"  sizing keys with at least one class priced  {with_a_price}"
+        f"  with an empty price list  {len(entries) - with_a_price}",
+        f"  spots whose arriving range raises at all  {raising} of {len(measured.raises)}",
+        "",
+        "The label belongs to the first two rows and to those only. The criterion is about a spot",
+        "that carries NO KEY and therefore makes the strategy refuse, and no committed spot",
+        "carries no key, so there is nothing here for that half of the rule to refuse. Under the",
+        f"third reading it is not empty at all: {len(measured.raises) - took_a_raise} committed"
+        " spots name a raise no arriving class ever takes, and they ship a key with an empty",
+        "price list under it. A packet may print the word for this criterion only with those rows",
+        "it, because the error a bare label makes here runs the opposite way round to the one the",
+        "paragraph above warns about - it tells a reader that a real measurement is empty rather",
+        "than that an empty one passed.",
+        "",
+        "The same rows say that a SPOT-level reading of `exactly the spots that raise carry a",
+        f"sizing entry` is now FALSE rather than vacant: every spot carries an entry and only"
+        f" {with_a_price} raise, so the rule holds class by class and not spot by spot. That is a",
+        "gap in what is asserted rather than a figure in dispute",
+        "(COMMITTED-SPOTS-THE-BOT-CANNOT-REACH-BY-ITS-OWN-PLAY).",
     ]
 
 
@@ -2279,6 +2829,7 @@ def measure(arguments: argparse.Namespace) -> tuple[Measured, list[str]]:
         coverage=relation_coverage(play, raise_weight),
         plays=spot_frequencies(artifact, "play"),
         calls=spot_frequencies(artifact, "call"),
+        raises=spot_frequencies(artifact, "raise"),
         retired=retired,
         before=before,
         after=after,
@@ -2355,7 +2906,7 @@ def main(argv: list[str] | None = None) -> int:
             menus_section(measured),
             expectations_section(measured),
             ledger_section(measured, arguments.retired_commit),
-            vacuous_section(),
+            vacuous_section(measured),
             jams_section(measured),
             limitations_section(),
             corpus_section(measured),

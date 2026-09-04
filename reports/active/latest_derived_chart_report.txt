@@ -31,7 +31,7 @@ Three exclusion reasons rather than one, and a reader should not read past that.
 names a different way back. The multiway family returns when GTOpen can price a pot with
 three or more players in it - it values one as the product of hero's equity against each
 opponent separately, which understates true three-way equity by about ten and a half
-points. The ten big-blind squeeze spots return when the flats are repaired. Everything
+points. The 10 big-blind squeeze spots return when the flats are repaired. Everything
 beyond the committed raise depth returns when a later phase takes up the four-bet. A
 census folding any two of them together adds to the same total and is wrong only about
 which fix brings which back, which is the one failure a total can never see.
@@ -44,9 +44,9 @@ answers, weighted by how often each node is actually reached rather than by coun
 nodes. The four-bet family is the great majority of the nodes and a little over one
 percent of the play, which is why the two readings are so far apart.
 
-And 249 nodes are not self-evidently 249 keys. A converter that dropped one node while
-inventing one key publishes the identical count, so the artifact and the walk are
-compared key by key and both directions are named:
+And 249 nodes are not self-evidently 249 keys. A converter
+that dropped one node while inventing one key publishes the identical count, so the
+artifact and the walk are compared key by key and both directions are named:
 
   artifact keys  249  walked keys  249  invented  0  dropped  0
 
@@ -81,11 +81,22 @@ exposure is the share of a spot's decision mass reaching a multiway flop termina
 in it. The two are the halves of one mass and add to a hundred, so a row publishing
 exposure alone could be over any denominator at all.
 
+A row has three columns and only two quantities, and that is said here rather than left
+for a reader to notice by adding them up. `exposure` and `multiway` are the SAME number
+printed twice - `terminal_split_pct` returns folded, heads-up and multiway, and both
+columns read its multiway leg, so they are one quantity by definition rather than two
+that happen to agree. The pair a reader should add is `multiway` and `heads-up`, which
+make a hundred; adding all three columns gives a hundred plus the multiway figure again.
+A frozen test requires the first two columns to be equal, so this stage cannot collapse
+them, and a later phase that gives the second column a measurement of its own - the
+un-renormalised exposure with hero's cold call left in would be the informative one -
+has to change that test with it.
+
 The filter is blindest exactly where the mispricing has already turned a call into a
-fold. The ten big-blind squeeze spots passed this clause BECAUSE the big blind folds 93
-percent of its range there, so almost nothing of its mass reaches the three-way flop, and
-they are refused by a clause of their own instead. Any later build re-measures these
-rather than carrying them forward
+fold. The 10 big-blind squeeze spots passed this clause BECAUSE the big blind
+folds 93 percent of its range there, so almost nothing of its mass reaches the three-way
+flop, and they are refused by a clause of their own instead. Any later build re-measures
+these rather than carrying them forward
 (MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN).
 
   t6/d100/BB/BTN:raise@2.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
@@ -375,6 +386,27 @@ first counts spots whose arrival falls below half a part per billion once rounde
 second counts the spots the solve genuinely never reaches, read off the unrounded product
 rather than off the field. Only the second is a spot nobody plays.
 
+The same grain settles a count this phase can otherwise be read two ways about. The chart
+merges hero's cold call away, so a committed spot whose own key records hero calling is a
+spot the bot's own play cannot reach. There are a lot of them by count and almost none of
+them by weight, and both readings are printed because either one alone misleads:
+
+  downstream of hero's own call  106 of 249 spots  42.6 percent by count
+  the same family by arrival  996,262 of 6,068,788,530 ppb  0.0164 percent by weight
+
+Read it as: as the tree the BOT plays, every one of these is dead and no packet may count
+them toward what the bot answers - but what they are worth is the weight row and not the
+count row, and the two rows differ by a factor of 2,593.
+
+As a reference a HUMAN is drilled on they are legitimate, because the range at each is
+the solve's own range for a cold-caller and a human student does cold-call: the right
+range at the right spot for a student, at a spot this bot's own upstream merge means it
+never sees. Those are two claims and this report makes them separately.
+
+What it may not do, and does not do, is offer `the bot never cold-calls` as the
+justification for the merge and then count the spots downstream of a cold call under
+that same sentence.
+
 ## The four relations, measured and gating nothing
 
 Four things a solved preflop range should almost always do, measured on every committed
@@ -505,15 +537,49 @@ requirements forbid that word for exactly this list.
 
   defect  the big blind over-folds against every opener   it defends 25.70 to 48.39 percent where rake-free solves are roughly 40 through 65, and its flat barely moves with who opened
   defect  the pair ladder inverts   114 cases on play-not-fold and 41 on the raise weight the bot plays, 25 of those invisible to play-not-fold
-  defect  the kicker row ladder inverts   181 cases, of which 87 are the wheel-ace premium and correct poker, 29 have no poker story at a 50 point gap or wider, and 65 below it
+  defect  the kicker row ladder inverts   181 cases, of which 87 are exempted as the wheel-ace premium - correct poker at 85 of them and a name match with no poker story at the 2 first-in spots below - 29 have no poker story at a 50 point gap or wider, and 65 below it
   defect  the merged flats play differently   165 cells move at 20 spots, and three-betting 66 commits 7.5 big blinds and can face a four-bet where the solve would have seen a cheap flop
 
-The wheel-ace cases are separated out because they are correct poker, and lumping them in
-overstates what is wrong with the chart by about half: a suited wheel ace makes the nut
-straight and is less dominated than a middling suited ace, so 87 of the 181 are
-the premium GTOpen's own fit measures rather than a defect. The three parts add back to
-the family, which is the check that the split has the right members rather than merely
-the right size.
+The wheel-ace cases are separated out because at almost all of them they are correct
+poker, and lumping them in overstates what is wrong with the chart by about half: a
+suited wheel ace makes the nut straight and is less dominated than a middling suited ace,
+so 87 of the 181 are the premium GTOpen's own fit measures and not a defect.
+The three parts add back to the family, which is the check that the split has the right
+members rather than merely the right size.
+
+What the exemption itself cannot see, published because the sentence above would
+otherwise claim more than the measurement supports. `kicker_split` exempts a case
+whenever the more-played hand is A5, A4, A3 or A2, and it tests nothing else - not the
+size of the gap, and not the spot. The gap it is not testing is usually large:
+
+  exempted cases  87  with a gap of 50 points or wider  69  with the better ace under 5 percent and the wheel ace over 95  53
+
+And the spot it is not testing is the one the poker story turns on. A suited wheel ace is
+the canonical three-bet bluff - nut-straight potential plus an ace blocker - so choosing
+it over a middling suited ace is bluff selection, and bluff selection is what a strong
+player does at a three-bet, a squeeze or a defence. A FIRST-IN raise has no bluff
+selection in it at all: nobody polarises an opening range, the hands that show a profit
+are opened, and a better ace dominates the wheel ace on kicker and on high card while
+giving up only the A2345 straight, worth on the order of a point of equity. So the split
+that matters is by how many raises are already in when hero is asked:
+
+  exempted at raises faced  0  2  first-in, no bluff selection to justify it
+  exempted at raises faced  1  12  facing an open - three-bet, squeeze or defence
+  exempted at raises faced  2  73  facing a three-bet
+
+The 85 exempted at a raise already in are the ruled case and this
+report does not reopen them. The first-in ones are named, because a reader owed the
+claim is owed the instances:
+
+  first-in exempted  t6/d100/CO/rfi  A6o played 0.00  under A5o played 26.96  gap 26.96
+  first-in exempted  t6/d100/LJ/rfi  A6s played 0.01  under A5s played 100.00  gap 99.99
+
+All 2 are exempted by name and the exemption's argument reaches none of
+them, so the packet may not carry them as correct poker. They are also the smaller half
+of what is wrong at those spots, because a ladder compares neighbours and a hole two
+cells wide hides in it. The opening range's own composition against the outside
+reference is measured further down, under the expectations, where the hole is visible
+whole.
 
 The mixed-cell share sits here because it is what makes the merged flats a real cost
 rather than a relabelling, and each reading says which grid it is measured over, both
@@ -584,6 +650,31 @@ openers whose own ranges span more than thirty-five points
 (BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT). It is a separate finding from the level and
 it is not what the cost below prices.
 
+The flat does not merely fail to move, and the direction is published because an
+invariant flat could be a tolerance artifact and an inverted one cannot. The reference's
+own big-blind calls climb the whole way through the four non-blind openers; this chart's
+climb to the cutoff and then fall for the button and the small blind, the two widest
+openers of the five, which are the two a correct chart's flat rises fastest against:
+
+  flat vs LJ  chart 19.631  raked reference 17.500
+  flat vs HJ  chart 20.978  raked reference 19.200
+  flat vs CO  chart 22.439  raked reference 22.600
+  flat vs BTN  chart 21.085  raked reference 26.500
+  flat vs SB  chart 20.301  raked reference 25.300
+
+  spread  chart 2.81 points  raked reference 9.00 points
+
+The reference column is the SHAPE and not the level. It is a raked solve and its flats
+are not a target, but the order it puts them in does not turn on the rake basis, and this
+chart does not reproduce it. That belongs under the entry above rather than anywhere new.
+
+And the over-folding is not confined to this seat. The same realization fit prices every
+seat that has to answer an open, and where the outside reference reaches those spots the
+chart reads narrower there too - the measurement is under the expectations below, on the
+merged family. A reader who takes this section's naming of the big blind as meaning the
+merged three-bet ranges are sound is being misled, and the defect list above names the
+seat where the cost was priced rather than the only seat where the level is wrong.
+
 What the cost prices is the over-folding, and the over-folding is the accepted defect,
 which COMMITTED-SPOTS-NEVER-FLAT-A-RAISE now carries under that name. A reader given only
 the flat entry never reaches the level, so both are cited here. The cost turns on a
@@ -629,7 +720,16 @@ the unfitted terminal fails to reach the output. A committed three-bet-facing sp
 price hero's own four-bet, and that routes through a flop terminal the realization fit
 has no observation for (THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL). The family
 that would show the damage is the four-bet-facing one, and that is exactly the family
-this phase withholds, so a comfortable four-bet frequency here would show nothing at all.
+this phase withholds.
+
+That argument holds against a four-bet frequency that looks comfortable and does not hold
+against one that does not, and the frequency is not comfortable. It is published against
+the outside reference under the expectations below, where it is BELOW the reference at
+every spot the reference can reach while total defence is wider at every one of them - so
+the chart answers a three-bet by calling far more and four-betting far less. None of that
+is evidence about the unfitted terminal, for the reason the paragraph above gives; it is
+a measurement a reader is owed instead of a sentence saying a measurement would be empty,
+and it is where a later phase taking up the four-bet family starts.
 
 ## The menu each family publishes, and the merged flats
 
@@ -680,6 +780,14 @@ three-bets: 66 commits 7.5 big blinds and can face a four-bet, where the solve w
 seen a cheap flop with it. The range is preserved and the way it plays is not
 (MERGED-FLATS-PLAY-DIFFERENTLY-NOT-JUST-DIFFERENTLY-LABELLED).
 
+The merge preserving the range is not the same claim as the range being right, and the
+level at these spots is measured against the outside reference under the expectations
+below. It reads narrower there at almost every spot the reference can reach, in the one
+direction a rake-free solve is not supposed to go - the same over-folding the defect list
+names in the big blind, from the same realization fit, at a family the defect list does
+not name. A reader may not take the merged three-bet ranges as sound on the strength of
+the two columns above.
+
 ## The derived chart against the GTO Wizard expectations
 
 GTO Wizard's own published frequencies for a raked NL25 six-max game, beside what this
@@ -706,6 +814,142 @@ defends more. Reading wider than this file is therefore a floor rather than a pa
 The small blind's gap is the largest and has a second cause on top of that: the reference
 solve limps 13.73 percent of the time from the small blind, where this one has no limp
 branch at all, so the hands that limped there open here.
+
+Those two families are two of the five this chart ships, and until this block was written
+they were the only two anything outside the repo was read against - and they are the two
+that pass. The file the expectations are distilled from carries full per-hand strategies
+for 36 spots (data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json), so the rest of
+what it can reach is read below. The same caveat holds throughout and it is the whole
+caveat: the reference is RAKED, so this chart reading WIDER than it is a floor cleared
+and never a level confirmed, and this chart reading NARROWER than it is a direction a
+rake-free solve is not supposed to go. Nothing below gates anything.
+
+First, defence against a single open at the merged family - the 10 spots where
+hero has posted nothing, faces one open and nobody else is in. These are the same spots
+whose raise-plus-call the menu section prints; here they are beside a figure from
+outside:
+
+  vs one open  t6/d100/BTN/CO:raise@2.5  defends 11.9587  raked reference 13.900  narrower  -1.9413
+  vs one open  t6/d100/BTN/HJ:raise@2.5  defends 10.7155  raked reference 12.300  narrower  -1.5845
+  vs one open  t6/d100/BTN/LJ:raise@2.5  defends 9.9802  raked reference 10.800  narrower  -0.8198
+  vs one open  t6/d100/CO/HJ:raise@2.5  defends 8.9420  raked reference 10.300  narrower  -1.3580
+  vs one open  t6/d100/CO/LJ:raise@2.5  defends 7.6969  raked reference 9.300  narrower  -1.6031
+  vs one open  t6/d100/HJ/LJ:raise@2.5  defends 6.8751  raked reference 8.500  narrower  -1.6249
+  vs one open  t6/d100/SB/BTN:raise@2.5  defends 14.9820  raked reference 16.100  narrower  -1.1180
+  vs one open  t6/d100/SB/CO:raise@2.5  defends 11.7255  raked reference 12.800  narrower  -1.0745
+  vs one open  t6/d100/SB/HJ:raise@2.5  defends 10.1282  raked reference 11.000  narrower  -0.8718
+  vs one open  t6/d100/SB/LJ:raise@2.5  defends 9.9841  raked reference 9.400  wider  +0.5841
+
+  narrower at  9 of 10 spots  mean shortfall over all  1.1412 points  over the narrower  1.3329 points
+  widest shortfall  1.9413 points  narrowest  0.8198 points
+
+Read that as the finding it is. The accepted defect above says the BIG BLIND over-folds
+and names the cause as the fit's own realization number for facing a bet in a
+single-raised pot. That same fit prices these 10 spots, and at 9 of the 10 this chart is narrower than a solve that is
+paying rake and that, from the small blind, is three-betting at a worse price than this
+one does.
+So the over-folding is a property of every seat that has to answer an open rather than of
+the big blind, and a reader may not take the defect list's naming of one seat as clearing
+the merged three-bet ranges. What this measurement does not do is re-price anything or
+move a weight: the four accepted defects are the four that were ruled, and whether the
+list is extended to name this family is a ruling and not a measurement.
+
+Second, hero's own four-bet at the 15 spots where he opened and then faced
+a three-bet - the family the bands section declines to publish a band over. Both columns
+are printed because they go opposite ways:
+
+  vs one three-bet  t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5  four-bets 11.29  raked reference 15.10  defends 58.02  raked reference 29.30  price 3.00x  raked reference 2.11x
+  vs one three-bet  t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5  four-bets 9.74  raked reference 16.10  defends 57.23  raked reference 29.60  price 3.00x  raked reference 2.09x
+  vs one three-bet  t6/d100/CO/CO:raise@2.5,BB:raise@7.5  four-bets 10.16  raked reference 17.60  defends 58.71  raked reference 28.40  price 3.00x  raked reference 2.11x
+  vs one three-bet  t6/d100/CO/CO:raise@2.5,BTN:raise@7.5  four-bets 13.63  raked reference 23.50  defends 49.17  raked reference 32.90  price 3.00x  raked reference 2.69x
+  vs one three-bet  t6/d100/CO/CO:raise@2.5,SB:raise@7.5  four-bets 9.94  raked reference 19.30  defends 60.28  raked reference 29.80  price 3.00x  raked reference 2.09x
+  vs one three-bet  t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5  four-bets 11.85  raked reference 15.90  defends 57.04  raked reference 30.20  price 3.00x  raked reference 2.11x
+  vs one three-bet  t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5  four-bets 12.82  raked reference 24.20  defends 53.25  raked reference 35.70  price 3.00x  raked reference 2.69x
+  vs one three-bet  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5  four-bets 11.88  raked reference 22.70  defends 52.99  raked reference 33.80  price 3.00x  raked reference 2.69x
+  vs one three-bet  t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5  four-bets 10.41  raked reference 17.90  defends 59.82  raked reference 32.30  price 3.00x  raked reference 2.09x
+  vs one three-bet  t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5  four-bets 11.41  raked reference 15.30  defends 58.96  raked reference 31.10  price 3.00x  raked reference 2.11x
+  vs one three-bet  t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5  four-bets 11.90  raked reference 24.20  defends 57.94  raked reference 39.00  price 3.00x  raked reference 2.69x
+  vs one three-bet  t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5  four-bets 12.00  raked reference 23.10  defends 55.35  raked reference 37.30  price 3.00x  raked reference 2.69x
+  vs one three-bet  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5  four-bets 12.38  raked reference 22.20  defends 52.44  raked reference 35.70  price 3.00x  raked reference 2.69x
+  vs one three-bet  t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5  four-bets 10.48  raked reference 17.50  defends 63.09  raked reference 34.20  price 3.00x  raked reference 2.09x
+  vs one three-bet  t6/d100/SB/SB:raise@2.5,BB:raise@7.5  four-bets 18.54  raked reference 26.00  defends 44.64  raked reference 35.40  price 3.00x  raked reference 2.10x
+
+  four-bet below the reference at  15 of 15 spots  by 25.2 to 50.8 percent relatively
+  total defence wider at  15 of 15 spots
+  four-bet priced dearer than the reference's at  15 of 15 spots
+
+So this chart answers a three-bet by calling far more and four-betting far less. The
+defence column clears the floor at every spot and the four-bet column is below at every
+spot, which is a shape rather than a scatter.
+
+The price column is why it is published and not accepted as a fifth defect. It is the
+four-bet as a multiple of the three-bet being answered, and this chart's four-bet is the
+dearer of the two at every one of these spots - the reference answers a bigger three-bet
+with a raise that is proportionally smaller. A dearer four-bet is four-bet less often by
+construction, so part of this gap is a price difference rather than a strategy
+difference, which is PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED showing up in the
+output rather than a new finding. Separating the two halves needs a rake-free reference
+at this solve's own prices, which this repo does not commit
+(NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE). It is also not evidence
+about the unfitted terminal, for the reason the bands section gives. What it is: the
+measurement a reader is owed in place of a sentence saying a measurement would be empty,
+and the number a later phase taking up the four-bet family starts from.
+
+Third, the first-in family, per HAND rather than per aggregate. The aggregate figures at
+the top of this section agree with the reference to about a point, and a range can be
+the right size with the wrong contents. So every hand class whose weight differs by 50 points or more is counted and named, and the direction is
+counted on each side:
+
+  first-in  LJ  opens 18.740  raked reference 17.50  hands differing by 50 points or more  21
+    folded here, opened there  8
+      A6s A7s K5s K6s K7s K8s KJo KTo
+    opened here, folded there  13
+      22 33 55 66 76s 87s 97s 98s J8s J9s JTo T8s
+      T9s
+  first-in  HJ  opens 21.565  raked reference 21.70  hands differing by 50 points or more  22
+    folded here, opened there  7
+      A5o A9o K4s K6s KJo KTo QJo
+    opened here, folded there  15
+      22 33 44 55 75s 76s 86s 87s 97s 98s J8s J9s
+      JTo T8s T9s
+  first-in  CO  opens 27.173  raked reference 27.90  hands differing by 50 points or more  22
+    folded here, opened there  7
+      A5o A7o A8o K4s K9o QJo QTo
+    opened here, folded there  15
+      22 33 54s 65s 75s 76s 86s 87s 95s 96s 97s Q5s
+      Q6s T7s T8s
+  first-in  BTN  opens 39.266  raked reference 40.60  hands differing by 50 points or more  16
+    folded here, opened there  6
+      J6s J9o K8o Q9o T6s T9o
+    opened here, folded there  10
+      22 53s 64s 75s 85s 95s 96s 98o Q2s T5s
+  first-in  SB  opens 54.299  raked reference 34.40  hands differing by 50 points or more  37
+    folded here, opened there  0
+    opened here, folded there  37
+      42s 43s 52s 53s 55 63s 74s 77 82s 83s 87o 88
+      92s 94s 95s A2o A3s A4s A6s A7s A8s J2s J3s J9s
+      JTs K5o K6o K7o K8s K9s Q8o Q9s QTs T3s T5s T8o
+      T9s
+
+The small blind row is not a comparison and is printed only so the family is complete:
+the reference limps from that seat and this solve has no limp branch, so its opening
+range absorbs the limps and every hand that differs is on that one side.
+
+The other four rows are the finding. The aggregates agree to about a point while the
+contents disagree in dozens of places, and the disagreement has a direction rather than
+being scatter: offsuit broadways and high-card suited hands out, small pairs and suited
+connectors and gappers in. The concrete case is the ace row at the lightest-opening seat,
+where the exempted first-in kicker inversion in the defects section sits - the two suited
+aces beside the wheel aces are folded pure while all four wheel aces open pure, and the
+reference opens all twelve suited aces from that seat. A ladder relation compares
+neighbours, so a hole two cells wide shows up as one case, and the wheel-ace exemption
+then reports that one case as correct poker. This row is where the hole is visible whole.
+
+None of this is a re-solve and none of it moves a weight. It is the measurement the four
+internal relations cannot make - every one of them compares a grid against its own other
+cells, so a chart that is uniformly wrong reads clean on all four - and it is taken
+against a raked file, per hand, gating nothing
+(THE-DISCRIMINATION-GATE-CANNOT-SEE-OVER-FOLDING-OR-A-MIS-ASSIGNED-ACTOR).
 
 ## The cutover ledger
 
@@ -753,6 +997,32 @@ passed. Each is kept because a later solve reactivates it:
 Wherever one of these is reported it carries this label, because a vacuous criterion is
 not a check that passed. It is never counted as one, and a packet counting one would be
 claiming coverage the phase does not have.
+
+The middle one of the three is labelled under one reading of `offers hero a raise` and is
+measured under another, and the word alone does not say which, so all three readings are
+printed. `Offers` can mean the spot carries a sizing KEY at all, or that its cells NAME a
+raise, or that some arriving class actually TAKES one - and the three came apart when the
+arriving classes came apart from the menu:
+
+  spots carrying a sizing key  249 of 249  carrying none  0
+  menus naming a raise for hero  249 of 249  naming none  0
+  spots where some arriving class takes a raise  168 of 249
+  sizing keys with at least one class priced  168  with an empty price list  81
+  spots whose arriving range raises at all  168 of 249
+
+The label belongs to the first two rows and to those only. The criterion is about a spot
+that carries NO KEY and therefore makes the strategy refuse, and no committed spot
+carries no key, so there is nothing here for that half of the rule to refuse. Under the
+third reading it is not empty at all: 81 committed spots name a raise no arriving class ever takes, and they ship a key with an empty
+price list under it. A packet may print the word for this criterion only with those rows
+it, because the error a bare label makes here runs the opposite way round to the one the
+paragraph above warns about - it tells a reader that a real measurement is empty rather
+than that an empty one passed.
+
+The same rows say that a SPOT-level reading of `exactly the spots that raise carry a
+sizing entry` is now FALSE rather than vacant: every spot carries an entry and only 168 raise, so the rule holds class by class and not spot by spot. That is a
+gap in what is asserted rather than a figure in dispute
+(COMMITTED-SPOTS-THE-BOT-CANNOT-REACH-BY-ITS-OWN-PLAY).
 
 ## Hero's own jam, at the spots this phase withholds
 

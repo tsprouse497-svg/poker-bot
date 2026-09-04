@@ -12,7 +12,8 @@
  "class_order": {
   "index": "gtopen_class_index, from src/poker_training_bot/solver_artifacts",
   "note": "ranks 0 to 12 as 2 through A; a pair at hi*13+hi, a suited class at hi*13+lo, an offsuit class at lo*13+hi. Not the 13x13 grid ordering a chart report prints, which transposes suited and offsuit",
-  "row_0": "AA"
+  "row_0": "22",
+  "row_168": "AA"
  },
  "layout": {
   "bytes": 114244,

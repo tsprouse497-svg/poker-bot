@@ -524,8 +524,29 @@ def self_check(matrix: np.ndarray) -> dict[str, str]:
     return measured
 
 
+def class_by_row() -> dict[int, str]:
+    """The matrix's own row ordering, inverted from the index the matrix is built with.
+
+    The card names rows so a reader can open the headerless bytes and check them, which
+    only works if the name comes from the ordering the bytes are in. `HAND_CLASSES` is a
+    different ordering - it runs `AA` first and `22` last, the reverse of this one at both
+    ends - so a row named out of it names the wrong hand, which is how the card came to
+    publish `row_0: AA` for a row that holds `22`. Derived here from
+    `gtopen_class_index` itself, the same call the matrix and its self-check are indexed
+    by, and refused if that index does not cover every row exactly once.
+    """
+    rows = {gtopen_class_index(name): name for name in HAND_CLASSES}
+    if sorted(rows) != list(range(CLASSES)):
+        raise SystemExit(
+            "gtopen_class_index does not land the 169 classes on rows 0 to 168 exactly"
+            " once, so the matrix has no row ordering to name"
+        )
+    return rows
+
+
 def render_card(matrix_bytes: bytes, measured: dict[str, str], representatives: int) -> str:
     """The card that says where the bytes came from, in the export card's own house style."""
+    rows = class_by_row()
     card = {
         "checks": measured,
         "class_order": {
@@ -535,7 +556,8 @@ def render_card(matrix_bytes: bytes, measured: dict[str, str], representatives: 
                 " hi*13+lo, an offsuit class at lo*13+hi. Not the 13x13 grid ordering a"
                 " chart report prints, which transposes suited and offsuit"
             ),
-            "row_0": HAND_CLASSES[0],
+            "row_0": rows[0],
+            f"row_{CLASSES - 1}": rows[CLASSES - 1],
         },
         "layout": {
             "bytes": len(matrix_bytes),
