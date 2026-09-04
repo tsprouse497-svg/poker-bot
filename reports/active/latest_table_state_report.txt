@@ -425,7 +425,7 @@ than omitted for one reason: a number here that moves is a defect, not a discove
 
   hands compared                     499
   preflop decision points            3048
-  refusals                           2529
+  refusals                           139
 
   preflop-chart:stack-depth-not-a-whole-big-blind         0
   preflop-chart:table-is-not-one-flat-stack-depth         0
@@ -437,8 +437,8 @@ than omitted for one reason: a number here that moves is a defect, not a discove
 The refusals the corpus does produce are all about chart coverage rather than table
 shape, and they are unchanged by this phase:
 
-  preflop-chart:lookup:hand-class-not-covered             2
-  preflop-chart:lookup:spot-not-covered                2527
+  preflop-chart:lookup:hand-class-not-covered            10
+  preflop-chart:lookup:spot-not-covered                 129
 
 One live corpus number is worth reading twice. 10 of 3048 decisions price hero at its
 whole stack, which is the population the capped-price ruling is about and the population
@@ -561,14 +561,14 @@ previous increment and one big blind. A re-raise to 3bb is not a legal action an
 key space writes it down anyway - and writes the same string for a button that was
 simply all-in for 300, which is legal and is a different table:
 
-    the key the lookup asked about   t6/d100/BB/CO:raise@2.5,BTN:raise@3
+    the key the lookup asked about   t6/d100/BB/CO:raise@2.5,BTN:raise@7.5
 
 That string is read off the lookup the under-raise table actually reached rather than
 composed here, and only one of the two tables ever reaches one. The button all-in for
 300 sat down with 300, which is three big blinds against hero's hundred, so that table
 is not one flat depth and it is refused before any key is built:
 
-    the recorded under-raise   refused  preflop-chart:lookup:spot-not-covered  (spot_key t6/d100/BB/CO:raise@2.5,BTN:raise@3, table_size 6, stack_depth_bb 100, hand_class AA)
+    the recorded under-raise   raise to 2250  preflop-chart:weighted-draw:raise[fold=0,call=0,raise=1]
     the short all-in for 300   refused  preflop-chart:a-live-seat-is-shorter-than-hero  (seat 3, starting_chips 300, stack_depth_bb 3)
 
 So the merge lives in the key space and not in what this strategy does with these two

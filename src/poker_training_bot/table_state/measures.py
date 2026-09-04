@@ -47,18 +47,30 @@ BEFORE_MOVING_CODE = "preflop-chart:lookup:no-artifact-for-table-size"
 # the deleted depth derivation was wrong for; it is a property of the recorded hands rather
 # than of any chart, so it does not move with one either.
 #
-# The refusal count does move with the chart, and it moved: 290 until the chart cutover, 2,529
-# after it. The cutover replaced the raked chart with a rake-free solve derived under a
-# selection rule that keeps a spot only where the source prices every terminal below it, which
-# gives up four of the five opening ranges and ten of the eleven spots facing a single open. So
-# the decisions that reached those spots are refused now, and the contract for that phase
-# requires this number to rise rather than fall. It stays pinned at equality rather than
-# becoming a floor: a refusal count that drifts silently is exactly what a coverage change
-# looks like from here, and the point of the pin is that changing the chart has to be a
-# deliberate edit to this line.
+# The refusal count does move with the chart, and it has moved twice. 290 against the retired
+# raked chart; 2,529 against the 86-spot rake-free solve the cutover first cut, which kept one
+# opening range and one spot facing an open; 139 against the 249-spot solve the cutover actually
+# committed, re-derived here on 2026-09-04. It fell rather than rose, and the note that stood
+# here saying the phase required a rise was describing that abandoned 86-spot cut: the committed
+# chart holds all five first-in ranges - lojack, hijack, cutoff, button and small blind - plus 25
+# spots facing a single open and 219 with a three-bet already in, which is wider coverage than
+# the raked chart it replaced rather than narrower.
+#
+# What is still refused is four shapes, and each is a shape of poker the solve does not contain
+# rather than a cell somebody forgot. A limped pot, 52 decisions: no first-in range in the solve
+# ever just calls, so from the moment somebody limps the hand is off the tree. The big blind
+# facing an open with a cold-caller behind it, 52: the tree gives the blind its heads-up defence
+# only, so a multiway pot has no blind branch to read. Four-bet-or-deeper chains, 25: that family
+# is withheld on purpose and a later phase takes it up. And 10 three-bet decisions where the
+# chart holds the spot but hero's hand class sits outside the solved range's cells, which is the
+# one bucket that refuses inside covered ground.
+#
+# It stays pinned at equality rather than becoming a floor: a refusal count that drifts silently
+# is exactly what a coverage change looks like from here, and the point of the pin is that
+# changing the chart has to be a deliberate edit to this line.
 CORPUS_HANDS = 499
 CORPUS_DECISIONS = 3048
-CORPUS_REFUSALS = 2529
+CORPUS_REFUSALS = 139
 CORPUS_CAPPED_DECISIONS = 10
 
 DEPTH_CODES = (REFUSE_RAGGED_DEPTH, REFUSE_UNEVEN_TABLE, REFUSE_SHORT_LIVE_SEAT)

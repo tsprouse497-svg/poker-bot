@@ -1,6 +1,6 @@
 {
-  "all_passed": true,
-  "generated_at_epoch": 1788226945,
+  "all_passed": false,
+  "generated_at_epoch": 1788534025,
   "results": [
     {
       "command": [
@@ -11,7 +11,7 @@
       ],
       "command_id": "generate_status",
       "description": "Regenerate STATUS.md",
-      "duration_seconds": 0.054,
+      "duration_seconds": 0.073,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -26,7 +26,7 @@
       ],
       "command_id": "generate_phase_ledger",
       "description": "Regenerate phase ledger",
-      "duration_seconds": 0.035,
+      "duration_seconds": 0.042,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -41,11 +41,496 @@
       ],
       "command_id": "generate_backlog",
       "description": "Regenerate backlog docs",
-      "duration_seconds": 0.088,
+      "duration_seconds": 0.117,
       "passed": true,
       "returncode": 0,
       "stderr": "",
       "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_poker_core.py"
+      ],
+      "command_id": "pytest_poker_core",
+      "description": "Run poker-core tests",
+      "duration_seconds": 0.135,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 9 items\n\ntests/test_poker_core.py .........                                       [100%]\n\n============================== 9 passed in 0.01s ===============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_golden_hand_report.py"
+      ],
+      "command_id": "generate_golden_hand_report",
+      "description": "Generate golden-hand replay report",
+      "duration_seconds": 0.043,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_golden_hand_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_hand_history.py"
+      ],
+      "command_id": "pytest_hand_history",
+      "description": "Run hand-history tests",
+      "duration_seconds": 0.117,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 18 items\n\ntests/test_hand_history.py ..................                            [100%]\n\n============================== 18 passed in 0.02s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_hand_history_replay_report.py"
+      ],
+      "command_id": "generate_hand_history_replay_report",
+      "description": "Generate normalized hand-history replay report",
+      "duration_seconds": 0.04,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_hand_history_replay_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_strategy_contract.py",
+        "tests/test_action_order.py"
+      ],
+      "command_id": "pytest_strategy_contract",
+      "description": "Run strategy-contract and turn-order tests",
+      "duration_seconds": 0.237,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 80 items\n\ntests/test_strategy_contract.py ........................................ [ 50%]\n...................                                                      [ 73%]\ntests/test_action_order.py .....................                         [100%]\n\n============================== 80 passed in 0.14s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_strategy_query_report.py"
+      ],
+      "command_id": "generate_strategy_query_report",
+      "description": "Generate strategy query report and decision audit",
+      "duration_seconds": 0.041,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_strategy_query_report.txt\nwrote reports/active/latest_decision_audit.jsonl\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_preflop_positions.py",
+        "tests/test_preflop_artifacts.py",
+        "tests/test_preflop_lookup.py",
+        "tests/test_preflop_committed_charts.py",
+        "tests/test_preflop_committed_lookup.py"
+      ],
+      "command_id": "pytest_preflop_artifacts",
+      "description": "Run preflop position, artifact, and chart-lookup tests",
+      "duration_seconds": 6.344,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 273 items\n\ntests/test_preflop_positions.py ........................................ [ 14%]\n............................................................             [ 36%]\ntests/test_preflop_artifacts.py ........................................ [ 51%]\n................................................                         [ 68%]\ntests/test_preflop_lookup.py ................................            [ 80%]\ntests/test_preflop_committed_charts.py ................................. [ 92%]\n......                                                                   [ 94%]\ntests/test_preflop_committed_lookup.py ..............                    [100%]\n\n============================= 273 passed in 6.15s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_preflop_chart_report.py"
+      ],
+      "command_id": "generate_preflop_chart_report",
+      "description": "Generate preflop chart coverage report",
+      "duration_seconds": 0.197,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_preflop_chart_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_full_table_preflop.py"
+      ],
+      "command_id": "pytest_full_table_preflop",
+      "description": "Run full-table preflop strategy tests",
+      "duration_seconds": 4.697,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 50 items\n\ntests/test_full_table_preflop.py ....................................... [ 78%]\n...........                                                              [100%]\n\n============================== 50 passed in 4.47s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_preflop_strategy_report.py"
+      ],
+      "command_id": "generate_preflop_strategy_report",
+      "description": "Generate preflop strategy coverage and frequency report",
+      "duration_seconds": 0.664,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_preflop_strategy_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_postflop_fallback.py",
+        "tests/test_postflop_fallback_components.py"
+      ],
+      "command_id": "pytest_postflop_fallback",
+      "description": "Run postflop fallback and composite strategy tests",
+      "duration_seconds": 6.207,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 46 items\n\ntests/test_postflop_fallback.py ..........................               [ 56%]\ntests/test_postflop_fallback_components.py ....................          [100%]\n\n============================== 46 passed in 6.06s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_postflop_fallback_report.py"
+      ],
+      "command_id": "generate_postflop_fallback_report",
+      "description": "Generate postflop fallback enumeration report and decision audit",
+      "duration_seconds": 14.857,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_postflop_fallback_report.txt\nwrote reports/active/latest_postflop_decision_audit.jsonl\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_simulator.py",
+        "tests/test_simulator_reports.py"
+      ],
+      "command_id": "pytest_simulator",
+      "description": "Run offline simulator and profile tests",
+      "duration_seconds": 0.728,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 49 items\n\ntests/test_simulator.py .........................................        [ 83%]\ntests/test_simulator_reports.py ........                                 [100%]\n\n============================== 49 passed in 0.58s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_profile_comparison_report.py"
+      ],
+      "command_id": "generate_profile_comparison_report",
+      "description": "Generate the bot/profile comparison report",
+      "duration_seconds": 0.908,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_profile_comparison_report.txt\nwrote reports/active/latest_refusal_inventory.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_sample_comparison.py",
+        "tests/test_sample_comparison_report.py"
+      ],
+      "command_id": "pytest_sample_comparison",
+      "description": "Run public-corpus ingestion and player comparison tests",
+      "duration_seconds": 3.43,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 54 items\n\ntests/test_sample_comparison.py ........................................ [ 74%]\n......                                                                   [ 85%]\ntests/test_sample_comparison_report.py ........                          [100%]\n\n============================== 54 passed in 3.25s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_sample_comparison_report.py"
+      ],
+      "command_id": "generate_sample_comparison_report",
+      "description": "Generate the real-hand comparison report and its refusal inventory",
+      "duration_seconds": 0.738,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_sample_comparison_report.txt\nwrote reports/active/latest_sample_refusal_inventory.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_quality_hardening.py"
+      ],
+      "command_id": "pytest_quality_hardening",
+      "description": "Run quality, drift, and phase-gate hardening tests",
+      "duration_seconds": 4.569,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "",
+      "stdout": "MPARISON_LIMITS.md states 154 for fact 'corpus_distinct_refused_spots' (distinct spot keys the chart refuses against real hands); the repo says 61\nE               ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 150\nE               ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 150\nE               ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 68\nE               ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 68\nE         \nE         FAIL  backlog integrity\nE               covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\nE               does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\nE               ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH is filed against phase 'source', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog CONTRACT-LINE-CAP-COUNTS-LINES-AND-MEANS-CONTENT is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog A-GENERATED-REPORT-CAN-GO-STALE-WITH-THE-GATE-STILL-GREEN has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog A-GENERATED-REPORT-CAN-GO-STALE-WITH-THE-GATE-STILL-GREEN is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog TEST-FILES-ARE-WRITTEN-UP-TO-THE-700-LINE-CAP is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! docs/BACKLOG.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! docs/BACKLOG.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'COMMITTED-EQUITY-TABLE', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'CONTRACT-UPDATE', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'FLATS-ARE-BROKEN', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'GATE-ONE-RELATION-AGAINST-A', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'THREE-BET-SPOTS-ARE-PRICED-ON-AN', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'UNFITTED-TERMINAL', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'SPR-20', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-06-build-review-poker.md cites backlog id 'AA-TT', which no item declares. A finding filed under an id nobody created has recorded nothing\nE         \nE         PASS  phase record agreement\nE               covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\nE               does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\nE         \nE         \nE         wrote reports/active/latest_quality_report.txt\nE         quality gate failed: fact drift, backlog integrity\nE         \nE       assert 1 == 0\nE        +  where 1 = CompletedProcess(args=['/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/.venv/bin/python3', 'scripts/run_fu...\\n\\n\\nwrote reports/active/latest_quality_report.txt\\n\", stderr='quality gate failed: fact drift, backlog integrity\\n').returncode\n\ntests/test_quality_hardening.py:403: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_quality_hardening.py::test_the_committed_facts_file_matches_what_the_code_computes\nFAILED tests/test_quality_hardening.py::test_no_document_in_this_repo_states_a_stale_fact\nFAILED tests/test_quality_hardening.py::test_this_repo_s_backlog_is_well_formed_and_every_citation_resolves\nFAILED tests/test_quality_hardening.py::test_the_quality_gate_command_passes_against_this_repo\n========================= 4 failed, 22 passed in 4.39s =========================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/run_full_quality_gate.py"
+      ],
+      "command_id": "run_full_quality_gate",
+      "description": "Run the quality checks and write the quality report",
+      "duration_seconds": 1.489,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "quality gate failed: fact drift, backlog integrity\n",
+      "stdout": "==============\n\nFour checks, each with what it covers and what it does not. The second half of\neach entry matters as much as the result: a check that passed is not a promise\nabout everything it did not look at, and this repo has already shipped three\nwrong numbers and a decorative gate command past a green run.\n\nPASS  mutation coverage\n      covers:   Every registered pytest_* gate command is named by at least one committed mutation, so check_gate_bite has something to prove about each one.\n      does not: It reads pytest_* commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong.\n\nFAIL  fact drift\n      covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.\n      does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.\n      ! the committed facts file disagrees with what the code computes; run scripts/generate_repo_facts.py and update the documents it names\n      ! docs/CORPUS_COMPARISON_LIMITS.md states 2,529 for fact 'corpus_refusals' (decision points the chart could not answer); the repo says 139\n      ! docs/CORPUS_COMPARISON_LIMITS.md states 154 for fact 'corpus_distinct_refused_spots' (distinct spot keys the chart refuses against real hands); the repo says 61\n      ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 150\n      ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 150\n      ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 68\n      ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 68\n\nFAIL  backlog integrity\n      covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\n      does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\n      ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH has status 'open', which is not one of ['deferred', 'done']\n      ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH is filed against phase 'source', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE has status 'open', which is not one of ['deferred', 'done']\n      ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART has status 'open', which is not one of ['deferred', 'done']\n      ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE has status 'open', which is not one of ['deferred', 'done']\n      ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES has status 'open', which is not one of ['deferred', 'done']\n      ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART has status 'open', which is not one of ['deferred', 'done']\n      ! backlog CONTRACT-LINE-CAP-COUNTS-LINES-AND-MEANS-CONTENT is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog A-GENERATED-REPORT-CAN-GO-STALE-WITH-THE-GATE-STILL-GREEN has status 'open', which is not one of ['deferred', 'done']\n      ! backlog A-GENERATED-REPORT-CAN-GO-STALE-WITH-THE-GATE-STILL-GREEN is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! backlog TEST-FILES-ARE-WRITTEN-UP-TO-THE-700-LINE-CAP is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\n      ! docs/BACKLOG.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! docs/BACKLOG.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'COMMITTED-EQUITY-TABLE', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'CONTRACT-UPDATE', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'FLATS-ARE-BROKEN', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'GATE-ONE-RELATION-AGAINST-A', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'THREE-BET-SPOTS-ARE-PRICED-ON-AN', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'UNFITTED-TERMINAL', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'SPR-20', which no item declares. A finding filed under an id nobody created has recorded nothing\n      ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-06-build-review-poker.md cites backlog id 'AA-TT', which no item declares. A finding filed under an id nobody created has recorded nothing\n\nPASS  phase record agreement\n      covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\n      does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\n\n\nwrote reports/active/latest_quality_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_solver_export.py",
+        "tests/test_solver_expectations.py"
+      ],
+      "command_id": "pytest_solver_export",
+      "description": "Run GTOpen solver export, source-card, and expectations tests",
+      "duration_seconds": 2.432,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 76 items\n\ntests/test_solver_export.py ............................................ [ 57%]\n............                                                             [ 73%]\ntests/test_solver_expectations.py ....................                   [100%]\n\n============================== 76 passed in 2.28s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/check_solver_export_expectations.py"
+      ],
+      "command_id": "check_solver_export_expectations",
+      "description": "Recompute the solver export's two orderings and check its source card against it",
+      "duration_seconds": 2.255,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "export:        /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz\naction nodes:  33969\n  RFI BTN    39.27%\n  RFI CO     27.17%\n  RFI HJ     21.56%\n  RFI LJ     18.74%\n  RFI SB     54.30%\n  BB vs BTN    36.65%\n  BB vs CO     32.78%\n  BB vs HJ     28.88%\n  BB vs LJ     25.70%\n  BB vs SB     48.39%\nboth orderings hold, and the source card matches the export\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_solver_export_report.py"
+      ],
+      "command_id": "generate_solver_export_report",
+      "description": "Generate the solver export range-grid and comparison report",
+      "duration_seconds": 2.306,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_solver_export_report.txt (30759 bytes)\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_engine_fidelity.py"
+      ],
+      "command_id": "pytest_engine_fidelity",
+      "description": "Run the engine and strategy-query fidelity tests",
+      "duration_seconds": 0.441,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 52 items\n\ntests/test_engine_fidelity.py .......................................... [ 80%]\n..........                                                               [100%]\n\n============================== 52 passed in 0.30s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_engine_fidelity_report.py"
+      ],
+      "command_id": "generate_engine_fidelity_report",
+      "description": "Generate the engine and query fidelity before/after report",
+      "duration_seconds": 0.181,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_engine_fidelity_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_spot_vocabulary.py",
+        "tests/test_spot_vocabulary_downstream.py",
+        "tests/test_spot_vocabulary_report.py"
+      ],
+      "command_id": "pytest_spot_vocabulary",
+      "description": "Run the sizing-aware and second-orbit spot vocabulary tests",
+      "duration_seconds": 7.297,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 72 items\n\ntests/test_spot_vocabulary.py ......................................     [ 52%]\ntests/test_spot_vocabulary_downstream.py ...........................     [ 90%]\ntests/test_spot_vocabulary_report.py .......                             [100%]\n\n============================== 72 passed in 7.18s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_spot_vocabulary_report.py"
+      ],
+      "command_id": "generate_spot_vocabulary_report",
+      "description": "Generate the spot vocabulary report, key mapping, and price substitution census",
+      "duration_seconds": 1.796,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote reports/active/latest_spot_vocabulary_report.txt\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_table_state.py",
+        "tests/test_table_state_strategy.py"
+      ],
+      "command_id": "pytest_table_state",
+      "description": "Run the per-seat contribution query and table-shape strategy tests",
+      "duration_seconds": 0.537,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 66 items\n\ntests/test_table_state.py .............................................. [ 69%]\n                                                                         [ 69%]\ntests/test_table_state_strategy.py ....................                  [100%]\n\n============================== 66 passed in 0.41s ==============================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_table_state_report.py"
+      ],
+      "command_id": "generate_table_state_report",
+      "description": "Generate the table-state report: pot reconciliation, depth, and blind structure",
+      "duration_seconds": 0.566,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "table-state report refused to publish: refusals measured 139 against the 2529 this phase started from, so the replay changed, which this phase does not touch\n",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests/test_derived_chart.py",
+        "tests/test_chart_cutover_evidence.py",
+        "tests/test_chart_counterfactual_arms.py",
+        "tests/test_chart_derivation.py",
+        "tests/test_chart_census.py",
+        "tests/test_chart_conversion.py",
+        "tests/test_derived_chart_report.py",
+        "tests/test_derived_chart_report_ranges.py",
+        "tests/test_derived_chart_report_cutover.py",
+        "tests/test_derived_chart_report_validators.py",
+        "tests/test_chart_arrival_probability.py"
+      ],
+      "command_id": "pytest_derived_chart",
+      "description": "Run the derived-chart selection, conversion, artifact, and report tests",
+      "duration_seconds": 90.201,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 115 items\n\ntests/test_derived_chart.py ............s....                            [ 14%]\ntests/test_chart_cutover_evidence.py ........                            [ 21%]\ntests/test_chart_counterfactual_arms.py .....                            [ 26%]\ntests/test_chart_derivation.py ......                                    [ 31%]\ntests/test_chart_census.py ............                                  [ 41%]\ntests/test_chart_conversion.py ...ss.......s.                            [ 53%]\ntests/test_derived_chart_report.py .....                                 [ 58%]\ntests/test_derived_chart_report_ranges.py .........                      [ 66%]\ntests/test_derived_chart_report_cutover.py ....                          [ 69%]\ntests/test_derived_chart_report_validators.py ................           [ 83%]\ntests/test_chart_arrival_probability.py ...................              [100%]\n\n================== 111 passed, 4 skipped in 85.96s (0:01:25) ===================\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/generate_derived_chart_report.py"
+      ],
+      "command_id": "generate_derived_chart_report",
+      "description": "Generate the derived preflop chart report and the closing corpus measurement",
+      "duration_seconds": 10.426,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "wrote /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/reports/active/latest_derived_chart_report.txt (91821 bytes)\n"
     },
     {
       "command": [
@@ -57,7 +542,7 @@
       ],
       "command_id": "check_generated_status",
       "description": "Check generated STATUS.md freshness",
-      "duration_seconds": 0.052,
+      "duration_seconds": 0.099,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -73,7 +558,7 @@
       ],
       "command_id": "check_generated_phase_ledger",
       "description": "Check generated phase ledger freshness",
-      "duration_seconds": 0.031,
+      "duration_seconds": 0.056,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -89,7 +574,7 @@
       ],
       "command_id": "check_generated_backlog",
       "description": "Check generated backlog freshness",
-      "duration_seconds": 0.083,
+      "duration_seconds": 0.153,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -104,7 +589,7 @@
       ],
       "command_id": "check_contracts",
       "description": "Validate phase contracts",
-      "duration_seconds": 0.04,
+      "duration_seconds": 0.06,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -119,10 +604,10 @@
       ],
       "command_id": "check_scope",
       "description": "Validate task scope",
-      "duration_seconds": 0.133,
-      "passed": true,
-      "returncode": 0,
-      "stderr": "",
+      "duration_seconds": 0.242,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "verification/.mutation_in_progress exists, so a mutation is live in the working tree: mutating src/poker_training_bot/solver_artifacts/importer.py for importer-checksum-not-enforced; if this file exists, restore that file with git checkout. Nothing may be committed until that file is restored and the sentinel deleted\n",
       "stdout": ""
     },
     {
@@ -134,7 +619,7 @@
       ],
       "command_id": "check_execplan_delegation",
       "description": "Validate active ExecPlan delegation plan",
-      "duration_seconds": 0.048,
+      "duration_seconds": 0.087,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -149,7 +634,7 @@
       ],
       "command_id": "check_repo_consistency",
       "description": "Cross-check phase status, ExecPlan location, gate commands, and the phase graph",
-      "duration_seconds": 0.09,
+      "duration_seconds": 0.171,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -165,11 +650,11 @@
       ],
       "command_id": "check_test_freeze",
       "description": "Check tests match verification/freeze.lock",
-      "duration_seconds": 0.078,
+      "duration_seconds": 0.137,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "test freeze intact: 35 files\n"
+      "stdout": "test freeze intact: 42 files\n"
     },
     {
       "command": [
@@ -180,7 +665,7 @@
       ],
       "command_id": "check_file_sizes",
       "description": "Validate file-size limits",
-      "duration_seconds": 0.028,
+      "duration_seconds": 0.072,
       "passed": true,
       "returncode": 0,
       "stderr": "",
@@ -197,11 +682,11 @@
       ],
       "command_id": "pytest_loop_fleet",
       "description": "Run parallel-loop eligibility, lane discovery, and pause board tests",
-      "duration_seconds": 0.164,
+      "duration_seconds": 0.277,
       "passed": true,
       "returncode": 0,
       "stderr": "",
-      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.07s ==============================\n"
+      "stdout": "============================= test session starts ==============================\nplatform darwin -- Python 3.13.15, pytest-9.0.3, pluggy-1.6.0\nrootdir: /Users/taylorsprouse/projects/poker-bot-worktrees/phase-14\nconfigfile: pyproject.toml\ncollected 34 items\n\ntests/test_loop_fleet.py ..................................              [100%]\n\n============================== 34 passed in 0.12s ==============================\n"
     },
     {
       "command": [
@@ -213,11 +698,59 @@
       ],
       "command_id": "import_smoke",
       "description": "Import package smoke test",
-      "duration_seconds": 0.02,
+      "duration_seconds": 0.029,
       "passed": true,
       "returncode": 0,
       "stderr": "",
       "stdout": "0.0.0\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-c",
+        "import poker_training_bot; print('uv import ok')"
+      ],
+      "command_id": "uv_import_smoke",
+      "description": "Prove uv environment can import the package",
+      "duration_seconds": 0.03,
+      "passed": true,
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "uv import ok\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "pytest",
+        "tests"
+      ],
+      "command_id": "pytest",
+      "description": "Run tests",
+      "duration_seconds": 133.166,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "",
+      "stdout": "spot keys the chart refuses against real hands); the repo says 61\nE               ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 150\nE               ! backlog.yml states 89 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 150\nE               ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 68\nE               ! backlog.yml states 58 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 68\nE         \nE         FAIL  backlog integrity\nE               covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.\nE               does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.\nE               ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH is filed against phase 'source', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog LOOP-REVIEW-CHECK-IS-BLIND-TO-A-RESTART is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog CONTRACT-LINE-CAP-COUNTS-LINES-AND-MEANS-CONTENT is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog A-GENERATED-REPORT-CAN-GO-STALE-WITH-THE-GATE-STILL-GREEN has status 'open', which is not one of ['deferred', 'done']\nE               ! backlog A-GENERATED-REPORT-CAN-GO-STALE-WITH-THE-GATE-STILL-GREEN is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! backlog TEST-FILES-ARE-WRITTEN-UP-TO-THE-700-LINE-CAP is filed against phase 'tooling', which is neither a phase in phase_status.yml nor a declared non-phase label\nE               ! docs/BACKLOG.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! docs/BACKLOG.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'COMMITTED-EQUITY-TABLE', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'CONTRACT-UPDATE', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'FLATS-ARE-BROKEN', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'GATE-ONE-RELATION-AGAINST-A', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'THREE-BET-SPOTS-ARE-PRICED-ON-AN', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md cites backlog id 'UNFITTED-TERMINAL', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'JJ-88', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'P10-D3', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-01-contract.md cites backlog id 'SPR-20', which no item declares. A finding filed under an id nobody created has recorded nothing\nE               ! reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-06-build-review-poker.md cites backlog id 'AA-TT', which no item declares. A finding filed under an id nobody created has recorded nothing\nE         \nE         PASS  phase record agreement\nE               covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.\nE               does not: It reads whether the records exist and match, never whether the phase did what its contract said. The tag check is skipped on a clone with no tags.\nE         \nE         \nE         wrote reports/active/latest_quality_report.txt\nE         quality gate failed: fact drift, backlog integrity\nE         \nE       assert 1 == 0\nE        +  where 1 = CompletedProcess(args=['/Users/taylorsprouse/projects/poker-bot-worktrees/phase-14/.venv/bin/python3', 'scripts/run_fu...\\n\\n\\nwrote reports/active/latest_quality_report.txt\\n\", stderr='quality gate failed: fact drift, backlog integrity\\n').returncode\n\ntests/test_quality_hardening.py:403: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_preflop_artifacts.py::test_rejections[checksum mismatch] - ...\nFAILED tests/test_quality_hardening.py::test_the_committed_facts_file_matches_what_the_code_computes\nFAILED tests/test_quality_hardening.py::test_no_document_in_this_repo_states_a_stale_fact\nFAILED tests/test_quality_hardening.py::test_this_repo_s_backlog_is_well_formed_and_every_citation_resolves\nFAILED tests/test_quality_hardening.py::test_the_quality_gate_command_passes_against_this_repo\n============ 5 failed, 1103 passed, 4 skipped in 128.68s (0:02:08) =============\n"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/check_gate_bite.py"
+      ],
+      "command_id": "check_gate_bite",
+      "description": "Prove committed mutations make the gate fail",
+      "duration_seconds": 0.065,
+      "passed": false,
+      "returncode": 1,
+      "stderr": "verification/.mutation_in_progress exists, so a previous run was interrupted while a file was mutated, or a second run is in flight right now. The sentinel says: mutating src/poker_training_bot/data_pipeline/comparison.py for corpus-price-band-ignores-how-many-raises; if this file exists, restore that file with git checkout. Restore that file with git checkout, delete the sentinel, and run again.\n",
+      "stdout": ""
     },
     {
       "command": [
@@ -230,7 +763,7 @@
       ],
       "command_id": "ruff_check",
       "description": "Run ruff",
-      "duration_seconds": 0.025,
+      "duration_seconds": 0.075,
       "passed": true,
       "returncode": 0,
       "stderr": "",

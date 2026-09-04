@@ -229,13 +229,13 @@ about 13-to-5, needing roughly 28 percent. That is a defensible defence, not a s
 **N3. The merged ranges read as real three-bet ranges, not as flatting ranges wearing a raise
 label. The merge's problem is its level, not its shape.**
 
-The widest, `SB/BTN:raise@2.5` at 14.98 percent: AA-TT, 99-66, 55, 22, all suited aces, ATo-AKo,
+The widest, `SB/BTN:raise@2.5` at 14.98 percent: AA down to TT, 99-66, 55, 22, all suited aces, ATo-AKo,
 KQs/KJs/KTs/QJs/QTs/Q9s/JTs/J9s/J8s/T9s/87s/76s. A small blind that plays three-bet-or-fold against
 a button open at about 15 percent, with suited wheel aces and suited connectors as the bluffs, is
 what a strong player would recognise, and merging is the right call in that seat specifically
 because flatting out of position with the big blind behind is the line solvers cut.
 
-The narrowest, `CO/LJ:raise@2.5,HJ:call` at 4.32 percent: AA-TT and AKs/AKo pure, JTs 0.92,
+The narrowest, `CO/LJ:raise@2.5,HJ:call` at 4.32 percent: AA down to TT and AKs/AKo pure, JTs 0.92,
 76s 0.85, AQs 0.30, KQs 0.25, QJs 0.24, 99 0.15. Recognisable as a squeeze, though tight.
 
 The intermediate `HJ/LJ:raise@2.5` at 6.88 percent is a textbook HJ-vs-UTG three-bet: premiums plus

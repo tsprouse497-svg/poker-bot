@@ -23,7 +23,7 @@ The selection rule is deterministic precisely so that diff is byte for byte.
 This was the largest caveat in this document until the chart cutover, which replaced a raked NL25 GTO Wizard chart with a rake-free GTOpen solve.
 A raked solution defends the blinds more tightly than a rake-free one, because a share of every pot it wins is taken away, and every rate published before the cutover carried that gap.
 The caveat is retired rather than reduced: the rake is gone from both sides of the comparison.
-What replaced it is narrower coverage, two bullets below.
+Nothing took its place: the coverage bullet three below reports more of this sample answered than before the cutover, not less.
 
 **The ranges were solved against a 2.5 big blind open. These players opened to a median 2.25.**
 Only 18.1% of the decisions facing a single raise faced one at or above the solved size.
@@ -33,10 +33,10 @@ A cheaper price is a correct reason to continue with more hands, so part of ever
 The price abstraction did not go away with the coarse key, it became visible.
 A price the tree does not hold is still answered from a price it does, and the answer now records which price it was asked at, so a rate here is still computed partly across substituted prices - the difference is that the substitution is counted rather than invisible.
 
-**The chart answers 86 spots, and exactly one of them is an opening range.**
-The cutover's selection rule keeps a spot only where the source prices every terminal below it, which leaves the small blind's open, the big blind's defences, and the heads-up continuations behind them.
-Every other seat refuses a pot that is folded to it.
-So the agreement rates below are computed over a small and deliberately chosen slice of the sample rather than over most of it, and they are not comparable with the rates published before the cutover, which came from a chart holding five opening ranges.
+**The chart answers 249 spots, and five of them are opening ranges.**
+The cutover's selection rule keeps a spot only where the source prices every terminal below it, and every seat that can open the pot survives it: the lojack, hijack, cutoff, button and small blind each have a first-in range, and behind them sit 25 spots facing a single open and 219 where a three-bet is already in.
+What the rule does not keep is the limped pot and the big blind's multiway defence, and the four-bet family is withheld on purpose for a later phase.
+So the agreement rates below are computed over almost all of the sample - slightly more of it than the rates published before the cutover, which came from a raked chart holding 36 keys - and what separates the two is the rake and the tree rather than how much of the sample each could reach.
 
 ## What the comparison measures
 
@@ -46,15 +46,15 @@ Phase 06's fallback never bets and never raises, so a postflop comparison would 
 **Real players are not an oracle.**
 A disagreement means this chart and this player did different things in this spot.
 These are strong professionals, but they are not solvers, and they were playing an opponent pool of one superhuman bot rather than the pool the chart was solved for.
-Agreement with Pluribus is the closer thing to a correctness signal, and there it is now 72 scored decisions, which is an illustration rather than a sample.
-The human denominator is 447.
-Both collapsed at the cutover, from 456 and 2,302, because the decisions the retired chart answered from its four other opening ranges are now refused.
+Agreement with Pluribus is the closer thing to a correctness signal, and there 475 scored decisions is a sample rather than a proof.
+The human denominator is 2,434.
+Both grew at the cutover, from 456 and 2,302, because the committed chart answers more of this sample than the retired one did.
 
 **Refusals sit outside every agreement rate, and they are not spread evenly.**
-There are 2,529 refusals, outside every agreement denominator, and they land on **154 distinct spots the chart holds no cell for**.
-That is five sixths of the sample, and it is the cutover's own cost rather than a defect: the retired chart held four more opening ranges and ten more spots facing a single open, and every decision that reached one of those refuses now.
-The rate runs from 97.3% of the lojack's decision points down to 33.9% of the big blind's, so the one seat the chart was derived for is the only seat it answers most of the time.
-The spread also inverted - before the cutover the big blind refused most and the hijack least - which is worth stating because a reader carrying the old shape in mind would read these rates backwards.
+There are 139 refusals, outside every agreement denominator, and they land on **61 distinct spots the chart holds no cell for**.
+That is 4.6% of the sample, and it is what the solve does not contain rather than a defect: 52 of them are decisions in a limped pot, which no first-in range in this solve ever enters, 52 are the big blind facing an open with a cold-caller behind it, which the tree has no branch for, 25 are four-bet-or-deeper chains the phase withheld, and 10 are three-bet spots the chart holds but where hero's hand class is outside the solved cells.
+The refusal rate runs from 1.0% of the lojack's decision points up to 20.3% of the big blind's, so the seat the chart answers least is the one that acts after a limp and the one whose multiway defence is missing.
+That is the shape the raked chart had as well - it refused 26.6% in the big blind against 1.3% in the hijack - so a reader carrying the pre-cutover reading in mind is not being misled here.
 That subset is not a random sample of them.
 
 ## What the sample is

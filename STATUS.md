@@ -1,8 +1,8 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `PHASE_14_CHART_CUTOVER`
-Task mode: `contract-update`
+Current task: `PHASE_14_BUILD`
+Task mode: `implementation`
 Active phase: `14`
 Completed phases: `14`
 

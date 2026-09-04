@@ -20,6 +20,8 @@ approved_scope:
   - src/poker_training_bot/data_pipeline/**
   - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
   - src/poker_training_bot/solver_artifacts/vocabulary_report.py
+  - src/poker_training_bot/table_state/measures.py
+  - docs/CORPUS_COMPARISON_LIMITS.md
   - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
 standing_scope:
@@ -37,6 +39,32 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-04
+    reason: >-
+      The stage-7 gate is red on four commands and none of them is the chart. Two are an artefact of my
+      own mistake - I ran `run_verify.py` while the driver's own run was still going, so two mutating
+      invocations overlapped and left a `verification/.mutation_in_progress` sentinel that failed
+      `check_scope` and `check_gate_bite`. Nothing was lost and the tree is clean; the phase's own note
+      about never running two at once is the rule I broke.
+      The other two are the cutover moving numbers earlier phases pinned, and both are in scope now.
+      `src/poker_training_bot/table_state/measures.py` holds `CORPUS_REFUSALS = 2529`, and its own
+      comment says the pin is deliberate: "a refusal count that drifts silently is exactly what a
+      coverage change looks like from here, and the point of the pin is that changing the chart has to
+      be a deliberate edit to this line." This is that edit - the chart now refuses **139** - so it is a
+      designed handoff rather than a defect. The comment's prose is false too: it describes giving up
+      four of the five opening ranges and ten of the eleven spots facing a single open, which was the
+      86-spot chart, where the 249 commits all five first-in spots and 25 facing an open.
+      `docs/CORPUS_COMPARISON_LIMITS.md` states two registered facts the chart moved, corpus refusals
+      2,529 to 139 and distinct refused spots 154 to 61. `reports/active/repo_facts.yml` is the
+      committed facts file and is already standing scope, so regenerating it needs nothing new.
+      **A correction to this plan's own claim.** The bootstrap says twelve backlog entries fail
+      `run_full_quality_gate`'s status and phase constants and that this is MAINT-29's rather than this
+      lane's. Measured on 2026-09-04: `main` carries **zero** entries with `status: open`, this branch
+      carried six at the stage-5 freeze and carries seven now. Every one was written in this lane, so
+      every one is this lane's to correct, and the entry that says otherwise was reasoning from a
+      diagnosis rather than from a count. `backlog.yml` is standing scope, so no new path is needed -
+      only the correction to who owns it. Its own entry notes that the phase 14 lane's deliberate red
+      had been masking the whole set, which is exactly what happened.
   - date: 2026-09-04
     reason: >-
       `tests/test_preflop_committed_charts.py` fails three assertions against the committed 249 and sits

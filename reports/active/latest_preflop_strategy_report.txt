@@ -4,7 +4,7 @@ Preflop Strategy Report
 Artifact: data/artifacts/preflop/six_max_100bb_rakefree.json
 Source: GTOpen 6-max 100bb rake-free (solver-export)
 Table: 6-handed, 100bb, positions LJ, HJ, CO, BTN, SB, BB
-Spots: 86
+Spots: 249
 
 These ranges are rake-free, so they are wider than the raked chart they replaced,
 most visibly in the blinds: a raked solution gives up a share of every pot it wins
@@ -27,21 +27,17 @@ number and the one that matters: a collapse rule that distorts the chart shows
 up only here.
 
 Spot                              chart      ref      bot  bot-chart
-SB opens                         54.09%   34.41%   53.97%      -0.13
-BB defends vs BTN                36.76%   39.43%   36.72%      -0.04
-BB defends vs CO                 34.12%   31.48%   34.13%      +0.01
-BB defends vs HJ                 29.92%   26.20%   29.84%      -0.08
-BB defends vs LJ                 27.28%   22.63%   27.30%      +0.03
-BB defends vs SB                 49.02%   42.88%   48.97%      -0.06
+BTN opens                        39.27%   40.56%   39.37%      +0.11
+CO opens                         27.17%   27.89%   27.19%      +0.01
+HJ opens                         21.56%   21.65%   21.63%      +0.06
+LJ opens                         18.74%   17.49%   18.74%      +0.00
+SB opens                         54.30%   34.41%   54.29%      -0.01
+BB defends vs BTN                36.65%   39.43%   36.65%      -0.00
+BB defends vs CO                 32.78%   31.48%   32.74%      -0.05
+BB defends vs HJ                 28.88%   26.20%   28.82%      -0.06
+BB defends vs LJ                 25.70%   22.63%   25.88%      +0.18
+BB defends vs SB                 48.39%   42.88%   48.49%      +0.10
 SB limps                          0.00%   13.73%    0.00%      +0.00
-
-The reference holds an opening frequency for four seats this chart holds no
-opening range for at all: BTN, CO, HJ, LJ. They have no row here.
-A 0.00 percent row would say the solve opens nothing from them, which is a
-claim about a range; the truth is that there is no range, and the bot refuses
-rather than folding. The ruled selection predicate is what dropped them: it
-keeps a spot only where the source prices every terminal below it, and an open
-with four seats still to act can end multiway.
 
 The limp row is the one place a 0.00 percent chart figure is the real answer
 rather than an absent cell. The reference's small blind limps; this solve was
@@ -54,95 +50,258 @@ because of a range.
 Every seat at a six-handed 100bb table can be asked. That is not the same as
 every situation being charted, and the spots below are the ones that are.
 
-86 spots, and the seats holding an opening range are SB.
+249 spots, and the seats holding an opening range are BTN, CO, HJ, LJ, SB.
 Every other seat refuses a pot that is folded to it, which is the largest single
 thing this chart does not do.
 
-  t6/d100/BB/BTN:raise@100                 169 hand classes
   t6/d100/BB/BTN:raise@2.5                 169 hand classes
-  t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@100  76 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5  76 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BB/CO:raise@100                  169 hand classes
+  t6/d100/BB/BTN:raise@2.5,SB:raise@7.5    169 hand classes
   t6/d100/BB/CO:raise@2.5                  169 hand classes
-  t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@100  64 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5  64 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BB/HJ:raise@100                  169 hand classes
+  t6/d100/BB/CO:raise@2.5,BTN:call,SB:raise@7.5 169 hand classes
+  t6/d100/BB/CO:raise@2.5,BTN:raise@7.5    169 hand classes
+  t6/d100/BB/CO:raise@2.5,BTN:raise@7.5,SB:call 169 hand classes
+  t6/d100/BB/CO:raise@2.5,SB:raise@7.5     169 hand classes
   t6/d100/BB/HJ:raise@2.5                  169 hand classes
-  t6/d100/BB/HJ:raise@2.5,BB:raise@7.5,HJ:raise@100  55 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BB/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5  55 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BB/LJ:raise@100                  169 hand classes
+  t6/d100/BB/HJ:raise@2.5,BTN:call,SB:raise@7.5 169 hand classes
+  t6/d100/BB/HJ:raise@2.5,BTN:raise@7.5    169 hand classes
+  t6/d100/BB/HJ:raise@2.5,BTN:raise@7.5,SB:call 169 hand classes
+  t6/d100/BB/HJ:raise@2.5,CO:call,BTN:raise@7.5 169 hand classes
+  t6/d100/BB/HJ:raise@2.5,CO:call,SB:raise@7.5 169 hand classes
+  t6/d100/BB/HJ:raise@2.5,CO:raise@7.5     169 hand classes
+  t6/d100/BB/HJ:raise@2.5,CO:raise@7.5,BTN:call 169 hand classes
+  t6/d100/BB/HJ:raise@2.5,CO:raise@7.5,SB:call 169 hand classes
+  t6/d100/BB/HJ:raise@2.5,SB:raise@7.5     169 hand classes
   t6/d100/BB/LJ:raise@2.5                  169 hand classes
-  t6/d100/BB/LJ:raise@2.5,BB:raise@7.5,LJ:raise@100  65 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BB/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5  65 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BB/SB:raise@100                  169 hand classes
+  t6/d100/BB/LJ:raise@2.5,BTN:call,SB:raise@7.5 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,BTN:raise@7.5    169 hand classes
+  t6/d100/BB/LJ:raise@2.5,BTN:raise@7.5,SB:call 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,CO:call,BTN:raise@7.5 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,CO:call,SB:raise@7.5 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,CO:raise@7.5     169 hand classes
+  t6/d100/BB/LJ:raise@2.5,CO:raise@7.5,BTN:call 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,CO:raise@7.5,SB:call 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,HJ:call,BTN:raise@7.5 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,HJ:call,CO:raise@7.5 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,HJ:call,SB:raise@7.5 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5     169 hand classes
+  t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5,BTN:call 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5,CO:call 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5,SB:call 169 hand classes
+  t6/d100/BB/LJ:raise@2.5,SB:raise@7.5     169 hand classes
   t6/d100/BB/SB:raise@2.5                  169 hand classes
-  t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@100 134 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5 134 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/BTN:raise@2.5,BB:raise@100   119 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5   119 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5,BB:raise@100  78 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/BTN:raise@2.5,SB:raise@100   119 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5   119 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5,SB:raise@100  68 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@100  40 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5  40 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@100  35 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5  35 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@100  51 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5  51 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,BB:raise@100      87 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,BB:raise@7.5      87 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5,BB:raise@100  52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,BTN:raise@100     87 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,BTN:raise@7.5     87 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5,BTN:raise@100  27 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,SB:raise@100      87 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,SB:raise@7.5      87 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/CO:raise@2.5,SB:raise@7.5,CO:raise@22.5,SB:raise@100  38 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@100  41 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5  41 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/LJ:raise@2.5,CO:raise@7.5,LJ:raise@100  75 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/CO/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5  75 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,BB:raise@100      86 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5      86 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5,BB:raise@100  36 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,BTN:raise@100     86 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5     86 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5,BTN:raise@100  29 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,CO:raise@100      86 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5      86 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5,CO:raise@100  26 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,SB:raise@100      86 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5      86 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5,SB:raise@100  36 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@100  57 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5  57 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,BB:raise@100      95 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5      95 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5,BB:raise@100  65 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,BTN:raise@100     95 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5     95 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5,BTN:raise@100  36 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,CO:raise@100      95 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5      95 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5,CO:raise@100  49 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,HJ:raise@100      95 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5      95 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5,HJ:raise@100  35 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,SB:raise@100      95 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5      95 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5,SB:raise@100  34 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@100  52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5  52 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/CO:raise@2.5,SB:raise@7.5,CO:raise@100  33 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/CO:raise@2.5,SB:raise@7.5,CO:raise@22.5  33 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@100  33 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5  33 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@100  28 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5  28 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/SB:raise@2.5,BB:raise@100     125 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/SB:raise@2.5,BB:raise@7.5     125 hand classes  (hero has acted, so only hero's own range)
-  t6/d100/SB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5,BB:raise@100  80 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5    89 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,SB:call,BB:raise@7.5  89 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5    89 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5,BB:call  89 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/CO:raise@2.5                 169 hand classes
+  t6/d100/BTN/CO:raise@2.5,BTN:call,BB:raise@7.5   6 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/CO:raise@2.5,BTN:call,BB:raise@7.5,CO:call   6 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/CO:raise@2.5,BTN:call,SB:raise@7.5   6 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/CO:raise@2.5,BTN:call,SB:raise@7.5,BB:call   6 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/CO:raise@2.5,BTN:call,SB:raise@7.5,CO:call   6 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/HJ:raise@2.5                 169 hand classes
+  t6/d100/BTN/HJ:raise@2.5,BTN:call,BB:raise@7.5   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/HJ:raise@2.5,BTN:call,SB:raise@7.5   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/HJ:raise@2.5,BTN:call,SB:raise@7.5,BB:call   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/HJ:raise@2.5,CO:call         169 hand classes
+  t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,BB:raise@7.5   7 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5   7 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/HJ:raise@2.5,CO:raise@7.5    169 hand classes
+  t6/d100/BTN/LJ:raise@2.5                 169 hand classes
+  t6/d100/BTN/LJ:raise@2.5,BTN:call,BB:raise@7.5  15 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,BTN:call,SB:call,BB:raise@7.5  15 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,BTN:call,SB:raise@7.5  15 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,BTN:call,SB:raise@7.5,BB:call  15 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,CO:call         169 hand classes
+  t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,BB:raise@7.5   6 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5   6 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5   6 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,CO:raise@7.5    169 hand classes
+  t6/d100/BTN/LJ:raise@2.5,HJ:call         169 hand classes
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,BB:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5,HJ:call   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5,LJ:call   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@7.5,BB:call   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5,CO:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5,HJ:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5,HJ:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5,BB:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5,CO:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:raise@7.5 169 hand classes
+  t6/d100/BTN/LJ:raise@2.5,HJ:raise@7.5    169 hand classes
+  t6/d100/BTN/LJ:raise@2.5,HJ:raise@7.5,CO:call 169 hand classes
+  t6/d100/BTN/rfi                          169 hand classes
+  t6/d100/CO/CO:raise@2.5,BB:raise@7.5      72 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BTN:call,BB:raise@7.5  72 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BTN:call,SB:raise@7.5  72 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BTN:raise@7.5     72 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,BB:call  72 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,SB:call  72 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,SB:raise@7.5      72 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/CO:raise@2.5,SB:raise@7.5,BB:call  72 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5                  169 hand classes
+  t6/d100/CO/HJ:raise@2.5,CO:call,BB:raise@7.5   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5,CO:call,BTN:call,BB:raise@7.5   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5,CO:call,BTN:raise@7.5   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5,CO:call,BTN:raise@7.5,BB:call   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5,CO:call,SB:raise@7.5   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/HJ:raise@2.5,CO:call,SB:raise@7.5,BB:call   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5                  169 hand classes
+  t6/d100/CO/LJ:raise@2.5,CO:call,BB:raise@7.5  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:call,BTN:call,BB:raise@7.5  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:call,BTN:raise@7.5  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:call,BTN:raise@7.5,BB:call  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:call,BTN:raise@7.5,LJ:call  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:call,SB:raise@7.5  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:call,SB:raise@7.5,BB:call  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,CO:call,SB:raise@7.5,LJ:call  10 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call          169 hand classes
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BB:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5,HJ:call   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5,BB:call   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,BB:call   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,SB:call   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:raise@7.5,BB:call   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/CO/LJ:raise@2.5,HJ:raise@7.5     169 hand classes
+  t6/d100/CO/rfi                           169 hand classes
+  t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5      57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BTN:call,BB:raise@7.5  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BTN:call,SB:raise@7.5  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5     57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,BB:call  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,SB:call  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:call,BB:raise@7.5  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:call,BTN:raise@7.5  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:call,SB:raise@7.5  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5      57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,BB:call  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,BTN:call  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,SB:call  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,SB:call,BB:raise@7.5  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5      57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5,BB:call  57 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5                  169 hand classes
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,BB:raise@7.5  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@7.5,BB:call  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5,BB:call  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5,SB:call  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,BB:call  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,SB:call  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,SB:raise@7.5,BB:call  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:raise@7.5  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BB:call  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,SB:call  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,SB:raise@7.5  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/LJ:raise@2.5,HJ:call,SB:raise@7.5,BB:call  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/HJ/rfi                           169 hand classes
+  t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5      55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BTN:call,BB:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BTN:call,SB:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BTN:call,SB:raise@7.5,BB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5     55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,BB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,SB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:call,BB:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:call,BB:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:raise@7.5,BB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:call,SB:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:call,SB:raise@7.5,BB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5      55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,BB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,BTN:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,SB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:call,BB:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:call,SB:raise@7.5  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5      55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,BB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,BTN:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,CO:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,SB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5      55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5,BB:call  55 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/LJ/rfi                           169 hand classes
+  t6/d100/SB/BTN:raise@2.5                 169 hand classes
+  t6/d100/SB/BTN:raise@2.5,SB:call,BB:raise@7.5   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/BTN:raise@2.5,SB:call,BB:raise@7.5,BTN:call   5 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/CO:raise@2.5                  169 hand classes
+  t6/d100/SB/CO:raise@2.5,BTN:call         169 hand classes
+  t6/d100/SB/CO:raise@2.5,BTN:call,SB:call,BB:raise@7.5  11 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/CO:raise@2.5,BTN:raise@7.5    169 hand classes
+  t6/d100/SB/CO:raise@2.5,SB:call,BB:raise@7.5  14 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/HJ:raise@2.5                  169 hand classes
+  t6/d100/SB/HJ:raise@2.5,BTN:call         169 hand classes
+  t6/d100/SB/HJ:raise@2.5,BTN:call,SB:call,BB:raise@7.5   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/HJ:raise@2.5,BTN:raise@7.5    169 hand classes
+  t6/d100/SB/HJ:raise@2.5,CO:call          169 hand classes
+  t6/d100/SB/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5   2 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/HJ:raise@2.5,CO:call,BTN:raise@7.5 169 hand classes
+  t6/d100/SB/HJ:raise@2.5,CO:call,SB:call,BB:raise@7.5   7 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/HJ:raise@2.5,CO:raise@7.5     169 hand classes
+  t6/d100/SB/HJ:raise@2.5,CO:raise@7.5,BTN:call 169 hand classes
+  t6/d100/SB/HJ:raise@2.5,SB:call,BB:raise@7.5  12 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5                  169 hand classes
+  t6/d100/SB/LJ:raise@2.5,BTN:call         169 hand classes
+  t6/d100/SB/LJ:raise@2.5,BTN:call,SB:call,BB:raise@7.5   8 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,BTN:raise@7.5    169 hand classes
+  t6/d100/SB/LJ:raise@2.5,CO:call          169 hand classes
+  t6/d100/SB/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5,BTN:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,CO:call,BTN:raise@7.5 169 hand classes
+  t6/d100/SB/LJ:raise@2.5,CO:call,SB:call,BB:raise@7.5   7 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,CO:raise@7.5     169 hand classes
+  t6/d100/SB/LJ:raise@2.5,CO:raise@7.5,BTN:call 169 hand classes
+  t6/d100/SB/LJ:raise@2.5,HJ:call          169 hand classes
+  t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5,BTN:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5,HJ:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5,LJ:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:raise@7.5 169 hand classes
+  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5   2 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5,BTN:call   2 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5,CO:call   2 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5,HJ:call   2 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5,CO:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5,HJ:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5,LJ:call   1 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:raise@7.5 169 hand classes
+  t6/d100/SB/LJ:raise@2.5,HJ:call,SB:call,BB:raise@7.5   6 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5     169 hand classes
+  t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5,BTN:call 169 hand classes
+  t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5,CO:call 169 hand classes
+  t6/d100/SB/LJ:raise@2.5,SB:call,BB:raise@7.5  15 hand classes  (hero has acted, so only hero's own range)
+  t6/d100/SB/SB:raise@2.5,BB:raise@7.5     121 hand classes  (hero has acted, so only hero's own range)
   t6/d100/SB/rfi                           169 hand classes
 
 ## What it does with a few named hands
@@ -156,7 +315,7 @@ raise of hero's own. A spot offering hero two prices is drawn between them
 with the same seed that draws between a cell's actions, so the amount below
 is one of the solve's own prices and never an average of them.
 
-  t6/d100/SB/rfi
+  t6/d100/BTN/rfi
     AA    raise to 2.5bb
     AKs   raise to 2.5bb
     AJo   raise to 2.5bb
@@ -172,8 +331,8 @@ is one of the solve's own prices and never an average of them.
 
   t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5
     AA    raise to 22.5bb
-    AKs   raise to 100bb
-    AJo   call
+    AKs   raise to 22.5bb
+    AJo   raise to 22.5bb
     76s   call
     72o   refuses (preflop-chart:hand-class-not-covered)
 
@@ -186,20 +345,20 @@ because a label that grades the answer beside it goes wrong the moment the chart
 changes and reads as a defect in the bot rather than in the label.
 
   the small blind opens                                     decides: raise
-  the lojack opens                                          refuses: preflop-chart:lookup:spot-not-covered
+  the lojack opens                                          decides: raise
   the big blind faces a cutoff open at the solved 2.5bb     decides: raise
   the same open at 2.25bb, a price the tree does not hold   decides: raise
   a table forty big blinds deep                             refuses: preflop-chart:lookup:no-artifact-for-stack-depth
   a straddled pot                                           refuses: preflop-chart:pot-holds-a-straddle
   an anted pot                                              refuses: preflop-chart:pot-holds-an-ante
-  a squeeze after an open and a cold call                   refuses: preflop-chart:lookup:spot-not-covered
-  the cutoff facing a five-bet                              decides: fold
+  a squeeze after an open and a cold call                   decides: raise
+  the cutoff facing a five-bet                              refuses: preflop-chart:lookup:spot-not-covered
   the button raising before the cutoff                      refuses: preflop-chart:lookup:unrepresentable-spot
   a flop                                                    refuses: preflop-chart:not-preflop
 
 Refusal codes seen:
   preflop-chart:lookup:no-artifact-for-stack-depth          1
-  preflop-chart:lookup:spot-not-covered                     2
+  preflop-chart:lookup:spot-not-covered                     1
   preflop-chart:lookup:unrepresentable-spot                 1
   preflop-chart:not-preflop                                 1
   preflop-chart:pot-holds-a-straddle                        1
@@ -208,9 +367,9 @@ Refusal codes seen:
 ## Check one number by hand
 
 Open data/artifacts/preflop/six_max_100bb_rakefree.json, find action_weights ->
-"t6/d100/BB/BTN:raise@2.5" -> "A2o". It reads: fold 0.9989, call 0.0011, raise 0.0000.
+"t6/d100/BB/BTN:raise@2.5" -> "A2o". It reads: fold 1.0000, call 0.0000, raise 0.0000.
 
-So the BB folds A2o 99.89 percent of the time there.
+So the BB folds A2o 100.00 percent of the time there.
 Nothing in this repo computed that number: it is the weight the solve gave that
 action at that node, carried through the conversion unchanged. The chart it
 replaced was a raked solution and answered this cell differently, which is the

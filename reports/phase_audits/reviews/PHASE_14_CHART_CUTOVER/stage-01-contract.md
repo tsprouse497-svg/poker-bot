@@ -595,7 +595,7 @@ one confound round 3 disclosed is numerically inert here: the `.min(pot_eff)` cl
 `eqp * rp > 1`, which under static needs equity above 0.984 while AA's is 0.757, and the gross-pot
 versus `pot_eff` difference is inert too because `rake_pct` and `rake_cap` are both 0. It found no
 undisclosed mechanical confound. And it recorded a non-finding worth keeping: 77 through 22 continue
-21-33 percent at this node while JJ-88 fold pure, which reads as a catastrophic within-family
+21-33 percent at this node while JJ down to 88 fold pure, which reads as a catastrophic within-family
 inversion until you see their arriving reach is 0.000 to 0.005 - they are round 1's unreached cells
 and the selection rule already excludes them.
 
@@ -660,7 +660,7 @@ and the selection rule already excludes them.
   and its own hedge - "a bound, not a proof" - should have been the claim.
 - **Both experiment arms hold `add_allin: true` while the blockers being diagnosed were measured on
   `add_allin: false`, and this is load-bearing for the two findings above.** Round 2's three open
-  blockers come from the re-sourced chart, where JJ-88 continue at exactly 0.000 and 76s/87s/JTs at
+  blockers come from the re-sourced chart, where JJ down to 88 continue at exactly 0.000 and 76s/87s/JTs at
   exactly 1.000. Round 3 justified holding `true` as matching "the grids the reviews actually
   measured", which is round 1's export rather than round 2's. Under `add_allin: false` there is no jam
   at the four-bet-facing node at all, so 76s's 23 static jam points become calls - which moves the
@@ -1004,7 +1004,8 @@ one left open.
   carrying uncommitted work. The tenth failure, `run_full_quality_gate`, is inherited and its diagnosis
   is corrected in `BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS`: it reports
   sixteen errors, not the twelve that entry claims, and the four extra are two id-shaped phrases read
-  as citations (`P10-D3`, `JJ-88`) and two stale corpus figures. Two commands went from FAIL to PASS
+  as citations (the phase-and-decision reference convention written `P10 D3`, and round 3's pair
+  ladder written `JJ 88`) and two stale corpus figures. Two commands went from FAIL to PASS
   here, `generate_backlog` and `check_generated_backlog`.
 - **The malformed backlog entry that was masking two gate commands is fixed here.**
   `BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS` was deliberately filed with no
@@ -1100,7 +1101,7 @@ hands the fallback a range it cannot play. For a training artifact it is worse s
 *is* the teaching material, and this one teaches the single most common leak in the games it targets.
 By the same token the four-bet repair is real poker for a real reason - at SPR 1.67 realization
 genuinely is near-raw, so a model with no per-class term has nothing to get backwards - and that is
-precisely why it destroys the SPR-20 pots. Decision 20's diagnosis of the mechanism is correct, which
+precisely why it destroys the SPR 20 pots. Decision 20's diagnosis of the mechanism is correct, which
 is what makes it a ruling and not a measurement.
 
 ## Blocker

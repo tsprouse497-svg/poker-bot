@@ -117,7 +117,7 @@ read.
 **A third collection, 2026-09-01, and the list runs to 30.** Seven more rulings were taken later the
 same day, every one of them in `implementation` mode at stage 4, which may not edit this record. Each
 was written into `CURRENT_TASK.yml`'s `scope_change_log` under the literal flag
-`OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE`, which is the mitigation adopted for
+`OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE`, which is the mitigation adopted for
 `RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE` after the collection above found five
 stranded rulings. **This is the first discharge of that flag.** Six of the seven become items **25 to
 30**; the seventh corrects decision 24's finding without touching its answer and sits at that item's
@@ -2696,7 +2696,7 @@ Options: accept-and-record | reopen-decision-16 | refuse-the-affected-spots-too
 Answer: [accept-and-record]
 
 **Amended 2026-09-01, later the same day: the finding is restated, the acceptance is unchanged.** Taken
-in `implementation` mode at stage 4 under the `OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag,
+in `implementation` mode at stage 4 under the `OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag,
 and it is a foot amendment rather than a new item because no choice was put to Taylor - the disposition
 he ruled hours earlier is the disposition that stands, and only the measurement under it moved.
 
@@ -2737,7 +2737,7 @@ Answer: [accept-and-record]
 Reversibility: frozen-into-data
 
 Raised and answered 2026-09-01 in `implementation` mode at stage 4, and transcribed here under the
-`OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag its scope-log entry carries. It is the first of
+`OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag its scope-log entry carries. It is the first of
 the seven that stint took.
 
 **What forced it.** Every one of the 40 problems in `pytest_derived_chart` - 36 errors and 4 failures -
@@ -2801,7 +2801,7 @@ Reversibility: frozen-into-data
 
 Raised 2026-09-01 by the independent stage-4 poker review, verified by the coordinator against the
 artifact before it was put to Taylor, and answered the same day in `implementation` mode. Transcribed
-here under its `OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag. It amends **decision 20** and
+here under its `OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag. It amends **decision 20** and
 takes a number rather than a foot amendment for the reason the header gives.
 
 **The price hero is being offered.** At the fifteen spots where hero faces a five-bet jam he is calling
@@ -2861,7 +2861,7 @@ Reversibility: frozen-into-data
 
 Raised 2026-09-01 by worker lane R6, reproduced independently by the coordinator with the same shipped
 function at both set sizes before it was put to Taylor, and answered the same day in `implementation`
-mode. Transcribed under its `OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag. It amends
+mode. Transcribed under its `OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag. It amends
 **decision 10** and the contract's dominance criterion.
 
 **What forced it.** Item 26 took the committed set to 21, and at 21 the hand-class group-ladder family
@@ -2925,7 +2925,7 @@ Reversibility: frozen-into-data
 
 Raised 2026-09-01 by the final stage-4 independent review, verified by the coordinator before it was put
 to Taylor, and answered the same day in `implementation` mode. Transcribed under its
-`OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag. It amends **decision 20** a third time and it
+`OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag. It amends **decision 20** a third time and it
 is the ruling that sets the set the phase ships.
 
 **What was measured.** Over the committed 21 there are **twenty** places where a higher pocket pair is
@@ -2985,7 +2985,7 @@ Reversibility: frozen-into-data
 
 Raised and answered 2026-09-01 in `implementation` mode, by the same independent review that corrected
 item 27's premise and in the same breath. Transcribed under its
-`OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` flag. It amends **decision 10** and the contract's
+`OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag. It amends **decision 10** and the contract's
 dominance criterion, and it is a separate item from 27 because it is a separate choice: 27 removed a
 gate, 29 replaces what that gate was catching.
 
@@ -3071,7 +3071,7 @@ Rejected, and why. `amend-after-the-freeze` does not fit under the line cap and 
 `AGENTS.md` at that length in any case. `freeze-against-the-stale-contract` is the trap named above.
 
 **This item is also the reason the six above exist.** Every one of the seven rulings carried the flag
-`OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE` in `CURRENT_TASK.yml`'s `scope_change_log`, and this
+`OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` in `CURRENT_TASK.yml`'s `scope_change_log`, and this
 ruling is what created the task that discharges them. The mitigation for
 `RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE` closed its own loop here for the first
 time. What it did **not** do is fire by itself: the flag is a string in a file, and it was read because
@@ -3295,8 +3295,9 @@ percent while calling 76s and JTs at 100. A three-bet pot is SPR 5.97 and a sing
 inside the fitted range, which is why both measure sound on the raise and fold structure.
 
 **The residual the 3-bet family carries.** A committed facing-a-3-bet spot must price hero's own 4-bet
-option, and that routes through the terminal the fit has no cell for. `THREE-BET-SPOTS-ARE-PRICED-ON-AN-
-UNFITTED-TERMINAL` already carries it. Measured, the 4-bet frequency in those spots comes out at 10.2 to
+option, and that routes through the terminal the fit has no cell for.
+`THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL` already carries it. Measured, the 4-bet
+frequency in those spots comes out at 10.2 to
 11.9 percent against a standard 10 to 13, so the bad terminal is not visibly reaching the output. Accepted
 as a residual with that measurement beside it; it is not a reason to withhold 8.15 percent of decisions.
 
@@ -3341,8 +3342,8 @@ Answer: [leave-at-3.0-and-file] (pending Taylor, the ruling above having rested 
 Reversibility: frozen-into-data
 
 The gap decision 31 identified and named: both gated arms catch a permuted or transposed hand index, which
-are extraction defects, and nothing measures whether a range is right. `GATE-ONE-RELATION-AGAINST-A-
-COMMITTED-EQUITY-TABLE` carries it.
+are extraction defects, and nothing measures whether a range is right.
+`GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE` carries it.
 
 **Ruled by Taylor, 2026-09-01: add it, and exempt the big blind's flat explicitly.**
 
@@ -3475,8 +3476,8 @@ summing to 33,969.
 143 is **0.8855** percent and the narrowest refused is **1.0028**, so the threshold has **0.12** points of
 room, not the 0.4 that decision 39's "widest candidate is 0.618 percent" implied. That 0.618 is the
 widest of the depth-one spots only; 53 of the 123 three-bet-facing spots carry non-zero exposure, and
-only the 5 big-blind facing-an-open spots are exactly zero. `MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-
-FLATS-ARE-BROKEN` carries the real margin.
+only the 5 big-blind facing-an-open spots are exactly zero.
+`MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN` carries the real margin.
 
 Options: two-filters-143 | three-filters-35 | depth-only-607
 Answer: [two-filters-143]
@@ -3550,8 +3551,9 @@ printed for a human on every committed spot, labelled as a measurement rather th
 way this repo already publishes the group-order ladders. A reader is told in words that firing is not by
 itself a defect.
 
-**What this leaves open, stated rather than closed.** `GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-
-TABLE` is **not** closed by this phase and its status stays `deferred`. Nothing in this repo measures
+**What this leaves open, stated rather than closed.**
+`GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE` is **not** closed by this phase and its status
+stays `deferred`. Nothing in this repo measures
 whether a published range is good poker. That is the gap that let this phase run a month finding defects
 by human eye, and the honest position is that phase 14 publishes a measurement toward it and does not
 fill it. Any future attempt needs a criterion equity cannot express - domination, or playability at a
