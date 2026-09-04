@@ -14,9 +14,16 @@ fail. So it is printed beside this chart for a reader and gates on nothing.
 
 The refusal census is the second half of the same idea. An artifact-backed bot is
 supposed to decline where its chart is silent, so a report that showed only decisions
-would hide the behavior most worth checking. It matters more after the cutover than
-before: the committed chart holds one opening range where the retired one held five, and
-the four seats that lost theirs now refuse rather than folding.
+would hide the behavior most worth checking. What it declines changed at the cutover
+rather than growing: the committed chart holds all five of the first-in ranges the
+retired one held, and many more spots facing a raise, and what it declines instead are
+limped pots, some of the spots with a cold caller already in, and every line where hero
+faces a four-bet or deeper.
+
+Which way the coverage moved is derived here and never asserted. Every seat count and
+spot count in this file is read off the committed artifact on the run, because the one
+defect this command has shipped twice is a hardcoded sentence about coverage standing
+beside a correct computed count and contradicting it.
 
 No spot key and no chart filename is spelled here. Every spot this report works through
 is read out of the committed artifact, because each of the four ways the cutover broke
@@ -140,9 +147,10 @@ def sample_spots(strategy: PreflopChartStrategy) -> tuple[str, ...]:
 
     The three families are what this section was written to show, and they are found in the
     committed keys rather than spelled. Spelled, they were `t6/d100/LJ/rfi`,
-    `t6/d100/BTN/rfi` and `t6/d100/LJ/LJ:raise@2.5,CO:raise@8`, all three of which the
-    cutover retired: the chart it committed opens from one seat and prices three-bets at
-    7.5 rather than 8.
+    `t6/d100/BTN/rfi` and `t6/d100/LJ/LJ:raise@2.5,CO:raise@8`. The first two are still
+    committed keys; the third is not, because the cutover's solve prices a three-bet at 7.5
+    rather than 8. So spelling them would have broken this command on one key out of three -
+    which is a reason to look them up, and not a reason to say the cutover took all three.
     """
     declared = strategy.library.spot_keys()
     opening: list[str] = []
@@ -263,16 +271,16 @@ def probes() -> list[tuple[str, StrategyQuery]]:
     """The tables and lines this section asks about, each described rather than graded.
 
     The labels used to carry a `covered:` or `uncovered:` prefix, which is a claim about
-    the answer standing next to the answer. The cutover made four of those prefixes wrong
-    in one commit - the lojack open they called covered is the headline thing the ruled
-    predicate gives up - and a label disagreeing with the verdict beside it is worse than
-    no label. So each probe now says what table it is, and the verdict column says what the
-    bot did with it. The list spans both halves on purpose: lines the committed chart holds
-    a cell for, and tables and lines it does not.
+    the answer standing next to the answer. Rebuilding the chart made those prefixes wrong
+    twice, in both directions, and a label disagreeing with the verdict beside it is worse
+    than no label. So each probe now says what table it is, and the verdict column says
+    what the bot did with it. The list spans both halves on purpose: lines the committed
+    chart holds a cell for, and tables and lines it does not.
     """
     return [
-        # The one opening range the committed chart holds, and one it gave up. Both are
-        # printed because the difference between them is what the cutover cost in play.
+        # Two first-in spots, both of which the committed chart holds. They are kept because
+        # the labels above them once said one was covered and the other was not, and no
+        # label here asserts a verdict any more - the verdict column is measured.
         refusal_probe("the small blind opens", hero="SB"),
         refusal_probe("the lojack opens", hero="LJ"),
         refusal_probe(
@@ -388,8 +396,11 @@ def frequency_lines(strategy: PreflopChartStrategy) -> list[str]:
     An absent range is named in prose and never given a row. It used to get one, and the
     row read 0.00 percent, which is a different and much stronger claim than the truth: a
     chart that opens nothing folds every hand from that seat, where a chart with no cell
-    there refuses and the bot never acts on it at all. The cutover turned four of the five
-    opening rows into exactly that, and no test in the tree would have said a word.
+    there refuses and the bot never acts on it at all. An intermediate build of this phase's
+    chart turned four of the five opening rows into exactly that and no test in the tree
+    said a word, which is why the absence is handled rather than assumed. The chart that
+    shipped holds all five, so the paragraph below is currently unreached; it stays because
+    what it guards against has happened here once already.
     """
     expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
     declared = set(strategy.library.spot_keys())
@@ -440,13 +451,12 @@ def frequency_lines(strategy: PreflopChartStrategy) -> list[str]:
     if absent_openings:
         lines += [
             "",
-            "The reference holds an opening frequency for four seats this chart holds no",
-            f"opening range for at all: {', '.join(absent_openings)}. They have no row here.",
+            f"The reference holds an opening frequency for {len(absent_openings)} seat(s)"
+            f" this chart holds no",
+            f"first-in range for at all: {', '.join(absent_openings)}. They have no row here.",
             "A 0.00 percent row would say the solve opens nothing from them, which is a",
             "claim about a range; the truth is that there is no range, and the bot refuses",
-            "rather than folding. The ruled selection predicate is what dropped them: it",
-            "keeps a spot only where the source prices every terminal below it, and an open",
-            "with four seats still to act can end multiway.",
+            "rather than folding.",
         ]
     if limps_shown:
         lines += [
@@ -460,19 +470,50 @@ def frequency_lines(strategy: PreflopChartStrategy) -> list[str]:
     return lines
 
 
+def _raises_faced(spot: str) -> int:
+    """How many raises hero is answering in this key. `rfi` is none."""
+    return sum(1 for entry in hero_and_actions(spot)[1] if ":raise" in entry)
+
+
 def coverage_lines(strategy: PreflopChartStrategy) -> list[str]:
+    """What the chart holds, counted by family rather than described.
+
+    The family split is here because the sentence it replaced was the defect. This section
+    used to name a coverage shape in prose - one opening range, four seats that lost
+    theirs - beside a correct total, and the prose outlived the chart it described by two
+    rebuilds. A count per family cannot do that: if the shape changes the numbers change
+    with it, and the deepest line the chart answers is read off the keys.
+    """
     declared = strategy.library.spot_keys()
     openings = [spot for spot in declared if not hero_and_actions(spot)[1]]
+    by_family = Counter(_raises_faced(spot) for spot in declared)
+    deepest = max(by_family) if by_family else 0
+    family_names = {
+        0: "first in, the pot folded to hero",
+        1: "hero facing a single raise",
+        2: "hero facing a three-bet",
+        3: "hero facing a four-bet",
+        4: "hero facing a five-bet",
+    }
     lines = [
         "## Coverage",
         "",
         "Every seat at a six-handed 100bb table can be asked. That is not the same as",
         "every situation being charted, and the spots below are the ones that are.",
         "",
-        f"{len(declared)} spots, and the seats holding an opening range are"
+        f"{len(declared)} spots. Split by how many raises hero is answering:",
+        "",
+    ]
+    for raises in sorted(by_family):
+        name = family_names.get(raises, f"hero facing {raises} raises")
+        lines.append(f"  {name:<40}{by_family[raises]:>5}")
+    lines += [
+        "",
+        f"The seats holding a first-in range are"
         f" {', '.join(hero_and_actions(spot)[0] for spot in openings) or 'none'}.",
-        "Every other seat refuses a pot that is folded to it, which is the largest single",
-        "thing this chart does not do.",
+        f"The deepest line the chart answers has hero facing {deepest} raises, so anything",
+        "beyond that refuses however hero got there. Some spots with a cold caller already",
+        "in are held and some are not; the refusal census below is what says which.",
         "",
     ]
     for spot in declared:
@@ -489,9 +530,11 @@ def sample_lines(strategy: PreflopChartStrategy, spots: tuple[str, ...]) -> list
     lines.append("")
     lines.append("Three spots, found in the committed keys rather than named here: an")
     lines.append("opening range, hero facing a single open, and hero acting again behind a")
-    lines.append("raise of hero's own. A spot offering hero two prices is drawn between them")
-    lines.append("with the same seed that draws between a cell's actions, so the amount below")
-    lines.append("is one of the solve's own prices and never an average of them.")
+    lines.append("raise of hero's own. Where a spot offers hero two prices the strategy draws")
+    lines.append("between them with the same seed that draws between a cell's actions, so an")
+    lines.append("amount below is one of the solve's own prices and never an average of them.")
+    lines.append("No committed spot offers two, as it happens: this solve was run with hero's")
+    lines.append("own shove switched off, so every committed spot prices exactly one raise.")
     lines.append("")
     for spot in spots:
         lines.append(f"  {spot}")
@@ -540,8 +583,9 @@ def spot_check_lines(
     Both halves of it are read rather than stated. The spot is the one the sample section
     found, and the sentence underneath names the action the cell weights highest rather than
     asserting a direction, so it cannot go stale against a re-derived chart the way the
-    retired version did - that one named a button opening range the cutover deleted and a
-    filename it deleted with it.
+    retired version did - that one spelled the chart filename, which the cutover replaced,
+    alongside a hardcoded button first-in key, which it happens to have kept. One of the two
+    constants surviving is what makes spelling either of them the wrong habit.
     """
     spot = spots[1]
     classes = strategy.library.hand_classes_for(spot)
@@ -585,10 +629,11 @@ def render_report() -> str:
         "",
         "These ranges are rake-free, so they are wider than the raked chart they replaced,",
         "most visibly in the blinds: a raked solution gives up a share of every pot it wins",
-        "and defends the blinds more tightly for it. What they are not is wider in coverage.",
-        "The selection predicate keeps only the spots the source prices every terminal",
-        "below, which leaves one opening range and the big blind's defences, so this chart",
-        "answers far fewer questions than the retired one and refuses the rest.",
+        "and defends the blinds more tightly for it. They are wider in coverage as well. The",
+        "retired chart held 36 spots; the count above is what the committed one holds, split",
+        "by family in the coverage section below. The selection predicate keeps only the",
+        "spots the source prices every terminal below, and what that rules out is named in",
+        "the refusal census rather than guessed at here.",
         "",
     ]
     sections = [

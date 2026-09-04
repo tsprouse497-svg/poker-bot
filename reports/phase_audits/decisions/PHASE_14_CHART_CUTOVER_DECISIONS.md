@@ -115,9 +115,16 @@ the calling frequencies in the spots the phase commits. Neither reviewer had wri
 read.
 
 **A third collection, 2026-09-01, and the list runs to 30.** Seven more rulings were taken later the
-same day, every one of them in `implementation` mode at stage 4, which may not edit this record. Each
-was written into `CURRENT_TASK.yml`'s `scope_change_log` under the literal flag
-`OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE`, which is the mitigation adopted for
+same day, every one of them in `implementation` mode at stage 4, which may not edit this record. All
+seven were written into `CURRENT_TASK.yml`'s `scope_change_log`, and six of them under a flag whose
+greppable head is `OWES A DECISION ITEM` and whose tail names the next `contract-update` task. The
+tail is not quoted here, in this document or anywhere under `docs/` or `reports/`, because the
+quality gate's citation check reads it as a backlog id and there is no such item; the head alone
+finds every occurrence. Measured today, `grep -c` over `CURRENT_TASK.yml` returns **5** entries
+carrying that flag, covering those six rulings, one entry holding two of them. The unflagged one is
+item **30**, the ruling that opened this `contract-update` task: its entry names the other six's
+flags rather than carrying one, because it is the discharge and not something waiting on it. The
+flag is the mitigation adopted for
 `RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE` after the collection above found five
 stranded rulings. **This is the first discharge of that flag.** Six of the seven become items **25 to
 30**; the seventh corrects decision 24's finding without touching its answer and sits at that item's
@@ -2696,7 +2703,7 @@ Options: accept-and-record | reopen-decision-16 | refuse-the-affected-spots-too
 Answer: [accept-and-record]
 
 **Amended 2026-09-01, later the same day: the finding is restated, the acceptance is unchanged.** Taken
-in `implementation` mode at stage 4 under the `OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag,
+in `implementation` mode at stage 4 under the `OWES A DECISION ITEM` flag,
 and it is a foot amendment rather than a new item because no choice was put to Taylor - the disposition
 he ruled hours earlier is the disposition that stands, and only the measurement under it moved.
 
@@ -2737,7 +2744,7 @@ Answer: [accept-and-record]
 Reversibility: frozen-into-data
 
 Raised and answered 2026-09-01 in `implementation` mode at stage 4, and transcribed here under the
-`OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag its scope-log entry carries. It is the first of
+`OWES A DECISION ITEM` flag its scope-log entry carries. It is the first of
 the seven that stint took.
 
 **What forced it.** Every one of the 40 problems in `pytest_derived_chart` - 36 errors and 4 failures -
@@ -2801,7 +2808,7 @@ Reversibility: frozen-into-data
 
 Raised 2026-09-01 by the independent stage-4 poker review, verified by the coordinator against the
 artifact before it was put to Taylor, and answered the same day in `implementation` mode. Transcribed
-here under its `OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag. It amends **decision 20** and
+here under its `OWES A DECISION ITEM` flag. It amends **decision 20** and
 takes a number rather than a foot amendment for the reason the header gives.
 
 **The price hero is being offered.** At the fifteen spots where hero faces a five-bet jam he is calling
@@ -2861,7 +2868,7 @@ Reversibility: frozen-into-data
 
 Raised 2026-09-01 by worker lane R6, reproduced independently by the coordinator with the same shipped
 function at both set sizes before it was put to Taylor, and answered the same day in `implementation`
-mode. Transcribed under its `OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag. It amends
+mode. Transcribed under its `OWES A DECISION ITEM` flag. It amends
 **decision 10** and the contract's dominance criterion.
 
 **What forced it.** Item 26 took the committed set to 21, and at 21 the hand-class group-ladder family
@@ -2925,7 +2932,7 @@ Reversibility: frozen-into-data
 
 Raised 2026-09-01 by the final stage-4 independent review, verified by the coordinator before it was put
 to Taylor, and answered the same day in `implementation` mode. Transcribed under its
-`OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag. It amends **decision 20** a third time and it
+`OWES A DECISION ITEM` flag. It amends **decision 20** a third time and it
 is the ruling that sets the set the phase ships.
 
 **What was measured.** Over the committed 21 there are **twenty** places where a higher pocket pair is
@@ -2985,7 +2992,7 @@ Reversibility: frozen-into-data
 
 Raised and answered 2026-09-01 in `implementation` mode, by the same independent review that corrected
 item 27's premise and in the same breath. Transcribed under its
-`OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` flag. It amends **decision 10** and the contract's
+`OWES A DECISION ITEM` flag. It amends **decision 10** and the contract's
 dominance criterion, and it is a separate item from 27 because it is a separate choice: 27 removed a
 gate, 29 replaces what that gate was catching.
 
@@ -3070,9 +3077,14 @@ record return.
 Rejected, and why. `amend-after-the-freeze` does not fit under the line cap and is forbidden by
 `AGENTS.md` at that length in any case. `freeze-against-the-stale-contract` is the trap named above.
 
-**This item is also the reason the six above exist.** Every one of the seven rulings carried the flag
-`OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` in `CURRENT_TASK.yml`'s `scope_change_log`, and this
-ruling is what created the task that discharges them. The mitigation for
+**This item is also the reason the six above exist.** The other six rulings each carried a flag in
+`CURRENT_TASK.yml`'s `scope_change_log` whose greppable head is `OWES A DECISION ITEM`; this one did
+not, because it is the ruling that created the task that discharges them, and there was nothing left
+for it to point forward to. Measured on the file today: **5** scope-log entries carry that flag - one
+of them holds two rulings - and the entry recording this ruling carries none, naming the other six's
+flags instead. The tail of the flag is deliberately not quoted anywhere under `docs/` or `reports/`:
+it is shaped like a backlog id, no such item exists, and the quality gate's citation check fails on
+it. The head is what a reader greps for. The mitigation for
 `RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE` closed its own loop here for the first
 time. What it did **not** do is fire by itself: the flag is a string in a file, and it was read because
 this task went looking for it. The backlog entry's three candidate remedies - a driver that refuses to

@@ -8,10 +8,11 @@ Spots: 249
 
 These ranges are rake-free, so they are wider than the raked chart they replaced,
 most visibly in the blinds: a raked solution gives up a share of every pot it wins
-and defends the blinds more tightly for it. What they are not is wider in coverage.
-The selection predicate keeps only the spots the source prices every terminal
-below, which leaves one opening range and the big blind's defences, so this chart
-answers far fewer questions than the retired one and refuses the rest.
+and defends the blinds more tightly for it. They are wider in coverage as well. The
+retired chart held 36 spots; the count above is what the committed one holds, split
+by family in the coverage section below. The selection predicate keeps only the
+spots the source prices every terminal below, and what that rules out is named in
+the refusal census rather than guessed at here.
 
 ## Frequencies against the GTO Wizard reference
 
@@ -50,9 +51,16 @@ because of a range.
 Every seat at a six-handed 100bb table can be asked. That is not the same as
 every situation being charted, and the spots below are the ones that are.
 
-249 spots, and the seats holding an opening range are BTN, CO, HJ, LJ, SB.
-Every other seat refuses a pot that is folded to it, which is the largest single
-thing this chart does not do.
+249 spots. Split by how many raises hero is answering:
+
+  first in, the pot folded to hero            5
+  hero facing a single raise                 25
+  hero facing a three-bet                   219
+
+The seats holding a first-in range are BTN, CO, HJ, LJ, SB.
+The deepest line the chart answers has hero facing 2 raises, so anything
+beyond that refuses however hero got there. Some spots with a cold caller already
+in are held and some are not; the refusal census below is what says which.
 
   t6/d100/BB/BTN:raise@2.5                 169 hand classes
   t6/d100/BB/BTN:raise@2.5,SB:raise@7.5    169 hand classes
@@ -311,9 +319,11 @@ one way across different hands. The draw below is seeded on the spot.
 
 Three spots, found in the committed keys rather than named here: an
 opening range, hero facing a single open, and hero acting again behind a
-raise of hero's own. A spot offering hero two prices is drawn between them
-with the same seed that draws between a cell's actions, so the amount below
-is one of the solve's own prices and never an average of them.
+raise of hero's own. Where a spot offers hero two prices the strategy draws
+between them with the same seed that draws between a cell's actions, so an
+amount below is one of the solve's own prices and never an average of them.
+No committed spot offers two, as it happens: this solve was run with hero's
+own shove switched off, so every committed spot prices exactly one raise.
 
   t6/d100/BTN/rfi
     AA    raise to 2.5bb

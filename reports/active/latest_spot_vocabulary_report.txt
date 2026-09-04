@@ -110,13 +110,27 @@ position acting twice.
 The catch-all emptied because the vocabulary can now name those cells, not because
 anything filled them: the 19 arrive as `lookup:spot-not-covered` instead, which is
 a different and better miss. That was `CHART-COVERAGE-EXPANSION`, and the chart
-cutover is what answered it - in both directions. Four-bet and five-bet
-continuations are committed heads-up, so part of this family is now answered; and
-the ruled selection predicate gives up fifteen spots the retired chart held,
-including four of the five opening ranges, so the total above is higher than the
-290 the vocabulary phase measured rather than lower. A chart that answers a
-narrower set of questions correctly refuses more of them, and that trade is the
-cutover's own subject rather than this section's.
+cutover is what answered it - and it answered it by adding coverage rather than by
+trading some away. The retired raked chart held 36 spots: five first-in ranges, 15
+facing a single raise, 15 facing a three-bet, and the big blind facing a small-blind
+limp. The chart committed now holds the count this report's header prints, it keeps
+all five of those first-in ranges, and it goes much further into the spots facing a
+three-bet. So the total above is lower than
+the 290 the vocabulary phase measured, and that is the whole of the direction this
+section claims.
+
+What it still does not hold is a spot where hero is answering a four-bet. Every
+committed key has hero facing at most two raises - it prices hero's own four-bet as
+an action, which is a different thing - so the four-bet-or-deeper chains in the
+sample refuse, and they are one of the families making up the total above. An
+earlier version of this section said four-bet and five-bet continuations were
+committed heads-up. They are not, and they were not.
+
+One situation the retired chart answered is gone at every price, and it is the only
+one: the big blind facing a small-blind limp. This solve was run with limping
+switched off, so the small blind's first-in range never limps and the tree has no
+such node to price. That is a ruling's consequence rather than a gap, and the limped
+pots the sample does contain are refused for it.
 
 The deepest sequence the committed sample reached, now expressible:
 
@@ -248,14 +262,24 @@ if it had changed which cell a decision reached; it did not, because a price the
 tree does not hold is normalised back to the one cell the coarse key would have hit.
 What changed is that the answer now says so, which is what the census above counts.
 
-The chart cutover moved them, and it moved them in the direction a replacement is
-least likely to be read as moving them. The refusal total rises and every agreement
-denominator falls, because the ruled selection predicate keeps only the spots the
-source prices every terminal below: four of the five opening ranges and ten of the
-eleven spots facing a single open are given up, so decisions the retired chart
-answered are now refused and sit outside every rate. A higher agreement rate over a
-smaller denominator is not an improvement, and the two columns have to be read
-together for that reason.
+The chart cutover moved them, and not in the direction a replacement that gave up
+coverage would move them. The lines below are read off the same two columns the table
+above prints, so this paragraph cannot disagree with it. Each agreement row gets both
+of its movements, because they move independently: how many decisions the chart
+scored at all, and how often it agreed with what was actually played.
+
+  row                       branch     now         branch     now
+  refusals                     290     139  down
+  Pluribus agreement           456     475    up    96.3%   90.9%  down
+  human agreement             2302    2434    up    93.6%   90.1%  down
+  human calls agreeing         227     235    up    60.8%   36.2%  down
+  human raises agreeing        416     413  down    92.5%   88.6%  down
+
+Read the two together, because they point opposite ways. This is a wider chart that
+agrees with the corpus less often - not a narrower one that bought a higher rate by
+refusing the decisions it was going to get wrong. Which of those two a reader is
+looking at is the whole question, and a single sentence asserting a direction is how
+this report got it backwards twice.
 
 The self-play figures in `reports/active/latest_profile_comparison_report.txt` also
 moved at the vocabulary phase: 128 refused hands became 126, and 472 measured became

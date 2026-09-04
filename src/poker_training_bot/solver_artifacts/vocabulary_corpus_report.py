@@ -23,15 +23,33 @@ from poker_training_bot.solver_artifacts.vocabulary_measures import (
 )
 
 
+def _direction(measured: int, recorded: int) -> str:
+    """How a live count compares to a recorded one, as a phrase a sentence can take.
+
+    Exists so that no sentence in this module can claim a direction the number beside it
+    contradicts. Every place a report in this repo argued which way a figure had moved and
+    got it backwards, the argument was a hardcoded word standing next to a computed count.
+    """
+    if measured < recorded:
+        return "lower than"
+    if measured > recorded:
+        return "higher than"
+    return "unchanged from"
+
+
 def inventory_lines(result: ComparisonResult) -> list[str]:
     """The refusal inventory, and the total it adds up to.
 
-    The total is the one figure here the chart cutover moves, and it moves the opposite way
-    from the phase this section was written for. The vocabulary widening added no coverage
-    and the total held at 290; the cutover gives fifteen retired spots up, four of them
-    opening ranges, so it rises. It is stated as measured with that cause named rather than
-    carried over, because a refusal total that reads unchanged next to a chart replacement is
-    the one number a reader would take as proof nothing was lost.
+    The total is the one figure here the chart cutover moves. The vocabulary widening added
+    no coverage and the total held at 290; the cutover took it down, because the chart it
+    commits answers more of the sample rather than less.
+
+    The direction is computed from the count rather than asserted beside it. An earlier
+    version of this prose argued the total had risen while the table under it printed a total
+    that had fallen, which is worse than a stale figure: a reader trusts the sentence and
+    distrusts the number. Nothing here states a live figure it does not derive, and the two
+    retired-chart counts named below are historical constants read off the artifact
+    `data/artifacts/preflop/six_max_nl25_100bb.json` carried at this branch's merge base.
     """
     catch_all = [
         entry for entry in result.refusal_inventory if entry.spot_key == "(no expressible spot)"
@@ -67,13 +85,27 @@ def inventory_lines(result: ComparisonResult) -> list[str]:
         "The catch-all emptied because the vocabulary can now name those cells, not because",
         "anything filled them: the 19 arrive as `lookup:spot-not-covered` instead, which is",
         "a different and better miss. That was `CHART-COVERAGE-EXPANSION`, and the chart",
-        "cutover is what answered it - in both directions. Four-bet and five-bet",
-        "continuations are committed heads-up, so part of this family is now answered; and",
-        "the ruled selection predicate gives up fifteen spots the retired chart held,",
-        "including four of the five opening ranges, so the total above is higher than the",
-        "290 the vocabulary phase measured rather than lower. A chart that answers a",
-        "narrower set of questions correctly refuses more of them, and that trade is the",
-        "cutover's own subject rather than this section's.",
+        "cutover is what answered it - and it answered it by adding coverage rather than by",
+        "trading some away. The retired raked chart held 36 spots: five first-in ranges, 15",
+        "facing a single raise, 15 facing a three-bet, and the big blind facing a small-blind",
+        "limp. The chart committed now holds the count this report's header prints, it keeps",
+        "all five of those first-in ranges, and it goes much further into the spots facing a",
+        f"three-bet. So the total above is {_direction(len(refused), 290)}",
+        "the 290 the vocabulary phase measured, and that is the whole of the direction this",
+        "section claims.",
+        "",
+        "What it still does not hold is a spot where hero is answering a four-bet. Every",
+        "committed key has hero facing at most two raises - it prices hero's own four-bet as",
+        "an action, which is a different thing - so the four-bet-or-deeper chains in the",
+        "sample refuse, and they are one of the families making up the total above. An",
+        "earlier version of this section said four-bet and five-bet continuations were",
+        "committed heads-up. They are not, and they were not.",
+        "",
+        "One situation the retired chart answered is gone at every price, and it is the only",
+        "one: the big blind facing a small-blind limp. This solve was run with limping",
+        "switched off, so the small blind's first-in range never limps and the tree has no",
+        "such node to price. That is a ruling's consequence rather than a gap, and the limped",
+        "pots the sample does contain are refused for it.",
         "",
         "The deepest sequence the committed sample reached, now expressible:",
         "",
@@ -187,6 +219,59 @@ def census_lines(measured: Census) -> list[str]:
     return lines
 
 
+def _way(measured: int, recorded: int) -> str:
+    """Which way a value moved: up, down or flat, for a column showing both values."""
+    if measured < recorded:
+        return "down"
+    if measured > recorded:
+        return "up"
+    return "flat"
+
+
+def _as_rate(value: str) -> tuple[int, int] | None:
+    """`"439 of 456"` as a pair, or None for a row that is a bare count."""
+    parts = value.split(" of ")
+    if len(parts) != 2:
+        return None
+    try:
+        return int(parts[0].strip()), int(parts[1].strip())
+    except ValueError:
+        return None
+
+
+def _movement_lines(result: ComparisonResult) -> list[str]:
+    """Which way each agreement row moved since the branch point, derived not asserted.
+
+    The rows carrying a rate get both movements, because they move independently and the
+    report was wrong about both: the denominator is how much of the sample the chart scored
+    at all, and the rate is how often it agreed with what was played. A chart that scores
+    more and agrees less moves them in opposite directions, which is the case here and is
+    the thing a single hardcoded sentence kept getting backwards.
+    """
+    refused = sum(1 for row in result.rows if row.refusal is not None)
+    lines = [
+        f"  {'row':<24}{'branch':>8}{'now':>8}{'':>6}{'branch':>9}{'now':>8}",
+        f"  {'refusals':<24}{290:>8}{refused:>8}{_way(refused, 290):>6}",
+    ]
+    for entry in restated_numbers():
+        branch = _as_rate(entry.branch)
+        now = _as_rate(entry.measure(result))
+        if branch is None or now is None:
+            continue
+        branch_num, branch_den = branch
+        now_num, now_den = now
+        branch_pct = 100.0 * branch_num / branch_den if branch_den else 0.0
+        now_pct = 100.0 * now_num / now_den if now_den else 0.0
+        # Cross-multiplied so the rate comparison is exact rather than a float tie-break.
+        rate_way = _way(now_num * branch_den, branch_num * now_den)
+        lines.append(
+            f"  {entry.label:<24}{branch_den:>8}{now_den:>8}"
+            f"{_way(now_den, branch_den):>6}{branch_pct:>8.1f}%{now_pct:>7.1f}%"
+            f"{rate_way:>6}"
+        )
+    return lines
+
+
 def restatement_lines(result: ComparisonResult) -> list[str]:
     """Every headline figure a completed phase published, re-measured with its cause.
 
@@ -196,6 +281,11 @@ def restatement_lines(result: ComparisonResult) -> list[str]:
     carrying 290 refusals through a chart replacement, in the report whose own inventory
     section counts them, so the two halves of the same document disagreed and the
     reassuring half was the one with a table around it.
+
+    The table itself was then fixed and the paragraph under it was not, which is how the
+    same defect came back with the signs reversed: a correct measured column arguing, in
+    prose, that the figures had moved the other way. So the paragraph no longer contains a
+    figure at all. It calls `_movement_lines`, which reads the same rows the table renders.
     """
     lines = [
         "## Every number Phase 11 moved, and every number the two phases after it moved",
@@ -228,14 +318,21 @@ def restatement_lines(result: ComparisonResult) -> list[str]:
         "tree does not hold is normalised back to the one cell the coarse key would have hit.",
         "What changed is that the answer now says so, which is what the census above counts.",
         "",
-        "The chart cutover moved them, and it moved them in the direction a replacement is",
-        "least likely to be read as moving them. The refusal total rises and every agreement",
-        "denominator falls, because the ruled selection predicate keeps only the spots the",
-        "source prices every terminal below: four of the five opening ranges and ten of the",
-        "eleven spots facing a single open are given up, so decisions the retired chart",
-        "answered are now refused and sit outside every rate. A higher agreement rate over a",
-        "smaller denominator is not an improvement, and the two columns have to be read",
-        "together for that reason.",
+        "The chart cutover moved them, and not in the direction a replacement that gave up",
+        "coverage would move them. The lines below are read off the same two columns the table",
+        "above prints, so this paragraph cannot disagree with it. Each agreement row gets both",
+        "of its movements, because they move independently: how many decisions the chart",
+        "scored at all, and how often it agreed with what was actually played.",
+        "",
+    ]
+    lines += _movement_lines(result)
+    lines += [
+        "",
+        "Read the two together, because they point opposite ways. This is a wider chart that",
+        "agrees with the corpus less often - not a narrower one that bought a higher rate by",
+        "refusing the decisions it was going to get wrong. Which of those two a reader is",
+        "looking at is the whole question, and a single sentence asserting a direction is how",
+        "this report got it backwards twice.",
         "",
         "The self-play figures in `reports/active/latest_profile_comparison_report.txt` also",
         "moved at the vocabulary phase: 128 refused hands became 126, and 472 measured became",
