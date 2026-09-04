@@ -94,15 +94,22 @@ def test_the_report_shows_a_four_bet_key_that_could_not_be_written_before(
     # The 8 and 21.5 are prices no committed spot holds, which is not a defect:
     # `_key_examples` builds this key and never checks it, so it demonstrates the grammar
     # rather than claiming coverage. The chart's own use of that grammar is what inverted:
-    # nothing past two raises in is committed, so no committed key repeats a seat. Stated as
-    # `all`, because the `any` it replaces would have kept passing off a single stray key.
+    # nothing past two raises in is committed.
+    #
+    # That used to be written "so no committed key repeats a seat", and the second half does
+    # not follow from the first: 22 committed keys do repeat one, each a seat that called and
+    # then acted again after a re-raise behind it - one raise deep, inside the ruled depth. So
+    # the depth itself is asserted, which is what the clause always meant.
+    # `tests/test_spot_vocabulary_downstream.py` carries the same correction in the same words,
+    # and the two must not drift apart again. Stated as the list of offending keys rather than
+    # as `any` or `all`, so a failure names them instead of printing False.
     example = report_row(report, "could not be written before")
 
     assert example == "t6/d100/BTN/LJ:raise@2.5,BTN:raise@8,LJ:raise@21.5"
 
-    entries = [key.split("/")[-1].split(",") for key in library.spot_keys()]
+    deep = [key for key in library.spot_keys() if key.split("/")[-1].count(":raise") > 2]
 
-    assert all(len({entry.split(":")[0] for entry in row}) == len(row) for row in entries)
+    assert deep == []
 
 
 def test_the_report_publishes_the_measured_spot_counts(report) -> None:

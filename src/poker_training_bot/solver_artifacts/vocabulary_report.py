@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from poker_training_bot.data_pipeline.comparison import compare_committed_sample
 from poker_training_bot.data_pipeline.sample import load_committed_sample
+from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES
 from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
 from poker_training_bot.solver_artifacts.schema import (
     PreflopAction,
@@ -189,8 +190,14 @@ def _hand_check_lines(artifact: PreflopArtifact, sizing: PreflopSizingTable) -> 
     Every figure below is read out of the loaded table, so checking the report against the
     file is comparing the file with itself through one indirection rather than against a
     sentence somebody typed.
+
+    The two-price half of that shape has no instance over the committed set, so the section
+    publishes it labelled vacuous rather than refusing to render - a criterion that cannot
+    fire did not pass, and a report that will not print is not a way of saying so. The label
+    is earned by a premise asked of the whole table below, never of this spot alone.
     """
-    priced = sorted(sizing.raise_to_bb)
+    named = sorted(sizing.raise_to_bb)
+    priced = sorted(spot for spot, classes in sizing.raise_to_bb.items() if classes)
     prices = sorted(
         {
             float(entry["to_bb"])
@@ -199,6 +206,11 @@ def _hand_check_lines(artifact: PreflopArtifact, sizing: PreflopSizingTable) -> 
             for entry in entries
         }
     )
+    if len(named) != artifact.audit_fields.spot_count:
+        raise VocabularyReportError(
+            f"the sizing table names {len(named)} spots and the artifact declares"
+            f" {artifact.audit_fields.spot_count}; the section below says they are the same set"
+        )
     classes = sizing.raise_to_bb.get(EXAMPLE_KEY)
     if not classes:
         raise VocabularyReportError(
@@ -207,13 +219,31 @@ def _hand_check_lines(artifact: PreflopArtifact, sizing: PreflopSizingTable) -> 
         )
     one_price = sorted(name for name, entries in classes.items() if len(entries) == 1)
     two_prices = sorted(name for name, entries in classes.items() if len(entries) > 1)
-    if not one_price or not two_prices:
+    if not one_price:
         raise VocabularyReportError(
-            f"{EXAMPLE_KEY} prices {len(one_price)} classes at one price and"
-            f" {len(two_prices)} at more than one; the worked example needs one of each"
+            f"{EXAMPLE_KEY} prices no class at a single price, so this section has no entry"
+            " a reader can open the file and check"
+        )
+    # The premise, before the label below. "This spot happens to offer nobody two prices" is
+    # not the same claim as "the two-price schema has no instance", and labelling on the first
+    # would let a build that broke only this spot print `vacuous` instead of failing. So the
+    # question is asked of the whole table, and a live criterion this spot cannot show is a
+    # report that refuses rather than one that labels.
+    offered_two = [
+        (spot, name)
+        for spot, spot_classes in sizing.raise_to_bb.items()
+        for name, entries in spot_classes.items()
+        if len(entries) > 1
+    ]
+    if not two_prices and offered_two:
+        raise VocabularyReportError(
+            f"{EXAMPLE_KEY} prices no class at more than one price, but {len(offered_two)}"
+            f" (spot, class) pairs elsewhere do, the first being {offered_two[0]}; the worked"
+            " example has to move to a spot that can show the schema rather than label it"
         )
     single = "AA" if "AA" in one_price else one_price[0]
-    mixed = "44" if "44" in two_prices else two_prices[0]
+    mixed = ("44" if "44" in two_prices else two_prices[0]) if two_prices else None
+    absent = sorted(name for name in HAND_CLASSES if name not in classes)
 
     def rendered(hand_class_text: str) -> str:
         return "   ".join(
@@ -228,8 +258,27 @@ def _hand_check_lines(artifact: PreflopArtifact, sizing: PreflopSizingTable) -> 
         "",
         f"Open `{SIZING_DISPLAY_PATH}` and find `raise_to_bb` ->",
         f"`{EXAMPLE_KEY}`, the spot the worked example at the top of this report uses. Two",
-        "of its entries, each a list of prices with hero's weight on them:",
+        "of its 169 hand-class slots, an entry being a list of prices with hero's weight:",
         "",
+        *_two_price_lines(single, mixed, rendered),
+        *_one_price_lines(single, absent, len(classes), rendered),
+        f"The same file names every one of the {artifact.audit_fields.spot_count} committed spots,",
+        f"prices a hand class at {len(priced)} of them, and holds {len(prices)} distinct raise-to",
+        f"sizes in all. The other {len(named) - len(priced)} name the spot with nothing under it:",
+        "hero's menu there does offer him a raise, but he reaches every one of those spots by",
+        "calling a raise and then facing a re-raise, and no hand he still holds by then takes",
+        "it. Nothing under a spot is not a price of zero either:",
+        "",
+        f"    {', '.join(render_size_bb(size) for size in prices)}",
+        "",
+    ]
+
+
+def _two_price_lines(single: str, mixed: str | None, rendered) -> list[str]:
+    """The section as written, for a table that offers some class two prices."""
+    if mixed is None:
+        return []
+    return [
         f"    {single:<5}{rendered(single)}",
         f"    {mixed:<5}{rendered(mixed)}",
         "",
@@ -241,12 +290,36 @@ def _hand_check_lines(artifact: PreflopArtifact, sizing: PreflopSizingTable) -> 
         "prices the bot picks is drawn from these weights with the same seed that draws",
         "between a cell's actions, so the amount it raises to is always one the solve chose.",
         "",
-        f"The same file prices {len(priced)} of the {artifact.audit_fields.spot_count}",
-        f"committed spots and holds {len(prices)} distinct raise-to sizes in all. The rest of",
-        "the spots offer hero no raise at all and so carry no entry, which is not the same as",
-        "an entry of zero:",
+    ]
+
+
+def _one_price_lines(single: str, absent: list[str], priced_classes: int, rendered) -> list[str]:
+    """The section when no class anywhere is offered two prices, which is the case today.
+
+    This is the first of the contract's three vacuous criteria, and it is published with its
+    label rather than refused: a criterion with no instance did not pass, and it is kept
+    because the multiway family returns with two-price menus. The premise that makes it
+    vacuous is asserted by the caller before this runs, so a solve that reactivates the
+    schema turns that check red rather than leaving this label standing over a real case.
+    """
+    if not absent:
+        return []
+    return [
+        f"    {single:<5}{rendered(single)}",
+        f"    {absent[0]:<5}(no entry)",
         "",
-        f"    {', '.join(render_size_bb(size) for size in prices)}",
+        "No code required, and it still settles what a single number per spot cannot say. The",
+        f"entry is a list under a hand class: {priced_classes} of the 169 classes have one here,",
+        "the rest have none at all, and a file holding one float per spot could not tell you",
+        "which was which. Nothing under a class is not a price of zero.",
+        "",
+        "**vacuous  the two-price sizing schema.** The list under a class is a list because a",
+        "class can be offered two prices, and over the committed set none is: `add_allin:",
+        "false` takes hero's shove off every node that also names a raise, and the four-bet",
+        "family that still shoves is withheld. So no worked example can show a second price,",
+        "and this section says so rather than counting the schema as a check that passed. It",
+        "is kept because the multiway family returns with two-price menus, and it is proved",
+        "against a synthetic export instead of against the committed one.",
         "",
     ]
 

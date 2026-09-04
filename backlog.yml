@@ -4523,6 +4523,37 @@ items:
       answer an opponent's line rather than the bot's own, and phase 15 rules on whether its drill sampler
       draws from them before it samples anything.
 
+  - id: A-GENERATED-REPORT-CAN-GO-STALE-WITH-THE-GATE-STILL-GREEN
+    status: open
+    phase: tooling
+    title: Nothing checks that the committed reports match what their generators produce now
+    reason: >-
+      Three reports under reports/active were found stale from the retired chart during phase 14,
+      one at a time and only because somebody tripped over each: latest_refusal_inventory.txt and
+      latest_sample_refusal_inventory.txt still listed the 86-spot chart's gaps, and
+      latest_spot_vocabulary_report.txt still said "Spots: 86" against a committed 249. Two of
+      them fed live checks while stale - the self-play cross-reference reads the first, and a
+      stale inventory naming the retired chart's gaps makes that column lie - so this is not
+      only a tidiness problem.
+      The mechanism is that generating and committing are different acts. generate_profile_
+      comparison_report, generate_sample_comparison_report and generate_spot_vocabulary_report
+      are all gate commands, so run_verify.py rewrites all three files on every run. The gate
+      then passes, the working tree is dirty, and nothing says so. A run that regenerates a
+      report and a commit that carries the new one apart are indistinguishable to every check
+      the repo has.
+      THE CHECK, named rather than built, because this phase is closing. After the report
+      generators run, `git status --porcelain reports/active/` must be empty, and a gate command
+      that fails when it is not would have caught all three. It is the same shape as
+      convert_preflop_export.py --check, which already holds data/artifacts to reproducing from
+      its source, and the argument for it is the same: a generated artifact that nobody
+      re-derives is a claim nobody is checking. The alternative shape is a --check flag on each
+      generator that renders to memory and compares, which avoids dirtying the tree at all and
+      is what the converter does; that is the better one if only one gets built.
+      One caveat so the check is not oversold. latest_spot_vocabulary_report.txt was stale for a
+      different reason - its generator raised VocabularyReportError and wrote nothing, so its own
+      gate command was already red and visible. The check above catches the silent class, where
+      the generator succeeds and the new bytes are simply never committed, which is the class the
+      other two were in.
   - id: THE-CHARTS-REPRODUCE-CHECK-IS-COUPLED-TO-EVERY-OTHER-ARTIFACT
     status: deferred
     phase: "14"

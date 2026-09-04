@@ -4,7 +4,7 @@ Spot Vocabulary Report
 Artifact: preflop/gtopen-6-max-100bb-rake-free
 Source: GTOpen 6-max 100bb rake-free
 Generated at: 2026-08-27T00:00:00Z
-Spots: 86
+Spots: 249
 Sample: 499 hands, 3048 preflop decision points
 
 The spot vocabulary phase committed no new solve and no new chart. It widened what
@@ -104,8 +104,8 @@ position acting twice.
 
   rows still reading '(no expressible spot)'          0
   decisions refusing as lookup:unrepresentable-spot   0
-  decision points now naming a repeated-position key  5
-  total refusals over the committed sample            2529
+  decision points now naming a repeated-position key  19
+  total refusals over the committed sample            139
 
 The catch-all emptied because the vocabulary can now name those cells, not because
 anything filled them: the 19 arrive as `lookup:spot-not-covered` instead, which is
@@ -120,7 +120,7 @@ cutover's own subject rather than this section's.
 
 The deepest sequence the committed sample reached, now expressible:
 
-    t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5,CO:raise@36.67,HJ:raise@100
+    t6/d100/CO/HJ:raise@2.5,CO:raise@6.81,HJ:raise@19.93,CO:raise@36.67,HJ:raise@100
 
 ## What ruling 8 costs in play: the price-substitution census
 
@@ -133,32 +133,32 @@ Until the key carried sizes nothing counted how often that abstraction was used,
 because a coarse key could not tell two prices apart and so could not tell that one
 had been moved. Over the committed sample:
 
-  decisions the chart answered                            519
-  answered at the price they were asked at                188
-  answered at a price they were not asked at              331   (63.8%)
+  decisions the chart answered                           2909
+  answered at the price they were asked at               1768
+  answered at a price they were not asked at             1141   (39.2%)
 
 Two different things get counted below and adding the wrong column gives a
 number this heading contradicts, so each table says which it counts. One
 decision can face several raises and have more than one of them moved: there
-are 331 substituted decisions carrying 413 substituted raises between them.
+are 1,141 substituted decisions carrying 1,282 substituted raises between them.
 
 Split by which raise was moved, counting DECISIONS. The first line is what
 ruling 8 itself costs; the second is what extending it past the open costs, and
 they are kept apart because they were ruled separately. The third is why the
 first two sum to more than the total above.
 
-  the opener's price was moved                            317
-  a later raise's price was moved                          84
-  both, counted once in each line above                    70
+  the opener's price was moved                           1118
+  a later raise's price was moved                         164
+  both, counted once in each line above                   141
 
 Split by how far a price moved, counting SUBSTITUTED RAISES:
 
-  moved under 0.25bb                                     177
-  moved 0.25 to 0.50bb                                   160
-  moved 0.50 to 1.00bb                                    12
-  moved 1.00 to 3.00bb                                    42
-  moved over 3.00bb                                       22
-  all substituted raises                                 413
+  moved under 0.25bb                                     658
+  moved 0.25 to 0.50bb                                   517
+  moved 0.50 to 1.00bb                                    22
+  moved 1.00 to 3.00bb                                    57
+  moved over 3.00bb                                       28
+  all substituted raises                                1282
 
 And by direction, which the distance split above cannot show and which is the
 half with poker content. A smaller open gives the defender a better price, so
@@ -166,8 +166,8 @@ the correct response to it is a wider continue than the correct response to a
 larger one. Where the answered price is the higher, the chart hands back the
 tighter range:
 
-  answered above the price asked                         299
-  answered below the price asked                         114
+  answered above the price asked                        1135
+  answered below the price asked                         147
 
 The opening prices the sample actually came in at, and the cell each was
 answered from, counting DECISIONS.
@@ -182,32 +182,32 @@ reading '2.5 -> 3.5' was a small-blind open answered from the small-blind cell
 rather than a solved price that moved.
 
      asked  answered   decisions
-         2       2.5          65
-      2.05       2.5           1
-       2.1       2.5          21
-      2.11       2.5           2
-      2.22       2.5          12
-      2.25       2.5         162
-      2.33       2.5           1
-      2.34       2.5           1
+         2       2.5         273
+      2.05       2.5           8
+       2.1       2.5         111
+      2.11       2.5           7
+      2.22       2.5          22
+      2.25       2.5         632
+      2.33       2.5           2
+      2.34       2.5           2
       2.35       2.5           4
-       2.4       2.5           1
-      2.44       2.5           2
-      2.45       2.5           1
+       2.4       2.5           2
+      2.44       2.5           3
+      2.45       2.5           2
       2.75       2.5           1
       2.85       2.5           1
-      2.87       2.5           3
+      2.87       2.5           9
          3       2.5          38
          4       2.5           1
 
 And the figure the three-bet extension was ruled on, re-measured here rather
 than quoted from the decision record:
 
-  decisions facing a three-bet at a spot the chart holds     79
-  of those, facing a price the tree does not hold            71
-  of those, facing a price it does                            8
+  decisions facing a three-bet at a spot the chart holds    204
+  of those, facing a price the tree does not hold           173
+  of those, facing a price it does                           31
 
-So exact matching past the open would have refused 71 of the 79
+So exact matching past the open would have refused 173 of the 204
 three-bet decisions this chart can answer at all. That is the alternative
 decision 5 rejected, not an outcome of the ruling.
 
@@ -235,11 +235,11 @@ happened since, and the cause column names which. Nothing here is asserted: the
   number                                             packet       branch          now  cause
   hands compared                                        499          499          499  unchanged (checked against both)
   preflop decision points                              3048         3048         3048  unchanged (checked against both)
-  refusals                                              290          290         2529  moved by the chart cutover, which gave fifteen retired spots up
-  Pluribus agreement                             439 of 456   439 of 456     68 of 72  moved by the chart cutover
-  human agreement                              2155 of 2302 2155 of 2302   399 of 447  moved by the chart cutover
-  human calls agreeing                           138 of 227   138 of 227   147 of 189  moved by the chart cutover
-  human raises agreeing                          385 of 416   385 of 416     64 of 68  moved by the chart cutover
+  refusals                                              290          290          139  moved by the chart cutover, which gave fifteen retired spots up
+  Pluribus agreement                             439 of 456   439 of 456   432 of 475  moved by the chart cutover
+  human agreement                              2155 of 2302 2155 of 2302 2192 of 2434  moved by the chart cutover
+  human calls agreeing                           138 of 227   138 of 227    85 of 235  moved by the chart cutover
+  human raises agreeing                          385 of 416   385 of 416   366 of 413  moved by the chart cutover
   inventory decisions naming no spot at all              19           19            0  moved by the spot vocabulary
 
 The widened key moved none of the corpus figures, and that was the vocabulary
@@ -275,24 +275,31 @@ only evidence that a number ever changed.
 
 Open `data/artifacts/preflop/sizings/six_max_100bb_rakefree.json` and find `raise_to_bb` ->
 `t6/d100/BB/BTN:raise@2.5`, the spot the worked example at the top of this report uses. Two
-of its entries, each a list of prices with hero's weight on them:
+of its 169 hand-class slots, an entry being a list of prices with hero's weight:
 
     AA   7.5 at 1.0000
-    44   7.5 at 0.1156   100 at 0.8844
+    32o  (no entry)
 
-No code required, and it settles the thing a single number per spot cannot say. One
-of those classes is offered one price and the other is offered two, so a table
-holding one float per spot would have to give both the same answer: it would either
-price the class that never takes the second price as though it sometimes did, or
-drop the second price from the class that mostly takes it. Which of two offered
-prices the bot picks is drawn from these weights with the same seed that draws
-between a cell's actions, so the amount it raises to is always one the solve chose.
+No code required, and it still settles what a single number per spot cannot say. The
+entry is a list under a hand class: 47 of the 169 classes have one here,
+the rest have none at all, and a file holding one float per spot could not tell you
+which was which. Nothing under a class is not a price of zero.
 
-The same file prices 36 of the 86
-committed spots and holds 4 distinct raise-to sizes in all. The rest of
-the spots offer hero no raise at all and so carry no entry, which is not the same as
-an entry of zero:
+**vacuous  the two-price sizing schema.** The list under a class is a list because a
+class can be offered two prices, and over the committed set none is: `add_allin:
+false` takes hero's shove off every node that also names a raise, and the four-bet
+family that still shoves is withheld. So no worked example can show a second price,
+and this section says so rather than counting the schema as a check that passed. It
+is kept because the multiway family returns with two-price menus, and it is proved
+against a synthetic export instead of against the committed one.
 
-    2.5, 7.5, 22.5, 100
+The same file names every one of the 249 committed spots,
+prices a hand class at 168 of them, and holds 3 distinct raise-to
+sizes in all. The other 81 name the spot with nothing under it:
+hero's menu there does offer him a raise, but he reaches every one of those spots by
+calling a raise and then facing a re-raise, and no hand he still holds by then takes
+it. Nothing under a spot is not a price of zero either:
+
+    2.5, 7.5, 22.5
 
 Generated by `scripts/generate_spot_vocabulary_report.py`.
