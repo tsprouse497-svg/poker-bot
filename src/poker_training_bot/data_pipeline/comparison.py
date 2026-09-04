@@ -82,25 +82,38 @@ PRICE_BANDS = (
     ("2.26 to 2.50bb", 2.50),
     ("over 2.50bb", None),
 )
-# Every seat the committed chart holds an opening range for. One, since the cutover: the
-# small blind is the only seat with a single opponent behind it, so it is the only opening
-# spot the ruled predicate keeps. `t6/d100/LJ/rfi` was here and is retired, which is the
-# ruled cost paid rather than worked around - a report cannot grade against a seat the chart
-# no longer opens from, and reading one out by name is how this section broke.
-OPEN_SIZE_SPOTS = ("t6/d100/SB/rfi",)
+def seat_of(spot_key_text: str) -> str:
+    """The seat a spot key is written from, between the table and what hero faces."""
+    return spot_key_text.rsplit("/", 2)[1]
+
+
+def first_in_spots(sizing: PreflopSizingTable) -> tuple[str, ...]:
+    """Every spot the committed chart lets hero open from, asked of the chart itself.
+
+    A key ending `/rfi` is hero first in: nobody has acted, so there is no action list. Which
+    seats have one has moved twice - five, then the small blind alone while four opening
+    ranges were read as retired, then five again - and both moves broke this section, because
+    the seats were typed out here by name and a name cannot notice the chart under it changed
+    (`HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES`). Asked instead, a seat opens if
+    and only if the chart prices a first-in raise for it, which drops the big blind for a real
+    reason rather than by an exclusion rule: he has posted a live raise, so his first decision
+    is never an open. Ordered around the ring, so the report walks it the way a hand does.
+    """
+    ring = {position: order for order, position in enumerate(REPORTED_POSITIONS)}
+    spots = [key for key in sizing.raise_to_bb if key.endswith("/rfi")]
+    return tuple(sorted(spots, key=lambda key: (ring.get(seat_of(key), len(ring)), key)))
 
 
 def named_open_prices_bb(
-    sizing: PreflopSizingTable, spots: tuple[str, ...] = OPEN_SIZE_SPOTS
+    sizing: PreflopSizingTable, spots: tuple[str, ...] | None = None
 ) -> tuple[tuple[str, float], ...]:
     """The price the solved tree assumes an open arrives at, per seat that opens.
 
     Not the price the bot opens to. Those parted company on 2026-08-26, when decision 6's
-    sizing table moved to every price a spot offers a hand class: the small blind's open
-    offers 2.5 and a 100bb shove, hero picks between them per hand with a seeded draw, and
-    `amount_bb` answers None at any class holding both - so the pair this report is built on
-    cannot come from there any more, and built from there it comes back empty and the price
-    section formats a None.
+    sizing table moved to every price a spot offers a hand class: hero picks between a spot's
+    prices per hand with a seeded draw, and `amount_bb` answers None at any class offered more
+    than one - so the pair this report is built on cannot be read out of there, and built from
+    there it came back empty and the price section formatted a None.
 
     What the report grades against is the price an OPPONENT'S open comes in at, which is the
     number both price-band boundaries are drawn from and the number every committed spot key
@@ -109,16 +122,18 @@ def named_open_prices_bb(
     2.25bb opens against 100 would report the sample as universally cheap and say nothing.
 
     Gathered across all 169 classes because the entry sits under the class. No single class
-    can be asked on the spot's behalf: at the small blind's open six classes carry any of the
-    shove and aces carry none of it, so aces alone would report a menu the spot does not have.
+    can be asked on the spot's behalf: a class that only folds and flats an open carries no
+    entry at all, so reading one hand out by name would report a menu the spot does not have.
 
     A spot whose classes name more than one price below the stack is dropped rather than
     picked between. There is no "the" price to grade against then, and dropping is the
     fail-closed direction: the price section loses its graded row and the frozen test pinning
     this mapping goes red, where a guess here would publish a rate under a price nobody chose.
+    `spots` is for a caller grading some other chart, the retired 86 read out of git history;
+    left alone it asks the table in hand which seats open.
     """
     priced: list[tuple[str, float]] = []
-    for spot in spots:
+    for spot in first_in_spots(sizing) if spots is None else spots:
         named = {
             to_bb
             for hand_class_text in HAND_CLASSES
@@ -126,7 +141,7 @@ def named_open_prices_bb(
             if to_bb < float(RULED_CONFIG["stack"])
         }
         if len(named) == 1:
-            priced.append((spot.rsplit("/", 2)[1], named.pop()))
+            priced.append((seat_of(spot), named.pop()))
     return tuple(priced)
 
 
