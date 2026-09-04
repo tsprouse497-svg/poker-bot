@@ -13,7 +13,7 @@ report has to be able to re-derive them without shelling out to a script.
 
 Three files come out and one that used to is now excluded on purpose.
 
-- `six_max_100bb_rakefree.json`, the chart: 86 spots of the 38,828 solved action nodes.
+- `six_max_100bb_rakefree.json`, the chart: 249 spots of the 33,969 solved action nodes.
 - `sizings/six_max_100bb_rakefree.json`, every price a spot offers hero per hand class.
 - the export's own source card, whose `size` block is restamped. Deleting the retired chart
   and writing a smaller one both move the `data/artifacts` total, so the card's headroom is
@@ -57,8 +57,9 @@ SIZINGS = PREFLOP_DIR / "sizings" / "six_max_100bb_rakefree.json"
 
 BYTE_LIMIT = 20 * 1024 * 1024
 """Phase 10's ruled cap on `data/artifacts`, enforced by `scripts/check_file_sizes.py`.
-At 86 spots it no longer binds, and it stays a halt and a decision rather than a number to
-raise - which is what the card's headroom figure is for."""
+At 249 spots the tree is still the bulk of it and the cap does not bind, and it stays a
+halt and a decision rather than a number to raise - which is what the card's headroom
+figure is for."""
 
 SETTLING_PASSES = 8
 

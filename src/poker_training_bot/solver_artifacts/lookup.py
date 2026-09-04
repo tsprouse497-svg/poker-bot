@@ -71,19 +71,25 @@ LIBRARY_NO_ARTIFACTS = "library:no-artifacts"
 LIBRARY_ERROR_CODES: tuple[str, ...] = (LIBRARY_DUPLICATE_SPOT, LIBRARY_NO_ARTIFACTS)
 
 # Decision 8's derivation vocabulary, beside the refusal codes on purpose: a reader meeting
-# `lookup:` knows a query was refused, and `derivation:` that a solved node never shipped as
-# a cell at all. The first two partition every excluded node - a node whose terminals GTOpen
-# cannot price multiway is filed under the mispricing, because that is the fact a later phase
-# reads to find the spots that come back when it can - and the third is for a node no legal
-# spot key can name. Closed here rather than open: a code the converter invents for a node it
-# merely failed to handle would be indistinguishable from a property of the grammar.
-DERIVATION_SOURCE_MISPRICES_MULTIWAY = "derivation:source-misprices-multiway"
-DERIVATION_OUTSIDE_SELECTION_RULE = "derivation:outside-selection-rule"
+# `lookup:` knows a query was refused at the table, and `derivation:` that a solved node never
+# shipped as a cell at all. One code per selection clause, so each bucket is exactly the set of
+# spots that come back when that one thing is fixed: a source that can price a multiway pot, a
+# big blind that defends correctly, a phase that takes up the four-bet family. Folding two of
+# them together balances at the same total and points a later phase at the wrong fix. The fourth
+# names a node no legal spot key can spell. Closed here rather than open: a code the converter
+# invents for a node it merely failed to handle would be indistinguishable from a property of
+# the grammar.
+DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH = "derivation:beyond-committed-raise-depth"
+DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD = "derivation:multiway-exposure-above-threshold"
+DERIVATION_BIG_BLIND_SQUEEZE_SPOT = "derivation:big-blind-squeeze-spot"
 DERIVATION_NO_LEGAL_SPOT_KEY = "derivation:no-legal-spot-key"
 
+# In the order the census files a refusal under, because the precedence is what makes the
+# buckets a partition rather than three overlapping descriptions of the same node.
 DERIVATION_EXCLUSION_CODES: tuple[str, ...] = (
-    DERIVATION_SOURCE_MISPRICES_MULTIWAY,
-    DERIVATION_OUTSIDE_SELECTION_RULE,
+    DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH,
+    DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD,
+    DERIVATION_BIG_BLIND_SQUEEZE_SPOT,
 )
 DERIVATION_INEXPRESSIBILITY_CODES: tuple[str, ...] = (DERIVATION_NO_LEGAL_SPOT_KEY,)
 

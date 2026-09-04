@@ -1,35 +1,23 @@
-"""Which solved nodes become committed spots, and what each one becomes.
+"""What a committed node becomes, and the census that accounts for the ones that are not.
 
-The export holds 38,828 action nodes and the chart holds 86 of them. Choosing that subset
-was the central decision of the cutover, so the rule lives here as a predicate over the
-tree rather than as a list of keys somebody wrote down: a list cannot be re-derived, and a
-later phase that fixes the source has nothing to re-run.
+The export holds 33,969 action nodes and the chart holds 249 of them. Which 249 is
+`chart_selection.py`'s question, and every name it answers with is re-exported here, so a
+caller reads one module and the split between the two stays a line-cap detail. This module
+owns the other half: the spot key a node derives, the cells and prices it publishes, the
+merge that turns hero's cold call into a raise, the arrival and reach it carries, and the
+four-bucket census over the whole export.
 
-**Keep a node when at most one opponent has voluntarily invested beyond the blinds and at
-most two players are still live.** Both clauses, conjoined. Neither is the rule on its own,
-and the counts are what tell them apart: the history clause alone keeps 110 and the subtree
-clause alone keeps 5,472. The history clause is about what has happened, and it is not
-enough, because GTOpen prices a multiway pot as the product of hero's pairwise equities and
-the approximation bites at *terminals* - a node's strategy is backward-induced over every
-terminal below it, so heads-up-ness has to be asserted over the reachable subtree too. The
-subtree clause is not enough either: 5,386 nodes are heads-up from here on and were reached
-through a cold call, so they arrive carrying a range the same defect produced.
+Selection lives as a predicate over the tree rather than as a list of keys somebody wrote
+down, because a list cannot be re-derived and a later phase that fixes the source would
+have nothing to re-run. The census is the same measurement read from the other end: every
+node is committed, or filed under the one clause that refused it, or inexpressible in the
+spot vocabulary, and the three sum to the node count the source card publishes. That is
+what stops a converter which quietly skipped a subtree from balancing its own books.
 
-Every node the predicate declines is filed under one of two reasons rather than one, and
-the precedence is the point. A node with a multiway terminal still reachable takes
-`derivation:source-misprices-multiway`, which is the bucket a later phase reads to find the
-spots that come back when GTOpen can price multiway; what is left takes
-`derivation:outside-selection-rule`. So the 24 nodes that are heads-up by history and still
-excluded sit inside the mispricing bucket, because that is *why* they are outside the rule.
-
-An action kind this module has no rule for is neither excluded nor inexpressible: both
-clauses count what a seat did, so neither can be evaluated at a node whose kinds cannot be
-classified. It raises, naming the kind. Filing it as a property of the spot grammar would
-turn a converter bug into a documented limitation.
-
-Blinds are posted rather than chosen and never appear in the tree, so "voluntarily
-invested" is exactly "took a call, a raise or a jam". An opener who later folds to a
-three-bet still counts, which is the strict reading the predicate-change review settled.
+An action kind this module has no rule for is neither excluded nor inexpressible: every
+selection clause counts what a seat did, so none can be evaluated at a node whose kinds
+cannot be classified. It raises, naming the kind, because filing it as a property of the
+spot grammar would turn a converter bug into a documented limitation of the chart.
 """
 
 from __future__ import annotations
@@ -45,18 +33,28 @@ from poker_training_bot.solver_artifacts.chart_provenance import (
     SIZING_NOTES,
     SOURCE_NAME,
 )
+from poker_training_bot.solver_artifacts.chart_selection import (
+    COMMITTED_RAISE_DEPTH,
+    MULTIWAY_EXPOSURE_THRESHOLD_PCT,
+    TABLE_SIZE,
+    below_multiway_exposure_threshold,
+    cold_call_index,
+    exclusion_code,
+    is_big_blind_squeeze_spot,
+    is_committed_node,
+    multiway_exposure_pct,
+    raises_faced,
+    require_known_kind,
+    terminal_split_pct,
+    within_committed_raise_depth,
+)
 from poker_training_bot.solver_artifacts.gtopen_export import (
     QUANTISATION_SCALE,
-    SolverAction,
     SolverExport,
     SolverNode,
     gtopen_class_index,
 )
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES, hand_class_grid_index
-from poker_training_bot.solver_artifacts.lookup import (
-    DERIVATION_OUTSIDE_SELECTION_RULE,
-    DERIVATION_SOURCE_MISPRICES_MULTIWAY,
-)
 from poker_training_bot.solver_artifacts.schema import (
     ARTIFACT_SCHEMA_VERSION,
     PREFLOP_ACTIONS,
@@ -71,61 +69,58 @@ from poker_training_bot.solver_artifacts.schema import (
     weights_checksum,
 )
 
+# The selection names are re-exported rather than re-implemented: `chart_selection.py` is a
+# line-cap split, not a second module a caller has to know about, and a name that exists in
+# both places is the way the two would come to disagree.
 __all__ = [
     "ARTIFACT_NOTES",
+    "COMMITTED_RAISE_DEPTH",
+    "MULTIWAY_EXPOSURE_THRESHOLD_PCT",
     "DerivedChart",
     "NodeCensus",
+    "below_multiway_exposure_threshold",
     "census",
+    "cold_call_index",
     "derive_chart",
     "exclusion_code",
-    "invested_opponents",
+    "is_big_blind_squeeze_spot",
     "is_committed_node",
-    "live_players",
+    "merged_cells",
+    "merges_the_cold_call",
+    "multiway_exposure_pct",
     "node_action_sequence",
     "node_arrival_ppb",
     "node_reach_bp",
     "node_spot_key",
+    "raises_faced",
+    "terminal_split_pct",
+    "within_committed_raise_depth",
 ]
 
-TABLE_SIZE = 6
 STACK_DEPTH_BB = 100
-SEATS = table_positions(TABLE_SIZE)
 ORDERED_CLASSES = tuple(sorted(HAND_CLASSES, key=hand_class_grid_index))
 
 PARTS_PER_BILLION = 1_000_000_000
-"""Arrival is stored in parts per billion, not basis points. 21 of the 86 spots sit at a
-nonzero arrival below one basis point, the smallest at 2.5e-08, so in basis points they
-would all round to zero and become indistinguishable from the eight spots the solve never
-reaches - which is the one distinction the field exists to carry."""
+"""Arrival is stored in parts per billion, not basis points. Over the committed 249 only 2
+spots are never reached at all, while 44 round to zero even at this grain and far more sit
+below one basis point, so in basis points the played-but-rare lines would be indistinguishable
+from the two the solve never reaches - which is the one distinction the field exists to
+carry."""
 
 SIZING_SCHEMA_VERSION = 2
 
-_VOLUNTARY_KINDS = frozenset({"call", "raise", "jam"})
 _AGGRESSIVE_KINDS = frozenset({"raise", "jam"})
-_KNOWN_KINDS = frozenset({"fold"}) | _VOLUNTARY_KINDS
-
-
-def _require_known_kind(node: SolverNode, action: SolverAction) -> str:
-    """The kind of one offered action, or a refusal naming what could not be classified.
-
-    Not an exclusion and not an inexpressibility. Both halves of the predicate count what
-    a seat did, so neither can be evaluated here at all, and filing the node under
-    `derivation:no-legal-spot-key` would record a converter that met something new as a
-    property of the spot grammar.
-    """
-    if action.kind not in _KNOWN_KINDS:
-        raise ValueError(
-            f"node {node.path} offers the action kind {action.kind!r}, which this"
-            " derivation has no rule for; the selection predicate counts what each seat"
-            " did, so it cannot be evaluated here, and the node is refused rather than"
-            " filed under a reason from the closed vocabulary"
-        )
-    return action.kind
 
 
 def _validate_action_kinds(node: SolverNode) -> None:
+    """Every kind at one node classified, or the first one that cannot be.
+
+    The classifier is the selection's, so a kind no clause can score is the same kind the
+    conversion refuses to record, and the two halves cannot disagree about what the source
+    is allowed to contain.
+    """
     for action in node.actions:
-        _require_known_kind(node, action)
+        require_known_kind(node, action)
 
 
 def node_action_sequence(
@@ -136,16 +131,15 @@ def node_action_sequence(
     The actor of a recorded action is whoever was to act at the node the action was taken
     at, which is the *parent* of the node it leads to. Reading it off the child shifts
     every entry one seat down the ring - the lojack's open becomes the hijack's - and the
-    result keys a spot that never happened while validating perfectly.
-
-    Folds never enter a sequence. An empty sequence means the pot was folded to hero, so a
-    recorded fold would be a second spelling of the same spot and the two would key apart.
+    result keys a spot that never happened while validating perfectly. Folds never enter a
+    sequence: an empty sequence means the pot was folded to hero, so a recorded fold would
+    be a second spelling of the same spot and the two would key apart.
     """
     entries: list[PreflopAction] = []
     for depth, index in enumerate(node.path):
         parent = by_path[node.path[:depth]]
         action = parent.actions[index]
-        kind = _require_known_kind(parent, action)
+        kind = require_known_kind(parent, action)
         if kind == "fold":
             continue
         if kind == "call":
@@ -162,63 +156,50 @@ def node_spot_key(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) 
     )
 
 
-def invested_opponents(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> int:
-    """How many seats other than hero have voluntarily put money in beyond the blinds.
+def merges_the_cold_call(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> bool:
+    """Whether this spot publishes hero's call as a raise, which is decision 45.
 
-    Counted as distinct seats rather than as actions, because a seat that opened and then
-    called a three-bet is one opponent with money in, not two. A seat that opened and later
-    folded still counts: the range it opened is what the terminals below were priced
-    against, and whether it survived to the showdown does not change that.
+    The bot never cold-calls: money in behind an opener with nothing already invested buys
+    a multiway pot out of position. So where hero faces an open and has posted nothing, the
+    solve's call is merged into the raise - merged and not deleted, because at nine of
+    these spots a hand's whole weight is on calling and deleting would leave a row of
+    zeroes, a hand with no answer at all.
+
+    The big blind is not one of these seats: it has paid a blind, so its call is a defence
+    rather than a cold call. Nor is a seat that opened and now faces a three-bet. That is
+    why this asks for one raise in front of hero and a seat other than the big blind, and
+    never whether a call is on the menu.
     """
-    invested: set[str] = set()
-    for depth, index in enumerate(node.path):
-        parent = by_path[node.path[:depth]]
-        if _require_known_kind(parent, parent.actions[index]) in _VOLUNTARY_KINDS:
-            invested.add(parent.actor_pos)
-    return len(invested - {node.actor_pos})
+    return raises_faced(by_path, node) == 1 and node.actor_pos != "BB"
 
 
-def live_players(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> int:
-    """How many seats can still be in the hand: the table less the ones that have folded.
+def _flat_bp(node: SolverNode, column: int) -> int:
+    """One class's weight on calling at a node, in basis points."""
+    return sum(
+        node.strategy_bp[index][column]
+        for index, action in enumerate(node.actions)
+        if require_known_kind(node, action) == "call"
+    )
 
-    This is the clause the history reading was missing. It is a statement about the
-    reachable subtree rather than about the action so far, which is what it has to be: with
-    three seats live, a pot with three players in it is still reachable below the node, and
-    every terminal down there is one the source cannot price.
+
+def merged_cells(export: SolverExport) -> tuple[tuple[str, str], ...]:
+    """Every cell decision 45 moves, as (spot key, hand class).
+
+    A cell moves when hero can hold the class at a merging spot and the solve puts weight
+    on calling there. The cells rather than a count, so a report can print which hands
+    changed answer and the count is that walk's own rather than a second tally beside it.
     """
-    folded: set[str] = set()
-    for depth, index in enumerate(node.path):
-        parent = by_path[node.path[:depth]]
-        if _require_known_kind(parent, parent.actions[index]) == "fold":
-            folded.add(parent.actor_pos)
-    return len(SEATS) - len(folded)
-
-
-def is_committed_node(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> bool:
-    """The ruled predicate, and it needs no threshold constant.
-
-    Decision 1's 2-percent reach floor was retired rather than retuned, and this is why
-    there is no floor here to conjoin: all 86 clear it, so adding it back would select
-    nothing new and would tell a reader a selection rule that is not the one in force.
-    """
-    return invested_opponents(by_path, node) <= 1 and live_players(by_path, node) <= 2
-
-
-def exclusion_code(
-    by_path: dict[tuple[int, ...], SolverNode], node: SolverNode
-) -> str | None:
-    """Why a node is not committed, or None when it is.
-
-    The precedence is load-bearing. A node failing the subtree clause takes the mispricing
-    code, so that bucket is exactly the complement of the subtree clause and holds the 24
-    the 2026-08-25 supersession dropped - which is how a later phase finds them by name
-    when GTOpen can price multiway. One code for both reasons would lose that.
-    """
-    if live_players(by_path, node) > 2:
-        return DERIVATION_SOURCE_MISPRICES_MULTIWAY
-    if invested_opponents(by_path, node) > 1:
-        return DERIVATION_OUTSIDE_SELECTION_RULE
-    return None
+    by_path = export.by_path()
+    moved: list[tuple[str, str]] = []
+    for node in export.nodes:
+        if not is_committed_node(by_path, node) or not merges_the_cold_call(by_path, node):
+            continue
+        key = node_spot_key(by_path, node)
+        for hand_class_text in ORDERED_CLASSES:
+            column = gtopen_class_index(hand_class_text)
+            if node.reach_bp[column] > 0 and _flat_bp(node, column) > 0:
+                moved.append((key, hand_class_text))
+    return tuple(moved)
 
 
 def node_reach_bp(node: SolverNode) -> float:
@@ -241,9 +222,10 @@ def node_arrival_ppb(by_path: dict[tuple[int, ...], SolverNode], node: SolverNod
     arrival says whether anybody plays the line, and a spot can have every class at full
     reach and never be reached at all.
 
-    Accumulated as a left-to-right float product and rounded once at the end. Three of the
-    86 land within a thousandth of a rounding boundary, so accumulating in `Decimal` or in
-    integers per node differs by one at those three and is not an improvement.
+    Accumulated as a left-to-right float product and rounded once at the end. Carrying
+    parts per billion as an integer and rounding after every factor instead disagrees at
+    31 of the committed 249, so it is a different answer rather than a better one, and the
+    ruled reading is the one written here.
     """
     probability = 1.0
     walked: tuple[int, ...] = ()
@@ -263,9 +245,12 @@ class NodeCensus:
     `lookup.py` owns them, so a node the converter merely failed to handle cannot be filed
     as a property of the grammar - it raises instead.
 
-    A reason with no nodes under it carries no entry. The inexpressible bucket publishes
-    empty over the committed export, which is a measurement rather than an omission: all
-    38,828 nodes derive a valid spot key and no two collide.
+    One reason per node and never two, so the excluded buckets are a partition rather than
+    overlapping descriptions: a node beyond the raise depth that is also over the exposure
+    threshold is counted once, under the depth, that being the first thing that would have
+    to change for it to ship. A reason with no nodes under it carries no entry, and the
+    inexpressible bucket publishes empty over the committed export - a measurement rather
+    than an omission, all 33,969 nodes deriving a valid spot key and no two colliding.
     """
 
     committed: int
@@ -278,27 +263,38 @@ class NodeCensus:
 
 
 def census(export: SolverExport) -> NodeCensus:
-    """Walk the whole export and account for every node."""
+    """Walk the whole export and account for every node.
+
+    Committed is read as "no code applies" rather than as a second call to the predicate, so
+    the count of what shipped and the counts of what did not are the same reading of the
+    same node and cannot balance while disagreeing.
+    """
     by_path = export.by_path()
     committed = 0
     excluded: dict[str, int] = {}
     for node in export.nodes:
         _validate_action_kinds(node)
-        if is_committed_node(by_path, node):
+        code = exclusion_code(by_path, node)
+        if code is None:
             committed += 1
             continue
-        code = exclusion_code(by_path, node)
         excluded[code] = excluded.get(code, 0) + 1
     return NodeCensus(committed=committed, excluded=excluded, inexpressible={})
 
 
-def _cell_weights(node: SolverNode, hand_class_text: str) -> tuple[tuple[str, float], ...]:
+def _cell_weights(
+    node: SolverNode, hand_class_text: str, merged: bool
+) -> tuple[tuple[str, float], ...]:
     """One cell as the artifact records it: what hero does, not at what price.
 
     `PREFLOP_ACTIONS` holds one raise, so a named raise and a jam cannot both survive and
     their weights add. Dropping the jam would leave a row that does not sum to one and a
     big blind folding aces to a button open; the prices themselves are not lost, they go
     to the sizing table, which is where the strategy reads them.
+
+    At a merging spot the call joins them. Adding rather than renormalising is the point:
+    hero folds exactly as often as the solve folds, and the hands it wanted to see a flop
+    with are the hands he now raises with.
 
     A row carries every action the collapsed menu offers, including the ones this class
     never takes. A zero is a reading rather than a gap - the solve never calls a button
@@ -308,8 +304,9 @@ def _cell_weights(node: SolverNode, hand_class_text: str) -> tuple[tuple[str, fl
     """
     basis_points: dict[str, int] = {}
     for index, action in enumerate(node.actions):
-        kind = _require_known_kind(node, action)
-        recorded = "raise" if kind in _AGGRESSIVE_KINDS else kind
+        kind = require_known_kind(node, action)
+        aggressive = kind in _AGGRESSIVE_KINDS or (merged and kind == "call")
+        recorded = "raise" if aggressive else kind
         basis_points[recorded] = basis_points.get(recorded, 0) + node.weight_bp(
             index, hand_class_text
         )
@@ -320,21 +317,21 @@ def _cell_weights(node: SolverNode, hand_class_text: str) -> tuple[tuple[str, fl
     )
 
 
-def _committed_cells(node: SolverNode) -> tuple[HandClassWeights, dict[str, int]]:
+def _committed_cells(node: SolverNode, merged: bool) -> tuple[HandClassWeights, dict[str, int]]:
     """The cells one committed spot answers, with the reach that put them there.
 
     A cell is committed when its class arrives. That is the whole refusal rule: Taylor
-    ruled on 2026-08-27 that the chart commits the cells the solve never worked out, on
-    the ground that a later heuristic layer is wanted for exactly those spots, and refuses
-    only classes that never arrive. So there is no reach threshold here, no uniform-row
-    epsilon and no arrival cutoff - a class hero cannot be holding is refused, and nothing
-    else is.
+    ruled on 2026-08-27 that the chart commits the cells the solve never worked out, a
+    later heuristic layer being wanted for exactly those, and refuses only classes that
+    never arrive. So there is no reach threshold here, no uniform-row epsilon and no
+    arrival cutoff - a class hero cannot be holding is refused, and nothing else is.
 
-    A GTOpen payload is unconditional: a hand hero folded three actions ago still carries
-    a full strategy row, and 3,781 of those rows are the solver's untouched initialisation.
-    `reach_bp` is the only thing that says which classes hero can actually hold, which is
-    why the same index expression is read twice here rather than once into a local - the
-    guard and the recorded value have to be the same reading of the same row.
+    A GTOpen payload is unconditional: a hand hero folded three actions ago still carries a
+    full strategy row, and many such rows are the solver's untouched initialisation, an
+    even split across the menu rather than a played frequency. `reach_bp` is the only thing
+    that says which classes hero can hold, which is why the same index expression is read
+    twice rather than once into a local - the guard and the recorded value have to be the
+    same reading of the same row.
     """
     cells: list[tuple[str, tuple[tuple[str, float], ...]]] = []
     reach_by_class: dict[str, int] = {}
@@ -342,11 +339,11 @@ def _committed_cells(node: SolverNode) -> tuple[HandClassWeights, dict[str, int]
         if node.reach_bp[gtopen_class_index(hand_class_text)] <= 0:
             continue
         reach_by_class[hand_class_text] = node.reach_bp[gtopen_class_index(hand_class_text)]
-        cells.append((hand_class_text, _cell_weights(node, hand_class_text)))
+        cells.append((hand_class_text, _cell_weights(node, hand_class_text, merged)))
     return tuple(cells), reach_by_class
 
 
-def _spot_prices(node: SolverNode) -> dict[str, list[dict[str, float]]]:
+def _spot_prices(node: SolverNode, merged: bool) -> dict[str, list[dict[str, float]]] | None:
     """Every price a spot offers hero, per hand class, with his weight on each.
 
     Decision 6 at the per-class shape ruled on 2026-08-26. A weight is a share of that
@@ -354,25 +351,35 @@ def _spot_prices(node: SolverNode) -> dict[str, list[dict[str, float]]]:
     to one; the per-spot aggregate the ruling rejected averages away the two ends of the
     range, and the ends are the poker - the solve three-bets small with the hands that want
     action and shoves the ones that do not want to play a three-bet pot out of position.
-
     Prices come off the node's own offers, so a jam is hero's whole stack because that is
-    the price the solve wrote and not because a constant here says so. Weights are left
-    unrounded: the smallest in the committed table is one basis point, held by cells that
-    open-shove at the small blind's open, and rounding further would turn a class the
-    strategy has to draw at into one it can price outright.
+    the price the solve wrote and not because a constant here says so, and weights are left
+    unrounded, rounding turning a price a class takes rarely into one it never takes.
+
+    At a merging spot the flat is priced too, or the chart says raise where it cannot say
+    how much. It goes on the cheapest raise offered, the smallest raise being the nearest
+    thing to the flat it replaces and never the shove, which is the opposite bet. Every
+    committed spot offers one price, so here the choice is between that price and itself;
+    it is written down because the multiway family returns with two-price menus.
+
+    None means the spot offers hero no raise at all, which is not the same as offering one
+    no class takes: the first carries no key here, so the strategy refuses when asked for a
+    size rather than reading an empty map as a price it failed to find.
     """
     offers: list[tuple[int, float]] = []
     for index, action in enumerate(node.actions):
-        if action.kind in ("raise", "jam"):
+        if require_known_kind(node, action) in _AGGRESSIVE_KINDS:
             offers.append((index, float(action.to)))
     if not offers:
-        return {}
+        return None
     priced: dict[str, list[dict[str, float]]] = {}
     for hand_class_text in ORDERED_CLASSES:
         column = gtopen_class_index(hand_class_text)
         if node.reach_bp[column] <= 0:
             continue
         volumes = sorted((to, node.strategy_bp[index][column]) for index, to in offers)
+        if merged:
+            cheapest, held = volumes[0]
+            volumes[0] = (cheapest, held + _flat_bp(node, column))
         aggressive = sum(basis_points for _, basis_points in volumes)
         if aggressive <= 0:
             continue
@@ -436,7 +443,8 @@ def derive_chart(export: SolverExport) -> DerivedChart:
     arrival_ppb: dict[str, int] = {}
     prices: dict[str, dict[str, list[dict[str, float]]]] = {}
     for key, node in keyed:
-        cells, reach_by_class = _committed_cells(node)
+        merged = merges_the_cold_call(by_path, node)
+        cells, reach_by_class = _committed_cells(node, merged)
         spots.append(
             SpotDefinition(
                 spot_id=key,
@@ -447,8 +455,8 @@ def derive_chart(export: SolverExport) -> DerivedChart:
         action_weights.append((key, cells))
         arriving_reach.append((key, tuple(reach_by_class.items())))
         arrival_ppb[key] = node_arrival_ppb(by_path, node)
-        spot_prices = _spot_prices(node)
-        if spot_prices:
+        spot_prices = _spot_prices(node, merged)
+        if spot_prices is not None:
             prices[key] = spot_prices
 
     weights = tuple(action_weights)
