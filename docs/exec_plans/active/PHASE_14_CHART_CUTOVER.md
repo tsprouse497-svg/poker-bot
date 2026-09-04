@@ -253,88 +253,15 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
 
 ## Delegation Plan
 
-### Stage 4 re-cut against the 249, 2026-09-02 - ACTIVE
+### Stage 4 re-cut against the 249, 2026-09-02 - folded away 2026-09-04
 
-The frozen tests describe a six-spot set, and before that a 143-node one and an 86-spot one. Both are
-superseded. Nearly every module constant in this phase's eight files is now false: the committed count, the
-raises-faced histogram, the refusal vocabulary (three `derivation:*-four-bet-*` codes replaced by
-`multiway-exposure-above-threshold`, `big-blind-squeeze-spot`, `beyond-committed-raise-depth`), the retired
-chart's name, the price list, the relation count and the arm count. This is a re-cut, not a repair.
-
-**The driver cannot see this.** `check_tests_authored` asks only that the phase's `pytest_*` command is red
-on an assertion, which it already is. It has no way to tell a test that describes the 249 from one that
-describes six. Do not read "this stage's checks pass" as the stage being done.
-
-**Six worker lanes, one owner per count, no lane reviews its own file.** Each lane owns whole files and
-rewrites them against the contract, keeping the conventions the earlier cuts earned: a file's docstring
-states what it owns; counts are recomputed from the export by a walk written in the test file rather than
-imported from the rule under test; `vacuous()` is called only after an assertion that the vacuity premise
-still holds; sibling files import a count's owner rather than copying it.
-
-| lane | files | owns |
-|---|---|---|
-| L1 selection and census | `test_chart_derivation.py` | the two filters each alone, the third clause, no clause co-extensive with another, the four-bucket census summing to 33,969, the closed reason vocabulary and its disjointness from the runtime miss codes, exposure measured by a walk to leaves with the admitted and refused extremes |
-| L2 artifact shape | `test_derived_chart.py`, `test_chart_conversion.py` | byte-for-byte reproduction and `--check`, the retired chart absent from the directory, its glob and `sizings/`, 249 keys checked key by key, the two-directional sizing invariant, prices exactly `[2.5, 7.5, 22.5]`, sizes read from action labels via a perturbed synthetic export, the blind-structure refusals, the merged-flat menu shapes 5/20/219 and defence to the basis point, the no-limp schema rule, zero uniform-initialisation rows under both readings, zero-reach classes dropped |
-| L3 arrival and reach | `test_chart_arrival_probability.py` | reach as the plain mean over 169 classes with no reach floor selecting cells, arrival as one left-to-right product rounded once at the end, arrival above one refused at construction, arrival claimed for an undeclared spot refused, the grain printed with its zero count, and the zero-arrival case asserted non-vacuous |
-| L4 relations and arms | `test_chart_cutover_evidence.py` | the four relations at one point tolerance with 132 row comparisons on a full grid, the fourth on the raise weight, none gated as an order, both arms strict with a tie refusing, ten partitions, the rank arm scored over every spot in its partition with the skipped count published, the five-spot floor publishing rather than asserting, and the discrimination test where a rank-reversed chart passes the suit arm and fails the rank arm |
-| L5 report and validators | `test_derived_chart_report.py`, `test_derived_chart_report_validators.py` | every figure the contract names as an obligation being printed and re-derived, the generator exiting non-zero when one does not hold, the three vacuous labels, the equity relation labelled as gating nothing, the cutover ledger balancing, the refusal inventory, the old-versus-new disagreement count with its direction rows |
-| L6 migration and canaries | `test_preflop_committed_charts.py`, every frozen test of a completed phase that asserts against the chart's contents, `verification/mutations.yml`, `scripts/run_verify.py` | the migration the contract requires before the freeze rather than after it, and the two mutation canaries authored before the implementation - one proving a wrong artifact fails the command rather than being rendered, one committing a spot above the exposure threshold |
-
-**Reviews.** Two read-only reviewers at the end of the stage, one mechanical and one on the poker, neither
-having written any of it and neither having seen the other's work, writing to
-`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-04-recut-review.md` under `## Blocker`,
-`## Non-blocker` and `## Alignment`. A blocker holds the stage until it is marked with the bare literal
-`[resolved]`; an alignment item goes to `backlog.yml`.
-
-### Where the re-cut stood when it was picked up again, 2026-09-03
-
-The previous session left the re-cut uncommitted and partly done. Recorded here because nothing else
-records it and the driver cannot see any of it.
-
-**Landed, uncommitted:** L1 (`test_chart_derivation.py`, split into `test_chart_census.py`), L2
-(`test_derived_chart.py`, `test_chart_conversion.py`), L3 (`test_chart_arrival_probability.py`), L4
-(`test_chart_cutover_evidence.py`), L5's first file (`test_derived_chart_report.py`), and L6's migration
-(`test_preflop_committed_charts.py`, split into `test_preflop_committed_lookup.py`, registered in
-`run_verify.py`). About 4,100 lines added against 3,600 removed across nine files.
-
-**Left broken, and the reason it hid.** `test_derived_chart_report_validators.py` was never re-cut. It is
-L5's second file and still imports `COMMITTED_SPOTS` and nine other names the rewrite deleted, which raises
-`ImportError` at collection - the precise shape the import-shape section above forbids. `pytest_derived_chart`
-therefore reports `Interrupted: 1 error during collection` and **no assertion in any of the seven files
-runs**. This is the same defect that once froze a completed phase's 32 tests having never executed them, and
-it is why the driver's complaint reads as a broken file rather than as a missing re-cut.
-
-**Two smaller holes.** `test_chart_census.py` asks for a `committed` fixture that lives in
-`test_chart_derivation.py`; fixtures do not cross a module import, so two of its tests error at setup
-instead of running. And the census file is not in `pytest_derived_chart`, so once stage 5 freezes it no gate
-command would ever run it.
-
-**Lanes opened to close this,** disjoint files, neither reviewing its own work:
-
-| lane | files | owes |
-|---|---|---|
-| L5b | `test_derived_chart_report_validators.py` | the re-cut against the 249: the generator exiting non-zero when a published figure does not hold, both arms discriminating on the ten partitions, the rank arm catching a rank-reversed chart, a wrong artifact failing the command rather than being rendered |
-| L6b | `verification/mutations.yml`, `test_chart_census.py`, `scripts/run_verify.py` | the two canaries the lane table owes - a wrong artifact, and a spot committed above the ten-percent exposure threshold - plus the fixture repair and the census registration, and an audit of what else still asserts against the retired chart |
-| L4b | `test_chart_cutover_evidence.py` | 870 lines against the 700 cap: trim prose, then split relations from arms if that is not enough |
-| L5c | `test_derived_chart_report.py` | 1,092 lines against the 700 cap: a real split, with every module-scope name kept at the original path because L5b imports them |
-
-**A third hole, found by running the check rather than by reading.** Two re-cut files breach the 700-line
-cap the brief set - the same mistake the first pass made on all eight - and `check_file_sizes` is not in
-this stage's driver checks, so nothing would have said so before stage 5 froze them.
-
-**The migration was never done, and it is nine files.** L6b's audit found nine frozen tests of completed
-phases still asserting the retired 86-spot chart - `test_full_table_preflop.py`, `test_spot_vocabulary.py`,
-`test_spot_vocabulary_downstream.py`, `test_table_state_strategy.py`, `test_sample_comparison.py`,
-`test_sample_comparison_report.py`, `test_simulator.py`, `test_postflop_fallback.py`,
-`test_postflop_fallback_components.py`. All nine are green today and every one breaks or silently passes
-wrongly when stage 6 replaces the artifact. The contract's regression criterion requires them migrated at
-stage 4 before the freeze. Two lanes carry it: **M1** the four that assert the chart's shape, **M2** the five
-downstream ones. `t6/d100/LJ/rfi` is the common break - a refusal under the 86, a committed first-in spot
-under the 249 - and the silent passes matter more than the reds: `any(...)` assertions and
-fraction-of-collection thresholds keep holding for reasons their docstrings deny.
-
-Coordinator owns none of the six. Registration of any split file in `run_verify.py` is held until L6b is
-done with it. The two reviews above are still owed once all four land.
+Six worker lanes L1 to L6 with a file each, four repair lanes L4b/L5b/L5c/L6b, and two migration lanes
+M1/M2, with the tables assigning every file and the account of where the re-cut stood when it was picked
+up on 2026-09-03 - the broken import that stopped all seven files collecting, the two 700-line breaches,
+the missing fixture and the unregistered census file. All of it landed, was reviewed twice and is closed;
+the outcome is the section below and the detail is in git history at ded1268 and earlier. Two conventions
+it earned are still in force and are stated where they apply: one owner per count, and `vacuous()` called
+only after an assertion that the vacuity premise still holds.
 
 ### The stage-4 re-cut closed, 2026-09-03
 
@@ -432,11 +359,14 @@ is `frozen-into-data` it stops for Taylor.
 - Expected outputs: each lane returns a patch confined to the files it owns, the commands it ran with
   their output, a changed-file summary, and the frozen tests it made pass or found failing, plus any
   figure that would not reproduce stated as a finding rather than fixed by moving a tolerance.
-- Status: waves 1 and 2 landed and committed at a0f32a2 - A, C1 and B all green on the files they
-  own, 64 passed and 4 skipped across the phase's five selection and conversion files. Wave 3 (C2,
-  the report) is held until lane M's loader repair lands, because the generator loads the sizing
-  table. Lane M (the two runtime repairs) and an independent read-only triage of the nine migrated
-  frozen tests are running. Reviews planned.
+- Status: all three waves landed and committed. Four lanes ran beyond the plan, each opened by
+  something the build measured rather than something it assumed: **M** the two earlier-phase constants
+  the cutover made wrong; **T** nine frozen assertions that cannot pass, the self-play column, and the
+  vacuity the vocabulary report refused to publish; **E** the all-in equity matrix the contract calls
+  committed and which never was; **K** the canaries, in flight. An independent read-only triage
+  classified every failure in the nine migrated files and found **no** defect in the chart, checking
+  every published cell against the export at 18,431 cells and 0 mismatches. Remaining: the canaries, one
+  re-freeze covering all nine test corrections, the two independent reviews, then the gate.
 - Integration order: A and C1 concurrently, then B on the artifact, then C2 on the report. The
   coordinator runs the phase's two command IDs after each wave and the full gate only after C2.
 - Review handoff: two read-only reviewers at the end of the stage, mechanical and poker, neither
@@ -750,15 +680,18 @@ is untouched.
   writable at stage 6, and the frozen tests migrate at stage 4 first.
 - Do not adjust a published frequency by hand. Do not raise the exposure threshold again.
 
-### The gate is red by design until stage 6
+### The gate was red by design until stage 6, and is not any more
 
-`tests/**` is frozen against the superseded six-spot and 143-node specifications, so the phase's own
-commands fail on assertions. That is expected and is stage 4's to re-cut against the **249**. The committed
-`data/artifacts/preflop/six_max_100bb_rakefree.json` in the tree is still the retired 86-spot chart; stage 6
-replaces it and it is not writable before then. Reverting a ruled constant to
-clear it erases the correction that produced it. Separately, twelve backlog entries fail
-`run_full_quality_gate`'s status and phase constants, which is MAINT-29's, not this lane's
-(`BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS`).
+The chart is cut over. `data/artifacts/preflop/six_max_100bb_rakefree.json` holds the **249** and
+`convert_preflop_export.py --check` reproduces it byte for byte from the export. `pytest_derived_chart`
+reads 111 passed and 4 skipped, the skips being the criteria the files label vacuous themselves;
+`generate_derived_chart_report` exits 0 and writes 72,790 bytes of its 300 KB cap;
+`pytest_spot_vocabulary` reads 72 passed, and the nine migrated frozen tests of completed phases read 276
+passed. A red now is a real red. Reverting a ruled constant to clear one still erases the correction that
+produced it.
+
+Still not this lane's: twelve backlog entries fail `run_full_quality_gate`'s status and phase constants,
+which is MAINT-29's (`BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS`).
 
 ## What stage 4 froze as a specification for stage 6 - folded away 2026-09-03
 
