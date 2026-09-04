@@ -10,10 +10,17 @@ approved_scope:
   - src/poker_training_bot/solver_artifacts/hand_classes.py
   - scripts/convert_preflop_export.py
   - scripts/generate_derived_chart_report.py
+  - scripts/generate_preflop_equity_matrix.py
+  - pyproject.toml
   - data/artifacts/preflop/**
   - src/poker_training_bot/strategy/preflop_sizing.py
   - src/poker_training_bot/data_pipeline/comparison.py
   - verification/mutations.yml
+  - tests/test_derived_chart_report_validators.py
+  - tests/test_spot_vocabulary.py
+  - tests/test_spot_vocabulary_downstream.py
+  - tests/test_sample_comparison.py
+  - tests/test_sample_comparison_report.py
   - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
 standing_scope:
@@ -31,6 +38,57 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-03
+    reason: >-
+      The contract says the 169-by-169 all-in equity matrix is committed and deterministic. It is not
+      committed and never was: nothing under `data/`, `src/` or the export carries hand-class equity, and
+      the report cannot print the equity relation's firing count without it, which is the one frozen
+      assertion in the report family that no amount of generator work can satisfy. Decision 42 published
+      firing counts of 23, 21 and 22 measured over 93 spots, so some agent in this phase's history had a
+      table in front of it; whatever that was, it left nothing behind, which is the finding.
+      `verification/loop_policy.yml` says a phase needing input the repo does not have always stops, and
+      this one stopped. Taylor ruled on 2026-09-03 to compute the table here rather than take GTOpen's
+      cached copy: that repo carries no licence file at all, decisions 33 and 36 both declined to treat it
+      as ours, and a 114 KB binary lifted out of it would be the one committed file in this phase that no
+      script of ours reproduces - the precise property the converter's `--check` exists to guarantee
+      everywhere else. A seeded sample was declined because the contract's word is deterministic and a
+      sample would quietly redefine it.
+      `scripts/generate_preflop_equity_matrix.py` and `pyproject.toml` enter scope for that. The library
+      the enumeration needs is a **dev-group** dependency used once to produce a committed artifact; the
+      bot's runtime dependency list stays empty, which is a standing property of this repo and not one this
+      phase may spend. The matrix itself lands under `data/artifacts/preflop/**`, already in scope, at
+      114,244 bytes against a 20 MiB cap that is not the difficulty - producing it is, at roughly fifty
+      billion hand comparisons, which the repo's own pure-Python evaluator cannot do.
+  - date: 2026-09-03
+    reason: >-
+      Five frozen test files re-enter approved_scope for eight assertions that cannot pass against any
+      correct implementation, on Taylor's ruling of 2026-09-03 to take all of them in one edit and one
+      re-freeze rather than tag the phase with known reds or freeze three times. This is the one thing
+      stage 5's narrowing exists to prevent, so the conditions are the ones that make it not that: the
+      corrections are authored by a lane that wrote none of the implementation, every one preserves the
+      intent its own docstring states, no expected count is moved to match a measurement, and both
+      stage-6 reviewers read the diff.
+      An independent read-only triage classified all eight and found **no** defect in the chart: it
+      checked every published cell against the export at 18,431 cells and 0 mismatches, and confirmed
+      decision 45's merge exact at 165 cells with all 20 merged spots carrying zero call weight and all
+      5 big-blind spots keeping theirs. What is wrong is the tests.
+      Four are stale literals or restatements stricter than the ruling they paraphrase: two `249`s that
+      measure 168, because they read the menu through a function that answers about hands; a claim that
+      no committed key names a seat twice, where 22 do and every one is a seat that called and acted
+      again after a re-raise, all within the ruled two-raise depth; and a claim that no big-blind key
+      holds a call, where decision 48 refuses only the big blind facing exactly one raise with a cold
+      caller in, and 0 of the 23 such keys is a ruled squeeze.
+      Three change what is measured rather than a number. The self-play cross-reference compares full
+      spot keys, and self-play only ever plays the solved prices while the corpus plays the ones humans
+      played, so the overlap is 0 structurally and stays 0 whatever the chart does; Taylor ruled it
+      compares price-stripped shapes, which measures 5. A guard on stranded rows is asserted one
+      paragraph after its own docstring says it cannot fire. And a 3.0-point margin between the drawn
+      and nonzero-weight match rates is arithmetically capped at 2.947 by this chart, only 14 of 475
+      scored cells being mixed - unsatisfiable rather than merely unmet.
+      `src/poker_training_bot/data_pipeline/comparison.py` is already in scope and `_self_play_spots`
+      is repaired with them: its token filter admits a trailing-colon duplicate of every key it finds,
+      which is harmless only while the overlap it feeds is zero and becomes a silent undercount the
+      moment the shape comparison makes it mean something.
   - date: 2026-09-03
     reason: >-
       Three paths open at stage 6 that the freeze narrowing did not anticipate, each for a reason the

@@ -4492,6 +4492,33 @@ items:
       wheel-ace cases; separating the ace-trough cases from the dominated-pair cases is the same edit and
       would stop a packet reading 94 as 94 things wrong.
 
+  - id: COMMITTED-SPOTS-THE-BOT-CANNOT-REACH-BY-ITS-OWN-PLAY
+    status: deferred
+    phase: "14"
+    title: A hundred and six committed spots are continuations of a call the bot never makes
+    reason: >-
+      Measured 2026-09-03 during the stage-6 build, twice and independently. Of the 249 committed spots,
+      **106** carry hero's own call in their action sequence, and at every one of them the bot's published
+      strategy can never arrive. At 83 the predecessor is one of the 20 non-big-blind spots facing an open,
+      where decision 45 merges the solve's call weight into the raise and the published call weight is
+      0.0; at the other 23 the predecessor is not committed at all, being a two-cold-caller line decision
+      46 refuses, so the bot refuses before it gets there. Heroes are BTN 31, CO 31, SB 26, HJ 18 and the
+      big blind none, whose calls are defence rather than cold calls.
+      **81 of the 106 publish nothing at all**: their menu offers hero a raise and no hand he can be
+      holding there ever takes it, so their sizing entry is an empty class map. All 81 face a three-bet.
+      The other 25 carry a fully priced raise range the bot can never draw from.
+      This is not a defect in the conversion and it does not reopen a ruled selection: the artifact is
+      exact against the export at 18,431 cells and 0 mismatches, and decisions 45, 46 and 48 each produce
+      it. It is the reachability face of
+      `MERGED-FLATS-PLAY-DIFFERENTLY-NOT-JUST-DIFFERENTLY-LABELLED`, and the tension is that the artifact's
+      own audit note gives "the bot never cold-calls" as the reason for the merge while the same
+      conversion commits 106 continuations premised on hero having cold-called. Both can be true - the
+      chart is a training reference a human can be drilled on as well as a tree the bot plays - but the
+      packet must say which of the two it is claiming, because 106 is 42.6 percent of the committed set.
+      What is owed: the report prints the count and the split, the packet states plainly that these spots
+      answer an opponent's line rather than the bot's own, and phase 15 rules on whether its drill sampler
+      draws from them before it samples anything.
+
   - id: HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES
     status: deferred
     phase: "14"
