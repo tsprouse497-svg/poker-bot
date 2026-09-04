@@ -237,7 +237,13 @@ def render_refusal_inventory(result: ComparisonResult) -> str:
         "Every spot below is one the committed charts could not answer while replaying",
         "real hands. Each row names a spot key taken from the refusal's own detail, the",
         "number of decision points that reached it, and whether the self-play run had",
-        "already found it. Most-reached first.",
+        "already reached the same spot. Most-reached first.",
+        "",
+        "That last column compares SHAPES rather than keys: a spot key with its @prices",
+        "stripped off. Self-play only ever plays the three prices the solved tree holds,",
+        "and real players raised to whatever they liked, so the same decision is never",
+        "the same key on both sides and comparing keys would mark every spot below new.",
+        "A row marked yes is the same decision the simulator reaches, at different money.",
         "",
         "A spot marked new is one only real hands reached, which is a different priority",
         "from one the simulator already surfaces on every run.",
@@ -247,7 +253,7 @@ def render_refusal_inventory(result: ComparisonResult) -> str:
         "",
         f"  distinct spots  {len(result.refusal_inventory)}",
         "",
-        "   points  spot key                                      also in self-play",
+        "   points  spot key                                      same shape in self-play",
     ]
     for entry in result.refusal_inventory:
         marker = "yes" if entry.seen_in_self_play else "NEW"

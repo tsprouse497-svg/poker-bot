@@ -37,15 +37,16 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
-from pathlib import Path
 
 from poker_training_bot.data_pipeline.decision_query import KIND_TO_ACTION, query_for
 from poker_training_bot.data_pipeline.sample import MACHINE_PLAYER, CommittedSample
+from poker_training_bot.data_pipeline.self_play_reference import self_play_shapes
 from poker_training_bot.hand_history.replay import DecisionPoint, replay_hand
 from poker_training_bot.poker_core.positions import seat_positions
 from poker_training_bot.solver_artifacts.gtopen_config import RULED_CONFIG
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES
 from poker_training_bot.solver_artifacts.lookup import ChartMiss
+from poker_training_bot.solver_artifacts.vocabulary_measures import strip_sizes
 from poker_training_bot.strategy.contract import StrategyRefusal
 from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 from poker_training_bot.strategy.preflop_sizing import PreflopSizingTable
@@ -62,10 +63,6 @@ REFUSED = "refused"
 
 HUMAN_POPULATION = "humans"
 POPULATIONS = (MACHINE_PLAYER, HUMAN_POPULATION)
-
-SELF_PLAY_INVENTORY = (
-    Path(__file__).resolve().parents[3] / "reports" / "active" / "latest_refusal_inventory.txt"
-)
 
 # Reported in table order rather than sorted, so a reader walks the ring the way the
 # chart is indexed: earliest voluntary actor first, blinds last.
@@ -201,6 +198,11 @@ class InventoryEntry:
     spot_key: str
     count: int
     seen_in_self_play: bool
+    """Reached by the self-play run, matched on the price-stripped SHAPE rather than on the key
+    (Taylor, 2026-09-03). On keys it is always false and structurally so - self-play plays only
+    the three solved prices and the corpus the prices real players used - which left all 61 gap
+    spots reading NEW. On shapes 7 read SEEN and 54 NEW, and every one of the 7 is a four-bet
+    spot self-play refuses on every run. `data_pipeline.self_play_reference` owns the rule."""
 
 
 def price_band_for(price_faced_bb: float, raises_faced: int) -> str | None:
@@ -349,40 +351,6 @@ def classify_observed_action(
     return DISAGREE
 
 
-def _self_play_spots() -> frozenset[str]:
-    """Spot keys the self-play run already reached, read from its committed report.
-
-    Read rather than recomputed. The point of the cross-reference is "did the
-    simulator already find this", and only the simulator's own output can answer it.
-
-    It fails loudly when it finds nothing, and that is the important part. This is the one input
-    to the comparison that is not the committed sample, and it is recovered by pattern from a
-    rendered report rather than from a structured file. An empty result is therefore
-    indistinguishable from a real answer: every spot silently becomes NEW, and the phase's most
-    actionable claim - that real hands find spots self-play never reaches - inverts into a claim
-    that they find all of them, with a passing gate underneath it. A missing or unrecognisable
-    inventory is a broken cross-reference, not an empty one.
-    """
-    if not SELF_PLAY_INVENTORY.is_file():
-        raise FileNotFoundError(
-            f"{SELF_PLAY_INVENTORY} is missing, so no spot can be marked as already found"
-            " by self-play. Run generate_profile_comparison_report first"
-        )
-    spots = set()
-    for line in SELF_PLAY_INVENTORY.read_text(encoding="utf-8").splitlines():
-        # A key prints twice per spot, bare and as `<key>:` heading its hand classes.
-        for token in (word.rstrip(":") for word in line.split()):
-            if token.startswith("t") and token.count("/") >= 3:
-                spots.add(token)
-    if not spots:
-        raise ValueError(
-            f"{SELF_PLAY_INVENTORY} yielded no spot keys, so the self-play cross-reference"
-            " would mark every real-hand spot NEW without that meaning anything."
-            " The inventory's format moved and this reader has to move with it"
-        )
-    return frozenset(spots)
-
-
 def compare_committed_sample(
     sample: CommittedSample, strategy: PreflopChartStrategy | None = None
 ) -> ComparisonResult:
@@ -402,7 +370,7 @@ def compare_committed_sample(
     """
     if strategy is None:
         strategy = PreflopChartStrategy.from_repo()
-    self_play = _self_play_spots()
+    self_play = self_play_shapes()
     rows: list[ComparisonRow] = []
 
     for record in sample.records:
@@ -487,7 +455,7 @@ def compare_committed_sample(
         row.spot_key or "(no expressible spot)" for row in rows if row.verdict == REFUSED
     )
     inventory = tuple(
-        InventoryEntry(spot_key, count, spot_key in self_play)
+        InventoryEntry(spot_key, count, strip_sizes(spot_key) in self_play)
         for spot_key, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
     )
     return ComparisonResult(

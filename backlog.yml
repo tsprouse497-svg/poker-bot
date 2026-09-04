@@ -802,38 +802,42 @@ items:
   - id: SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS
     status: deferred
     phase: simulator
-    title: Self-play stops being a source of chart coverage gaps once the chart is the solved tree
+    title: Self-play finds one family of chart gaps and cannot find the rest
     reason: >-
-      Measured at phase 14 stage 4 against the committed export, before the derived chart
-      existed. Every self-play seat reads the chart and prices raises from the sizing table, so
-      each line it produces is a path in the solved tree; walking that tree carrying arrival
-      probability puts the per-hand probability of reaching a node under the 2 percent reach
-      floor at 0.00046, against about 0.21 for the 36-spot raked chart measured on the same
-      seed. A 200,000-hand Monte Carlo agrees at 0.00046. That is the reach floor working
-      rather than a defect, since the nodes decision 1 drops are the nodes nobody reaches.
-      The consequence is that reports/active/latest_refusal_inventory.txt, generated at 600
-      hands per run, expects 0.28 refusals and finds none about three times in four, and its
-      floor run has contributed zero spot keys for as long as it has existed. Two things then
-      follow. data_pipeline.comparison._self_play_spots raises rather than returning an empty
-      set, by design, so an empty inventory takes compare_committed_sample and the 25 tests
-      that depend on it down with it. And the seen_in_self_play column becomes uniformly NEW,
-      which is the phase 08 claim that real hands reach gaps self-play never does, now true to
-      the point of being untestable from the overlap side. The corpus is the repo's only
-      remaining source of chart coverage gaps at six-handed 100bb. What would change the
-      answer is a self-play run seeded or seated to reach the deep tail deliberately, which is
-      what tests/test_simulator.py now does for the refusal path with a limping seat, or an
-      inventory generated at a table the chart covers less well.
-      One half of this is NOT deferrable and belongs to phase 14 stage 6 rather than here.
-      generate_sample_comparison_report is a gate command, and it reads the inventory through
-      the same _self_play_spots that raises on an empty read, so once the derived chart lands
-      that command dies about three runs in four. A gate command whose answer depends on
-      whether a 600-hand run happened to find a refusal is not a check, which is the
-      decorative-gate defect this repo has now fixed three times, and it would surface as an
-      intermittent stage 7 rather than as a finding. Stage 6 has to make the empty read a
-      first-class answer or generate the inventory somewhere it is not empty; deferring it
-      would leave phase 14 unable to pass its own gate reliably. What stays deferred here is
-      the larger question of whether self-play is worth running as a coverage instrument at
-      all once the chart is the solved tree.
+      Restated on 2026-09-04 against the derived chart, which now exists. The original entry was
+      measured at phase 14 stage 4 against the committed export before the chart was built, and
+      two of the three things it predicted did not happen. Kept from it: every self-play seat
+      reads the chart and prices raises from the sizing table, so each line it produces is a path
+      in the solved tree, and the nodes decision 1 drops are largely nodes nobody reaches.
+      WRONG, and no longer to be quoted. The entry said the 600-hand inventory "expects 0.28
+      refusals and finds none about three times in four" and that its floor run "has contributed
+      zero spot keys for as long as it has existed". Measured against the derived chart it deals
+      600 hands, refuses 19 of them and names 10 distinct spots, on every run: the run is seeded
+      at 20260812 and is byte-deterministic, so it does not find a variable number of refusals,
+      it finds the same 19. The reason is the cutover itself. The chart commits nothing past two
+      raises in, so hero four-betting into it is a refusal the simulator walks into by playing
+      the solved prices, and the four-bet family is reached every run rather than never.
+      ALSO CLOSED. The entry's non-deferrable half - that generate_sample_comparison_report is a
+      gate command reading an inventory that would be empty three runs in four, so the gate would
+      die intermittently - is closed by that same fact rather than by any work. The empty read
+      remains a hard error by design and that is still right; it simply has no instance. The
+      reader moved to data_pipeline.self_play_reference.self_play_spots when comparison.py hit
+      its size cap, and the loud-failure guard moved with it.
+      The column was fixed rather than left uniform. On full spot keys the cross-reference is
+      empty and structurally cannot be otherwise: self-play only ever plays 2.5, 7.5 and 22.5
+      while the corpus plays the prices real players used, so the same decision is never the same
+      string on both sides and all 61 gap spots read NEW. Taylor ruled on 2026-09-03 that the
+      comparison is made on price-stripped shapes, and it now reads 7 SEEN against 54 NEW, every
+      one of the 7 a four-bet spot the simulator refuses on every run.
+      WHAT STAYS DEFERRED, and it is narrower than the title used to claim. Self-play is not
+      worthless as a coverage instrument - it surfaces the four-bet family reliably - but it can
+      only ever surface gaps that lie on the prices the solved tree holds, because those are the
+      only prices it plays. A gap a real player opens by raising to 10.5 is invisible to it in
+      principle, not by seed. So the corpus remains the only source of price-driven gaps at
+      six-handed 100bb, which is 54 of the 61 spots the sample found. What would widen self-play
+      is a run seeded or seated to reach the deep tail deliberately, which tests/test_simulator.py
+      now does for the refusal path with a limping seat, or an inventory generated at a table the
+      chart covers less well. Whether that is worth building is the question still open here.
   - id: GATE-COMMAND-DESCRIPTION-NAMES-A-WITHDRAWN-CHECK
     status: done
     phase: "11"

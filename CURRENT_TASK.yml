@@ -17,6 +17,8 @@ approved_scope:
   - src/poker_training_bot/strategy/preflop_sizing.py
   - src/poker_training_bot/data_pipeline/**
   - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
+  - src/poker_training_bot/solver_artifacts/vocabulary_report.py
+  - tests/test_spot_vocabulary_report.py
   - verification/mutations.yml
   - tests/test_derived_chart_report_validators.py
   - tests/test_spot_vocabulary.py
@@ -40,6 +42,29 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-04
+    reason: >-
+      A ninth frozen-test defect and the code fault hiding it, both found by running
+      `pytest_spot_vocabulary` rather than by reading. That command has 6 setup errors, and they are a
+      real phase-14 red in a completed phase's gate command rather than anything a lane introduced: a
+      lane rebuilt `src/` from `git show HEAD:` with its own changes removed and measured the same 6.
+      `solver_artifacts/vocabulary_report.py` builds a worked example that needs one hand class priced
+      at a single price beside one priced at two, and raises `VocabularyReportError` when it cannot.
+      Over the committed 249 **no class anywhere is offered more than one price** - `add_allin: false`
+      takes the jam off every node that also offers a named raise, and the four-bet family that still
+      jams is withheld - so the example cannot be built at all. That is one of the three criteria this
+      phase declares **vacuous**, and the contract requires a vacuous criterion labelled wherever it is
+      reported and never counted as a check that passed. So the generator publishes the vacuity instead
+      of refusing, which is what the rest of this phase already does.
+      Behind that setup error sits `tests/test_spot_vocabulary_report.py`, whose worked-example test
+      asserts that no committed key names a seat twice - the same claim, in the same words and for the
+      same wrong reason, that lane T already corrected in `test_spot_vocabulary_downstream.py`. **22**
+      committed keys name a seat twice, every one a seat that called and acted again after a re-raise
+      and every one inside the ruled two-raise depth. Measured here directly at 22, not taken on report.
+      Taylor's ruling of 2026-09-03 - all of them in one edit and one re-freeze, authored by a lane that
+      wrote none of the implementation, intent preserved, both reviewers reading the diff - covers this
+      one on its own terms, and the re-freeze has not happened yet, so it folds in rather than becoming
+      a second ask about an identical question.
   - date: 2026-09-04
     reason: >-
       Taylor's ruling of 2026-09-03 on the self-play cross-reference was that comparing price-stripped

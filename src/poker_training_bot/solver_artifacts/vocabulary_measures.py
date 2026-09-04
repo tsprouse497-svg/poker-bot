@@ -35,16 +35,17 @@ import re
 from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from poker_training_bot.data_pipeline.comparison import (
-    ComparisonResult,
-)
 from poker_training_bot.data_pipeline.sample import MACHINE_PLAYER
 from poker_training_bot.poker_core.positions import preflop_action_order
 from poker_training_bot.solver_artifacts.schema import (
     PreflopAction,
     spot_key,
 )
+
+if TYPE_CHECKING:  # a runtime import back would cycle: `comparison` imports our `strip_sizes`
+    from poker_training_bot.data_pipeline.comparison import ComparisonResult
 
 TABLE_SIZE = 6
 DEPTH_BB = 100

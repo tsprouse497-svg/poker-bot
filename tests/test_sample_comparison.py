@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from poker_training_bot.data_pipeline import comparison as comparison_module
+from poker_training_bot.data_pipeline import self_play_reference
 from poker_training_bot.data_pipeline.comparison import (
     AGREE,
     DISAGREE,
@@ -635,29 +635,31 @@ def test_the_self_play_cross_reference_was_read_rather_than_defaulted(comparison
     underneath them both can still hold while the column has stopped being a reading of anything
     - True by default satisfies the first, False the second, each held up by rows the other half
     was about. Asserted instead is the column's definition: `seen_in_self_play` is exactly
-    membership of `_self_play_spots()`, recomputed from the same read, then both halves on sets.
+    membership of `self_play_shapes()`, recomputed from the same read, then both halves on sets.
 
-    The overlap half is measured on price-stripped SHAPES, ruled on 2026-09-03. On full keys it is
-    0 and cannot be otherwise: self-play plays only the three solved prices while the corpus plays
-    the prices humans played, so one three-bet pot is `CO:raise@7.5,HJ:raise@23` here and `@7.5,
-    @22.5` there. Five shapes overlap, so this is a live reading rather than an unfailable claim.
+    Shapes, not keys, and that is the column itself since 2026-09-03 rather than a reading laid
+    over it. On keys both halves cannot hold at once: self-play plays only the three solved prices
+    while the corpus plays the prices humans played, so one three-bet pot is
+    `CO:raise@7.5,HJ:raise@23` here and `@7.5,@22.5` there, the overlap is 0 whatever the chart
+    does, and all 61 gap spots read NEW. On shapes 7 read SEEN and 54 NEW, so both halves are live
+    readings rather than unfailable claims, and every one of the 7 is a four-bet spot.
 
     Both halves read a rendered report, so they depend on it being regenerated in the same commit
     as the chart: a stale inventory naming the retired chart's gaps lies.
     `SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS` was filed on the deleted reading and needs
     restating against this one."""
-    reached = comparison_module._self_play_spots()
+    reached = self_play_reference.self_play_shapes()
     inventory = comparison.refusal_inventory
     named = {entry.spot_key for entry in inventory}
     seen = {entry.spot_key for entry in inventory if entry.seen_in_self_play}
     unseen = {entry.spot_key for entry in inventory if not entry.seen_in_self_play}
+    shared = {spot for spot in named if strip_sizes(spot) in reached}
 
     assert reached
     assert inventory
-    assert seen == named & reached, sorted(seen.symmetric_difference(named & reached))
-    assert unseen == named - reached, sorted(unseen.symmetric_difference(named - reached))
-    shared = {strip_sizes(spot) for spot in named} & {strip_sizes(spot) for spot in reached}
-    assert shared, "no corpus gap shape is one self-play reaches, so the overlap half is gone"
+    assert seen == shared, sorted(seen.symmetric_difference(shared))
+    assert unseen == named - shared, sorted(unseen.symmetric_difference(named - shared))
+    assert seen, "no corpus gap spot is one self-play reaches, so the overlap half is gone"
     assert unseen, "self-play reaches every corpus gap spot, so the NEW half is gone"
 
 
@@ -668,15 +670,15 @@ def test_an_unreadable_self_play_inventory_fails_loudly_rather_than_emptily(
     pattern from a rendered report, so that format can move without anything here changing, and
     the honest outcome then is a broken build rather than every spot quietly upgraded to NEW."""
     missing = tmp_path / "not_written_yet.txt"
-    monkeypatch.setattr(comparison_module, "SELF_PLAY_INVENTORY", missing)
+    monkeypatch.setattr(self_play_reference, "SELF_PLAY_INVENTORY", missing)
     with pytest.raises(FileNotFoundError):
-        comparison_module._self_play_spots()
+        self_play_reference.self_play_spots()
 
     moved = tmp_path / "reformatted.txt"
     moved.write_text("points | spot | seen\n12 | six-handed 100bb BB vs CO raise | yes\n")
-    monkeypatch.setattr(comparison_module, "SELF_PLAY_INVENTORY", moved)
+    monkeypatch.setattr(self_play_reference, "SELF_PLAY_INVENTORY", moved)
     with pytest.raises(ValueError, match="no spot keys"):
-        comparison_module._self_play_spots()
+        self_play_reference.self_play_spots()
 
 
 def test_the_refusal_inventory_is_ordered_most_reached_first(comparison) -> None:
@@ -688,13 +690,11 @@ def test_the_refusal_inventory_is_ordered_most_reached_first(comparison) -> None
 def test_the_inventory_says_which_spots_the_self_play_run_never_reached(comparison) -> None:
     """The column's values; the test above owns its definition. `in {True, False}` was the whole
     body and admits 1, 0 and 1.0 as well as an empty inventory, so a column carrying a count read
-    the same - `render_refusal_inventory` prints NEW on falsiness and would print it for 0. It
-    then asked for both values, which this chart cannot give: the column compares full keys and
-    that overlap is 0 for the reason above, so every row reads NEW; the shape is the live half."""
+    the same - `render_refusal_inventory` prints NEW on falsiness and would print it for 0. Both
+    values are asked for again: on the key comparison this column carried until 2026-09-03 they
+    were unreachable, every one of the 61 reading NEW, and on shapes it is 7 SEEN against 54."""
     flags = [entry.seen_in_self_play for entry in comparison.refusal_inventory]
-    shapes = {strip_sizes(entry.spot_key) for entry in comparison.refusal_inventory}
 
     assert flags
     assert all(isinstance(flag, bool) for flag in flags)
-    assert set(flags) == {False}, "a spot reads SEEN, so the key overlap is no longer empty"
-    assert shapes & {strip_sizes(s) for s in comparison_module._self_play_spots()}, "no shape"
+    assert set(flags) == {True, False}, "the column reads the same at every spot"
