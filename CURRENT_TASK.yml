@@ -3,6 +3,7 @@ active_phase: "14"
 task_mode: implementation
 base_commit: c45013bd14ce2bc666415740350f17295b54f85a
 approved_scope:
+  - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/chart_*.py
   - src/poker_training_bot/solver_artifacts/schema.py
   - src/poker_training_bot/solver_artifacts/lookup.py
@@ -42,6 +43,13 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-04
+    reason: >-
+      `verification/freeze.lock` re-enters approved_scope for the re-freeze alone. All nine frozen-test
+      corrections Taylor ruled on have landed, and the lock has to be re-pinned against them or the next
+      `check_test_freeze` reports six files whose contents no longer match what stage 5 froze. The
+      narrowing that drops the test paths and the canaries again follows in its own commit, which has to
+      name this one.
   - date: 2026-09-04
     reason: >-
       A ninth frozen-test defect and the code fault hiding it, both found by running
