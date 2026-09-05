@@ -870,6 +870,8 @@ class Walk:
     solve_raise_plus_call: dict[str, float]
     merged_spot_keys: frozenset[str]
     merged_cell_count: int
+    whole_call_cells: dict[str, int]
+    squeeze_folds: dict[str, float]
     arrivals: dict[str, float]
     jam: tuple[str, str, float]
 
@@ -931,6 +933,8 @@ def walk_export() -> Walk:
     closes: set[str] = set()
     merged_keys: set[str] = set()
     raise_plus_call: dict[str, float] = {}
+    whole_call_cells: dict[str, int] = {}
+    squeeze_folds: dict[str, float] = {}
     arrivals: dict[str, float] = {}
     committed_arrival = 0.0
     refused_exposure: list[tuple[str, float]] = []
@@ -945,6 +949,12 @@ def walk_export() -> Walk:
             # The big blind's squeeze spots are refused by a clause of their own and sit far
             # BELOW the threshold - they passed this one - so folding them in here would name a
             # narrowest refusal of 3.74 against a line drawn at 10.
+            if exclusion_code(by_path, node) == lookup.DERIVATION_BIG_BLIND_SQUEEZE_SPOT:
+                squeeze_folds[key] = 100.0 * sum(
+                    node.action_frequency(index)
+                    for index, action in enumerate(node.actions)
+                    if action.kind == "fold"
+                )
             if exclusion_code(by_path, node) == lookup.DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD:
                 refused_exposure.append((key, multiway_exposure_pct(by_path, node)))
             elif raises_faced(by_path, node) > COMMITTED_RAISE_DEPTH and (
@@ -970,6 +980,21 @@ def walk_export() -> Walk:
                 {name: raised[name] + called.get(name, 0.0) for name in raised},
                 _node_weights(node),
             )
+            # Read off the basis points rather than off `_menu_weights`' percent, so "the
+            # hand's whole weight" is an exact integer equality and not a float at 100.0.
+            whole = sum(
+                1
+                for name in HAND_CLASSES
+                if node.reach_bp[gtopen_class_index(name)] > 0
+                and sum(
+                    node.strategy_bp[index][gtopen_class_index(name)]
+                    for index, action in enumerate(node.actions)
+                    if action.kind == "call"
+                )
+                == QUANTISATION_SCALE
+            )
+            if whole:
+                whole_call_cells[key] = whole
         for name in HAND_CLASSES:
             column = gtopen_class_index(name)
             reach = int(node.reach_bp[column])
@@ -1012,6 +1037,8 @@ def walk_export() -> Walk:
         solve_raise_plus_call=raise_plus_call,
         merged_spot_keys=frozenset(merged_keys),
         merged_cell_count=len(merged_cells(export)),
+        whole_call_cells=whole_call_cells,
+        squeeze_folds=squeeze_folds,
         arrivals=arrivals,
         jam=jam,
     )
@@ -1433,6 +1460,7 @@ def exposure_section(measured: Measured) -> list[str]:
     """The filter's margin is sixteen hundredths of a point, so it is published, not described."""
     splits = measured.walk.splits
     squeezed = measured.walk.census.excluded.get(lookup.DERIVATION_BIG_BLIND_SQUEEZE_SPOT, 0)
+    folds = measured.walk.squeeze_folds
     lines = [
         "A node ships only where under a tenth of its decision mass reaches a flop with three or",
         "more players in it, measured by walking to the leaves rather than by counting who is",
@@ -1465,12 +1493,18 @@ def exposure_section(measured: Measured) -> list[str]:
         "",
         "The filter is blindest exactly where the mispricing has already turned a call into a",
         f"fold. The {squeezed} big-blind squeeze spots passed this clause BECAUSE the big blind",
-        "folds 93 percent of its range there, so almost nothing of its mass reaches the three-way",
-        "flop, and they are refused by a clause of their own instead. Any later build re-measures",
-        "these rather than carrying them forward",
+        "folds most of its range there, so almost nothing of its mass reaches the three-way flop,",
+        "and they are refused by a clause of their own instead. That fold rate is a range and not",
+        "a figure, so every spot's own is printed below rather than one of them standing for the",
+        f"family: it runs from {min(folds.values()):.4f} to {max(folds.values()):.4f} percent, and"
+        f" {sum(1 for value in folds.values() if value < 90.0)} of the {len(folds)} are under 90.",
+        "Any later build re-measures these rather than carrying them forward",
         "(MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN).",
         "",
     ]
+    for key in sorted(folds):
+        lines.append(f"  squeeze spot  {key}  big blind folds {folds[key]:.4f}")
+    lines.append("")
     for key in sorted(splits):
         folded, heads_up, multiway = splits[key]
         lines.append(
@@ -2052,8 +2086,12 @@ def menus_section(measured: Measured) -> list[str]:
         f"  cells moved  {measured.walk.merged_cell_count}",
         "",
         "Merged and not deleted, and the difference is a hand with an answer against a hand with",
-        "none: at nine of these spots a hand's whole weight sits on calling, so deleting would",
-        "leave a row of zeroes, and printing fold would publish `fold pocket nines to an open`.",
+        f"none: at {len(measured.walk.whole_call_cells)} of these {len(merged)} spots, across"
+        f" {sum(measured.walk.whole_call_cells.values())} of the"
+        f" {measured.walk.merged_cell_count} moved cells, a hand's",
+        "whole weight sits on calling, so deleting would leave a row of zeroes, and printing fold",
+        "would publish `fold pocket nines to an open`. Both counts are over the merging spots and",
+        "nothing wider - the same walk over every committed spot is a different measurement.",
         "Adding rather than renormalising is the point too - hero folds exactly as often as the",
         "solve folds, and the hands it wanted to see a flop with are the hands he now raises with.",
         "",

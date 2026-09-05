@@ -94,10 +94,23 @@ has to change that test with it.
 
 The filter is blindest exactly where the mispricing has already turned a call into a
 fold. The 10 big-blind squeeze spots passed this clause BECAUSE the big blind
-folds 93 percent of its range there, so almost nothing of its mass reaches the three-way
-flop, and they are refused by a clause of their own instead. Any later build re-measures
-these rather than carrying them forward
+folds most of its range there, so almost nothing of its mass reaches the three-way flop,
+and they are refused by a clause of their own instead. That fold rate is a range and not
+a figure, so every spot's own is printed below rather than one of them standing for the
+family: it runs from 84.9857 to 93.3284 percent, and 5 of the 10 are under 90.
+Any later build re-measures these rather than carrying them forward
 (MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN).
+
+  squeeze spot  t6/d100/BB/BTN:raise@2.5,SB:call  big blind folds 84.9857
+  squeeze spot  t6/d100/BB/CO:raise@2.5,BTN:call  big blind folds 89.2770
+  squeeze spot  t6/d100/BB/CO:raise@2.5,SB:call  big blind folds 85.7253
+  squeeze spot  t6/d100/BB/HJ:raise@2.5,BTN:call  big blind folds 90.9481
+  squeeze spot  t6/d100/BB/HJ:raise@2.5,CO:call  big blind folds 91.6313
+  squeeze spot  t6/d100/BB/HJ:raise@2.5,SB:call  big blind folds 87.8738
+  squeeze spot  t6/d100/BB/LJ:raise@2.5,BTN:call  big blind folds 91.3322
+  squeeze spot  t6/d100/BB/LJ:raise@2.5,CO:call  big blind folds 92.8622
+  squeeze spot  t6/d100/BB/LJ:raise@2.5,HJ:call  big blind folds 93.3284
+  squeeze spot  t6/d100/BB/LJ:raise@2.5,SB:call  big blind folds 88.9948
 
   t6/d100/BB/BTN:raise@2.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BB/BTN:raise@2.5,SB:raise@7.5  exposure 0.1750  multiway 0.1750  heads-up 99.8250
@@ -746,8 +759,10 @@ that opened and now faces a three-bet. Three families, three menus:
   cells moved  165
 
 Merged and not deleted, and the difference is a hand with an answer against a hand with
-none: at nine of these spots a hand's whole weight sits on calling, so deleting would
-leave a row of zeroes, and printing fold would publish `fold pocket nines to an open`.
+none: at 15 of these 20 spots, across 40 of the 165 moved cells, a hand's
+whole weight sits on calling, so deleting would leave a row of zeroes, and printing fold
+would publish `fold pocket nines to an open`. Both counts are over the merging spots and
+nothing wider - the same walk over every committed spot is a different measurement.
 Adding rather than renormalising is the point too - hero folds exactly as often as the
 solve folds, and the hands it wanted to see a flop with are the hands he now raises with.
 

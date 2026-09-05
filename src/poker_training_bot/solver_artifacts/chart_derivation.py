@@ -159,11 +159,12 @@ def node_spot_key(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) 
 def merges_the_cold_call(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> bool:
     """Whether this spot publishes hero's call as a raise, which is decision 45.
 
-    The bot never cold-calls: money in behind an opener with nothing already invested buys
-    a multiway pot out of position. So where hero faces an open and has posted nothing, the
-    solve's call is merged into the raise - merged and not deleted, because at nine of
-    these spots a hand's whole weight is on calling and deleting would leave a row of
-    zeroes, a hand with no answer at all.
+    The bot never cold-calls: money in behind an opener with nothing already invested buys a
+    multiway pot out of position. So where hero faces an open and has posted nothing, the solve's
+    call is merged into the raise - merged and not deleted, because at 15 of these 20 spots, across
+    40 of the 165 moved cells, a hand's whole weight is on calling and deleting would leave a row of
+    zeroes, a hand with no answer at all. Both counts are over the 20 merging spots alone; the same
+    walk over all 249 committed spots gives 108 spots and 748 cells, a different set entirely.
 
     The big blind is not one of these seats: it has paid a blind, so its call is a defence
     rather than a cold call. Nor is a seat that opened and now faces a three-bet. That is
