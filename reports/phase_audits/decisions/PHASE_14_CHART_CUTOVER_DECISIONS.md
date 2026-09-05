@@ -3979,6 +3979,23 @@ contract now says so: hero's cold call is removed, his call to a three-bet is no
 "threshold and reachability together, neither alone" phrasing is dropped as covered by the new wording;
 measured, the reachability half is worth two spots of the 249.
 
+**Corrected 2026-09-05 after the stage-8 independent review: the fourth reading's two figures in the
+paragraph above do not reproduce, and one of them was never the right quantity.** The ruling itself is
+untouched - only the second reading was ever the ruled rule, the contract wording it produced is
+unchanged, and no node moves. What is wrong is the arithmetic offered as the reason for preferring it.
+Re-measured against the committed export by patching `cold_call_index` in a fresh process and recounting
+every node, three ways so the reading cannot be the thing in dispute. Removing hero's call at every hero
+node commits **356** on the same basis as the 257 and the 259 in the paragraph above, which is the count
+before the third clause takes ten, and **346** once all three clauses are applied. Its three-bet-facing
+count is **316**, not 321, on either basis. The whole split at 346 is 5 first-in, 25 facing an open, 316
+facing a three-bet, against the ruled rule's 5 / 25 / 219. Dropping the second exemption alone gives the
+same 346 and the same 316, so the two readings this record kept apart are not distinguishable by their
+totals at all - which is the sharper reason the ruled rule has to be stated as which branch is dropped
+rather than as the number it happens to produce, and is what the frozen tests assert node by node.
+`chart_selection.py` was corrected in the same stage and now carries 346 with 5 / 25 / 316;
+`tests/test_chart_derivation.py` still carries 361 in three places, in prose rather than in an assertion,
+so nothing goes red - filed as `A-FROZEN-TEST-STATES-A-COUNT-IN-PROSE-SO-NOTHING-CAN-GO-RED`.
+
 **The exclusion code is renamed** from `derivation:hero-closes-into-a-multiway-pot` to
 `derivation:big-blind-squeeze-spot`. The old name states the wider rule decision 48 measured at 68 nodes
 and explicitly did not take, while the bucket holds the ten big-blind squeeze spots. A later phase reading

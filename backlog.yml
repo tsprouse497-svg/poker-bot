@@ -795,7 +795,7 @@ items:
   - id: CHART-HERO-MUST-NEVER-LIMP
     status: deferred
     phase: "14"
-    title: Nothing forbids a committed chart from limping, and today's chart does
+    title: Nothing forbids a committed chart from limping, and only the data stops today's chart
     reason: >-
       A spot with an empty action_sequence is folded to hero, so a call weight in it is hero
       open-limping. The schema's action vocabulary allows one and no validation rejects it.
@@ -807,6 +807,17 @@ items:
       has no limp action at all, but that is a property of the data rather than a rule. Phase
       14 owns the chart schema, so the check belongs there: no spot with an empty
       action_sequence may carry a call weight.
+
+      RETITLED 2026-09-05 by phase 14's stage-8 backlog sweep, which found the title asserting a
+      present-tense fact about an artifact that was retired inside this phase. The body was always
+      explicit that the limping chart was the GTO Wizard one; only the line a reader scans said "and
+      today's chart does". Measured here against the shipped
+      `data/artifacts/preflop/six_max_100bb_rakefree.json`: the chart has **five** first-in spots, they
+      carry **zero** total call weight between them, and **not one cell at any of the five names a call
+      in its menu at all**. So the limp is gone from the data and the title now says which half is
+      still true - the schema still permits one, and no validation rejects it. Nothing closes here:
+      what this entry asks for is the rule, and the rule is still absent, so a later chart built from a
+      solve that does have a limp branch would ship one unremarked.
   - id: CHART-CANNOT-ANSWER-A-LIMPED-POT
     status: deferred
     phase: "17"
@@ -2698,6 +2709,41 @@ items:
       pairs and suited connectors go the other way. No aggregate and no relation in this phase can see
       that. Related: `NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE`, which is the
       separate and more urgent problem that the only reference committed is raked at all.
+
+      EXTENDED 2026-09-05 by phase 14's stage-8 poker review, which closed the second of the three reads
+      the 2026-09-04 extension listed as still owed, and left a standing instruction that nothing else
+      records. The merged family and the three-bet-facing family are no longer aggregate only.
+      WHAT THE READ OVER THAT FAMILY FOUND, re-derived here from the committed artifact and the raked
+      source. At the **15** spots the reference reaches out of the 219 in that family, which is 88 percent
+      of this chart, the question asked for the first time was not how often hero four-bets but with
+      what. King-ten suited or king-jack suited, which is the reference's own four-bet bluff, four-bets
+      above half at **0 of 15 spots here against 10 of 15 there**. Going the other way, the share of each
+      spot's unpaired four-bet mass held by hands with neither an ace nor a king runs **7.3 to 51.9
+      percent here against 0.0 to 14.0 there, and is higher here at 15 of 15**. Pairs are excluded on
+      both sides so the ruled pair-ladder defect cannot be doing the work. Over all 219 spots, weighted by
+      combinations times arriving reach, the no-blocker share is 19.78 percent, with 134 of the 219
+      carrying any four-bet mass at all.
+      THE STANDING INSTRUCTION, which is why this belongs here rather than only in the defect entry. The
+      report's second block hands a later phase the four-bet FREQUENCY and used to call it "the number a
+      later phase taking up the four-bet family starts from". It now says in terms that the frequency is
+      not on its own the number to start from, because a frequency says nothing about a range whose
+      composition points this way. Nothing but that one sentence of report prose records it, and report
+      prose is regenerated. Recorded here so the instruction survives the phase: whoever takes up the
+      four-bet family reads the composition and the frequency together, or the first thing they do is
+      tune a frequency toward a reference whose range is made of different hands. The defect itself is
+      `FOUR-BET-BLUFFS-ARE-CHOSEN-WITHOUT-BLOCKERS`.
+      WHAT IS STILL UNREAD after this stage, updating the 2026-09-04 list: the five big-blind vs-open
+      spots per hand are now read as the control row for the merged family, so what remains is the limp
+      spot, which this solve has no branch for, and the 204 three-bet-facing spots the reference cannot
+      reach. The caveat is unchanged and is the whole caveat: the reference is a RAKED NL25 solve, none
+      of this gates anything, and reading narrower than it is the one direction a rake-free solve is not
+      supposed to go.
+      ONE FIGURE FROM THE REVIEW NOTE DID NOT REPRODUCE and the published one supersedes it. The note
+      states the arrival-weighted no-blocker share over all 219 spots as 30.39 percent with 138 spots
+      carrying four-bet mass. Measured here it is **19.78 percent and 134 spots** under the note's own
+      stated weighting, and 19.89 percent and 134 under combinations alone, so neither reading reaches
+      30.39. Every per-spot figure in the note's two tables reproduces to the digit; only the two summary
+      figures do not.
   - id: TEST-FILES-PINNED-AT-THE-LINE-CAP
     status: deferred
     phase: v2
@@ -4279,6 +4325,54 @@ items:
       `scripts/review_queue.py` grows a second view showing rulings made but not yet recorded. Any of
       the three turns a convention that depends on someone reading six review notes into something a
       check can see.
+
+  - id: A-REVIEW-NOTE-STATES-ONE-METHOD-AND-USES-ANOTHER
+    status: deferred
+    phase: contract-update
+    title: Review-note figures cannot be recomputed from the method the note states, and the notes are committed
+    reason: >-
+      Filed 2026-09-05 by phase 14's stage-8 backlog sweep, after trying to re-derive the stage-8 poker
+      note's headline figures from the note's own stated method and failing three times in one note. It
+      is filed against `contract-update` because it is a rule about what a review note owes, not a defect
+      in any measurement.
+      A review note is a snapshot and stays exactly as written - that is settled and this entry does not
+      propose editing one. The problem is downstream: a note is committed under `reports/phase_audits/`,
+      a later reader treats it as evidence, and there is currently nothing that has to be true about the
+      relationship between the method a note states and the numbers it prints.
+      THREE INSTANCES, all in `stage-08-review-poker.md`, all re-measured here from the committed
+      artifact and the raked source.
+      FIRST, THE HEADLINE. The note's B1 states its rule once, in prose: a hand counts as folded here
+      when the chart folds it above 90 percent, and as played there when the reference plays it above 50
+      percent, at cells above 9000 basis points of reach. Run exactly as stated, the folded column
+      reproduces perfectly - **60 classes, and the per-spot counts 7, 7, 5, 1, 8, 7, 3, 9, 7 and 6 match
+      the note's ten table rows hand for hand**. The played column does not: the stated rule gives
+      **58**, where the note's table sums to 28. The 28 comes back only under a stricter rule the note
+      never states, in which the reference must fold the hand outright rather than merely play it below
+      half, and with pairs dropped. So one threshold is described and a different one is used, in the
+      same finding, and the note's own summary sentence - "60 classes folded here and played there, 28
+      played here and folded there" - is two measurements under two rules read as one.
+      SECOND, THE ALIGNMENT ITEM. The note's A1 builds a new relation, validates it on the reference, and
+      reports 179 chart violations at 131 wide and 59 spots, from a validation set of 99 pairs out of 153
+      the reference exercises at 10 or more of its 36 spots. Rebuilding that relation from the stated
+      description - same low card, same suitedness, higher high card - gives 572 candidate pairs of which
+      56 are exercised at 10 or more reference spots and 28 survive the never-violated filter, scoring
+      **153 violations, 112 at 50 points or wider, over 53 spots**. The finding's direction is intact and
+      none of its five named worst cases is in doubt; the counts are not reproducible, and the missing
+      piece is how the note decided a pair was exercised at all.
+      THIRD, ALREADY FILED. The same note's four-bet summary reads 30.39 percent over 219 spots with 138
+      carrying four-bet mass; measured, 19.78 and 134. Recorded under
+      `NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL`.
+      WHAT THIS COSTS, and it is the reason to file rather than to shrug. The phase's own report carries
+      the same finding as B1 under a single stated rule at 50 points and publishes **62 and 63**. Both
+      documents are committed, both are right about the poker, and their numbers differ by more than
+      double on one side. A reader who finds the note first and the report second has no way to tell
+      which is superseded, because neither says. This is the review-note face of
+      `THE-SAME-MEASUREMENT-IS-STATED-IN-TWO-COMMITTED-DOCUMENTS-AND-NOTHING-COMPARES-THEM`.
+      WHAT IS OWED, and it is small. A review note that states a threshold states it once and uses it
+      everywhere, or names each threshold beside the count it produced. And a note whose figures a later
+      pass supersedes gets a dated line at the head saying which committed document now carries the
+      number - one line, in the note, not a rewrite of it, since the finding is a snapshot and the
+      pointer is not.
   - id: COMMITTED-SPOTS-NEVER-FLAT-A-RAISE
     status: deferred
     phase: "16"
@@ -4569,6 +4663,46 @@ items:
       a non-blind cold call - the second is `REFERENCE-RANGES-HAVE-NO-CITED-SOURCE` and is the cheaper of
       the two, since it would at least turn this from an unmeasured suspicion into a measured gap.
 
+      EXTENDED 2026-09-05 by phase 14's stage-8 poker review, and the one thing that changes is the word
+      "slightly". This entry has carried it since 2026-09-01 in the sentence "villains who under-flat make
+      opening and three-betting look slightly better than they are", and the phase's own report now
+      publishes the size of it. That adverb is no longer supportable and a later phase must not read it.
+      THE MEASUREMENT, re-derived here straight from the committed artifact and the raked source rather
+      than taken off the report. Over the **10** merged spots the raked reference can reach, per hand
+      class, under the report's own fifty-point rule - a class counts as disagreeing when the two grids'
+      played weight differs by 50 points or more, played being raise plus call on both sides:
+      **62 classes are folded here and played there, and all 62 hold an ace or a king; 63 are played here
+      and folded there, and none of the 63 holds either.** Zero exceptions in either direction. The split
+      is unanimous at every one of the ten spots taken alone, not merely in aggregate, and it stays
+      100-to-0 in both directions at every integer threshold from 50 through 99, so it is not an artefact
+      of where the line was drawn. King-queen offsuit is folded pure at 10 of the 10.
+      The big-blind control is the reason this is a statement about these spots and not about the chart:
+      run identically over the five big-blind vs-open spots, where hero keeps a call branch, it reads 20
+      folded here and played there with 4 holding an ace or a king, and 37 the other way with 4. No
+      signature at all.
+      SAY IT IN POKER. A three-bet bluff is chosen for the cards it takes away from the hands that
+      continue, which are the aces and the kings. This chart does the reverse at this family: it folds
+      ace-ten suited, king-ten suited, ace-queen offsuit and king-queen offsuit to a lojack open at the
+      cutoff while three-betting queen-ten suited and jack-ten suited. That is bluff selection run
+      backwards, and it is the whole family rather than a grid or two.
+      TAYLOR RULED 2026-09-05 TO PUBLISH AND SHIP. Repairing it is a re-solve, which this phase does not
+      do, and the measurement is now published per spot in the derived chart report beside the ten
+      `vs one open` rows, with the control row next to it and prose saying plainly that standard theory
+      three-bets the blockers and this does the opposite. The ruling is to publish, not to accept
+      silently: the packet no longer tells a reader this family is shape-sound, which is what stage 6 had
+      signed off on three grids read by eye.
+      WHAT A LATER PHASE SHOULD MEASURE, because "slightly" was a guess and this entry should not carry
+      another one. The route back is the one this entry already names, the mirror of `call_only_seats` in
+      the local GTOpen clone plus a re-solve. What decides whether that is worth doing is a measurement
+      this repo can take before it: solve one of the ten spots with the cold call priced against a
+      realistic continuation structure rather than the collapsed one, and read the same 62-and-63 split
+      off the result. If the ace-and-king classes come back, the cold-call pricing is the cause and the
+      re-solve is the fix; if they do not, the cause is elsewhere and this entry is the wrong home for
+      the finding. Either way the number to report is the per-hand split at the merged family, not an
+      aggregate defence frequency, because the aggregate at these spots is short of the reference by
+      about a point and reads as ordinary tightness
+      (`MERGED-FLATS-PLAY-DIFFERENTLY-NOT-JUST-DIFFERENTLY-LABELLED` carries that half).
+
   - id: PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED
     status: deferred
     phase: "14"
@@ -4613,6 +4747,87 @@ items:
       One figure the review carried did not reproduce and the published one supersedes it: the relative
       deficit is 25.2 to 50.8 percent, re-derived per row here, and not the 35 to 47 percent the review's
       note states. The per-spot four-bet weights and reference weights all reproduce to the digit.
+
+  - id: FOUR-BET-BLUFFS-ARE-CHOSEN-WITHOUT-BLOCKERS
+    status: deferred
+    phase: "14"
+    title: The four-bet range bluffs with hands that block nothing and flats the hands that block everything
+    reason: >-
+      Filed 2026-09-05 by phase 14's stage-8 poker review as a blocker, published rather than repaired,
+      and it is about the family that is 88 percent of the committed chart. Every figure below was
+      re-derived for this entry from `data/artifacts/preflop/six_max_100bb_rakefree.json` and
+      `data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json`, not taken off the report.
+      WHAT A BLUFF AT THIS FAMILY IS PICKED FOR. It holds a card the hands that continue against
+      it are made of - the ace and the king - so that the opponent has fewer of them. That is not a
+      preference, it is the mechanism, and this packet already argues it in exactly those terms
+      elsewhere: the wheel-ace exemption in the defects section is defended as "nut-straight potential
+      plus an ace blocker, and picking A5s over A6s for that job is what a strong player does at a
+      three-bet".
+      WHAT THIS CHART DOES INSTEAD. At the 15 opener-versus-three-bet spots the raked reference can be
+      read against, king-ten suited or king-jack suited - the reference's own four-bet bluff - four-bets
+      above half at **0 of 15 spots here against 10 of 15 there**, and across all 15 the chart's weight on
+      those two hands is 0.000 everywhere except one cell at 0.001 and one at 0.013. The share of each
+      spot's UNPAIRED four-bet mass held by hands with neither an ace nor a king runs **7.3 to 51.9
+      percent here against 0.0 to 14.0 there and is higher here at 15 of 15**. Pairs are excluded on both
+      sides so the accepted pair-ladder defect cannot be doing the work. Over all 219 three-bet-facing
+      spots, weighted by combinations times arriving reach, the no-blocker share is **19.78 percent**,
+      with 134 of the 219 carrying any four-bet mass.
+      THE HEAVIEST GRID SHOWS THE WHOLE SHAPE AT ONCE. At `t6/d100/SB/SB:raise@2.5,BB:raise@7.5`, the
+      most-arrived-at spot in the family, the chart four-bets to 22.5 big blinds with 86s, 96s, 97s, 98s
+      and Q8s, none of which holds an ace or a king, while flat-calling every suited ace and every suited
+      king it holds bar AKs and AQs, which four-bet for value. It also folds 32s, 43s, 54s and 65s
+      outright, so even among the hands that block nothing it is cutting by height rather than by
+      anything a bluff is chosen for. All weights at 99 percent or better.
+      PRICE DOES NOT EXPLAIN IT. At the 6 spots where the reference is answering a three-bet within half
+      a big blind of this chart's 7.5, the no-blocker share is 7.3 to 51.9 percent here against 0.0 to
+      0.9 there, which is as wide as anywhere. So this is not the four-bet being dearer, which is
+      `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED` and is about how OFTEN rather than with WHAT.
+      WHAT IS RIGHT, because the entry should not read as a condemnation of the family. The value half of
+      every four-bet range is sound: at all 15 spots aces and kings four-bet at exactly 1.000, ace-king
+      suited at 0.9978 or better, and queens never fold. This is about the other half.
+      THE PACKET NOW CARRIES BOTH SIDES OF ONE ARGUMENT and says so. The report's fifth comparison block
+      publishes the composition beside the frequency, names the tension with the wheel-ace exemption in
+      terms, and states that only one of the two can be how this chart picks a bluff. Not repaired here
+      because repairing it is a re-solve, which this phase does not do.
+      WHAT WOULD CHANGE THE ANSWER. Two things, and they are separable. Whether the composition survives
+      a cold-call price that is not collapsed, which is the same re-solve
+      `PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS` names and would settle both families at
+      once. And whether it survives a four-bet priced at a standard 17 to 18 rather than 22.5, since a
+      dearer four-bet changes which hands can afford to be in it - that is the other entry's subject and
+      the two should be re-measured together rather than one at a time.
+
+  - id: SIX-CELLS-FOLD-A-PREMIUM-AND-THE-PACKET-NAMES-NONE-OF-THEM
+    status: deferred
+    phase: "14"
+    title: Six committed cells fold ace-king suited at full reach and no committed document names one
+    reason: >-
+      Filed 2026-09-05 from phase 14's stage-8 poker review, non-blocker N3, which the resolving lanes
+      did not carry into any committed document. Small, easily lost, and worth one line of report prose
+      rather than a repair.
+      WHAT IT IS. Over all 249 committed spots, at every cell arriving at half reach or better, aces,
+      kings and ace-king suited are folded above 5 percent at exactly **6 cells**. All six are ace-king
+      suited and all six are at FULL reach, 10000 basis points. Re-derived here from the shipped
+      artifact, with each cell's own arrival in parts per billion: 28.14 percent fold at
+      `t6/d100/BB/LJ:raise@2.5,BTN:raise@7.5,SB:call` (35 ppb), then 9.59, 7.98, 7.26, 6.65 and 5.04
+      percent at five more, arriving at 36, 273, 141, 0 and 152 ppb. Aces and kings are never folded
+      above 5 percent anywhere.
+      THE WORST ONE IN POKER TERMS. At that first cell the big blind has 6.5 to call into a pot of 18.5
+      with the lojack still live behind, so it is not the closing call and the price is not the whole
+      story. Nothing about that makes ace-king suited a fold at close to three to one. The rest of the
+      cell is ordinary: it raises 71.82 percent and calls 0.04.
+      WHY IT IS FILED RATHER THAN FIXED. The arrivals are tiny, so the cost to the BOT is nil - all six
+      together are well under a thousandth of the committed set's decision mass. The cost is to the
+      STUDENT, and it is a different quantity: a trainee drilling a grid meets a card and not an arrival
+      weight, and a chart that answers "fold" for ace-king suited at any frequency is teaching something
+      no player should learn. This is the same distinction
+      `COMMITTED-SPOTS-THE-BOT-CANNOT-REACH-BY-ITS-OWN-PLAY` draws between the tree the bot plays and the
+      reference a human is drilled on, applied to a cell rather than to a spot.
+      WHAT IS OWED. One line in the report naming the six and their arrivals, so the packet's own claim
+      that no premium is mishandled anywhere carries its exception rather than being read as absolute.
+      That claim is otherwise sound and measured: at all 15 opener-versus-three-bet spots aces and kings
+      four-bet at exactly 1.000, ace-king suited at 0.9978 or better, and queens never fold. Whether the
+      six are worth a derivation rule is a question for whoever revisits the solve, and needs no ruling
+      to publish them meanwhile.
 
   - id: MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN
     status: deferred
@@ -4791,10 +5006,35 @@ items:
       at 4.32 percent, is a recognisable squeeze, though tight. The merge's problem is its level, not its
       shape, which is what makes this a measurement to publish rather than a selection to reopen.
 
+      EXTENDED 2026-09-05 by phase 14's stage-8 poker review, and the first thing it does is WITHDRAW the
+      last sentence of the paragraph above. "The merge's problem is its level, not its shape" was the
+      stage-6 credit this entry carried forward, and it rested on three of the twenty merged grids read
+      by eye. Nobody had measured the shape. Stage 8 ran the per-hand read the report already ran on the
+      first-in family over the ten merged spots the raked reference reaches, and the shape is the
+      problem: **62 hand classes are folded here and played there, all 62 holding an ace or a king, and
+      63 are played here and folded there, none holding either** - re-derived for this entry from the
+      committed artifact under the report's own fifty-point rule, unanimous at each of the ten spots
+      taken alone and unchanged in direction at every threshold from 50 through 99. King-queen offsuit is
+      folded pure at all ten. The five big-blind vs-open spots, run as a control, show nothing of the
+      kind: 20 and 37 with 4 blockers on each side.
+      SO THE TWO HALVES OF THIS ENTRY NOW SAY DIFFERENT THINGS, and that is the point rather than a
+      contradiction to smooth over. The LEVEL finding above stands exactly as measured, about a point
+      narrow at 9 of the 10 spots. The SHAPE finding is new, is larger, and is not visible in any
+      aggregate: at `CO/LJ:raise@2.5` the aggregate is 7.70 against the reference's 9.35, which reads as
+      ordinary tightness, while seven ace-and-king classes are folded here and played there. A range can
+      be the right size with the wrong contents, and this family is the third of the five committed
+      families where that holds in the same direction.
+      WHAT DOES NOT CHANGE. Decision 45 is not reopened, the merge is still the right call against
+      printing fold, and none of this is a re-solve. What changes is what a reader may conclude: the
+      stage-6 sign-off on this family's shape is withdrawn, the report now publishes the per-hand split
+      beside the ten `vs one open` rows, and the cause and the forward measurement live under
+      `PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS`, whose word for the size of this was
+      "slightly" until 2026-09-05.
+
   - id: KICKER-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED
     status: deferred
     phase: "14"
-    title: The chart plays a weaker kicker more than a stronger one at 23 committed cells, and ships that way
+    title: The chart plays a weaker kicker more than a stronger one at 181 committed cells, and ships that way
     reason: >-
       Filed 2026-09-02 with decision 47, after the fresh stage-1 review found the kicker family and the
       coordinator split it. The review reported 89 cases; measured over the committed set there are 86 and
@@ -4829,6 +5069,17 @@ items:
       while calling `KJo` 55.76, and `AQs` over `AJs` at 5. The report already has to separate the
       wheel-ace cases; separating the ace-trough cases from the dominated-pair cases is the same edit and
       would stop a packet reading 94 as 94 things wrong.
+
+      RETITLED 2026-09-05 by phase 14's stage-8 backlog sweep. The title said "at 23 committed cells",
+      which was the count over the retired 86-spot cut, while this entry's own 2026-09-03 extension had
+      already re-derived the family at 181 over the committed 249. Re-derived again here, independently
+      of both, by running `chart_relations.inversions` with `ROW_KICKERS` over the play grid of every
+      spot in `data/artifacts/preflop/six_max_100bb_rakefree.json`: **181 violations over 32,868
+      comparisons at 249 spots, 98 of them at a gap of 50 points or wider**. The generated report carries
+      the same 181 and splits it 87 exempted as the wheel-ace premium, 29 with no poker story at 50
+      points or wider and 65 below it. Nothing here closes: the body was right and the line a reader
+      scans was three committed-set moves behind it. A title is a figure like any other, which is the
+      part `HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES` did not name until 2026-09-05.
 
   - id: COMMITTED-SPOTS-THE-BOT-CANNOT-REACH-BY-ITS-OWN-PLAY
     status: deferred
@@ -5060,6 +5311,43 @@ items:
       committed artifact with "186 of the 249 committed spots" among them, and the frozen constant it says
       protects them reads 249 in two test files rather than 86 in three.
 
+      EXTENDED 2026-09-05 by phase 14's stage-8 reviews and backlog sweep. One thing closes, and the
+      diagnosis widens twice.
+      THE ONE THAT CLOSES. The 2026-09-04 extension above says "ONE SURVIVES" and names it: the plain
+      string literal "folds 93 percent of its range there" in the exposure section of
+      `scripts/generate_derived_chart_report.py`. It is gone. The section now prints a measured fold
+      figure per squeeze spot off the walk's own terminal split, and the ten read 84.9857, 85.7253,
+      87.8738, 88.9948, 89.2770, 90.9481, 91.6313, 91.3322, 92.8622 and 93.3284 - verified here against
+      the generated report. So 93 was the MAXIMUM presented as the figure, the mean is 89.70, and 5 of
+      the 10 sit below 90. That matters beyond the arithmetic because the sibling claim in
+      `chart_selection.is_big_blind_squeeze_spot`'s docstring, "the big blind folds better than nine
+      times in ten here", holds at 5 of the 10 and is still prose. What the clause actually rests on does
+      hold exactly: the same docstring's "leaves that branch carrying under nine points" reproduces, with
+      exposures running 3.7368 to 8.9845. This entry's own prescription is what fixed it - the figure was
+      re-derived rather than re-typed.
+      THE FIRST WIDENING: TITLES. This entry has always been about counts inside a document's BODY, and
+      the stage-8 mechanical review found the same defect one field up. A backlog title is what
+      `docs/BACKLOG.md` renders into the column a reader scans, and two of them described a chart this
+      phase retired while their own bodies had already corrected themselves.
+      `KICKER-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED` said "at 23 committed cells" over the retired
+      86-spot cut, where its own 2026-09-03 extension re-derives 181 over the committed 249.
+      `CHART-HERO-MUST-NEVER-LIMP` said "and today's chart does" limp, where the shipped artifact has all
+      five first-in spots at zero call weight and no cell naming a call at all. Both were retitled
+      2026-09-05, neither closed. A body that corrects itself while the title does not is worse than a
+      body that is simply stale, because the entry now reads as maintained.
+      THE SECOND WIDENING: COUNTERFACTUAL CLAIMS. A count over a state the repo does not build cites
+      nothing by construction, so the cheap fix this entry proposes - a gate command re-deriving every
+      number in the decision record and the backlog - cannot reach one even in principle, and neither can
+      the honest minimum, since there is no field to cite. The instance is "commits 361 nodes with 321
+      three-bet-facing spots", which stood at four sites and measures 346 with 316. It is filed under
+      `A-COUNT-WITH-NO-OWNER-IS-COPIED-BETWEEN-TEST-FILES` with the measurement, and the freeze half is
+      `A-FROZEN-TEST-STATES-A-COUNT-IN-PROSE-SO-NOTHING-CAN-GO-RED`.
+      SO THE DIAGNOSIS THIS ENTRY CARRIES FORWARD IS THREE THINGS, not one: a count in a body, a count in
+      a title, and a count over a state that does not exist. The first is the one a generated comparison
+      can reach. The second needs the title treated as a figure, which is a one-line rule and nobody has
+      written it. The third needs the claim to become a test that runs the counterfactual, because
+      nothing else can ever check it.
+
   - id: RAISE-ACTION-INVERSIONS-WERE-INVISIBLE-TO-EVERY-RELATION
     status: deferred
     phase: "14"
@@ -5251,6 +5539,66 @@ items:
       eleven rather than piecemeal under time pressure. What would change the answer is the phase closing
       with the figures still duplicated, at which point this stops being drift and becomes the next
       phase's inherited defect.
+
+      EXTENDED 2026-09-05 by phase 14's stage-8 backlog sweep with one more ownerless count, found by
+      the stage-8 mechanical review and the worst of the set so far because it is a COUNTERFACTUAL and so
+      cites nothing by construction: the state it describes does not exist in the tree, so no import and
+      no generated-report comparison can reach it.
+      THE COUNT. "Dropping the second exemption commits 361 nodes with 321 three-bet-facing spots instead
+      of 219" appeared at four sites - `chart_selection.cold_call_index`'s docstring,
+      `tests/test_chart_derivation.py` at roughly lines 25, 306 and 496, and the phase's decision record.
+      Re-measured for this entry by patching `cold_call_index` in a fresh process and recounting every
+      node in the committed export, the answer is **346 committed, split 5 first-in / 25 facing an open /
+      316 facing a three-bet**, or 356 on the basis the surrounding sentences use, which is before the
+      third clause takes ten. Neither reading reaches 361, and 321 is wrong under both. The argument the
+      figure exists to support survives untouched: the exemption still moves nearly a hundred nodes and
+      the direction is unchanged.
+      WHY IT IS THIS ENTRY'S SHAPE AND NOT ONLY A STALE NUMBER. There is no field, no report column and
+      no fixture that could own it, because it is a measurement of a chart the repo does not build. The
+      one thing that could own it is a test that RUNS the counterfactual and asserts its total, and the
+      file that runs it asserts the ruled branch node by node instead and states the counterfactual in
+      its docstring. `chart_selection.py` and the decision record are corrected as of 2026-09-05; the
+      three test sites are frozen and are not, which is
+      `A-FROZEN-TEST-STATES-A-COUNT-IN-PROSE-SO-NOTHING-CAN-GO-RED`.
+
+  - id: A-FROZEN-TEST-STATES-A-COUNT-IN-PROSE-SO-NOTHING-CAN-GO-RED
+    status: deferred
+    phase: contract-update
+    title: A frozen test file states counts in prose, so a wrong one survives the freeze with the gate green
+    reason: >-
+      Filed 2026-09-05 by phase 14's stage-8 mechanical review. It is a loop rule rather than a test fix,
+      which is why it is filed against `contract-update` and not against the phase.
+      THE INSTANCE. `tests/test_chart_derivation.py` exists to recompute the selection rule's counts node
+      by node - that is the whole reason the file was written that way, stated in its own docstring: it
+      "measures the ruled one branch by branch instead of asserting the total it happens to produce".
+      Three of its docstrings nevertheless state a counterfactual TOTAL as prose: at roughly line 25,
+      "the other readings of that phrase commit 257 with nothing removed and 361 with every hero call
+      removed"; at roughly line 306, "dropping the second commits 361 nodes with 321 three-bet-facing
+      spots instead of 219"; and at roughly line 496, "removing hero's call at every node he acts at
+      commits 361". Re-measured here against the committed export by patching `cold_call_index` in a
+      fresh process: **removing nothing commits 257 and that one is right**; every other appearance of
+      361 is wrong, the answer being **356** on the same basis and **346** once all three clauses apply,
+      with **316** three-bet-facing spots rather than 321.
+      WHY NOTHING IS RED. The claims are in docstrings, so no assertion evaluates them; the file is in
+      `verification/freeze.lock`, so correcting them is a freeze-lock rewrite and its own task; and
+      `check_gate_bite` proves the ASSERTIONS bite, which these are not. So the one file whose purpose is
+      recomputing these counts is the file still asserting the wrong one in words, and every gate the
+      repo has passes.
+      THE GENERAL SHAPE, which is the point rather than the three lines. A frozen test is the strongest
+      guarantee this repo issues, and freezing raises the cost of correcting anything in the file to a
+      whole task. Prose inside such a file therefore gets the credibility of the freeze and none of its
+      enforcement, and the asymmetry runs the wrong way: the harder a statement is to correct, the more
+      weight a later reader gives it. This is the same family as
+      `A-MIGRATION-ASSERTED-A-RULE-WHERE-IT-SHOULD-HAVE-MEASURED-THE-CHART`, which found a stage
+      asserting a property it had inferred rather than measured, and of
+      `HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES`, which is the same defect everywhere else in
+      the repo. What is new is the freeze.
+      WHAT IS OWED, and there are two honest options rather than one. Either a docstring in a frozen test
+      states no count it does not itself compute - the counterfactual becomes a test that runs it, or the
+      sentence names the field it came from - or the freeze rule says plainly that only assertions are
+      frozen and a later task may correct prose in a frozen file without a freeze-lock rewrite. The
+      second is cheaper and the first is what the file's own docstring already claims to do. Not fixed in
+      this phase because both are loop-level and the file is frozen.
   - id: THREE-CONSTANTS-TWO-MEANINGS-AND-ONE-VALUE-FOR-THE-SQUEEZE-TEN
     status: deferred
     phase: "14"
@@ -5356,6 +5704,32 @@ items:
       by the report per opener, at which point "over-folds" is measured or withdrawn. Not done here because
       sourcing it is external work this phase has no budget for, and a wrong reference committed as data
       would be worse than a stated absence.
+
+      EXTENDED 2026-09-05 by phase 14's stage-8 poker review, which found that the ONE external
+      comparison the report does print over hero's defence to a three-bet cannot mean what it is read to
+      mean, for a reason that is neither rake nor ranges.
+      THE REPORT'S FIFTEEN `vs one three-bet` ROWS put this chart's defence beside the raked reference's
+      and conclude "total defence wider at 15 of 15 spots" and "the defence column clears the floor at
+      every spot". The rows do not print the SIZE of the three-bet each side is answering. Read off the
+      reference's own `action_path` fields and re-derived here: the reference's opener faces **8bb at 6
+      of the 15 spots, 11bb at 4, 13.5bb at 4, and 10.5bb at the fifteenth**, where this chart's opener
+      faces 7.5 at all fifteen. So at 9 of the 15 rows the two sides are answering three-bets that differ
+      by 3.5 to 6 big blinds. The fifteenth is not the same tree at all: the reference's small blind
+      opens 3.5 and faces 10.5 where this chart's opens 2.5 and faces 7.5, and that row is where the
+      largest defence gaps sit.
+      WHY IT MATTERS TO THIS ENTRY SPECIFICALLY. This entry's subject is that the phase's headline
+      accepted defect is a LEVEL and nothing outside the repo grades it. The `vs one three-bet` block is
+      the nearest thing the repo has to such a grading, and at 9 of its 15 rows it cannot establish a
+      floor in either direction, because a defender priced 3.5 to 6 big blinds more cheaply should defend
+      wider and does. What the block establishes is a floor at the 6 rows priced within half a big blind
+      of each other, and it does not say so.
+      THE FIX IS ONE COLUMN and it changes no finding: print the reference's three-bet size beside each
+      row, so a reader can see which six rows the comparison is a floor for. The report already prints
+      the four-bet as a multiple of the three-bet - which is
+      `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED`'s half of this - and that ratio does not carry the
+      absolute price, which is the confound on the DEFENCE column rather than on the four-bet column.
+      Not done in this phase, and it is cheap enough that it should not wait for the rake-free reference
+      this entry is really about.
 
   - id: THE-RANK-ARMS-KEPT-RESTRICTION-IS-ONE-CELL-NOT-A-SECOND-OPINION
     status: deferred
@@ -5493,6 +5867,33 @@ items:
       every relation is internal. Filed against phase 16 to sit beside
       `GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE`, since whoever builds the next relation family
       is the reader who needs this.
+
+      EXTENDED 2026-09-05 by phase 14's stage-8 poker review with the OTHER axis nothing compares, and it
+      is a different gap from the one above rather than more of it. The 2026-09-04 entry is about the
+      distance a comparison can span: neighbours only, so a hole two cells wide is invisible. This is
+      about the DIRECTION a comparison can run.
+      THE GAP. All four published relations hold the high card fixed. The pair ladder walks the pair rank,
+      the row kicker ladder walks the kicker inside one high card's row, and the suited relation compares
+      a hand against its own twin. Nothing anywhere compares K9s against Q9s, or ATs against QTs: same
+      low card, same suitedness, different high card. That is precisely the direction the merged family's
+      inversions live in - a chart that folds ace-ten suited and king-ten suited while three-betting
+      queen-ten suited is scored clean by all four - so no measurement in this phase can see the finding
+      that became stage 8's blocker.
+      THE METHOD IS THE PART WORTH KEEPING, and it is the answer to "how do you add a relation without
+      asserting your own poker taste". The review validated the candidate relation on the committed RAKED
+      reference first, keeping only the pairs the reference itself never plays the wrong way round, and
+      scored the chart on those alone. So the poker claim behind each surviving comparison is the
+      reference's rather than the reviewer's. Whoever builds the next relation family should do it this
+      way whatever direction they pick.
+      THE COUNTS ARE NOT REPRODUCIBLE and the direction is. The note reports 179 chart violations, 131 at
+      a gap of 50 points or wider, over 59 spots, from 99 validated pairs out of 153 the reference
+      exercises at 10 or more of its 36 spots. Rebuilt here from the note's stated description the
+      candidate set is 572 pairs, 56 are exercised at 10 or more reference spots, 28 survive the filter,
+      and scoring those gives **153 violations, 112 at 50 points or wider, over 53 spots**. Two
+      constructions, both showing the relation fires in the low hundreds across roughly a fifth of the
+      committed set, and no way to say which count is right from what the note states - that gap is
+      `A-REVIEW-NOTE-STATES-ONE-METHOD-AND-USES-ANOTHER`. Whoever takes this up rebuilds the relation and
+      publishes its own figure rather than inheriting either.
 
   - id: TWO-MEASURED-GATE-HOLES-LIVE-ONLY-AS-YAML-COMMENTS
     status: deferred
@@ -5664,6 +6065,30 @@ items:
       `A-MIGRATING-STAGE-RECORDS-NO-LIST-OF-THE-GATES-IT-REDDENS`, and it is the same family as
       `HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES` moved from a count in prose to a predicate
       in an assertion.
+
+      EXTENDED 2026-09-05 by phase 14's stage-8 reviews, which found the same class of error in a surface
+      this entry did not reach: SHIPPED PROSE, including the committed artifact's own audit note. The
+      entry's rule was written for a migrating stage's frozen tests. It generalises.
+      THE INSTANCE. The reason published for merging the solve's cold call into hero's raise read "at the
+      20 spots where hero faces an open with NOTHING POSTED". The rule the code implements is that hero
+      has nothing in BEYOND THE BLINDS, which is a different sentence: a blind is posted rather than
+      chosen. Measured here against the shipped artifact, the merging family is **20 spots and 10 of them
+      are the small blind**, which has posted 0.5. So the published reason was false at exactly half the
+      spots it covers, and the half it was false at is the half a reader is most likely to check, the
+      small blind being the seat whose posted chip is the whole question. Corrected at four sites during
+      this stage; the artifact note now states the rule in the code's own terms and names the ten small
+      blinds and why they merge anyway.
+      WHY IT IS THIS ENTRY'S SHAPE. Nothing was measured wrongly and no weight moved. A rule was restated
+      in plainer English for a reader, and the plainer English asserted a property - nobody has posted -
+      that the rule does not have. That is this entry's error running in the opposite direction from the
+      frozen-test instances: there a stage inferred a property FROM a rule, here a stage glossed a rule AS
+      a property. Both produce a committed sentence that is false about the artifact while the code is
+      right.
+      WHAT THAT ADDS TO WHAT IS OWED. The discipline this entry proposes - an assertion of the form "rule
+      X holds, SO property Y" carries Y's measurement - covers the gloss too, and the cheap version for
+      prose is narrower still: a sentence that restates a selection rule names the set it is true over,
+      or names the exception. The artifact note now does both, which is the pattern worth copying rather
+      than a fix that ends here.
 
   - id: A-PRICE-DRAW-WITH-NO-TWO-PRICE-SPOT-LEFT-TO-DRAW-AT
     status: deferred
