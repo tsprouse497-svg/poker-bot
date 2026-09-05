@@ -116,6 +116,14 @@ the one B1 and B2 took at stage 6 - take the measurement, publish it per hand be
 say in poker terms why the contents are right at this family while the same read condemned the
 contents at the first-in one.
 
+[resolved] The per-hand read now runs over the merged family as the fourth block of `## The
+derived chart against the GTO Wizard expectations`, a row per spot with the ace-and-king split
+counted on both directions, the big-blind control row beside it, and prose saying plainly that
+standard theory three-bets the blockers and this does the reverse, naming the three things it is
+not; re-derived under the report's own fifty-point rule the counts come out 62 folded here and
+played there with all 62 holding an ace or a king, against 63 played here and folded there with
+none holding either.
+
 **B2. The four-bet ranges at the 219 three-bet-facing spots - 88 percent of the chart - select
 bluffs with no blockers. Nobody has measured the four-bet's composition at all; the report
 publishes only its frequency, and hands that frequency forward as where a later phase starts.**
@@ -194,6 +202,14 @@ starting from a frequency, with the composition unmeasured and pointing this way
 the wrong number. The fix is additive and needs no re-solve: publish the four-bet's composition
 beside its frequency, and stop letting the wheel-ace bluff-selection argument stand in the same
 packet as a four-bet range that has no blockers in it.
+
+[resolved] The four-bet's composition is now published beside its frequency as the fifth block of
+`## The derived chart against the GTO Wizard expectations`, a row per spot carrying the KTs/KJs
+weight and the unpaired no-blocker share against the reference's, the figure over all 219 spots,
+the six spots priced within half a big blind, the heaviest grid's own raise and call lists, and
+prose naming the tension with the wheel-ace exemption the defects section argues on blocker
+logic; re-derived, KTs or KJs four-bets above 50 percent at 0 of 15 spots here against 10 of 15
+there, and the no-blocker share is higher here at 15 of 15.
 
 ## Non-blocker
 

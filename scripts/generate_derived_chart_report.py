@@ -102,7 +102,10 @@ from poker_training_bot.solver_artifacts.gtopen_export import (  # noqa: E402
     gtopen_class_index,
     load_solver_export,
 )
-from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES  # noqa: E402
+from poker_training_bot.solver_artifacts.hand_classes import (  # noqa: E402
+    HAND_CLASSES,
+    HIGH_TO_LOW_RANKS,
+)
 from poker_training_bot.solver_artifacts.importer import import_preflop_artifact  # noqa: E402
 from poker_training_bot.solver_artifacts.lookup import PreflopChartLibrary  # noqa: E402
 from poker_training_bot.solver_artifacts.schema import PreflopArtifact  # noqa: E402
@@ -226,6 +229,19 @@ kicker family whole overstates what is wrong with the chart by about half."""
 WIDE_KICKER_GAP_PCT = 50.0
 """Where the kicker cases with no poker story are split, in points. The two sizes are published
 apart because a fifty-point inversion and a two-point one are not the same finding."""
+
+SPELLED = {
+    "ATs": "ace-ten suited",
+    "AQo": "ace-queen offsuit",
+    "JTs": "jack-ten suited",
+    "KQo": "king-queen offsuit",
+    "KTs": "king-ten suited",
+    "76s": "seven-six suited",
+}
+"""The few hand classes the prose names in words rather than in grid notation.
+
+A finding a reader has to decode is a finding they skim, and these six carry the merged family's
+inversion. The weights beside them are still measured, never spelled: only the name is here."""
 
 
 class DerivedChartReportError(RuntimeError):
@@ -556,6 +572,81 @@ def reference_hand_raises() -> dict[str, dict[str, float]]:
                 weights[name] = weights.get(name, 0.0) + 100.0 * float(weight)
         found[str(spot["key"])] = weights
     return found
+
+
+def reference_hand_plays() -> dict[str, dict[str, float]]:
+    """Per reference spot, how much of each hand class puts money in either way, in points.
+
+    The raise-only read above is what a first-in spot has to be read on, hero having no call to
+    make there. At a spot where hero faces a bet the question is whether the hand continues at
+    all, so raise and call are added exactly as this report's own `plays` column adds them, and
+    a hand the reference flats reads as played rather than as a disagreement with a chart that
+    raises it.
+    """
+    found: dict[str, dict[str, float]] = {}
+    for spot in _reference_payload()["spots"]:
+        weights: dict[str, float] = {}
+        for label, listing in spot["strategy"].items():
+            if label.startswith("Fold"):
+                continue
+            for item in str(listing).split(","):
+                if not item:
+                    continue
+                name, _, weight = item.partition(":")
+                weights[name] = weights.get(name, 0.0) + 100.0 * float(weight)
+        found[str(spot["key"])] = weights
+    return found
+
+
+def holds_an_ace_or_a_king(name: str) -> bool:
+    """Whether a hand class holds one of the two cards a three-bet bluff is chosen for.
+
+    Stated once and used on both sides of every count below, because the finding those counts
+    carry is that the two directions do not overlap, and a predicate written twice is the way
+    two directions come to be measured under two rules.
+    """
+    return "A" in name[:2] or "K" in name[:2]
+
+
+def per_hand_disagreement(
+    cells: Mapping[str, float], cited: Mapping[str, float]
+) -> tuple[list[str], list[str]]:
+    """The hand classes two grids disagree about by a wide margin, split by direction.
+
+    One rule for all three families this report reads per hand, so the merged and first-in reads
+    cannot be compared under two different thresholds. Wide is `WIDE_KICKER_GAP_PCT`, the same
+    gap the kicker relation is stated over.
+    """
+    names = sorted(set(cells) | set(cited))
+    return (
+        [n for n in names if cited.get(n, 0.0) - cells.get(n, 0.0) >= WIDE_KICKER_GAP_PCT],
+        [n for n in names if cells.get(n, 0.0) - cited.get(n, 0.0) >= WIDE_KICKER_GAP_PCT],
+    )
+
+
+def four_bet_no_blocker_mass(
+    raises: Mapping[str, float], weights: Mapping[str, float]
+) -> tuple[float, float]:
+    """One grid's unpaired four-bet mass, and the part of it holding neither an ace nor a king.
+
+    Pairs are excluded on both sides. The pair ladder is an accepted defect of this chart, so a
+    share that counted pairs would be partly measuring a defect already ruled and published, and
+    the question here is which unpaired hands were picked to bluff with.
+
+    The caller supplies the weighting, and the two callers below want different ones. A per-spot
+    column beside the reference is weighted by combinations alone, the reference publishing no
+    reach; the figure over all 219 is weighted by combinations times arriving reach, which is the
+    weighting every other frequency in this report uses.
+    """
+    total = bluffs = 0.0
+    for name, weight in raises.items():
+        if len(name) == 2:
+            continue
+        mass = weights.get(name, 0.0) * weight
+        total += mass
+        if not holds_an_ace_or_a_king(name):
+            bluffs += mass
+    return total, bluffs
 
 
 def reference_key_for(spot_key_text: str) -> str | None:
@@ -2072,12 +2163,19 @@ def menus_section(measured: Measured) -> list[str]:
     merged = measured.family("the merged spots")
     big_blind = measured.family("the big blind facing an open")
     three_bet = measured.family("the three-bet-facing spots")
+    small_blind_merges = sum(1 for key in merged if hero_seat(key) == "SB")
     lines = [
-        "The bot never cold-calls. Money in behind an opener with nothing already posted buys a",
-        "multiway pot out of position, so where hero faces an open and has posted nothing the",
-        "solve's call is merged into his raise. The big blind is not one of those seats - it has",
-        "paid a blind, so its call is a defence rather than a cold call - and neither is a seat",
-        "that opened and now faces a three-bet. Three families, three menus:",
+        "The bot never cold-calls. Money in behind an opener with nothing of hero's own already",
+        "in buys a multiway pot out of position, so where hero faces an open and has nothing in",
+        "BEYOND THE BLINDS the solve's call is merged into his raise. That wording is the whole",
+        f"rule, because {small_blind_merges} of these {len(merged)} spots ARE the small blind,",
+        "which has posted 0.5: a blind is posted rather than chosen, so calling from there is",
+        "still money going in behind an opener and it merges like the rest. The big blind is the",
+        "one seat exempted, and not because it has posted more - because it closes the action.",
+        "Its call ends the betting into a heads-up pot at a price it is already half paying,",
+        "which is a defence rather than a cold call. The small blind's does neither: the big",
+        "blind is still behind it and can raise. Nor is a seat that opened and now faces a",
+        "three-bet cold, its own raise being already in. Three families, three menus:",
         "",
         f"  family  the big blind facing an open  spots {len(big_blind)}  menu fold/call/raise",
         f"  family  the merged spots  spots {len(merged)}  menu fold/raise",
@@ -2135,9 +2233,10 @@ def expectations_section(measured: Measured) -> list[str]:
         for key in measured.family("the merged spots")
         if (reference_key_for(key) or "").endswith("_open")
     )
+    three_bet_family = measured.family("the three-bet-facing spots")
     three_bet = sorted(
         (key, str(reference_key_for(key)))
-        for key in measured.family("the three-bet-facing spots")
+        for key in three_bet_family
         if (reference_key_for(key) or "").endswith("_3bet")
     )
     lines = [
@@ -2179,7 +2278,10 @@ def expectations_section(measured: Measured) -> list[str]:
         "rake-free solve is not supposed to go. Nothing below gates anything.",
         "",
         f"First, defence against a single open at the merged family - the {len(faced)} spots where",
-        "hero has posted nothing, faces one open and nobody else is in. These are the same spots",
+        "hero has nothing in beyond the blinds, faces one open and nobody else is in."
+        f" {sum(1 for key, _ in faced if hero_seat(key) == 'SB')} of them are the small blind,",
+        "whose posted 0.5 is not something it chose to put in; the big blind, which closes the",
+        "action, is a family of its own and is read separately below. These are the same spots",
         "whose raise-plus-call the menu section prints; here they are beside a figure from",
         "outside:",
         "",
@@ -2278,17 +2380,12 @@ def expectations_section(measured: Measured) -> list[str]:
         reference_key = str(reference_key_for(key))
         cited_cells = hand_raises[reference_key]
         cells = measured.play[key]
-        disagreeing = [
-            name
-            for name in sorted(set(cells) | set(cited_cells))
-            if abs(cells.get(name, 0.0) - cited_cells.get(name, 0.0)) >= WIDE_KICKER_GAP_PCT
-        ]
-        folded = [n for n in disagreeing if cells.get(n, 0.0) < cited_cells.get(n, 0.0)]
-        opened = [n for n in disagreeing if cells.get(n, 0.0) > cited_cells.get(n, 0.0)]
+        folded, opened = per_hand_disagreement(cells, cited_cells)
         lines += [
             f"  first-in  {position}  opens {measured.plays[key]:.3f}"
             f"  raked reference {raised[reference_key]:.2f}"
-            f"  hands differing by {WIDE_KICKER_GAP_PCT:.0f} points or more  {len(disagreeing)}",
+            f"  hands differing by {WIDE_KICKER_GAP_PCT:.0f} points or more"
+            f"  {len(folded) + len(opened)}",
             f"    folded here, opened there  {len(folded)}",
             *_wrapped(folded, "      "),
             f"    opened here, folded there  {len(opened)}",
@@ -2309,6 +2406,221 @@ def expectations_section(measured: Measured) -> list[str]:
         "reference opens all twelve suited aces from that seat. A ladder relation compares",
         "neighbours, so a hole two cells wide shows up as one case, and the wheel-ace exemption",
         "then reports that one case as correct poker. This row is where the hole is visible whole.",
+        "",
+        f"Fourth, the SAME per-hand read over the merged family - the {len(faced)} spots whose",
+        "aggregate is the first block above. The aggregate there is short of the reference by",
+        "about a point and reads as tightness. Per hand it is not tightness, it is an inversion,",
+        "and the two directions do not overlap at a single hand class. Each row carries how many",
+        "of its disagreeing classes hold an ace or a king, which is the whole finding:",
+        "",
+    ]
+    hand_plays = reference_hand_plays()
+    merged_folded = merged_played = merged_folded_blockers = merged_played_blockers = 0
+    for key, reference_key in faced:
+        folded, played = per_hand_disagreement(measured.play[key], hand_plays[reference_key])
+        blocking = sum(1 for name in folded if holds_an_ace_or_a_king(name))
+        bluffing = sum(1 for name in played if holds_an_ace_or_a_king(name))
+        merged_folded += len(folded)
+        merged_played += len(played)
+        merged_folded_blockers += blocking
+        merged_played_blockers += bluffing
+        lines += [
+            f"  merged per hand  {key}  folded here, played there  {len(folded)}"
+            f"  of which hold an ace or a king  {blocking}"
+            f"  played here, folded there  {len(played)}"
+            f"  of which hold an ace or a king  {bluffing}",
+            *_wrapped(folded, "      folded here, played there   "),
+            *_wrapped(played, "      played here, folded there   "),
+        ]
+    king_queen_folded = sum(
+        1 for key, _ in faced if measured.play[key].get("KQo", 0.0) <= 100.0 - PURE_PCT
+    )
+    cutoff = "t6/d100/CO/LJ:raise@2.5"
+    cutoff_bluffs = [
+        SPELLED[name]
+        for name in ("JTs", "76s")
+        if measured.play[cutoff].get(name, 0.0) >= PURE_PCT
+    ]
+    cutoff_folds = [
+        SPELLED[name]
+        for name in ("AQo", "KQo")
+        if measured.play[cutoff].get(name, 0.0) <= 100.0 - PURE_PCT
+    ]
+    cutoff_marginals = [(name, measured.play[cutoff].get(name, 0.0)) for name in ("ATs", "KTs")]
+    control_folded = control_played = control_folded_blockers = control_played_blockers = 0
+    for key in measured.family("the big blind facing an open"):
+        folded, played = per_hand_disagreement(
+            measured.play[key], hand_plays[str(reference_key_for(key))]
+        )
+        control_folded += len(folded)
+        control_played += len(played)
+        control_folded_blockers += sum(1 for name in folded if holds_an_ace_or_a_king(name))
+        control_played_blockers += sum(1 for name in played if holds_an_ace_or_a_king(name))
+    lines += [
+        "",
+        f"  merged family  folded here, played there  {merged_folded}"
+        f"  holding an ace or a king  {merged_folded_blockers}"
+        f"  played here, folded there  {merged_played}"
+        f"  holding an ace or a king  {merged_played_blockers}",
+        f"  big blind control  folded here, played there  {control_folded}"
+        f"  holding an ace or a king  {control_folded_blockers}"
+        f"  played here, folded there  {control_played}"
+        f"  holding an ace or a king  {control_played_blockers}",
+        "",
+        "Say what that is in poker. Standard theory three-bets the hands that BLOCK the opener's",
+        "continuing range - the aces and the kings - and folds or flats the connectors that block",
+        f"nothing. This chart does the reverse: all {merged_folded} classes it folds where the",
+        f"reference plays hold an ace or a king, and {merged_played_blockers} of the"
+        f" {merged_played} it plays where the",
+        f"reference folds do. King-queen offsuit is folded pure at {king_queen_folded} of the"
+        f" {len(faced)} seats. At the cutoff",
+        f"facing a lojack open it three-bets {' and '.join(cutoff_bluffs)} pure while folding",
+        f"{' and '.join(cutoff_folds)} pure, with"
+        f" {', '.join(f'{SPELLED[n]} at {v:.3f} percent' for n, v in cutoff_marginals)}.",
+        "Nothing in bluff selection reaches that ordering: the hands it folds block better AND",
+        "hold more equity than the ones it three-bets, so the polarization argument this report",
+        "makes for the wheel aces in the defects section points the other way here.",
+        "",
+        "Three things this is NOT, each measured rather than assumed. It is not the merge: the",
+        "fold weight at these spots is the solve's OWN fold with the call branch still on the",
+        "menu, and the merge only ever moves call into raise, so the solve folds ace-ten suited",
+        "at the cutoff against an under-the-gun open with a cold call available. It is not the",
+        "rake: rake makes a cold call worse, so the RAKED column is the one that should be",
+        "dropping the marginal aces and kings, and the direction here is the one this section's",
+        "own floor rule says a rake-free solve is not supposed to go. And it is not the big",
+        "blind's accepted over-folding: the control row above runs the identical read over the",
+        "five big-blind spots, where hero keeps a call branch, and the one-direction signature is",
+        "absent - which is what makes it a property of these ten spots and not of the chart.",
+        "",
+        "What that costs the packet: the accepted defect naming the big blind does not cover this",
+        "family, the merged family's shape is not sound whatever its size is, and a student",
+        f"drilled on these {len(faced)} grids is being taught to fold king-queen offsuit to an"
+        " open at every one of them.",
+        "It is published here rather than repaired because repairing it is a re-solve, which this",
+        "phase does not do, and because the conversion itself is exact against the export at all",
+        f"{measured.walk.solve_purity[0]} cells at non-zero reach"
+        " (PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS,",
+        "whose word for the size of this was `slightly`).",
+        "",
+        f"Fifth, WHICH hands do the four-betting at the {len(three_bet)} spots the reference"
+        f" reaches out of the",
+        f"{len(three_bet_family)} in the family -"
+        f" {100.0 * len(three_bet_family) / len(measured.play):.0f} percent of this chart -",
+        "because the second block published how OFTEN and nobody had asked what with. A",
+        "four-bet bluff is chosen for its blockers: it wants the ace and the king that the hands",
+        "continuing against it are made of. Two columns per spot - how much king-ten or king-jack",
+        "suited four-bets, which is the reference's own bluff, and the share of UNPAIRED four-bet",
+        "mass held by hands with neither an ace nor a king, which is the opposite of a blocker:",
+        "",
+    ]
+    king_here = king_there = no_blocker_higher = 0
+    shares: list[float] = []
+    priced_alike: list[tuple[str, float, float]] = []
+    combinations = {name: float(class_combos(name)) for name in HAND_CLASSES}
+    for key, reference_key in three_bet:
+        cited_cells = hand_raises[reference_key]
+        cells = measured.raise_weight[key]
+        blocker_here = max(cells.get("KTs", 0.0), cells.get("KJs", 0.0))
+        blocker_there = max(cited_cells.get("KTs", 0.0), cited_cells.get("KJs", 0.0))
+        total, bluffs = four_bet_no_blocker_mass(cells, combinations)
+        cited_total, cited_bluffs = four_bet_no_blocker_mass(cited_cells, combinations)
+        share = 100.0 * bluffs / total if total else 0.0
+        cited_share = 100.0 * cited_bluffs / cited_total if cited_total else 0.0
+        shares.append(share)
+        king_here += blocker_here > 50.0
+        king_there += blocker_there > 50.0
+        no_blocker_higher += share > cited_share
+        if abs(prices[reference_key]["answering_bb"] - raise_faced_to_bb(key)) <= 0.5:
+            priced_alike.append((key, share, cited_share))
+        lines.append(
+            f"  four-bet mix  {key}  KTs/KJs {blocker_here:.3f}"
+            f"  raked reference {blocker_there:.3f}"
+            f"  unpaired four-bet mass with no ace and no king {share:.1f}"
+            f"  raked reference {cited_share:.1f}"
+        )
+    weighted_total = weighted_bluffs = 0.0
+    carrying = 0
+    heaviest = max(three_bet_family, key=lambda key: measured.walk.arrivals[key])
+    for key in three_bet_family:
+        total, bluffs = four_bet_no_blocker_mass(measured.raise_weight[key], measured.weights[key])
+        weighted_total += total
+        weighted_bluffs += bluffs
+        carrying += total > 0.0
+    pure_bluffs = sorted(
+        name
+        for name, weight in measured.raise_weight[heaviest].items()
+        if weight >= PURE_PCT and not holds_an_ace_or_a_king(name) and len(name) > 2
+    )
+    blockers_held = [
+        name
+        for name in measured.raise_weight[heaviest]
+        if name.endswith("s") and holds_an_ace_or_a_king(name)
+    ]
+    flatted = sorted(
+        name
+        for name in blockers_held
+        if measured.play[heaviest].get(name, 0.0) >= PURE_PCT
+        and measured.raise_weight[heaviest].get(name, 0.0) <= 100.0 - PURE_PCT
+    )
+    valued = sorted(
+        name
+        for name in blockers_held
+        if measured.raise_weight[heaviest].get(name, 0.0) >= PURE_PCT
+    )
+    # Suited connectors only, because that is the comparison the four-bet list invites: the
+    # grid raises 86s and 96s, which are the same shape one and two gaps wider than what it
+    # folds, so naming every folded hand would bury the one pair of rows a reader can weigh.
+    folded_connectors = sorted(
+        name
+        for name in measured.raise_weight[heaviest]
+        if name.endswith("s")
+        and not holds_an_ace_or_a_king(name)
+        and abs(HIGH_TO_LOW_RANKS.index(name[0]) - HIGH_TO_LOW_RANKS.index(name[1])) == 1
+        and measured.play[heaviest].get(name, 0.0) <= 100.0 - PURE_PCT
+    )
+    lines += [
+        "",
+        f"  KTs or KJs four-betting above 50 percent at  {king_here} of {len(three_bet)} spots"
+        f"  raked reference  {king_there} of {len(three_bet)}",
+        f"  no-blocker share higher here at  {no_blocker_higher} of {len(three_bet)} spots"
+        f"  here {min(shares):.1f} to {max(shares):.1f} percent",
+        f"  over all {len(three_bet_family)} three-bet-facing spots  arrival-weighted"
+        f"  {100.0 * weighted_bluffs / weighted_total:.2f} percent"
+        f"  carrying four-bet mass  {carrying}",
+        f"  at the {len(priced_alike)} spots priced within half a big blind of each other"
+        f"  here {min(share for _, share, _ in priced_alike):.1f}"
+        f" to {max(share for _, share, _ in priced_alike):.1f} percent"
+        f"  raked reference {min(cited for _, _, cited in priced_alike):.1f}"
+        f" to {max(cited for _, _, cited in priced_alike):.1f}",
+        "",
+        "The reference four-bets a king-blocker hand and this chart never does. Where its four-bet",
+        "mass goes instead is hands that block nothing, at every spot the reference can be read",
+        f"against, and the last row is why that is not the price: at the {len(priced_alike)}",
+        "spots where the two solves are answering three-bets within half a big blind of each",
+        "other the gap is as wide as anywhere. The family's most-arrived-at grid shows the whole",
+        f"shape at once. At {heaviest}",
+        f"the chart four-bets to {chart_raise_to_bb(sizing, heaviest):.1f} big blinds with these,"
+        f" none of which holds an ace or a king:",
+        *_wrapped(pure_bluffs, "    "),
+        "while flat-calling these, every one of which does:",
+        *_wrapped(flatted, "    "),
+        "That is every suited ace and every suited king in hero's range bar"
+        f" {' and '.join(valued)}, which",
+        f"four-bet for value. It also folds the suited connectors {' '.join(folded_connectors)}"
+        " outright, so",
+        "even among the hands that block nothing the four-bet is taking the higher ones and",
+        "folding the lower - a cut by height rather than by anything a bluff is chosen for. The",
+        "bluffs come out of what blocks nothing the big blind continues with, and what does block",
+        f"it goes in the calling range. All weights at {PURE_PCT:.0f} percent or better.",
+        "",
+        "The tension a reader is owed rather than left to find: the defects section defends the",
+        "wheel-ace exemption on blocker logic - `nut-straight potential plus an ace blocker, and",
+        "picking A5s over A6s for that job is what a strong player does at a three-bet` - and the",
+        "four-bet family, which is most of this chart, selects its bluffs by the opposite rule.",
+        "Both statements are in this packet and only one of them can be how the chart picks a",
+        "bluff. What follows for a later phase: the four-bet frequency the second block hands",
+        "forward is not on its own the number to start from, because a frequency says nothing",
+        "about a range whose composition points this way.",
         "",
         "None of this is a re-solve and none of it moves a weight. It is the measurement the four",
         "internal relations cannot make - every one of them compares a grid against its own other",

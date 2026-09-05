@@ -746,11 +746,17 @@ and it is where a later phase taking up the four-bet family starts.
 
 ## The menu each family publishes, and the merged flats
 
-The bot never cold-calls. Money in behind an opener with nothing already posted buys a
-multiway pot out of position, so where hero faces an open and has posted nothing the
-solve's call is merged into his raise. The big blind is not one of those seats - it has
-paid a blind, so its call is a defence rather than a cold call - and neither is a seat
-that opened and now faces a three-bet. Three families, three menus:
+The bot never cold-calls. Money in behind an opener with nothing of hero's own already
+in buys a multiway pot out of position, so where hero faces an open and has nothing in
+BEYOND THE BLINDS the solve's call is merged into his raise. That wording is the whole
+rule, because 10 of these 20 spots ARE the small blind,
+which has posted 0.5: a blind is posted rather than chosen, so calling from there is
+still money going in behind an opener and it merges like the rest. The big blind is the
+one seat exempted, and not because it has posted more - because it closes the action.
+Its call ends the betting into a heads-up pot at a price it is already half paying,
+which is a defence rather than a cold call. The small blind's does neither: the big
+blind is still behind it and can raise. Nor is a seat that opened and now faces a
+three-bet cold, its own raise being already in. Three families, three menus:
 
   family  the big blind facing an open  spots 5  menu fold/call/raise
   family  the merged spots  spots 20  menu fold/raise
@@ -840,7 +846,9 @@ and never a level confirmed, and this chart reading NARROWER than it is a direct
 rake-free solve is not supposed to go. Nothing below gates anything.
 
 First, defence against a single open at the merged family - the 10 spots where
-hero has posted nothing, faces one open and nobody else is in. These are the same spots
+hero has nothing in beyond the blinds, faces one open and nobody else is in. 4 of them are the small blind,
+whose posted 0.5 is not something it chose to put in; the big blind, which closes the
+action, is a family of its own and is read separately below. These are the same spots
 whose raise-plus-call the menu section prints; here they are beside a figure from
 outside:
 
@@ -959,6 +967,132 @@ aces beside the wheel aces are folded pure while all four wheel aces open pure, 
 reference opens all twelve suited aces from that seat. A ladder relation compares
 neighbours, so a hole two cells wide shows up as one case, and the wheel-ace exemption
 then reports that one case as correct poker. This row is where the hole is visible whole.
+
+Fourth, the SAME per-hand read over the merged family - the 10 spots whose
+aggregate is the first block above. The aggregate there is short of the reference by
+about a point and reads as tightness. Per hand it is not tightness, it is an inversion,
+and the two directions do not overlap at a single hand class. Each row carries how many
+of its disagreeing classes hold an ace or a king, which is the whole finding:
+
+  merged per hand  t6/d100/BTN/CO:raise@2.5  folded here, played there  9  of which hold an ace or a king  9  played here, folded there  8  of which hold an ace or a king  0
+      folded here, played there   A2s A6s A7s A8s A9s AJo K9s KJo KQo
+      played here, folded there   22 66 76s 77 87s J8s J9s T9s
+  merged per hand  t6/d100/BTN/HJ:raise@2.5  folded here, played there  7  of which hold an ace or a king  7  played here, folded there  6  of which hold an ace or a king  0
+      folded here, played there   A2s A3s A7s A8s A9s K7s KQo
+      played here, folded there   22 66 76s 87s JTs T9s
+  merged per hand  t6/d100/BTN/LJ:raise@2.5  folded here, played there  5  of which hold an ace or a king  5  played here, folded there  6  of which hold an ace or a king  0
+      folded here, played there   A3s A6s A9s K5s KQo
+      played here, folded there   66 76s 77 87s JTs QTs
+  merged per hand  t6/d100/CO/HJ:raise@2.5  folded here, played there  9  of which hold an ace or a king  9  played here, folded there  7  of which hold an ace or a king  0
+      folded here, played there   A2s A3s A7s A8s A9s AQo K5s K7s KQo
+      played here, folded there   66 76s 87s 88 99 JTs QTs
+  merged per hand  t6/d100/CO/LJ:raise@2.5  folded here, played there  7  of which hold an ace or a king  7  played here, folded there  7  of which hold an ace or a king  0
+      folded here, played there   A3s A9s AQo ATs K5s KQo KTs
+      played here, folded there   76s 87s 88 99 JTs QJs QTs
+  merged per hand  t6/d100/HJ/LJ:raise@2.5  folded here, played there  7  of which hold an ace or a king  7  played here, folded there  6  of which hold an ace or a king  0
+      folded here, played there   A3s A9s AQo ATs K5s KQo KTs
+      played here, folded there   76s 87s 99 JTs QJs TT
+  merged per hand  t6/d100/SB/BTN:raise@2.5  folded here, played there  7  of which hold an ace or a king  7  played here, folded there  8  of which hold an ace or a king  0
+      folded here, played there   A6s A7s A8s K8s K9s KJo KQo
+      played here, folded there   22 55 76s 87s J8s J9s Q9s T9s
+  merged per hand  t6/d100/SB/CO:raise@2.5  folded here, played there  7  of which hold an ace or a king  7  played here, folded there  4  of which hold an ace or a king  0
+      folded here, played there   A2s A6s A9s K6s K9s KJo KQo
+      played here, folded there   76s 87s JTs T9s
+  merged per hand  t6/d100/SB/HJ:raise@2.5  folded here, played there  3  of which hold an ace or a king  3  played here, folded there  5  of which hold an ace or a king  0
+      folded here, played there   A3s A9s KQo
+      played here, folded there   66 76s 87s JTs QTs
+  merged per hand  t6/d100/SB/LJ:raise@2.5  folded here, played there  1  of which hold an ace or a king  1  played here, folded there  6  of which hold an ace or a king  0
+      folded here, played there   A3s
+      played here, folded there   66 76s 77 87s JTs QTs
+
+  merged family  folded here, played there  62  holding an ace or a king  62  played here, folded there  63  holding an ace or a king  0
+  big blind control  folded here, played there  20  holding an ace or a king  4  played here, folded there  37  holding an ace or a king  4
+
+Say what that is in poker. Standard theory three-bets the hands that BLOCK the opener's
+continuing range - the aces and the kings - and folds or flats the connectors that block
+nothing. This chart does the reverse: all 62 classes it folds where the
+reference plays hold an ace or a king, and 0 of the 63 it plays where the
+reference folds do. King-queen offsuit is folded pure at 10 of the 10 seats. At the cutoff
+facing a lojack open it three-bets jack-ten suited and seven-six suited pure while folding
+ace-queen offsuit and king-queen offsuit pure, with ace-ten suited at 4.270 percent, king-ten suited at 0.060 percent.
+Nothing in bluff selection reaches that ordering: the hands it folds block better AND
+hold more equity than the ones it three-bets, so the polarization argument this report
+makes for the wheel aces in the defects section points the other way here.
+
+Three things this is NOT, each measured rather than assumed. It is not the merge: the
+fold weight at these spots is the solve's OWN fold with the call branch still on the
+menu, and the merge only ever moves call into raise, so the solve folds ace-ten suited
+at the cutoff against an under-the-gun open with a cold call available. It is not the
+rake: rake makes a cold call worse, so the RAKED column is the one that should be
+dropping the marginal aces and kings, and the direction here is the one this section's
+own floor rule says a rake-free solve is not supposed to go. And it is not the big
+blind's accepted over-folding: the control row above runs the identical read over the
+five big-blind spots, where hero keeps a call branch, and the one-direction signature is
+absent - which is what makes it a property of these ten spots and not of the chart.
+
+What that costs the packet: the accepted defect naming the big blind does not cover this
+family, the merged family's shape is not sound whatever its size is, and a student
+drilled on these 10 grids is being taught to fold king-queen offsuit to an open at every one of them.
+It is published here rather than repaired because repairing it is a re-solve, which this
+phase does not do, and because the conversion itself is exact against the export at all
+18431 cells at non-zero reach (PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS,
+whose word for the size of this was `slightly`).
+
+Fifth, WHICH hands do the four-betting at the 15 spots the reference reaches out of the
+219 in the family - 88 percent of this chart -
+because the second block published how OFTEN and nobody had asked what with. A
+four-bet bluff is chosen for its blockers: it wants the ace and the king that the hands
+continuing against it are made of. Two columns per spot - how much king-ten or king-jack
+suited four-bets, which is the reference's own bluff, and the share of UNPAIRED four-bet
+mass held by hands with neither an ace nor a king, which is the opposite of a blocker:
+
+  four-bet mix  t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5  KTs/KJs 0.000  raked reference 0.000  unpaired four-bet mass with no ace and no king 16.6  raked reference 0.0
+  four-bet mix  t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5  KTs/KJs 0.000  raked reference 0.490  unpaired four-bet mass with no ace and no king 18.3  raked reference 3.6
+  four-bet mix  t6/d100/CO/CO:raise@2.5,BB:raise@7.5  KTs/KJs 0.000  raked reference 0.330  unpaired four-bet mass with no ace and no king 36.2  raked reference 0.0
+  four-bet mix  t6/d100/CO/CO:raise@2.5,BTN:raise@7.5  KTs/KJs 0.000  raked reference 98.920  unpaired four-bet mass with no ace and no king 7.3  raked reference 0.9
+  four-bet mix  t6/d100/CO/CO:raise@2.5,SB:raise@7.5  KTs/KJs 0.000  raked reference 78.410  unpaired four-bet mass with no ace and no king 50.1  raked reference 0.0
+  four-bet mix  t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5  KTs/KJs 0.000  raked reference 0.090  unpaired four-bet mass with no ace and no king 39.6  raked reference 0.0
+  four-bet mix  t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5  KTs/KJs 0.000  raked reference 98.420  unpaired four-bet mass with no ace and no king 26.0  raked reference 0.0
+  four-bet mix  t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5  KTs/KJs 0.000  raked reference 99.990  unpaired four-bet mass with no ace and no king 43.9  raked reference 0.0
+  four-bet mix  t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5  KTs/KJs 0.000  raked reference 99.830  unpaired four-bet mass with no ace and no king 40.7  raked reference 0.0
+  four-bet mix  t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5  KTs/KJs 1.330  raked reference 0.600  unpaired four-bet mass with no ace and no king 29.7  raked reference 0.0
+  four-bet mix  t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5  KTs/KJs 0.000  raked reference 96.390  unpaired four-bet mass with no ace and no king 51.9  raked reference 0.0
+  four-bet mix  t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5  KTs/KJs 0.000  raked reference 93.690  unpaired four-bet mass with no ace and no king 48.6  raked reference 0.0
+  four-bet mix  t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5  KTs/KJs 0.000  raked reference 85.480  unpaired four-bet mass with no ace and no king 40.3  raked reference 0.0
+  four-bet mix  t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5  KTs/KJs 0.110  raked reference 66.130  unpaired four-bet mass with no ace and no king 22.5  raked reference 0.0
+  four-bet mix  t6/d100/SB/SB:raise@2.5,BB:raise@7.5  KTs/KJs 0.000  raked reference 78.270  unpaired four-bet mass with no ace and no king 38.6  raked reference 14.0
+
+  KTs or KJs four-betting above 50 percent at  0 of 15 spots  raked reference  10 of 15
+  no-blocker share higher here at  15 of 15 spots  here 7.3 to 51.9 percent
+  over all 219 three-bet-facing spots  arrival-weighted  19.78 percent  carrying four-bet mass  134
+  at the 6 spots priced within half a big blind of each other  here 7.3 to 51.9 percent  raked reference 0.0 to 0.9
+
+The reference four-bets a king-blocker hand and this chart never does. Where its four-bet
+mass goes instead is hands that block nothing, at every spot the reference can be read
+against, and the last row is why that is not the price: at the 6
+spots where the two solves are answering three-bets within half a big blind of each
+other the gap is as wide as anywhere. The family's most-arrived-at grid shows the whole
+shape at once. At t6/d100/SB/SB:raise@2.5,BB:raise@7.5
+the chart four-bets to 22.5 big blinds with these, none of which holds an ace or a king:
+    86s 96s 97s 98s Q8s
+while flat-calling these, every one of which does:
+    A2s A3s A4s A5s A6s A7s A8s A9s AJs ATs K5s K7s
+    K8s K9s KJs KQs KTs
+That is every suited ace and every suited king in hero's range bar AKs and AQs, which
+four-bet for value. It also folds the suited connectors 32s 43s 54s 65s outright, so
+even among the hands that block nothing the four-bet is taking the higher ones and
+folding the lower - a cut by height rather than by anything a bluff is chosen for. The
+bluffs come out of what blocks nothing the big blind continues with, and what does block
+it goes in the calling range. All weights at 99 percent or better.
+
+The tension a reader is owed rather than left to find: the defects section defends the
+wheel-ace exemption on blocker logic - `nut-straight potential plus an ace blocker, and
+picking A5s over A6s for that job is what a strong player does at a three-bet` - and the
+four-bet family, which is most of this chart, selects its bluffs by the opposite rule.
+Both statements are in this packet and only one of them can be how the chart picks a
+bluff. What follows for a later phase: the four-bet frequency the second block hands
+forward is not on its own the number to start from, because a frequency says nothing
+about a range whose composition points this way.
 
 None of this is a re-solve and none of it moves a weight. It is the measurement the four
 internal relations cannot make - every one of them compares a grid against its own other

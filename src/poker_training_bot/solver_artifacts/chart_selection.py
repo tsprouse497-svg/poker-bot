@@ -216,11 +216,16 @@ def cold_call_index(
 ) -> int | None:
     """Hero's cold call, which is the one branch the exposure measurement drops.
 
-    Cold means hero has nothing in beyond the blinds. The big blind is never cold - it posted,
-    and its defence is a call the bot makes, so it stays inside the measurement - and a seat that
-    opened and now faces a three-bet is not cold either, so its call stays too. Both exemptions
-    carry weight rather than decorating the sentence: dropping the second one removes a branch
-    the chart still offers, and commits 361 nodes with 321 three-bet-facing spots instead of 219.
+    Cold means hero has nothing in beyond the blinds. The small blind IS cold, its 0.5 being
+    posted rather than chosen, and it is half the merging spots. The big blind is never cold, and
+    not because it posted more: it closes the action, so its call is a defence of a price it is
+    already half paying rather than money in behind an opener, and it stays inside the
+    measurement. A seat that opened and now faces a three-bet is not cold either, its own raise
+    being already in, so its call stays too. The second exemption carries weight rather than
+    decorating the sentence: dropping it removes a branch the chart still offers, and commits 346
+    spots - 5 first-in, 25 facing an open, 316 facing a three-bet - instead of 249 with 219
+    facing a three-bet. Recount it against the export rather than from here. The 361 this line
+    used to carry was a different counterfactual, taken before the third clause removes ten.
     """
     walk = _walk_of(by_path)
     if node.actor_pos == "BB" or node.actor_pos in walk.invested[node.path]:
