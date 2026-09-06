@@ -6362,3 +6362,46 @@ items:
       which asks a later phase to gate a monotonicity relation ON this matrix and is the reason the
       matrix was built at all. That entry needs the matrix to be trustworthy; this one is what would make
       it trustworthy, and it should land first.
+
+  - id: PREDICTION-CANNOT-BE-BLIND-TO-A-COMMITTED-MEASUREMENT
+    status: deferred
+    phase: contract-update
+    title: A pre-registered prediction whose answer is already committed in the same tree, with nothing detecting it
+    reason: >-
+      Filed 2026-09-06 by phase 17's stage-01 independent review. The loop asks a phase to write a
+      prediction "before the measurement runs", and phase 17's contract makes that its central
+      criterion. But the measurement it predicts was already regenerated into `reports/active/` by
+      phase 14: `latest_spot_vocabulary_report.txt` prints human calls agreeing falling 60.8 to 36.2
+      percent at the cutover, `latest_sample_comparison_report.txt` prints the same rates with
+      denominators, the price-band split and the strict sampled-action rate, and `docs/BACKLOG.md`
+      publishes the purity pair under AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART. So "written before
+      any measurement runs" is trivially true - no *new* measurement has run - while the outcome sits
+      on disk in three committed files the author will open in the first ten minutes.
+      GENERAL FORM, larger than phase 17. Nothing in `scripts/loop_stage.py` or
+      `scripts/check_contracts.py` detects that a pre-registration's answer is already committed in the
+      same tree, so the honesty of every such criterion rests on the author not having read a file, and
+      no reviewer can discharge the check either. A repair would have to make the ordering checkable
+      rather than asserted - a prediction naming the commit it was blind to, and a check that the
+      figures it pre-registers do not appear in the tree at that commit.
+      PHASE 17 CANNOT FIX IT. It can only disclose its own instance, which its ExecPlan now does by
+      splitting the already-public figures from the genuinely unpublished ones and pre-registering only
+      the second set. That disclosure is not a fix and this entry stays open.
+
+  - id: CORPUS-AGREEMENT-HAS-NO-SINGLE-SOURCE
+    status: deferred
+    phase: "17"
+    title: Two gate-registered generators would compute agreement over the same corpus with nothing making them agree
+    reason: >-
+      Filed 2026-09-06 by phase 17's stage-01 independent review, against the plan as first written.
+      `src/poker_training_bot/data_pipeline/comparison.py` already computes agreement and refusals
+      (`compare_committed_sample`), the strict sampled-action rate (`sampled_action_match`) and the
+      price bands (`price_band_for`), and `generate_sample_comparison_report` is already registered in
+      `COMMANDS`. Phase 17 adds `generate_corpus_verdict_report`. On separate code paths that is two
+      gate-registered generators publishing agreement rates over the same corpus against the same chart
+      with nothing checking one against the other - the drift shape
+      A-CONTRACT-STATES-MEASURED-LEVELS-WITHOUT-NAMING-THE-ARTIFACT describes for figures, applied to
+      generators.
+      RESOLUTION PATH, recorded in phase 17's ExecPlan and owed a decision-list entry at stage 3:
+      either lane C builds on `comparison.py` rather than reimplementing it, or the phase adds a check
+      asserting the two produce the same numbers over the shared spots. This entry closes when one of
+      those lands; it does not close on the plan naming the choice.
