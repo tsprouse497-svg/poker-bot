@@ -1,9 +1,9 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `PHASE_14_BUILD`
-Task mode: `implementation`
-Active phase: `14`
+Current task: `none (idle)`
+Task mode: `idle`
+Active phase: `none`
 Completed phases: `15`
 
 ## Phase Snapshot

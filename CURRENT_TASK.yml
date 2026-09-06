@@ -1,32 +1,8 @@
-task_id: PHASE_14_BUILD
-active_phase: "14"
-task_mode: implementation
-base_commit: d635b492a89ddf2b6bdd7a98855727daa9cd2a6b
-approved_scope:
-  - src/poker_training_bot/solver_artifacts/chart_*.py
-  - src/poker_training_bot/solver_artifacts/schema.py
-  - src/poker_training_bot/solver_artifacts/lookup.py
-  - src/poker_training_bot/solver_artifacts/importer.py
-  - src/poker_training_bot/solver_artifacts/hand_classes.py
-  - scripts/convert_preflop_export.py
-  - scripts/generate_derived_chart_report.py
-  - scripts/generate_preflop_equity_matrix.py
-  - tests/test_preflop_committed_charts.py
-  - verification/freeze.lock
-  - pyproject.toml
-  - uv.lock
-  - data/artifacts/preflop/**
-  - src/poker_training_bot/strategy/preflop_sizing.py
-  - src/poker_training_bot/data_pipeline/**
-  - src/poker_training_bot/solver_artifacts/vocabulary_measures.py
-  - src/poker_training_bot/solver_artifacts/vocabulary_report.py
-  - src/poker_training_bot/table_state/measures.py
-  - scripts/generate_preflop_strategy_report.py
-  - src/poker_training_bot/solver_artifacts/vocabulary_corpus_report.py
-  - docs/CORPUS_COMPARISON_LIMITS.md
-  - reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md
-  - reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/**
-  - reports/phase_audits/PHASE_14_CHART_CUTOVER.md
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
