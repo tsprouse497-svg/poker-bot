@@ -1,5 +1,13 @@
 auto_advance: false
-loop: running
+halt_reason: 'Parked by Taylor 2026-09-06: the drill is at most a preflop checkpoint
+  and is not the goal. The goal is a bot that plays hands, which is phase 16. Phase
+  15 rests at stage 3 with its contract and decision list written and reviewed, five
+  frozen items unanswered, and the scoring half of the design withdrawn - Taylor''s
+  ruling is that a drill does not need to tell you anything, which collapses decisions
+  1, 4, 5 and 10 and leaves only which spots it deals and what a run of sessions says
+  afterwards. Resume with --resume; do not treat the decision list as current until
+  the scoring items are re-cut.'
+loop: halted
 phase_id: '15'
 schema_version: 1
 stage: 3
