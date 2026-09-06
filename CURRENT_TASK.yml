@@ -1760,3 +1760,16 @@ scope_change_log:
       task editing the specification it is building to.
       base_commit moves to the contract-update commit, so the ruling's own paperwork does not
       read as uncommitted work by the task that follows it.
+  - date: 2026-09-06
+    reason: >-
+      Opening the phase 17 lane. base_commit is main at 9bbdcf4, where the task rested idle with an
+      empty approved_scope, so seeding this lane's scope reads as a widening and needs its reason on
+      the record.
+      Three paths enter scope for the contract stage and nothing else: the phase 17 contract, this
+      phase's decision list, and this phase's review notes. The contract itself was already written
+      real when Taylor split phase 17 off phase 14 on 2026-08-31, so it is in scope to be corrected
+      if a review finds it wrong rather than to be filled in.
+      The implementation paths are deliberately absent. tests/test_corpus_verdict.py enters at
+      stage 4 and leaves again at stage 5; the measurement modules, the generator and
+      scripts/run_verify.py enter at stage 6; the audit packet at stage 9. Each needs its own dated
+      entry here when it does.
