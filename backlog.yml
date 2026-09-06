@@ -4338,6 +4338,14 @@ items:
       three-explanations paragraph both need a clause saying the flop leaves keep the training rake,
       and `CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT` gains back part of the explanation phase 14 was
       going to strike off. Related: NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL.
+      INSTANCES, located 2026-09-06 by phase 17's stage-01 and stage-02 reviews. Two committed,
+      gate-generated reports make the unqualified claim, and phase 17's contract forbids exactly it.
+      The generators are `src/poker_training_bot/data_pipeline/comparison_report.py` and
+      `scripts/generate_derived_chart_report.py`; the committed text is in
+      `reports/active/latest_sample_comparison_report.txt`, which says the rake explanation "is gone"
+      and that a difference "has nothing to excuse it", and in
+      `reports/active/latest_derived_chart_report.txt`. These are phase 14's files and not phase 17's
+      to edit, so phase 17 carries the question to Taylor as decision 10 rather than fixing it.
 
   - id: THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL
     status: deferred
@@ -6386,6 +6394,14 @@ items:
       PHASE 17 CANNOT FIX IT. It can only disclose its own instance, which its ExecPlan now does by
       splitting the already-public figures from the genuinely unpublished ones and pre-registering only
       the second set. That disclosure is not a fix and this entry stays open.
+      EXTENDED 2026-09-06 by phase 17's stage-02 review with a fourth file the original entry missed,
+      and it is the sharpest instance in the repo. `reports/active/latest_derived_chart_report.txt`
+      names phase 14's pre-registration, voids its numbers, and then hands phase 17 the per-opener
+      deltas its band is to be drawn on, saying so in as many words: "so that the later phase has the
+      measurement its band will be drawn on". It also publishes the per-opener call-agreement move with
+      counts, which is the outcome the pre-registration would be graded on. A pre-registration whose
+      inputs are printed for it by the very report it will be graded against is the general defect,
+      stated more plainly than the paragraphs above state it.
 
   - id: CORPUS-AGREEMENT-HAS-NO-SINGLE-SOURCE
     status: deferred
@@ -6405,3 +6421,49 @@ items:
       either lane C builds on `comparison.py` rather than reimplementing it, or the phase adds a check
       asserting the two produce the same numbers over the shared spots. This entry closes when one of
       those lands; it does not close on the plan naming the choice.
+
+  - id: RETIRED-CHART-PIN-DISAGREES-BETWEEN-GENERATOR-AND-RULING
+    status: deferred
+    phase: contract-update
+    title: Two committed records pin the retired chart to different commits, and one asserts they agree
+    reason: >-
+      Filed 2026-09-06 by phase 17's stage-02 independent review, confirmed by the coordinator from the
+      bytes. `scripts/generate_derived_chart_report.py` pins
+      `RETIRED_CHART_COMMIT = 6f157247cf2217acf358d7cef901a550fc4aae69` and reads the 86-spot
+      `six_max_100bb_rakefree.json`, whose docstring says in as many words that the retired chart is
+      that file and "not the GTO Wizard NL25 chart". Phase 14's decision 7 pins `d046ac9` and the
+      36-key `six_max_nl25_100bb.json`, and says that pin is "what the committed derived-chart report
+      already reads the retired chart from", which is verifiably false.
+      WHY IT IS NOT COSMETIC. The two baselines are different charts with different properties, so a
+      phase measuring against "the retired chart" gets a different answer depending on which it means.
+      The 36-key chart has no key facing a four-bet and opens the small blind at 3.5bb; the 86-key
+      chart has 30 keys facing a four-bet and 15 facing a five-bet - the histogram of `raise@` tokens
+      over its 86 spot ids is {0:1, 1:10, 2:30, 3:30, 4:15} - and already opens the small blind at
+      2.5bb. So phase 17's contract criterion that the four-bet exclusion "must produce no rise at all"
+      holds by construction against one and is violated by construction against the other, and the
+      small blind's reprice its prediction is built on exists against one and not the other. The
+      per-opener defence deltas have opposite signs at four of five openers between them.
+      PHASE 17 CANNOT FIX IT: the generator is phase 14's. Phase 17 puts the choice to Taylor as its
+      decision 1 and records which baseline it measured against. This entry is the drift itself - two
+      committed records disagreeing, with a false sentence in one of them - and closes when the pin is
+      one thing.
+
+  - id: A-DECISION-LIST-CITES-A-REPORT-BY-LINE-AND-THE-LINE-MOVES
+    status: deferred
+    phase: contract-update
+    title: Decision lists cite gate-regenerated reports by line number, and the lines move under them
+    reason: >-
+      Filed 2026-09-06 by phase 17's stage-02 independent review. Phase 17's decision list cited
+      `reports/active/latest_derived_chart_report.txt` by line number in a dozen places, and sixteen of
+      its citations were already wrong at the commit they were written against - drifting 2 to 10 lines,
+      including the quotation its decision 10 asks Taylor to rule on. Lane A re-verified all 41 explicit
+      citations and corrected them, but the next regeneration of that report moves them again and
+      nothing goes red when it does.
+      THE SHAPE. A line number into a generated file is a pointer with no owner: the generator's prose
+      is free to move, the decision list is frozen paperwork, and no check relates them. A citation by
+      section heading or by the quoted line's own text survives regeneration; a line number does not.
+      NEIGHBOURS, neither of which covers this.
+      A-GENERATED-REPORT-CAN-GO-STALE-WITH-THE-GATE-STILL-GREEN is about the report's own contents
+      going stale. HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES is about a figure copied out of
+      a set. This one is about the citation itself, in a hand-written governing document, pointing into
+      a file the gate rewrites.
