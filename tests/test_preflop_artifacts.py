@@ -48,6 +48,14 @@ BTN_SPOT = "t6/d100/BTN/CO:raise@2.5"
 BB_SPOT = "t6/d100/BB/BTN:raise@2.5"
 SIX_MAX_POSITIONS = ["LJ", "HJ", "CO", "BTN", "SB", "BB"]
 
+# Named short so the spot-key table below reads as a table rather than as nested tuples.
+def up(position: str, size_bb: float) -> PreflopAction:
+    return PreflopAction(position, "raise", size_bb)
+
+
+def on(position: str) -> PreflopAction:
+    return PreflopAction(position, "call")
+
 
 def weights_structure(action_weights: dict[str, Any]) -> SpotActionWeights:
     return tuple(
@@ -60,6 +68,15 @@ def weights_structure(action_weights: dict[str, Any]) -> SpotActionWeights:
         )
         for spot_id, hand_classes in action_weights.items()
     )
+
+
+def with_reach(payload: dict[str, Any]) -> dict[str, Any]:
+    """Schema 2's per-cell reach, for exactly the cells `action_weights` declares."""
+    payload["arriving_reach_bp"] = {
+        spot_id: dict.fromkeys(hand_classes, 10_000)
+        for spot_id, hand_classes in payload["action_weights"].items()
+    }
+    return payload
 
 
 def stamped(payload: dict[str, Any]) -> dict[str, Any]:
@@ -87,6 +104,7 @@ def valid_payload() -> dict[str, Any]:
         "table_size": 6,
         "stack_depth_bb": 100,
         "positions": list(SIX_MAX_POSITIONS),
+        "blind_structure": {"small_blind_bb": 0.5, "big_blind_bb": 1.0, "ante_bb": 0.0},
         "spots": [
             {"spot_id": RFI_SPOT, "hero_position": "CO", "action_sequence": []},
             {
@@ -118,7 +136,7 @@ def valid_payload() -> dict[str, Any]:
             },
         },
     }
-    return stamped(payload)
+    return stamped(with_reach(payload))
 
 
 def write_payload(tmp_path: Path, payload: dict[str, Any], name: str = "chart.json") -> Path:
@@ -131,7 +149,12 @@ def import_mutated(
     tmp_path: Path, mutate: Callable[[dict[str, Any]], None], restamp: bool = False
 ) -> None:
     payload = valid_payload()
+    before = json.dumps(payload["arriving_reach_bp"], sort_keys=True)
     mutate(payload)
+    # A weights mutation gets its reach repaired so it trips its own rejection rather than a
+    # reach mismatch; a reach mutation is left as made, or the field is never a rule.
+    if json.dumps(payload.get("arriving_reach_bp"), sort_keys=True) == before:
+        with_reach(payload)
     if restamp:
         stamped(payload)
     import_preflop_artifact(write_payload(tmp_path, payload))
@@ -149,6 +172,10 @@ def expect_code(
 def test_valid_artifact_imports(tmp_path: Path) -> None:
     artifact = import_preflop_artifact(write_payload(tmp_path, valid_payload()))
     assert artifact.artifact_schema_version == ARTIFACT_SCHEMA_VERSION
+    blinds = artifact.blind_structure
+    assert (blinds.small_blind_bb, blinds.big_blind_bb, blinds.ante_bb) == (0.5, 1.0, 0.0)
+    assert artifact.reach_bp_for(RFI_SPOT, "AA") == 10_000
+    assert artifact.reach_bp_for(RFI_SPOT, "T9s") is None
     assert artifact.table_size == 6
     assert artifact.stack_depth_bb == 100
     assert artifact.positions == tuple(SIX_MAX_POSITIONS)
@@ -184,7 +211,7 @@ def test_action_weights_follow_spot_order(tmp_path: Path) -> None:
         RFI_SPOT: payload["action_weights"][RFI_SPOT],
         BTN_SPOT: payload["action_weights"][BTN_SPOT],
     }
-    artifact = import_preflop_artifact(write_payload(tmp_path, stamped(payload)))
+    artifact = import_preflop_artifact(write_payload(tmp_path, stamped(with_reach(payload))))
     assert [spot_id for spot_id, _ in artifact.action_weights] == [RFI_SPOT, BTN_SPOT, BB_SPOT]
 
 
@@ -211,20 +238,16 @@ def test_unreadable_file(tmp_path: Path) -> None:
     assert UNREADABLE_FILE in str(error.value)
 
 
-def test_invalid_json(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("text", "code"),
+    [('{"artifact_schema_version": 2,', INVALID_JSON), ("[]", NOT_AN_OBJECT)],
+)
+def test_a_file_that_is_not_an_artifact_object(tmp_path: Path, text: str, code: str) -> None:
     path = tmp_path / "chart.json"
-    path.write_text('{"artifact_schema_version": 1,', encoding="utf-8")
+    path.write_text(text, encoding="utf-8")
     with pytest.raises(ArtifactImportError) as error:
         import_preflop_artifact(path)
-    assert error.value.code == INVALID_JSON
-
-
-def test_not_an_object(tmp_path: Path) -> None:
-    path = tmp_path / "chart.json"
-    path.write_text("[]", encoding="utf-8")
-    with pytest.raises(ArtifactImportError) as error:
-        import_preflop_artifact(path)
-    assert error.value.code == NOT_AN_OBJECT
+    assert error.value.code == code
 
 
 def test_nested_object_required(tmp_path: Path) -> None:
@@ -234,28 +257,35 @@ def test_nested_object_required(tmp_path: Path) -> None:
     expect_code(tmp_path, mutate, NOT_AN_OBJECT)
 
 
-def test_duplicate_hand_class(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("marker", "replacement", "code"),
+    [
+        (
+            '"AA": {"raise": 1.0}, "AKs"',
+            '"AA": {"raise": 1.0}, "AA": {"call": 1.0}, "AKs"',
+            DUPLICATE_HAND_CLASS,
+        ),
+        (
+            f'"{RFI_SPOT}": {{',
+            f'"{RFI_SPOT}": {{"AA": {{"raise": 1.0}}}}, "{RFI_SPOT}": {{',
+            DUPLICATE_SPOT,
+        ),
+    ],
+    ids=["hand class", "spot"],
+)
+def test_a_repeated_json_key_is_rejected(
+    tmp_path: Path, marker: str, replacement: str, code: str
+) -> None:
+    # A repeated key is legal JSON and the last wins, so without this a chart can carry
+    # two strategies for one cell and import cleanly.
     text = json.dumps(valid_payload())
-    marker = '"AA": {"raise": 1.0}, "AKs"'
-    duplicated = text.replace(marker, '"AA": {"raise": 1.0}, "AA": {"call": 1.0}, "AKs"', 1)
+    duplicated = text.replace(marker, replacement, 1)
     assert duplicated != text
     path = tmp_path / "chart.json"
     path.write_text(duplicated, encoding="utf-8")
     with pytest.raises(ArtifactImportError) as error:
         import_preflop_artifact(path)
-    assert error.value.code == DUPLICATE_HAND_CLASS
-
-
-def test_duplicate_spot_weights_key(tmp_path: Path) -> None:
-    text = json.dumps(valid_payload())
-    marker = f'"{RFI_SPOT}": {{'
-    duplicated = text.replace(marker, f'"{RFI_SPOT}": {{"AA": {{"raise": 1.0}}}}, {marker}', 1)
-    assert duplicated != text
-    path = tmp_path / "chart.json"
-    path.write_text(duplicated, encoding="utf-8")
-    with pytest.raises(ArtifactImportError) as error:
-        import_preflop_artifact(path)
-    assert error.value.code == DUPLICATE_SPOT
+    assert error.value.code == code
 
 
 def _missing_field(payload: dict[str, Any]) -> None:
@@ -274,7 +304,13 @@ def _missing_nested_field(payload: dict[str, Any]) -> None:
     del payload["spots"][0]["action_sequence"]
 
 
-def _unsupported_version(payload: dict[str, Any]) -> None:
+# Version 1 is a real shape, so the retired case catches a build loosened to read the
+# pre-cutover payload; the future case is its pair, since alone either passes an inequality.
+def _retired_version(payload: dict[str, Any]) -> None:
+    payload["artifact_schema_version"] = ARTIFACT_SCHEMA_VERSION - 1
+
+
+def _future_version(payload: dict[str, Any]) -> None:
     payload["artifact_schema_version"] = ARTIFACT_SCHEMA_VERSION + 1
 
 
@@ -404,7 +440,17 @@ REJECTIONS: tuple[tuple[str, str, Callable[[dict[str, Any]], None]], ...] = (
     ("missing nested field", MISSING_FIELD, _missing_nested_field),
     ("unknown top-level field", UNKNOWN_FIELD, _unknown_field),
     ("unknown nested field", UNKNOWN_FIELD, _unknown_nested_field),
-    ("unsupported schema version", UNSUPPORTED_SCHEMA_VERSION, _unsupported_version),
+    ("retired schema version", UNSUPPORTED_SCHEMA_VERSION, _retired_version),
+    ("unwritten schema version", UNSUPPORTED_SCHEMA_VERSION, _future_version),
+    # Decision 5's field as a rule rather than a property of the committed file, which is
+    # the objection CHART-HERO-MUST-NEVER-LIMP raised and this bump owes twice.
+    ("reach for an undeclared spot", UNKNOWN_SPOT_WEIGHTS,
+     lambda p: p["arriving_reach_bp"].update({"t6/d100/SB/rfi": {"AA": 10_000}})),
+    ("weights with no reach", MISSING_FIELD,
+     lambda p: p["arriving_reach_bp"][RFI_SPOT].pop("AKs")),
+    ("reach above the scale", INVALID_VALUE,
+     lambda p: p["arriving_reach_bp"][RFI_SPOT].update({"AA": 10_001})),
+    ("reach absent entirely", MISSING_FIELD, lambda p: p.pop("arriving_reach_bp")),
     ("non-positive stack depth", INVALID_VALUE, _bad_stack_depth),
     ("table size out of range", INVALID_VALUE, _bad_table_size),
     ("non-RFC3339 timestamp", INVALID_VALUE, _bad_timestamp),
@@ -461,7 +507,7 @@ def test_every_reason_code_is_exercised() -> None:
 def test_weight_sum_tolerance_edge(tmp_path: Path) -> None:
     payload = valid_payload()
     payload["action_weights"][RFI_SPOT]["AA"] = {"raise": 1.0 - 1e-7}
-    artifact = import_preflop_artifact(write_payload(tmp_path, stamped(payload)))
+    artifact = import_preflop_artifact(write_payload(tmp_path, stamped(with_reach(payload))))
     assert artifact.weights_for(RFI_SPOT, "AA") == (("raise", 1.0 - 1e-7),)
     assert WEIGHT_SUM_TOLERANCE == 1e-6
 
@@ -470,16 +516,6 @@ def test_restamped_mutation_still_rejected(tmp_path: Path) -> None:
     with pytest.raises(ArtifactImportError) as error:
         import_mutated(tmp_path, _loose_weight_sum, restamp=True)
     assert error.value.code == WEIGHT_SUM
-
-
-def test_spot_key_rfi_and_sequence_forms() -> None:
-    assert spot_key(6, 100, "CO", ()) == "t6/d100/CO/rfi"
-    six = spot_key(6, 100, "BTN", (PreflopAction("HJ", "raise", 2.5),))
-    assert six == "t6/d100/BTN/HJ:raise@2.5"
-    heads_up = spot_key(2, 40, "BB", (PreflopAction("BTN", "raise", 2.5),))
-    assert heads_up == "t2/d40/BB/BTN:raise@2.5"
-    sequence = (PreflopAction("CO", "raise", 2.5), PreflopAction("BTN", "call"))
-    assert spot_key(6, 100, "BB", sequence) == "t6/d100/BB/CO:raise@2.5,BTN:call"
 
 
 def test_spot_key_allows_hero_inside_the_sequence() -> None:
@@ -504,34 +540,34 @@ def test_spot_key_rejects_a_seat_taking_two_turns_in_a_row() -> None:
         spot_key(6, 100, "BB", (PreflopAction("CO", "raise", 2.5), PreflopAction("CO", "call")))
 
 
-@pytest.mark.parametrize("table_size", [-1, 0, 1, 10, 99])
-def test_spot_key_rejects_bad_table_size(table_size: int) -> None:
+@pytest.mark.parametrize(
+    ("table_size", "stack_depth_bb"),
+    [(-1, 100), (0, 100), (1, 100), (10, 100), (99, 100), (6, -5), (6, 0)],
+)
+def test_spot_key_rejects_a_table_or_depth_outside_its_bounds(
+    table_size: int, stack_depth_bb: int
+) -> None:
     with pytest.raises(ValueError):
-        spot_key(table_size, 100, "BB", ())
-
-
-@pytest.mark.parametrize("stack_depth_bb", [-5, 0])
-def test_spot_key_rejects_bad_stack_depth(stack_depth_bb: int) -> None:
-    with pytest.raises(ValueError):
-        spot_key(6, stack_depth_bb, "BB", ())
+        spot_key(table_size, stack_depth_bb, "BB", ())
 
 
 def test_spot_key_rejects_positions_outside_the_table() -> None:
-    with pytest.raises(ValueError):
-        spot_key(6, 100, "UTG", ())
-    with pytest.raises(ValueError):
-        spot_key(2, 100, "CO", ())
-    with pytest.raises(ValueError):
-        spot_key(2, 100, "BB", (PreflopAction("CO", "raise", 2.5),))
+    for table_size, hero, sequence in (
+        (6, "UTG", ()),
+        (2, "CO", ()),
+        (2, "BB", (PreflopAction("CO", "raise", 2.5),)),
+    ):
+        with pytest.raises(ValueError):
+            spot_key(table_size, 100, hero, sequence)
 
 
 def test_preflop_action_rejects_folds_and_unknown_actions() -> None:
+    """A fold is implicit in absence, and a preflop check ends the round."""
     assert "fold" in PREFLOP_ACTIONS
     assert "fold" not in SEQUENCE_ACTIONS
-    with pytest.raises(ValueError):
-        PreflopAction("CO", "fold")
-    with pytest.raises(ValueError):
-        PreflopAction("CO", "bet")
+    for action in ("fold", "check", "bet"):
+        with pytest.raises(ValueError):
+            PreflopAction("CO", action)
     with pytest.raises(ValueError):
         PreflopAction("ZZ", "raise", 2.5)
 
@@ -562,17 +598,12 @@ def test_import_directory_fails_closed_on_one_bad_file(tmp_path: Path) -> None:
     assert "b_broken.json" in error.value.message
 
 
-def test_import_directory_requires_json_files(tmp_path: Path) -> None:
+def test_import_directory_requires_an_existing_directory_holding_json(tmp_path: Path) -> None:
     (tmp_path / "notes.txt").write_text("not an artifact", encoding="utf-8")
-    with pytest.raises(ArtifactImportError) as error:
-        import_preflop_artifacts(tmp_path)
-    assert error.value.code == UNREADABLE_FILE
-
-
-def test_import_directory_requires_an_existing_directory(tmp_path: Path) -> None:
-    with pytest.raises(ArtifactImportError) as error:
-        import_preflop_artifacts(tmp_path / "absent")
-    assert error.value.code == UNREADABLE_FILE
+    for directory in (tmp_path, tmp_path / "absent"):
+        with pytest.raises(ArtifactImportError) as error:
+            import_preflop_artifacts(directory)
+        assert error.value.code == UNREADABLE_FILE
 
 
 def test_import_accepts_string_paths(tmp_path: Path) -> None:
@@ -591,13 +622,6 @@ def test_weights_checksum_is_order_independent_and_stable() -> None:
         weights_structure(payload["action_weights"])
     )
     assert weights_checksum(()) == weights_checksum(())
-
-
-def test_preflop_action_rejects_folds_and_checks() -> None:
-    """A fold is implicit in absence, and a preflop check ends the round."""
-    for action in ("fold", "check"):
-        with pytest.raises(ValueError):
-            PreflopAction("CO", action)
 
 
 @pytest.mark.parametrize(
@@ -625,12 +649,16 @@ def test_spot_key_rejects_spots_where_hero_is_not_to_act(
         spot_key(6, 100, hero, sequence)
 
 
-def test_spot_key_rejects_folded_to_the_big_blind() -> None:
-    """Folded to the big blind ends the hand, so it is not a decision."""
+@pytest.mark.parametrize("table_size", [2, 6])
+def test_spot_key_rejects_folded_to_the_big_blind(table_size: int) -> None:
+    # Folded to the big blind ends the hand, so it is not a decision.
     with pytest.raises(ValueError):
-        spot_key(6, 100, "BB", ())
-    with pytest.raises(ValueError):
-        spot_key(2, 100, "BB", ())
+        spot_key(table_size, 100, "BB", ())
+
+
+def test_spot_key_names_a_two_handed_table_at_another_depth() -> None:
+    """The grammar is not the coverage: a key exists for a game no artifact answers."""
+    assert spot_key(2, 40, "BB", (up("BTN", 2.5),)) == "t2/d40/BB/BTN:raise@2.5"
 
 
 @pytest.mark.parametrize(
@@ -638,43 +666,17 @@ def test_spot_key_rejects_folded_to_the_big_blind() -> None:
     [
         ("cutoff open", "CO", (), "t6/d100/CO/rfi"),
         ("small blind steal", "SB", (), "t6/d100/SB/rfi"),
-        (
-            "big blind versus a cutoff open",
-            "BB",
-            (PreflopAction("CO", "raise", 2.5),),
-            "t6/d100/BB/CO:raise@2.5",
-        ),
-        ("blind vs blind", "BB", (PreflopAction("SB", "raise", 3.5),), "t6/d100/BB/SB:raise@3.5"),
-        (
-            "limped pot",
-            "BB",
-            (PreflopAction("LJ", "call"), PreflopAction("HJ", "call")),
-            "t6/d100/BB/LJ:call,HJ:call",
-        ),
-        (
-            "squeeze spot",
-            "BB",
-            (PreflopAction("CO", "raise", 2.5), PreflopAction("BTN", "call")),
-            "t6/d100/BB/CO:raise@2.5,BTN:call",
-        ),
-        (
-            "opener facing a three-bet",
-            "CO",
-            (PreflopAction("CO", "raise", 2.5), PreflopAction("BB", "raise", 11.0)),
-            "t6/d100/CO/CO:raise@2.5,BB:raise@11",
-        ),
-        (
-            "cold four-bet-or-fold",
-            "BTN",
-            (PreflopAction("LJ", "raise", 2.5), PreflopAction("HJ", "raise", 8.0)),
-            "t6/d100/BTN/LJ:raise@2.5,HJ:raise@8",
-        ),
-        (
-            "limper facing a later raise",
-            "SB",
-            (PreflopAction("SB", "call"), PreflopAction("BB", "raise", 3.5)),
-            "t6/d100/SB/SB:call,BB:raise@3.5",
-        ),
+        ("button facing a hijack open", "BTN", (up("HJ", 2.5),), "t6/d100/BTN/HJ:raise@2.5"),
+        ("big blind versus a cutoff open", "BB", (up("CO", 2.5),), "t6/d100/BB/CO:raise@2.5"),
+        ("blind vs blind", "BB", (up("SB", 3.5),), "t6/d100/BB/SB:raise@3.5"),
+        ("limped pot", "BB", (on("LJ"), on("HJ")), "t6/d100/BB/LJ:call,HJ:call"),
+        ("squeeze spot", "BB", (up("CO", 2.5), on("BTN")), "t6/d100/BB/CO:raise@2.5,BTN:call"),
+        ("opener vs a three-bet", "CO", (up("CO", 2.5), up("BB", 11.0)),
+         "t6/d100/CO/CO:raise@2.5,BB:raise@11"),
+        ("cold four-bet-or-fold", "BTN", (up("LJ", 2.5), up("HJ", 8.0)),
+         "t6/d100/BTN/LJ:raise@2.5,HJ:raise@8"),
+        ("limper facing a later raise", "SB", (on("SB"), up("BB", 3.5)),
+         "t6/d100/SB/SB:call,BB:raise@3.5"),
     ],
 )
 def test_spot_key_accepts_real_six_max_spots(
@@ -688,7 +690,7 @@ def test_artifact_with_no_spots_is_rejected(tmp_path: Path) -> None:
     payload = valid_payload()
     payload["spots"] = []
     payload["action_weights"] = {}
-    payload = stamped(payload)
+    payload = stamped(with_reach(payload))
     payload["audit_fields"]["spot_count"] = 0
     payload["audit_fields"]["hand_class_count"] = 0
 

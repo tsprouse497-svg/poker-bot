@@ -1,0 +1,83 @@
+{
+ "conditioning": {
+  "discriminator": "at the LJ-versus-3bet node the class 72o arrives with a reach of about 3.7e-08, which quantises to zero basis points, and it still carries a full uniform strategy row at a quarter per action. The payload is therefore not conditioned on reaching the node, and reach is the only thing that conditions it",
+  "payload": "unconditional"
+ },
+ "config_posted": {
+  "add_allin": false,
+  "allin_threshold": 0.67,
+  "ante": 0.0,
+  "limp": false,
+  "max_raises": 4,
+  "no_flop_no_drop": true,
+  "open_raises": [
+   2.5
+  ],
+  "positions": [
+   "LJ",
+   "HJ",
+   "CO",
+   "BTN",
+   "SB",
+   "BB"
+  ],
+  "posts": [
+   0,
+   0,
+   0,
+   0,
+   0.5,
+   1.0
+  ],
+  "raise_mults": [
+   3.0
+  ],
+  "rake_cap": 0.0,
+  "rake_pct": 0.0,
+  "realization": "static",
+  "stack": 100.0
+ },
+ "determinism": {
+  "max_divergence_bp": 0,
+  "method": "the ruled config solved and walked a second time in a fresh process against a restarted server, and the two exports diffed node by node",
+  "result": "byte-identical",
+  "shape_differences": 0
+ },
+ "export_sha256": "43a29604b9f99564129390c7622a04dc2fed953bcc6077cfa212accf15fd65be",
+ "licence": "GTOpen ships no LICENSE file upstream, and neither its README.md nor its Cargo.toml mentions licensing. This is an unresolved limitation rather than a permission anybody granted.",
+ "model": "realization=static. GTOpen's preflop engine resolves flops by scaled equity share rather than by playing them, so this is a preflop-only model and not a full solve.",
+ "node_counts": {
+  "exported": 33969,
+  "reconciliation": "equal",
+  "solver_action_nodes": 33969
+ },
+ "saved_solve": {
+  "bytes": 98422118,
+  "path": "/Users/taylorsprouse/projects/gtopen/saves/preflop/six-max-100bb-rakefree.gtop",
+  "sha256": "2fc257714f8a09cf5275dea6de4549fb0889d33647e317559cca302f37ac07b7"
+ },
+ "size": {
+  "bytes": 2033258,
+  "bytes_per_expressible_spot": 39867.8,
+  "bytes_per_expressible_spot_note": "the whole export divided by the 51 spots the committed chart expresses today, so it is what keeping the entire tree costs per spot currently usable rather than the size of a derived chart. The roadmap's 7.1 KB per spot was measured off the GTO Wizard chart format and is not comparable",
+  "bytes_per_node": 59.86,
+  "headroom_bytes": 18395252,
+  "limit_bytes": 20971520
+ },
+ "solve": {
+  "achieved_gap_bb": 0.00015672434401555726,
+  "iteration_cap": 2000,
+  "iterations": 1100,
+  "target_gap_bb": 0.00016,
+  "wall_clock_seconds": 86.2
+ },
+ "solver": {
+  "commit": "4aee435bdeb155b25f0c8140e707a8342ce4356f",
+  "engine": "cpu",
+  "name": "gtopen"
+ },
+ "walk": {
+  "mismatches": 0,
+  "reresolved_nodes": 33969
+ }
+}

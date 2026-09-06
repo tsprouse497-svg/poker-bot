@@ -1,32 +1,22 @@
 """Phase 05 tests, written from the contract before any implementation existed.
 
-Two things here are not ordinary unit tests and are worth naming.
-
-`TestSourceFrequencies` is the phase's external oracle. Every other assertion in
-this repo compares something this repo produced against something else this repo
-produced. Those numbers came from GTO Wizard's own displayed output, so this class
-is the only place a wrong range can be caught rather than merely reproduced.
-
-`TestTotality` proves coverage by enumeration rather than by sampling. An
-artifact-backed strategy is allowed to refuse, and the danger is not a wrong answer
-but a confident one where the chart says nothing, so the interesting property is
-that every reachable spot resolves to a decision or an explicit refusal and never to
-an exception or a guess.
-"""
+`TestSourceFrequencies` moved to `tests/test_preflop_committed_charts.py`; this file is hard against
+its line cap, so the prose is thin. **The cutover moved most of its seats:** over the 249 hero opens
+from all five first-in seats and faces an open from every seat behind one, and gives up the four-bet
+family (46, 48); `add_allin: false` leaves one price per spot, so no two-price draw survives."""
 
 from __future__ import annotations
 
-import itertools
-import json
 import subprocess
 from collections import Counter
 
 import pytest
 
 from poker_training_bot.poker_core.positions import position_for_seat, table_positions
+from poker_training_bot.solver_artifacts.gtopen_export import COMMITTED_EXPORT_PATH
 from poker_training_bot.solver_artifacts.hand_classes import hand_class
 from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
-from poker_training_bot.solver_artifacts.lookup import PreflopChartLibrary
+from poker_training_bot.solver_artifacts.lookup import ChartHit, PreflopChartLibrary
 from poker_training_bot.solver_artifacts.schema import PreflopAction
 from poker_training_bot.solver_artifacts.schema import spot_key as derive_spot_key
 from poker_training_bot.strategy.contract import (
@@ -43,16 +33,24 @@ from poker_training_bot.strategy.preflop_sizing import PreflopSizingTable
 from scripts.repo_paths import REPO_ROOT
 
 ARTIFACT_DIR = REPO_ROOT / "data" / "artifacts" / "preflop"
-ARTIFACT = ARTIFACT_DIR / "six_max_nl25_100bb.json"
 SOURCE = ARTIFACT_DIR / "sources" / "gtowizard_6max_nl25_100bb_preflop.json"
-EXPECTATIONS = ARTIFACT_DIR / "expectations" / "six_max_nl25_100bb.json"
-SIZINGS = ARTIFACT_DIR / "sizings" / "six_max_nl25_100bb.json"
 
 BIG_BLIND = 100
 SMALL_BLIND = 50
 DEPTH_BB = 100
 SEATS = (0, 1, 2, 3, 4, 5)
 BUTTON = 3  # seats 0..5 with button at 3 puts LJ at seat 0
+
+COMMITTED_SPOTS = 249
+"""5 first-in, 25 facing an open, 219 facing a three-bet. Tree shape rather than solve output."""
+
+SB_OPEN_KEY = f"t6/d{DEPTH_BB}/SB/rfi"
+FIRST_IN_SEATS = ("LJ", "HJ", "CO", "BTN", "SB")
+
+LADDER_BB = (2.5, 7.5, 22.5)
+"""Every raise price the solved tree holds; the 100bb jam went with the four-bet family."""
+DECLARED_CELLS = 18431
+"""Cells at non-zero reach over the 249 (49); zero-reach classes are dropped, so it is every one."""
 
 
 def seat_of(position: str) -> int:
@@ -62,10 +60,8 @@ def seat_of(position: str) -> int:
     raise AssertionError(f"no seat holds {position}")
 
 
-def stacks(
-    committed: dict[int, int] | None = None, ante: int = 0, depth_bb: int = DEPTH_BB
-) -> tuple[tuple[int, int], ...]:
-    """Current stacks for a six-handed table, minus everything each seat has put in."""
+def stacks(committed: dict[int, int] | None = None, ante: int = 0,
+           depth_bb: int = DEPTH_BB) -> tuple[tuple[int, int], ...]:
     paid = dict(committed or {})
     paid.setdefault(seat_of("SB"), SMALL_BLIND)
     paid.setdefault(seat_of("BB"), BIG_BLIND)
@@ -73,31 +69,19 @@ def stacks(
     return tuple((seat, full - paid.get(seat, 0) - ante) for seat in SEATS)
 
 
-def query(
-    hero_position: str,
-    history: tuple[SeatAction, ...] = (),
-    hole_cards: tuple[str, str] = ("As", "Ks"),
-    forced: dict[int, int] | None = None,
-    ante: int = 0,
-    **overrides,
-) -> StrategyQuery:
-    """A preflop query for hero, defaulting to an unopened, unstraddled, unanted pot.
-
-    `forced` seats chips no recorded action explains, which is what a straddle is; `ante`
-    is dead money every seat posted. Both are real chips on real seats, not an override of
-    the pot or the level, because a pot that does not reconcile seat by seat is now
-    rejected. An ante buys no part of the level, so it sits in `committed_total` alone.
-    """
+def query(hero_position: str, history: tuple[SeatAction, ...] = (),
+          hole_cards: tuple[str, str] = ("As", "Ks"), forced: dict[int, int] | None = None,
+          ante: int = 0, **overrides) -> StrategyQuery:
+    """A query for hero, unopened by default. `forced` is a straddle's chips, `ante` dead money."""
     hero = seat_of(hero_position)
     committed = {seat_of("SB"): SMALL_BLIND, seat_of("BB"): BIG_BLIND, **(forced or {})}
-    # A straddle raises the level a voluntary action is measured against, so the ladder
-    # starts there. The detector knows only the declared blinds, which is the disagreement.
+    # A straddle raises the level a voluntary action is measured against, so the ladder starts
+    # there. The detector knows only the declared blinds, which is the disagreement.
     current_bet = max(BIG_BLIND, *committed.values())
     min_raise_target = 2 * current_bet
     for entry in history:
         if entry.action == "raise":
-            # The level is what the raise says it is, so the price the query states and
-            # the price the key carries are one number rather than two that can disagree.
+            # The level is what the raise says it is: the query's price and the key's are one.
             amount = entry.amount or current_bet
             min_raise_target = amount + max(amount - current_bet, BIG_BLIND)
             current_bet = amount
@@ -109,39 +93,23 @@ def query(
     to_call = min(max(current_bet - committed.get(hero, 0), 0), hero_stack)
     gone = tuple(entry.seat for entry in history if entry.action == "fold")
     fields = {
-        "hand_id": "h1",
-        "street": "preflop",
-        "seat": hero,
-        "button_seat": BUTTON,
-        "hole_cards": hole_cards,
-        "board": (),
+        "hand_id": "h1", "street": "preflop", "seat": hero, "button_seat": BUTTON,
+        "hole_cards": hole_cards, "board": (), "to_call": to_call, "current_bet": current_bet,
+        "min_raise_target": min_raise_target, "blinds": (SMALL_BLIND, BIG_BLIND),
         "legal_actions": ("fold", "call", "raise") if to_call else ("check", "raise"),
-        "to_call": to_call,
-        "current_bet": current_bet,
-        "min_raise_target": min_raise_target,
-        "pot": sum(committed.values()) + len(SEATS) * ante,
-        "seat_states": tuple(
-            SeatState(s, committed.get(s, 0), committed.get(s, 0) + ante, s in gone, False)
-            for s in SEATS
-        ),
+        "pot": sum(committed.values()) + len(SEATS) * ante, "preflop_actions": history,
         "stacks": stacks(committed, ante),
-        "blinds": (SMALL_BLIND, BIG_BLIND),
-        "preflop_actions": history,
+        # An ante buys no part of the level, so it sits in `committed_total` alone.
+        "seat_states": tuple(SeatState(s, committed.get(s, 0), committed.get(s, 0) + ante,
+                                       s in gone, False) for s in SEATS),
     }
     fields.update(overrides)
     return StrategyQuery(**fields)
 
 
 def cards_for(hand: str) -> tuple[str, str] | None:
-    """Two concrete cards for a 169-class name, so a class can be driven through decide.
-
-    None for a string that is not a class name, which is how the table below filters
-    the generated candidates without a second list of the 169.
-    """
     ranks = "23456789TJQKA"
-    if len(hand) == 2:
-        if hand[0] != hand[1] or hand[0] not in ranks:
-            return None
+    if len(hand) == 2 and hand[0] == hand[1] and hand[0] in ranks:
         return (hand[0] + "s", hand[1] + "h")
     if len(hand) != 3 or hand[2] not in "so":
         return None
@@ -152,56 +120,98 @@ def cards_for(hand: str) -> tuple[str, str] | None:
 
 
 def combos_of(hand: str) -> int:
-    """How many of the 1326 starting hands a 169-class name stands for."""
     if len(hand) == 2:
         return 6
     return 4 if hand.endswith("s") else 12
 
 
-# The prices this table actually plays at, in chips, matching the committed solve. They
-# are named rather than derived inside `raised` because since phase 12 the amount is what
-# the spot key is built from, and a helper that invented it would be inventing the price
-# the chart is then asked about.
-OPEN_TO = int(2.5 * BIG_BLIND)
-THREE_BET_TO = int(8.0 * BIG_BLIND)
-FOUR_BET_TO = int(21.5 * BIG_BLIND)
-FIVE_BET_TO = int(50.0 * BIG_BLIND)
-
-# The one committed spot where hero has already acted and faces a re-raise.
-THREE_BET_SPOT = "t6/d100/LJ/LJ:raise@2.5,CO:raise@8"
-
-
-def raised(position: str, amount: int = OPEN_TO) -> SeatAction:
+def raised(position: str, amount: int) -> SeatAction:
     return SeatAction(seat_of(position), "raise", amount)
-
-
-def vs_open_key(library: PreflopChartLibrary, hero: str, opener: str) -> str:
-    """The committed key for `hero` facing an open from `opener`.
-
-    The opener's price is read out of the keys the artifact declares rather than spelled
-    here, which is the same rule the lookup normaliser follows and matters for the same
-    reason: this solve opens the small blind to 3.5 and everyone else to 2.5, so one
-    constant would already be wrong.
-    """
-    prices = library.solved_prices_bb(6, DEPTH_BB, hero, (), opener)
-    assert len(prices) == 1, (hero, opener, prices)
-    return derive_spot_key(6, DEPTH_BB, hero, (PreflopAction(opener, "raise", prices[0]),))
 
 
 def folded(position: str) -> SeatAction:
     return SeatAction(seat_of(position), "fold")
 
 
+def called(position: str) -> SeatAction:
+    return SeatAction(seat_of(position), "call")
+
+
+def solved_line(lib: PreflopChartLibrary, hero: str, *raisers: str) -> tuple[PreflopAction, ...]:
+    """`hero`'s line at each seat's solved price; one per point, since `add_allin: false`."""
+    sequence: list[PreflopAction] = []
+    for raiser in raisers:
+        prices = lib.solved_prices_bb(6, DEPTH_BB, hero, tuple(sequence), raiser)
+        assert prices, (hero, raiser, tuple(sequence))
+        sequence.append(PreflopAction(raiser, "raise", min(prices)))
+    return tuple(sequence)
+
+
+def solved_key(library: PreflopChartLibrary, hero: str, *raisers: str) -> str:
+    return derive_spot_key(6, DEPTH_BB, hero, solved_line(library, hero, *raisers))
+
+
+def raised_line(library: PreflopChartLibrary, hero: str, *raisers: str) -> tuple[SeatAction, ...]:
+    return tuple(raised(entry.position, int(round(entry.size_bb * BIG_BLIND)))
+                 for entry in solved_line(library, hero, *raisers))
+
+
+def vs_open_key(library: PreflopChartLibrary, hero: str, opener: str) -> str:
+    """`hero` facing an open at hero's own arriving price; every seat behind an opener is kept."""
+    price = min(library.solved_prices_bb(6, DEPTH_BB, hero, (), opener))
+    return derive_spot_key(6, DEPTH_BB, hero, (PreflopAction(opener, "raise", price),))
+
+
+def open_to(library: PreflopChartLibrary) -> int:
+    """The solved opening price in chips. An out-of-turn opener has no solved price anywhere."""
+    prices = library.solved_prices_bb(6, DEPTH_BB, "BB", (), "LJ")
+    return int(round(min(prices) * BIG_BLIND))
+
+
+def sizes_bb(
+    sizing: PreflopSizingTable, spot_key_text: str, hand_class_text: str
+) -> tuple[tuple[float, float], ...]:
+    """Ruled 2026-08-26: every price this **class** may raise to, weighted over its aggression."""
+    assert hasattr(sizing, "sizes_bb"), "the table must offer sizes_bb(spot_key, hand_class)"
+    return tuple(sizing.sizes_bb(spot_key_text, hand_class_text) or ())
+
+
+def three_bet_spot(library: PreflopChartLibrary) -> str:
+    """`t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5`: hero opened, faces a re-raise, may four-bet."""
+    return solved_key(library, "LJ", "LJ", "CO")
+
+
+def squeeze(library: PreflopChartLibrary, opener: str, caller: str) -> tuple[str, tuple]:
+    """Decision 48's refused ten, keyed and as history. The button's version of it is committed."""
+    price = min(library.solved_prices_bb(6, DEPTH_BB, "BB", (), opener))
+    entries = (PreflopAction(opener, "raise", price), PreflopAction(caller, "call"))
+    return derive_spot_key(6, DEPTH_BB, "BB", entries), (
+        raised(opener, round(price * BIG_BLIND)), called(caller))
+
+
+def three_bet_faced(library: PreflopChartLibrary) -> tuple[str, tuple[SeatAction, ...]]:
+    """LJ opened, CO three-bet, hero may four-bet. Replaces the refused four-bet-faced fixture."""
+    line = ("LJ", "LJ", "CO")
+    return solved_key(library, *line), raised_line(library, *line)
+
+
+def sb_open(hole_cards: tuple[str, str] = ("As", "Ah"), **overrides) -> StrategyQuery:
+    ahead = tuple(folded(seat) for seat in table_positions(6)[:4])
+    return query("SB", history=ahead, hole_cards=hole_cards, **overrides)
+
+
+def audit_record(strategy, request, outcome) -> DecisionAuditRecord:
+    return DecisionAuditRecord(
+        schema_version=DECISION_AUDIT_SCHEMA_VERSION, strategy_id=strategy.strategy_id,
+        strategy_version=strategy.strategy_version, query=request, outcome=outcome,
+    )
+
+
 def _hand_cards() -> dict[str, tuple[str, str]]:
-    table = {}
-    for high in "23456789TJQKA":
-        for low in "23456789TJQKA":
-            for kind in ("s", "o", ""):
-                name = f"{high}{low}{kind}"
-                cards = cards_for(name)
-                if cards is not None and hand_class(cards) == name:
-                    table[name] = cards
-    return table
+    ranks = "23456789TJQKA"
+    names = (f"{high}{low}{kind}" for high in ranks for low in ranks for kind in ("s", "o", ""))
+    found = ((name, cards_for(name)) for name in names)
+    return {name: cards for name, cards in found if cards and hand_class(cards) == name}
 
 
 HAND_CARDS: dict[str, tuple[str, str]] = _hand_cards()
@@ -229,351 +239,362 @@ def refusal(outcome) -> StrategyRefusal:
 
 class TestCommittedArtifact:
     def test_the_artifact_imports_through_the_unchanged_importer(self, library) -> None:
-        assert len(library.spot_keys()) >= 36
+        """The count, not a floor: "more than 36" assumed the retired chart was a subset."""
+        assert len(library.artifacts) == 1
+        assert len(library.spot_keys()) == COMMITTED_SPOTS
 
-    def test_provenance_is_declared_as_a_solver_export(self) -> None:
-        source = json.loads(ARTIFACT.read_text(encoding="utf-8"))["source"]
-
-        assert source["kind"] == "solver-export"
-        assert "rake" in json.dumps(source).lower()
+    def test_provenance_is_declared_as_a_solver_export(self, library) -> None:
+        source = library.artifacts[0].source
+        assert source.kind == "solver-export"
+        assert (REPO_ROOT / source.reference) == COMMITTED_EXPORT_PATH
 
     def test_the_hand_authored_chart_is_retired(self) -> None:
-        """Two artifacts claiming one spot is a library error, and the
-        hand-authored ranges are known to disagree with the solver."""
         assert not (ARTIFACT_DIR / "six_max_100bb_core.json").exists()
 
-    def test_the_source_export_is_committed_alongside_the_artifact(self) -> None:
+    def test_the_gto_wizard_source_is_kept_even_though_its_chart_is_gone(self) -> None:
         assert SOURCE.exists()
 
     def test_the_converter_reproduces_the_artifact_byte_for_byte(self) -> None:
+        converter = str(REPO_ROOT / "scripts" / "convert_preflop_export.py")
         result = subprocess.run(
-            ["python", str(REPO_ROOT / "scripts" / "convert_preflop_export.py"), "--check"],
-            cwd=REPO_ROOT,
-            capture_output=True,
-            text=True,
+            ["python", converter, "--check"], cwd=REPO_ROOT, capture_output=True, text=True
         )
 
         assert result.returncode == 0, result.stdout + result.stderr
 
-    def test_every_position_that_can_open_has_an_opening_spot(self, library) -> None:
-        for position in ("LJ", "HJ", "CO", "BTN", "SB"):
+    def test_every_first_in_seat_has_an_opening_spot(self, library) -> None:
+        """Both halves. Five seats can be first in six-handed and all five are committed, where the
+        retired predicate kept the small blind's alone. Folded to, the big blind is walked."""
+        for position in FIRST_IN_SEATS:
             assert f"t6/d{DEPTH_BB}/{position}/rfi" in library.spot_keys()
+        assert f"t6/d{DEPTH_BB}/BB/rfi" not in library.spot_keys()
 
-    def test_every_spot_facing_a_single_open_is_covered(self, library) -> None:
+    def test_every_seat_behind_an_opener_is_covered_facing_a_single_open(self, library) -> None:
+        """The retired predicate assumed every seat but the big blind has players behind it; the
+        exposure clause measures it and admits all fifteen - the 25 less the ten with a caller."""
         order = table_positions(6)
+        covered = set()
         for opener_index, opener in enumerate(order[:-1]):
             for hero in order[opener_index + 1 :]:
-                assert vs_open_key(library, hero, opener) in library.spot_keys()
+                key = vs_open_key(library, hero, opener)
+                assert key in library.spot_keys(), key
+                covered.add(key)
+
+        assert len(covered) == 15
 
     def test_the_opener_facing_a_three_bet_is_covered(self, library) -> None:
-        assert THREE_BET_SPOT in library.spot_keys()
+        assert three_bet_spot(library) in library.spot_keys()
 
-    def test_the_big_blind_facing_a_limp_is_covered(self, library) -> None:
-        assert f"t6/d{DEPTH_BB}/BB/SB:call" in library.spot_keys()
-
-
-class TestSourceFrequencies:
-    """The phase's external oracle: numbers this repo did not produce."""
-
-    def test_expectations_are_committed_in_reviewable_poker_terms(self) -> None:
-        expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
-
-        assert set(expectations["open_frequency_pct"]) == {"LJ", "HJ", "CO", "BTN", "SB"}
-        assert set(expectations["big_blind_defence_pct"]) == {"LJ", "HJ", "CO", "BTN", "SB"}
-
-    def test_opening_frequencies_match_the_source(self, library) -> None:
-        expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
-
-        for position, expected in expectations["open_frequency_pct"].items():
-            actual = library.action_frequency_pct(f"t6/d{DEPTH_BB}/{position}/rfi", "raise")
-
-            assert actual == pytest.approx(expected, abs=0.5), position
-
-    def test_big_blind_defence_matches_the_source(self, library) -> None:
-        expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
-
-        for opener, expected in expectations["big_blind_defence_pct"].items():
-            spot = vs_open_key(library, "BB", opener)
-            folded_pct = library.action_frequency_pct(spot, "fold")
-
-            assert 100.0 - folded_pct == pytest.approx(expected, abs=0.5), opener
-
-    def test_the_button_opens_much_wider_than_the_lojack(self) -> None:
-        """A sanity check a poker player can confirm without reading code."""
-        expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
-        opens = expectations["open_frequency_pct"]
-
-        assert opens["BTN"] > opens["CO"] > opens["HJ"] > opens["LJ"]
+    def test_the_big_blind_facing_a_limp_is_no_longer_covered(self, library) -> None:
+        """`limp: false`, so it passes all three clauses and still has no node to derive from."""
+        assert f"t6/d{DEPTH_BB}/BB/SB:call" not in library.spot_keys()
 
 
 class TestPositionMapping:
     def test_the_first_seat_to_act_six_handed_is_the_lojack(self) -> None:
-        """The source calls it UTG; this repo's six-handed vocabulary calls it LJ."""
         assert table_positions(6) == ("LJ", "HJ", "CO", "BTN", "SB", "BB")
 
-    def test_the_artifact_declares_the_whole_table(self) -> None:
-        positions = json.loads(ARTIFACT.read_text(encoding="utf-8"))["positions"]
-
-        assert positions == list(table_positions(6))
-
-
-class TestSizingTable:
-    def test_sizings_carry_their_own_provenance(self) -> None:
-        table = json.loads(SIZINGS.read_text(encoding="utf-8"))
-
-        assert table["source"]["kind"] == "solver-export"
-
-    def test_every_covered_spot_that_allows_a_raise_has_a_size(self, library) -> None:
-        sizing = PreflopSizingTable.from_repo()
-
-        for spot_key in library.spot_keys():
-            assert sizing.amount_bb(spot_key) is not None, spot_key
-
-    def test_the_lojack_opens_to_the_size_the_solution_used(self) -> None:
-        sizing = PreflopSizingTable.from_repo()
-
-        assert sizing.amount_bb(f"t6/d{DEPTH_BB}/LJ/rfi") == pytest.approx(2.5)
-
-    def test_an_uncovered_spot_has_no_size_rather_than_a_default(self) -> None:
-        sizing = PreflopSizingTable.from_repo()
-
-        assert sizing.amount_bb("t6/d40/CO/rfi") is None
+    def test_the_artifact_declares_the_whole_table(self, library) -> None:
+        assert library.artifacts[0].positions == table_positions(6)
 
 
 class TestDecisions:
-    def test_a_covered_open_returns_a_decision(self, strategy) -> None:
-        outcome = decision(strategy.decide(query("LJ", hole_cards=("As", "Ah"))))
+    def test_a_committed_opening_range_opens_at_a_price_the_spot_offers(self, strategy):
+        """A real hand rather than a bare key, so seat mapping, price rendering and depth run. The
+        small blind is one of five opening ranges now and offers one price, so the amount pins."""
+        weights = strategy.weights_for(sb_open())
+        aces = sizes_bb(strategy.sizing, SB_OPEN_KEY, "AA")
+        outcome = decision(strategy.decide(sb_open()))
 
+        assert not isinstance(weights, StrategyRefusal), weights
+        assert dict(weights).get("raise") == pytest.approx(1.0)
+        assert dict(weights).get("call", 0.0) == 0.0
+        assert [price for price, _ in aces] == [pytest.approx(2.5)]
+        assert len(sizes_bb(strategy.sizing, SB_OPEN_KEY, "AKo")) == 1
         assert outcome.action == "raise"
+        assert outcome.amount == round(2.5 * BIG_BLIND)
+
+    def test_the_price_is_drawn_from_the_classs_own_weights_with_the_actions_seed(self, strategy):
+        """The seeded price **draw** has no instance over the committed 249 and is labelled vacuous
+        rather than counted as a check that passed: each spot offers one named raise. The premise
+        is asserted over every declared class here, so a build reintroducing a second price fails
+        rather than slipping past. What still runs never needed two - the amount comes from the
+        class's own entry and reproduces across a twin over 240 ids, which killed a per-run RNG."""
+        key = vs_open_key(strategy.library, "BB", "BTN")
+        history = raised_line(strategy.library, "BB", "BTN")
+        twin = PreflopChartStrategy(library=strategy.library, sizing=strategy.sizing)
+        offered = sizes_bb(strategy.sizing, key, "AKo")
+        asked = [query("BB", history=history, hole_cards=("As", "Kd"), hand_id=f"h{index}")
+                 for index in range(240)]
+        drawn = [(decision(strategy.decide(ask)).amount, decision(twin.decide(ask)).amount)
+                 for ask in asked]
+
+        assert [price for price, _ in offered] == pytest.approx([7.5])
+        assert [name for name in strategy.library.hand_classes_for(key)
+                if len(sizes_bb(strategy.sizing, key, name)) > 1] == []
+        assert {mine for mine, _ in drawn if mine is not None} == {round(7.5 * BIG_BLIND)}
+        assert all(mine == theirs for mine, theirs in drawn)
 
     def test_a_hopeless_hand_folds_rather_than_refusing(self, strategy) -> None:
-        outcome = decision(strategy.decide(query("LJ", hole_cards=("7d", "2c"))))
+        outcome = decision(strategy.decide(sb_open(("7d", "2c"))))
 
         assert outcome.action == "fold"
 
     def test_the_raise_amount_comes_from_the_sizing_table(self, strategy) -> None:
-        outcome = decision(strategy.decide(query("LJ", hole_cards=("As", "Ah"))))
+        """Every raise checked, the amount written here rather than read back off `sizes_bb`, which
+        compared the table against itself. Facing 7.5, the menu is the four-bet to 22.5 alone."""
+        key, history = three_bet_faced(strategy.library)
+        amounts, priced = set(), 0
+        for hand, cards in HAND_CARDS.items():
+            offered = sizes_bb(strategy.sizing, key, hand)
+            priced += len(offered) == 1
+            assert [price for price, _ in offered] in ([], [pytest.approx(22.5)]), hand
+            outcome = strategy.decide(query("LJ", history=history, hole_cards=cards))
+            if isinstance(outcome, StrategyDecision) and outcome.action == "raise":
+                amounts.add(outcome.amount)
 
-        assert outcome.amount == int(2.5 * BIG_BLIND)
+        assert priced
+        assert amounts == {round(22.5 * BIG_BLIND)}
 
     def test_facing_an_open_uses_the_spot_for_that_opener(self, strategy) -> None:
-        outcome = strategy.decide(
-            query("BB", history=(raised("CO"),), hole_cards=("As", "Ah"))
-        )
+        """The key rather than the action: the lookup is where "which opener" is decided anyway."""
+        opened = raised_line(strategy.library, "BB", "CO")
+        found = strategy.chart_lookup(query("BB", history=opened, hole_cards=("As", "Ah")))
 
-        assert decision(outcome).action == "raise"
+        assert isinstance(found, ChartHit), found
+        assert found.spot_key == vs_open_key(strategy.library, "BB", "CO")
 
     def test_folds_in_the_history_do_not_change_the_spot(self, strategy) -> None:
-        with_folds = strategy.decide(
-            query(
-                "BB",
-                history=(folded("LJ"), folded("HJ"), raised("CO"), folded("BTN"), folded("SB")),
-                hole_cards=("As", "Ah"),
-            )
-        )
-        without_folds = strategy.decide(
-            query("BB", history=(raised("CO"),), hole_cards=("As", "Ah"))
-        )
+        opened = raised_line(strategy.library, "BB", "CO")
+        padded = (folded("LJ"), folded("HJ"), *opened, folded("BTN"), folded("SB"))
+        expected = vs_open_key(strategy.library, "BB", "CO")
+        with_folds = strategy.chart_lookup(query("BB", history=padded, hole_cards=("As", "Ah")))
+        without = strategy.chart_lookup(query("BB", history=opened, hole_cards=("As", "Ah")))
 
-        assert decision(with_folds).action == decision(without_folds).action
+        assert isinstance(with_folds, ChartHit) and isinstance(without, ChartHit)
+        assert with_folds.spot_key == without.spot_key == expected
 
     def test_the_decision_records_the_weights_it_came_from(self, strategy) -> None:
-        outcome = decision(strategy.decide(query("LJ", hole_cards=("As", "Ah"))))
+        opened = raised_line(strategy.library, "BB", "BTN")
+        outcome = decision(strategy.decide(query("BB", history=opened, hole_cards=("7d", "2c"))))
 
-        assert "raise" in outcome.code
-        assert "weighted-draw" in outcome.code
+        assert outcome.code.startswith(f"preflop-chart:weighted-draw:{outcome.action}[")
+        assert outcome.code.count("=") > 1
 
 
 class TestRefusals:
+    """Each must refuse for the reason it names, and the ones reaching the chart moved seats."""
+
+    def test_the_big_blinds_squeeze_spot_is_refused_as_an_uncovered_spot(self, strategy) -> None:
+        """The ruled cost where a human meets it, the lojack's open being committed now. These ten
+        cleared exposure only because the tight big blind folds there, the filter being blindest
+        where the mispricing already turned a call into a fold."""
+        key, opened = squeeze(strategy.library, "CO", "BTN")
+        history = (folded("LJ"), folded("HJ"), *opened)
+        outcome = refusal(strategy.decide(query("BB", history=history, hole_cards=("As", "Ah"))))
+
+        assert outcome.code.endswith("spot-not-covered")
+        assert ("spot_key", key) in outcome.detail
+
     def test_an_uncovered_stack_depth_refuses(self, strategy) -> None:
-        """A flat 40bb table, so the depth is the only thing missing. A starting stack is
-        now what a seat holds plus what it has put in, so the old fixture - 4,000 in front
-        of a small blind that had posted 50 - refuses on its shape before the chart is
-        ever asked about the depth."""
-        outcome = strategy.decide(query("LJ", stacks=stacks(depth_bb=40)))
+        """A flat 40bb table at the one open a 100bb chart answers, so only depth is missing."""
+        outcome = strategy.decide(sb_open(stacks=stacks(depth_bb=40)))
 
         assert "depth" in refusal(outcome).code
 
     def test_a_straddled_pot_refuses_rather_than_reading_as_ordinary(self, strategy) -> None:
-        """The straddler's chips are in the pot and the level is two big blinds. Nobody
-        has raised, so a level above the big blind is a straddle and nothing else, and the
-        refusal names which forced-money structure it found rather than calling a straddle
-        and an ante alike "some blind structure I cannot represent"."""
+        """Nobody has raised, so a level above the big blind is a straddle and nothing else."""
         outcome = strategy.decide(query("HJ", forced={seat_of("LJ"): 2 * BIG_BLIND}))
 
         assert refusal(outcome).code.endswith("pot-holds-a-straddle")
 
     def test_an_anted_pot_refuses(self, strategy) -> None:
-        """Every seat antes 10, which sits in its hand total and not its street total. The
-        old fixture overrode the pot alone, which is now a pot holding chips no seat paid
-        for and does not construct at all."""
+        """An ante sits in a hand total, not a street total: the pot alone cannot describe it."""
         outcome = strategy.decide(query("LJ", ante=10))
 
         assert refusal(outcome).code.endswith("pot-holds-an-ante")
 
-    def test_a_second_orbit_spot_refuses(self, strategy) -> None:
-        """Phase 12 gave it a key; the committed chart still holds no cell for it.
+    def test_a_second_orbit_spot_refuses_by_name_not_as_unrepresentable(self, strategy) -> None:
+        """Phase 12's half holds and phase 14's inverts. Nothing past two raises is committed, so
+        this line refuses - but *by name*, which is what phase 12 bought: before it the miss was a
+        catch-all nobody could act on. Prices past the three-bet are asked as played."""
+        history = (raised("LJ", 250), raised("CO", 750), raised("LJ", 2250), raised("CO", 6000))
+        outcome = refusal(strategy.decide(
+            query("LJ", history=history, hole_cards=("As", "Ah"), legal_actions=("fold", "call"))
+        ))
 
-        The refusal is the same answer for a better reason - `spot-not-covered` names a
-        cell somebody could fill, where `unrepresentable-spot` named nothing at all.
-        """
-        history = (
-            raised("LJ", OPEN_TO),
-            raised("CO", THREE_BET_TO),
-            raised("LJ", FOUR_BET_TO),
-            raised("CO", FIVE_BET_TO),
+        assert outcome.code.endswith("spot-not-covered")
+        assert outcome.named("spot_key") == (
+            f"t6/d{DEPTH_BB}/LJ/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5,CO:raise@60"
         )
-        outcome = strategy.decide(query("LJ", history=history))
 
-        assert isinstance(outcome, StrategyRefusal)
+    def test_a_limped_pot_refuses_because_no_solved_node_holds_one(self, strategy) -> None:
+        """The one miss a fixed GTOpen cannot recover: a limped pot has no node in the tree."""
+        history = (folded("LJ"), folded("HJ"), folded("CO"), folded("BTN"), called("SB"))
+        outcome = refusal(strategy.decide(query("BB", history=history, hole_cards=("As", "Ah"))))
+
+        assert outcome.code.endswith("spot-not-covered")
 
     def test_a_postflop_query_refuses(self, strategy) -> None:
-        outcome = strategy.decide(
-            query("LJ", street="flop", board=("2c", "7h", "Ts"), to_call=0,
-                  legal_actions=("check", "raise"))
-        )
+        flop = query("LJ", street="flop", board=("2c", "7h", "Ts"), to_call=0,
+                     legal_actions=("check", "raise"))
+        outcome = strategy.decide(flop)
 
         assert "preflop" in refusal(outcome).code
 
     def test_a_short_hero_refuses_even_behind_a_full_stack(self, strategy) -> None:
-        """Depth is hero's, not the table's deepest seat.
-
-        Reading the deepest stack meant a twelve-big-blind hero opened a hundred
-        big-blind range whenever one untouched seat sat behind, which is an
-        unbounded tolerance band on a decision ruled exact-only.
-        """
+        """Depth is hero's: reading the deepest stack let a 12bb hero open a 100bb range."""
         hero = seat_of("LJ")
         short = tuple((s, 12 * BIG_BLIND if s == hero else v) for s, v in stacks())
-
         outcome = refusal(strategy.decide(query("LJ", stacks=short)))
 
         assert outcome.code.endswith("table-is-not-one-flat-stack-depth")
 
     def test_a_ragged_depth_refuses_with_its_own_code(self, strategy) -> None:
         odd = tuple((seat, 100 * BIG_BLIND + 37) for seat, _ in stacks())
-
         outcome = refusal(strategy.decide(query("LJ", stacks=odd)))
 
         assert outcome.code.endswith("stack-depth-not-a-whole-big-blind")
 
     def test_an_anted_pot_refuses_at_every_seat_not_just_the_first(self, strategy) -> None:
-        """Folds are recorded, so checking only an empty history covered one seat.
-
-        A folded seat's ante is still in the pot and in its hand total, which is why the
-        per-seat gap catches it where a reconstruction from the seats still playing does
-        not."""
+        """A folded seat's ante is still in the pot; a reconstruction from live seats misses it."""
         outcome = strategy.decide(query("HJ", history=(folded("LJ"),), ante=10))
 
         assert refusal(outcome).code.endswith("pot-holds-an-ante")
 
     def test_a_straddled_pot_refuses_after_someone_raises(self, strategy) -> None:
-        """The guard used to stop looking the moment anything raised.
-
-        The hard case, and the one the deleted pot bound admitted: the straddler has been
-        raised over, so its chips look exactly like an ordinary caller's and no comparison
-        of contributions sees it. The minimum raise target gives it away - measured from
-        the 200 straddle a raise to 600 leaves 1,000, unstraddled it would leave 1,100."""
+        """Raised over, a straddler's chips look like a caller's; the target gives it away."""
+        history = (raised("HJ", 6 * BIG_BLIND), folded("CO"), folded("BTN"), folded("SB"))
         outcome = strategy.decide(
-            query(
-                "BB",
-                history=(raised("HJ", 6 * BIG_BLIND), folded("CO"), folded("BTN"), folded("SB")),
-                forced={seat_of("LJ"): 2 * BIG_BLIND},
-            )
+            query("BB", history=history, forced={seat_of("LJ"): 2 * BIG_BLIND})
         )
 
         assert refusal(outcome).code.endswith("pot-holds-a-straddle")
 
     def test_a_charted_action_that_is_not_legal_here_refuses(self, strategy) -> None:
-        outcome = strategy.decide(
-            query("LJ", hole_cards=("As", "Ah"), legal_actions=("fold", "call"))
-        )
+        outcome = strategy.decide(sb_open(legal_actions=("fold", "call")))
 
         assert "not-legal-here" in refusal(outcome).code
 
     def test_a_raise_with_no_committed_size_refuses(self, strategy) -> None:
+        """The table is emptied rather than thinned, so this refuses under any price rule."""
         bare = PreflopChartStrategy(library=strategy.library, sizing=PreflopSizingTable(
             source_name="empty", source_kind="solver-export", raise_to_bb={}
         ))
-
-        outcome = bare.decide(query("LJ", hole_cards=("As", "Ah")))
+        outcome = bare.decide(sb_open())
 
         assert "no-committed-raise-size" in refusal(outcome).code
 
     def test_a_committed_size_below_the_minimum_raise_refuses(self, strategy) -> None:
-        """A 2.5bb open cannot answer a pot already raised to 6bb."""
-        outcome = strategy.decide(
-            query("LJ", hole_cards=("As", "Ah"), min_raise_target=12 * BIG_BLIND)
-        )
+        """A 2.5bb open cannot answer a pot raised to 6bb. The price is written here rather than
+        read off the table - the only fixture that does - at the per-class shape ruled 2026-08-26.
+        Built rather than loaded: a payload at the ruled version trips the loader first."""
+        priced = PreflopChartStrategy(library=strategy.library, sizing=PreflopSizingTable(
+            source_name="one-price", source_kind="solver-export",
+            raise_to_bb={SB_OPEN_KEY: {"AA": [{"to_bb": 2.5, "weight": 1.0}]}},
+        ))
+        offered = sizes_bb(priced.sizing, SB_OPEN_KEY, "AA")
+        outcome = priced.decide(sb_open(min_raise_target=12 * BIG_BLIND))
 
+        assert [price for price, _ in offered] == [pytest.approx(2.5)]
         assert "below-minimum-raise" in refusal(outcome).code
 
     def test_every_refusal_names_the_coverage_that_was_missing(self, strategy) -> None:
-        outcome = refusal(strategy.decide(query("LJ", stacks=stacks(depth_bb=40))))
+        outcome = refusal(strategy.decide(sb_open(stacks=stacks(depth_bb=40))))
 
         assert outcome.code.startswith("preflop-chart:")
 
 
 class TestTotality:
-    """Coverage proved by enumeration, not by sampling."""
-
-    def test_every_covered_spot_answers_for_all_169_hand_classes(
-        self, strategy, library
-    ) -> None:
-        undecided = []
+    def test_every_covered_cell_the_chart_can_price_answers(self, strategy, library) -> None:
+        """Every cell of every covered spot, every price checked against the tree rather than the
+        table that produced it: `offered` was read from `sizes_bb`, where `decide_spot` reads it,
+        so `mispriced == []` said the implementation equalled itself. It comes off the **key** now
+        - the next rung above the level hero faces - reproducing all 249 menus and failing a table
+        that priced a three-bet spot at the open size. The forced-raise and two-price counts were
+        measured over the retired 86 and nothing replaces them, so each becomes the property it
+        guarded and the cell total carries the non-vacuity."""
+        artifact = library.artifacts[0]
+        undecided, mispriced, forced, drew, cells, two_priced = [], [], [], set(), 0, 0
         for spot_key in sorted(library.spot_keys()):
+            faced = [float(part.split("@")[1])
+                     for part in spot_key.rsplit("/", 1)[-1].split(",") if "@" in part]
+            rungs = [rung for rung in LADDER_BB if rung > max(faced, default=0.0)]
+            offered = {max(round(rungs[0] * 100), 1)} if rungs else set()
+            assert library.hand_classes_for(spot_key), spot_key
             for hand in library.hand_classes_for(spot_key):
+                cells += 1
+                two_priced += len(sizes_bb(strategy.sizing, spot_key, hand)) > 1
+                if dict(artifact.weights_for(spot_key, hand) or ()).get("raise", 0) >= 1.0 - 1e-9:
+                    forced.append((spot_key, hand))
                 outcome = strategy.decide_spot(spot_key, hand)
                 if not isinstance(outcome, StrategyDecision):
                     undecided.append((spot_key, hand))
+                elif outcome.action == "raise":
+                    drew.add((spot_key, hand))
+                    if outcome.amount not in offered:
+                        mispriced.append((spot_key, hand, outcome.amount))
 
         assert undecided == []
+        assert mispriced == []
+        assert [cell for cell in forced if cell not in drew] == []
+        assert forced, "no forced-raise cell, so the claim above states nothing"
+        assert cells == DECLARED_CELLS
+        assert two_priced == 0
 
     def test_no_reachable_six_handed_spot_raises(self, strategy) -> None:
         order = table_positions(6)
         hands = [("As", "Ah"), ("7d", "2c"), ("Jc", "Td")]
+        price = open_to(strategy.library)
         for hero in order:
             for opener in order:
                 for cards in hands:
-                    history = () if opener == hero else (raised(opener),)
+                    history = () if opener == hero else (raised(opener, price),)
                     outcome = strategy.decide(query(hero, history=history, hole_cards=cards))
 
                     assert isinstance(outcome, StrategyDecision | StrategyRefusal)
 
-    def test_a_decision_is_never_returned_without_chart_backing(
-        self, strategy, library
-    ) -> None:
-        """The one property that makes an artifact-backed bot trustworthy."""
-        outcome = strategy.decide(query("LJ", history=(raised("HJ"),), hole_cards=("As", "Ah")))
+    def test_a_decision_is_never_returned_without_chart_backing(self, strategy, library) -> None:
+        """The cutoff behind a hijack open is covered now, so the refused arm moves to a squeeze."""
+        key, squeezed = squeeze(library, "HJ", "BTN")
+        behind = strategy.decide(query("BB", history=squeezed, hole_cards=("As", "Ah")))
+        closing = strategy.decide(query("BB", history=squeezed[:1], hole_cards=("7d", "2c")))
 
-        assert isinstance(outcome, StrategyRefusal | StrategyDecision)
-        if isinstance(outcome, StrategyDecision):
-            assert vs_open_key(library, "LJ", "HJ") in library.spot_keys()
+        assert refusal(behind).code.endswith("spot-not-covered")
+        assert key not in library.spot_keys()
+        assert isinstance(closing, StrategyDecision)
+        assert vs_open_key(library, "BB", "HJ") in library.spot_keys()
 
 
 class TestLegalityAndDeterminism:
+    """The decide-twice tests moved to the lojack facing a three-bet, the four-bet family going."""
+
     def test_every_decision_passes_the_phase_03_audit_record(self, strategy) -> None:
-        order = table_positions(6)
-        for hero in order:
-            request = query(hero, hole_cards=("As", "Ah"))
+        """It counts what it recorded. AA and AKs both open the lojack, so both arrive."""
+        _, three_bet = three_bet_faced(strategy.library)
+        hands = (("As", "Ah"), ("Ac", "Kc"))
+        requests = [query("LJ", history=three_bet, hole_cards=cards) for cards in hands]
+        requests.append(sb_open(("7d", "2c")))
+        recorded = 0
+        for request in requests:
             outcome = strategy.decide(request)
             if isinstance(outcome, StrategyDecision):
-                DecisionAuditRecord(
-                    schema_version=DECISION_AUDIT_SCHEMA_VERSION,
-                    strategy_id=strategy.strategy_id,
-                    strategy_version=strategy.strategy_version,
-                    query=request,
-                    outcome=outcome,
-                )
+                recorded += 1
+                audit_record(strategy, request, outcome)
+
+        assert recorded == len(requests)
 
     def test_suit_relabelling_does_not_change_the_decision(self, strategy) -> None:
-        spades = strategy.decide(query("BTN", hole_cards=("As", "Ks")))
-        hearts = strategy.decide(query("BTN", hole_cards=("Ah", "Kh")))
+        _, history = three_bet_faced(strategy.library)
+        spades = strategy.decide(query("LJ", history=history, hole_cards=("As", "Ks")))
+        hearts = strategy.decide(query("LJ", history=history, hole_cards=("Ah", "Kh")))
 
         assert decision(spades).action == decision(hearts).action
 
     def test_card_order_does_not_change_the_decision(self, strategy) -> None:
-        forwards = strategy.decide(query("BTN", hole_cards=("As", "Kd")))
-        backwards = strategy.decide(query("BTN", hole_cards=("Kd", "As")))
+        _, history = three_bet_faced(strategy.library)
+        forwards = strategy.decide(query("LJ", history=history, hole_cards=("As", "Kd")))
+        backwards = strategy.decide(query("LJ", history=history, hole_cards=("Kd", "As")))
 
         assert decision(forwards).action == decision(backwards).action
 
@@ -581,55 +602,41 @@ class TestLegalityAndDeterminism:
         assert hand_class(("As", "Kd")) == hand_class(("Kd", "As")) == "AKo"
 
     def test_the_same_query_serializes_to_the_same_audit_line(self, strategy) -> None:
-        request = query("BTN", hole_cards=("As", "Ah"))
+        """A serialized refusal repeats as stably as a decision, so a refused seat proves little."""
+        _, three_bet = three_bet_faced(strategy.library)
+        request = query("LJ", history=three_bet, hole_cards=("As", "Ah"))
         lines = set()
         for _ in range(3):
             outcome = strategy.decide(request)
-            lines.add(
-                DecisionAuditRecord(
-                    schema_version=DECISION_AUDIT_SCHEMA_VERSION,
-                    strategy_id=strategy.strategy_id,
-                    strategy_version=strategy.strategy_version,
-                    query=request,
-                    outcome=outcome,
-                ).to_json_line()
-            )
+            lines.add(audit_record(strategy, request, outcome).to_json_line())
 
+        assert isinstance(strategy.decide(request), StrategyDecision)
         assert len(lines) == 1
 
     def test_the_draw_depends_on_the_hand_not_only_the_spot(self, strategy) -> None:
-        """A seed of spot and hand class alone is the plurality rule wearing a hash.
-
-        It would freeze every mixed cell to one action forever while every frequency
-        test that routes through decide_spot kept passing.
-        """
-        spot = THREE_BET_SPOT
-        mixed = next(
-            hand
-            for hand in strategy.library.hand_classes_for(spot)
-            if len(strategy.library.artifacts[0].weights_for(spot, hand)) > 1
-        )
-        seeds = {
-            strategy._seed(query("LJ", hole_cards=("As", "Ah"), hand_id=f"h{index}"), spot, mixed)
-            for index in range(5)
-        }
+        """Spot-and-class seeding freezes every mixed cell, and frequency tests keep passing."""
+        spot = three_bet_spot(strategy.library)
+        mixed = next(h for h in strategy.library.hand_classes_for(spot)
+                     if len(strategy.library.artifacts[0].weights_for(spot, h)) > 1)
+        seeds = {strategy._seed(query("LJ", hole_cards=("As", "Ah"), hand_id=f"h{i}"), spot, mixed)
+                 for i in range(5)}
 
         assert len(seeds) == 5
 
     def test_the_draw_ignores_suits_and_card_order(self, strategy) -> None:
-        spot = "t6/d100/BTN/rfi"
-        first = strategy._seed(query("BTN", hole_cards=("As", "Kd")), spot, "AKo")
-        second = strategy._seed(query("BTN", hole_cards=("Kh", "Ac")), spot, "AKo")
+        """At the lojack facing a three-bet, the one spot this class keeps a mixed cell at."""
+        spot = three_bet_spot(strategy.library)
+        first = strategy._seed(query("LJ", hole_cards=("As", "Kd")), spot, "AKo")
+        second = strategy._seed(query("LJ", hole_cards=("Kh", "Ac")), spot, "AKo")
 
         assert first == second
 
     def test_decide_reproduces_the_charts_frequencies_over_many_hands(self, strategy) -> None:
-        """Measured through decide, not decide_spot, so the seed is under test too."""
-        spot = THREE_BET_SPOT
+        """Through decide, not decide_spot, so the seed is under test too; folding needs no size."""
+        spot = three_bet_spot(strategy.library)
         charted = strategy.library.action_frequency_pct(spot, "fold")
-        history = (raised("LJ", OPEN_TO), raised("CO", THREE_BET_TO))
-        folds = 0.0
-        total = 0.0
+        history = raised_line(strategy.library, "LJ", "LJ", "CO")
+        folds = total = 0.0
         for hand in strategy.library.hand_classes_for(spot):
             cards = HAND_CARDS.get(hand)
             if cards is None:
@@ -650,7 +657,6 @@ class TestLegalityAndDeterminism:
 
     def test_the_same_seed_draws_the_same_action(self, strategy) -> None:
         mix = (("call", 0.5), ("raise", 0.5))
-
         assert strategy.collapse(mix, "h1|0|spot|AJo") == strategy.collapse(mix, "h1|0|spot|AJo")
 
     def test_the_draw_reproduces_the_charts_frequencies(self, strategy) -> None:
@@ -669,16 +675,10 @@ class TestLegalityAndDeterminism:
         assert drawn == {"call", "raise"}
 
     def test_the_strategy_does_not_over_fold_against_three_bets(self, strategy) -> None:
-        """The blocker that halted this phase, pinned as a test.
-
-        A plurality rule folded 72.8% here where the chart folds 59.8%, which is past
-        the 66.7% at which an 8bb three-bet over a 2.5x open auto-profits as a pure
-        bluff.
-        """
-        spot = THREE_BET_SPOT
+        """The blocker that halted this phase: a plurality rule folded 72.8% against 59.8%."""
+        spot = three_bet_spot(strategy.library)
         charted = strategy.library.action_frequency_pct(spot, "fold")
-        folds = 0
-        total = 0
+        folds = total = 0
         for hand in strategy.library.hand_classes_for(spot):
             weight = combos_of(hand)
             total += weight
@@ -690,10 +690,11 @@ class TestLegalityAndDeterminism:
         assert 100.0 * folds / total == pytest.approx(charted, abs=2.0)
 
 
-def test_no_two_covered_spots_share_a_hand_class_ordering(library) -> None:
-    """Ordering is what makes reports and audits byte-comparable."""
-    for spot_key in itertools.islice(sorted(library.spot_keys()), 5):
-        first = library.hand_classes_for(spot_key)
-        second = library.hand_classes_for(spot_key)
+def test_covered_spots_do_not_all_declare_the_same_hand_classes(library) -> None:
+    """It used to call `hand_classes_for` twice with one key over 5 spots and assert the two
+    agreed, true of every return value including `()`. A spot declares what hero can still hold -
+    all 169 first in, his arriving range behind a raise - so one ordering everywhere is wrong."""
+    orderings = {key: library.hand_classes_for(key) for key in library.spot_keys()}
 
-        assert first == second
+    assert len(orderings) == COMMITTED_SPOTS
+    assert len(set(orderings.values())) > 1, "every covered spot declares the same classes"

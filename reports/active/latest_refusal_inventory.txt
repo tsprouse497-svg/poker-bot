@@ -19,65 +19,34 @@ here, so a row names the cell the chart was really asked about.
 ## six copies of the chart bot
 
   hands dealt         600
-  hands refused       126
-  distinct spots       25
+  hands refused        19
+  distinct spots       10
 
    hands  spot key                                 hands seen  reason
-      17  t6/d100/BB/BTN:raise@2.5,SB:raise@11             17  spot-not-covered
-      11  t6/d100/SB/SB:call,BB:raise@3.5                  10  spot-not-covered
-      10  t6/d100/BTN/HJ:raise@2.5,CO:raise@8               9  spot-not-covered
-       8  t6/d100/BB/CO:raise@2.5,SB:raise@11               8  spot-not-covered
-       7  t6/d100/BTN/LJ:raise@2.5,CO:raise@8               7  spot-not-covered
-       7  t6/d100/SB/CO:raise@2.5,BTN:raise@8               7  spot-not-covered
-       7  t6/d100/SB/HJ:raise@2.5,BTN:raise@8               7  spot-not-covered
-       7  t6/d100/SB/LJ:raise@2.5,BTN:raise@8               7  spot-not-covered
-       6  t6/d100/BB/LJ:raise@2.5,SB:raise@11               6  spot-not-covered
-       6  t6/d100/CO/LJ:raise@2.5,HJ:raise@8                6  spot-not-covered
-       4  t6/d100/BB/HJ:raise@2.5,SB:raise@11               4  spot-not-covered
-       4  t6/d100/BB/LJ:raise@2.5,SB:call                   4  spot-not-covered
-       4  t6/d100/BTN/LJ:raise@2.5,CO:call                  4  spot-not-covered
-       3  t6/d100/BB/BTN:raise@2.5,SB:call                  3  spot-not-covered
-       3  t6/d100/BB/CO:raise@2.5,SB:call                   3  spot-not-covered
-       3  t6/d100/BB/HJ:raise@2.5,BB:raise@13.5,HJ:raise@28.5          3  spot-not-covered
-       3  t6/d100/BB/HJ:raise@2.5,SB:call                   3  spot-not-covered
-       3  t6/d100/BB/SB:raise@3.5,BB:raise@10.5,SB:raise@22          3  spot-not-covered
-       3  t6/d100/CO/LJ:raise@2.5,HJ:call                   2  spot-not-covered
-       3  t6/d100/SB/CO:raise@2.5,BTN:call                  3  spot-not-covered
-       3  t6/d100/SB/HJ:raise@2.5,BTN:call                  3  spot-not-covered
-       1  t6/d100/BB/CO:raise@2.5,BB:raise@13.5,CO:raise@28.5          1  spot-not-covered
-       1  t6/d100/BB/LJ:raise@2.5,BB:raise@13.5,LJ:raise@28.5          1  spot-not-covered
-       1  t6/d100/BTN/HJ:raise@2.5,CO:call                  1  spot-not-covered
-       1  t6/d100/SB/LJ:raise@2.5,BTN:call                  1  spot-not-covered
+       4  t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5          4  spot-not-covered
+       3  t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5          3  spot-not-covered
+       2  t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5          2  spot-not-covered
+       2  t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5          2  spot-not-covered
+       2  t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5          2  spot-not-covered
+       2  t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5          2  spot-not-covered
+       1  t6/d100/BB/HJ:raise@2.5,CO:raise@7.5,SB:raise@22.5          1  spot-not-covered
+       1  t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5          1  spot-not-covered
+       1  t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5          1  spot-not-covered
+       1  t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5          1  spot-not-covered
 
   hand classes reached, per spot:
-    t6/d100/BB/BTN:raise@2.5,SB:raise@11: 62o, 63s, 65o, 72s, 92o, 99, A4o, J3o, J7o,
-    K2o, K3o, KJo, KQo, Q3s, Q5o, Q6o, T8o
-    t6/d100/SB/SB:call,BB:raise@3.5: 33, 44, 54s, 76s, A5s, K5s, K7o, K8o, KK, Q8ox2
-    t6/d100/BTN/HJ:raise@2.5,CO:raise@8: 22, 65o, 75s, 76s, 83o, 97ox2, J2o, J3o, J7s
-    t6/d100/BB/CO:raise@2.5,SB:raise@11: 43o, 86o, 88, 97o, A4o, ATo, Q4s, T4s
-    t6/d100/BTN/LJ:raise@2.5,CO:raise@8: 52s, 84o, 86o, 92o, KJo, Q4s, T6o
-    t6/d100/SB/CO:raise@2.5,BTN:raise@8: 62s, A9o, AQo, J3s, K3o, T2o, T8o
-    t6/d100/SB/HJ:raise@2.5,BTN:raise@8: A5o, A8o, J6s, K8s, Q4o, T8s, T9s
-    t6/d100/SB/LJ:raise@2.5,BTN:raise@8: 52s, 65o, 72o, 74o, 75o, 76o, Q7o
-    t6/d100/BB/LJ:raise@2.5,SB:raise@11: 42o, 87o, A2o, K4o, KJo, T3o
-    t6/d100/CO/LJ:raise@2.5,HJ:raise@8: A5o, AQo, ATo, J2s, J7o, T9o
-    t6/d100/BB/HJ:raise@2.5,SB:raise@11: 87o, A7o, A9o, Q9s
-    t6/d100/BB/LJ:raise@2.5,SB:call: 33, ATo, J3s, Q5s
-    t6/d100/BTN/LJ:raise@2.5,CO:call: 73o, A8o, K3o, K8o
-    t6/d100/BB/BTN:raise@2.5,SB:call: A7o, K4o, KJo
-    t6/d100/BB/CO:raise@2.5,SB:call: AJo, J6o, T6s
-    t6/d100/BB/HJ:raise@2.5,BB:raise@13.5,HJ:raise@28.5: A2s, A5o, K2s
-    t6/d100/BB/HJ:raise@2.5,SB:call: K6o, K8o, Q9o
-    t6/d100/BB/SB:raise@3.5,BB:raise@10.5,SB:raise@22: AJs, AQo, JTo
-    t6/d100/CO/LJ:raise@2.5,HJ:call: 63ox2, A4o
-    t6/d100/SB/CO:raise@2.5,BTN:call: 96o, AKo, K7o
-    t6/d100/SB/HJ:raise@2.5,BTN:call: K3o, K8o, KQo
-    t6/d100/BB/CO:raise@2.5,BB:raise@13.5,CO:raise@28.5: A5o
-    t6/d100/BB/LJ:raise@2.5,BB:raise@13.5,LJ:raise@28.5: A6s
-    t6/d100/BTN/HJ:raise@2.5,CO:call: J9o
-    t6/d100/SB/LJ:raise@2.5,BTN:call: J9o
+    t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5: 22, 88, AQo, QTs
+    t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5: AJs, AKo, JTs
+    t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5: AKs, KK
+    t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5: AJs, AKs
+    t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5: AJs, QQ
+    t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5: 88, ATs
+    t6/d100/BB/HJ:raise@2.5,CO:raise@7.5,SB:raise@22.5: 85s
+    t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5: 22
+    t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5: QQ
+    t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5: KTs
 
-  126 refused hands across 25 distinct spots. Those two numbers must agree with the
+  19 refused hands across 10 distinct spots. Those two numbers must agree with the
   hands-refused count above; if they do not, refusal detail is being dropped somewhere
   between the strategy and this file.
 

@@ -18,6 +18,669 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-04
+    reason: >-
+      The stage-7 review found two blockers and both are mine to answer.
+      **The false claim was fixed in two places and left standing in two others that the gate itself
+      regenerates.** `d097635` correctly identified "the cutover gives up four of the five opening
+      ranges" as describing the retired 86-spot chart, and corrected it in
+      `table_state/measures.py` and `docs/CORPUS_COMPARISON_LIMITS.md`. The same claim is hardcoded in
+      `scripts/generate_preflop_strategy_report.py` and
+      `solver_artifacts/vocabulary_corpus_report.py`, so `reports/active/latest_preflop_strategy_report.txt`
+      prints `Spots: 249` and then says the chart "leaves one opening range", and
+      `latest_spot_vocabulary_report.txt` prints 139 refusals and then argues the total is higher than
+      the 290 the vocabulary phase measured. Both are registered gate commands, and the strategy report
+      was regenerated inside that very commit with the false paragraph intact - correct numbers with
+      false prose beside them, which is worse than a stale number because a reader trusts the sentence.
+      Measured: five first-in ranges, 25 facing an open, refusals fell 290 to 139, and both denominators
+      rose. Both files enter scope for the prose only.
+      **The citation reword falsified a quoted literal, and my own commit message says otherwise.**
+      `d097635` claimed all thirteen rewords were typography with no meaning changed. For eight of them
+      that is false: the scope-log flag was stripped of its hyphen inside backticks, so the decision
+      record now quotes `OWES A DECISION ITEM AT THE NEXT CONTRACT UPDATE` while `CURRENT_TASK.yml`
+      carries it hyphenated - the record quotes a string that exists nowhere and one line asserts what
+      `CURRENT_TASK.yml` carries. The decision record is already in scope. The fix is to stop quoting
+      the whole literal rather than to reword it again, since the hyphenated tail is id-shaped and the
+      citation checker will read any form of it as a backlog id.
+  - date: 2026-09-04
+    reason: >-
+      `reports/phase_audits/PHASE_14_CHART_CUTOVER.md` enters approved_scope for stage 9, which is where
+      the ExecPlan's Scope section always said it would. The contract requires the packet to carry a
+      plain-language summary, a pass/fail checklist a non-coding reviewer can work through, a command
+      summary linking the reports, and the known limitations - and it forbids a hand-typed count, so
+      every figure in it cites the report that re-derives it rather than being copied in. The file is
+      capped at 500 lines like every other packet, and phase 13's sits at 499, so this phase has more
+      findings than lines and the packet will have to point at the review notes rather than restate them.
+  - date: 2026-09-04
+    reason: >-
+      The stage-7 gate is red on four commands and none of them is the chart. Two are an artefact of my
+      own mistake - I ran `run_verify.py` while the driver's own run was still going, so two mutating
+      invocations overlapped and left a `verification/.mutation_in_progress` sentinel that failed
+      `check_scope` and `check_gate_bite`. Nothing was lost and the tree is clean; the phase's own note
+      about never running two at once is the rule I broke.
+      The other two are the cutover moving numbers earlier phases pinned, and both are in scope now.
+      `src/poker_training_bot/table_state/measures.py` holds `CORPUS_REFUSALS = 2529`, and its own
+      comment says the pin is deliberate: "a refusal count that drifts silently is exactly what a
+      coverage change looks like from here, and the point of the pin is that changing the chart has to
+      be a deliberate edit to this line." This is that edit - the chart now refuses **139** - so it is a
+      designed handoff rather than a defect. The comment's prose is false too: it describes giving up
+      four of the five opening ranges and ten of the eleven spots facing a single open, which was the
+      86-spot chart, where the 249 commits all five first-in spots and 25 facing an open.
+      `docs/CORPUS_COMPARISON_LIMITS.md` states two registered facts the chart moved, corpus refusals
+      2,529 to 139 and distinct refused spots 154 to 61. `reports/active/repo_facts.yml` is the
+      committed facts file and is already standing scope, so regenerating it needs nothing new.
+      **A correction to this plan's own claim.** The bootstrap says twelve backlog entries fail
+      `run_full_quality_gate`'s status and phase constants and that this is MAINT-29's rather than this
+      lane's. Measured on 2026-09-04: `main` carries **zero** entries with `status: open`, this branch
+      carried six at the stage-5 freeze and carries seven now. Every one was written in this lane, so
+      every one is this lane's to correct, and the entry that says otherwise was reasoning from a
+      diagnosis rather than from a count. `backlog.yml` is standing scope, so no new path is needed -
+      only the correction to who owns it. Its own entry notes that the phase 14 lane's deliberate red
+      had been masking the whole set, which is exactly what happened.
+  - date: 2026-09-04
+    reason: >-
+      `tests/test_preflop_committed_charts.py` fails three assertions against the committed 249 and sits
+      in the gate twice, on `pytest_preflop_artifacts` and on the base `pytest`. It was not among the
+      nine files the stage-4 migration touched and nobody had run it against the new chart until the
+      blocker-resolution lane did, so this is a tenth, eleventh and twelfth instance of the defect the
+      other nine were, found after the re-freeze rather than before it.
+      All three are one cause and I measured it directly rather than taking it on report. Every
+      assertion in the file expects the menu a spot **offers**; every helper measures what a hand
+      **takes**. `menus()` filters `weight > 0.0` while its own docstring calls the result "the
+      published menu shape", and the assertion beside it expects 224 and 25 - which is exactly what the
+      chart publishes on the offered reading, 5 + 219 with a call and 5 + 20 without. On the taken
+      reading it reads five shapes, including 13 spots that fold every hand and 3 that only call. The
+      sizing test reads through `sizes_bb`, which answers None where a class does not raise, and expects
+      the 249 that carry a key.
+      So the correction is to the **helpers**, not to a single expected count, which is the safest form
+      any of the twelve has taken: the assertions and the docstrings already say the right thing and the
+      measurement underneath them does not. `verification/freeze.lock` rejoins for the third re-freeze.
+      Taylor ruled the principle on 2026-09-03 and again on 2026-09-04 - corrections authored by a lane
+      that wrote none of the implementation, intent preserved, no count moved to match the code, both
+      reviewers reading the diff. I am applying it a third time rather than asking a third time about an
+      identical question, and disclosing that the surface has grown from the five files and seven
+      assertions he ruled on to seven files and twelve. That growth is itself a finding about the
+      stage-4 migration and is filed rather than buried.
+  - date: 2026-09-04
+    reason: >-
+      The re-freeze is committed at d635b49 and the narrowing goes back on. All five test paths,
+      `verification/mutations.yml` and `verification/freeze.lock` leave `approved_scope`, so from here
+      nothing in this phase may write a test, a canary or the lock - which is the protection stage 5
+      exists for, restored for the run to the gate. What stays open is the implementation: the two
+      scripts, the package modules, `data/artifacts/preflop/**`, the decision list and the review
+      directory.
+      `base_commit` moves to d635b49 on the same argument that moved it to the stage-5 freeze. Scope is
+      measured as the diff from `base_commit`, and the nine corrections and the canary repair were
+      legitimately in scope under their own dated entries; left at c45013b they would read from here on
+      as the builder writing tests and canaries, which is exactly what this narrowing exists to stop.
+      Taylor's condition for re-opening either was that both independent stage-6 reviewers read the
+      diff. They read it against this commit, so the corrections and the canaries are in front of them
+      whether or not the paths are still writable.
+  - date: 2026-09-04
+    reason: >-
+      `verification/freeze.lock` re-enters approved_scope for the re-freeze alone. All nine frozen-test
+      corrections Taylor ruled on have landed, and the lock has to be re-pinned against them or the next
+      `check_test_freeze` reports six files whose contents no longer match what stage 5 froze. The
+      narrowing that drops the test paths and the canaries again follows in its own commit, which has to
+      name this one.
+  - date: 2026-09-04
+    reason: >-
+      A ninth frozen-test defect and the code fault hiding it, both found by running
+      `pytest_spot_vocabulary` rather than by reading. That command has 6 setup errors, and they are a
+      real phase-14 red in a completed phase's gate command rather than anything a lane introduced: a
+      lane rebuilt `src/` from `git show HEAD:` with its own changes removed and measured the same 6.
+      `solver_artifacts/vocabulary_report.py` builds a worked example that needs one hand class priced
+      at a single price beside one priced at two, and raises `VocabularyReportError` when it cannot.
+      Over the committed 249 **no class anywhere is offered more than one price** - `add_allin: false`
+      takes the jam off every node that also offers a named raise, and the four-bet family that still
+      jams is withheld - so the example cannot be built at all. That is one of the three criteria this
+      phase declares **vacuous**, and the contract requires a vacuous criterion labelled wherever it is
+      reported and never counted as a check that passed. So the generator publishes the vacuity instead
+      of refusing, which is what the rest of this phase already does.
+      Behind that setup error sits `tests/test_spot_vocabulary_report.py`, whose worked-example test
+      asserts that no committed key names a seat twice - the same claim, in the same words and for the
+      same wrong reason, that lane T already corrected in `test_spot_vocabulary_downstream.py`. **22**
+      committed keys name a seat twice, every one a seat that called and acted again after a re-raise
+      and every one inside the ruled two-raise depth. Measured here directly at 22, not taken on report.
+      Taylor's ruling of 2026-09-03 - all of them in one edit and one re-freeze, authored by a lane that
+      wrote none of the implementation, intent preserved, both reviewers reading the diff - covers this
+      one on its own terms, and the re-freeze has not happened yet, so it folds in rather than becoming
+      a second ask about an identical question.
+  - date: 2026-09-04
+    reason: >-
+      Taylor's ruling of 2026-09-03 on the self-play cross-reference was that comparing price-stripped
+      shapes "makes the column mean something again". The first pass changed only the tests' comparison
+      and left the published column on full spot keys, where it reads NEW on all 61 rows and carries no
+      information. Measured under shapes it reads SEEN on 7 and NEW on 54, and every one of the 7 is a
+      four-bet spot self-play refuses on every run, so the column recovers exactly the signal the report
+      claims for it. The column is what the ruling was about, so it changes.
+      Three paths open because the lane measured that the change does not fit in the one file already
+      approved, and stopped rather than forcing it. `comparison.py` is at 500 of its 500-line cap and the
+      change measures 507 documented, 501 stripped of every explanatory line - it does not fit even
+      undocumented - so the directory is approved rather than the file, for a split.
+      `solver_artifacts/vocabulary_measures.py` owns `strip_sizes` and imports `ComparisonResult` from
+      `comparison` at module level, so importing it back raises on a partially initialised module; that
+      import is annotations-only under `from __future__ import annotations` and belongs under
+      `TYPE_CHECKING`, which is a one-line fix and the only way to keep one definition of the shape rule
+      rather than two. The alternative, a function-body import, would be the first in `src/` and is a
+      convention this phase should not start.
+      `data_pipeline/comparison_report.py` renders the column's heading and the prose describing it, both
+      of which say it compares what the self-play run found by key. Leaving those while the measurement
+      changes underneath would have the report tell a reader something false.
+  - date: 2026-09-03
+    reason: >-
+      The contract says the 169-by-169 all-in equity matrix is committed and deterministic. It is not
+      committed and never was: nothing under `data/`, `src/` or the export carries hand-class equity, and
+      the report cannot print the equity relation's firing count without it, which is the one frozen
+      assertion in the report family that no amount of generator work can satisfy. Decision 42 published
+      firing counts of 23, 21 and 22 measured over 93 spots, so some agent in this phase's history had a
+      table in front of it; whatever that was, it left nothing behind, which is the finding.
+      `verification/loop_policy.yml` says a phase needing input the repo does not have always stops, and
+      this one stopped. Taylor ruled on 2026-09-03 to compute the table here rather than take GTOpen's
+      cached copy: that repo carries no licence file at all, decisions 33 and 36 both declined to treat it
+      as ours, and a 114 KB binary lifted out of it would be the one committed file in this phase that no
+      script of ours reproduces - the precise property the converter's `--check` exists to guarantee
+      everywhere else. A seeded sample was declined because the contract's word is deterministic and a
+      sample would quietly redefine it.
+      `scripts/generate_preflop_equity_matrix.py` and `pyproject.toml` enter scope for that. The library
+      the enumeration needs is a **dev-group** dependency used once to produce a committed artifact; the
+      bot's runtime dependency list stays empty, which is a standing property of this repo and not one this
+      phase may spend. The matrix itself lands under `data/artifacts/preflop/**`, already in scope, at
+      114,244 bytes against a 20 MiB cap that is not the difficulty - producing it is, at roughly fifty
+      billion hand comparisons, which the repo's own pure-Python evaluator cannot do. `uv.lock` joins
+      it because adding a dev dependency makes `uv run` regenerate the lock, and a lock that disagrees
+      with the manifest it locks is worse than either.
+  - date: 2026-09-03
+    reason: >-
+      Five frozen test files re-enter approved_scope for eight assertions that cannot pass against any
+      correct implementation, on Taylor's ruling of 2026-09-03 to take all of them in one edit and one
+      re-freeze rather than tag the phase with known reds or freeze three times. This is the one thing
+      stage 5's narrowing exists to prevent, so the conditions are the ones that make it not that: the
+      corrections are authored by a lane that wrote none of the implementation, every one preserves the
+      intent its own docstring states, no expected count is moved to match a measurement, and both
+      stage-6 reviewers read the diff.
+      An independent read-only triage classified all eight and found **no** defect in the chart: it
+      checked every published cell against the export at 18,431 cells and 0 mismatches, and confirmed
+      decision 45's merge exact at 165 cells with all 20 merged spots carrying zero call weight and all
+      5 big-blind spots keeping theirs. What is wrong is the tests.
+      Four are stale literals or restatements stricter than the ruling they paraphrase: two `249`s that
+      measure 168, because they read the menu through a function that answers about hands; a claim that
+      no committed key names a seat twice, where 22 do and every one is a seat that called and acted
+      again after a re-raise, all within the ruled two-raise depth; and a claim that no big-blind key
+      holds a call, where decision 48 refuses only the big blind facing exactly one raise with a cold
+      caller in, and 0 of the 23 such keys is a ruled squeeze.
+      Three change what is measured rather than a number. The self-play cross-reference compares full
+      spot keys, and self-play only ever plays the solved prices while the corpus plays the ones humans
+      played, so the overlap is 0 structurally and stays 0 whatever the chart does; Taylor ruled it
+      compares price-stripped shapes, which measures 5. A guard on stranded rows is asserted one
+      paragraph after its own docstring says it cannot fire. And a 3.0-point margin between the drawn
+      and nonzero-weight match rates is arithmetically capped at 2.947 by this chart, only 14 of 475
+      scored cells being mixed - unsatisfiable rather than merely unmet.
+      `src/poker_training_bot/data_pipeline/comparison.py` is already in scope and `_self_play_spots`
+      is repaired with them: its token filter admits a trailing-colon duplicate of every key it finds,
+      which is harmless only while the overlap it feeds is zero and becomes a silent undercount the
+      moment the shape comparison makes it mean something.
+  - date: 2026-09-03
+    reason: >-
+      Three paths open at stage 6 that the freeze narrowing did not anticipate, each for a reason the
+      build measured rather than assumed.
+      `src/poker_training_bot/strategy/preflop_sizing.py`: the committed sizing table now holds a key
+      for all 249 spots, and at 81 of them the class map is empty - the spot's menu offers hero a
+      raise and no hand he can be holding there ever takes it. All 81 face a three-bet and all 81 are
+      reached only through hero's own cold call. The frozen conversion spec requires the key to be
+      present, asserting `set(sizes) == set(keyed)` over the 249 and reading each key's classes as
+      exactly the classes with a positive published raise; the loader written for the 86-spot chart
+      refuses an empty map by name, and that single `ValueError` is every one of the 130 errors in the
+      nine migrated files. Keeping the key is what lets a reader tell "the menu offers a raise nobody
+      takes" from "the menu offers none", which the conversion spec draws as a distinction in as many
+      words, so the loader is what moves.
+      `src/poker_training_bot/data_pipeline/comparison.py`: `OPEN_SIZE_SPOTS` is a one-element tuple
+      naming `t6/d100/SB/rfi`, hand-typed when the chart held 86 spots and opened from one seat. The
+      chart now opens from all five, so the constant is stale in exactly the way
+      `HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES` names.
+      `verification/mutations.yml`: it left scope at the freeze so a builder could not defang the
+      canaries, and two of them now point at lines the selection rewrite legitimately moved or
+      deleted, which `check_gate_bite` reports as a clean refusal rather than a plant. Stage 4's own
+      notes already list canary debt for stage 6, so this was foreseen. Taylor ruled on 2026-09-03 to
+      re-open the one file, on the condition that a lane which wrote none of the implementation
+      authors it and both stage-6 reviewers read it.
+      `tests/**` stays out. The frozen-test corrections this stage has found are held for one ruling
+      and one re-freeze rather than taken file by file.
+  - date: 2026-09-03
+    reason: >-
+      Phase 14 stage 5 freezes the tests and narrows scope for the build. The freeze at c45013b
+      records 42 files and 905 test functions. `tests/**`, `verification/mutations.yml` and
+      `verification/freeze.lock` leave approved_scope, so `scripts/check_scope.py` mechanically
+      stops the builder reaching the tests it is measured by. `scripts/run_verify.py` leaves with
+      them on phase 13's precedent: both command IDs and all seven split files are registered, and
+      a builder that can edit the gate can edit what the gate runs.
+      `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` leaves because implementation mode forbids
+      contract edits and the contract is at 300 of 300 lines besides.
+      In come the paths the build needs and nothing wider. `data/artifacts/preflop/**` is the one
+      stage in this phase's life where the committed artifact is writable. The two committed
+      scripts are the ones the contract declares command IDs for. In the package, the five
+      modules the frozen tests import the new surface from: `chart_*.py` as a pattern rather than
+      three names because `chart_derivation.py` is at 490 of the 500-line cap and the exposure
+      walk will not fit in it, so a new `chart_` module is certain; plus `schema.py`, `lookup.py`,
+      `importer.py` and `hand_classes.py`. The rest of `solver_artifacts/` stays out: the export
+      reader, the source card, the price normaliser and the phase 12 vocabulary modules are
+      earlier phases' and a build that needs one has found something worth saying rather than
+      something to edit. `spot_key.py` is out for the same reason it was in phase 13 - the key
+      grammar is a declared non-goal.
+      The phase's own decision list stays in scope so a stage 6 judgment call ruled
+      runtime-reversible can be recorded where it proceeds, and the review directory stays for the
+      per-stage notes the loop owes.
+      base_commit moves to c45013b, the freeze commit, on the phase 05 and phase 13 precedent:
+      check_scope measures the diff from base_commit, and stage 4's test re-cut was legitimately
+      in scope under its own entry. Left at e2ee0ac the freeze itself would read as the builder
+      writing tests, which is exactly what this narrowing exists to stop.
+  - date: 2026-09-03
+    reason: >-
+      Stage 4's two independent reviews found five blockers, and one of them cannot be fixed in
+      implementation mode because the contract froze the thing that is wrong. The rank counterfactual arm
+      is scored only over the spots closed under reversal, and the contract's stated reason is that the
+      unrestricted arm fails, reading 149 against 69. That figure does not exist. An independent
+      measurement agent, walking the export from the phase's own prose rather than from the code under
+      test, reproduced the arm under four separate comparison rules and got 149 against 260 under the
+      test's own rule and 42 against 69 under the common-cell rule. The published pair splices the solved
+      side of one rule to the counterfactual side of the other. Under every rule taken consistently the
+      unrestricted arm passes, so the restriction was never protecting the gate from a red - it is the
+      only reason the result is fragile, the restricted arm passing by a single cell at 32 against 33.
+      Taylor ruled on 2026-09-03 to score the arm over the whole partition. That changes which comparisons
+      count, which the contract pins as data, so it is a semantic contract change and needs this mode.
+      `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` and `reports/phase_audits/decisions/**` enter
+      approved_scope for that edit and the two decisions recording it. The second decision is Taylor's
+      ruling on the same day that the accepted raise-action pair inversions stand at their true count:
+      27 was pinned, 41 reproduces, 25 of them invisible to every other check, and 27 reproduces under no
+      scoping either the reviewer or the independent walk could construct. That one moves no contract
+      line - the contract names the obligation, not the figure - but it belongs in the same decision pair.
+      tests/** stays in scope because the arm's ten published partition rows are frozen test data and all
+      ten move with the ruling.
+  - date: 2026-09-02
+    reason: >-
+      The contract rewrite is committed, so phase 14 returns to implementation mode for the
+      stage-4 re-cut. Three stages ran in contract-update: stage 1 rewrote the contract against the
+      249-spot set and took decisions 51 and 52, stage 2 fixed three reversibility lines the driver
+      could not parse, and stage 3 cleared the human gate and took decision 53, which corrects five
+      published figures that a second independent walk of the export confirmed do not reproduce.
+      What stage 4 now owes. The frozen tests were authored against a six-spot set and, before
+      that, a 143-node one. Both are superseded by the 249 - 5 first-in, 25 facing an open, 219
+      facing a three-bet - so the 112 test functions across this phase's eight files describe a
+      specification that no longer exists and cannot be frozen as they stand. This is a full
+      re-cut, not a repair.
+      tests/**, verification/mutations.yml, verification/freeze.lock and scripts/run_verify.py
+      return to approved_scope on the same shape this lane used for its three previous
+      implementation stints. tests/** as a whole rather than this phase's own eight files, because
+      the contract requires every frozen test of a completed phase that asserts against the chart's
+      contents to be migrated here before the freeze rather than repaired afterwards - which phases
+      11 and 12 each deferred and each paid a separate repair task for. scripts/run_verify.py is
+      for command registration only.
+      The contract and the decision record leave approved_scope in the same move, which is the
+      point: check_scope.py is what mechanically stops an implementation task editing the
+      specification it is building to. data/artifacts/** stays out - the artifact is writable at
+      stage 6 and not before, and the 86-spot chart in the tree is the retired one.
+      base_commit moves to the contract-update's own commit, so the rewrite's paperwork does not
+      read as uncommitted work by the task that follows it.
+  - date: 2026-09-01
+    reason: >-
+      Ruled by Taylor on 2026-09-01: rewrite the contract before the freeze rather than after it. The
+      lane leaves implementation mode at stage 4 and returns to `contract-update`, and the loop pointer
+      is rewound from stage 4 to stage 1, which is the stage that owns the contract.
+      What forced it. Seven rulings were taken in implementation mode today, and the tests were written
+      to all of them because implementation mode may not edit a contract. The result is that the
+      committed set went 51 to 36 to 21 to 6, and the contract still describes 36. Thirteen of its
+      statements are now false and TEN of them are criteria whose subject no longer exists - the
+      per-cell reach field distinguishes nothing because all six committed spots are ones hero reaches
+      without acting, the two-directional sizing invariant has no instances, the five-bet criteria have
+      no subject, the prices are `[2.5, 7.5]` rather than `[2.5, 7.5, 22.5]`, and the dominance
+      criterion names two relations where the gate now needs three.
+      Amending is not available. `AGENTS.md` caps an amendment at two lines plus a backlog id, the
+      contract stands at 286 lines, and thirteen amendments land it at 310 against the 300 cap
+      `check_file_sizes.py` enforces. AGENTS.md forbids raising the cap and says a contract in that
+      state is due for a rewrite that folds its amendments into the criteria they amend, taken as its
+      own `contract-update` task. This is that task.
+      The alternative was to freeze at stage 5 against a contract contradicting the tests in thirteen
+      places, which is the failure this whole session opened on - a contract asserting a group-order
+      gate that was ruled out on 2026-08-26 and never shipped, discovered only because someone searched
+      the record. Freezing now would have rebuilt that trap deliberately.
+      `tests/**`, `verification/**`, `scripts/run_verify.py` and the two export paths leave
+      approved_scope; the contract and the decision record return. The seven implementation-mode
+      rulings are transcribed into the decision record in this task, which is what every one of their
+      OWES A DECISION ITEM flags has been pointing at.
+  - date: 2026-09-01
+    reason: >-
+      No scope change. THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending decision 20 a
+      third time. Sixth and seventh implementation-mode rulings of this stage.
+      RULING ONE. Taylor ruled that the fifteen three-bet-facing spots are withheld as well, so the
+      committed set is SIX: `SB/rfi` and the big blind's defence against each of the five openers.
+      Raised by the final stage-4 independent review, verified by the coordinator before it was put to
+      him.
+      What was measured. Over the committed 21 there are TWENTY places where a higher pocket pair is
+      played less often than the pair one rank below, past decision 10's one-point tolerance, across 12
+      of the 21 spots. Seven sit at the maximum hundred-point gap: `LJ` facing a hijack, button, cutoff
+      or big-blind three-bet folds 33 outright and plays 22 at 100; `HJ` facing a cutoff three-bet the
+      same; `CO` facing a small-blind or big-blind three-bet folds 44 outright and plays 33 at 100.
+      `LJ` facing a hijack three-bet also plays 77 at 1.44 against 66 at 99.74. The contract already
+      names this exact shape and its disposition: "A shape like that is a halt and a decision, not a
+      caveat."
+      The correlation is what decided it. All twenty inversions sit in the fifteen three-bet-facing
+      spots and NONE in the other six. Those fifteen are precisely the spots whose four-bet branch
+      descends into the nodes decision 20 refuses as mispriced, so by backward induction their whole
+      fold/call/raise split is computed from a value the phase has already declared untrustworthy. That
+      is the same argument that withheld the four-bet spots and then the jams, applied a third time,
+      and the review notes the dependency here is the stronger one: the child inherits a range, the
+      parent inherits an EV. The four-bet children carry 29,160,835 ppb against the committed set's
+      1,211,918,040, which is 2.4 percent - six times the 0.40 percent that justified withholding the
+      jams.
+      What it costs. The fifteen carry 228,810,761 ppb of 1,211,918,040, so 18.9 percent. The six that
+      remain carry 983,107,279 ppb, 81.1 percent, because `SB/rfi` and big-blind defence are the
+      commonest decisions at a six-max table. The chart shrinks from 21 spots to 6 and keeps four fifths
+      of the traffic.
+      Checked before the ruling was applied: the surviving gate still discriminates over six spots -
+      per-cell twins reads 0 solved against 6 transposed over the set, 0 against 1 for the small blind
+      and 0 against 5 for the big blind. The previous withholding broke a gate and this one does not.
+      RULING TWO, and it corrects a question the coordinator put badly. The 2026-09-01 entry below
+      recording the group-ladder ruling says the family "stops discriminating" at 21 spots. That is
+      overstated and the review caught it. Only the suited rows saturate at 21 against 21; single pair
+      ranks read 12 against 12, which is a tie rather than saturation; and THREE of the five partitions
+      still separate perfectly at 0 solved against 12 transposed, as cleanly as the per-cell measure's
+      0 against 21. The option Taylor was offered as cherry-picking - gate the three clean splits - was
+      better than the framing allowed, and the rejection of it rested on a wrong premise.
+      The review also found the hole that leaving the ladder out opens, and measured it: a chart with
+      every hand rank reversed scores per-cell twins 0 solved against 21 transposed, bit for bit
+      identical to the correct chart, and passes the phase's only gated range check on every partition.
+      Such a permutation moves weights and reach together, so the cell subset relation holds, aggregate
+      defence percentages are unchanged because pairs map to pairs, and `--check` re-derives with the
+      same buggy converter. The removed group gate would have caught it outright at 12 solved against 0
+      transposed on three partitions.
+      Ruled by Taylor on 2026-09-01: keep the earlier ruling as made and close the hole properly, by
+      adding a second counterfactual arm to the per-cell measure that permutes hand RANKS rather than
+      suits. That catches what the ladder caught without reinstating a measure whose verdict tracks set
+      size, and it does not choose splits after seeing which ones pass.
+  - date: 2026-09-01
+    reason: >-
+      No scope change. Recorded here because implementation mode may not edit the decision record.
+      THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending decision 10 and the contract's
+      dominance criterion. Fifth implementation-mode ruling of this stage.
+      Ruled by Taylor on 2026-09-01: the per-cell twins measure over spot partitions is the gate, and
+      the hand-class group ladders are published for a human and gate nothing.
+      What forced it. Withholding the fifteen five-bet-jam spots took the committed set to 21, and at
+      21 the group-ladder family stops discriminating: single pair ranks read 12 solved against 12
+      transposed and the suited rows 21 against 21, which over 21 spots means every spot is flagged
+      under both mappings. Raised by worker lane R6 and reproduced independently by the coordinator
+      with the same shipped function, at both sizes, before it was put to Taylor.
+      The deciding evidence is not the tie itself but the pattern. The group-ladder family has now
+      returned three different verdicts on three different committed sets - it FAILS over the uncut 51
+      at 36 solved against 33 transposed, PASSES over 36 at 21 against 24, and TIES over 21. A measure
+      whose verdict tracks how many spots are in the set is measuring set composition rather than
+      whether the hand index is right. The per-cell family passes cleanly at every size measured, 0
+      against 26 over the 36 and 0 against 21 over the 21, because a per-cell swap is what it tests and
+      that does not depend on the tree having a deep part.
+      This restores consistency with Taylor's own 2026-08-26 ruling that no group ORDER is gated at
+      all. The group ladder is a group-order measure. Gating it was drift that crept back in during the
+      2026-09-01 work covering "both readings of partition", and it is removed rather than repaired.
+      The measurement is kept and published, because the numbers are evidence a human reads; only the
+      assertion is dropped.
+      Rejected: `gate-both-and-halt` stops the phase on a measure that is not distinguishing anything.
+      `gate-both-but-drop-the-two-tying-splits` chooses the splits that read best after seeing the
+      results, which is the move the contract forbids for the selection rule and is no safer here.
+      Related and not a ruling, recorded because R6 found it and nobody had: two different "transposed"
+      counterfactuals live in this repo - the pure suited-offsuit swap in `spots_violating_twins` and
+      the grid-ordering read in `group_play_pct` - and they are not equivalent. Only the first now
+      gates. R6's own first reimplementation picked the wrong one and got materially different numbers.
+      Also recorded: measured over the artifact, the cutover gains **0** spots. The 21 retired spots
+      that carry over land on exactly the committed 21, so the chart replaces raked ranges with
+      rake-free ones at the same decisions and adds no coverage. Legitimate, and not what the
+      contract's coverage framing assumes.
+  - date: 2026-09-01
+    reason: >-
+      No scope change. Recorded here because implementation mode may not edit the decision record.
+      THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending decision 20, and it is the
+      largest of the three implementation-mode rulings this stage has taken.
+      Ruled by Taylor on 2026-09-01: the fifteen five-bet-jam spots are withheld as well, so the
+      committed set is 21 rather than 36. Raised by the independent stage-4 poker review and verified
+      by the coordinator against the artifact before it was put to him.
+      What was measured. At the fifteen spots where hero faces a five-bet jam, hero is calling off 77.5
+      into 123.0 and needs 38.65 percent. At all five lojack spots AKs calls 0.00 percent - hero
+      four-bets it to 22.5 at 100 percent and then folds it - and it is at or under 1.6 percent at three
+      more, so it folds at seven or eight of the fifteen. KK calls as little as 60.86 percent, and at
+      `LJ/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5,BB:raise@100` KK calls 72.84 while QQ calls 94.29,
+      which is a hard rank inversion in a committed cell.
+      Why, and why it is decision 20's own logic rather than a new principle. These cells are nothing
+      but hero's answer to the jam range computed at the four-bet nodes decision 20 already refuses as
+      mispriced. One of those parents jams AA at 100 and 87s at 99.5 and almost nothing else, with no
+      KK, no QQ and no AK in it; AKs holds about 54 percent against it and is a mandatory call. So the
+      phase was refusing the parent as untrustworthy and shipping the child that depends on it, which is
+      strictly worse than committing both: the trainee is refused the commoner decision and handed a
+      confident wrong answer to the rarer one.
+      What it costs. The fifteen carry 4,815,347 ppb of 1,216,733,387, so 0.40 percent of the arrival
+      the chart answers. The remaining 21 spots carry 99.60 percent.
+      Rejected. `keep-them-and-record` ships advice a student cannot detect as wrong, in a training
+      tool. `fix-the-parent-first` needs the four-bet pot repriced, which no config in this phase
+      reaches, so it halts phase 14 indefinitely.
+      A judgment call the coordinator took inside this ruling, flagged for ratification rather than
+      buried: the withheld jams get their own exclusion reason rather than reusing
+      `source-misprices-four-bet-pot`. The contract's stated test is which fix brings a node back, and
+      by that test one code would do, since both families return when the four-bet pot has a fitted
+      cell. Two codes are used anyway so the census stays legible - a reader can tell a node refused
+      because it is itself mispriced from one refused because its parent is. If the next
+      `contract-update` prefers one code, that is a rename and not a re-derivation.
+  - date: 2026-09-01
+    reason: >-
+      No scope change. Recorded here because implementation mode may not edit the decision record and
+      RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE says a ruling with nowhere to go
+      is how a phase loses one. THIS OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE, amending
+      decision 24.
+      Decision 24 was ruled on 2026-09-01 on a finding that measurement has since falsified. Its three
+      example spots are not in the committed 36: at `t6/d100/CO` facing a lojack open five players are
+      still live once the hijack folds, so decision 1's second clause excludes it, and the same holds
+      for the button facing a cutoff open and for the small blind. The 7.35 percent continue and 0.69
+      flat are export nodes the chart refuses. The coordinator put those numbers to Taylor described as
+      a committed spot, which was wrong; the independent R3 worker lane caught it at stage 4 and it was
+      confirmed against the artifact before anything was written.
+      The committed spots facing a single open are all big blind and they flat about 20 percent, so
+      "the committed spots never flat a raise" is struck. What survives is narrower and still real: the
+      big blind over-folds. Measured over the artifact, combo-and-reach weighted - 25.70 percent
+      continue with a 19.63 flat against a lojack open, 28.88 / 20.98 against the hijack, 32.78 / 22.44
+      against the cutoff, 36.65 / 21.09 against the button, 48.39 / 20.30 against the small blind -
+      against opening ranges that are themselves sane at LJ 18.74, HJ 21.56, CO 27.17, BTN 39.27 and SB
+      54.30. Six-max at 100bb rake-free wants the big blind nearer 40 percent against a lojack open.
+      Ruled by Taylor on 2026-09-01: restate the finding, keep the acceptance. The disposition is
+      unchanged - accept, record, phase 16 is the exit - and only the finding it rests on is corrected.
+      The backlog id COMMITTED-SPOTS-NEVER-FLAT-A-RAISE is now a misnomer; its body carries the
+      correction today and the id is renamed at the next contract-update rather than now, because the
+      decision record and the stage-3 review note both cite it by name and neither is editable here.
+      No test baked the error in: R3 pinned the report's publication requirement rather than the three
+      numbers.
+  - date: 2026-09-01
+    reason: >-
+      Ruled by Taylor on 2026-09-01 after the mode switch, on evidence he was shown: commit the
+      re-sourced solve, and only the solve. The two export paths join approved_scope as single
+      files rather than as `data/artifacts/**`, because exactly two files are wrong and nothing
+      else in that tree is this task's to touch.
+      What forced it. Every one of the 40 problems in `pytest_derived_chart` - 36 errors and 4
+      failures - is the same line, `config field add_allin is True, ruled False`. The committed
+      export predates decision 14 and does not load under `RULED_CONFIG`, so `load_solver_export`
+      raises before any test body runs and not one assertion about the chart executes. Authoring
+      and freezing tests in that state would freeze tests that have never run, which this repo
+      has already done once and recorded: the 2026-08-2x entry below describes a stage where "no
+      assertion in either file had executed".
+      Why the export and not the chart. The export is the source the phase re-solves once, per
+      the contract's own "What the re-solve owes" section, and committing it is that criterion
+      being met rather than this stage deriving its own answer. The chart is different: the
+      derivation currently produces 51 spots because decision 20's third exclusion reason is not
+      implemented, so committing it would commit an artifact the contract does not describe and
+      would let stage 4 build the thing its own tests are measured against. `data/artifacts` stays
+      otherwise closed and the chart, the sizing table and the expectations file are all still out.
+      The re-solve is deterministic - the 2026-09-01 stage-3 run re-resolved every node from its
+      recorded path with 0 mismatches - so re-running it to recover the file reverted at stage 3
+      reproduces the same bytes rather than constituting a second solve.
+      CORRECTED 2026-09-01 by the independent stage-4 mechanical review: an earlier form of the
+      sentence above called that "the determinism proof", which it is not. The re-resolve walk and
+      the two-process proof are two separate obligations in the contract's "What the re-solve owes",
+      and at the time this entry was written the committed card correctly read
+      `result: "PENDING - fill from --determinism-only"` with `max_divergence_bp: null`. The real
+      proof - a second full solve in a fresh process against a restarted server, diffed node by
+      node - was run afterwards and passed byte-identical at 0 divergence and 0 shape differences,
+      written onto the card by the script. The claim is now true; it was not true when first made.
+      A second correction to the same entry: it said this ruling "is written here and in the stage-4
+      review note". No stage-4 review note for this re-cut existed when that was written. The note is
+      owed and the sentence was ahead of the fact.
+      RULINGS-TAKEN-IN-IMPLEMENTATION-MODE-LIVE-ONLY-IN-A-REVIEW-NOTE applies to this ruling: it
+      was taken in implementation mode, which may not edit the decision record, so it is written
+      here and in the stage-4 review note and OWES A DECISION ITEM AT THE NEXT CONTRACT-UPDATE.
+  - date: 2026-09-01
+    reason: >-
+      Stage 3 is closed at 5793926, so phase 14 returns to implementation mode for its fourth
+      stint to re-cut the stage-4 tests against a specification that has moved twice since they
+      were authored. Decision 20 cut the committed set from 51 spots to 36 and added a third
+      exclusion reason, `source-misprices-four-bet-pot`, which no code implements and no test
+      asserts. The 2026-09-01 contract amendments then changed what the range gate is: the
+      dominance criterion now states the transposition discrimination that actually shipped
+      rather than the group-order ladder decision 10 ruled out on 2026-08-26, and the artifact
+      criterion asks for each spot's arrival probability beside its per-cell reach. Decisions 23
+      and 24 were ruled the same day and neither has test coverage. Tests asserting the retired
+      form describe a specification nobody holds and cannot be frozen as they stand.
+      `tests/**`, `verification/mutations.yml`, `verification/freeze.lock` and
+      `scripts/run_verify.py` return to approved_scope on the same shape this lane used for its
+      three previous implementation stints. The contract, the decision record, the two
+      solver_artifacts modules, `scripts/extract_gtopen_preflop.py`, phase 17's contract and
+      `verification/loop_policy.yml` all leave approved_scope in the same move, which is the
+      point: check_scope.py is what mechanically stops an implementation task editing the
+      specification it is building to. The review directory stays, because every stage owes
+      review notes and stage 4 is not an exception.
+      `data/artifacts/**` is deliberately NOT widened. The out-of-order build decision 23 ruled
+      was run at stage 3 and its four output files were reverted after the measurement; writing
+      committed data is stage 6's work, and stage 4 must not be able to derive the artifact its
+      own tests are measured against.
+      base_commit moves to the stage-3 closing commit, so the contract-update's own paperwork
+      does not read as uncommitted work by the task that follows it.
+  - date: 2026-08-31
+    reason: >-
+      Taylor ruled on 2026-08-31 to split phase 14 in two, so `docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md`
+      and `verification/loop_policy.yml` join `approved_scope`. The trigger was mechanical rather than
+      aesthetic: with decision 20's criteria, the two criteria the stage-01 reviews asked for and the
+      corrections they found, the contract measured 305 lines against the 300 `check_file_sizes.py`
+      allows, after the Scope narrative had already been cut to orientation, every level measured on a
+      discarded build replaced by its criterion, bullets merged and the whole document reflowed.
+      AGENTS.md forbids raising the cap and prescribes a rewrite folding amendments into the criteria
+      they amend; that rewrite was done and still did not fit, so the remaining move was a ruling.
+      The seam is the one the content already had. Phase 14 derives and commits the artifact and checks
+      the ranges it holds. Phase 17 measures that artifact against the public corpus and says what the
+      result establishes about v1's calling gap - a report about a report, with different failure modes
+      and a different reader. Phase 14 lands at 284 lines with everything the reviews asked for, and
+      phase 17 at 158.
+      `verification/loop_policy.yml` is needed because a declared phase without a policy entry has no
+      auto-advance rule; 17 is `auto_advance: false` because its output is a judgement rather than data.
+      `phase_status.yml` is already `standing_scope`. What is deliberately NOT widened: `scripts/**`,
+      so this task cannot register phase 17's gate commands - it does not need to, because
+      `check_repo_consistency` requires registration only for phases that are `active` or `completed`
+      and 17 is `future`, exactly as phase 15's `pytest_drill` is unregistered today.
+      base_commit does not move.
+  - date: 2026-08-31
+    reason: >-
+      Decision 19 is executed: `RULED_CONFIG["realization"]` moves from `calibrated` to `static`,
+      ruled by Taylor on 2026-08-31. One field, in a module already in `approved_scope`, on decision
+      14's precedent - a frozen-into-data constant amended in `contract-update` mode. The contract is
+      edited in place rather than amended at its foot: it stands at 300 of the 300 lines
+      `check_file_sizes` allows, so nothing can be appended at any length, and what needs changing is
+      two clauses that name `calibrated` as the model and `add_allin` as the only field this
+      re-solve moves. Editing the criteria the ruling contradicts is what AGENTS.md prescribes for a
+      contract at the cap, and the cap is not raised.
+      `scripts/extract_gtopen_preflop.py` joins `approved_scope` for one reason: it writes the source
+      card's `model` field as the hard-coded string "realization=calibrated", which `config_errors`
+      never reads. Flipping the config without it produces a card whose prose contradicts its own
+      `config_posted` block - the single claim about this export that no gate command checks. The
+      field now derives from `RULED_CONFIG`. Nothing else in the script is touched.
+      What is deliberately NOT widened: `data/artifacts/**` and `tests/**`. The re-export and the
+      re-derivation are run in this worktree to measure what the ruling produces, and their outputs
+      are copied out and the tracked paths restored, exactly as the 2026-08-30 restart entry ruled
+      for the same reason - the committed artifact is writable at stage 6 and the contract's own
+      regression expectation puts the migration of the frozen tests that pin the superseded 86-spot
+      build at stage 4, before the freeze. A stage-1 commit of a rebuilt chart would land data no
+      re-cut test describes.
+      base_commit does not move.
+  - date: 2026-08-30
+    reason: >-
+      Phase 14 restarts, and this is the contract-update task that re-rules its source. Two
+      independent stage-6 reviews found the committed chart jams 100bb with a pair of fours and
+      never with aces, at spots arriving in 24.0 percent of hands; the coordinator traced it to
+      `add_allin: true` in RULED_CONFIG rather than to anything the phase wrote, and Taylor ruled
+      on 2026-08-30 to re-source with the flag off. `add_allin` and `SOLVE_TARGET_GAP_BB` are both
+      frozen-into-data, so amending them is contract-update work on the precedent this lane set on
+      2026-08-25.
+      approved_scope narrows to five paths: the contract, this phase's decision record, the reviews
+      directory, and the two modules that hold the constants being re-ruled. tests/**,
+      verification/**, scripts/**, data/artifacts/** and the rest of src/** are deliberately absent,
+      so the task that rules the new specification cannot also rewrite the tests it will be measured
+      by, nor regenerate the export whose config it is re-ruling. Two of the five are widenings
+      rather than narrowings - docs/phase_contracts/ and reports/phase_audits/decisions/ - returning
+      on exactly the shape the 2026-08-25 entry used.
+      The contract is rewritten rather than amended, ruled by Taylor on 2026-08-30. It sits at
+      exactly 300 of the 300 lines check_file_sizes.py allows a contract, so no amendment fits at
+      any length, and about 27 of its lines carry figures the new source falsifies - the committed
+      86, the 38,828 action nodes, the four-menu census, the 21-of-36 coverage baseline - while its
+      dormant "What a re-solve owes, if one is run" section becomes binding because "no re-solve is
+      run" stops being true. AGENTS.md's stated remedy for a contract at the cap is a rewrite that
+      folds its amendments into the criteria they amend, and this is that rewrite. The cap is not
+      raised.
+      base_commit moves to a386c77, the commit that records the superseded stage-6 build, so the
+      forty-odd files that build wrote are not read as out-of-scope work by a contract-update
+      measured against 19fdb8d. That is the same reason the 2026-08-25 and 2026-08-26 entries give
+      for moving it.
+  - date: 2026-08-27
+    reason: >-
+      RECONSTRUCTED 2026-08-30 after the coordinator ran `git checkout -- CURRENT_TASK.yml` to undo
+      an unrelated edit and destroyed this entry, which was uncommitted working-tree work by the
+      stage-6 build. The text below is verbatim as far as it was captured earlier in that session;
+      the final sentence was truncated mid-clause at "the phase 08 decision record" and its ending
+      is lost. The approved_scope line it justifies, `docs/CORPUS_COMPARISON_LIMITS.md`, is restored
+      with it. Recorded as a reconstruction rather than silently rewritten, because a scope log that
+      cannot be told apart from the real thing is worth less than one with a hole in it.
+      Phase 14 stage 6. `docs/CORPUS_COMPARISON_LIMITS.md` joins approved_scope for one reason:
+      `scripts/repo_facts.py` registers seven present-tense facts about the committed chart and
+      names that document as the live home of five of them, and `run_full_quality_gate` - phase
+      09's gate command, and phase 09 is completed - fails on a document stating a value the
+      fact no longer has. The cutover moves the refusal count, the distinct refused spots, the
+      human call disagreements and the solved opening price, so the document is red the moment
+      the artifact is rebuilt, and the contract's regression expectation is that a completed
+      phase's gate stays verifiable. The alternative was a separate maintenance task between
+      stage 6 commits, which is the MAINT-24 precedent and which would leave the lane's own gate
+      red in the meantime. What is NOT widened, deliberately: the phase 08 decision record
+      [TRUNCATED - remainder lost]
+  - date: 2026-08-30
+    reason: >-
+      Phase 14 stage 6. One frozen test file and the freeze lock return to approved_scope, named
+      as single paths rather than as tests/**, because exactly one helper is wrong and nothing
+      else in the suite may move while it is corrected.
+      `test_a_wrong_artifact_fails_the_command_rather_than_being_rendered[drop-a-spot]` builds its
+      corruption by removing a spot from `spots` and `action_weights` and then asserts that the
+      artifact still imports, but leaves that spot's entries in the two other per-spot maps. Two
+      other frozen tests require the importer to refuse exactly that:
+      tests/test_preflop_artifacts.py wants UNKNOWN_SPOT_WEIGHTS for an arriving_reach_bp key with
+      no declared spot, and tests/test_chart_arrival_probability.py wants a ValueError for an
+      arrival_ppb key with no declared spot. No implementation satisfies all three, so the
+      contradiction is between frozen tests and the helper is the half that is wrong.
+      Taylor ruled on 2026-08-30 that the repair be authored by a subagent given the contract, the
+      two frozen rules and the broken helper and never the implementation, then reviewed read-only
+      by a third agent, so the freeze keeps doing its one job. Returning the lane to stage 4 was
+      rejected as strictly worse: it unfreezes all 35 files for an agent that has read the
+      implementation. base_commit does not move.
+  - date: 2026-08-27
+    reason: >-
+      Phase 14 stage 5. The tests are frozen - 35 files, 892 functions in
+      verification/freeze.lock - so tests/**, verification/mutations.yml and verification/freeze.lock
+      leave approved_scope and check_scope.py enforces that the implementer cannot write its own
+      tests or soften its own canaries. What replaces them is what stage 6 has to touch, listed by
+      package rather than as src/** because the work list is known: solver_artifacts for the new
+      chart_derivation module, the derivation codes and the schema's arrival and reach fields;
+      strategy for the multi-size sizing table and the seeded price draw; table_state because
+      CORPUS_REFUSALS is pinned at 290 and must be re-measured against an 86-key chart; data_pipeline
+      because generate_sample_comparison_report names retired spot keys; scripts for the converter,
+      the new report generator and the three other gate commands of completed phases that crash once
+      the artifact is rebuilt; and data/artifacts/preflop for the artifact itself, its sizing table
+      and the deletion of the retired six_max_nl25_100bb.json. The expectations file under that path
+      is a non-goal and is not rederived.
   - date: 2026-06-08
     reason: Phase 00 scaffold requires root metadata, CI config, uv lockfile, and tiny sample fixtures.
   - date: 2026-06-08
@@ -968,6 +1631,79 @@ scope_change_log:
       the exact trap the repo has now hit three times.
   - date: 2026-08-23
     reason: >-
+      Phase 14 stage 1 is contract-update. docs/phase_contracts/PHASE_14_CHART_CUTOVER.md is a
+      skeleton carrying only boilerplate criteria, so it is approved along with the stage's own
+      review notes. No source, test, artifact, or gate file is in scope at this stage, and the
+      committed artifact under data/artifacts/** stays out of scope until a later stage opens it
+      under its own entry.
+  - date: 2026-08-23
+    reason: >-
+      Phase 14 stage 2 writes the judgment-call list, so
+      reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md joins approved_scope.
+      Still contract-update mode and still no source, test, artifact or gate file in scope. The
+      loop driver reads each item's reversibility class at stage 3 to decide whether the phase
+      must stop for a human, and this phase's central call - which subset of the solved tree
+      becomes the chart the bot plays - is frozen-into-data, so the list has to exist before any
+      test is authored.
+  - date: 2026-08-24
+    reason: >-
+      Phase 14 stage 4 authors the tests before any implementation exists, so it needs tests/**,
+      the two declared gate commands registered in scripts/run_verify.py, their mutation canaries
+      in verification/mutations.yml, and the freeze lock those tests are recorded in. The canaries
+      are authored here rather than at stage 7 because phases 08, 09 and 10 each wrote their own
+      after the code and each filed that as the same miss; every `find` string added now is a
+      specification the stage 6 builder has to produce verbatim, on the phase 11, 12 and 13
+      precedent.
+      tests/** is approved as a whole rather than as this phase's own files, because the contract's
+      regression expectation requires every frozen test of a completed phase that asserts against
+      the chart's contents to be migrated here, at stage 4 and before the freeze, rather than
+      repaired afterwards. Phases 11 and 12 each deferred that and each paid a separate repair task.
+      The migration is confined to assertions the cutover makes false - the retired artifact's
+      filename, its 36 spots, its 3.5bb small-blind open and its 8/11/13.5 three-bet prices - and
+      no assertion is weakened.
+      docs/phase_contracts/PHASE_14_CHART_CUTOVER.md and the decision record leave approved_scope
+      here, which is the point: check_scope.py is what mechanically enforces the rule that
+      implementation mode may not edit the contract it is measured against. base_commit moves to
+      the stage-3 close on the phase 05 and phase 12 precedent, so the contract and decision-record
+      edits that were legitimately in scope under contract-update do not read as out-of-scope work
+      by this task.
+  - date: 2026-08-24
+    reason: >-
+      Phase 14 stage 4's two independent reviews found blockers that move frozen-into-data
+      rulings, and Taylor ruled both on 2026-08-24, so the contract and the decision record are
+      corrected before the tests are frozen against them. Contract-update mode on the phase 12
+      precedent, as its own task between the stage-4 test commit and the stage-4 advance: a
+      review finding that needs a contract change cannot be applied from implementation mode,
+      and tests/**, verification/** and scripts/** are deliberately absent so this task cannot
+      reshape the tests it is correcting the specification for.
+      Ruling one: the solver's split among near-indifferent hands is its considered answer, not
+      an unfinished cell, so per-cell monotonicity stops being a gate. Ruling two: the chart
+      gains the ability to hold more than one raise size at a spot, which settles decision 6
+      without a re-solve because the tree already offers both at the 313 spots concerned.
+      base_commit moves to the stage-4 halt commit so the diff is measured from there rather
+      than from the stage-3 close, which would read the whole committed stage-4 test suite as
+      out-of-scope work by a contract-update task.
+  - date: 2026-08-24
+    reason: >-
+      Back to implementation mode to bring the stage-4 tests in line with the rulings the
+      contract-update just recorded. The contract and the decision record leave approved_scope
+      again, which is the point: check_scope.py is what stops a builder editing the specification
+      it is measured against, and the two blockers that needed a human are now answered in the
+      files that govern them.
+      Three test changes follow from the rulings and nothing else is opened: the monotonicity test
+      moves from a per-cell gate to a per-cell measurement plus a band-and-row aggregate gate, the
+      jam-pricing tests move to a sizing table holding every size a spot offers with its weight,
+      and the sizing invariant becomes two-directional because 3,865 committed spots offer hero no
+      raise at all. Three findings the stage-4 review deferred into this same pass ride with them,
+      because they touch the same files and a second edit round on a file at its line cap is how an
+      authoring error gets in: the aggregate-frequency check against the export, the small-blind
+      ordering stated two ways across two files, and the report's monotonicity section becoming a
+      published measurement.
+      base_commit moves to the contract-update commit so the diff is measured from it rather than
+      from the stage-4 halt, which would read the ruled contract edits as out-of-scope work by an
+      implementation task.
+  - date: 2026-08-23
+    reason: >-
       MAINT-26 measures what a real postflop solve costs, because every count phase 16 is
       planned against rests on a ratio rather than a timing. docs/GTOPEN_SOLVER_NOTES.md
       carries the "Not verified" list this closes, and scripts/measure_postflop_solve_cost.py
@@ -988,3 +1724,36 @@ scope_change_log:
       MAINT-28 records the workspace change that closes
       A-STALE-TREE-CARRIES-ITS-OWN-COPY-OF-THE-RULES. Nothing beyond standing scope: the fix was
       two git commands and no tracked file implements it.
+  - date: 2026-08-24
+    reason: >-
+      Phase 14 stage 4's independent verification of the cold-call finding traced it to a defect
+      in the extraction source rather than in this repo: GTOpen prices a multiway pot as the
+      product of hero's pairwise equities, which understates true three-way equity by 10.5 points
+      and makes the big blind fold 92.6 percent closing at 4.3 to 1 three-handed. No re-solve and
+      no size menu touches it, because it is the core pricing rather than a parameter. Taylor
+      ruled on 2026-08-24 that the cutover commits only the 110 heads-up spots, where the
+      approximation is exact by construction, and refuses the rest with a code.
+      That moves decision 1, which is frozen-into-data and was ruled on 2026-08-23, so it cannot
+      be applied from implementation mode: contract-update as its own task on the same precedent
+      this lane used two commits ago. docs/phase_contracts/PHASE_14_CHART_CUTOVER.md and
+      reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md return to approved_scope
+      and tests/**, verification/** and scripts/** are deliberately absent, so this task cannot
+      reshape the tests it is correcting the specification for.
+      base_commit moves to the merge of main into this lane, so MAINT-26's files - which arrived
+      from main and not from this task - do not read as out-of-scope work by a contract-update.
+  - date: 2026-08-26
+    reason: >-
+      The 2026-08-25 contract-update is committed at da05adf, so phase 14 returns to
+      implementation mode to re-cut its stage-4 tests against the ruling it now carries. Taylor
+      superseded decision 1 a second time: the predicate is at most one opponent voluntarily
+      invested beyond the blinds AND at most two players still live, which selects 86 rather than
+      110, because the product approximation bites at terminals and 24 of the 110 could still
+      reach a multiway one. The authored tests still assert the 110 and the retired reach floor,
+      so they describe a specification that no longer exists and cannot be frozen as they stand.
+      tests/**, verification/mutations.yml, verification/freeze.lock and scripts/run_verify.py
+      return to approved_scope on the same shape this lane used for its two previous
+      implementation stints. The contract and the decision record leave approved_scope in the
+      same move, which is the point: check_scope.py is what mechanically stops an implementation
+      task editing the specification it is building to.
+      base_commit moves to the contract-update commit, so the ruling's own paperwork does not
+      read as uncommitted work by the task that follows it.

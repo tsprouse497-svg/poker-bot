@@ -63,13 +63,25 @@ RULED_CONFIG = {
     "open_raises": [2.5],
     "raise_mults": [3.0],
     "max_raises": 4,
-    "add_allin": True,
+    "add_allin": False,
     "allin_threshold": 0.67,
     "rake_pct": 0.0,
     "rake_cap": 0.0,
     "no_flop_no_drop": True,
     "realization": "calibrated",
 }
+"""The ruled game these one-node fixtures post.
+
+**Migrated on 2026-09-01 for decision 14's re-solve**, which flipped `add_allin` from True to
+False. `one_node_export` builds a config `load_solver_export` then refused by name, so three
+tests here raised before any assertion ran. The guard below stops the copy drifting again."""
+
+
+def test_the_local_config_is_the_ruled_one() -> None:
+    """A hand copy of a ruled constant needs one check that it is still the constant."""
+    from poker_training_bot.solver_artifacts.gtopen_config import RULED_CONFIG as SHIPPED
+
+    assert RULED_CONFIG == SHIPPED
 
 # The ruled config as stage 4 measured it, for the four numbers that were captured. The
 # rest are indicative and consistent with them. Each test moves one number to show what
@@ -252,15 +264,22 @@ def test_the_expectations_module_exposes_no_tolerance_over_the_reference() -> No
 # --------------------------------------------------------------------------- #
 
 
-def test_the_thresholds_that_remain_match_what_was_ruled() -> None:
+def test_the_thresholds_that_remain_are_no_looser_than_what_was_ruled() -> None:
     """A threshold may not be widened once the numbers are visible. The loop enforces the
     ordering by freezing this file before the solve; this closes the other half, so a
-    constant cannot drift from the decision record without failing here."""
+    constant cannot drift from the decision record without failing here.
+
+    Phase 14's decision 2 permits one re-solve of the ruled config at a *tighter* gap, to
+    settle whether the lojack's 44 is unconverged or considered. Tightening is not
+    widening, so the equality on the gap becomes a bound in the one direction the ruling
+    allows and the iteration cap stays exact - a re-solve that raised either would be a
+    new solve rather than the permitted one.
+    """
     scale = re.search(r"basis-points-0-(\d+)", ruled_answer("8"))
     assert scale and QUANTISATION_SCALE == int(scale.group(1))
 
     gap = re.search(r"gap-([\d.]+)-cap-(\d+)", ruled_answer("3"))
-    assert gap and SOLVE_TARGET_GAP_BB == float(gap.group(1))
+    assert gap and 0.0 < SOLVE_TARGET_GAP_BB <= float(gap.group(1))
     assert SOLVE_ITERATION_CAP == int(gap.group(2))
 
 

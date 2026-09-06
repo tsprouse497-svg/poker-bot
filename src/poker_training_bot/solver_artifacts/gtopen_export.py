@@ -65,9 +65,12 @@ COMMITTED_SOURCE_CARD_PATH = EXPORTS_DIR / "gtopen_six_max_100bb_rakefree.source
 QUANTISATION_SCALE = 10_000
 """Decision 8: basis points, 0 to 10,000, each class's row renormalised to the scale."""
 
-SOLVE_TARGET_GAP_BB = 0.01
+SOLVE_TARGET_GAP_BB = 0.00016
 SOLVE_ITERATION_CAP = 2_000
-"""Decision 3: GTOpen's own default target and cap, recorded before the committed run."""
+"""Phase 14 decision 14, superseding phase 10's decision 3 for this phase. The cap is
+still GTOpen's default; the target is not. GTOpen's 0.01 was beaten at iteration 300,
+stopping the solve early; 0.00016 is met at 1,900 of 2,000, so the cap binds instead.
+"""
 
 EXPORT_SCHEMA_VERSION = 1
 CONTAINER_MAGIC = b"GTOPENEXPORT1\n"

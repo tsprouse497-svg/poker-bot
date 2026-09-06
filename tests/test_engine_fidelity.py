@@ -1,10 +1,10 @@
 """Phase 11: the six fidelity defects, each pinned from both sides.
 
-Every test here is authored from `docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md`
-before any implementation exists, so the file is red on assertions rather than on an
-import error. Each defect gets a test that fails against the behaviour on `main` at this
-phase's branch point, and a test that the correction is not over-applied - because a fix
-that goes one step too far is a defect the first kind of test cannot see.
+Every test here is authored from `docs/phase_contracts/PHASE_11_ENGINE_FIDELITY.md` before
+any implementation exists, so the file is red on assertions rather than on an import error.
+Each defect gets a test that fails against the behaviour on `main` at this phase's branch
+point, and a test that the correction is not over-applied, because a fix that goes one step
+too far is a defect the first kind cannot see.
 """
 
 from __future__ import annotations
@@ -291,23 +291,23 @@ class TestNoShippedStrategyFoldsWhenCheckingIsFree:
         assert isinstance(outcome, StrategyDecision)
         assert outcome.action == "check"
 
-    def test_no_committed_chart_spot_folds_where_checking_is_free(self) -> None:
-        """The big blind facing limps is the one committed spot where check is free.
-
-        A spot key's action sequence carries no raise exactly when nobody has raised, so
-        the big blind in such a spot may check. If the chart carried fold weight there it
-        would be folding a free option, and that would be an artifact finding rather than
-        something this phase may silence.
-        """
+    def test_the_chart_holds_no_spot_where_checking_is_free(self) -> None:
+        """Phase 09 found one - the big blind facing a limp - and asserted the chart put no
+        fold weight in it, because folding a free option is an artifact finding rather than
+        something a phase may silence. The cutover removes the spot instead: a sequence
+        carries no raise exactly when nobody has raised, and the solve is `limp: false`. So
+        the claim is emptiness, and the fold-weight loop is gone rather than left behind it
+        as unreachable code - emptiness fails whether a limped cell arrives with fold weight
+        or without it, where the loop caught only the first. What a limped query does at the
+        lookup is in `test_preflop_committed_charts`."""
         library = PreflopChartStrategy.from_repo().library
         free_spots = [
             key
             for key in library.spot_keys()
-            if key.split("/")[2] == "BB" and "raise" not in key.split("/")[3]
+            if key.split("/")[3] != "rfi" and "raise" not in key.split("/")[3]
         ]
-        assert free_spots, "expected at least one committed big-blind spot with no raise"
-        for key in free_spots:
-            assert library.action_frequency_pct(key, "fold") == pytest.approx(0.0), key
+
+        assert free_spots == []
 
 
 # --------------------------------------------------------------------------- #

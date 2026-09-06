@@ -1,0 +1,1519 @@
+{
+ "solve": {
+  "target_gap_bb": 0.00016,
+  "iteration_cap": 2000,
+  "achieved_gap_bb": 0.00015590818199695747,
+  "gaps": [
+   2.4729876413590043e-05,
+   2.1410824214668243e-05,
+   2.1130941582504646e-05,
+   2.9489350726278534e-05,
+   2.9371105627241587e-05,
+   2.977608343267442e-05
+  ],
+  "iteration": 1900,
+  "state": "done",
+  "wall_clock_seconds": 240.2
+ },
+ "counts": {
+  "action_nodes": 33969,
+  "arena_mb": 98.421544,
+  "nodes": 72798
+ },
+ "node_totals": {
+  "action_nodes": 33969,
+  "terminals": 38829,
+  "committed_spots": 51
+ },
+ "label_cross_check_mismatches": 0,
+ "per_spot": [
+  {
+   "spot": "t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5",
+   "path": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    2,
+    2
+   ],
+   "hero": "BB",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 0.9999999799999999,
+   "arrival_ppb": 2724368,
+   "split": {
+    "fold-win": 0.6113014448840589,
+    "all-in-showdown": 0.08110472896406458,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.3075938261518766,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5",
+   "path": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    2,
+    2
+   ],
+   "hero": "BB",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 0.9999999900000001,
+   "arrival_ppb": 1414312,
+   "split": {
+    "fold-win": 0.5208812508303625,
+    "all-in-showdown": 0.05391041491755415,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.4252083342520833,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/BB/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5",
+   "path": [
+    0,
+    1,
+    0,
+    0,
+    0,
+    2,
+    2
+   ],
+   "hero": "BB",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 1.0000000222283891,
+   "arrival_ppb": 1199338,
+   "split": {
+    "fold-win": 0.46032143565224604,
+    "all-in-showdown": 0.04554465533155488,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.4941339090161992,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/BB/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5",
+   "path": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2
+   ],
+   "hero": "BB",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 1.0000000164299965,
+   "arrival_ppb": 903802,
+   "split": {
+    "fold-win": 0.47576160081412056,
+    "all-in-showdown": 0.04563566704932055,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.47860273213655885,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/BB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5",
+   "path": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2
+   ],
+   "hero": "BB",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 0.9999999930097024,
+   "arrival_ppb": 7972006,
+   "split": {
+    "fold-win": 0.681558310318177,
+    "all-in-showdown": 0.11733965827605992,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.20110203140576302,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5,BB:raise@100",
+   "path": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    2,
+    2,
+    2
+   ],
+   "hero": "BTN",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 1.0,
+   "arrival_ppb": 489245,
+   "split": {
+    "fold-win": 0.548383,
+    "all-in-showdown": 0.451617,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5,SB:raise@100",
+   "path": [
+    0,
+    0,
+    0,
+    1,
+    2,
+    0,
+    2,
+    2
+   ],
+   "hero": "BTN",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 0.99999997,
+   "arrival_ppb": 386812,
+   "split": {
+    "fold-win": 0.5537088666112661,
+    "all-in-showdown": 0.446291133388734,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/BTN/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5",
+   "path": [
+    0,
+    0,
+    1,
+    2,
+    0,
+    0,
+    2
+   ],
+   "hero": "BTN",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 0.9999999951318429,
+   "arrival_ppb": 2518619,
+   "split": {
+    "fold-win": 0.5326877855725629,
+    "all-in-showdown": 0.07696935252718679,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.3903428619002504,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5",
+   "path": [
+    0,
+    1,
+    0,
+    2,
+    0,
+    0,
+    2
+   ],
+   "hero": "BTN",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 1.0000000199999999,
+   "arrival_ppb": 1755228,
+   "split": {
+    "fold-win": 0.48950887328949777,
+    "all-in-showdown": 0.06301433566003808,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.44747679105046423,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5",
+   "path": [
+    1,
+    0,
+    0,
+    2,
+    0,
+    0,
+    2
+   ],
+   "hero": "BTN",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 0.9999999783184808,
+   "arrival_ppb": 1247736,
+   "split": {
+    "fold-win": 0.3965267128693383,
+    "all-in-showdown": 0.045948975042687586,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.557524312087974,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/CO/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5,BB:raise@100",
+   "path": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    2,
+    2,
+    2
+   ],
+   "hero": "CO",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 1.0,
+   "arrival_ppb": 186073,
+   "split": {
+    "fold-win": 0.5902675,
+    "all-in-showdown": 0.4097325,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,CO:raise@22.5,BTN:raise@100",
+   "path": [
+    0,
+    0,
+    1,
+    2,
+    0,
+    0,
+    2,
+    2
+   ],
+   "hero": "CO",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 1.00000003,
+   "arrival_ppb": 430837,
+   "split": {
+    "fold-win": 0.5500484834985455,
+    "all-in-showdown": 0.4499515165014545,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/CO/CO:raise@2.5,SB:raise@7.5,CO:raise@22.5,SB:raise@100",
+   "path": [
+    0,
+    0,
+    1,
+    0,
+    2,
+    0,
+    2,
+    2
+   ],
+   "hero": "CO",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 1.00000002,
+   "arrival_ppb": 137634,
+   "split": {
+    "fold-win": 0.5899877382002452,
+    "all-in-showdown": 0.41001226179975475,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/CO/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5",
+   "path": [
+    0,
+    1,
+    2,
+    0,
+    0,
+    0,
+    2
+   ],
+   "hero": "CO",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 0.9999999993600953,
+   "arrival_ppb": 1389061,
+   "split": {
+    "fold-win": 0.3871128041483153,
+    "all-in-showdown": 0.04765944548999275,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.5652277503616919,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/CO/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5",
+   "path": [
+    1,
+    0,
+    2,
+    0,
+    0,
+    0,
+    2
+   ],
+   "hero": "CO",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 1.0000000134861022,
+   "arrival_ppb": 1308339,
+   "split": {
+    "fold-win": 0.40800453324362185,
+    "all-in-showdown": 0.04709707410493364,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.5448983926514446,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5,HJ:raise@22.5,BB:raise@100",
+   "path": [
+    0,
+    1,
+    0,
+    0,
+    0,
+    2,
+    2,
+    2
+   ],
+   "hero": "HJ",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 1.00000002,
+   "arrival_ppb": 133626,
+   "split": {
+    "fold-win": 0.5912324881753502,
+    "all-in-showdown": 0.4087675118246497,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5,BTN:raise@100",
+   "path": [
+    0,
+    1,
+    0,
+    2,
+    0,
+    0,
+    2,
+    2
+   ],
+   "hero": "HJ",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 1.0,
+   "arrival_ppb": 260482,
+   "split": {
+    "fold-win": 0.57539546,
+    "all-in-showdown": 0.42460454,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,HJ:raise@22.5,CO:raise@100",
+   "path": [
+    0,
+    1,
+    2,
+    0,
+    0,
+    0,
+    2,
+    2
+   ],
+   "hero": "HJ",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 0.99999995,
+   "arrival_ppb": 156675,
+   "split": {
+    "fold-win": 0.5774800288740014,
+    "all-in-showdown": 0.42251997112599854,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5,SB:raise@100",
+   "path": [
+    0,
+    1,
+    0,
+    0,
+    2,
+    0,
+    2,
+    2
+   ],
+   "hero": "HJ",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 0.99999997,
+   "arrival_ppb": 110175,
+   "split": {
+    "fold-win": 0.6040203181206095,
+    "all-in-showdown": 0.3959796818793905,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/HJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5",
+   "path": [
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    2
+   ],
+   "hero": "HJ",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 1.0000000234217061,
+   "arrival_ppb": 1423011,
+   "split": {
+    "fold-win": 0.3992839699559092,
+    "all-in-showdown": 0.04672359301953884,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.5539924370245519,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5,LJ:raise@22.5,BB:raise@100",
+   "path": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2,
+    2
+   ],
+   "hero": "LJ",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 0.99999997,
+   "arrival_ppb": 107548,
+   "split": {
+    "fold-win": 0.6165073684952211,
+    "all-in-showdown": 0.38349263150477897,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5,BTN:raise@100",
+   "path": [
+    1,
+    0,
+    0,
+    2,
+    0,
+    0,
+    2,
+    2
+   ],
+   "hero": "LJ",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 0.99999995,
+   "arrival_ppb": 141775,
+   "split": {
+    "fold-win": 0.5956277297813865,
+    "all-in-showdown": 0.4043722702186135,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,LJ:raise@22.5,CO:raise@100",
+   "path": [
+    1,
+    0,
+    2,
+    0,
+    0,
+    0,
+    2,
+    2
+   ],
+   "hero": "LJ",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 1.0000000299999998,
+   "arrival_ppb": 152028,
+   "split": {
+    "fold-win": 0.5947014521589565,
+    "all-in-showdown": 0.40529854784104363,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,LJ:raise@22.5,HJ:raise@100",
+   "path": [
+    1,
+    2,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2
+   ],
+   "hero": "LJ",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 1.00000003,
+   "arrival_ppb": 162285,
+   "split": {
+    "fold-win": 0.5903482822895516,
+    "all-in-showdown": 0.40965171771044845,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5,SB:raise@100",
+   "path": [
+    1,
+    0,
+    0,
+    0,
+    2,
+    0,
+    2,
+    2
+   ],
+   "hero": "LJ",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 1.0,
+   "arrival_ppb": 102591,
+   "split": {
+    "fold-win": 0.61326945,
+    "all-in-showdown": 0.38673055,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/SB/BTN:raise@2.5,SB:raise@7.5,BTN:raise@22.5",
+   "path": [
+    0,
+    0,
+    0,
+    1,
+    2,
+    0,
+    2
+   ],
+   "hero": "SB",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 0.9999999748990559,
+   "arrival_ppb": 2274961,
+   "split": {
+    "fold-win": 0.5819165043241632,
+    "all-in-showdown": 0.07588353708629482,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.342199958589542,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/SB/CO:raise@2.5,SB:raise@7.5,CO:raise@22.5",
+   "path": [
+    0,
+    0,
+    1,
+    0,
+    2,
+    0,
+    2
+   ],
+   "hero": "SB",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 0.9999999821689248,
+   "arrival_ppb": 1269162,
+   "split": {
+    "fold-win": 0.44728560110914317,
+    "all-in-showdown": 0.04446428982821089,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.5082501090626459,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/SB/HJ:raise@2.5,SB:raise@7.5,HJ:raise@22.5",
+   "path": [
+    0,
+    1,
+    0,
+    0,
+    2,
+    0,
+    2
+   ],
+   "hero": "SB",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 0.9999999865980294,
+   "arrival_ppb": 971574,
+   "split": {
+    "fold-win": 0.45632646619577993,
+    "all-in-showdown": 0.04490370711972157,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.49876982668449854,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/SB/LJ:raise@2.5,SB:raise@7.5,LJ:raise@22.5",
+   "path": [
+    1,
+    0,
+    0,
+    0,
+    2,
+    0,
+    2
+   ],
+   "hero": "SB",
+   "raises_before_hero": 3,
+   "faces_four_bet": true,
+   "faces_five_bet_jam": false,
+   "leaves": 4,
+   "mass_check": 1.0,
+   "arrival_ppb": 789318,
+   "split": {
+    "fold-win": 0.4991485350660085,
+    "all-in-showdown": 0.0502658949339915,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.45058557,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 1.0
+  },
+  {
+   "spot": "t6/d100/SB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5,BB:raise@100",
+   "path": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    2,
+    2
+   ],
+   "hero": "SB",
+   "raises_before_hero": 4,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": true,
+   "leaves": 2,
+   "mass_check": 0.99999997,
+   "arrival_ppb": 1857561,
+   "split": {
+    "fold-win": 0.4964177448925324,
+    "all-in-showdown": 0.5035822551074677,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": null
+  },
+  {
+   "spot": "t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5",
+   "path": [
+    1,
+    2,
+    0,
+    0,
+    0,
+    0
+   ],
+   "hero": "LJ",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 1.0000000229006292,
+   "arrival_ppb": 11490264,
+   "split": {
+    "fold-win": 0.5250009053754744,
+    "all-in-showdown": 0.00578641936919752,
+    "flop-terminal-srp-or-3bp": 0.40060424082591084,
+    "flop-terminal-4bet-pot": 0.06860843442941718,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.14622033471726445
+  },
+  {
+   "spot": "t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5",
+   "path": [
+    0,
+    1,
+    2,
+    0,
+    0,
+    0
+   ],
+   "hero": "HJ",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 1.000000009923946,
+   "arrival_ppb": 11687805,
+   "split": {
+    "fold-win": 0.5161334006872664,
+    "all-in-showdown": 0.005664424644888576,
+    "flop-terminal-srp-or-3bp": 0.4110236759210232,
+    "flop-terminal-4bet-pot": 0.0671784987468217,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.14048137441759503
+  },
+  {
+   "spot": "t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5",
+   "path": [
+    1,
+    0,
+    2,
+    0,
+    0,
+    0
+   ],
+   "hero": "LJ",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 0.9999999876181668,
+   "arrival_ppb": 10904061,
+   "split": {
+    "fold-win": 0.4954508029364022,
+    "all-in-showdown": 0.00565107096928601,
+    "flop-terminal-srp-or-3bp": 0.43351700536773524,
+    "flop-terminal-4bet-pot": 0.06538112072657654,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.13105104490654448
+  },
+  {
+   "spot": "t6/d100/CO/CO:raise@2.5,BTN:raise@7.5",
+   "path": [
+    0,
+    0,
+    1,
+    2,
+    0,
+    0
+   ],
+   "hero": "CO",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 1.0000000193362315,
+   "arrival_ppb": 18471963,
+   "split": {
+    "fold-win": 0.5809675106146076,
+    "all-in-showdown": 0.010494694763405244,
+    "flop-terminal-srp-or-3bp": 0.3553149331295482,
+    "flop-terminal-4bet-pot": 0.05322286149243902,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.1302764693819459
+  },
+  {
+   "spot": "t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5",
+   "path": [
+    1,
+    0,
+    0,
+    2,
+    0,
+    0
+   ],
+   "hero": "LJ",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 0.9999999774201316,
+   "arrival_ppb": 10486266,
+   "split": {
+    "fold-win": 0.4677502376038414,
+    "all-in-showdown": 0.005467435461979032,
+    "flop-terminal-srp-or-3bp": 0.46044291039674035,
+    "flop-terminal-4bet-pot": 0.06633941653743929,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.12593326151150144
+  },
+  {
+   "spot": "t6/d100/SB/SB:raise@2.5,BB:raise@7.5",
+   "path": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    2
+   ],
+   "hero": "SB",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 0.9999999887037919,
+   "arrival_ppb": 42992724,
+   "split": {
+    "fold-win": 0.6800039848414174,
+    "all-in-showdown": 0.021758244818558956,
+    "flop-terminal-srp-or-3bp": 0.2609475029477173,
+    "flop-terminal-4bet-pot": 0.03729026739230632,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.12503536138226673
+  },
+  {
+   "spot": "t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5",
+   "path": [
+    0,
+    1,
+    0,
+    2,
+    0,
+    0
+   ],
+   "hero": "HJ",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 1.0000000025635296,
+   "arrival_ppb": 13694040,
+   "split": {
+    "fold-win": 0.5301986742027043,
+    "all-in-showdown": 0.008076955875275758,
+    "flop-terminal-srp-or-3bp": 0.4043683689633897,
+    "flop-terminal-4bet-pot": 0.05735600095863019,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.12422129888512703
+  },
+  {
+   "spot": "t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5",
+   "path": [
+    0,
+    1,
+    0,
+    0,
+    0,
+    2
+   ],
+   "hero": "HJ",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 1.0000000026347784,
+   "arrival_ppb": 10118591,
+   "split": {
+    "fold-win": 0.48418248018965004,
+    "all-in-showdown": 0.005398505112341261,
+    "flop-terminal-srp-or-3bp": 0.4518482688094799,
+    "flop-terminal-4bet-pot": 0.05857074588852866,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.11475032121047112
+  },
+  {
+   "spot": "t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5",
+   "path": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    2
+   ],
+   "hero": "LJ",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 0.9999999718749483,
+   "arrival_ppb": 7919710,
+   "split": {
+    "fold-win": 0.4646643161078657,
+    "all-in-showdown": 0.005207823446612284,
+    "flop-terminal-srp-or-3bp": 0.4755109633737704,
+    "flop-terminal-4bet-pot": 0.05461689707175166,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.10302589459428022
+  },
+  {
+   "spot": "t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5",
+   "path": [
+    0,
+    1,
+    0,
+    0,
+    2,
+    0
+   ],
+   "hero": "HJ",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 0.9999999786048591,
+   "arrival_ppb": 9333107,
+   "split": {
+    "fold-win": 0.44931884808311184,
+    "all-in-showdown": 0.004674461579340505,
+    "flop-terminal-srp-or-3bp": 0.4940849105710163,
+    "flop-terminal-4bet-pot": 0.051921779766531395,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.0950936695197503
+  },
+  {
+   "spot": "t6/d100/CO/CO:raise@2.5,SB:raise@7.5",
+   "path": [
+    0,
+    0,
+    1,
+    0,
+    2,
+    0
+   ],
+   "hero": "CO",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 1.0000000082276679,
+   "arrival_ppb": 12768628,
+   "split": {
+    "fold-win": 0.4416561009956257,
+    "all-in-showdown": 0.0044195590973097445,
+    "flop-terminal-srp-or-3bp": 0.5034064658581389,
+    "flop-terminal-4bet-pot": 0.050517874048925715,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.09119995351242631
+  },
+  {
+   "spot": "t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5",
+   "path": [
+    1,
+    0,
+    0,
+    0,
+    2,
+    0
+   ],
+   "hero": "LJ",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 1.000000014,
+   "arrival_ppb": 7529164,
+   "split": {
+    "fold-win": 0.42138924899028535,
+    "all-in-showdown": 0.005269848403264208,
+    "flop-terminal-srp-or-3bp": 0.5261017626345753,
+    "flop-terminal-4bet-pot": 0.04723913997187512,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.08239276102075131
+  },
+  {
+   "spot": "t6/d100/CO/CO:raise@2.5,BB:raise@7.5",
+   "path": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    2
+   ],
+   "hero": "CO",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 0.9999999889842146,
+   "arrival_ppb": 13923827,
+   "split": {
+    "fold-win": 0.46581581157494545,
+    "all-in-showdown": 0.005476141243681955,
+    "flop-terminal-srp-or-3bp": 0.4855160053483401,
+    "flop-terminal-4bet-pot": 0.04319204183303246,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.08169355859684028
+  },
+  {
+   "spot": "t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5",
+   "path": [
+    0,
+    0,
+    0,
+    1,
+    0,
+    2
+   ],
+   "hero": "BTN",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 1.0000000177411195,
+   "arrival_ppb": 24122586,
+   "split": {
+    "fold-win": 0.4888654086761519,
+    "all-in-showdown": 0.009160294595539398,
+    "flop-terminal-srp-or-3bp": 0.4672334117107562,
+    "flop-terminal-4bet-pot": 0.03474088501755241,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.0692084938292284
+  },
+  {
+   "spot": "t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5",
+   "path": [
+    0,
+    0,
+    0,
+    1,
+    2,
+    0
+   ],
+   "hero": "BTN",
+   "raises_before_hero": 2,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 6,
+   "mass_check": 1.000000007556286,
+   "arrival_ppb": 23368025,
+   "split": {
+    "fold-win": 0.48431282387842717,
+    "all-in-showdown": 0.007387676418202237,
+    "flop-terminal-srp-or-3bp": 0.4749844664108815,
+    "flop-terminal-4bet-pot": 0.033315033292489075,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.06554213276214278
+  },
+  {
+   "spot": "t6/d100/BB/SB:raise@2.5",
+   "path": [
+    0,
+    0,
+    0,
+    0,
+    1
+   ],
+   "hero": "BB",
+   "raises_before_hero": 1,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 8,
+   "mass_check": 0.9999999568273025,
+   "arrival_ppb": 153072388,
+   "split": {
+    "fold-win": 0.7071157267689072,
+    "all-in-showdown": 0.006111106562025679,
+    "flop-terminal-srp-or-3bp": 0.2762996749117523,
+    "flop-terminal-4bet-pot": 0.01047349175731483,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.03652186806376176
+  },
+  {
+   "spot": "t6/d100/SB/rfi",
+   "path": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "hero": "SB",
+   "raises_before_hero": 0,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 9,
+   "mass_check": 0.9999999765579131,
+   "arrival_ppb": 281908314,
+   "split": {
+    "fold-win": 0.8409685084197777,
+    "all-in-showdown": 0.0033182334477816354,
+    "flop-terminal-srp-or-3bp": 0.15002631906314917,
+    "flop-terminal-4bet-pot": 0.005686939069291474,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.03652186806376175
+  },
+  {
+   "spot": "t6/d100/BB/BTN:raise@2.5",
+   "path": [
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "hero": "BB",
+   "raises_before_hero": 1,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 8,
+   "mass_check": 1.00000004276179,
+   "arrival_ppb": 154956771,
+   "split": {
+    "fold-win": 0.7095764802471944,
+    "all-in-showdown": 0.00142599859650899,
+    "flop-terminal-srp-or-3bp": 0.2835893486614258,
+    "flop-terminal-4bet-pot": 0.005408172494870813,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.018713560148309875
+  },
+  {
+   "spot": "t6/d100/BB/HJ:raise@2.5",
+   "path": [
+    0,
+    1,
+    0,
+    0,
+    0
+   ],
+   "hero": "BB",
+   "raises_before_hero": 1,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 8,
+   "mass_check": 1.0000000202082187,
+   "arrival_ppb": 128039178,
+   "split": {
+    "fold-win": 0.7494589389757085,
+    "all-in-showdown": 0.000426627602030627,
+    "flop-terminal-srp-or-3bp": 0.24548576375397732,
+    "flop-terminal-4bet-pot": 0.0046286696682836465,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.018506207758387128
+  },
+  {
+   "spot": "t6/d100/BB/CO:raise@2.5",
+   "path": [
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   "hero": "BB",
+   "raises_before_hero": 1,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 8,
+   "mass_check": 1.000000048860489,
+   "arrival_ppb": 134602501,
+   "split": {
+    "fold-win": 0.7203521635444592,
+    "all-in-showdown": 0.0005664709637769933,
+    "flop-terminal-srp-or-3bp": 0.27461343150761347,
+    "flop-terminal-4bet-pot": 0.004467933984150377,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.016009431429710532
+  },
+  {
+   "spot": "t6/d100/BB/LJ:raise@2.5",
+   "path": [
+    1,
+    0,
+    0,
+    0,
+    0
+   ],
+   "hero": "BB",
+   "raises_before_hero": 1,
+   "faces_four_bet": false,
+   "faces_five_bet_jam": false,
+   "leaves": 8,
+   "mass_check": 1.0000000282935235,
+   "arrival_ppb": 130528127,
+   "split": {
+    "fold-win": 0.7712076035476423,
+    "all-in-showdown": 0.0003159826387447654,
+    "flop-terminal-srp-or-3bp": 0.22516255507133745,
+    "flop-terminal-4bet-pot": 0.0033138587422754796,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "contamination": 0.014504161225932354
+  }
+ ],
+ "chart_level": {
+  "all_51_committed_spots": {
+   "spots": 51,
+   "spots_with_no_model_priced_mass": 15,
+   "contamination_unweighted_mean_over_spots": 0.4657473063038333,
+   "contamination_arrival_weighted_mean_over_spots": 0.06357959774468305,
+   "contamination_pooled_arrival_weighted_mass": 0.0797798256208316,
+   "four_way_split_arrival_weighted": {
+    "fold-win": 0.7128501441819942,
+    "all-in-showdown": 0.007107262037211119,
+    "flop-terminal-srp-or-3bp": 0.2577008444825574,
+    "flop-terminal-4bet-pot": 0.022341749298237172,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "four_way_split_unweighted_mean_over_spots": {
+    "fold-win": 0.5495963081496557,
+    "all-in-showdown": 0.14355151752673012,
+    "flop-terminal-srp-or-3bp": 0.15804082323996624,
+    "flop-terminal-4bet-pot": 0.14881135108364799,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "worst_spot": "t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5"
+  },
+  "the_kept_spots_under_the_proposed_remedy": {
+   "spots": 36,
+   "spots_with_no_model_priced_mass": 15,
+   "contamination_unweighted_mean_over_spots": 0.08413823937799997,
+   "contamination_arrival_weighted_mean_over_spots": 0.04104771032364844,
+   "contamination_pooled_arrival_weighted_mass": 0.0495922832935579,
+   "four_way_split_arrival_weighted": {
+    "fold-win": 0.7168819004748973,
+    "all-in-showdown": 0.005471963112290199,
+    "flop-terminal-srp-or-3bp": 0.26387703056046646,
+    "flop-terminal-4bet-pot": 0.01376910585234602,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "four_way_split_unweighted_mean_over_spots": {
+    "fold-win": 0.5744940524266426,
+    "all-in-showdown": 0.1787406129031135,
+    "flop-terminal-srp-or-3bp": 0.22389116625661887,
+    "flop-terminal-4bet-pot": 0.022874168413625093,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "worst_spot": "t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5"
+  },
+  "the_refused_four_bet_facing_spots": {
+   "spots": 15,
+   "spots_with_no_model_priced_mass": 0,
+   "contamination_unweighted_mean_over_spots": 1.0,
+   "contamination_arrival_weighted_mean_over_spots": 1.0,
+   "contamination_pooled_arrival_weighted_mass": 1.0,
+   "four_way_split_arrival_weighted": {
+    "fold-win": 0.5446254520624969,
+    "all-in-showdown": 0.07533997209769099,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.38003457583981215,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "four_way_split_unweighted_mean_over_spots": {
+    "fold-win": 0.489841721884887,
+    "all-in-showdown": 0.059097688623410034,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.45106058949170297,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "worst_spot": "t6/d100/BB/BTN:raise@2.5,BB:raise@7.5,BTN:raise@22.5"
+  },
+  "of_the_kept_36_the_21_open_or_3bet_facing": {
+   "spots": 21,
+   "spots_with_no_model_priced_mass": 0,
+   "contamination_unweighted_mean_over_spots": 0.08413823937799997,
+   "contamination_arrival_weighted_mean_over_spots": 0.04104771032364844,
+   "contamination_pooled_arrival_weighted_mass": 0.0495922832935579,
+   "four_way_split_arrival_weighted": {
+    "fold-win": 0.7175697585381009,
+    "all-in-showdown": 0.003680926083257336,
+    "flop-terminal-srp-or-3bp": 0.26492550036249884,
+    "flop-terminal-4bet-pot": 0.01382381501614292,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "four_way_split_unweighted_mean_over_spots": {
+    "fold-win": 0.5711614274410222,
+    "all-in-showdown": 0.005812284552845303,
+    "flop-terminal-srp-or-3bp": 0.3838134278684895,
+    "flop-terminal-4bet-pot": 0.03921286013764302,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "worst_spot": "t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5"
+  },
+  "of_the_kept_36_the_15_facing_a_five_bet_jam": {
+   "spots": 15,
+   "spots_with_no_model_priced_mass": 15,
+   "contamination_unweighted_mean_over_spots": null,
+   "contamination_arrival_weighted_mean_over_spots": null,
+   "contamination_pooled_arrival_weighted_mass": null,
+   "four_way_split_arrival_weighted": {
+    "fold-win": 0.5437629963220082,
+    "all-in-showdown": 0.45623700367799186,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "four_way_split_unweighted_mean_over_spots": {
+    "fold-win": 0.579159727406511,
+    "all-in-showdown": 0.42084027259348894,
+    "flop-terminal-srp-or-3bp": 0.0,
+    "flop-terminal-4bet-pot": 0.0,
+    "flop-terminal-5bet-pot": 0.0
+   },
+   "worst_spot": null
+  },
+  "min_mass_check": 0.99999995,
+  "whole_tree": {
+   "leaves": 38829,
+   "aggregate_mass": 0.9999999919068185,
+   "split": {
+    "fold-win": 0.7088539637598389,
+    "all-in-showdown": 0.0026902448297048353,
+    "flop-terminal-srp-or-3bp": 0.2740126286878415,
+    "flop-terminal-4bet-pot": 0.014443162722614757,
+    "flop-terminal-5bet-pot": 0.0
+   }
+  }
+ }
+}

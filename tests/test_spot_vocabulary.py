@@ -24,6 +24,20 @@ The surface this file pins, so stage 6 has no freedom to drift from it:
   `POS:call`. Accepts a position acting more than once. Rejects a sequence whose
   raises do not strictly increase, whose sizes cannot be paid at the stated depth, or
   which needs a folded seat to act again.
+- `PreflopSizingTable.sizes_bb(spot_key, hand_class)`: the prices that hand class raises
+  to at that spot with the weight hero gives each, in ascending price order, or None where
+  the class has no aggressive weight there. **Two arguments, not one.** Phase 14's decision
+  6 replaced the one-float-per-spot field this file used to read, and the 2026-08-26 ruling
+  made the entry per hand class rather than per spot: at `t6/d100/BB/BTN:raise@2.5` the jam
+  is 0.0 of hero's aggression on aces and 0.884 on 44 against a 0.076 spot aggregate, so
+  one weight per spot would jam aces where the solve never does. Which price the strategy
+  then draws is the strategy's claim rather than the vocabulary's, so nothing here asks.
+
+  Two claims in this file changed meaning with the argument. The price VOCABULARY is still
+  a whole-table claim and is now gathered across classes, because a price no class puts
+  weight on is a price the table cannot put in front of hero. And "exactly the spots that
+  raise carry an entry" gains its per-class half: within a spot, the classes the table
+  prices must be exactly the classes the chart raises with.
 """
 
 from __future__ import annotations
@@ -34,12 +48,17 @@ import sys
 import pytest
 
 from poker_training_bot.solver_artifacts import schema as schema_module
+from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES
 from poker_training_bot.solver_artifacts.lookup import PreflopChartLibrary
 from poker_training_bot.strategy.preflop_chart import ARTIFACT_DIR
 from poker_training_bot.strategy.preflop_sizing import PreflopSizingTable
 
 TABLE = 6
 DEPTH = 100
+
+# The big blind closing against a button open: export node `(0,0,0,1,0)`, every class at
+# full reach, and the spot the per-class ruling was measured at.
+TRACED_KEY = "t6/d100/BB/BTN:raise@2.5"
 
 
 def raise_to(position: str, size_bb: float) -> object:
@@ -53,6 +72,22 @@ def call_by(position: str) -> object:
 
 def key(hero: str, *entries: object) -> str:
     return schema_module.spot_key(TABLE, DEPTH, hero, tuple(entries))
+
+
+def raise_weight(library: PreflopChartLibrary, spot: str, hand_class_text: str) -> float:
+    """What the committed chart gives `raise` in one cell, or 0.0 where there is no cell.
+
+    Read out of the artifact rather than out of `action_frequency_pct`, which is the
+    combo-weighted figure over a whole spot and cannot say which classes carry it. A class
+    the artifact never declares - hero's own range is normalised where hero has already
+    acted, so the classes hero folded upstream are dropped - answers 0.0, which is what
+    makes a sizing entry for such a class visible below rather than merely unused.
+    """
+    for artifact in library.artifacts:
+        weights = artifact.weights_for(spot, hand_class_text)
+        if weights is not None:
+            return dict(weights).get("raise", 0.0)
+    return 0.0
 
 
 @pytest.fixture(scope="module")
@@ -74,11 +109,11 @@ def sizing() -> PreflopSizingTable:
     ("value", "rendered"),
     [
         (2.5, "2.5"),
-        (8.0, "8"),
+        (7.5, "7.5"),
+        (22.5, "22.5"),
         (11.0, "11"),
         (13.5, "13.5"),
         (2.25, "2.25"),
-        (21.5, "21.5"),
         (100.0, "100"),
         (0.5, "0.5"),
     ],
@@ -86,8 +121,10 @@ def sizing() -> PreflopSizingTable:
 def test_a_size_renders_as_hundredths_with_trailing_zeros_stripped(value, rendered) -> None:
     """Taylor ruled this rendering on 2026-08-20 and it goes into committed data.
 
-    Every case is a size the committed sizing table or the corpus actually holds, so
-    none of them is a shape nobody will meet.
+    Every case is a size the committed sizing table, the grammar or the corpus actually
+    holds, so none is a shape nobody will meet. 2.5, 7.5 and 22.5 are the three the derived
+    chart carries; 100 is the depth bound a key may still name even though no committed
+    spot jams; 11 and 13.5 are corpus prices the normaliser has to render to answer.
     """
     assert schema_module.render_size_bb(value) == rendered
 
@@ -98,11 +135,47 @@ def test_a_size_finer_than_a_hundredth_is_rejected_rather_than_rounded() -> None
         schema_module.render_size_bb(2.255)
 
 
-def test_rendering_is_injective_over_the_committed_sizes(sizing) -> None:
-    """Two sizes must never render the same, or two spots collapse into one key."""
-    sizes = sorted(set(sizing.raise_to_bb.values()))
-    rendered = [schema_module.render_size_bb(size) for size in sizes]
-    assert len(set(rendered)) == len(sizes)
+def test_rendering_is_injective_over_the_committed_sizes(library, sizing) -> None:
+    """Two sizes must never render the same, or two spots collapse into one key.
+
+    Decision 6 made a spot's entry every price it offers with hero's weight on each, and the
+    2026-08-26 ruling put that entry under the hand class, so neither the table nor a spot
+    has *a* size any more. The vocabulary is the union over every (spot, class) pair the
+    table answers at, which is why this gathers across the 169 classes rather than asking
+    each spot once: a per-spot read would report the menu, and the menu is not what the
+    table can put in front of hero. The two readings agree here and it is not a tautology
+    that they do - every price in every committed menu carries weight for at least one class,
+    the 22.5 four-bet included, which lives only at the 219 spots facing a three-bet.
+
+    The committed tree offers three prices - 2.5, 7.5 and 22.5 - which is tree shape and is
+    pinned here. The 100bb stack went with the cutover: the export is solved `add_allin:
+    false`, so hero's own jam lives only at the four-bet-facing spots the raise-depth clause
+    refuses. The counter is the spots that contributed a price: 168 of the 249.
+
+    That counter read 249 when this was written, on the claim that "every committed spot
+    offers hero a raise". The claim is true, and it is a claim about the spot's MENU; this
+    reads it through `sizes_bb`, which answers about what an arriving HAND takes. At 81
+    committed spots the menu offers a raise that no hand class ever takes. All 81 face a
+    three-bet and all 81 are reached only through hero's own cold call, so hero arrives
+    holding a calling range the solve never four-bets. `tests/test_chart_conversion.py`
+    draws the same line and permits exactly what the old literal forbade. Only the literal
+    was wrong: the union is still gathered over every class, so a table answering None where
+    the chart does raise still fails here as well as in the invariant below.
+    """
+    priced = {
+        spot: {
+            to_bb
+            for hand_class_text in HAND_CLASSES
+            for to_bb, _ in (sizing.sizes_bb(spot, hand_class_text) or ())
+        }
+        for spot in library.spot_keys()
+    }
+    prices = sorted({to_bb for found in priced.values() for to_bb in found})
+    rendered = [schema_module.render_size_bb(price) for price in prices]
+
+    assert prices == [2.5, 7.5, 22.5]
+    assert len(set(rendered)) == len(prices)
+    assert sum(1 for found in priced.values() if found) == 168
 
 
 # --------------------------------------------------------------------------- #
@@ -157,12 +230,21 @@ def test_the_opener_facing_a_three_bet_carries_both_prices() -> None:
     )
 
 
-def test_a_small_blind_open_carries_its_own_larger_price() -> None:
-    """The tree already has two opening prices: the small blind opens to 3.5."""
+def test_a_second_opening_price_is_a_second_spot() -> None:
+    """The vocabulary has to be able to say it whether or not a chart uses it.
+
+    The raked chart opened the small blind to 3.5 and the rake-free solve opens everyone
+    to 2.5, so this is now a key for a spot no committed artifact declares - which is the
+    point: a grammar that could only spell the prices one solve happened to pick would
+    have to be re-cut every time a solve is replaced.
+    """
     assert key("BB", raise_to("SB", 3.5)) == "t6/d100/BB/SB:raise@3.5"
+    assert key("BB", raise_to("SB", 2.5)) == "t6/d100/BB/SB:raise@2.5"
 
 
 def test_a_limp_carries_no_price_and_reads_as_it_did() -> None:
+    """Still a legal key, and since the cutover no longer a covered spot. The grammar
+    and the coverage are different questions and this file only asks the first."""
     assert key("BB", call_by("SB")) == "t6/d100/BB/SB:call"
 
 
@@ -320,40 +402,183 @@ def test_a_short_all_in_re_raise_is_still_an_increase() -> None:
 
 
 def test_every_committed_raise_entry_carries_a_size(library) -> None:
-    """Asserts against today's artifact, so this red is a real assertion failure."""
+    """Asserts against today's artifact, so this red is a real assertion failure.
+
+    The empty list on its own would be satisfied by a chart holding no raise entries at
+    all, so the counter says how many keys the filter really read a price out of: 244 of the
+    249, every key but the five where nobody has raised in front of hero. Those five are the
+    committed first-in spots, and they are the whole of that family because only five seats
+    can ever be first in six-handed - the big blind is never folded to, it is walked.
+    """
+    keys = library.spot_keys()
     sizeless = [
         spot_key_text
-        for spot_key_text in library.spot_keys()
+        for spot_key_text in keys
         if ":raise" in spot_key_text and ":raise@" not in spot_key_text
     ]
+
     assert sizeless == []
+    assert sum(1 for spot_key_text in keys if ":raise@" in spot_key_text) == 244
+    assert sorted(
+        spot_key_text for spot_key_text in keys if ":raise@" not in spot_key_text
+    ) == [f"t6/d100/{seat}/rfi" for seat in ("BTN", "CO", "HJ", "LJ", "SB")]
 
 
-def test_the_committed_artifact_still_holds_thirty_six_spots(library) -> None:
-    """Re-keying is not re-solving. Each prefix admits one solved size, so the count
-    does not move, which is what makes the size free in cells."""
-    assert len(library.spot_keys()) == 36
+def test_the_committed_spot_count_is_the_one_the_artifact_declares(library) -> None:
+    """Phase 12 asserted 36 here, on the argument that re-keying is not re-solving.
+
+    Phase 14 re-selects, so the number moves to 249: 5 first-in, 25 facing an open and 219
+    facing a three-bet, what the ruled three-clause predicate keeps out of the export's
+    33,969 action nodes. That is tree shape rather than solve output, so it is pinned rather
+    than floored - a floor would pass for any rule that kept more than the retired chart,
+    which is exactly the confusion decision 1's two supersessions left behind. What survives
+    from phase 12 is the half re-keying was really guarding: the keys the library exposes and
+    the count the artifact audits itself against are one number, so a re-keying that dropped
+    or collided a spot cannot pass silently.
+    """
+    assert len(library.spot_keys()) == library.artifacts[0].audit_fields.spot_count
+    assert len(library.spot_keys()) == 249
+
+
+SEATS_IN_ACTION_ORDER = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
+
+
+def facing_an_open_keys() -> set[str]:
+    """The facing-an-open family, enumerated here rather than read off the artifact.
+
+    Three ruled clauses decide it and all three are readable from a key. At most two raises
+    are in, so this family carries exactly one. The bot never cold-calls but opponents do,
+    so one opponent may already have flat-called - decision 46 admits the single-cold-caller
+    spots, and decision 48 takes back only the ones where hero is the big blind. Everyone
+    opens to 2.5, the one price the first-in family carries.
+
+    That is every strictly-ordered (opener, hero) pair and every strictly-ordered (opener,
+    cold caller, hero) triple whose hero is not the big blind: fifteen and ten. Their sum is
+    the ruled 25, which is what makes this enumeration a derivation rather than a guess.
+    """
+    keys: set[str] = set()
+    for opener_index, opener in enumerate(SEATS_IN_ACTION_ORDER):
+        opened = (raise_to(opener, 2.5),)
+        for hero_index, hero in enumerate(SEATS_IN_ACTION_ORDER[opener_index + 1 :],
+                                          opener_index + 1):
+            keys.add(key(hero, *opened))
+            if hero == "BB":
+                continue
+            for caller in SEATS_IN_ACTION_ORDER[opener_index + 1 : hero_index]:
+                keys.add(key(hero, *opened, call_by(caller)))
+    return keys
 
 
 def test_the_committed_keys_are_the_measured_ones(library) -> None:
-    """Five hand-checked keys, each traceable to a sizing entry by a reader.
+    """Hand-checked keys on both sides of the ruled predicate, each one walked.
 
-    `t6/d100/CO/rfi` is 2.5 and `t6/d100/BTN/LJ:raise` is 8.0, which is where the two
-    prices in the three-bet key below come from.
+    Keep a node when at most two raises are already in, when under a tenth of its decision
+    mass reaches a multiway flop, and when it is not the big blind's squeeze.
+
+    Kept: the lojack's own open, one of the five first-in spots; the big blind facing a
+    cutoff open; the button facing a cutoff open, which the retired predicate refused for
+    having players behind it and the exposure clause admits; the button facing an open with
+    the cutoff cold-calling in front, because the bot's never cold-calling says nothing
+    about the opponents'; and the opener facing a three-bet.
+
+    Refused, and this is the ruled cost rather than a gap. `t6/d100/BB/CO:raise@2.5,
+    BB:raise@7.5,CO:raise@22.5` has three raises in - hero faces a four-bet - and the whole
+    four-bet family goes with the raise-depth clause, which is what retires every key
+    carrying a 22.5 and every key naming one seat twice. `t6/d100/BB/CO:raise@2.5,BTN:call`
+    is the same shape as the button's admitted squeeze with hero in the big blind, and
+    decision 48 refuses exactly those ten. `t6/d100/BB/SB:call` passes every clause and
+    still has no node, because the solve is `limp: false`.
     """
     keys = set(library.spot_keys())
+    assert "t6/d100/LJ/rfi" in keys
+    assert "t6/d100/BB/CO:raise@2.5" in keys
     assert "t6/d100/BTN/CO:raise@2.5" in keys
-    assert "t6/d100/BB/SB:raise@3.5" in keys
-    assert "t6/d100/BB/SB:call" in keys
-    assert "t6/d100/LJ/LJ:raise@2.5,BTN:raise@8" in keys
-    assert "t6/d100/SB/SB:raise@3.5,BB:raise@10.5" in keys
+    assert "t6/d100/BTN/LJ:raise@2.5,CO:call" in keys
+    assert "t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5" in keys
+    assert "t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5" not in keys
+    assert "t6/d100/BB/CO:raise@2.5,BTN:call" not in keys
+    assert "t6/d100/BB/SB:call" not in keys
+
+    expected = facing_an_open_keys()
+
+    assert len(expected) == 25
+    assert expected <= keys
+    assert {spot for spot in keys if spot.count(":raise") == 1} == expected
 
 
-def test_every_sizing_key_is_a_key_the_artifact_declares(library, sizing) -> None:
-    """The key says what hero faces; the sizing table says what hero does. They are
-    indexed the same way, so a re-keying that moved one and not the other would leave
-    every raise refusing for no committed size."""
-    assert set(sizing.raise_to_bb) == set(library.spot_keys())
+def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> None:
+    """The key says what hero faces; the sizing table says what hero may raise to.
+
+    They are indexed the same way, so a re-keying that moved one and not the other would
+    leave every raise refusing for no committed size. After the cutover the table prices 168
+    of the committed 249.
+
+    This read "all 249, the no-raise half has no instance" when it was written, and that
+    conflated two questions. Every committed spot's MENU does offer hero a raise - the
+    first-in spots open, the facing-an-open spots three-bet, the three-bet-facing spots
+    four-bet - but `sizes_bb` answers about the hand classes that arrive, and at 81 of those
+    spots no arriving class raises. All 81 face a three-bet and all 81 are reached only
+    through hero's own cold call: hero flatted, someone re-raised behind, and the flatting
+    range hero arrives with holds nothing this solve four-bets. So the no-raise half has 81
+    instances and is measured here rather than labelled vacuous. Absence is still `sizes_bb`
+    returning None rather than an empty list, because an empty list is a spot that raises for
+    no price wearing the shape of a spot that cannot raise.
+
+    The invariant is two-directional on purpose. A priced spot the ranges never raise at
+    is a price for an action the chart does not offer; an unpriced spot the ranges do
+    raise at is a raise the strategy cannot make.
+
+    Since 2026-08-26 it is two-directional inside a spot as well, and that half is the one
+    a per-spot table cannot satisfy: the classes the table prices at a spot must be exactly
+    the classes the chart raises with there. A table carrying one entry for the whole spot
+    would price the classes that only ever fold or call at `t6/d100/BB/BTN:raise@2.5`. That
+    is caught by the set equality rather than by a count, so it cannot hide in a total.
+
+    The two-price schema itself is **vacuous over the committed 249** and is labelled so
+    rather than counted as a check that passed: `add_allin: false` leaves each spot one
+    named raise, so no class anywhere is offered two. The vacuity premise is asserted before
+    it is relied on - a build that reintroduced a second price would fail here rather than
+    slip past an empty list - and decision 6's schema is proved against a synthetic export
+    elsewhere. Aces are pinned at the one price the traced spot offers.
+    """
+    covered = set(library.spot_keys())
+    raising = {key for key in covered if library.action_frequency_pct(key, "raise") > 0.0}
+    priced = {
+        spot: {
+            hand_class_text
+            for hand_class_text in HAND_CLASSES
+            if sizing.sizes_bb(spot, hand_class_text) is not None
+        }
+        for spot in covered
+    }
+
+    assert {spot for spot, classes in priced.items() if classes} == raising
+    assert set(sizing.raise_to_bb) <= covered
+    assert len(raising) == 168
+    assert len(covered - raising) == 81
+    for spot in covered - raising:
+        hero_seat, sequence = spot.split("/")[2], spot.split("/", 3)[3]
+        assert sequence.count(":raise@") == 2, spot
+        assert f"{hero_seat}:call" in sequence, spot
+
+    for spot in sorted(covered):
+        charted = {
+            hand_class_text
+            for hand_class_text in HAND_CLASSES
+            if raise_weight(library, spot, hand_class_text) > 0.0
+        }
+        assert priced[spot] == charted, spot
+
+    offered = [
+        (spot, hand_class_text, sizing.sizes_bb(spot, hand_class_text))
+        for spot, classes in priced.items()
+        for hand_class_text in sorted(classes)
+    ]
+    two_priced = [(spot, name) for spot, name, prices in offered if len(prices) > 1]
+
+    assert offered, "no priced class anywhere, so the vacuity below states nothing"
+    assert two_priced == [], "the two-price schema is vacuous only while this holds"
+    assert [to_bb for to_bb, _ in sizing.sizes_bb(TRACED_KEY, "AA")] == [7.5]
 
 
 def test_the_artifact_re_derives_from_its_source() -> None:

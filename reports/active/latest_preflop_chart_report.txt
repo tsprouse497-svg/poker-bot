@@ -4,69 +4,282 @@ Preflop Chart Report
 Artifact directory: `data/artifacts/preflop`
 Artifacts imported: 1
 
-## t6/d100/gto-wizard-6-max-100bb-nl25-rake
+## t6/d100/gtopen-6-max-100bb-rake-free
 
-Source: GTO Wizard 6-max 100bb NL25 rake
+Source: GTOpen 6-max 100bb rake-free
 Source kind: solver-export
-Source reference: data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json
-Generated at: 2026-08-20T00:00:00Z
+Source reference: data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz
+Generated at: 2026-08-27T00:00:00Z
 Table size: 6
 Stack depth: 100 bb
 Import: accepted
-Weights checksum (recomputed and matched at import): d2d5c3fa04a6fe41c6eca8ca286c82d5c833dd2dc635b4fb21b69471c179ad60
-Spots: 36
+Weights checksum (recomputed and matched at import): 3511d26eeb4258bd76b2575e5ded3abf07a258795144b3d2ccbcfb085d939063
+Spots: 249
 Hero positions covered: BB, BTN, CO, HJ, LJ, SB
 Distinct hand classes covered: 169 of 169
 
 Spot keys:
 - `t6/d100/BB/BTN:raise@2.5`
+- `t6/d100/BB/BTN:raise@2.5,SB:raise@7.5`
 - `t6/d100/BB/CO:raise@2.5`
+- `t6/d100/BB/CO:raise@2.5,BTN:call,SB:raise@7.5`
+- `t6/d100/BB/CO:raise@2.5,BTN:raise@7.5`
+- `t6/d100/BB/CO:raise@2.5,BTN:raise@7.5,SB:call`
+- `t6/d100/BB/CO:raise@2.5,SB:raise@7.5`
 - `t6/d100/BB/HJ:raise@2.5`
+- `t6/d100/BB/HJ:raise@2.5,BTN:call,SB:raise@7.5`
+- `t6/d100/BB/HJ:raise@2.5,BTN:raise@7.5`
+- `t6/d100/BB/HJ:raise@2.5,BTN:raise@7.5,SB:call`
+- `t6/d100/BB/HJ:raise@2.5,CO:call,BTN:raise@7.5`
+- `t6/d100/BB/HJ:raise@2.5,CO:call,SB:raise@7.5`
+- `t6/d100/BB/HJ:raise@2.5,CO:raise@7.5`
+- `t6/d100/BB/HJ:raise@2.5,CO:raise@7.5,BTN:call`
+- `t6/d100/BB/HJ:raise@2.5,CO:raise@7.5,SB:call`
+- `t6/d100/BB/HJ:raise@2.5,SB:raise@7.5`
 - `t6/d100/BB/LJ:raise@2.5`
-- `t6/d100/BB/SB:call`
-- `t6/d100/BB/SB:raise@3.5`
-- `t6/d100/BTN/BTN:raise@2.5,BB:raise@13.5`
-- `t6/d100/BTN/BTN:raise@2.5,SB:raise@11`
+- `t6/d100/BB/LJ:raise@2.5,BTN:call,SB:raise@7.5`
+- `t6/d100/BB/LJ:raise@2.5,BTN:raise@7.5`
+- `t6/d100/BB/LJ:raise@2.5,BTN:raise@7.5,SB:call`
+- `t6/d100/BB/LJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5`
+- `t6/d100/BB/LJ:raise@2.5,CO:call,BTN:raise@7.5`
+- `t6/d100/BB/LJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call`
+- `t6/d100/BB/LJ:raise@2.5,CO:call,SB:raise@7.5`
+- `t6/d100/BB/LJ:raise@2.5,CO:raise@7.5`
+- `t6/d100/BB/LJ:raise@2.5,CO:raise@7.5,BTN:call`
+- `t6/d100/BB/LJ:raise@2.5,CO:raise@7.5,SB:call`
+- `t6/d100/BB/LJ:raise@2.5,HJ:call,BTN:raise@7.5`
+- `t6/d100/BB/LJ:raise@2.5,HJ:call,CO:raise@7.5`
+- `t6/d100/BB/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call`
+- `t6/d100/BB/LJ:raise@2.5,HJ:call,SB:raise@7.5`
+- `t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5`
+- `t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5,BTN:call`
+- `t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5,CO:call`
+- `t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5,SB:call`
+- `t6/d100/BB/LJ:raise@2.5,SB:raise@7.5`
+- `t6/d100/BB/SB:raise@2.5`
+- `t6/d100/BTN/BTN:raise@2.5,BB:raise@7.5`
+- `t6/d100/BTN/BTN:raise@2.5,SB:call,BB:raise@7.5`
+- `t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5`
+- `t6/d100/BTN/BTN:raise@2.5,SB:raise@7.5,BB:call`
 - `t6/d100/BTN/CO:raise@2.5`
+- `t6/d100/BTN/CO:raise@2.5,BTN:call,BB:raise@7.5`
+- `t6/d100/BTN/CO:raise@2.5,BTN:call,BB:raise@7.5,CO:call`
+- `t6/d100/BTN/CO:raise@2.5,BTN:call,SB:raise@7.5`
+- `t6/d100/BTN/CO:raise@2.5,BTN:call,SB:raise@7.5,BB:call`
+- `t6/d100/BTN/CO:raise@2.5,BTN:call,SB:raise@7.5,CO:call`
 - `t6/d100/BTN/HJ:raise@2.5`
+- `t6/d100/BTN/HJ:raise@2.5,BTN:call,BB:raise@7.5`
+- `t6/d100/BTN/HJ:raise@2.5,BTN:call,SB:raise@7.5`
+- `t6/d100/BTN/HJ:raise@2.5,BTN:call,SB:raise@7.5,BB:call`
+- `t6/d100/BTN/HJ:raise@2.5,CO:call`
+- `t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,BB:raise@7.5`
+- `t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5`
+- `t6/d100/BTN/HJ:raise@2.5,CO:raise@7.5`
 - `t6/d100/BTN/LJ:raise@2.5`
+- `t6/d100/BTN/LJ:raise@2.5,BTN:call,BB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,BTN:call,SB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,BTN:call,SB:raise@7.5,BB:call`
+- `t6/d100/BTN/LJ:raise@2.5,CO:call`
+- `t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,BB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,CO:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,BB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5,HJ:call`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5,LJ:call`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@7.5,BB:call`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5,CO:call`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5,HJ:call`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5,HJ:call`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5,BB:call`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5,CO:call`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:raise@7.5`
+- `t6/d100/BTN/LJ:raise@2.5,HJ:raise@7.5,CO:call`
 - `t6/d100/BTN/rfi`
-- `t6/d100/CO/CO:raise@2.5,BB:raise@13.5`
-- `t6/d100/CO/CO:raise@2.5,BTN:raise@8`
-- `t6/d100/CO/CO:raise@2.5,SB:raise@11`
+- `t6/d100/CO/CO:raise@2.5,BB:raise@7.5`
+- `t6/d100/CO/CO:raise@2.5,BTN:call,BB:raise@7.5`
+- `t6/d100/CO/CO:raise@2.5,BTN:call,SB:raise@7.5`
+- `t6/d100/CO/CO:raise@2.5,BTN:raise@7.5`
+- `t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,BB:call`
+- `t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,SB:call`
+- `t6/d100/CO/CO:raise@2.5,SB:raise@7.5`
+- `t6/d100/CO/CO:raise@2.5,SB:raise@7.5,BB:call`
 - `t6/d100/CO/HJ:raise@2.5`
+- `t6/d100/CO/HJ:raise@2.5,CO:call,BB:raise@7.5`
+- `t6/d100/CO/HJ:raise@2.5,CO:call,BTN:call,BB:raise@7.5`
+- `t6/d100/CO/HJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5`
+- `t6/d100/CO/HJ:raise@2.5,CO:call,BTN:raise@7.5`
+- `t6/d100/CO/HJ:raise@2.5,CO:call,BTN:raise@7.5,BB:call`
+- `t6/d100/CO/HJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call`
+- `t6/d100/CO/HJ:raise@2.5,CO:call,SB:raise@7.5`
+- `t6/d100/CO/HJ:raise@2.5,CO:call,SB:raise@7.5,BB:call`
 - `t6/d100/CO/LJ:raise@2.5`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,BB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,BTN:call,BB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,BTN:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,BTN:raise@7.5,BB:call`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,BTN:raise@7.5,LJ:call`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,SB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,SB:raise@7.5,BB:call`
+- `t6/d100/CO/LJ:raise@2.5,CO:call,SB:raise@7.5,LJ:call`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5,HJ:call`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5,BB:call`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,BB:call`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,SB:call`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:raise@7.5`
+- `t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:raise@7.5,BB:call`
+- `t6/d100/CO/LJ:raise@2.5,HJ:raise@7.5`
 - `t6/d100/CO/rfi`
-- `t6/d100/HJ/HJ:raise@2.5,BB:raise@13.5`
-- `t6/d100/HJ/HJ:raise@2.5,BTN:raise@8`
-- `t6/d100/HJ/HJ:raise@2.5,CO:raise@8`
-- `t6/d100/HJ/HJ:raise@2.5,SB:raise@11`
+- `t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,BTN:call,BB:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,BTN:call,SB:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,BB:call`
+- `t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,SB:call`
+- `t6/d100/HJ/HJ:raise@2.5,CO:call,BB:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,CO:call,BTN:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,CO:call,SB:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,BB:call`
+- `t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,BTN:call`
+- `t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,SB:call`
+- `t6/d100/HJ/HJ:raise@2.5,SB:call,BB:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5`
+- `t6/d100/HJ/HJ:raise@2.5,SB:raise@7.5,BB:call`
 - `t6/d100/HJ/LJ:raise@2.5`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,BB:raise@7.5`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@7.5,BB:call`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5,BB:call`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5,SB:call`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@7.5`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@7.5`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,BB:call`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,SB:call`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:call,SB:raise@7.5,BB:call`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:raise@7.5`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BB:call`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,SB:call`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,SB:raise@7.5`
+- `t6/d100/HJ/LJ:raise@2.5,HJ:call,SB:raise@7.5,BB:call`
 - `t6/d100/HJ/rfi`
-- `t6/d100/LJ/LJ:raise@2.5,BB:raise@13.5`
-- `t6/d100/LJ/LJ:raise@2.5,BTN:raise@8`
-- `t6/d100/LJ/LJ:raise@2.5,CO:raise@8`
-- `t6/d100/LJ/LJ:raise@2.5,HJ:raise@8`
-- `t6/d100/LJ/LJ:raise@2.5,SB:raise@11`
+- `t6/d100/LJ/LJ:raise@2.5,BB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,BTN:call,BB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,BTN:call,SB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,BTN:call,SB:raise@7.5,BB:call`
+- `t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,BB:call`
+- `t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,SB:call`
+- `t6/d100/LJ/LJ:raise@2.5,CO:call,BB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:call,BB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:call,SB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:raise@7.5,BB:call`
+- `t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call`
+- `t6/d100/LJ/LJ:raise@2.5,CO:call,SB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,CO:call,SB:raise@7.5,BB:call`
+- `t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,BB:call`
+- `t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,BTN:call`
+- `t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,SB:call`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:call,BB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:call,SB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,BB:call`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,BTN:call`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,CO:call`
+- `t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,SB:call`
+- `t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5`
+- `t6/d100/LJ/LJ:raise@2.5,SB:raise@7.5,BB:call`
 - `t6/d100/LJ/rfi`
 - `t6/d100/SB/BTN:raise@2.5`
+- `t6/d100/SB/BTN:raise@2.5,SB:call,BB:raise@7.5`
+- `t6/d100/SB/BTN:raise@2.5,SB:call,BB:raise@7.5,BTN:call`
 - `t6/d100/SB/CO:raise@2.5`
+- `t6/d100/SB/CO:raise@2.5,BTN:call`
+- `t6/d100/SB/CO:raise@2.5,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/CO:raise@2.5,BTN:raise@7.5`
+- `t6/d100/SB/CO:raise@2.5,SB:call,BB:raise@7.5`
 - `t6/d100/SB/HJ:raise@2.5`
+- `t6/d100/SB/HJ:raise@2.5,BTN:call`
+- `t6/d100/SB/HJ:raise@2.5,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/HJ:raise@2.5,BTN:raise@7.5`
+- `t6/d100/SB/HJ:raise@2.5,CO:call`
+- `t6/d100/SB/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/HJ:raise@2.5,CO:call,BTN:raise@7.5`
+- `t6/d100/SB/HJ:raise@2.5,CO:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/HJ:raise@2.5,CO:raise@7.5`
+- `t6/d100/SB/HJ:raise@2.5,CO:raise@7.5,BTN:call`
+- `t6/d100/SB/HJ:raise@2.5,SB:call,BB:raise@7.5`
 - `t6/d100/SB/LJ:raise@2.5`
-- `t6/d100/SB/SB:raise@3.5,BB:raise@10.5`
+- `t6/d100/SB/LJ:raise@2.5,BTN:call`
+- `t6/d100/SB/LJ:raise@2.5,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,BTN:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,CO:call`
+- `t6/d100/SB/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5,BTN:call`
+- `t6/d100/SB/LJ:raise@2.5,CO:call,BTN:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,CO:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,CO:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,CO:raise@7.5,BTN:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5,BTN:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5,HJ:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@7.5,LJ:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5,BTN:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5,CO:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5,HJ:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5,CO:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5,HJ:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@7.5,LJ:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,CO:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,HJ:call,SB:call,BB:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5`
+- `t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5,BTN:call`
+- `t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5,CO:call`
+- `t6/d100/SB/LJ:raise@2.5,SB:call,BB:raise@7.5`
+- `t6/d100/SB/SB:raise@2.5,BB:raise@7.5`
 - `t6/d100/SB/rfi`
 
 ## Lookup probes
 
-- covered: cutoff open with aces: hit -> raise 1.0
-- covered: cutoff open with seven-deuce offsuit: hit -> fold 1.0
-- covered: big blind defending a cutoff open with ace-king suited: hit -> raise 1.0
-- covered by price substitution: the same open at 2.25bb: hit -> raise 1.0
+- covered: cutoff open with aces: hit -> fold 0.0, raise 1.0
+- covered: cutoff open with seven-deuce offsuit: hit -> fold 1.0, raise 0.0
+- covered: big blind defending a cutoff open with ace-king suited: hit -> fold 0.0, call 0.0, raise 1.0
+- covered by price substitution: the same open at 2.25bb: hit -> fold 0.0, call 0.0, raise 1.0
 - uncovered table size: miss -> lookup:no-artifact-for-table-size
 - uncovered stack depth: miss -> lookup:no-artifact-for-stack-depth
 - position that does not exist at a six-handed table: miss -> lookup:position-not-at-table
-- covered: cutoff facing a lojack open: hit -> raise 1.0
-- uncovered spot: the button squeezing an open and a three-bet: miss -> lookup:spot-not-covered
+- covered: cutoff facing a lojack open: hit -> fold 0.0, raise 1.0
+- uncovered spot: the button squeezing an open and a three-bet: hit -> fold 0.0, call 0.0, raise 1.0
 - expressible since phase 12, and uncovered: big blind facing a four-bet: miss -> lookup:spot-not-covered
 - no legal preflop order produces it: the button raising before the cutoff: miss -> lookup:unrepresentable-spot
 

@@ -276,9 +276,13 @@ def main(argv: list[str] | None = None) -> int:
             " a permission anybody granted."
         ),
         "model": (
-            "realization=calibrated. GTOpen's preflop engine resolves flops by scaled"
-            " equity share rather than by playing them, so this is a preflop-only model"
-            " and not a full solve."
+            # Read off the config rather than typed, because a card naming one realization
+            # model beside a `config_posted` naming another is the one lie about this
+            # export that nothing else in the gate would catch: `config_errors` compares
+            # `config_posted` to `RULED_CONFIG` and never reads this sentence.
+            f"realization={RULED_CONFIG['realization']}. GTOpen's preflop engine resolves"
+            " flops by scaled equity share rather than by playing them, so this is a"
+            " preflop-only model and not a full solve."
         ),
         "size": {
             "bytes": size,

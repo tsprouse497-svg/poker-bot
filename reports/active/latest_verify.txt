@@ -33,6 +33,8 @@ All passed: True
 - PASS generate_spot_vocabulary_report: Generate the spot vocabulary report, key mapping, and price substitution census
 - PASS pytest_table_state: Run the per-seat contribution query and table-shape strategy tests
 - PASS generate_table_state_report: Generate the table-state report: pot reconciliation, depth, and blind structure
+- PASS pytest_derived_chart: Run the derived-chart selection, conversion, artifact, and report tests
+- PASS generate_derived_chart_report: Generate the derived preflop chart report and the closing corpus measurement
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness

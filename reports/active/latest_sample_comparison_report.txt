@@ -25,12 +25,14 @@ need different fixes.
 Two properties of the chart explain part of what follows before any of it is measured,
 and a reader who does not know them will draw the wrong conclusion from the numbers.
 
-The committed ranges were solved with rake. These hands were played without any. A
-raked solution defends the blinds more tightly than a rake-free one, because a share of
-every pot it wins is gone, and that is the largest single difference between the two
-settings. So a chart that folds the big blind more often than these players did is
-behaving the way a raked solution is supposed to behave. The gap is evidence about the
-artifact this repo chose, not on its own evidence that either side played badly.
+The committed ranges are solved rake-free, and these hands were played rake-free, so the
+two settings agree on that point and nothing below is explained by it. That is a change
+of reading rather than a change of numbers: this report used to tell you the ranges were
+solved with a house share taken out of every pot won, and that a solve paying one defends
+the blinds more tightly, so a chart folding the big blind more often than these players
+did was behaving as designed. The committed solve takes no share, so that explanation is
+gone and it was doing real work - where this chart continues less than these players do,
+the difference is between the chart and the players and has nothing to excuse it.
 
 The ranges were also solved against one opening size. These players used a smaller one
 most of the time, and a cheaper price is a correct reason to continue with more hands.
@@ -49,12 +51,12 @@ The report measures that rather than leaving it as a caveat.
   the denominator; they are reported beside it.
 
   Pluribus
-    agreed 439 of 456 scored decisions  (96.3%)
-    refused 46 of 502 decision points
+    agreed 432 of 475 scored decisions  (90.9%)
+    refused 27 of 502 decision points
 
   humans
-    agreed 2155 of 2302 scored decisions  (93.6%)
-    refused 244 of 2546 decision points
+    agreed 2192 of 2434 scored decisions  (90.1%)
+    refused 112 of 2546 decision points
 
 ## The number that matters more than the one above
 
@@ -67,16 +69,14 @@ The report measures that rather than leaving it as a caveat.
   the hands people actually play. Split by what the player did:
 
   Pluribus
-    player fold   agreed   332 of   332  (100.0%)
-    player check  agreed     5 of     5  (100.0%)
-    player call   agreed    22 of    37  (59.5%)
-    player raise  agreed    80 of    82  (97.6%)
+    player fold   agreed   353 of   358  (98.6%)
+    player call   agreed    10 of    37  (27.0%)
+    player raise  agreed    69 of    80  (86.2%)
 
   humans
-    player fold   agreed  1616 of  1643  (98.4%)
-    player check  agreed    16 of    16  (100.0%)
-    player call   agreed   138 of   227  (60.8%)
-    player raise  agreed   385 of   416  (92.5%)
+    player fold   agreed  1741 of  1786  (97.5%)
+    player call   agreed    85 of   235  (36.2%)
+    player raise  agreed   366 of   413  (88.6%)
 
   Where those diverge, the low one is the finding. A chart that matches on
   folds and misses on calls is not 'mostly right'; it is right about the
@@ -98,27 +98,30 @@ The report measures that rather than leaving it as a caveat.
 
   Pluribus
     seat        fold       check        call       raise       refused
-    LJ         79/79           -         1/1       11/11          1/92
-    HJ         59/59           -         2/3         8/9          2/73
-    CO         64/64           -         2/2       16/16          5/87
-    BTN        63/63           -         4/6       30/31         6/106
-    SB         47/47           -         5/5       10/10         10/72
-    BB         20/20         5/5        8/20         5/5         22/72
+    LJ         77/79           -         1/1       10/11          1/92
+    HJ         60/60           -         0/3         9/9          1/73
+    CO         65/66           -         0/2       12/16          3/87
+    BTN        65/67           -         2/6       29/31         2/106
+    SB         56/56           -         0/5        8/10          1/72
+    BB         30/30           -        7/20         1/3         19/72
 
   humans
     seat        fold       check        call       raise       refused
-    LJ       329/330           -         5/8       73/82         7/427
-    HJ       349/356           -       10/13       73/76         6/451
-    CO       311/323           -       12/17       74/79        18/437
-    BTN      263/267           -       14/20       83/92        39/418
-    SB       265/267           -       31/45       59/62        78/452
-    BB        99/100       16/16      66/124       23/25        96/361
+    LJ       325/331           -        6/10       77/82         4/427
+    HJ       343/354           -        8/13       70/77         7/451
+    CO       322/333           -        9/19       65/79         6/437
+    BTN      289/299           -        5/20       78/93         6/418
+    SB       317/321           -        0/48       58/63        20/452
+    BB       145/148           -      57/125       18/19        69/361
 
 ## The price these rates were graded at
 
-  The committed chart is GTO Wizard 6-max 100bb NL25 rake.
+  The committed chart is GTOpen 6-max 100bb rake-free.
   It solves an open from LJ at 2.5 big blinds.
-  It solves an open from SB at 3.5 big blinds.
+  It solves an open from HJ at 2.5 big blinds.
+  It solves an open from CO at 2.5 big blinds.
+  It solves an open from BTN at 2.5 big blinds.
+  It solves an open from SB at 2.5 big blinds.
 
   Decisions facing exactly one raise        1156
   Median size of that raise, big blinds     2.25
@@ -131,14 +134,14 @@ The report measures that rather than leaving it as a caveat.
   more expensive spot. Split by the price faced:
 
   Pluribus
-    called facing at or under 2.25bb   agreed   12 of   21  (57.1%)
-    called facing 2.26 to 2.50bb       agreed    3 of    5  (60.0%)
+    called facing at or under 2.25bb   agreed    5 of   21  (23.8%)
+    called facing 2.26 to 2.50bb       agreed    0 of    5  (0.0%)
     called facing over 2.50bb          agreed    2 of    4  (50.0%)
 
   humans
-    called facing at or under 2.25bb   agreed   63 of  120  (52.5%)
-    called facing 2.26 to 2.50bb       agreed   20 of   29  (69.0%)
-    called facing over 2.50bb          agreed   14 of   18  (77.8%)
+    called facing at or under 2.25bb   agreed   34 of  123  (27.6%)
+    called facing 2.26 to 2.50bb       agreed   13 of   29  (44.8%)
+    called facing over 2.50bb          agreed   10 of   18  (55.6%)
 
 ## The sampled-action match rate, which is the lesser number
 
@@ -148,30 +151,30 @@ The report measures that rather than leaving it as a caveat.
   measures the seed. It is reported because a reader who prefers the
   stricter definition should not have to regenerate anything to get it.
 
-    Pluribus   matched 406 of 456 drawn decisions  (89.0%)
-    humans     matched 1964 of 2302 drawn decisions  (85.3%)
+    Pluribus   matched 423 of 475 drawn decisions  (89.1%)
+    humans     matched 2150 of 2432 drawn decisions  (88.4%)
 
 ## What a disagreement looked like
 
-  pluribus/100/0  SB   MrBlue  TcQc  played call  chart [fold=0.8503,raise=0.1497]
-  pluribus/100b/129  CO   MrBlonde  Td9d  played raise  chart [fold=1]
-  pluribus/100b/169  HJ   MrOrange  8hKh  played fold  chart [raise=1]
-  pluribus/100b/169  SB   MrBlonde  5sJs  played fold  chart [call=0.4859,raise=0.5141]
-  pluribus/103/64  BTN  MrPink  8hQh  played raise  chart [fold=1]
-  pluribus/103b/174  CO   MrOrange  Kh4h  played fold  chart [raise=1]
-  pluribus/104/20  HJ   Pluribus  JsTc  played raise  chart [fold=1]
-  pluribus/104/20  SB   MrWhite  8s9s  played raise  chart [fold=1]
-  pluribus/106/204  CO   MrPink  Ac5s  played fold  chart [raise=1]
-  pluribus/106/222  HJ   MrOrange  Kd7d  played fold  chart [raise=1]
-  pluribus/106/32  SB   MrBlue  6d8h  played call  chart [fold=1]
-  pluribus/106/50  SB   MrBlue  JhTd  played call  chart [fold=1]
-  pluribus/106/69  CO   MrBlonde  As5d  played fold  chart [raise=1]
-  pluribus/106/69  BB   MrPink  6d3d  played call  chart [fold=1]
-  pluribus/107/50  BTN  MrBlonde  KsJc  played raise  chart [fold=1]
-  pluribus/108/123  CO   MrBlonde  5dAc  played fold  chart [raise=1]
-  pluribus/108/123  BB   MrPink  8h7c  played call  chart [fold=1]
-  pluribus/108/141  CO   MrBlonde  9dTs  played call  chart [fold=1]
-  pluribus/108/16  SB   MrPink  9h7h  played call  chart [fold=1]
-  pluribus/108/178  LJ   MrWhite  Td8d  played raise  chart [fold=1]
-  ... and 144 more
+  pluribus/100/0  SB   MrBlue  TcQc  played call  chart [fold=0,raise=1]
+  pluribus/100/45  BTN  MrWhite  8hAh  played call  chart [fold=1,raise=0]
+  pluribus/100/63  HJ   MrBlue  ThQh  played fold  chart [fold=0,call=1,raise=0]
+  pluribus/100b/109  HJ   MrOrange  2h2c  played fold  chart [fold=0,raise=1]
+  pluribus/100b/129  CO   MrBlonde  Td9d  played raise  chart [fold=1,raise=0]
+  pluribus/100b/169  SB   MrBlonde  5sJs  played fold  chart [fold=0,raise=1]
+  pluribus/102/1  BB   MrWhite  9dTs  played call  chart [fold=0.9998,call=0,raise=0.0002]
+  pluribus/102/46  BB   Pluribus  TsJc  played call  chart [fold=0,call=0,raise=1]
+  pluribus/103/1  CO   Pluribus  As3s  played fold  chart [fold=0,call=1,raise=0]
+  pluribus/103/46  LJ   MrBlue  QcAs  played raise  chart [fold=0.0965,call=0.9035,raise=0]
+  pluribus/103/64  BTN  MrPink  8hQh  played raise  chart [fold=1,raise=0]
+  pluribus/103b/114  SB   MrBlue  6h6s  played call  chart [fold=0,raise=1]
+  pluribus/103b/134  BTN  MrBlonde  8hKs  played raise  chart [fold=1,raise=0]
+  pluribus/103b/134  BB   MrPink  Js6s  played call  chart [fold=1,call=0,raise=0]
+  pluribus/103b/154  BB   Pluribus  JcJh  played call  chart [fold=0,call=0,raise=1]
+  pluribus/103b/83  BB   MrBlue  Jc4c  played call  chart [fold=1,call=0,raise=0]
+  pluribus/104/20  SB   MrWhite  8s9s  played raise  chart [fold=1,raise=0]
+  pluribus/104/75  BB   MrOrange  6sTs  played call  chart [fold=1,call=0,raise=0]
+  pluribus/106/222  HJ   MrOrange  Kd7d  played fold  chart [fold=0,raise=1]
+  pluribus/106/32  SB   MrBlue  6d8h  played call  chart [fold=1,raise=0]
+  ... and 265 more
 

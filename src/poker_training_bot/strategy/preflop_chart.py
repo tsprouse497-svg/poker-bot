@@ -30,12 +30,13 @@ from poker_training_bot.solver_artifacts.lookup import (
     ChartQuery,
     PreflopChartLibrary,
 )
-from poker_training_bot.solver_artifacts.schema import SIZE_QUANTUM, PreflopAction
+from poker_training_bot.solver_artifacts.schema import PreflopAction
 from poker_training_bot.strategy.contract import (
     StrategyDecision,
     StrategyQuery,
     StrategyRefusal,
 )
+from poker_training_bot.strategy.preflop_price import draw_price_bb, size_bb
 from poker_training_bot.strategy.preflop_sizing import PreflopSizingTable
 from poker_training_bot.table_state.forced_money import (
     predicted_min_raise_target,
@@ -63,23 +64,6 @@ REFUSE_UNREPRESENTABLE_PRICE = f"{CODE_PREFIX}:raise-price-not-a-whole-hundredth
 # folder's absence, and preflop the big blind's check ends the round rather than
 # posing a spot, so both drop out on the way to a chart key.
 _SPOT_ACTIONS = frozenset({"call", "raise"})
-
-
-def _size_bb(amount: int | None, big_blind: int) -> float | None:
-    """A raise-to in chips as a raise-to in big blinds, or None if it is not exact.
-
-    Exact arithmetic rather than float division, so the answer depends on the numbers and
-    not on how a binary fraction happened to land. At the 50/100 blinds of every committed
-    sample and every simulator profile it is always exact; a blind level that makes it
-    inexact refuses, which is the fail-closed direction.
-    """
-    if amount is None or big_blind <= 0:
-        return None
-    value = Decimal(amount) / Decimal(big_blind)
-    quantized = value.quantize(SIZE_QUANTUM)
-    if quantized != value:
-        return None
-    return float(quantized)
 
 
 def _roll(seed: str) -> float:
@@ -303,10 +287,10 @@ class PreflopChartStrategy:
             if entry.action != "raise":
                 entries.append(PreflopAction(position, entry.action))
                 continue
-            size_bb = _size_bb(entry.amount, big_blind)
-            if size_bb is None:
+            price_bb = size_bb(entry.amount, big_blind)
+            if price_bb is None:
                 return None
-            entries.append(PreflopAction(position, "raise", size_bb))
+            entries.append(PreflopAction(position, "raise", price_bb))
         return tuple(entries)
 
     def _chart_query(self, query: StrategyQuery, depth_bb: int) -> ChartQuery | None:
@@ -325,11 +309,21 @@ class PreflopChartStrategy:
     # -- amounts ----------------------------------------------------------- #
 
     def _raise_amount(
-        self, query: StrategyQuery, spot_key_text: str
+        self, query: StrategyQuery, spot_key_text: str, hand_class_text: str
     ) -> tuple[int | None, str | None]:
-        """Chips to raise to, or a refusal code explaining why there are none."""
+        """Chips to raise to, or a refusal code explaining why there are none.
+
+        The price is asked for per hand class, ruled 2026-08-26: a spot offers the class its
+        own prices with its own weights, and at `t6/d100/BB/BTN:raise@2.5` that is the whole
+        difference between a strategy and a caricature - aces three-bet to 7.5 there and never
+        shove, 44 shoves nearly nine times in ten, and one price per spot plays both of them
+        the same way. `draw_price_bb` picks among them with this decision's own seed, so the
+        price is drawn by the mechanism that drew the action rather than chosen by a rule.
+        """
         _, big_blind = query.blinds
-        amount_bb = self.sizing.amount_bb(spot_key_text)
+        offered = self.sizing.sizes_bb(spot_key_text, hand_class_text)
+        seed = self._seed(query, spot_key_text, hand_class_text)
+        amount_bb = draw_price_bb(offered, seed, self.collapse)
         if amount_bb is None:
             return None, REFUSE_NO_SIZING
         stacks = dict(query.stacks)
@@ -403,7 +397,7 @@ class PreflopChartStrategy:
                 action, None, self._rationale(action, found.action_weights), detail
             )
 
-        amount, refusal_code = self._raise_amount(query, found.spot_key)
+        amount, refusal_code = self._raise_amount(query, found.spot_key, found.hand_class)
         if amount is None:
             return StrategyRefusal(refusal_code or REFUSE_NO_SIZING)
         return StrategyDecision(
@@ -488,13 +482,15 @@ class PreflopChartStrategy:
         weights = artifact.weights_for(spot_key_text, hand_class_text)
         if weights is None:
             return StrategyRefusal(f"{CODE_PREFIX}:hand-class-not-covered")
-        action = self.collapse(weights, f"spot|{spot_key_text}|{hand_class_text}|{seed_suffix}")
+        seed = f"spot|{spot_key_text}|{hand_class_text}|{seed_suffix}"
+        action = self.collapse(weights, seed)
         if action is None:
             return StrategyRefusal(f"{CODE_PREFIX}:no-positive-weight")
         code = self._rationale(action, weights)
         if action != "raise":
             return StrategyDecision(action, None, code)
-        amount_bb = self.sizing.amount_bb(spot_key_text)
+        offered = self.sizing.sizes_bb(spot_key_text, hand_class_text)
+        amount_bb = draw_price_bb(offered, seed, self.collapse)
         if amount_bb is None:
             return StrategyRefusal(REFUSE_NO_SIZING)
         return StrategyDecision("raise", max(round(amount_bb * 100), 1), code)

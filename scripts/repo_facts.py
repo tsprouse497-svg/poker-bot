@@ -158,9 +158,46 @@ def _human_call_disagreements_big_blind() -> str:
 
 
 def _solved_open_bb() -> str:
+    """The price the committed chart is solved to open to, read off the chart's own keys.
+
+    Three things this cannot be. Not a constant: the value would have to be rewritten by
+    hand every time a chart is replaced, which is the whole defect this module exists for.
+    Not a spelled spot key: the cutover's selection predicate leaves one opening range, so
+    `t6/d100/LJ/rfi` names a spot that no longer exists. And not `amount_bb`, because the
+    sizing table is per hand class since decision 6 was re-cut and that accessor answers
+    None wherever a class is offered more than one price - which the surviving opening range
+    is, every class there being offered the solved raise and the all-in.
+
+    So the named price is taken directly: every price the opening ranges offer, minus the
+    all-in, which is hero's whole stack rather than a size the solve chose. Exactly one has
+    to be left. Two would mean the chart opens to two sizes and this fact does not exist as
+    a single number, which is a finding rather than something to average. It raises rather
+    than defaulting, because a default is how a stale number survives a chart replacement
+    with nobody reading it.
+    """
     from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 
-    return f"{PreflopChartStrategy.from_repo().sizing.amount_bb('t6/d100/LJ/rfi'):g}"
+    strategy = PreflopChartStrategy.from_repo()
+    opening = [key for key in strategy.library.spot_keys() if key.endswith("/rfi")]
+    if not opening:
+        raise ValueError(
+            "the committed chart holds no opening range, so it states no solved opening"
+            " price; this fact describes a chart that opens from at least one seat"
+        )
+    depth = min(artifact.stack_depth_bb for artifact in strategy.library.artifacts)
+    named = {
+        price
+        for spot in opening
+        for hand_class_text in strategy.library.hand_classes_for(spot)
+        for price, _ in strategy.sizing.sizes_bb(spot, hand_class_text) or ()
+        if price < depth
+    }
+    if len(named) != 1:
+        raise ValueError(
+            f"the committed opening ranges {sorted(opening)} are priced at {sorted(named)}"
+            " below the all-in, and this fact is one solved opening price"
+        )
+    return f"{named.pop():g}"
 
 
 FACTS: tuple[Fact, ...] = (
@@ -202,7 +239,10 @@ FACTS: tuple[Fact, ...] = (
         name="corpus_refusals",
         description="decision points the chart could not answer",
         compute=_refusals,
-        pattern=r"(\d+) refusals, outside every agreement denominator",
+        # The thousands separator is inside the capture on purpose. The chart cutover took
+        # this fact from three digits to four, and this repo writes a four-digit count as
+        # 2,529; a bare `\d+` would capture "529" out of that and read as drift.
+        pattern=r"(\d[\d,]*) refusals, outside every agreement denominator",
         quoted_in=(LIMITS,),
     ),
     Fact(

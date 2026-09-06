@@ -311,7 +311,12 @@ mutations:
       every real-hand spot is marked NEW. The phase's most actionable claim - that real
       hands reach coverage gaps self-play never does - then reads at its strongest
       exactly when the evidence for it has stopped being read at all.
-    file: src/poker_training_bot/data_pipeline/comparison.py
+      Re-pointed 2026-09-04. The reader moved out of `comparison.py` into
+      `data_pipeline/self_play_reference.py` when phase 14 made the column compare
+      price-stripped shapes, and the `file:` field stayed behind, so this canary was
+      matching nothing and `check_gate_bite` would have refused it. Nothing about the
+      claim changed; the guard it attacks is the same guard, in a new file.
+    file: src/poker_training_bot/data_pipeline/self_play_reference.py
     find: "    if not spots:"
     replace: "    if False:"
     must_fail:
@@ -884,3 +889,610 @@ mutations:
     must_fail:
       - generate_table_state_report
       - pytest
+
+  # Phase 14's canaries, authored at stage 4 before any implementation exists. Every `find`
+  # below is therefore a specification the stage 6 builder must produce verbatim, the same way
+  # phases 11, 12 and 13's were: a canary written after the code can only describe what was
+  # already written, which is how phases 08, 09 and 10 each ended up with no canary for the one
+  # behaviour their phase existed to add. A find string that does not occur is the builder
+  # having drifted from the specification, not the canary being wrong.
+  #
+  # Four of the ten below satisfy the contract's requirement that at least one canary prove a
+  # wrong ARTIFACT fails the gate rather than merely a wrong report:
+  # `the-big-blind-squeeze-clause-is-dropped`, `committed-cells-claim-the-whole-range-arrived`,
+  # `a-class-that-never-arrives-is-committed-anyway` and `every-spot-claims-its-line-is-always-played`.
+  # The first has now been renamed twice by a rule change it outlived - it was
+  # `derivation-reach-floor-drops-to-a-tenth` until 2026-08-27 and
+  # `derivation-predicate-drops-its-subtree-clause` until 2026-09-04 - and on the first of those
+  # occasions this sentence was left pointing at the retired name, which is this comment failing
+  # the same way the canary did. On 2026-09-04 the entry was not renamed but REPLACED: the
+  # predicate it attacked no longer exists in any form, so there was nothing to re-point, and the
+  # canary now in that slot attacks the big-blind squeeze clause instead. See its own description.
+  # The mechanism is worth stating exactly, because the first version of this comment described
+  # one that does not run and an independent review caught it. No mutation here touches anything
+  # under `data/`, and `check_gate_bite` never regenerates the artifact, so the committed file
+  # stays correct throughout. What bites is the DISAGREEMENT between mutated derivation code and
+  # the unchanged committed artifact, caught by `convert_preflop_export.py --check` and by the
+  # report validating the artifact's own spot count against the walk's. That comparison is
+  # symmetric - it cannot tell which side moved - so a mutated deriver and a corrupted artifact
+  # are one failure to it, which is what makes these two canaries evidence about the artifact and
+  # not only about the code that writes it.
+
+  - id: the-big-blind-squeeze-clause-is-dropped
+    description: >-
+      The third selection clause stops being asked, so the ten spots decision 48 refuses ship in
+      the chart. At the table that is the big blind being taught to defend against a raise
+      somebody has already flat-called. Those ten are the only committed shape whose own chart
+      still offers hero a call that buys him a three-way flop - everywhere else the call the bot
+      may take is either dropped from the exposure measurement as a cold call or the pot is
+      heads-up by then - and a three-way flop is exactly the pot GTOpen prices with the product
+      approximation decisions 35 and 46 exist to keep out of the chart.
+      Neither other clause can reach them, which is why the clause is a clause. The raises in
+      front of hero are at one, so the depth clause is satisfied; and the big blind folds better
+      than nine times in ten here, so the branch that goes multiway carries under nine points and
+      the exposure clause reads them as safe. A rule about a seat is what refuses them and
+      nothing else in the gate is a statement about that seat.
+      This entry REPLACES `derivation-predicate-drops-its-subtree-clause` rather than re-pointing
+      it. That canary attacked `invested_opponents(...) <= 1 and live_players(...) <= 2`, the
+      two-clause predicate Taylor ruled on 2026-08-24 and superseded on 2026-08-25, and its
+      description argued 86 nodes against 110. The predicate is gone from the tree in every form,
+      so its find string matched nothing and `check_gate_bite` would have refused it; the
+      exposure clause that inherited its argument already has
+      `a-spot-above-the-exposure-threshold-is-committed`, and the squeeze clause had no canary at
+      all, so the slot goes where the hole is.
+      Aimed at the call site in `exclusion_code` rather than inside the predicate, deliberately.
+      A frozen test asserts `is_big_blind_squeeze_spot` directly on named nodes, so a mutation
+      inside the predicate dies to a test reading the predicate back and proves only that the
+      predicate is pinned. Dropped at the call site the predicate still answers True and the only
+      thing that can notice is a spot moving. Measured 2026-09-04 against the committed export:
+      the committed set goes from 249 to 259, and the `derivation:big-blind-squeeze-spot` census
+      bucket from 10 to nothing at all.
+      `generate_derived_chart_report` is named and is the load-bearing entry, for the same reason
+      it is on the exposure canary: the report cannot read the clause, it compares the artifact's
+      spot set against the walk's key by key, so it fails only because ten spots moved. If it
+      exits 0 under this mutation, that is the finding and not a reason to drop the command.
+    file: src/poker_training_bot/solver_artifacts/chart_selection.py
+    find: "    if is_big_blind_squeeze_spot(by_path, node):"
+    replace: "    if False and is_big_blind_squeeze_spot(by_path, node):"
+    must_fail:
+      - pytest_derived_chart
+      - generate_derived_chart_report
+      - pytest
+
+  - id: the-four-bet-family-is-committed-after-all
+    description: >-
+      The committed raise depth goes from two to three, so the four-bet family a later phase takes
+      up ships now. At the table hero is handed an answer to a four-bet a hundred blinds deep off
+      a solve whose four-bet is priced a quarter oversized
+      (`PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED`), and the answer at that depth is a call-off
+      or a fold for a stack - the most expensive single decision in the game to take from a chart
+      that was not solved at the price in front of him. Measured 2026-09-04 against the committed
+      export: the committed set goes from 249 to 2,456 and the depth bucket from 33,362 to 29,105.
+      Loud rather than at the margin, and that is the clause's own shape rather than a lazy aim: a
+      raise depth names a family, so it cannot be moved a little the way a threshold can. It is
+      written as the constant rather than as the call site because dropping the clause outright
+      commits 18,789 nodes, which is a mutation no reviewer learns anything from.
+      The kill in the pytest commands is a frozen test reading `COMMITTED_RAISE_DEPTH` back and
+      comparing it to two, and a kill of that kind proves the constant is pinned rather than that
+      the rule uses it. `generate_derived_chart_report` is therefore the load-bearing entry: the
+      report cannot read the constant, and fails only because 2,207 spots moved. Same argument as
+      `a-spot-above-the-exposure-threshold-is-committed`, and the same finding if the report
+      exits 0.
+    file: src/poker_training_bot/solver_artifacts/chart_selection.py
+    find: "COMMITTED_RAISE_DEPTH = 2"
+    replace: "COMMITTED_RAISE_DEPTH = 3"
+    must_fail:
+      - pytest_derived_chart
+      - generate_derived_chart_report
+      - pytest
+
+  - id: the-cold-call-survives-into-the-published-chart
+    description: >-
+      Decision 45's merge changes seats, so both halves of the ruling break at once. The twenty
+      non-big-blind spots facing an open stop folding hero's call into the raise and publish a
+      cold call instead; the five big-blind spots lose their defence flat into the raise. At the
+      table the first is the bot putting money in behind an opener with nothing already invested,
+      buying a multiway pot out of position, which is the play decision 45 exists to remove. The
+      second is the big blind three-betting the hands it should be calling with, throwing away the
+      price its own posted blind bought.
+      One line is worth attacking because the rule is entirely about which seat has already paid
+      to be there - a cold call is money in from a seat with nothing invested, a big blind's call
+      is a defence - and inverting that seat test is the way this rule is most likely to be got
+      wrong by someone who reads "the bot never cold-calls" and applies it to every call.
+      Measured 2026-09-04 against the committed export: the spots that merge go from 20 to 5, and
+      the cells the merge moves from 165 to 276.
+      `generate_derived_chart_report` is deliberately NOT named, and saying so is a finding rather
+      than an omission: the merge moves cells inside spots and never the spot set, so the report's
+      key-by-key comparison is blind to it, and no canary on this file should be read as evidence
+      that the report checks the cells. What kills it is the regeneration check - a mutated
+      deriver no longer reproduces the committed artifact - and the frozen count of the cells the
+      merge moves.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: '    return raises_faced(by_path, node) == 1 and node.actor_pos != "BB"'
+    replace: '    return raises_faced(by_path, node) == 1 and node.actor_pos == "BB"'
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: committed-cells-claim-the-whole-range-arrived
+    description: >-
+      Every committed cell records full arriving reach instead of the reach the export gives it,
+      so a cell the solver trained and a cell it barely visited become indistinguishable. That is
+      exactly the information `CHART-CELLS-SHOULD-CARRY-ARRIVING-REACH` asks for and decision 5
+      ruled in, and it is the same information a refusal carries. The artifact still validates,
+      still imports, still answers every spot it did before, and every frequency in every report
+      is unchanged, so nothing but a test comparing the committed reach against the export's own
+      `reach_bp` can see it.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "reach_by_class[hand_class_text] = node.reach_bp[gtopen_class_index(hand_class_text)]"
+    replace: "reach_by_class[hand_class_text] = 10_000"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: a-class-that-never-arrives-is-committed-anyway
+    description: >-
+      The converter stops asking whether a hand class arrives at a node and commits all 169
+      strategy rows at every spot, so the artifact goes from 7,112 cells to 14,534. A GTOpen
+      payload is unconditional - a hand hero folded upstream still carries a full strategy row -
+      and 3,781 of the rows the mutation admits are the solver's untouched initialisation, every
+      action within a basis point of 1/n. `UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY` is the
+      entry, and the sharpest single cell is the small blind facing a hundred-blind four-bet jam
+      with 72o: reach zero, row 5,000/5,000, so the mutated chart calls off a hundred blinds with
+      72o half the time and says it with the same confidence it says fold to a four-bet. A uniform
+      row is worse than a gap rather than merely as bad, because it does not read as missing.
+      This is the third canary that is evidence about the ARTIFACT rather than about the report,
+      and by the same mechanism as the other two: no mutation touches anything under `data/` and
+      `check_gate_bite` never regenerates the artifact, so what bites is the disagreement between
+      the mutated derivation and the unchanged committed file, caught by
+      `convert_preflop_export.py --check`. `committed-cells-claim-the-whole-range-arrived` is its
+      sibling and a different defect - that one keeps the cell set and lies about the reach, this
+      one reads the reach correctly and ignores it.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "        if node.reach_bp[gtopen_class_index(hand_class_text)] <= 0:"
+    replace: "        if False and node.reach_bp[gtopen_class_index(hand_class_text)] <= 0:"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: every-spot-claims-its-line-is-always-played
+    description: >-
+      Every committed spot records full arrival instead of the chance its line is actually played,
+      so a spot the solve worked out and a spot it never visited become indistinguishable. It is
+      the exact counterpart of `committed-cells-claim-the-whole-range-arrived` one level up: that
+      one lies about which hands reach a node, this one lies about whether the node is reached.
+      The field exists because Taylor ruled on 2026-08-27 that the untrained cells ship committed
+      rather than blanked, on the ground that a later heuristic layer wants them - and a layer
+      keying on this field reads eight never-reached spots holding 1,031 cells as ordinary play
+      once the mutation lands. Arriving reach cannot catch it: at four of those spots every one of
+      the 169 classes already reads fully arrived, and at the other four it reads like an ordinary
+      range facing a four-bet, 86 to 95 classes at a mean of 4,753 to 7,654 basis points. The
+      artifact still validates, still imports, still answers every spot, and no frequency in any
+      report moves.
+      What bites is the fourth entry in this block's artifact mechanism, spelled out in the comment
+      above: no mutation touches `data/`, so `test_every_committed_spot_records_how_often_its_line_is_played`
+      reads the unchanged committed file and passes under this mutation. The failure is
+      `convert_preflop_export.py --check` in
+      `tests/test_derived_chart.py::test_the_committed_chart_reproduces_from_the_committed_export`,
+      where the mutated deriver disagrees with the artifact it is supposed to reproduce. Saying
+      otherwise is the error this block's own comment records itself making once already, and an
+      independent review caught it here too.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "        arrival_ppb[key] = node_arrival_ppb(by_path, node)"
+    replace: "        arrival_ppb[key] = 1_000_000_000"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: the-walk-takes-each-action-from-the-node-that-follows-it
+    description: >-
+      The actor of a recorded action is read from the node the action leads to rather than from
+      the node it was taken at, so every entry in every spot key names the wrong seat. This is
+      the conversion's counterpart of `solver-export-hand-index-uses-the-grid-ordering`: an
+      off-by-one in whose action is whose, silent wherever the two seats happen to coincide, and
+      it is the single most likely defect in a tree walk that has to look backwards to say who
+      acted. A chart keyed this way is internally consistent and describes a different game.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: 'entries.append(PreflopAction(parent.actor_pos, "call"))'
+    replace: 'entries.append(PreflopAction(node.actor_pos, "call"))'
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: the-artifact-declares-blinds-it-was-not-solved-at
+    description: >-
+      The artifact declares a 1/3 blind structure while carrying ranges solved at 0.5/1. Decision
+      4 added the field so a lookup can refuse a game whose blinds are not in the solved ratio
+      instead of answering it silently, and this is that field lying rather than being absent,
+      which is strictly worse: the same hand at the same stack depth is a different decision at
+      1/3, and a declared-but-wrong structure passes every check an absent one would fail.
+      `BLIND-RATIO-NEVER-CHECKED-AGAINST-THE-SOLVED-STRUCTURE` was phase 13's largest single
+      finding, and a field nobody checks against the export's own `config_posted.posts` closes it
+      in name only.
+      Re-aimed at stage 4 after an independent review. The first version replaced the payload
+      line in `schema.py` with a hardcoded 1/3 structure, and would have bitten only if stage 6
+      routed the derived payload through `PreflopArtifact.to_payload()`, which nothing specifies -
+      and the one committed test that does exercise `to_payload` round-trips it, so both dumps
+      would carry the same wrong structure and agree. Aimed instead at the derivation, where the
+      structure is read out of the export's own `config_posted.posts`, so the canary bites
+      wherever the payload is assembled. Tripling the big blind rather than inverting the two
+      keeps the mutation SILENT: an inverted structure is refused by the schema's own validation
+      and would fail loudly, where 0.5/3.0 is a structure the schema accepts and only a test
+      comparing it against the export's posts can catch.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "        big_blind_bb=float(posts[-1]),"
+    replace: "        big_blind_bb=float(posts[-1]) * 3.0,"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: a-jam-only-spot-goes-back-to-having-no-size
+    description: >-
+      The sizing table stops pricing an all-in, so the committed spots that offer a jam and no
+      named raise carry a `raise` weight the sizing table cannot price: the chart says raise and
+      cannot say how much. Over the 86 the ruled predicate commits that is 15 spots, against the
+      4,257 export nodes and the 3,865 committed ones decision 6 was originally written on - the
+      count moved twice with the predicate and the case did not. That is the "commit sizeless and refuse on price" option decision 6
+      rejected, arriving by omission instead of by ruling. The GTO Wizard source this repo
+      converted before had zero spots of that kind, which is why the rule it inherited was safe
+      there and is not here, and it is why the note that a spot absent from the sizing table has
+      no size stops being true of a chart nobody edited.
+      Re-aimed at stage 4 after an independent review: the file was `scripts/convert_preflop_export.py`,
+      but the frozen tests require the sizing table to come out of
+      `chart_derivation.derive_chart(export).sizing_payload`, and a `src/` module cannot import the
+      rule back out of `scripts/`. `check_gate_bite` requires the find string to occur exactly once
+      in the named file, so the canary would have halted stage 7 with zero occurrences unless the
+      builder wrote the collapse rule twice.
+      Re-aimed again 2026-09-04, for the same reason one line up. Stage 6 pulled the two
+      aggressive kinds out into `_AGGRESSIVE_KINDS` and routed every kind through the selection's
+      own classifier, so the literal tuple this named is gone from the sizing rule. The line
+      below is that rule, unchanged in what it does: it is the loop that decides which of a
+      node's offered actions the sizing table gets a price for.
+    file: src/poker_training_bot/solver_artifacts/chart_derivation.py
+    find: "        if require_known_kind(node, action) in _AGGRESSIVE_KINDS:"
+    replace: '        if require_known_kind(node, action) == "raise":'
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: hero-may-limp-again
+    description: >-
+      The schema rule forbidding a call weight at a folded-to-hero spot goes vacuous, so an
+      artifact in which hero limps imports cleanly. `CHART-HERO-MUST-NEVER-LIMP` asks for exactly
+      this rule and says why: the committed export enforces it by construction, "but that is a
+      property of the data rather than a rule", and phase 14 owns the schema. The retired chart
+      limped 13.73 percent from the small blind across 103 hand classes carrying a nonzero call
+      weight, so this is not hypothetical - it is the state the repo shipped in until this phase.
+      `generate_derived_chart_report` is deliberately not named, and that is a finding rather
+      than an omission: the committed artifact does not limp, so no report figure moves and no
+      command that reads only good data can notice. What kills it is the test that constructs a
+      limping artifact and requires the schema to refuse it, which is the whole difference
+      between a rule and a measurement over one file.
+    file: src/poker_training_bot/solver_artifacts/schema.py
+    find: "if not spot.action_sequence and call_weight > 0.0:"
+    replace: "if False and call_weight > 0.0:"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: the-derived-chart-report-renders-whatever-it-is-handed
+    description: >-
+      The report's own validation goes vacuous, so it publishes a census that does not add up, a
+      spot count that disagrees with the walk, a dominance relation that does not hold, and an
+      old-versus-new disagreement count nobody recomputed. This repo has twice shipped a
+      validator that could not fail, and phase 13's adversarial verifier found the second one by
+      reverting a fix and watching all 45 commands stay green.
+      `generate_derived_chart_report` is deliberately NOT named below, and saying so is the point
+      rather than a hedge: on the committed data every figure is right, so a validator that has
+      stopped checking still exits 0. What kills this is the tests that feed the generator a
+      deliberately wrong input and require a non-zero exit, which is the only way a check that
+      cannot fail is distinguishable from a check that passes.
+      Re-pointed 2026-09-04: the rewritten generator splits measuring from publishing and the
+      collected failures are called `errors`, so `validation_errors` matched nothing. The line
+      below is the same gate in the same place - the one branch in `main` that decides whether a
+      refused figure is published anyway - and both parameters of
+      `test_a_wrong_artifact_fails_the_command_rather_than_being_rendered` still reach it.
+    file: scripts/generate_derived_chart_report.py
+    find: "    if errors:"
+    replace: "    if False:"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: the-old-versus-new-comparison-reads-the-new-chart-twice
+    description: >-
+      The retired chart is no longer read out of git history at the pinned commit decision 7
+      names; the comparison is handed the derived chart a second time. Every corpus decision then
+      agrees with itself, the disagreement count is zero, and the report's most concrete claim
+      about what the cutover changed in play reads at its strongest exactly when it has stopped
+      measuring anything. The same shape as `corpus-self-play-crossref-empties-silently`: an
+      input that quietly becomes trivial rather than raising.
+      What kills it on `generate_derived_chart_report` is one specific validator case, added at
+      stage 4 after an independent review found this canary did not bite: a zero disagreement
+      count over a nonzero shared overlap must be refused. Without it the mutated report renders
+      and exits 0, because zero disagreements passes every arithmetic check on the count - and the
+      cheap repair at stage 7 would then have been to drop this command from `must_fail`, which
+      loosens the gate instead of the code. Do not delete that case. It is also the right claim on
+      its own terms: the retired chart three-bets to 8, 11 and 13.5 and opens the small blind to
+      3.5, the derived one holds only 2.5, 7.5, 22.5 and 100, and two charts that disagree about
+      hero's own opening price cannot agree on a thousand shared corpus decisions.
+      Re-pointed 2026-09-04: the pin became a command-line argument so the frozen tests can feed
+      a bad one, so the call reads `arguments.retired_commit` rather than the constant. Same
+      call, same line, same substitution.
+    file: scripts/generate_derived_chart_report.py
+    find: "    retired = load_retired_chart_from_git(arguments.retired_commit)"
+    replace: "    retired = derived"
+    must_fail:
+      - generate_derived_chart_report
+      - pytest_derived_chart
+      - pytest
+
+  # Phase 14 stage-4 re-cut canaries, authored 2026-09-01.
+  #
+  # A stage-4 canary cannot be proven to bite the way `check_gate_bite` means it.
+  # That check wants the gate green without the mutation and red with it, and the
+  # gate is red at stage 4 by design - 30 tests describe work stage 6 has not done.
+  # What each canary below is checked against instead is narrower and still worth
+  # having: applying it must break at least one test that is CURRENTLY PASSING. Two
+  # of the three do. The one that does not is kept and labelled rather than dropped,
+  # because a canary that changes nothing is evidence about the tests, not a reason
+  # to write no canary.
+
+  - id: discrimination-tolerates-a-tie
+    description: >-
+      The group measure accepts a tie between the solved and transposed hand
+      index instead of refusing it. A measure that cannot tell the two mappings
+      apart cannot catch a transposition, and a chart that folds nothing scores
+      zero against zero - which is exactly how the retired suited-row ladder
+      passed while preferring a transposed index. Decision 10, ruled 2026-08-26.
+      Verified 2026-09-01, and re-verified independently by the stage-4 mechanical
+      review: turns
+      test_the_group_measure_is_refused_when_it_prefers_the_transposed_hand_index
+      from passing to failing, taking the report, validator and evidence files
+      from 37 passing to 36.
+      Re-pointed 2026-09-04. Stage 6 moved the comparison itself into
+      `chart_relations.arm_refuses`, shared by both arms, and the report's two validators now
+      call it rather than each writing the comparison out. So this attacks one line instead of
+      one arm, and it attacks BOTH arms at once, which is a widening rather than a weakening:
+      the rank arm was previously uncovered by any canary. It is still killed by
+      `test_the_group_measure_is_refused_when_it_prefers_the_transposed_hand_index`, whose last
+      case hands the validator a tie and requires a refusal.
+    file: src/poker_training_bot/solver_artifacts/chart_relations.py
+    find: "    return solved >= counterfactual"
+    replace: "    return solved > counterfactual"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: dominance-tolerance-widened-past-the-ruling
+    description: >-
+      The per-cell tolerance goes from the one percentage point Taylor ruled on
+      2026-08-24 to twenty-five, so every inversion short of a catastrophe reads
+      as within tolerance. The tolerance is the whole content of the relation -
+      without it the check says only that suited hands are not played
+      dramatically less than their offsuit twins.
+      Verified 2026-09-01: applied, the report, validator and evidence files go
+      from 37 passing to 36. An earlier form of this line said "the two evidence
+      files from 22 passing to 21", which reproduces under no pairing of files;
+      the delta of one was right and the absolute figure was invented. Corrected
+      2026-09-01 by the independent stage-4 mechanical review, and worth the
+      correction rather than the deletion because a "Verified" line nobody can
+      reproduce is worse than no line.
+      Re-pointed 2026-09-04: the relations moved into `chart_relations.py` and the tolerance
+      with them, under the name `TOLERANCE_PCT`. The report keeps
+      `MONOTONICITY_TOLERANCE_PCT` as an alias of it, so the old name still exists and no
+      longer carries the literal - exactly the shape that makes a canary stop applying
+      without looking broken. Attacking the definition rather than the alias is also the
+      stronger aim: the relation walk in `chart_relations` reads the real constant, and a
+      canary on the alias would have moved a name nothing measures with.
+    file: src/poker_training_bot/solver_artifacts/chart_relations.py
+    find: "TOLERANCE_PCT = 1.0"
+    replace: "TOLERANCE_PCT = 25.0"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  - id: the-transposed-reading-is-not-transposed
+    description: >-
+      `transpose_hand_index` returns the grid unswapped, so the comparison the
+      gate rests on compares a mapping against itself and every partition ties.
+      This is an attack on the gate's own instrument rather than on the chart.
+      NOT PROVEN AT STAGE 4, and kept deliberately. Applied on 2026-09-01 it
+      changed nothing in the 22 passing tests of the two evidence files: the
+      tests that would catch it read the real artifact, and those are red today
+      for an unrelated reason - the derivation still emits 51 spots because
+      decision 20's third exclusion reason is unimplemented. STAGE 7 MUST VERIFY
+      THIS ONE SPECIFICALLY rather than accepting a green `check_gate_bite` run,
+      because a surviving mutation here means nothing checks the instrument.
+      Re-pointed 2026-09-04, the function having moved into `chart_relations.py`.
+      A kill now exists that did not at stage 4 and it is worth naming so stage 7
+      knows what it is watching: `tests/test_chart_counterfactual_arms.py` holds
+      its own copy of the swap, taken from `test_chart_cutover_evidence.py`, and
+      asserts the shipped one agrees with it cell for cell on a real committed
+      spot. That is a comparison against a second implementation rather than
+      against the instrument's own output, which is the only kind of check an
+      instrument-attacking canary can be killed by. Stage 7 still verifies it
+      specifically; this is a reason to expect a kill, not a record of one.
+    file: src/poker_training_bot/solver_artifacts/chart_relations.py
+    find: "swapped[suited], swapped[offsuit] = cells[offsuit], cells[suited]"
+    replace: "swapped[suited], swapped[offsuit] = cells[suited], cells[offsuit]"
+    must_fail:
+      - pytest_derived_chart
+      - pytest
+
+  # Phase 14 stage-4 re-cut against the 249, authored 2026-09-02.
+  #
+  # The one below attacks a line that DOES NOT EXIST YET, and that is the point
+  # rather than an oversight. The three canaries above were written against the
+  # report because the report was already written, which is the same order of work
+  # the block comment above them warns about: a canary written after the code can
+  # only ever describe it. The selection rule the phase turns on has not been built,
+  # so the only way to attack it before it is built is to name the line the frozen
+  # tests force stage 6 to write - `MULTIWAY_EXPOSURE_THRESHOLD_PCT` is asserted by
+  # name in `test_the_exposure_clause_alone_is_a_walk_to_the_leaves_not_a_live_player_count`,
+  # so stage 6 has no choice about the name and this canary is a specification of the
+  # literal beside it.
+  #
+  # Two things go red until stage 6 writes the line, and both were checked rather than
+  # assumed, because a canary that quietly reddens a command outside its own phase is a
+  # regression dressed as rigour:
+  #   - `check_gate_bite` reports zero occurrences for it. That command is already red at
+  #     stage 4 for every phase-14 canary anyway: after restoring a mutation it re-runs
+  #     `pytest_derived_chart` and requires it to pass, and that command is red by design.
+  #   - `tests/test_loop_machinery.py::test_every_mutation_applies_exactly_once_to_its_file`
+  #     fails on its own assertion, since it counts each `find` in its file and wants one.
+  #     That test is frozen, it was green against HEAD - all 71 entries there resolve - and
+  #     it runs under no command but the catch-all `pytest`, which is itself red at stage 4
+  #     because it runs this phase's own files. So no green command is turned red, and both
+  #     reds clear the moment stage 6 writes the constant, which is the whole shape of a
+  #     specification: it fails until the thing it specifies exists.
+  # Stage 6 must write the constant as a bare `NAME = 10.0`, matching every other module
+  # constant in `chart_derivation.py`; an annotated form would leave the find string
+  # unmatched and the loop-machinery test red for a reason that is not the ruled one.
+  #
+  # Stage 6 did write it that way, and put it in `chart_selection.py` rather than
+  # `chart_derivation.py`, the selection rule having been split out under the 500-line cap.
+  # `COMMITTED_RAISE_DEPTH = 2` is beside it in the same bare form, which is why
+  # `the-four-bet-family-is-committed-after-all` could be written at stage 6 against a
+  # constant rather than against a call site.
+
+  - id: a-spot-above-the-exposure-threshold-is-committed
+    description: >-
+      The multiway exposure threshold moves off the ten percent Taylor ruled on
+      2026-09-02 by five hundredths of a point, so the chart commits a spot the rule
+      refuses. That is one node and it is the named one: the button facing a big-blind
+      three-bet into a four-handed pot,
+      `t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5`, measured at
+      **10.0234** percent against a widest admitted **9.8642**. Ten-point-oh-five is
+      not an arbitrary widening: the next refused node above it sits at 10.1189, so
+      every value in that gap admits exactly this one spot and no other, and the
+      canary therefore attacks the threshold at its own margin instead of at a
+      catastrophe. The committed set goes from 249 to 250 and the census bucket from
+      348 to 347.
+      Decision 46 is the whole reason this filter exists, and it is the clause with
+      the least margin behind it: a sixteen-hundredths gap between the widest spot the
+      bot may be taught and the narrowest it may not. Nothing else in the gate is a
+      statement about that gap. The raise-depth clause has a whole family behind it and
+      the big-blind squeeze clause names a seat, so both fail loudly if they move; a
+      threshold is a number, and a number that has quietly drifted still selects a set,
+      still balances a census, still converts, still imports, and still answers every
+      query. What it does at the table is teach a student to play a pot GTOpen priced
+      with a product approximation the flop-pricing fit never covered - which is the
+      one thing decisions 35 and 46 exist to keep out of the chart.
+      `generate_derived_chart_report` is named deliberately and is the load-bearing
+      entry in the list. The pytest commands can kill this mutation by reading the
+      constant back - the frozen test asserts `MULTIWAY_EXPOSURE_THRESHOLD_PCT` equals
+      ten - and a kill of that kind proves only that the constant is pinned, not that
+      the rule uses it. The report cannot read the constant: it compares the artifact's
+      spot set against the walk's key by key, so it fails only if the moved threshold
+      actually moved a spot. If stage 6 declares the constant and then hardcodes ten in
+      the predicate beside it, the pytest commands still go red, the report exits 0, and
+      `check_gate_bite` reports this mutation as having survived a command it named -
+      which is the finding, not a reason to drop the command.
+      Re-pointed 2026-09-04, and the `file:` field is the only thing that moved. Stage 6 split
+      the selection rule out of `chart_derivation.py` into `chart_selection.py` under the 500-line
+      cap, and wrote the constant as the bare `NAME = 10.0` this block asked for. It occurs
+      exactly once there. The mutation, the margin it attacks, the node it admits and the reason
+      `generate_derived_chart_report` is load-bearing are all unchanged.
+    file: src/poker_training_bot/solver_artifacts/chart_selection.py
+    find: "MULTIWAY_EXPOSURE_THRESHOLD_PCT = 10.0"
+    replace: "MULTIWAY_EXPOSURE_THRESHOLD_PCT = 10.05"
+    must_fail:
+      - pytest_derived_chart
+      - generate_derived_chart_report
+      - pytest
+
+  # The lane table's other stage-4 canary - "a wrong artifact fails the command
+  # rather than being rendered" - is NOT written here, because it already exists as
+  # `the-derived-chart-report-renders-whatever-it-is-handed` and a second entry
+  # attacking the same line would be one canary counted twice. Its find string is
+  # `    if errors:` as of 2026-09-04 - the rewritten generator collects its failures
+  # under that name and `validation_errors` is gone - and it occurs exactly once in
+  # `scripts/generate_derived_chart_report.py`, measured against the built tree.
+  # What kills it is `test_a_wrong_artifact_fails_the_command_rather_than_being_rendered`
+  # in `tests/test_derived_chart_report_validators.py`, and both of its parameters do:
+  # `drop-a-spot` removes the artifact's first committed spot and restamps the audit
+  # fields, so only a comparison against the walk sees it, and
+  # `commit-a-spot-above-the-exposure-threshold` appends the narrowest spot the filter
+  # refuses at 10.0234 percent - the same node
+  # `a-spot-above-the-exposure-threshold-is-committed` names above - with its cells
+  # copied off a committed spot, so the file stays internally consistent and loads.
+  # The two canaries meet at that node from opposite ends: one moves the rule and
+  # regenerates, the other moves the artifact and leaves the rule alone.
+
+  # Canary debt, triaged at stage 6 on 2026-09-04 by a lane that wrote none of this
+  # phase's implementation. Each of the six items below was either written or struck
+  # with a reason. An aspirational comment nobody re-reads is how this block came to
+  # carry five stale counts, so nothing is left here as inherited intent.
+  #
+  #   - STRUCK, moot. "Fold the fifteen four-bet-pot nodes into another exclusion
+  #     reason, once `derivation:source-misprices-four-bet-pot` exists." That code
+  #     never existed and never will: the exclusion vocabulary in force is exactly
+  #     three, `derivation:beyond-committed-raise-depth`,
+  #     `derivation:multiway-exposure-above-threshold` and
+  #     `derivation:big-blind-squeeze-spot`, and the four-bet pots are refused by the
+  #     first of them along with 33,362 other nodes. What this item wanted defended -
+  #     that the four-bet family stays out - is now defended by
+  #     `the-four-bet-family-is-committed-after-all`.
+  #   - STRUCK, moot. "Widen the withholding from `raises_faced == 3` to `>= 3`,
+  #     landing on 21 committed spots instead of 36." There is no equality test to
+  #     widen: the rule is `raises_faced(...) <= COMMITTED_RAISE_DEPTH`, and both of
+  #     the counts this item names belong to a committed set of 86 that no longer
+  #     exists. Same successor as the item above.
+  #   - STRUCK, and it is a FINDING rather than a moot item. "Drop the per-partition
+  #     loop back to a single aggregate call of `validate_group_discrimination`." The
+  #     report does now render and validate per partition, so the mutation is
+  #     writable - `    for figures in arms.values():` occurs exactly once - but it
+  #     would SURVIVE the gate, and a canary written knowing it survives is a red
+  #     `check_gate_bite` at stage 7 rather than evidence. Nothing drives the
+  #     generator's own loop to a failure: the two tests that run the command with bad
+  #     input feed it a bad pin and a wrong artifact, and the test that checks both
+  #     arms on all ten partitions walks the partitions itself and calls the
+  #     validators directly. So the generator could validate the first partition only
+  #     and every command would stay green. Filed rather than papered over.
+  #   - STRUCK, moot as named. "Blank the `## How often the committed spots flat a
+  #     raise` section." No section by that name exists; the rewritten generator
+  #     splits the material across `## The big blind's defence and flat, per opener`
+  #     and `## The menu each family publishes, and the merged flats`. The flat
+  #     behaviour itself is now attacked directly and much harder by
+  #     `the-cold-call-survives-into-the-published-chart`, which moves 165 cells
+  #     rather than emptying a heading.
+  #   - STRUCK, and a FINDING. "Blank the `## The withheld jams, and what aces do at
+  #     each` section." It survives as `## Hero's own jam, at the spots this phase
+  #     withholds`, so the item is live in principle, but the test that reads it only
+  #     requires a weight between 0 and 100 printed at a spot outside the committed
+  #     set. Reading the raise weight instead of the jam weight - one token in
+  #     `_menu_weights(node, ("jam",))` - satisfies every one of those assertions, so
+  #     the retained jam-inversion evidence is not actually pinned to being a jam. No
+  #     canary is written, because one aimed here would survive; the hole is in the
+  #     assertion, not in the canary list.
+  #   - STRUCK, moot, and its general shape now covered. "At the 15 five-bet-jam nodes
+  #     replace hero's call weight with `1 - call`." Those nodes are withheld by the
+  #     raise-depth clause and carry no committed cell to attack. The general shape -
+  #     a committed spot's call weight being wrong while every count stays put - is
+  #     what `the-cold-call-survives-into-the-published-chart` attacks. Measured
+  #     2026-09-04 against the committed artifact, 210 of the 249 spots carry a
+  #     nonzero call weight somewhere in their 2,816 such cells, so the shape has
+  #     plenty of surface; that canary reaches the 25 spots where the merge rule
+  #     itself decides the answer, and the other 185 remain uncovered.
+
+  # The imbalance this block recorded, and where it stands after stage 6. It said the
+  # three re-cut canaries all attacked `scripts/generate_derived_chart_report.py` and
+  # none attacked `chart_derivation.py`, `lookup.py` or `schema.py`, and that stage 6
+  # should redress that rather than inherit it. Stage 6 split the phase's rules into
+  # two new modules, and all three of those canaries turned out to belong in one of
+  # them: `discrimination-tolerates-a-tie`, `dominance-tolerance-widened-past-the-ruling`
+  # and `the-transposed-reading-is-not-transposed` now attack `chart_relations.py`,
+  # which owns the four relations and both counterfactual arms. `chart_selection.py`,
+  # which owns the three-clause rule the whole phase turns on, carries one canary per
+  # clause: `the-four-bet-family-is-committed-after-all` on the raise depth,
+  # `a-spot-above-the-exposure-threshold-is-committed` on the exposure threshold, and
+  # `the-big-blind-squeeze-clause-is-dropped` on the squeeze clause.
+  #
+  # What is still thin, stated rather than left to be discovered. `lookup.py` carries
+  # two canaries and neither is about the derivation codes it now publishes. `schema.py`
+  # carries one, `hero-may-limp-again`. Nothing attacks `chart_provenance.py`,
+  # `chart_query.py` or `price_normalisation.py` at all. And no canary anywhere attacks
+  # the report's twenty-six sections as text: the generator is covered where it
+  # validates and not where it renders, which is the same hole the two struck section
+  # items were reaching for and could not close.

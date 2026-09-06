@@ -8,6 +8,9 @@ dependencies = []
 
 [dependency-groups]
 dev = [
+    # Used by `scripts/generate_preflop_equity_matrix.py` alone, and only to build a
+    # committed table. `dependencies` above stays empty: the bot never imports numpy.
+    "numpy>=2.0",
     "pytest>=8.0",
     "pyyaml>=6.0",
     "ruff>=0.11",

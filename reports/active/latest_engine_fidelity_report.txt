@@ -21,7 +21,6 @@ contract, because the old behaviour is no longer in the tree to measure.
      postflop fallback, flop  free spot -> check
      postflop fallback, turn  free spot -> check
      postflop fallback, river free spot -> check
-     committed chart spot t6/d100/BB/SB:call -> fold 0.00% of the range
 
 2. Betting reopens when short all-ins accumulate  (UNDER-RAISE-ACCUMULATION)
 
