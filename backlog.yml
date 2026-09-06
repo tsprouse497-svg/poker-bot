@@ -6362,3 +6362,95 @@ items:
       which asks a later phase to gate a monotonicity relation ON this matrix and is the reason the
       matrix was built at all. That entry needs the matrix to be trustworthy; this one is what would make
       it trustworthy, and it should land first.
+
+  - id: BACKLOG-ENTRIES-QUOTE-RETIRED-REFUSAL-CODES
+    status: deferred
+    phase: charts
+    title: Two derivation codes the census retired are still quoted as live in backlog.yml
+    reason: >-
+      Filed by phase 15's stage-1 review, 2026-09-06. A-REFUSAL-CANNOT-TELL-THE-HUMAN-WHY names
+      `derivation:source-misprices-multiway` and `derivation:outside-selection-rule` as the two codes the
+      converter distinguishes. Neither string exists anywhere in `src/` or `scripts/`. The live vocabulary
+      in `solver_artifacts/lookup.py` is four codes: `derivation:beyond-committed-raise-depth`,
+      `derivation:multiway-exposure-above-threshold`, `derivation:big-blind-squeeze-spot` and
+      `derivation:no-legal-spot-key`. `tests/test_chart_census.py` records the retirement in its own
+      docstring and says why it matters: the retired pair named a live-player rule and an
+      opponent-investment clause that decisions 40, 46 and 48 replaced, so "a later phase reading a
+      bucket by its name would have got the wrong set, which is the one job a closed vocabulary has."
+      The first draft of the phase 15 contract copied the retired pair straight out of this file and an
+      independent reviewer caught it, which is the failure mode arriving exactly as predicted. The test
+      guards the code and nothing guards the backlog, so every future phase that opens that entry
+      inherits the same error. What would close it: correct the entry, and decide whether a check should
+      read code vocabularies out of the modules that own them rather than trusting prose.
+
+  - id: ONE-PURE-THRESHOLD-CONSTANT-FOR-THE-WHOLE-REPO
+    status: deferred
+    phase: charts
+    title: The pure/mixed threshold is a module constant with no owner and the answer swings fourfold
+    reason: >-
+      Filed by phase 15's stage-1 review, 2026-09-06. `PURE_PCT = 99.0` and `MIXED_PCT = 90.0` live as
+      module constants in `scripts/generate_derived_chart_report.py` and nothing else in the repo
+      declares a threshold for the same question. Recomputed over the committed 18,431 cells, the mixed
+      share is 675 cells (3.66 percent) below 0.90, 1,202 (6.52) below 0.99, 1,820 (9.87) below 0.999 and
+      2,431 (13.19) below 0.9999. So any phase quoting "how much of the chart is mixed" can pick its own
+      line and be arithmetically right, and two committed documents can state different figures about one
+      artifact without either being wrong. The published report additionally leaves 527 cells in the band
+      between its two constants, counted as neither pure nor mixed. This is the same shape as
+      DOMINANCE-RELATION-IS-PROSE-AND-HAS-PRODUCED-SEVEN-COUNTS: a definition carried in prose and in one
+      generator rather than pinned as data. What would close it: one owned constant, named where the
+      chart is defined rather than where a report is rendered, with the band it leaves stated.
+
+  - id: A-MERGED-FLAT-TEACHES-A-FALSE-RULE-TO-A-HUMAN
+    status: deferred
+    phase: charts
+    title: On eighty percent of arrival the chart cannot price a call, and the drill is where a person meets that
+    reason: >-
+      Filed by phase 15's stage-1 review, 2026-09-06, and measured from the committed artifact. 4,225 of
+      18,431 cells carry no `call` key at all. They are 25 spots - all 5 first-in and the 20
+      non-big-blind spots facing an open, where phase 14 decision 45 merged the solve's flat into the
+      raise - and they carry 80.2010 percent of arrival. Only the 5 big-blind spots facing an open price
+      a call. The same hole covers the small blind's limp, which the reference file limps 13.73 percent of
+      the time and the ruled tree has no branch for. This is the reachability of
+      MERGED-FLATS-PLAY-DIFFERENTLY-NOT-JUST-DIFFERENTLY-LABELLED, which is about the artifact; this entry
+      is about what a person is taught by it. Phase 15 rules how the drill behaves - show the action,
+      never score it, and say the flat was merged - and that ruling is the best available and still means
+      the commonest leak in the game, flatting an open too wide, is the one thing this trainer cannot
+      grade. What would close it is a chart that prices a flat, which is a re-solve and not a report fix.
+
+  - id: OPENING-FAMILY-CALLED-PASSING-AGAINST-A-RULE-IT-BREAKS
+    status: deferred
+    phase: "14"
+    title: The derived chart report states a direction rule, three of five opening rows break it, and the report calls the family passing
+    reason: >-
+      Filed by phase 15's stage-1 work, 2026-09-06, computed independently twice from the committed
+      artifact against data/artifacts/preflop/expectations/six_max_nl25_100bb.json. Combo-weighted
+      first-in raise frequency: LJ 18.7398 against 17.49, HJ 21.5649 against 21.65, CO 27.1733 against
+      27.89, BTN 39.2664 against 40.56, SB 54.2986 against 34.41. Big blind defence is narrower at one
+      seat too, against the button, 36.6526 against 39.43. `reports/active/latest_derived_chart_report.txt`
+      states the rule itself - "this chart reading NARROWER than it is a direction a rake-free solve is
+      not supposed to go" - and then says of the opening and defence families "they are the two that
+      pass." Three of five opening rows and one of five defence rows break the rule the same report
+      states, and the packet's own defect 1 already says the defence family fails at the button, so the
+      sentence is wrong about both families it names. THE FINDING IS THE SENTENCE, NOT THE GATE. That the
+      comparison gates nothing is a ruling, not an oversight: `check_solver_export_expectations.py` says
+      so in its own docstring and the phase 14 contract carries the same words under decision 6. Nor are
+      the ranges reopened - phase 14 ships them as solved and phase 15 does not relitigate a closed phase.
+      What is owed is that the only prose a reader gets about the opening family should not say it passes
+      a test it fails. The SB row is not part of the finding: the reference limps 13.73 percent from the
+      small blind and this tree has no limp, and against open-plus-limp the chart is still 6.16 wider.
+
+  - id: ROADMAP-RULING-3-SAYS-LIMPS-ARE-IN-THE-TREE-AND-THEY-ARE-NOT
+    status: deferred
+    phase: v2
+    title: The v2 roadmap rules limps into the solved tree and the ruled config forbids them
+    reason: >-
+      Filed by phase 15's stage-1 work, 2026-09-06. `docs/V2_ROADMAP.md` ruling 3 reads "Limps: in the
+      solved tree - closes the limped-pot refusals rather than deferring them. Larger solve, and roughly
+      double the artifact", and says real hands reached limped spots on 12 inventory rows. The committed
+      solve has `"limp": False` in `RULED_CONFIG` at `solver_artifacts/gtopen_config.py`, whose own
+      docstring says "Phase 10's decision 2 fixed it verbatim: six-handed, 100bb, 2.5bb opens, no limp".
+      One of the two superseded the other and neither document says so. The consequence is live rather
+      than editorial: a limped pot is the single largest refusal family in the corpus - 16 distinct spots
+      over 52 decision points - and it is structurally unanswerable, since `_validate_no_limp` makes it a
+      schema violation for any artifact to price it. Phase 15 inherits it as a refusal the drill must
+      explain and cannot fix. What would close it: decide which ruling stands, and amend the loser.
