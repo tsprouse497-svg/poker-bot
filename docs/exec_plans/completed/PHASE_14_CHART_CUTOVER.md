@@ -253,7 +253,7 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
 
 ## Delegation Plan
 
-### Stage 9, the audit packet, 2026-09-05 - ACTIVE
+### Stage 9, the audit packet, 2026-09-05 - landed
 
 The packet is `reports/phase_audits/PHASE_14_CHART_CUTOVER.md`, capped at 500 lines by
 `check_file_sizes`. It points at the review notes and the report rather than restating them, because
@@ -290,6 +290,43 @@ to hold nine findings against each other under a 500-line cap, and a lane that o
 weigh it against the eight it cannot see. The three extraction lanes and the independent review lane
 are where the delegation sits, and R1 is the check that this exception did not buy a self-certified
 document: the reviewer wrote none of the packet and re-derives what it cites.
+
+### Stage 10, the closeout, 2026-09-05 - landed
+
+Bookkeeping, plus one content change that belongs to this stage because this stage is where it was
+found, and which is named here rather than left in a commit message.
+
+**The closeout gate came back 46 of 47.** `check_gate_bite` reported that
+`the-derived-chart-report-renders-whatever-it-is-handed` survived `pytest_derived_chart`. That
+mutation disables the one line in `main` deciding whether a refused report is published anyway.
+
+| lane | owner | output | status |
+|---|---|---|---|
+| B1 bisect | worker, throwaway worktrees only | which commit stopped the mutation biting, measured rather than argued | landed |
+| W2 the fix | coordinator | one line in `generate_derived_chart_report.py`, plus the backlog entry and the packet's gate section | landed |
+| R3 closeout review | independent read-only reviewer, no lane above | whether a content change at a bookkeeping stage is named honestly, and whether the fix is right | landed |
+
+B1 rebuilt the tree in detached throwaway worktrees at `72efe9d`, `5e119cf` and `25f0d76` and ran
+the mutation by hand at each. It bit at the first two and stopped at `25f0d76`, a report-content
+commit that landed without re-running the gate and added a render lookup indexing a walk-derived
+dict with a chart key, so a `KeyError` on the canary's corrupted artifact read as a refusal. **The
+phase's recorded 47-of-47 run at `72efe9d` does reproduce**; this was a regression, not a false
+record. Fixed by choosing the family's heaviest spot over what the walk carries. The committed
+report is byte-identical either way and the canary bites again, which the second gate run confirms.
+
+**The coordinator made that fix rather than delegating it** because it is one line in a script
+already in scope, found by reading a gate failure the coordinator was the only one holding, and
+because a lane briefed to make a canary bite again is a lane briefed to make a gate green. R3 is
+the check on that: it read the fix against the refusal path that precedes it and confirmed the
+tolerant lookup cannot mask a real error, because `validate_spot_count` refuses any artifact whose
+keys disagree with the walk before `render` runs at all.
+
+**What this stage could not fix and filed instead**: `A-CANARY-READS-A-CRASH-AS-A-KILL`, because the
+killing test's contract is a non-zero exit which any crash satisfies, and repointing it at the
+refusal is a frozen-test change needing a ruling; and
+`AN-EVIDENCE-BULLET-INSIDE-A-BLOCKER-SECTION-COUNTS-AS-A-BLOCKER`, because clearing the 18 phantom
+asks the pause board shows would mean writing a resolved marker onto lines in five earlier stages'
+committed notes that were never findings.
 
 ### Stage 4 re-cut against the 249, 2026-09-02 - folded away 2026-09-04
 
@@ -331,86 +368,15 @@ rake-free solve's floor rather than a reading on the level
 (`NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE`). The git pin below is now a fixture, and two
 runner-up poker findings are filed in `backlog.yml`.
 
-### Stage 6, the build, 2026-09-03 - ACTIVE
+### Stage 6, the build, 2026-09-03 - landed, folded away 2026-09-05
 
-Everything the phase ships is written here: the selection rule as code, the artifact it produces, and
-the report that re-derives every figure the contract names. The frozen tests are the specification and
-no lane may write one. 57 of this phase's own assertions are red and 66 more sit in the migrated
-frozen tests of completed phases, which go green only when the artifact moves.
-
-**The old code describes a phase that no longer exists.** `chart_derivation.py` opens by saying the
-export holds 38,828 nodes and the chart holds 86, selected by a two-clause predicate over invested
-opponents and live players, filed under two exclusion codes. Every one of those statements is false
-now. This is a rewrite, not a repair, and a lane that reads the module's docstring as a description
-of what it should build will build the superseded phase again.
-
-**Four lanes in three waves, one owner per file, no lane reviewing its own work.**
-
-| wave | lane | owns | makes green |
-|---|---|---|---|
-| 1 | A selection | `solver_artifacts/chart_selection.py` (new), the selection half of `chart_derivation.py`, the three exclusion codes in `lookup.py` | `test_chart_derivation.py`, `test_chart_census.py` |
-| 1 | C1 relations | `solver_artifacts/chart_relations.py` (new) | the arm and relation surface `test_chart_cutover_evidence.py` and `test_chart_counterfactual_arms.py` pin |
-| 2 | B conversion | the conversion half of `chart_derivation.py`, `scripts/convert_preflop_export.py`, `data/artifacts/preflop/**` | `test_chart_conversion.py`, `test_derived_chart.py`, `test_chart_arrival_probability.py`, and the nine migrated frozen tests |
-| 3 | C2 report | `scripts/generate_derived_chart_report.py` | `test_derived_chart_report.py`, `_ranges`, `_cutover`, `_validators` |
-
-A and C1 are disjoint files and run concurrently: C1's functions are pure over a grid and
-`test_chart_cutover_evidence.py` states them completely, so it does not wait on an artifact. B waits on
-A because it consumes the selection. C2 waits on B because a report cannot re-derive figures from an
-artifact that does not exist yet. `chart_derivation.py` passes from A to B between waves rather than
-being held by both.
-
-**Why the module split.** `src/**/*.py` is capped at 500 lines and `chart_derivation.py` is at 490
-already. The exposure walk to leaves, the merge, and the two arms do not fit in it, and
-`src/poker_training_bot/solver_artifacts/chart_*.py` is in `approved_scope` as a pattern for exactly
-this reason. `scripts/` is uncapped, so the report stays one file.
-
-**The new surface the frozen tests pin**, and a lane that renames one of these breaks a test it may
-not edit: `count_dominance_violations(play=, raise_weight=)`, `reverse_hand_ranks`,
-`cells_violating_rows`, `is_closed_under_reversal`, `validate_rank_discrimination`,
-`raises_faced(by_path, node)`, `within_committed_raise_depth(by_path, node)`,
-`MULTIWAY_EXPOSURE_THRESHOLD_PCT`, `COMMITTED_RAISE_DEPTH`. `transpose_hand_index` and
-`spots_violating_twins` already exist and keep their names and their own parameter names - the two
-arms never share a validator. Two purity readings are pinned separately, `_SOLVED` against the
-solve and `_PUBLISHED` against the merged artifact; a generator computing off the artifact it just
-wrote reads the published pair.
-
-**Reviews.** Two read-only reviewers at the end of the stage, one mechanical and one on the poker,
-neither having written any of it and neither having seen the other's work, writing to
-`stage-06-build-review-mechanical.md` and `stage-06-build-review-poker.md` with the index in
-`stage-06-build-review.md`. The poker reviewer judges the ranges, not the code's fidelity to the
-contract.
-
-**A red that should not be red is a halt.** No lane softens an assertion, widens a tolerance or
-reverts a ruled constant to make a test pass. A figure that does not reproduce is a finding, and if it
-is `frozen-into-data` it stops for Taylor.
-
-**The six labelled fields the delegation check reads, for this stage.**
-
-- Worker lanes: A selection, C1 relations, B conversion, C2 report - four lanes in three waves, the
-  table above.
-- Ownership: A owns `solver_artifacts/chart_selection.py`, the selection half of
-  `chart_derivation.py` and the three exclusion codes in `lookup.py`; C1 owns
-  `solver_artifacts/chart_relations.py`; B owns the conversion half of `chart_derivation.py`,
-  `scripts/convert_preflop_export.py` and `data/artifacts/preflop/**`; C2 owns
-  `scripts/generate_derived_chart_report.py`. The coordinator owns `CURRENT_TASK.yml`, this plan,
-  `backlog.yml`, the integration, the gate and the audit packet, and writes no implementation.
-- Expected outputs: each lane returns a patch confined to the files it owns, the commands it ran with
-  their output, a changed-file summary, and the frozen tests it made pass or found failing, plus any
-  figure that would not reproduce stated as a finding rather than fixed by moving a tolerance.
-- Status: all three waves landed and committed. Four lanes ran beyond the plan, each opened by
-  something the build measured rather than something it assumed: **M** the two earlier-phase constants
-  the cutover made wrong; **T** nine frozen assertions that cannot pass, the self-play column, and the
-  vacuity the vocabulary report refused to publish; **E** the all-in equity matrix the contract calls
-  committed and which never was; **K** the canaries, in flight. An independent read-only triage
-  classified every failure in the nine migrated files and found **no** defect in the chart, checking
-  every published cell against the export at 18,431 cells and 0 mismatches. Remaining: the canaries, one
-  re-freeze covering all nine test corrections, the two independent reviews, then the gate.
-- Integration order: A and C1 concurrently, then B on the artifact, then C2 on the report. The
-  coordinator runs the phase's two command IDs after each wave and the full gate only after C2.
-- Review handoff: two read-only reviewers at the end of the stage, mechanical and poker, neither
-  having written any of it and neither having seen the other's work, to
-  `stage-06-build-review-mechanical.md` and `stage-06-build-review-poker.md` with the index in
-  `stage-06-build-review.md`, under the three required headings.
+Four lanes in three waves over the selection rule, the artifact and the report, with the ownership
+table, the integration order and the two-reviewer handoff. All of it landed: the artifact is the
+committed 249, `pytest_derived_chart` reads 111 passed and 4 skipped, and both stage-6 reviews are
+written with their blockers resolved. The lane assignments describe a build that is finished, so they
+are folded to git history at a55a328 and earlier. Two rules it set are still in force and are stated
+where they apply: no lane writes to `tests/**`, and the poker reviewer is briefed to judge the ranges
+rather than the code's fidelity to the contract.
 
 ### What the build found that stage 4 did not, 2026-09-03
 
@@ -644,6 +610,46 @@ cleanly and plays badly passes every mechanical check in this repo.
 Described the pre-decision-14 export: 4,094,221 bytes, 38,828 action nodes, `add_allin: true`, 300
 iterations to 0.0062bb. The committed export is 2,555,076 bytes and 33,969 nodes. Not one figure in it
 survived, so it is in git history at 62f1375 and earlier rather than here.
+
+## Verification
+
+Command IDs this phase adds: `pytest_derived_chart`, `generate_derived_chart_report`.
+Report it commits: `reports/active/latest_derived_chart_report.txt`.
+Artifacts it commits: `data/artifacts/preflop/six_max_100bb_rakefree.json`, its sizing table, its
+source card and the 169-by-169 all-in equity table.
+Gate: `uv run python scripts/run_verify.py`, which derives the full set from every active or
+completed contract, plus `scripts/check_gate_bite.py`. Every canary must bite, and two of them are
+this phase's own: one proves a wrong artifact fails the command rather than being rendered, one
+commits a spot above the exposure threshold.
+
+## Outcome
+
+Complete, on a green gate at 47 of 47 with `check_gate_bite` reporting 74 mutations all caught. The
+closeout files this plan under `docs/exec_plans/completed/`, sets phase 14 `completed`, resets
+`CURRENT_TASK.yml` to idle and tags the gate commit `phase-14-complete`. Every stage that produced a
+diff owes and has an independent read-only review note under
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/`, and no blocker is left open in any of them;
+the 18 items the pause board still shows are evidence bullets inside earlier notes' blocker
+sections, filed as `AN-EVIDENCE-BULLET-INSIDE-A-BLOCKER-SECTION-COUNTS-AS-A-BLOCKER` rather than
+marked resolved on lines that were never findings.
+
+What it bought, stated as the packet states it. The bot answers **98.5949 percent** of the preflop
+decisions it ever faces from **249** spots derived from a rake-free solve of its own game, where it
+answered 86 spots taken from a superseded reading of a raked one. The conversion is exact at all
+18,431 cells with 0 mismatches and the merge is exact at all 165 it moved. It refuses everything
+from the four-bet on, every pot multiway more than one time in ten, and the big blind's squeeze
+spots, and it never cold-calls outside the big blind.
+
+What it did not buy, which is the finding a later phase starts from. **The ranges are not uniformly
+sound and this phase knows where.** At the ten merged three-bet spots the outside reference reaches,
+62 spot-and-class cases are folded here and played there and every one holds an ace or a king, while
+63 are played here and folded there and not one holds either - unanimous per spot and at every
+threshold from 50 to 99. At the 15 four-bet spots the reference reaches, the reference's own bluff
+four-bets above half at 0 of 15 here against 10 of 15 there. The same signature is at the big
+blind's own three-bet ranges, which stage 8 had used as the control showing it was local. Taylor
+ruled on 2026-09-05 to publish and ship rather than re-solve or soften, and the packet carries it
+first rather than last. Four defects ship accepted with published costs, and the list of four is
+known to be incomplete: the same over-folding is measured at 9 of the 10 merged spots.
 
 ## Next Agent Bootstrap
 

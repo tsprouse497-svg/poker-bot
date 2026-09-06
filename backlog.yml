@@ -2754,6 +2754,31 @@ items:
       unpaired-only weighted by combinations times arriving reach - the note's tables are unpaired
       even where its summary line is not, which is the note's own internal inconsistency and is the
       thing worth carrying forward rather than a failure to reproduce.
+  - id: AN-EVIDENCE-BULLET-INSIDE-A-BLOCKER-SECTION-COUNTS-AS-A-BLOCKER
+    status: deferred
+    phase: contract-update
+    title: The pause board counts every bullet under a Blocker heading, so a reviewer who lists evidence files phantom asks
+    reason: >-
+      Found at phase 14 stage 10, when `scripts/review_queue.py` showed 28 open human asks
+      against a phase about to be declared complete. Five were real and are now marked resolved;
+      the other 23 are not asks at all. `unresolved_blockers` in `scripts/loop_stage.py` walks
+      the `## Blocker` section and treats every line that strips to a leading dash as a blocker,
+      so a reviewer who writes a finding as a bold heading and then lists its evidence as bullets
+      files one phantom ask per bullet. Measured over this phase's notes: stage-04-confirmation
+      3, stage-04-recut-mechanical 6, stage-04-recut-poker 4, stage-06-build-poker 2 and
+      stage-08-poker 3, and every one of the 18 is an evidence line - "Not the merge.", "Not the
+      rake.", "69 of the 87 exempted cases have a gap of 50 points or wider." - inside a finding
+      whose own heading is not a bullet at all. Phases 11 to 13 closed this directory at zero
+      because their reviewers happened to write prose rather than bullets under those headings,
+      not because they resolved more. NOT FIXED HERE, and the reason matters: the only way to
+      clear the 18 without changing the parser is to write the resolved marker onto lines that
+      were never findings, in five committed review notes belonging to earlier stages. A review
+      note is a snapshot of what a stage believed, and editing one to satisfy a counter is how a
+      board comes to read clean while meaning nothing. WHAT WOULD FIX IT: count a blocker as the
+      first bullet at the section's own indentation, or require a finding to be a bullet and read
+      only top-level ones, and say which in `AGENTS.md` so a reviewer knows how to write one.
+      Related: `RESOLVED-MARKER-MATCHES-INSIDE-A-BLOCKER-S-OWN-PROSE` is the same parser reading
+      shape rather than content, from the other direction.
   - id: A-CANARY-READS-A-CRASH-AS-A-KILL
     status: deferred
     phase: charts

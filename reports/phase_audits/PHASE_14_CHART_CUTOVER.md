@@ -2,7 +2,7 @@
 
 Contract `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` · Decisions
 `reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md` (55 items) · Reviews
-`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/` (stages 1, 2, 3, 4, 6, 7, 8, 9) · Report
+`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/` (stages 1, 2, 3, 4, 6, 7, 8, 9, 10) · Report
 `reports/active/latest_derived_chart_report.txt`, rewritten by the gate on every run · Lane: worktree
 `~/projects/poker-bot-worktrees/phase-14`, branch `phase/14-chart-cutover`, opened from `main` at `ada5205`
 
