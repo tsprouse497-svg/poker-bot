@@ -51,19 +51,20 @@ All figures below are recomputed from `data/artifacts/preflop/six_max_100bb_rake
   below 0.999 1,820 (9.87), below 0.9999 2,431 (13.19). The committed derived-chart report publishes
   93.48 pure and 3.66 mixed off `PURE_PCT = 99.0` and `MIXED_PCT = 90.0`, leaving 527 cells in a band
   it does not name. This phase pins **one** threshold before it measures anything and uses the repo's
-  99, so two committed documents do not state different mixing figures for one artifact. Mixing
-  concentrates in the three-bet family: 12.33 percent against 4.02 first-in and 3.27 facing an open.
+  99, and every figure it quotes is read at that threshold - the mistake this criterion exists to stop
+  is pinning 0.99 and then quoting a 0.999 number in the next sentence. At 0.99 mixing concentrates in
+  the three-bet family: **8.11 percent against 2.60 first-in and 2.30 facing an open**. Eight cells in
+  the whole chart have a top weight below 0.50.
 - **106 of the 249 spots are continuations of a call the bot never makes**
   (`COMMITTED-SPOTS-THE-BOT-CANNOT-REACH-BY-ITS-OWN-PLAY`), carrying 0.0164 percent of arrival. Phase
   14 left the ruling on whether the drill deals them to this phase, and this contract makes it.
 
 **The bounded personal-history ingestion lift is out of scope and this is a ruling, not an
-omission.** `docs/V2_ROADMAP.md` puts it here; `AGENTS.md`'s V1 Boundaries still read "No large
-hand-history ingestion", the roadmap itself says the file wins until a `contract-update` changes the
-wording, and the bound is a number nobody has chosen in three weeks of it being owed. Five further
-stops sit under the boundary: the corpus reader is PHH-only, requires `finishing_stacks`, requires
-every seat's hole cards - a personal export shows only your own - requires whole chips, and refuses
-a straddle. The drill produces its own sessions, so the leak report has real input without the lift.
+omission.** `AGENTS.md`'s V1 Boundaries still read "No large hand-history ingestion" and the roadmap
+that lifts it says the file wins until a `contract-update` changes the wording. Five further stops sit
+underneath: the corpus reader is PHH-only, needs `finishing_stacks`, needs **every** seat's hole cards
+where a personal export shows only your own, needs whole chips, and refuses a straddle. The drill
+deals its own sessions, so the leak report has real input without the lift.
 
 `verification/loop_policy.yml` gives this phase `auto_advance: false`: it commits session records and
 it is the first surface a human uses directly.
@@ -72,10 +73,9 @@ it is the first surface a human uses directly.
 - The standing V1 boundaries: no PokerNow automation, browser or platform observation, runtime solver
   calls, LLM-backed poker decisions, or training UI surfaces. A terminal program is not a UI package;
   `docs/V2_ROADMAP.md` defers that and says to revisit once the drill exists.
-- **No personal hand-history ingestion**, per the scope statement above. Do not read, parse, or
-  commit any hand history the drill did not itself deal, and do not widen the corpus reader.
-- **No postflop.** The drill deals preflop decisions, because that is what the chart answers, and
-  every postflop street still checks through.
+- **No personal hand-history ingestion**, per the scope statement above, and no widening of the
+  corpus reader. **No postflop**: the drill deals preflop decisions because that is what the chart
+  answers, and every postflop street still checks through.
 - Do not re-solve, re-derive, or hand-edit the committed artifact, its sizing table, or the
   expectations file. Do not change the spot key grammar or the chart's selection rule.
 - Do not add a confidence interval to any rate. `docs/CORPUS_COMPARISON_LIMITS.md` explains why one
@@ -167,6 +167,15 @@ it is the first surface a human uses directly.
 - **The session record is a new type, and the reason is worth stating.** `DecisionAuditRecord` holds
   one outcome and re-validates it against the query's legal actions, so it cannot hold a student's
   mistake beside the chart's answer. Do not loosen that validation to make it fit.
+- **The record holds enough to re-score the session without re-collecting it**, and this is a criterion
+  rather than an implementation note because three decisions are classed `runtime-reversible` on the
+  strength of it. Per decision it stores the spot key, hero's hand class, the chart's full weight
+  vector, the arriving reach of the cell, and the student's action - **for every decision, including
+  the ungraded ones and including hands that end preflop**. The Phase 02 schema records hole cards only
+  at showdown, so a hand where hero folds preflop has nowhere to put them
+  (`HAND-HISTORY-HAS-NO-PLACE-FOR-A-FOLDED-HERO-S-CARDS`); the record carries the hand class itself
+  rather than stuffing folded cards into `showdown`, which would corrupt that field for the replayer
+  and the corpus reader. Moving the purity threshold or the reach floor afterwards is then a re-render.
 - **Writing a hand history is new work.** The repo reads `NormalizedHandHistory` and has never
   written one. The writer must round-trip `parse_hand_history`'s exact-key check, including the
   shapes the JSON has and the dataclass does not: a nested `table` object and `result.payouts` as a
@@ -184,9 +193,12 @@ it is the first surface a human uses directly.
   stack depth, so it is a hand the committed chart actually answers rather than one it refuses
   (`SAMPLE-HAND-THE-CHARTS-COVER`). Committing it is a `frozen-into-data` decision and is answered in
   the decision list before stage 4 freezes anything.
-- **The decision audit is written out, not only held in memory.** A committed JSONL of every decision
-  the session scored, on the `latest_postflop_decision_audit.jsonl` precedent, so a reviewer can read
-  one decision without running a generator (`SIMULATOR-DECISION-AUDIT-NOT-COMMITTED`).
+- **The decision audit is written out, not only held in memory.** A committed JSONL of **every**
+  decision the session presented, each marked graded or not and, if not, why, on the
+  `latest_postflop_decision_audit.jsonl` precedent, so a reviewer can read one decision without
+  running a generator (`SIMULATOR-DECISION-AUDIT-NOT-COMMITTED`). An audit of only the scored
+  decisions could not be re-scored at a lower threshold, because the decisions the lower threshold
+  admits are the ones it never wrote down.
 
 ### The leak report
 - **It never leads with a single agreement rate.** Phase 08 paid for this finding: 72 percent of
@@ -202,11 +214,13 @@ it is the first surface a human uses directly.
 
 ### Evidence, reports, and gate
 - **Every figure this contract names as an obligation is printed by the report and re-derived by the
-  generator, which exits non-zero when one does not hold**: the family counts and arrival shares, the
-  zero-arrival count, the mixed-cell share overall and per family, the three sampling policies over
-  one budget, the unreachable-spot count under both readings, the refusal split by reason, the
-  captured-against-available weight, and every leak-report breakout with its denominator. No count is
-  hand-typed (`HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES`). One number is recomputable by
+  generator, which exits non-zero when one does not hold**: family counts and arrival shares, the
+  zero-arrival count, the mixing ladder at every threshold it quotes, the three sampling policies over
+  one budget, the unreachable spots under both splits, the refusal breakdown by reason, the session
+  score with its graded and ungraded counts, the committed session's bytes against the cap, and every
+  leak-report breakout with its denominator. No count is hand-typed
+  (`HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES`), which this contract has already broken once
+  by quoting a per-family figure at a threshold it had just replaced. One number is recomputable by
   hand and the packet says which and how.
 - **The report regenerates byte for byte** and carries a `--check` mode that writes nothing and fails
   the gate when it would have changed anything. `render_*` stays a pure function returning a string,
@@ -247,26 +261,22 @@ literal search for the double-quoted form misses the entry carrying this phase's
 ## Human vetting packet requirements
 - Plain-language summary of what changed, a pass/fail checklist for a non-coding reviewer, a command
   summary linking the committed reports, and known limitations.
-- **What the drill teaches, stated first and in poker terms**: which decisions it will deal and how
-  often, which it will never deal and why, that about one cell in ten is mixed so two different
-  answers can both be right, and that the score is agreement with a solved strategy rather than a
-  price on a mistake.
-- **The sampling policy in one paragraph a player can argue with**, beside the numbers for what
-  uniform and arrival-weighted would have dealt instead.
+- **What the drill teaches, stated first and in poker terms**: which decisions it deals and how
+  often, which it never deals and why, that a mixed cell has no wrong answer among the actions it
+  prices, that on four deals in five the chart cannot grade a call at all, and that the score is
+  agreement with a solved strategy rather than a price on a mistake. The sampling policy goes here in
+  one paragraph a player can argue with, beside what uniform and arrival-weighted would have dealt.
 - A source-code-free spot-check path: a seed, the hand it deals, the cell it lands in, and the
   published mixture, so Taylor can check one decision against the artifact by hand.
 
 ## Forbidden shortcuts
 - Do not replace deterministic checks with mocked success, infer missing strategy or chart behavior,
   or change this contract during implementation mode.
-- **Do not invent an EV, an equity proxy, or any chip-denominated cost for a preflop mistake**, and
-  do not present a strategy weight as though it were one.
-- **Do not score a refusal**, do not substitute a neighbouring cell, and do not soften a refusal into
-  a default action so that a session has an answer for every hand.
-- Do not choose the sampling policy to make an agreement rate look better, and do not exclude a spot
-  family from the deal because the student scores badly on it.
-- Do not lead the leak report with a pooled rate, and do not pool the two populations inside a
-  breakout.
+- **Do not invent an EV, an equity proxy, or any chip-denominated cost for a preflop mistake**, do not
+  present a strategy weight as one, and do not score a refusal, a merged flat, or a cell below the
+  reach floor by substituting a neighbouring cell or a default action.
+- Do not choose the sampling policy, or drop a family from the deal, to move an agreement rate. Do not
+  lead the leak report with a pooled rate or pool the two populations inside a breakout.
 - Do not read or commit a hand history the drill did not deal.
 - Do not run a gate command in a worktree another lane is using. `check_gate_bite` edits `src/**` in
   place, and two runs in one tree corrupted the primary checkout on 2026-09-06.
@@ -274,10 +284,9 @@ literal search for the double-quoted form misses the entry carrying this phase's
 ## Regression expectations
 - Previously completed phase gates remain verifiable, generated human docs remain current, and
   file-size and scope checks continue to pass.
-- **Hand ids change shape, and that is the point.** The collision is real - `hand_seed = seed + index`
-  puts a hand called `sim-101` in both a run seeded 100 and a run seeded 101 - but **no committed test,
-  report or fixture asserts a `sim-` id today**, so the migration set is empty and the phase says so
-  rather than claiming a migration it did not perform. If the set stops being empty before stage 5,
-  the migration happens at stage 4 and before the freeze, as phases 11 and 12 each learned.
+- **Hand ids change shape.** The collision is real - `hand_seed = seed + index` puts `sim-101` in both
+  a run seeded 100 and one seeded 101 - but **no committed test, report or fixture asserts a `sim-` id
+  today**, so the migration set is empty and the phase says so rather than claiming a migration it did
+  not perform. If that stops being true before stage 5, the migration lands at stage 4.
 - The simulator report gains a bb/100 figure beside its chips-per-hand figure. The existing figure
   stays, so nothing that reads it breaks.

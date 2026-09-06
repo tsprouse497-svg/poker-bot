@@ -6399,6 +6399,11 @@ items:
       DOMINANCE-RELATION-IS-PROSE-AND-HAS-PRODUCED-SEVEN-COUNTS: a definition carried in prose and in one
       generator rather than pinned as data. What would close it: one owned constant, named where the
       chart is defined rather than where a report is rendered, with the band it leaves stated.
+      EXTENDED by phase 15's stage-2 review, 2026-09-06: the phase 15 contract and its decision list
+      both pinned 0.99 and both then quoted a per-family figure read at 0.999 in the next breath, which
+      is the defect arriving again inside the documents written to condemn it. So the repair is not only
+      one owned constant but that every document render the figure from it rather than repeat it by
+      hand.
 
   - id: A-MERGED-FLAT-TEACHES-A-FALSE-RULE-TO-A-HUMAN
     status: deferred
@@ -6454,3 +6459,82 @@ items:
       over 52 decision points - and it is structurally unanswerable, since `_validate_no_limp` makes it a
       schema violation for any artifact to price it. Phase 15 inherits it as a refusal the drill must
       explain and cannot fix. What would close it: decide which ruling stands, and amend the loser.
+
+  - id: HAND-HISTORY-HAS-NO-PLACE-FOR-A-FOLDED-HERO-S-CARDS
+    status: deferred
+    phase: engine
+    title: The Phase 02 schema records hole cards only at showdown, so a hand that ends preflop cannot say what hero held
+    reason: >-
+      Filed by phase 15's stage-2 review, 2026-09-06. `NormalizedHandHistory` carries hole cards in
+      `ShowdownEntry` and nowhere else; `HistoryPlayer` has seat, player_id and starting_stack. So a hand
+      that ends when hero folds preflop - the commonest hand in the game and the one a preflop trainer
+      most wants to record - has no field for the two cards the decision was made on. This is not the
+      drill's problem alone: every preflop training or analysis surface built on the Phase 02 schema
+      meets it. The tempting workaround is to write folded cards into `showdown`, and that corrupts what
+      the field means for the replayer, for `settle_showdown`, and for the corpus reader, all of which
+      read it as "these hands were shown". Phase 15 works around it by having the drill's own session
+      record carry hero's hand class per decision rather than by touching the schema, which is enough
+      for the drill and does nothing for anything else. What would close it: a place in the schema for a
+      seat's known cards that is not a claim they were shown.
+
+  - id: DECISION-LIST-OPTIONS-CAN-CONTRADICT-THE-CONTRACT
+    status: deferred
+    phase: contract-update
+    title: Nothing checks a decision list's options against the criteria of the contract it serves
+    reason: >-
+      Filed by phase 15's stage-2 review, 2026-09-06. `check_decisions` in `scripts/loop_stage.py`
+      validates that each numbered item carries a reversibility class and nothing else. It does not read
+      the contract. So a `frozen-into-data` ballot can offer a human an answer the phase is contractually
+      forbidden to build, `check_human_gate` will accept that answer as soon as it is non-empty, and
+      stage 4 starts authoring tests against a contract that forbids the thing just chosen. Three of
+      phase 15's ten items had this shape: decision 1 offered two EV options against a contract that
+      bans EV as a criterion, decision 8 offered reopening a completed phase, decision 10 offered two
+      scorings the contract forbids. Phase 15 patched it in prose by naming the conflict under each
+      item, which relies on an author noticing. What would close it: either a check that an Options
+      token has no contract criterion contradicting it, or a convention that a ballot lists only
+      buildable options and records the rejected ones as prose.
+
+  - id: DEFERRAL-HAS-NO-REVERSIBILITY-CLASS
+    status: deferred
+    phase: contract-update
+    title: A scope cut writes nothing, so neither reversibility class describes it
+    reason: >-
+      Filed by phase 15's stage-2 review, 2026-09-06. `docs/LOOP.md` offers two classes:
+      `runtime-reversible`, a choice that only changes behaviour at run time, and `frozen-into-data`, a
+      choice written into a committed artifact or fixture. A decision to cut something from a phase
+      writes nothing at all, so an author must either over-classify it as frozen - which stops a human
+      for a question the rules may already have settled, as phase 15's decision 9 did, since `AGENTS.md`
+      forbade the ingestion lift whatever anyone answered - or classify it reversible and let a scope cut
+      pass as a runtime detail. Phase 15 took the second and raised the real ask through the
+      `- Paused:` line in its ExecPlan, which `scripts/review_queue.py` already reads. What would close
+      it: a third disposition, or a convention that scope cuts live in the ExecPlan pause rather than in
+      a decision list.
+
+  - id: SPOT-RARITY-QUOTED-AS-A-MEAN
+    status: deferred
+    phase: charts
+    title: Arrival over the three-bet spots is skewed 340x between mean and median and prose has quoted the mean
+    reason: >-
+      Filed by phase 15's stage-2 review, 2026-09-06. Over the 219 committed spots facing a three-bet,
+      the mean arrival is one deal in 2,656 and the median is one deal in 899,346. A sentence saying
+      "any one three-bet spot comes up about once in 2,600 hands" is arithmetically defensible and
+      describes almost none of them, and the first draft of phase 15's decision list used it in the
+      direction that flattered the option the default rejects. The same skew will bite any report
+      printing a per-spot rarity. What would close it: wherever a per-spot rarity is published, print
+      the median and the spread beside the mean, the way the arrival-grain block already prints both
+      readings of the 106 unreachable spots.
+
+  - id: PHASE-15-CONTRACT-IS-NEAR-ITS-LINE-CAP
+    status: deferred
+    phase: "15"
+    title: The drill contract is 292 lines against a 300-line cap with nine stages left to amend it
+    reason: >-
+      Filed 2026-09-06 at phase 15's stage 2, by the coordinator rather than by a reviewer. Stage 1
+      wrote 283 lines and the stage-2 review's fixes took it to 297, and a compression pass brought it
+      back to 292. `check_file_sizes` caps a contract at 300 and `AGENTS.md` says amendments only ever
+      add lines, so the contracts that have been corrected most are the first that cannot be corrected
+      at all. Nine stages remain and each may amend. This is the same shape as
+      PHASE-14-CONTRACT-DOES-NOT-FIT-ITS-OWN-CAP, which was closed by a rewrite rather than by a cap
+      raise, and the rule is explicit that the cap is never raised to fit an amendment. What would close
+      it: if an amendment does not fit, a `contract-update` task that folds the existing amendments into
+      the criteria they amend, done as its own task and not mid-amendment.

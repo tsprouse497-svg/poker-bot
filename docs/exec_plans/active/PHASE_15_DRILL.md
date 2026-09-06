@@ -95,6 +95,17 @@ mutations in the shared tree.
   owes its own read-only note under `reports/phase_audits/reviews/PHASE_15_DRILL/` before `--advance`
   will move.
 
+## Pauses
+
+- Paused: a size bound for a personal hand-history import, stated as a number, which only Taylor can
+  give. It is not this phase's to answer and does not block it - decision 9 cuts the ingestion lift
+  out of phase 15 - but it is the input the lift has been owed since 2026-08-15, five maintenance
+  tasks have recorded it as owed, and nobody has ever proposed a figure. It is raised here rather than
+  as a decision because deferring writes nothing and neither reversibility class describes a scope cut
+  (`DEFERRAL-HAS-NO-REVERSIBILITY-CLASS`). The bound needs to say whether it governs hands ingested,
+  bytes committed, or both; the only anchor in the repo is the committed corpus at 499 hands and about
+  1.1 KB of committed text per hand.
+
 ## Slices
 
 - [x] Stage 0 - lane opened, worktree claimed, clean tree, `phase/15-the-drill` cut from `9bbdcf4`.

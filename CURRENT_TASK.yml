@@ -5,6 +5,7 @@ base_commit: 9bbdcf44ce5508d19d672812fbc1b3484c32c790
 approved_scope:
   - docs/phase_contracts/PHASE_15_DRILL.md
   - reports/phase_audits/reviews/PHASE_15_DRILL/**
+  - reports/phase_audits/decisions/PHASE_15_DRILL_DECISIONS.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -20,6 +21,14 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-06
+    reason: >-
+      Stage 2 is the decision list and it has nowhere to be written. `loop_stage.py` derives the path
+      from the contract stem, so it is
+      `reports/phase_audits/decisions/PHASE_15_DRILL_DECISIONS.md` and nothing else, and stage 3 reads
+      that same file to decide whether the loop must stop for a human. Adding it is the whole widening;
+      no code, test or artifact path is approved by it. Ten items, five of them left with an empty
+      `Answer:` on purpose so the human gate fires rather than proceeding on a default I wrote myself.
   - date: 2026-09-06
     reason: >-
       Phase 15 opens its lane, and `approved_scope` was empty at `base_commit` because the phase 14
