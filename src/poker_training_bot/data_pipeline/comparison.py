@@ -310,9 +310,16 @@ class ComparisonResult:
         prefers the strict definition should not have to regenerate anything to get it.
 
         The denominator is the decisions where the strategy actually returned an
-        action. A spot whose weights are readable but whose raise size is not committed
-        gives no draw, and counting those as misses would blame the collapse for a
-        missing sizing.
+        action, and it is a subset of the agreement rate's, so the two denominators are
+        not the same number and are not meant to be. A spot whose weights are readable
+        but whose raise the strategy will not render gives no draw, and counting those
+        as misses would blame the collapse for a sizing problem. Corrected 2026-09-05:
+        this docstring used to give "the raise size is not committed" as the case, and
+        over the committed chart that is not what happens. Both instances in the sample
+        have a committed size - the ruled four-bet at 22.5 big blinds - which sits below
+        the table's own minimum raise at the price the hand was really played, so the
+        strategy refuses with `committed-size-below-minimum-raise`. That is a chart
+        fidelity finding rather than a missing entry.
         """
         drawn = [
             row

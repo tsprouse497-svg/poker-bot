@@ -253,6 +253,44 @@ stage 5 onwards. The corpus is evidence and this phase does not get to edit it.
 
 ## Delegation Plan
 
+### Stage 9, the audit packet, 2026-09-05 - ACTIVE
+
+The packet is `reports/phase_audits/PHASE_14_CHART_CUTOVER.md`, capped at 500 lines by
+`check_file_sizes`. It points at the review notes and the report rather than restating them, because
+this phase has more findings than the cap has lines.
+
+| lane | owner | output | status |
+|---|---|---|---|
+| E1 poker figures | worker | fact sheet: coverage, exclusions, AA's jam, the four accepted defects, bands, menus, orderings, ledger, the three vacuous criteria | landed |
+| E2 gate figures | worker | fact sheet: relations, ladders, both arms per partition, equity relation, refusals, limped count, corpus block, disagreement rows, the recompute number, the gate tally | landed |
+| E3 the nine claims | worker | independent confirm-or-refute of the nine findings the packet must not bury, each re-measured from the artifact rather than read off a document | landed |
+| E4 report contradictions | worker | five places the report contradicts its own numbers, each re-measured, each with whether a frozen test pins it | landed |
+| E5 multiway evidence | worker | the four checkable quantities the contract owes for the multiway refusal, re-derived against the export the repo holds now | landed |
+| W1 the packet, and four report corrections | coordinator | the packet, plus the generator edits E4 found safe and two new `backlog.yml` entries | landed |
+| R1 mechanical review | independent read-only reviewer, no lane above | every figure re-checked against the field it cites, contract compliance, the four prohibitions | landed |
+| R2 poker review | independent read-only reviewer, no lane above | whether the packet tells the truth about the poker and buries nothing | landed |
+
+**No figure in the packet is hand-typed.** Every one cites the report field, the ruled-numbers list
+above, or the `backlog.yml` entry that carries its re-derivation, and the packet says which. Where a
+figure is owed by a backlog entry and is not in any gate-regenerated report - the six premium-fold
+cells, the gate-bite coverage - the packet cites the entry and says the report does not print it.
+
+**E4 turned this stage into a small build.** Four sentences in the report were false against the
+report's own numbers, and since `generate_derived_chart_report.py` is in `approved_scope` and the gate
+is re-run at stage 10 anyway, they are corrected here rather than filed: the exposure rows do not close
+on a hundred at 13 of 249, the merge did not turn 165 mixed cells pure, one sentence said 87 where its
+own section says 85, and king-queen offsuit was folded at ten spots rather than ten seats. E4 checked
+each against the frozen tests first; none of the four was pinned by an assertion. The one that could
+not be fixed - a frozen test whose docstring asserts the closure and whose tolerance admits the leak -
+and the walk defect underneath it are filed instead. `pytest_derived_chart` reads 111 passed and 4
+skipped after the change, unchanged from before it.
+
+**The coordinator wrote the packet rather than delegating it** because it is one document whose job is
+to hold nine findings against each other under a 500-line cap, and a lane that owns one finding cannot
+weigh it against the eight it cannot see. The three extraction lanes and the independent review lane
+are where the delegation sits, and R1 is the check that this exception did not buy a self-certified
+document: the reviewer wrote none of the packet and re-derives what it cites.
+
 ### Stage 4 re-cut against the 249, 2026-09-02 - folded away 2026-09-04
 
 Six worker lanes L1 to L6 with a file each, four repair lanes L4b/L5b/L5c/L6b, and two migration lanes
@@ -609,9 +647,11 @@ survived, so it is in git history at 62f1375 and earlier rather than here.
 
 ## Next Agent Bootstrap
 
-**This section is the single source for what is true now.** The decision record is 47 items with 64
-supersession notices and four restarts have begun with someone reconstructing the rules from it. Read
-this, then the contract, then only the decision items named below.
+**This section is the single source for what is true now.** The decision record is 55 items with 38
+dated correction notices, counted by the rule its own header states; the "47 items with 64" this line
+carried until 2026-09-05 was withdrawn there on 2026-09-03 and is corrected here. Four restarts have
+begun with someone reconstructing the rules from that record. Read this, then the contract, then only
+the decision items named below.
 
 Work only in `~/projects/poker-bot-worktrees/phase-14` on `phase/14-chart-cutover`. Never in
 `~/projects/poker-bot`. Ask the driver and do only what it names, then `--advance`:

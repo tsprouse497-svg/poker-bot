@@ -1552,6 +1552,13 @@ def exposure_section(measured: Measured) -> list[str]:
     splits = measured.walk.splits
     squeezed = measured.walk.census.excluded.get(lookup.DERIVATION_BIG_BLIND_SQUEEZE_SPOT, 0)
     folds = measured.walk.squeeze_folds
+    # Measured off the printed figures, so the count is the one a reader gets by adding the
+    # two columns rather than one taken at a precision the report does not publish.
+    short_rows = {
+        key: 100.0 - (round(multiway, 4) + round(folded + heads_up, 4))
+        for key, (folded, heads_up, multiway) in splits.items()
+        if round(multiway, 4) + round(folded + heads_up, 4) != 100.0
+    }
     lines = [
         "A node ships only where under a tenth of its decision mass reaches a flop with three or",
         "more players in it, measured by walking to the leaves rather than by counting who is",
@@ -1568,15 +1575,24 @@ def exposure_section(measured: Measured) -> list[str]:
         "figure is printed rather than summarised. The split is what makes a row readable:",
         "exposure is the share of a spot's decision mass reaching a multiway flop terminal, and",
         "`heads-up` is all the rest - the pot folded out before a flop, or a flop with two players",
-        "in it. The two are the halves of one mass and add to a hundred, so a row publishing",
-        "exposure alone could be over any denominator at all.",
+        "in it. The two are the halves of one mass and a row publishing exposure alone could be",
+        "over any denominator at all.",
+        "",
+        "They do not always close on a hundred, and the shortfall is published rather than",
+        "rounded past. Mass that reaches a node no hand class arrives at is dropped rather than",
+        "redistributed, so it never reaches a terminal and never lands in either column:",
+        "",
+        f"  rows adding to a hundred  {len(splits) - len(short_rows)} of {len(splits)}",
+        f"  rows falling short  {len(short_rows)}"
+        f"  widest shortfall  {max(short_rows.values(), default=0.0):.4f} points",
         "",
         "A row has three columns and only two quantities, and that is said here rather than left",
         "for a reader to notice by adding them up. `exposure` and `multiway` are the SAME number",
         "printed twice - `terminal_split_pct` returns folded, heads-up and multiway, and both",
         "columns read its multiway leg, so they are one quantity by definition rather than two",
         "that happen to agree. The pair a reader should add is `multiway` and `heads-up`, which",
-        "make a hundred; adding all three columns gives a hundred plus the multiway figure again.",
+        "make a hundred wherever the walk loses nothing; adding all three columns gives that plus",
+        "the multiway figure again.",
         "A frozen test requires the first two columns to be equal, so this stage cannot collapse",
         "them, and a later phase that gives the second column a measurement of its own - the",
         "un-renormalised exposure with hero's cold call left in would be the informative one -",
@@ -1915,7 +1931,9 @@ def defects_section(measured: Measured) -> list[str]:
         "The wheel-ace cases are separated out because at almost all of them they are correct",
         "poker, and lumping them in overstates what is wrong with the chart by about half: a",
         "suited wheel ace makes the nut straight and is less dominated than a middling suited ace,",
-        f"so {wheel} of the {kicker} are the premium GTOpen's own fit measures and not a defect.",
+        f"so {wheel - len(first_in)} of the {kicker} are the premium GTOpen's own fit measures",
+        f"and not a defect. The other {len(first_in)} the exemption catches are caught by name",
+        "alone and the section below says why the argument does not reach them.",
         "The three parts add back to the family, which is the check that the split has the right",
         "members rather than merely the right size.",
         "",
@@ -1977,9 +1995,14 @@ def defects_section(measured: Measured) -> list[str]:
         "",
         "Read the first pair as the argument: the solve barely mixes, so the hole the merge had to",
         "fill was large rather than marginal - `the solver was near-indifferent, take the other",
-        "action` was never available to it. The second pair is the chart this phase writes, where",
-        f"the merge itself has turned {moved} mixed cells pure, and a generator computing purity",
-        "off the file it just wrote would read only that one. Both are printed and each is",
+        "action` was never available to it. The second pair is the chart this phase writes. The",
+        f"merge moved {moved} cells and the pure share moved by"
+        f" {published_pure - solve_pure:.2f} points over",
+        f"the same {solve_cells}, which is about"
+        f" {round((published_pure - solve_pure) * solve_cells / 100)} cells - so most of what the",
+        "merge moved was already pure before it, and a sentence saying the merge turned",
+        "every moved cell pure would be wrong twice over. A generator computing purity off the",
+        "file it just wrote would read only the second pair. Both are printed and each is",
         "labelled, because this phase has already shipped one figure under two meanings.",
     ]
     return lines
@@ -2099,7 +2122,9 @@ def big_blind_section(measured: Measured) -> list[str]:
         "",
         "Read it as: at the low end of the realization range the equity folded away could not have",
         "been realized anyway and the mistake is nearly free; at the high end it could have been,",
-        "and the same fold costs about 125 times as much. The band cannot be narrowed without",
+        "and the same fold costs 12.5 to 130 times as much, depending on which end of each band",
+        "is read against which - the four pairings of the two rows above, none of which this phase",
+        "published as a single multiplier until now. The band cannot be narrowed without",
         "measuring realization in this game, which no work in this repo does. These two rows are",
         f"quoted from {DECISIONS_DOC}, item 34, which is where the cost was ruled; every other",
         "figure in this report is re-derived by the command that prints it.",
@@ -2473,7 +2498,10 @@ def expectations_section(measured: Measured) -> list[str]:
         f"reference plays hold an ace or a king, and {merged_played_blockers} of the"
         f" {merged_played} it plays where the",
         f"reference folds do. King-queen offsuit is folded pure at {king_queen_folded} of the"
-        f" {len(faced)} seats. At the cutoff",
+        f" {len(faced)} spots, and it",
+        "shows in nine of the per-spot lists above rather than ten because at the tenth the",
+        "reference plays it under this section's fifty-point bar, so the case does not qualify.",
+        "At the cutoff",
         f"facing a lojack open it three-bets {' and '.join(cutoff_bluffs)} pure while folding",
         f"{' and '.join(cutoff_folds)} pure, with"
         f" {', '.join(f'{SPELLED[n]} at {v:.3f} percent' for n, v in cutoff_marginals)}.",
@@ -2540,7 +2568,14 @@ def expectations_section(measured: Measured) -> list[str]:
         )
     weighted_total = weighted_bluffs = 0.0
     carrying = 0
-    heaviest = max(three_bet_family, key=lambda key: measured.walk.arrivals[key])
+    # Arrival is a property of the walk, so the heaviest spot is picked over what the walk
+    # carries rather than by indexing it with a chart key. On a committed artifact the two key
+    # sets are identical and this reads the same; on an artifact that disagrees with the walk,
+    # `main` has already refused it before this renders, and indexing the walk here turned that
+    # refusal into a `KeyError` instead - which is how the canary that proves the refusal matters
+    # came to read a crash as a kill. Regression introduced 2026-09-05 at 25f0d76 and caught by
+    # `check_gate_bite` at the closeout, three commits later.
+    heaviest = max(three_bet_family, key=lambda key: measured.walk.arrivals.get(key, 0.0))
     for key in three_bet_family:
         total, bluffs = four_bet_no_blocker_mass(measured.raise_weight[key], measured.weights[key])
         weighted_total += total
@@ -2801,6 +2836,15 @@ def corpus_section(measured: Measured) -> list[str]:
         "not an oracle - agreeing with them is not the same as playing well, and Pluribus and the",
         "human professionals are different players, so nothing here is pooled.",
         "",
+        "The denominators of the two are not the same number and are not meant to be, which is",
+        "said here because two figures a couple of decisions apart printed four lines from each",
+        "other read as one of them being wrong. Every decision that yields a draw was scored, and",
+        "not every decision that was scored yields a draw: where the chart's committed four-bet",
+        "price sits below the table's own minimum raise at the price the hand was really played,",
+        "the strategy refuses to render it rather than inventing a size, so the decision is scored",
+        "for agreement and produces nothing to draw. Counting those as misses would blame the",
+        "seeded draw for a chart fidelity problem.",
+        "",
     ]
     for population in POPULATIONS:
         lines.append(f"  {population}")
@@ -2821,11 +2865,16 @@ def corpus_section(measured: Measured) -> list[str]:
         "what this report does is republish the measurement so a reader can see what moved. A",
         "rendered agreement rate with no label is read as a grade, so this one carries the label.",
         "",
-        "The refusal rate rises, on both populations, and that is the ruled cost rather than a",
-        "regression: the committed predicate refuses everything from the four-bet on, every pot",
-        "multiway more than one time in ten, and the big blind's squeeze spots. What is left after",
-        "the refusals is the harder subset, which is why an agreement rate over a smaller sample",
-        "is the shape to expect rather than evidence of a worse chart.",
+        "The refusal rate FALLS on both populations and the scored sample grows, which is the",
+        "cutover buying coverage: the retired chart answered 36 priced spots and this one answers",
+        "249. That is what the rows above read, and it is stated here rather than inferred from",
+        "the ruling. The committed predicate still refuses everything from the four-bet on, every",
+        "pot multiway more than one time in ten and the big blind's squeeze spots, and those",
+        "refusals are the ruled cost - they are simply a smaller cost than the coverage hole they",
+        "replaced. Corrected 2026-09-05: this passage read `the refusal rate rises ... an",
+        "agreement rate over a smaller sample is the shape to expect`, which was written when the",
+        "committed set was 36 spots and is false of the set this phase ships, on both counts and",
+        "on both populations.",
     ]
     return lines
 

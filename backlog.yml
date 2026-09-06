@@ -2738,12 +2738,116 @@ items:
       reach. The caveat is unchanged and is the whole caveat: the reference is a RAKED NL25 solve, none
       of this gates anything, and reading narrower than it is the one direction a rake-free solve is not
       supposed to go.
-      ONE FIGURE FROM THE REVIEW NOTE DID NOT REPRODUCE and the published one supersedes it. The note
-      states the arrival-weighted no-blocker share over all 219 spots as 30.39 percent with 138 spots
-      carrying four-bet mass. Measured here it is **19.78 percent and 134 spots** under the note's own
-      stated weighting, and 19.89 percent and 134 under combinations alone, so neither reading reaches
-      30.39. Every per-spot figure in the note's two tables reproduces to the digit; only the two summary
-      figures do not.
+      CORRECTED 2026-09-05 at stage 9. This entry previously said the review note's summary pair did
+      not reproduce and that the published pair superseded it. That was wrong, and it was wrong because
+      the check varied only the weighting. Both pairs reproduce exactly, under two rules that differ in
+      two ways rather than one. The report's **19.78 percent over 134 spots** excludes pocket pairs on
+      both sides - deliberately, because the pair ladder is already an accepted defect and counting
+      pairs would partly re-measure it - and pools all the four-bet mass in the family into one ratio.
+      The note's **30.39 percent over 138 spots** counts pairs in and takes each spot's own share,
+      averaged over spots weighted by arrival. Re-derived at stage 9: all classes, per-spot shares
+      averaged by arrival, gives 30.39 percent, 138 spots carrying mass and 52 spots above 25 percent -
+      all three of the note's figures at once. 134 is the right count of spots carrying UNPAIRED
+      four-bet mass; 138 is the right count of spots carrying ANY, which is what the note's sentence
+      says. Four spots four-bet only with pairs, and that is the whole of the gap between the two
+      counts. Every per-spot figure in the note's two tables does reproduce to the digit, under
+      unpaired-only weighted by combinations times arriving reach - the note's tables are unpaired
+      even where its summary line is not, which is the note's own internal inconsistency and is the
+      thing worth carrying forward rather than a failure to reproduce.
+  - id: A-CANARY-READS-A-CRASH-AS-A-KILL
+    status: deferred
+    phase: charts
+    title: The report canary passes on any non-zero exit, so a crash on the way to the bug hides the bug
+    reason: >-
+      Found by the phase 14 closeout gate on 2026-09-05, which came back 46 of 47 with
+      `check_gate_bite` reporting that
+      `the-derived-chart-report-renders-whatever-it-is-handed` survived `pytest_derived_chart`.
+      WHAT THE CANARY DOES. It replaces the one line in `main` that decides whether a refused
+      report is published anyway, and it is killed by
+      `test_a_wrong_artifact_fails_the_command_rather_than_being_rendered`, which feeds the
+      generator an artifact that loads cleanly and is wrong and asserts a non-zero exit with no
+      report on disk. WHAT WENT WRONG. With the gate disabled, execution reaches `render`, and a
+      section added at `25f0d76` picked the family's heaviest spot by indexing a walk-derived
+      dict with a chart key. On the corrupted artifact that key is absent, so the section raised
+      `KeyError`, the command exited non-zero anyway and wrote nothing, and both of the test's
+      assertions still held. A crash and a refusal are indistinguishable to the test, so the
+      canary read the crash as a kill. Fixed at stage 10 by choosing the heaviest spot over what
+      the walk carries; the committed report is byte-identical either way, and the canary bites
+      again. THE PART THAT IS NOT FIXED, and is why this entry exists. The test's contract is
+      `returncode != 0`, which any exception satisfies, so the same hole reopens the next time a
+      render section indexes a walk dict by a chart key - and that is an ordinary thing to write.
+      What is owed is an assertion on the refusal itself: a `refused:` line on stderr naming the
+      figure that failed, rather than merely a non-zero exit. That is a change to a frozen test
+      file and needs a dated `scope_change_log` entry and a ruling rather than an edit.
+      A SECOND THING THE RECORD GETS WRONG. The canary's own note in `verification/mutations.yml`
+      says "both of its parameters" kill it. Measured at `72efe9d`, the commit whose gate this
+      phase certified: only `commit-a-spot-above-the-exposure-threshold` killed it, and
+      `drop-a-spot` was already passing for the same incidental reason, a `KeyError` in
+      `orderings_section` on the dropped spot. So the canary was hanging by one thread at the
+      moment it was certified, and the note overstated it. `drop-a-spot` cannot be repaired the
+      same way: the missing figure is a defence frequency the artifact genuinely does not carry,
+      and substituting a zero would publish an invented number. It needs the refusal assertion
+      above, not a tolerant lookup.
+      WHAT ELSE THIS SAYS. `25f0d76` was a report-content commit that landed without re-running
+      the gate, and the regression sat undetected for three commits until the closeout run. The
+      loop already prescribes that run and it did its job; what is worth carrying forward is that
+      a report-prose commit is not a safe commit, because the report and the canaries that judge
+      it live in the same file.
+  - id: EXPOSURE-WALK-DROPS-MASS-AT-NODES-NO-HAND-REACHES
+    status: deferred
+    phase: charts
+    title: The exposure walk silently loses decision mass, so a spot's terminal split does not close on a hundred
+    reason: >-
+      Found and measured at phase 14 stage 9 by an independent read-only lane, after two
+      other lanes noticed the published rows do not add up. WHAT IT IS.
+      `action_frequency` in `solver_artifacts/gtopen_export.py` returns 0.0 for every action
+      at a node no hand class arrives at, because the normaliser's total is zero. `_build_walk`
+      in `chart_selection.py` then stores an outcome triple of zeros for that node instead of
+      one summing to 1, and a parent branching into it contributes its share times nothing, so
+      that share vanishes rather than being redistributed. It propagates upward. MEASURED:
+      8,660 of the 33,969 export nodes have every action frequency at zero, 15,536 nodes carry
+      an outcome that does not sum to 1. How many committed spots leak depends on where the
+      floor is put, so all three readings are given rather than one: 109 of the 249 carry any
+      positive leak, 76 leak above 1e-12 and 70 above 1e-9, that last being a float-noise
+      cutoff rather than a property of the tree. What a reader can see is narrower still: at 13
+      spots the two printed columns, each rounded to four decimal places, do not sum to 100.0.
+      CORRECTED 2026-09-05 by the stage-9 review, which caught this entry giving 70 with 13 and
+      57 beneath it - a decomposition that adds up only by taking each term from a different
+      rule. The widest leak is 0.0268 points, at
+      `t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@7.5,HJ:call`, traced
+      to a single `call` branch of share 0.000700 whose subtree returns 0.617728 instead of 1.
+      WHY IT MATTERS AND WHY IT IS SMALL. The exposure filter compares a spot's multiway share
+      against ten percent, and a leak understates that share, so it can only ever admit a spot
+      it should have refused and never the reverse. At 0.0268 points against a threshold whose
+      own margin is 0.1592 points - widest admitted 9.8642, narrowest refused 10.0234 - no
+      committed spot changes side today. That is a property of this solve rather than of the
+      code, and a denser tree would not have it. `terminal_split_pct`'s own docstring already
+      says the three legs do not close on a hundred; the report's prose contradicted the
+      function it was describing and is corrected at stage 9, and this entry is the defect the
+      wording was hiding. WHAT WOULD FIX IT: redistribute a zero-frequency node's share over
+      the branches that do carry mass, or refuse to walk into it and say so, rather than
+      multiplying by zero. Either changes published exposure figures, so it is a chart task
+      and not a wording one. Related: THE-EXPOSURE-ROW-PRINTS-ONE-FIGURE-UNDER-TWO-LABELS is
+      filed against the same printed row and says nothing about the leak.
+  - id: A-FROZEN-TEST-DOCSTRING-ASSERTS-WHAT-ITS-TOLERANCE-ADMITS
+    status: deferred
+    phase: charts
+    title: The exposure test's docstring states a closure the data breaks, and its tolerance is nearly twice the worst case it must not admit
+    reason: >-
+      Found at phase 14 stage 9 alongside EXPOSURE-WALK-DROPS-MASS-AT-NODES-NO-HAND-REACHES.
+      `tests/test_derived_chart_report.py::test_exposure_is_published_per_committed_spot_with_both_extremes`
+      carries in its docstring the claim that multiway and heads-up "have to add to a hundred",
+      and asserts it at `pytest.approx(100.0, abs=0.05)`. The data breaks the docstring at 13
+      of the 249 rows and the tolerance passes anyway, because 0.05 is nearly twice today's
+      widest shortfall of 0.0268 - so the test would keep passing while the leak roughly
+      doubled. The report's own prose has been corrected to publish the shortfall; the test is
+      the one document left asserting the closure. NOT FIXED HERE because `tests/**` is frozen
+      and outside `approved_scope` from stage 5, and editing it is a scope change with a
+      ruling rather than an implementer's call. WHAT IS OWED: the docstring restated to say the
+      pair closes wherever the walk loses nothing, and the assertion re-pinned against the
+      published shortfall rather than against a tolerance chosen before the leak was known.
+      Do it in the same task as the walk fix, since fixing the walk is what makes the strict
+      assertion possible.
   - id: TEST-FILES-PINNED-AT-THE-LINE-CAP
     status: deferred
     phase: v2

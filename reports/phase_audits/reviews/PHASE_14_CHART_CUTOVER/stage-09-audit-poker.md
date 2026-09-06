@@ -1,0 +1,56 @@
+# Stage 9 independent review: the audit packet, poker lens
+
+Read-only. Reviewer wrote none of the work under review. Question asked: does
+`reports/phase_audits/PHASE_14_CHART_CUTOVER.md` tell the truth about the poker, and would a
+strong player finish it with an accurate picture of what this chart does and does not do?
+
+Every figure below was re-measured from the committed artifact
+`data/artifacts/preflop/six_max_100bb_rakefree.json` and, where a reference is named, from
+`data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json`. Nothing is taken from the
+report or the packet. Scripts used are scratch and not committed.
+
+One figure in an earlier draft of this note was wrong and is corrected here rather than quietly
+restated: the ace-king offsuit count in the second blocker was first written as "folded at 100.00
+percent at 33 spots", which conflated two rules. 33 is the count at a fold weight above half; the
+count folded outright is 16. The coordinator caught it, the corrected figures are below, and every
+band is now printed so no single cutoff has to be taken on trust: at half reach or better, ace-king
+offsuit folds above 5 percent at 59 spots, above half at 33, at 0.99 or better at 21, and outright
+at 16.
+
+What reproduced exactly, and is not a finding: the 62-and-63 merged-family split with 17 and 16
+distinct classes, all 62 holding an ace or a king and none of the 63 holding either, unanimous at
+each of the ten spots and at every threshold from 50 to 99; king-queen offsuit folded pure at all
+ten; the four-bet family at 0 of 15 on king-ten or king-jack suited against 10 of 15 in the
+reference, and the no-blocker share higher here at 15 of 15; the six premium-folding cells and
+their exact percentages; the 106 cold-call-downstream spots, the 81 with no raise published, aces,
+kings, queens and ace-king suited absent by arrival at all 81, ace-king offsuit present at 47 with
+a maximum of 6,619 basis points at the named spot; the 87 wheel-ace exemptions splitting 2, 12 and
+73 by raises faced, and both named first-in cells; the top-eight average play list and the 48
+never-played classes with exactly three suited. The packet's largest finding is not buried: it is
+signposted in the summary, carried as rows 15 and 16 of the checklist, and given its own section
+under a heading that says so. It is softened only at the end, by the two claims in "What went
+right" that fail below.
+
+## Blocker
+
+- The packet certifies the big blind's three-bet ranges as "textbook" and "fit to be the reference" on one range read by eye, and the measurement it uses to condemn the four-bet family condemns the big blind family too. The share of unpaired raising mass holding neither an ace nor a king, chart against the raked reference at the five big-blind spots: vs LJ 35.16 against 13.85, vs HJ 33.55 against 22.44, vs CO 38.49 against 25.99, vs BTN 42.37 against 30.78, vs SB 48.11 against 29.91. Higher here at 5 of 5, the same verdict the packet prints for the four-bet family at 15 of 15. Against a small blind open the chart three-bets K8o, Q8o, T8o, 98o, 87o, J9o, K6o, K5o, A2o, A6o, T5s, 95s, 96s, 53s and 64s at 100.00 percent while flatting KQo, KJo, QJo, JTo and ATo at 100.00 and three-betting AJo at 26.2. Against a button open it three-bets JTo at 100.00 and KQo at 11.2, and three-bets 22 and 55 at 100.00 while flatting 33 and 44. The packet writes "Stage 6 signed the merged family off as shape-sound after reading three grids by eye, and this packet does not repeat that", and then repeats it on the one three-betting family it tells the reader is safe to drill. Either the big blind family is measured against the reference the way the merged family was, or the "textbook" and "fit to be the reference" sentences come out. The evidence offered, one range's member list at 6.07 percent, is real and reproduces, and it is a description of the lojack row only.
+
+- "No premium is mishandled anywhere in the 249 bar the six cells named above" is measured over aces, kings and ace-king suited only, and the artifact folds queens and ace-king offsuit far harder than that sentence permits. Ace-king offsuit is folded outright at 16 committed spots that arrive at half reach or better, folded more often than not at 33 and above 5 percent at 59; queens are folded above 5 percent at 10; and the worst is `t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5,CO:call` at full reach, where the small blind is offered 7.0 into a pot of 19.0 and folds QQ 50.40 percent, AKo 100.00, AQs 100.00 and JJ 99.99, with a call weight of 0.03 percent on the queens. Folding queens at better than 2.7 to 1 with position on the cold-caller is not a defensible line, and a pure fold of ace-king offsuit facing a three-bet plus a flat is the same no-blocker signature the packet condemns two sections earlier. The precise sentence in the six-cell section is true as written and stays; the flat restatement in "What went right" is the one a student will read, and it tells them the premiums are safe where they are not. This is also the packet's own claim 2 in reverse: it calls correct play what is a defect.
+
+## Non-blocker
+
+- The big blind defends narrower than the raked reference against a button open, and the packet's only mitigation for accepted defect 1 asserts the opposite. Re-measured combo-weighted defence against the reference's own grids: vs LJ 25.6986 against 22.6324, vs HJ 28.8804 against 26.2020, vs CO 32.7833 against 31.4763, vs BTN 36.6526 against 39.4329, vs SB 48.3873 against 42.8774. Wider at four, narrower at the button by 2.7804 points, and the button is the second widest opener, where over-folding costs most. The report publishes the row and says "wider at four of the five openers and narrower only against the button"; the packet drops the count and writes "this chart reading wider than that file is expected rather than contradictory, and is a floor cleared rather than a level confirmed". The floor is not cleared against the button. One clause fixes it.
+
+- The multiway worked example's "36 percent defence after correcting the equity" is a figure two stage-9 lanes cannot make agree, and the recommendation is to drop it from the packet rather than publish it. My predicate, stated exactly so it can be attacked: denominator all 1,326 combinations of the 169 classes, combination-weighted at 6 for a pair, 4 suited and 12 offsuit, not class-weighted and not weighted by any arriving range; bar 1.5 / (10.5 x 0.920) = 0.155280; equity from my own Monte Carlo, hero's combination drawn uniformly from its class, three opponents each drawn independently by rejection sampling from the chart's committed lojack opening range (44 classes above half weight, 248 combinations, 18.74 percent), five board cards from the remaining deck, pot share with ties split. That gives 70.1 percent at one seed and 73.8 at another, so call it 70 to 74. Two controls say the machinery is sound rather than the answer: heads-up, the same evaluator reproduces the committed exact 169-by-169 table to within 0.5 points at five spot-checked pairs (AA against KK 0.8202 against 0.8195, 65s against AKo 0.4199 against 0.4153, 72o against AA 0.1189 against 0.1180, JTs against QQ 0.1829 against 0.1833, A5s against KQo 0.6038 against 0.6028); and with the three opponents drawn from all 1,326 combinations instead, hero's combination-weighted mean equity comes out 0.2509 where the conservation identity requires exactly 0.2500. Against the lojack-range opponents that mean is 0.1798. Since hero's mean plus the three opponents' means must sum to 1, a 36 percent clearing rate needs opponents averaging about 0.287 each, which is stronger than three copies of an 18.7 percent opening range and stronger still than the node's real field of one opener and two flatters, flatting ranges being weaker than opening ranges. I also tested the two readings that would explain a low answer and neither lands on 36: the product model itself clears 5.88 percent, consistent with the packet's 96.7 percent fold, and raw pairwise heads-up equity clears 100 percent. So I cannot reproduce 36.35 and cannot see what would produce it. What is not in dispute is the direction and the decision: the product model refuses a hand the poker calls, the withholding of the 348 stands, and 65s at 1.5 into 9.0 is the right hand at the right node. Only the size of the correction is contested, and a contested number should not be the packet's headline justification.
+
+- The model equity of 0.027 for 65s is the one figure in the worked example a reader cannot check from anything committed, and it does not reproduce from the recipe the packet gives it. A product of pairwise all-in equities taken from the committed 169-by-169 table gives 0.3588 against the chart's lojack opening range and 0.3203 against its tightest available proxy for a flatter, for a product of 0.0368. A real flatting range is wider and weaker than that proxy, so the honest reconstruction is above 0.0368 rather than below. The conclusion is untouched, since 0.037 is still far under 0.155, and the packet already says the true multiway equity is not readable from any committed artifact. It should say the same about the 0.027.
+
+- "Of the 87, 85 sit where a raise is already in and the exemption's argument applies" over-counts by two, on the packet's own reasoning. The exemption is defended as bluff selection, and at 2 of those 85 the wheel ace's entire weight is a call: `t6/d100/BB/BTN:raise@2.5` and `t6/d100/BB/CO:raise@2.5`, where A6o folds 100.00 and A5o calls 100.00 with no raise weight at all. There is no bluff to select, which is exactly why the packet withholds the argument from the 2 first-in cells. The argument reaches 83. Worth saying alongside it: 84 of the 87 are suited rows and 3 are offsuit, and the stated poker story is a suited one, so all three offsuit cases lean on a premium the hand does not have. At the remaining 83, 73 of them facing a three-bet, preferring the wheel ace as a four-bet bluff is standard and the exemption is sound.
+
+- A trainee drilled on the 249 would learn, on top of what the packet already names: to fold ace-king offsuit outright at 16 spots and more often than not at 33 and to fold queens half the time at five of them; to three-bet offsuit junk out of the big blind against a small blind open while flatting KQo and KJo; and to open A5s through A2s from the lojack while folding A6s and A7s. The first two are not in the packet. The third is, and is correctly refused as poker.
+
+## Alignment
+
+- Nothing in this phase can fail on a three-betting range that picks the wrong hands, which is why the big blind family reached the packet certified rather than measured. `NO-GATE-MEASURE-CAN-FAIL-ON-A-BAD-RANGE`
+- The raked reference gives a direction and not a level, and the button row shows the chart does not always clear even the direction, so the missing rake-free reference is now load-bearing rather than nice to have. `NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE`
+- No committed artifact holds a multiway equity, so the worked example that justifies withholding 348 nodes cannot be re-derived by anything in this repo and had to be simulated twice, here and in the packet, with different answers. `MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION`

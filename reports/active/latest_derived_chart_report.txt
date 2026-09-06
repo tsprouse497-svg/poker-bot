@@ -78,15 +78,23 @@ Sixteen hundredths of a point separate the two, which is why every committed spo
 figure is printed rather than summarised. The split is what makes a row readable:
 exposure is the share of a spot's decision mass reaching a multiway flop terminal, and
 `heads-up` is all the rest - the pot folded out before a flop, or a flop with two players
-in it. The two are the halves of one mass and add to a hundred, so a row publishing
-exposure alone could be over any denominator at all.
+in it. The two are the halves of one mass and a row publishing exposure alone could be
+over any denominator at all.
+
+They do not always close on a hundred, and the shortfall is published rather than
+rounded past. Mass that reaches a node no hand class arrives at is dropped rather than
+redistributed, so it never reaches a terminal and never lands in either column:
+
+  rows adding to a hundred  236 of 249
+  rows falling short  13  widest shortfall  0.0268 points
 
 A row has three columns and only two quantities, and that is said here rather than left
 for a reader to notice by adding them up. `exposure` and `multiway` are the SAME number
 printed twice - `terminal_split_pct` returns folded, heads-up and multiway, and both
 columns read its multiway leg, so they are one quantity by definition rather than two
 that happen to agree. The pair a reader should add is `multiway` and `heads-up`, which
-make a hundred; adding all three columns gives a hundred plus the multiway figure again.
+make a hundred wherever the walk loses nothing; adding all three columns gives that plus
+the multiway figure again.
 A frozen test requires the first two columns to be equal, so this stage cannot collapse
 them, and a later phase that gives the second column a measurement of its own - the
 un-renormalised exposure with hero's cold call left in would be the informative one -
@@ -556,7 +564,9 @@ requirements forbid that word for exactly this list.
 The wheel-ace cases are separated out because at almost all of them they are correct
 poker, and lumping them in overstates what is wrong with the chart by about half: a
 suited wheel ace makes the nut straight and is less dominated than a middling suited ace,
-so 87 of the 181 are the premium GTOpen's own fit measures and not a defect.
+so 85 of the 181 are the premium GTOpen's own fit measures
+and not a defect. The other 2 the exemption catches are caught by name
+alone and the section below says why the argument does not reach them.
 The three parts add back to the family, which is the check that the split has the right
 members rather than merely the right size.
 
@@ -603,9 +613,12 @@ being taken over the same 18431 cells at non-zero reach:
 
 Read the first pair as the argument: the solve barely mixes, so the hole the merge had to
 fill was large rather than marginal - `the solver was near-indifferent, take the other
-action` was never available to it. The second pair is the chart this phase writes, where
-the merge itself has turned 165 mixed cells pure, and a generator computing purity
-off the file it just wrote would read only that one. Both are printed and each is
+action` was never available to it. The second pair is the chart this phase writes. The
+merge moved 165 cells and the pure share moved by 0.28 points over
+the same 18431, which is about 51 cells - so most of what the
+merge moved was already pure before it, and a sentence saying the merge turned
+every moved cell pure would be wrong twice over. A generator computing purity off the
+file it just wrote would read only the second pair. Both are printed and each is
 labelled, because this phase has already shipped one figure under two meanings.
 
 ## The two orderings
@@ -701,7 +714,9 @@ family, its true minimum and maximum:
 
 Read it as: at the low end of the realization range the equity folded away could not have
 been realized anyway and the mistake is nearly free; at the high end it could have been,
-and the same fold costs about 125 times as much. The band cannot be narrowed without
+and the same fold costs 12.5 to 130 times as much, depending on which end of each band
+is read against which - the four pairings of the two rows above, none of which this phase
+published as a single multiplier until now. The band cannot be narrowed without
 measuring realization in this game, which no work in this repo does. These two rows are
 quoted from reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md, item 34, which is where the cost was ruled; every other
 figure in this report is re-derived by the command that prints it.
@@ -1012,7 +1027,10 @@ Say what that is in poker. Standard theory three-bets the hands that BLOCK the o
 continuing range - the aces and the kings - and folds or flats the connectors that block
 nothing. This chart does the reverse: all 62 classes it folds where the
 reference plays hold an ace or a king, and 0 of the 63 it plays where the
-reference folds do. King-queen offsuit is folded pure at 10 of the 10 seats. At the cutoff
+reference folds do. King-queen offsuit is folded pure at 10 of the 10 spots, and it
+shows in nine of the per-spot lists above rather than ten because at the tenth the
+reference plays it under this section's fifty-point bar, so the case does not qualify.
+At the cutoff
 facing a lojack open it three-bets jack-ten suited and seven-six suited pure while folding
 ace-queen offsuit and king-queen offsuit pure, with ace-ten suited at 4.270 percent, king-ten suited at 0.060 percent.
 Nothing in bluff selection reaches that ordering: the hands it folds block better AND
@@ -1234,6 +1252,15 @@ player actually took nonzero weight, not that a draw matched. And these are real
 not an oracle - agreeing with them is not the same as playing well, and Pluribus and the
 human professionals are different players, so nothing here is pooled.
 
+The denominators of the two are not the same number and are not meant to be, which is
+said here because two figures a couple of decisions apart printed four lines from each
+other read as one of them being wrong. Every decision that yields a draw was scored, and
+not every decision that was scored yields a draw: where the chart's committed four-bet
+price sits below the table's own minimum raise at the price the hand was really played,
+the strategy refuses to render it rather than inventing a size, so the decision is scored
+for agreement and produces nothing to draw. Counting those as misses would blame the
+seeded draw for a chart fidelity problem.
+
   Pluribus
     agreement, before  68 of 72 scored decisions (94.4%)
     agreement, after  432 of 475 scored decisions (90.9%)
@@ -1254,11 +1281,16 @@ None of this is a verdict and none of it gates. The corpus verdict is PHASE 17's
 what this report does is republish the measurement so a reader can see what moved. A
 rendered agreement rate with no label is read as a grade, so this one carries the label.
 
-The refusal rate rises, on both populations, and that is the ruled cost rather than a
-regression: the committed predicate refuses everything from the four-bet on, every pot
-multiway more than one time in ten, and the big blind's squeeze spots. What is left after
-the refusals is the harder subset, which is why an agreement rate over a smaller sample
-is the shape to expect rather than evidence of a worse chart.
+The refusal rate FALLS on both populations and the scored sample grows, which is the
+cutover buying coverage: the retired chart answered 36 priced spots and this one answers
+249. That is what the rows above read, and it is stated here rather than inferred from
+the ruling. The committed predicate still refuses everything from the four-bet on, every
+pot multiway more than one time in ten and the big blind's squeeze spots, and those
+refusals are the ruled cost - they are simply a smaller cost than the coverage hole they
+replaced. Corrected 2026-09-05: this passage read `the refusal rate rises ... an
+agreement rate over a smaller sample is the shape to expect`, which was written when the
+committed set was 36 spots and is false of the set this phase ships, on both counts and
+on both populations.
 
 ## The pre-registered prediction
 
