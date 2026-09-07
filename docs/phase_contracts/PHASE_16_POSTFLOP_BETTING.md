@@ -2,7 +2,7 @@
 phase_id: "16"
 title: "Postflop That Can Bet"
 depends_on:
-  - "15"
+  - "14"
 required_gate_commands:
   - pytest_postflop_betting
 required_reports:
@@ -20,6 +20,9 @@ fails the gate for any active phase whose criteria say only what a generic phase
 
 Proposed as phase 16 in `docs/V2_ROADMAP.md`: replace the conservative fallback with postflop play that can invest.
 It opens the way Phase 08 did, blocked on a source the repo does not have, and its contract stage is where that source gets chosen rather than assumed.
+
+**Amended 2026-09-06 (`PHASE-16-WAITED-ON-PHASE-15-FOR-A-REASON-THAT-WAS-NOT-A-DEPENDENCY`).**
+No longer true: that this phase waits on phase 15. `depends_on` is now `14`, the chart it solves flops against.
 
 Phase 16 is limited to the work named by this contract and the active ExecPlan.
 

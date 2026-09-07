@@ -6362,3 +6362,119 @@ items:
       which asks a later phase to gate a monotonicity relation ON this matrix and is the reason the
       matrix was built at all. That entry needs the matrix to be trustworthy; this one is what would make
       it trustworthy, and it should land first.
+
+  - id: PHASE-16-WAITED-ON-PHASE-15-FOR-A-REASON-THAT-WAS-NOT-A-DEPENDENCY
+    status: done
+    phase: contract-update
+    title: The postflop phase was held behind the drill by an edge that carried no content
+    reason: >-
+      Closed 2026-09-06 by the PHASE_16_DEPENDENCY_CUT contract-update, and recorded because the
+      diagnosis is worth more than the edit. Phase 16's contract declared `depends_on: "15"`, and
+      `scripts/loop_fleet.py --plan` therefore reported 16 as held whenever it was asked. The whole
+      basis was assumed to be one sentence in `docs/V2_ROADMAP.md` - "That evidence arrives in phase 15,
+      which is another reason the drill comes first" - and an independent review showed the real history
+      is worse and sharper. THE EDGE WAS NEVER ARGUED AT ALL. `docs/exec_plans/completed/MAINT_PHASE_DAG.md`
+      records that the v2 contracts were declared with `depends_on` as a straight chain 10 through 16,
+      "sequence rather than semantics: nothing read the field, so nothing tested it". The commit that
+      wrote the edge, `439ba42`, never cites the roadmap sentence; it justifies 16 with "cannot start at
+      all until a postflop source exists", a claim MAINT_POSTFLOP_SOURCE has since retracted. MAINT-21
+      then reviewed the graph, re-derived the edges for 10, 11, 12, 13 and 14 from stated arguments, and
+      recorded that "10, 12, 15 and 16 were already right" while tracing neither 15's nor 16's. So the
+      check that existed ran, said "already right", and was wrong. That exec plan's own no-delegation
+      exception is the illegitimate kind - about the session rather than the work - which is where an
+      untraced edge comes from. Those records stay exactly as written; this entry is the correction.
+      AND THE ROADMAP SENTENCE COULD NOT HAVE CARRIED IT EITHER. The evidence it means is whether real
+      opponents bet, which gates only the cheap optional river call in
+      `POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK` - an entry whose own text names phases 07 and 08, both
+      completed, as where that question is answered, and whose ship-or-not decision is
+      `runtime-reversible` and so never blocked on anyone. The decisive point is simpler still: the
+      phase 15 contract deals preflop decisions only, because that is all the chart answers, so a drill
+      could not have produced evidence about what an opponent does on a river even in principle.
+      WHY IT MATTERED RATHER THAN BEING HOUSEKEEPING. The standing constraint since phase 06 is that every
+      postflop street checks through in self-play, so the bot does not play poker today - it answers a
+      preflop question and then runs the hand out. Phase 16 is the only declared phase that changes
+      that, and it sat behind a phase that builds a training tool for a human. The V2 sequence was
+      ordered "format before data, data before product", which is right, and 15 and 16 are both product,
+      so nothing in the ordering rule put them in that order either. Taylor's ruling on 2026-09-06 was
+      that the goal is a bot that plays hands and the drill is at most a checkpoint on preflop.
+      WHAT CHANGED: `depends_on` is now `14`, the committed chart the flop solve is keyed against, which
+      is the phase's real content dependency; the contract carries a two-line amendment; the roadmap
+      paragraph is marked superseded rather than rewritten, because it is the record of what was
+      believed. Phase 15 is parked at stage 3 of its own lane with its contract and decision list
+      written and reviewed. THE GENERAL LESSON: a `depends_on` edge is a claim that one phase cannot be
+      built without another, and `check_repo_consistency` verifies only that the edge names a real phase
+      and closes no cycle. Nothing checks that the claim is true, so an edge written from a sequencing
+      intuition reads afterwards as a technical fact, and the fleet driver enforces it as one. The
+      sharper half is that a review DID look and certified it, so the repair is not "add a check that
+      someone looks" but `A-DEPENDS-ON-EDGE-INHERITED-FROM-A-CHAIN-IS-NEVER-RE-EXAMINED`: make an edge
+      carry the reason it exists, so an untraceable one cannot be affirmed. Two further things this
+      task found only because a reviewer looked past the file it was editing:
+      `PHASE-GRAPH-IS-WRITTEN-TWICE-AND-CHECKED-ONCE` and
+      `A-RULED-DECISION-CAN-NAME-A-SOURCE-THE-REPO-WILL-NOT-HAVE`.
+
+  - id: PHASE-GRAPH-IS-WRITTEN-TWICE-AND-CHECKED-ONCE
+    status: deferred
+    phase: contract-update
+    title: docs/ROADMAP.md hand-types the phase graph that the contracts are declared to own
+    reason: >-
+      Filed 2026-09-06 by the review of PHASE_16_DEPENDENCY_CUT. `docs/ROADMAP.md` carries a
+      Depends-on column and an ASCII diagram of the phase graph, and thirteen lines below them says
+      "`depends_on` in the contracts is the single source for that graph". Neither the table nor the
+      diagram has a generator - `grep -rn ROADMAP scripts/` is empty - and `check_repo_consistency`
+      reads only contract frontmatter, so nothing compares the two. They drifted the first time an edge
+      moved: the task that changed phase 16's edge corrected the contract and left the table saying 16
+      depends on 15, in the document MAINT-21 designated as the graph's home and the one a human reads
+      first. It was caught by a reviewer rather than by anything mechanical. The same row also carried
+      two older falsehoods for weeks - "cannot start until a postflop source exists", retracted by
+      MAINT_POSTFLOP_SOURCE, and a table stopping at 16 after phase 17 was declared - which is what
+      unchecked prose does. What would close it: generate that section from the contracts, or add a
+      check comparing the column against the frontmatter so a future edge change fails the gate.
+
+  - id: A-DEPENDS-ON-EDGE-INHERITED-FROM-A-CHAIN-IS-NEVER-RE-EXAMINED
+    status: deferred
+    phase: contract-update
+    title: An edge with no stated content cannot be told apart from one with content, and a review affirmed two
+    reason: >-
+      Filed 2026-09-06 by the review of PHASE_16_DEPENDENCY_CUT. The v2 phases were declared with
+      `depends_on` as a straight chain 10 through 16, which MAINT_PHASE_DAG.md itself calls "sequence
+      rather than semantics". MAINT-21 then re-derived the graph, traced the edges for 10, 11, 12, 13
+      and 14 to stated arguments, and certified that "10, 12, 15 and 16 were already right" - tracing
+      neither 15's nor 16's. Phase 16's turned out to have no content at all and held the only phase
+      that makes the bot play. The failure is not that nobody checked; somebody checked and affirmed an
+      edge they had not traced, because an inherited edge and a reasoned one are indistinguishable once
+      written. `check_repo_consistency` validates that an edge names a real phase and closes no cycle,
+      which both kinds pass. What would close it: every `depends_on` entry carries a one-line reason in
+      the contract naming what the dependent phase consumes, and the consistency check requires the line
+      to exist. An edge with nothing to say for itself then cannot be declared, or affirmed, by accident.
+
+  - id: A-RULED-DECISION-CAN-NAME-A-SOURCE-THE-REPO-WILL-NOT-HAVE
+    status: deferred
+    phase: contract-update
+    title: A frozen-into-data answer ruled by a human can point at data that will not exist when the phase runs
+    reason: >-
+      Filed 2026-09-06 by the review of PHASE_16_DEPENDENCY_CUT. Phase 16's decision 3 is
+      `frozen-into-data`, was ruled by Taylor on 2026-08-19, and its ruled default ranks preflop lines
+      by "how often the corpus and the drill actually reach them". The drill produces no data at its own
+      completion - only a human using it over many sessions would - so half the ruled method points at a
+      source that would not exist even if phase 15 shipped first, and phase 15 is now parked. The
+      decision has been annotated rather than re-ruled: the answer stands and the corpus half drives it.
+      The general shape is that a decision list records what a human chose and never records whether the
+      inputs that choice names are available, so a ruling can be correct when made and unbuildable when
+      read. What would close it: decision lists mark, per input a default names, whether that source is
+      committed today, and a stage-3 gate that reads it can then refuse an answer resting on one that is
+      not.
+
+  - id: AN-AMENDMENT-TO-A-SKELETON-CONTRACT-IS-DELETED-BY-ITS-OWN-STAGE-1
+    status: deferred
+    phase: contract-update
+    title: The contract amendment mechanism assumes a completed contract and is transient on a future one
+    reason: >-
+      Filed 2026-09-06 by the review of PHASE_16_DEPENDENCY_CUT. `AGENTS.md`'s Contract Amendments rule
+      is written for a completed contract that a later phase contradicts, and it works there. Applied to
+      a `future` skeleton it does not: phase 16's Scope section says stage 1 replaces it, so the
+      two-line amendment recording that its dependency changed will be deleted by the phase's own
+      contract stage, and the only durable record is the backlog id the amendment cites. That is
+      survivable here because the id carries the whole diagnosis, and it is luck rather than design.
+      What would close it: either a rule that a semantic change to a skeleton is recorded in the backlog
+      and the skeleton edited plainly with no amendment block, or a requirement that stage 1 carries
+      forward any amendment it finds before replacing the section around it.

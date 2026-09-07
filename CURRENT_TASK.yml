@@ -1,8 +1,13 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE_16_DEPENDENCY_CUT
+active_phase: '16'
+task_mode: contract-update
+base_commit: 9bbdcf44ce5508d19d672812fbc1b3484c32c790
+approved_scope:
+  - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
+  - docs/V2_ROADMAP.md
+  - docs/ROADMAP.md
+  - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
+  - reports/phase_audits/reviews/PHASE_16_DEPENDENCY_CUT/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -18,6 +23,42 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-06
+    reason: >-
+      The independent review found the correction was half done, and both halves are widenings.
+      **`docs/ROADMAP.md` carries a second copy of the graph and it is the authoritative-looking one.**
+      A hand-typed table row reads `| 16 | Postflop That Can Bet | 15 | ... |` and an ASCII diagram
+      draws `14 -- 15 -- 16`, thirteen lines above a sentence declaring "`depends_on` in the contracts
+      is the single source for that graph". Nothing generates or checks that section, so leaving it
+      would have shipped a rendering that contradicts the file it names as its source, in the document
+      MAINT-21 designated as the graph's home and the one a human reads first. My earlier scope entry
+      said V2_ROADMAP's line 227 "asserts the dependency this removes", as though it were the only such
+      line; that sentence is exactly what produced the miss. The same row carries two older
+      falsehoods it would be dishonest to leave while editing it: "cannot start until a postflop source
+      exists", retracted by MAINT_POSTFLOP_SOURCE and by `verification/loop_policy.yml`, and a table
+      that stops at 16 when `phase_status.yml` declares a 17.
+      **Phase 16's decision list names the drill as a live ruled input.** Decision 3 is
+      `frozen-into-data`, was ruled by Taylor on 2026-08-19, and its ruled default ranks preflop lines
+      by "how often the corpus and the drill actually reach them". The drill produces no data at
+      completion - only a human using it over time would - so a ruled input points at a source that
+      will not exist when phase 16 runs. The entry is annotated rather than re-ruled: Taylor's answer
+      stands, and the note records that the corpus half is what will drive it.
+      Also approved: `reports/phase_audits/reviews/PHASE_16_DEPENDENCY_CUT/**`, for the independent
+      review note this task owes under `AGENTS.md`'s Subagents rule. A contract-update outside the loop
+      has no stage driver printing a note path, so the path follows the loop's own convention.
+  - date: 2026-09-06
+    reason: >-
+      Taylor's ruling, 2026-09-06: the goal of v2 is a bot that plays hands, and the drill is at most
+      a checkpoint on preflop. Phase 16 is the phase that makes the bot play - today every postflop
+      street checks through, so the bot folds preflop and runs the clock - and its contract declares
+      `depends_on: "15"`, which is what holds it. That edge is sequence rather than content: the
+      roadmap's only stated reason is that the drill would produce evidence that real opponents bet,
+      which justifies a river pot-odds call and nothing about teaching the bot to bet. Changing
+      `depends_on` is a semantic contract change, so it needs `contract-update` mode and cannot ride
+      on a maintenance task. Two paths: the phase 16 contract, for the edge and a two-line amendment,
+      and `docs/V2_ROADMAP.md`, whose line 227 asserts the dependency this removes and would
+      otherwise be left stating the opposite. No implementation, no phase is activated, and phase 16's
+      criteria stay a skeleton for its own stage 1 to write.
   - date: 2026-09-04
     reason: >-
       The stage-7 review found two blockers and both are mine to answer.

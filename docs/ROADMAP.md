@@ -19,15 +19,17 @@ Phases 10 through 16 are declared at `future` in `phase_status.yml`, each with a
 | 13 | Table-State Fidelity | 11 | yes |
 | 14 | Chart Cutover | 10, 12, 13 | no, commits the chart the bot plays |
 | 15 | The Drill | 14 | no, commits session records |
-| 16 | Postflop That Can Bet | 15 | no, and cannot start until a postflop source exists |
+| 16 | Postflop That Can Bet | 14 | no, commits a postflop solution or a rule |
+| 17 | The Corpus Verdict On The Committed Chart | 14 | no, publishes the verdict |
 
 This is a graph rather than a queue, and `scripts/loop_fleet.py` plans from it, so up to three phases can be in flight at once.
 
 ```
 09 ─┬─ 10 ──────────────┐
     │                   │
-    └─ 11 ─┬─ 12 ───────┼── 14 ── 15 ── 16
-           └─ 13 ───────┘
+    └─ 11 ─┬─ 12 ───────┼── 14 ─┬─ 15
+           └─ 13 ───────┘       ├─ 16
+                                └─ 17
 ```
 
 The two edges the sequence does not have are the point of it.
@@ -35,6 +37,10 @@ Phase 10 hangs off 09 rather than off the format work because a solver export is
 Phase 11 hangs off 09 because it sits ahead of every measurement: a phase that fixes measurement bugs after the measurements are taken invalidates them.
 Phases 12 and 13 then split, one changing what the artifact can express and the other what the runtime query can carry, which the loop's freeze-then-build discipline handles better one axis at a time.
 Phase 14 is where they rejoin, because deriving the chart needs the export, the vocabulary, and the query all at once.
+Everything after 14 hangs off 14 and off nothing else, so 15, 16 and 17 are three independent lanes rather than a queue.
+**Changed 2026-09-06** (`PHASE-16-WAITED-ON-PHASE-15-FOR-A-REASON-THAT-WAS-NOT-A-DEPENDENCY`): 16 used to point at 15 here and in the contract.
+The edge was a leftover from the straight chain the v2 contracts were first declared as, and it held the only phase that makes the bot play behind a training tool for a human.
+This table and the diagram above it are hand-typed while the contracts are the source, which is how they came to disagree; that gap is `PHASE-GRAPH-IS-WRITTEN-TWICE-AND-CHECKED-ONCE`.
 
 `depends_on` in the contracts is the single source for that graph.
 `check_repo_consistency` rejects an edge naming a phase that does not exist and any cycle, because both would surface as a fleet reporting nothing eligible and calling it ordinary waiting.

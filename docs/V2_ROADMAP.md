@@ -226,6 +226,13 @@ There is a cheap intermediate that needs no new data: call a river bet when equi
 It is an assumption rather than a fact about the hand, and it would make the bot over-call the way it currently over-folds, so it is worth building only if real opponents bet at it.
 That evidence arrives in phase 15, which is another reason the drill comes first.
 
+**Superseded 2026-09-06 by Taylor's ruling, recorded in `PHASE-16-WAITED-ON-PHASE-15-FOR-A-REASON-THAT-WAS-NOT-A-DEPENDENCY`.**
+The goal of v2 is a bot that plays hands, and the drill is at most a checkpoint on preflop rather than the point of the sequence.
+This paragraph was long read as the basis for `depends_on: "15"` in the phase 16 contract, and an independent review showed it was not even that: the edge was a leftover from the straight chain the v2 contracts were first declared as, and MAINT-21 later certified it "already right" without tracing it.
+The paragraph does not carry the weight either way. It argues that the drill would supply evidence for one cheap optional feature, the river pot-odds call, and says nothing about what teaching the bot to bet requires - and the drill deals preflop decisions only, so it could never have produced evidence about what an opponent does on a river.
+Phase 16 now depends on 14, the chart it solves flops against, and phase 15 is parked at its human gate.
+The pot-odds call keeps its own justification and loses its stated evidence, so it is built on the argument in `POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK` or not at all.
+
 `POSTFLOP-UNBEATABLE-EARLIER-STREETS` belongs here too, and is a faster evaluator rather than a new rule.
 
 ## Carried Forward From V1

@@ -105,6 +105,14 @@ Default: rank the lines by how often the corpus and the drill actually reach the
 
 Answer: [Ruled by Taylor, 2026-08-19] Take the default. **A small head of common lines, grown later by adding artifacts.**
 
+**Annotated 2026-09-06, not re-ruled** (`A-RULED-DECISION-CAN-NAME-A-SOURCE-THE-REPO-WILL-NOT-HAVE`).
+Taylor's answer stands and the method is unchanged. One of the two sources it names will not exist:
+the drill produces no data at its own completion, only through a human using it over time, and phase
+15 is now parked at its human gate and no longer sits ahead of this phase. **So the corpus is what
+ranks the lines**, which is the half that already works - `reports/active/latest_refusal_inventory.txt`
+is the stated precedent and is built from the corpus. If drill sessions ever accumulate they are added
+to the ranking; nothing waits for them.
+
 This is the axis where pruning is honest, and it is the opposite of the flop axis.
 Preflop lines have a real long tail: some come up constantly and most almost never, which the refusal inventory already demonstrates for preflop spots.
 Canonical flops do not. The 1,755 classes come up at broadly comparable rates, so there is no head to solve, which is why decision 1 keeps all of them and this one keeps very few lines.
