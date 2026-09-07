@@ -1,13 +1,8 @@
-task_id: maint-ask-the-chart-a-hand
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 9bbdcf44ce5508d19d672812fbc1b3484c32c790
-approved_scope:
-  - scripts/ask_preflop_chart.py
-  - tests/test_ask_preflop_chart.py
-  - verification/freeze.lock
-  - docs/exec_plans/active/MAINT_ASK_THE_CHART_A_HAND.md
-  - reports/phase_audits/reviews/MAINT_ASK_THE_CHART_A_HAND/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml

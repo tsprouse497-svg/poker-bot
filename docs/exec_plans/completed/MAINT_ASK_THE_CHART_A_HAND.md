@@ -66,7 +66,8 @@ signature breaks this file with no signal until the gate runs.
 
 - [x] S1. The script and its tests, from W. Reviewed independently: zero blockers, three non-blockers
       taken by the author.
-- [ ] S2. Freeze lock regenerated, full gate green, committed.
+- [x] S2. Freeze lock regenerated, full gate green including `check_gate_bite`, committed at
+      `844edf2`.
 
 ## Verification
 
@@ -75,12 +76,25 @@ signature breaks this file with no signal until the gate runs.
 
 ## Outcome
 
-Not filled in.
+Done. `scripts/ask_preflop_chart.py` answers one hand at one preflop spot from the committed ranges,
+with 52 tests behind it and a green full gate at `844edf2`.
+
+What it does not do, and each is deliberate rather than unfinished. It is preflop only, because that
+is the only strategy this repo has - postflop is phase 16's. It names the action and not the amount
+hero raises to, because sizes are a second artifact and a second failure mode, and reading them in
+later is reading rather than deciding, so the door is open. And it is covered only by the base
+`pytest` run, never executed end to end by the gate, which is filed as
+`A-CONVENIENCE-COMMAND-HAS-NO-GATE-COMMAND-BEHIND-IT` rather than fixed by inventing a report for it
+to write.
+
+The review found no blockers. Its three taken non-blockers are in the commit message; two of them
+were tests pinning a printed string rather than the property behind it, which is worth remembering
+next time a test looks green.
 
 ## Next Agent Bootstrap
 
-State: lane open at base `9bbdcf4`, task `maint-ask-the-chart-a-hand` in `maintenance` mode, nothing
-implemented yet.
+State: the work is done and committed at `844edf2` on `maint/31-ask-the-chart-a-hand`, on a green
+full gate. The lane is not merged; that is a serial integration step against `main` like any other.
 
 What to read before writing anything: `src/poker_training_bot/solver_artifacts/lookup.py` for
 `PreflopChartLibrary`, `ChartHit` and `ChartMiss`, and
