@@ -103,6 +103,29 @@ HERO_CLOSES_SPOTS = 120
 """Decision 49's correction: the spots where hero closes the action, which is where the equity
 relation is defined at all. It was published as 93 over a set that has since moved."""
 
+OPENERS_NARROWER_THAN_RAKED = 3
+OPENERS_NARROWER_WORST_SEAT = "BTN"
+BB_DEFENCE_NARROWER_THAN_RAKED = 1
+"""The fifth accepted defect, ruled 2026-09-06 after a post-completion review of this phase.
+
+Both families this repo can read against an outside number go the wrong way at at least one seat,
+and the report asserted the opposite until this date. The reference is a RAKED NL25 game and this
+is a rake-free solve, so rake-free is supposed to open and defend WIDER; a seat reading narrower is
+the one direction that argument cannot explain. Opens read narrower at HJ, CO and BTN, worst at
+BTN with 39.266 against 40.560, and the big blind's defence at BTN alone with 36.653 against
+39.430 - the same seat both times, and the seat where a rake-free solve should stretch furthest.
+
+**These are counts of seats and not a tolerance.** Nothing gates on the comparison (decision 6) and
+this phase does not re-price a range; what changed is what the phase SAYS about what it shipped.
+The counts are pinned here so a generator printing a hand-typed one goes red
+(HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES), and the report re-derives both columns from
+the artifact and the expectations file on every run.
+
+**The small blind's opening row is deliberately excluded from the narrower count and is not
+evidence of width.** The reference both raises and limps from that seat and this chart has no limp
+branch, so its raise-only column is not the same quantity. Read entry to entry it is +6.16 rather
+than +19.89, and the report prints that row and says so."""
+
 PAIR_INVERSIONS = 114
 KICKER_INVERSIONS = 181
 KICKER_WHEEL_ACE = 87
@@ -191,7 +214,7 @@ HEADINGS = {
     "ladders": "## The group-order ladders, published for a human",
     "arms": "## The two counterfactual arms, on every partition",
     "equity": "## The equity relation, published and gating nothing",
-    "defects": "## The four accepted defects, and what each costs",
+    "defects": "## The five accepted defects, and what each costs",
     "orderings": "## The two orderings",
     "big_blind": "## The big blind's defence and flat, per opener",
     "bands": "## Every published band, against its family's extremes",

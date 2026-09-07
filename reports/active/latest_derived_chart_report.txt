@@ -9,7 +9,7 @@ big blinds, rake-free. The old chart is deleted from the tree and is read out of
 Nothing below is a grade on the new chart. Two of the three things that could explain a gap
 between it and how people played are still uncontrolled, real players are not an oracle, and the
 corpus verdict belongs to a later phase. What this report can do is show that the conversion was
-faithful, that the hand index survived it, what coverage was bought and sold, and what the four
+faithful, that the hand index survived it, what coverage was bought and sold, and what the five
 accepted defects cost - and say plainly which of its figures gate and which are published.
 
 ## The four-bucket node census
@@ -550,13 +550,14 @@ GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE stays deferred and this phase
 close it. Nothing in this repo measures whether a published range is good poker, and a
 measurement toward that gap is not the gap filled.
 
-## The four accepted defects, and what each costs
+## The five accepted defects, and what each costs
 
-Four defects this phase accepts on purpose, each with the measurement it was accepted on.
+Five defects this phase accepts on purpose, each with the measurement it was accepted on.
 They are defects and are recorded as defects; none is small print, and the packet
 requirements forbid that word for exactly this list.
 
   defect  the big blind over-folds against every opener   it defends 25.70 to 48.39 percent where rake-free solves are roughly 40 through 65, and its flat barely moves with who opened
+  defect  the opening ranges read narrower than a raked reference   at 3 of 5 seats this chart opens fewer hands than a game that is paying rake, worst at BTN with 39.266 against 40.560 and slightest at HJ with -0.085 points, which is a tie rather than a shortfall and is counted because the rule is the SIGN and not the size, where rake-free is supposed to open WIDER rather than tighter - the same realization fit as the row above, read at the seats that open rather than the seat that answers
   defect  the pair ladder inverts   114 cases on play-not-fold and 41 on the raise weight the bot plays, 25 of those invisible to play-not-fold
   defect  the kicker row ladder inverts   181 cases, of which 87 are exempted as the wheel-ace premium - correct poker at 85 of them and a name match with no poker story at the 2 first-in spots below - 29 have no poker story at a 50 point gap or wider, and 65 below it
   defect  the merged flats play differently   165 cells move at 20 spots, and three-betting 66 commits 7.5 big blinds and can face a four-bet where the solve would have seen a cheap flop
@@ -849,11 +850,45 @@ defends more. Reading wider than this file is therefore a floor rather than a pa
 
 The small blind's gap is the largest and has a second cause on top of that: the reference
 solve limps 13.73 percent of the time from the small blind, where this one has no limp
-branch at all, so the hands that limped there open here.
+branch at all, so the hands that limped there open here. That row is therefore not a
+like-for-like reading and is marked below rather than dropped.
 
-Those two families are two of the five this chart ships, and until this block was written
-they were the only two anything outside the repo was read against - and they are the two
-that pass. The file the expectations are distilled from carries full per-hand strategies
+Read for direction, which is the whole reason these columns are printed. The gap is
+derived minus reference. POSITIVE is wider, which the rake argument makes a floor cleared
+and never a level confirmed. NEGATIVE is narrower, and that is the one direction the rake
+argument cannot explain away, because rake makes a game tighter rather than looser:
+
+  gap  opens  LJ  +1.250  wider
+  gap  opens  HJ  -0.085  narrower
+  gap  opens  CO  -0.717  narrower
+  gap  opens  BTN  -1.294  narrower
+  gap  opens  SB  +19.889  wider  not like-for-like, the reference limps from this seat
+  gap  big blind defends  LJ  +3.069  wider
+  gap  big blind defends  HJ  +2.680  wider
+  gap  big blind defends  CO  +1.303  wider
+  gap  big blind defends  BTN  -2.777  narrower
+  gap  big blind defends  SB  +5.507  wider
+
+  gap  opens  SB read on ENTRY  +6.159  wider  (34.410 raised plus 13.730 limped is 48.140 entered)
+
+That last row is the honest reading of the small blind and the one above it is not. The
+reference plays a split strategy from that seat, raising some hands and limping others,
+while this chart has raise and fold and nothing else, so every hand it wants to play is
+forced into the raise column. Setting its raise-only number beside the reference's
+raise-only number reports a missing branch as though it were range width. Compared entry
+to entry the small blind is wider by six points rather than twenty.
+
+  narrower at  opens  3 of 5 seats  worst  BTN  39.266 against 40.560
+  narrower at  big blind defends  1 of 5 seats  worst  BTN  36.653 against 39.430
+
+So the sentence this report carried until 2026-09-06 - that both of these families clear
+the check - was wrong about each of them, and it was the only prose a reader was given
+about the opening ranges. Neither family comes back clean. The opening ranges are now on
+the accepted-defect list above for this reason. What has NOT changed is that nothing here
+gates and no range moved: this is a correction to what the phase says about what it
+shipped, not to what it shipped.
+
+The file the expectations are distilled from carries full per-hand strategies
 for 36 spots (data/artifacts/preflop/sources/gtowizard_6max_nl25_100bb_preflop.json), so the rest of
 what it can reach is read below. The same caveat holds throughout and it is the whole
 caveat: the reference is RAKED, so this chart reading WIDER than it is a floor cleared
@@ -889,8 +924,9 @@ one does.
 So the over-folding is a property of every seat that has to answer an open rather than of
 the big blind, and a reader may not take the defect list's naming of one seat as clearing
 the merged three-bet ranges. What this measurement does not do is re-price anything or
-move a weight: the four accepted defects are the four that were ruled, and whether the
-list is extended to name this family is a ruling and not a measurement.
+move a weight. The opening ranges were added to the defect list on 2026-09-06 and this
+family was not, so whether the list is extended to name it too is a ruling and not a
+measurement.
 
 Second, hero's own four-bet at the 15 spots where he opened and then faced
 a three-bet - the family the bands section declines to publish a band over. Both columns
@@ -920,7 +956,8 @@ So this chart answers a three-bet by calling far more and four-betting far less.
 defence column clears the floor at every spot and the four-bet column is below at every
 spot, which is a shape rather than a scatter.
 
-The price column is why it is published and not accepted as a fifth defect. It is the
+The price column is why it is published and not accepted as a defect of its own. It is
+the
 four-bet as a multiple of the three-bet being answered, and this chart's four-bet is the
 dearer of the two at every one of these spots - the reference answers a bigger three-bet
 with a raise that is proportionally smaller. A dearer four-bet is four-bet less often by

@@ -2700,7 +2700,14 @@ items:
       dictionaries before the report ever sees it: open frequency, small-blind limp frequency, and
       big-blind defence. So 33 of the 36 spots were thrown away upstream of every reader, and the one
       measurement in this repo capable of catching a range that is uniformly wrong was applied to two of
-      the five committed families - the two that pass.
+      the five committed families.
+      CORRECTED 2026-09-06. This entry used to end that sentence "- the two that pass", copying the claim
+      the report itself carried. Neither family passes. The opening ranges read narrower than the raked
+      reference at 3 of 5 seats and the big blind's defence at 1 of 5, and narrower is the one direction
+      rake cannot explain, so the sentence asserted the opposite of what the same two families measure.
+      See REPORT-CLAIMED-BOTH-OUTSIDE-READ-FAMILIES-PASS for how it survived, and
+      OPENING-RANGES-READ-NARROWER-THAN-A-RAKED-REFERENCE for the defect it hid. What this entry still
+      owes is unchanged: 33 of the 36 source spots are thrown away upstream of every reader.
       Phase 14 closed part of this at stage 6 and the remainder is what is still owed. The report now
       reads the raw source directly as well: ten `vs one open` rows for the merged family, fifteen
       `vs one three-bet` rows carrying the four-bet weight, total defence and the four-bet as a multiple of
@@ -3347,6 +3354,13 @@ items:
       ranges will hit it, and the failure mode is a red gate blaming the wrong thing. Also worth
       noting how it was found: the gate had not been run since the note was committed, so the halt
       commit shipped a red gate nobody saw.
+      SECOND INSTANCE 2026-09-06, and it is not a poker notation at all, which widens the entry: a
+      sibling lane wrote an ordinary English phrase inside a backlog entry - two everyday words in
+      capitals joined by a hyphen, used for emphasis rather than as a reference - and the checker
+      read it as a citation of an item nobody declares and failed the run. So the false positive is
+      not limited to hand ranges; it is any capitalised hyphenated token in any prose the checker
+      reads, and emphasis of that kind is common in this repo's own house style. This entry still
+      cannot quote the offender for the reason the paragraph above gives.
   - id: SELECTION-PREDICATE-MUST-BE-STATED-OVER-REACHABLE-TERMINALS
     status: deferred
     phase: charts
@@ -4844,6 +4858,14 @@ items:
       This concedes the gate, not the argument:
       BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS stays deferred and holds the
       case that the constants are what should have moved.
+      SECOND INSTANCE, 2026-09-06, and the first on an audit packet rather than a contract. The phase 14
+      opening-range repair needed room in a packet sitting at exactly 500 of 500 lines. Re-wrapped at the
+      width the packet already used, about 120 columns, the edited text came to 516 lines; re-wrapped at
+      128 it came to 495 and passed. No word was dropped and that was checked mechanically, so the check
+      the repo runs cannot tell the two apart - which is this entry's point, made against itself. The
+      contract in the same task did NOT need this: its lines were reclaimed by evening out ragged
+      wrapping, its longest line falling from 146 columns to 110 with its p99 unmoved. That is the
+      distinction a line-counting cap cannot draw and a column-aware one could.
   - id: PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS
     status: deferred
     phase: "14"
@@ -5210,11 +5232,17 @@ items:
       defect at "The big blind over-folds and this phase accepts it deliberately" names one seat, and it
       should either extend to name the merged family or say in poker terms why the same fit produces a true
       level here and a false one in the big blind. It was not done in this phase for two stated reasons,
-      both verified: `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` is at 300 of its 300-line cap, and
-      `tests/test_derived_chart_report_ranges.py` asserts the published defect list is exactly four rows.
-      Adding a fifth is a ruling and a frozen-test change, not an implementation detail. The amendment
-      rides in the contract fold-in rewrite `PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP` already schedules,
-      which is where its two lines will fit.
+      both verified AT THE TIME: `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` was at 300 of its
+      300-line cap, and `tests/test_derived_chart_report_ranges.py` asserted the published defect list was
+      exactly four rows.
+      BOTH CONSTRAINTS ARE GONE AS OF 2026-09-06 and this entry is no longer blocked by them. That task
+      added a FIFTH defect - the opening ranges - so the contract now reads five, the frozen test asserts
+      five, and the contract sits at 299 of 300 with the room made by re-wrapping rather than by cutting a
+      criterion. The merged family would be a SIXTH row, which is the same kind of edit and no longer a
+      novel one: a ruling plus a frozen-test change. It does NOT ride on the fold-in rewrite any more.
+      What is still owed is unchanged and is a ruling, not a measurement: extend the defect to name the
+      merged family, or say in poker terms why the same realization fit produces a true level there and a
+      false one in the big blind.
       One thing the review confirmed that is worth carrying forward as a credit rather than a debt: the
       merged ranges read as real three-bet ranges and not as flatting ranges wearing a raise label. The
       widest, `SB/BTN:raise@2.5` at 14.98 percent, is a recognisable small-blind three-bet-or-fold range
@@ -5639,10 +5667,161 @@ items:
       The general lesson is the one HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES keeps recording:
       a figure that no generator re-derives survives every review that reads it rather than re-walking it,
       and this one survived four. It was quoted in six live places before anyone measured it.
+  - id: OPENING-RANGES-READ-NARROWER-THAN-A-RAKED-REFERENCE
+    status: deferred
+    phase: "14"
+    title: The chart opens tighter than a raked reference at three seats of five
+    reason: >-
+      Filed 2026-09-06 as phase 14's FIFTH accepted defect, after a post-completion review of the
+      merged phase. Accepted rather than fixed: the ranges ship as solved and that ruling stands.
+      The measurement. The report reads the chart against the only numbers in this repo it did not
+      produce, GTO Wizard's published frequencies for a 6-max 100bb NL25 game WITH RAKE. Rake is a
+      toll only on pots that get contested, so it falls on the bottom of a range and not the top,
+      and a rake-free solve is therefore supposed to open WIDER than a raked one at every seat. Three
+      of five go the other way - HJ 21.565 against 21.650, CO 27.173 against 27.890, BTN 39.266
+      against 40.560 - and a negative gap is the one direction the rake argument cannot explain.
+      The button is the worst of the three and is also the single seat where the big blind's defence
+      fails, 36.653 against 39.430. The same seat twice, and it is the seat a rake-free edge should
+      stretch furthest, the button open being the most steal-driven and most marginal-heavy there is.
+      That points at the same cause phase 14 already names for the tight big blind, the fit's own
+      realization number, read at the seats that open rather than the seat that answers.
+      Two honesties. HJ at -0.085 is a tie and is counted because the rule is the sign and not the
+      size; only CO and BTN are material. And the small blind's row is read ON ENTRY, +6.16 rather
+      than the +19.89 a raise-only reading prints, because the reference both raises and limps from
+      that seat while this chart has no limp branch at all, so a raise-only comparison reports a
+      missing branch as though it were range width.
+      What this entry does NOT claim. Nothing here gates - decision 6 rules the comparison un-gated
+      and that is unchanged. No range, weight, price or artifact moved. This is a defect in what the
+      chart opens, published, and the route back is the same one
+      REALIZATION-MODEL-UNDERPRICES-POSITION names.
+  - id: REPORT-CLAIMED-BOTH-OUTSIDE-READ-FAMILIES-PASS
+    status: done
+    phase: "14"
+    title: The report said the two families read against an outside reference both passed, and neither did
+    reason: >-
+      Found 2026-09-06 by a post-completion review of phase 14 and fixed the same day.
+      The report stated its own rule correctly - the reference is raked, this solve is not, so reading
+      WIDER is a floor cleared and reading NARROWER is "a direction a rake-free solve is not supposed
+      to go" - printed ten rows, and then said the opening and big-blind-defence families "are the two
+      that pass". Three of the five opening rows break that rule and one of the five defence rows
+      does, and the packet's own first accepted defect already said the defence family fails against
+      the button. So the sentence was wrong about both families it named, and it was the ONLY prose
+      the report carried about the opening ranges: that family had no section of its own and no row
+      on the accepted-defect list.
+      What made it hard to see rather than obvious. The numbers were always printed and always right.
+      What was missing was the subtraction: ten rows of two columns, with no gap column and no sign,
+      so a reader had to do five subtractions in their head to notice that the sentence underneath
+      contradicted the table above it.
+      Fixed by printing the gap and its direction per row, a narrower-at count per family, the small
+      blind's entry-basis row, and by replacing the claim with a derived statement. The counts are
+      pinned in tests/test_derived_chart_report.py so a hand-typed one goes red
+      (HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES), and a frozen test now refuses the
+      withdrawn sentence by name. The defect itself is OPENING-RANGES-READ-NARROWER-THAN-A-RAKED-REFERENCE.
+  - id: A-BACKLOG-ID-IS-ONLY-CITABLE-FROM-THE-TREE-THAT-DECLARES-IT
+    status: deferred
+    phase: contract-update
+    title: A finding filed on a lane cannot be cited from any other lane until that lane merges
+    reason: >-
+      Found 2026-09-06 by two lanes trying to reference one measurement. The backlog integrity check
+      fails the gate for any document citing a backlog id no item declares, and it reads the backlog
+      of the tree it runs in. Backlog entries are filed on lanes. Lanes merge serially and late. So a
+      finding that is filed, true, and reviewed is UNCITABLE from every other lane until its own lane
+      merges, and a sibling that cites it turns its own gate red on a reference that is perfectly
+      valid one worktree away.
+      The concrete case: this lane filed A-FULL-GATE-IS-A-THREE-HOUR-JOB-AND-NOTHING-SAYS-SO with a
+      measurement a lane on `main` wanted to use the same afternoon. The sibling could not cite it and
+      correctly chose to restate the numbers without the id. That is the right call and it is also the
+      failure: the repo now has the same fact in two places, one of them unlinked, which is the exact
+      duplication the id scheme exists to prevent.
+      WHY IT BITES HARDER THAN IT LOOKS. The pressure is toward the wrong disposition. The cheap way
+      out is to not file the finding at all, or to file it as prose with no id, and prose with no id
+      is invisible to every sweep the repo runs. So the check meant to stop unrecorded findings
+      quietly rewards leaving a cross-lane finding unrecorded.
+      NOT A PROPOSAL TO WEAKEN THE CHECK. It is right that a citation resolves. The options worth a
+      ruling are a forward-declaration convention, a shared file for cross-lane findings that merges
+      ahead of its lane, or the citation check resolving against `main` as well as the working tree.
+      Related to BACKLOG-CITATION-SHAPE-MATCHES-POKER-NOTATION, which is the same checker being wrong
+      in the other direction, and to the standing note that a phase's findings reach `main` only at
+      its closeout.
+  - id: A-FULL-GATE-IS-A-THREE-HOUR-JOB-AND-NOTHING-SAYS-SO
+    status: deferred
+    phase: contract-update
+    title: The cheapest full gate takes about three hours and no document warns a reader
+    reason: >-
+      MEASURED 2026-09-06, in the maint/30 worktree, on a run that completed 46 of 47.
+      Wall clock 2h52m. `check_gate_bite` was 2h48m of it; the other 46 commands together came to
+      about four minutes. The arithmetic is not a pathology: `verification/mutations.yml` carries 74
+      sabotages, `check_gate_bite` runs the gate once per sabotage, and the suite is 1107 tests at
+      about 97 seconds, so 74 x ~1.6 minutes is the number. Nothing is stuck and nothing is wrong;
+      the gate simply costs three hours and says so nowhere.
+      WHAT IT COST TODAY. Two sessions budgeted minutes for it. Both then misread a healthy run as
+      hung, because the parent process waits on children so `ps` reports 0.0 percent CPU, which is
+      what a working `check_gate_bite` looks like. One run was killed on that misreading and had to
+      be restarted; two overlapping runs later exhausted memory and the system killed one of them
+      partway through. Every one of those hours bought nothing. The only reliable liveness test is
+      whether the process has a live pytest child, or whether its planted mutation changes between
+      two looks a few minutes apart - and that belongs in `docs/LOOP.md` beside the timing.
+      THE PART THAT IS ARGUABLY WASTE RATHER THAN COST. The 74 sabotages all attack `src/` and
+      `scripts/`. A documentation-only or contract-only task - a `contract-update` closeout, say -
+      pays the full 2h48m for 74 mutations that cannot bite on anything its diff changed. This is
+      the same uneven-coverage shape already recorded for phase 14, where 29 of the 48 registered
+      gate commands are named by no mutation at all and nothing attacks `table_state/`: the
+      mutation set is not selected against the diff in either direction.
+      NOT A PROPOSAL TO SKIP IT, and no session should act on this entry alone. Whether a gate may
+      ever run a subset is a ruling for Taylor, and the reason to keep the whole thing is exactly
+      the reason it is slow: `check_gate_bite` is the one check that judges the other 46, and phase
+      14's closeout found a real regression with it after the gate was already green. What is filed
+      here is the measurement and the two cheap fixes that need no ruling: write the timing down
+      where a reader meets it, and write down how to tell a live run from a dead one.
+  - id: A-HEADING-COUNT-IS-CHECKED-AGAINST-NOTHING-IN-ITS-OWN-BODY
+    status: deferred
+    phase: contract-update
+    title: Nothing checks that a section heading saying "four" sits above four rows
+    reason: >-
+      Filed 2026-09-06 by the independent review of the phase 14 opening-range repair, which found the
+      defect in the very task written to fix a document that contradicted its own numbers. The report
+      rendered "## The four accepted defects, and what each costs" directly above a paragraph reading
+      "Five defects this phase accepts on purpose" and five defect rows. The heading was pinned by a
+      frozen test that also said four, so the gate agreed with itself and stayed green.
+      The general shape: every count this repo publishes is re-derived except the ones written into
+      headings, titles and preambles, which are string literals nobody compares to the body underneath.
+      A check that parsed a number word out of a heading and counted the rows in that section would have
+      caught this one, the packet's "report -> The five accepted defects" pointer, and the numbering
+      collision where "not accepted as a fifth defect" sat two paragraphs above "5. The opening ranges".
+      All three were found by a human-shaped read and none by the 47-command gate.
+  - id: A-PACKET-POINTER-TO-A-REPORT-SECTION-IS-NEVER-RESOLVED
+    status: deferred
+    phase: contract-update
+    title: The audit packets cite report sections by heading and nothing checks the heading exists
+    reason: >-
+      Filed 2026-09-06. The phase 14 packet's whole evidentiary style is "report -> Section, row label",
+      chosen so a non-coding reviewer can grep for what a claim rests on, and `check_contracts.py` is the
+      only checker over contracts and packets and does not resolve those pointers. During the
+      opening-range repair the packet was updated to say "report -> The five accepted defects" while the
+      report's heading still said four, so every pointer of that form was dangling and the gate could not
+      see it. A checker that extracted `report -> <heading>` from a packet and asserted the heading exists
+      in the named report would close it, and it is cheap: the packets already use one syntax.
+  - id: NOTHING-SWEEPS-DEFERRED-BACKLOG-ENTRIES-A-LATER-TASK-FALSIFIED
+    status: deferred
+    phase: contract-update
+    title: An open backlog entry can go on stating a constraint a later task removed
+    reason: >-
+      Filed 2026-09-06 after the independent review found three at once, all in the file the task was
+      already editing. NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL still ended with the
+      exact sentence the task withdrew from the report, "the two that pass", in an entry whose subject is
+      that measurement. MERGED-FLATS-PLAY-DIFFERENTLY-NOT-JUST-DIFFERENTLY-LABELLED and
+      PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP both told a future lane it was blocked by a 300-line cap and a
+      frozen test pinning four rows, and that task had just cleared both.
+      Why it matters more than a stale comment: these entries are the instructions the next lane reads,
+      so a falsified one does not merely mislead, it stops work that is now possible or restarts work
+      that is now done. All three were corrected by hand because someone read them, which is not a
+      mechanism. Related to BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE, the same blind spot read
+      from the other end: that entry is about a closing phase leaving its own items open, this one
+      about an open item still asserting a constraint that has since gone.
   - id: PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP
     status: deferred
     phase: "14"
-    title: The phase 14 contract sits at exactly 300 lines, so the next correction cannot be written
+    title: The phase 14 contract sits a line under its cap, and the next correction after that cannot be written
     reason: >-
       Noted 2026-09-03 when decision 54's edit landed. The contract is at 300 of 300 lines, and it only
       stayed there because the criterion it corrected could be rewritten in place at a net cost of one
@@ -5667,6 +5846,14 @@ items:
       `MERGED-FLATS-PLAY-DIFFERENTLY-NOT-JUST-DIFFERENTLY-LABELLED`. Note the second constraint the
       rewrite also has to clear: `tests/test_derived_chart_report_ranges.py` pins the published defect list
       at exactly four rows, so a fifth row is a frozen-test change as well as a contract edit.
+      OVERTAKEN 2026-09-06, and the three sentences above are kept as the record of what was believed.
+      A fifth defect row was added without this rewrite: the opening ranges reading narrower than the
+      raked reference. The room came from re-wrapping the contract's own paragraphs, which cost no
+      criterion and no word - the word streams before and after are identical - and the contract now sits
+      at 299 of 300. So "the next correction has nowhere to go" is false as written; the true statement is
+      that ONE more correction fitted and the file is back within a line of its cap, with the fold-in
+      rewrite still owed and now with less slack than before. The frozen test pins five rows, not four.
+      The command-id constraint below is untouched and is now the only one of the two still standing.
       SECOND, A COMMAND ID THAT IS OWED AND CANNOT BE ADDED. `scripts/generate_preflop_equity_matrix.py
       --check` runs in no gate command, and registering it means a new id in this contract's
       `required_gate_commands` frontmatter plus an entry in `COMMANDS` in `scripts/run_verify.py`. That is

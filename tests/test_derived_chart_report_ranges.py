@@ -6,7 +6,7 @@ over the committed keys - and this file reaches every one of them as an attribut
 count is owned twice and no constant is copied.
 
 Owned here: the four relations, the group-order ladders, the two counterfactual arms over the ten
-partitions, the equity relation, the four accepted defects, the two orderings against the raked
+partitions, the equity relation, the five accepted defects, the two orderings against the raked
 expectations, the big blind's defence and flat, every published band, and the menu each family
 publishes with its merged flats. Each is checked as **printed**: the rules behind these figures
 belong to `test_chart_derivation.py`, `test_derived_chart.py` and `test_chart_cutover_evidence.py`,
@@ -201,7 +201,7 @@ def test_the_equity_relation_is_published_and_labelled_as_gating_nothing(report_
     assert "deferred" in body.lower(), "the deferred entry is published as though it were closed"
 
 
-def test_the_four_accepted_defects_are_published_as_defects_with_their_measurements(
+def test_the_five_accepted_defects_are_published_as_defects_with_their_measurements(
     report_text,
 ) -> None:
     """Accepted defects, never caveats, each with the number the phase accepted it on.
@@ -222,13 +222,28 @@ def test_the_four_accepted_defects_are_published_as_defects_with_their_measureme
     rows = dict(re.findall(r"^\s*defect\s+(.+?)\s{2,}(\S.*?)\s*$", body, re.MULTILINE))
     named = " ".join(rows).lower()
 
-    assert len(rows) == 4, f"the report publishes {len(rows)} accepted defects, not four: {rows}"
-    for token in ("big blind", "pair", "kicker", "merged"):
+    assert len(rows) == 5, f"the report publishes {len(rows)} accepted defects, not five: {rows}"
+    for token in ("big blind", "pair", "kicker", "merged", "opening"):
         assert token in named, f"no accepted defect named for {token!r}: {sorted(rows)}"
     for name, measurement in rows.items():
         assert re.search(r"\d", measurement), f"{name} is accepted without a measurement"
     assert "caveat" not in body.lower(), (
         "an accepted defect published as a caveat is the wording the packet requirements forbid"
+    )
+
+    opening = next(
+        measurement for name, measurement in rows.items() if "opening" in name.lower()
+    )
+    assert (
+        f"{report.OPENERS_NARROWER_THAN_RAKED} of {len(report.OPENERS)}" in opening
+    ), f"the opening defect does not publish how many seats read narrower: {opening!r}"
+    assert report.OPENERS_NARROWER_WORST_SEAT in opening, (
+        "the opening defect does not name the seat it is worst at, which is the one a reader"
+        f" checks first: {opening!r}"
+    )
+    assert re.search(r"wider", opening, re.IGNORECASE), (
+        "the opening defect states a shortfall without saying which direction a rake-free solve"
+        f" is supposed to differ in, so a reader cannot tell why it is a defect: {opening!r}"
     )
 
     numbers = [int(value) for value in re.findall(r"\b(\d+)\b", body)]
@@ -314,6 +329,50 @@ def test_the_orderings_hold_and_the_chart_is_printed_against_the_expectations(re
     assert "rake" in against.lower(), (
         "the comparison does not say the reference is a raked game, so a reader cannot reconcile"
         " a rake-free solve reading wider than it"
+    )
+
+    # The direction reading, added 2026-09-06. Printing the two columns is not the same as saying
+    # which way each row goes: the report carried ten rows and a sentence calling both families
+    # passing for the whole of this phase, and three of the opening rows break its own stated rule.
+    summary = dict(
+        re.findall(
+            r"^\s*narrower at\s+(opens|big blind defends)\s+(\d+) of \d+ seats",
+            against,
+            re.MULTILINE,
+        )
+    )
+    assert summary, "the expectations block does not say how many seats read narrower"
+    assert int(summary["opens"]) == report.OPENERS_NARROWER_THAN_RAKED
+    assert int(summary["big blind defends"]) == report.BB_DEFENCE_NARROWER_THAN_RAKED
+
+    signed = {
+        (measure, seat): float(gap)
+        for measure, seat, gap in re.findall(
+            r"^\s*gap\s+(opens|big blind defends)\s+(LJ|HJ|CO|BTN|SB)\s+([-+]\d+\.\d+)",
+            against,
+            re.MULTILINE,
+        )
+    }
+    assert len(signed) == 2 * len(report.OPENERS), sorted(signed)
+    for (measure, seat), gap in signed.items():
+        assert gap == pytest.approx(
+            quoted_gap := rows[seat][0 if measure == "opens" else 1] - quoted[measure][seat],
+            abs=0.05,
+        ), (measure, seat, gap, quoted_gap)
+    assert sum(1 for (measure, _), gap in signed.items() if measure == "opens" and gap < 0) == (
+        report.OPENERS_NARROWER_THAN_RAKED
+    )
+
+    assert re.search(r"SB read on ENTRY", against), (
+        "the small blind's opening row is published raise-only against a reference that also"
+        " limps, which reports a missing branch as though it were range width"
+    )
+    assert not re.search(r"are\s+the\s+two\s+that\s+pass", report_text), (
+        "the withdrawn claim that both outside-read families pass is back in the report. Checked"
+        " over the WHOLE report rather than this section, because the claim also lived in the"
+        " preamble and in a module docstring, and matched across any wrapping, because the"
+        " generator's source splits the phrase across two string literals and a reflow moves"
+        " where the break lands"
     )
 
 

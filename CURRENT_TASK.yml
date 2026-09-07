@@ -1,8 +1,14 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE_14_OPENING_RANGE_HONESTY
+active_phase: '14'
+task_mode: contract-update
+base_commit: 9bbdcf44ce5508d19d672812fbc1b3484c32c790
+approved_scope:
+  - docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+  - scripts/generate_derived_chart_report.py
+  - tests/test_derived_chart_report.py
+  - tests/test_derived_chart_report_ranges.py
+  - reports/phase_audits/PHASE_14_CHART_CUTOVER.md
+  - verification/freeze.lock
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -18,6 +24,28 @@ forbidden_scope:
   - data/raw/**
   - data/processed/**
 scope_change_log:
+  - date: 2026-09-06
+    reason: >-
+      Taylor's ruling, 2026-09-06, after a post-completion review of phase 14. The report tells a
+      reader that the opening ranges cleared the one check in this repo that can catch a range that
+      is uniformly wrong. They did not. The report states its own rule - this solve is rake-free and
+      the reference is a raked game, so reading NARROWER than the reference is the direction a
+      rake-free solve is not supposed to go - and then prints five opening rows of which three break
+      it: HJ 21.565 against 21.650, CO 27.173 against 27.890, BTN 39.266 against 40.560. It calls the
+      opening family one of "the two that pass" anyway, and that sentence is wrong about the other
+      family it names too, since the packet's own first accepted defect says the big blind's defence
+      fails against the button. The opening family has no section of its own and no row on the
+      accepted-defect list, so that one sentence is the whole of what a reader is told about it.
+      Two things follow and they need different modes, which is why this is contract-update.
+      Correcting the sentence and printing the wider-or-narrower reading beside the rows is a
+      generator change. Naming the opening ranges a FIFTH accepted defect is a contract change: the
+      contract fixes the list at four in two places and a frozen test asserts the report publishes
+      exactly four, so no implementer can add one. The contract is at 300 of 300 lines
+      (PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP), so the fifth entry is made to fit by tightening the
+      criteria it sits among rather than by raising the cap, which the amendment rule forbids.
+      tests/** is in approved_scope here because the frozen test is the thing being changed; the
+      freeze lock is regenerated in the same task. No range, weight, artifact or price is touched:
+      this task changes what the phase SAYS about what it shipped, never what it shipped.
   - date: 2026-09-06
     reason: >-
       The independent review found the correction was half done, and both halves are widenings.
