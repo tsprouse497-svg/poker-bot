@@ -2906,6 +2906,13 @@ items:
       rule is stated four times and owned nowhere, and once the files are frozen, correcting it is
       four coordinated edits across four frozen files. It belongs in one place the tests import,
       which is a `tests/` refactor and therefore its own task after the phase closes.
+      EVIDENCE 2026-09-06 from the maint-31 lane. `tests/test_ask_preflop_chart.py` is the first file to
+      reuse the helper rather than copy it, which is the direction this entry wants. It also shows the
+      cost of the shape: the reuse works by importing a frozen test module by name, so an unfrozen file
+      now depends on a frozen one and a later correction to that helper's signature breaks it with no
+      signal until the gate runs. That is the argument for the shared helpers having a home outside
+      `tests/test_*.py`.
+
   - id: CHART-CUTOVER-CONTRACT-IS-AT-ITS-LINE-CAP
     status: deferred
     phase: contract-update
@@ -5548,6 +5555,13 @@ items:
       can reach. The second needs the title treated as a figure, which is a one-line rule and nobody has
       written it. The third needs the claim to become a test that runs the counterfactual, because
       nothing else can ever check it.
+      WIDENED 2026-09-06 by the review of the maint-31 lane. The same failure arrives with a behaviour
+      claim instead of a count, and in executable code rather than prose: `scripts/ask_preflop_chart.py`
+      was written printing "After the flop this repo still checks and folds", with a test asserting the
+      string, which is true today and false the day phase 16 lands - and the test would have pinned the
+      false claim rather than caught it. Fixed in that lane before it committed, by stating the boundary
+      of what the command asks and asserting the scope note names no action at all. So the sweep this
+      entry describes should cover load-bearing claims about what the bot does, not only figures.
 
   - id: RAISE-ACTION-INVERSIONS-WERE-INVISIBLE-TO-EVERY-RELATION
     status: deferred
@@ -6478,3 +6492,21 @@ items:
       What would close it: either a rule that a semantic change to a skeleton is recorded in the backlog
       and the skeleton edited plainly with no amendment block, or a requirement that stage 1 carries
       forward any amendment it finds before replacing the section around it.
+  - id: A-CONVENIENCE-COMMAND-HAS-NO-GATE-COMMAND-BEHIND-IT
+    status: deferred
+    phase: contract-update
+    title: A command a human runs is covered only by its unit tests, never executed end to end by the gate
+    reason: >-
+      Filed 2026-09-06 by the independent review of the maint-31 lane, which built
+      `scripts/ask_preflop_chart.py` - a front door onto the committed preflop ranges that answers one
+      hand at one spot. Every other script in `scripts/` that touches the chart generates a committed
+      report and is therefore a registered command id in `COMMANDS`, so the gate runs it end to end
+      every time. This one generates nothing, so its correctness rests entirely on the base `pytest`
+      run, and the single test that invokes it the way a person does checks exit codes only.
+      NOT A FINDING AGAINST THAT LANE. The command is small, its tests bite - the reviewer injected
+      twelve mutations and ten turned red - and inventing a report for it to write so the gate has
+      something to check would be worse than the gap. The reason to record it is that the repo has no
+      settled answer for a command whose whole point is to be run by a human rather than by the gate,
+      and the answer should be decided deliberately if more of them arrive. A registered command id
+      also needs a phase contract to declare it, which a maintenance task does not have, so the
+      question is a `contract-update` one rather than something a maint lane can settle.

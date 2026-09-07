@@ -1793,3 +1793,23 @@ scope_change_log:
       task editing the specification it is building to.
       base_commit moves to the contract-update commit, so the ruling's own paperwork does not
       read as uncommitted work by the task that follows it.
+  - date: 2026-09-06
+    reason: >-
+      Opening the maint-31 lane. base_commit is main at 9bbdcf4, where the task rested idle with an
+      empty approved_scope, so seeding this lane's scope reads as a widening and needs its reason on
+      the record.
+      Four paths, and the task is small enough that the list is the whole design: one new script that
+      answers a single hand-and-spot question from the committed chart, one new test file for it, the
+      freeze lock that has to be regenerated because a test file was added, and this lane's ExecPlan.
+      Deliberately absent, and each for its own reason. `src/**` is out because the answer already
+      exists in `solver_artifacts/lookup.py` and this lane is a front door onto it, not new poker
+      logic - a change under `src/` means the design was wrong and the lane stops rather than widening.
+      `scripts/run_verify.py` is out because the base gate already runs bare `pytest`, so the new test
+      is collected without a registered command id, and a command id would need a phase contract to
+      declare it, which a maintenance task does not have.
+  - date: 2026-09-06
+    reason: >-
+      The lane's review notes enter scope. The seed list named the script, its tests, the freeze lock
+      and the plan, and forgot the place the independent review writes to - which is not optional here:
+      AGENTS.md says the agent that wrote something is never the only one that judges it, so a lane
+      that cannot record a review is a lane that cannot close.

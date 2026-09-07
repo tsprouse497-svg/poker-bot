@@ -2,6 +2,9 @@ files:
   tests/test_action_order.py:
     sha256: d4a24387414152a5679d8a040f712e34dc01d879ecd20e693b2f6b8a5034ff0f
     test_functions: 21
+  tests/test_ask_preflop_chart.py:
+    sha256: 35f32bfd4556ff7aee2e84e25812c81a05f4d5cd2c8df8a9af111ee935106048
+    test_functions: 26
   tests/test_chart_arrival_probability.py:
     sha256: 3b2c8967afe498ccde49c6d23ca06d5a89a6fab11bd69f0cc3628b02ab6b37d7
     test_functions: 14
@@ -126,4 +129,4 @@ files:
     sha256: 7c097657ccefd5be127e71f0737f806f852357ec5bef1a9dfb9aeafefa1c92d7
     test_functions: 20
 schema_version: 1
-test_function_floor: 905
+test_function_floor: 931
