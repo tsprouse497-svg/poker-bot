@@ -7,6 +7,7 @@ approved_scope:
   - tests/test_ask_preflop_chart.py
   - verification/freeze.lock
   - docs/exec_plans/active/MAINT_ASK_THE_CHART_A_HAND.md
+  - reports/phase_audits/reviews/MAINT_ASK_THE_CHART_A_HAND/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -1775,3 +1776,9 @@ scope_change_log:
       `scripts/run_verify.py` is out because the base gate already runs bare `pytest`, so the new test
       is collected without a registered command id, and a command id would need a phase contract to
       declare it, which a maintenance task does not have.
+  - date: 2026-09-06
+    reason: >-
+      The lane's review notes enter scope. The seed list named the script, its tests, the freeze lock
+      and the plan, and forgot the place the independent review writes to - which is not optional here:
+      AGENTS.md says the agent that wrote something is never the only one that judges it, so a lane
+      that cannot record a review is a lane that cannot close.

@@ -17,8 +17,8 @@ This lane adds one command:
     uv run python scripts/ask_preflop_chart.py --seat BTN --facing "CO raise 2.5" --hand AhKs
 
 and prints the committed chart's own weights for that spot and hand, or a refusal that says why it
-cannot answer. Gate: the base gate stays green, including bare `pytest`, which collects the new test
-file without any command-id registration.
+cannot answer. Gate: the base gate stays green. Its `pytest` command id runs `python -m pytest tests`,
+which collects the new test file with no command-id registration of its own.
 
 Explicitly not in this lane: postflop (the bot still only checks and folds after the flop - that is
 phase 16), any new poker logic, and any change to what the chart says.
@@ -36,6 +36,12 @@ bare `pytest`, and a registered command id would need a phase contract to declar
 maintenance task does not have.
 
 Standing scope carries the task metadata and generated docs as usual.
+
+One dependency is deliberate and worth naming, because it points the wrong way. The new test file
+imports its fixture helper from `tests/test_preflop_lookup.py`, which is frozen. Reusing it beats a
+fourth copy and is the direction `SOLVED-PRICE-FIXTURE-HELPER-DUPLICATED-ACROSS-TEST-FILES` wants,
+but it makes an unfrozen file depend on a frozen one, so a later correction to that helper's
+signature breaks this file with no signal until the gate runs.
 
 ## Delegation Plan
 
@@ -58,7 +64,8 @@ Standing scope carries the task metadata and generated docs as usual.
 
 ## Slices
 
-- [ ] S1. The script and its tests, from W.
+- [x] S1. The script and its tests, from W. Reviewed independently: zero blockers, three non-blockers
+      taken by the author.
 - [ ] S2. Freeze lock regenerated, full gate green, committed.
 
 ## Verification
