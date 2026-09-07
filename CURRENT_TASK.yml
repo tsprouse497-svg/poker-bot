@@ -1,13 +1,8 @@
-task_id: PHASE_16_DEPENDENCY_CUT
-active_phase: '16'
-task_mode: contract-update
-base_commit: 9bbdcf44ce5508d19d672812fbc1b3484c32c790
-approved_scope:
-  - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
-  - docs/V2_ROADMAP.md
-  - docs/ROADMAP.md
-  - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
-  - reports/phase_audits/reviews/PHASE_16_DEPENDENCY_CUT/**
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
