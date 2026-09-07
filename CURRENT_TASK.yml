@@ -1,8 +1,12 @@
-task_id: null
+task_id: maint-ask-the-chart-a-hand
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 9bbdcf44ce5508d19d672812fbc1b3484c32c790
+approved_scope:
+  - scripts/ask_preflop_chart.py
+  - tests/test_ask_preflop_chart.py
+  - verification/freeze.lock
+  - docs/exec_plans/active/MAINT_ASK_THE_CHART_A_HAND.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -1757,3 +1761,17 @@ scope_change_log:
       task editing the specification it is building to.
       base_commit moves to the contract-update commit, so the ruling's own paperwork does not
       read as uncommitted work by the task that follows it.
+  - date: 2026-09-06
+    reason: >-
+      Opening the maint-31 lane. base_commit is main at 9bbdcf4, where the task rested idle with an
+      empty approved_scope, so seeding this lane's scope reads as a widening and needs its reason on
+      the record.
+      Four paths, and the task is small enough that the list is the whole design: one new script that
+      answers a single hand-and-spot question from the committed chart, one new test file for it, the
+      freeze lock that has to be regenerated because a test file was added, and this lane's ExecPlan.
+      Deliberately absent, and each for its own reason. `src/**` is out because the answer already
+      exists in `solver_artifacts/lookup.py` and this lane is a front door onto it, not new poker
+      logic - a change under `src/` means the design was wrong and the lane stops rather than widening.
+      `scripts/run_verify.py` is out because the base gate already runs bare `pytest`, so the new test
+      is collected without a registered command id, and a command id would need a phase contract to
+      declare it, which a maintenance task does not have.
