@@ -1,8 +1,18 @@
-task_id: null
+task_id: maint-cheaper-mutation-sweep
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: b5eb6108e506c554c8c398fe43940de3076d7638
+approved_scope:
+  - scripts/check_gate_bite.py
+  - scripts/check_repo_consistency.py
+  - scripts/run_verify.py
+  - scripts/loop_stage.py
+  - verification/mutations.yml
+  - verification/freeze.lock
+  - tests/test_loop_machinery.py
+  - pyproject.toml
+  - uv.lock
+  - docs/LOOP.md
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -1813,3 +1823,22 @@ scope_change_log:
       and the plan, and forgot the place the independent review writes to - which is not optional here:
       AGENTS.md says the agent that wrote something is never the only one that judges it, so a lane
       that cannot record a review is a lane that cannot close.
+  - date: 2026-09-08
+    reason: >-
+      Lane activation for maint-cheaper-mutation-sweep, which starts from an idle task and so
+      reads as a widening of an empty scope. Taylor ruled the investigation's recommendation on
+      2026-09-08: make `check_gate_bite` stop paying for evidence it does not collect.
+      The ten approved paths are the smallest set that carries that ruling.
+      `scripts/check_gate_bite.py` is the sweep itself: it currently runs every command a
+      mutation names twice, once mutated and once restored, and the second run is half the bill.
+      `verification/mutations.yml` holds the 45 `must_fail` lists that name the whole suite;
+      those runs are satisfied by a bookkeeping test in `tests/test_loop_machinery.py` that
+      notices the tree was mutated, so they cost 2h22m and prove nothing.
+      `scripts/run_verify.py` is where a witness for those mutations has to be registered and
+      where the worker flag goes. `scripts/check_repo_consistency.py` gains the check that stops
+      a narrowed witness from silently leaving the gate. `scripts/loop_stage.py` runs the sweep
+      a second time at stage 7 on top of the one inside `run_verify.py`.
+      `tests/test_loop_machinery.py` and `verification/freeze.lock` carry the tests for all of
+      it; `pyproject.toml` and `uv.lock` carry `pytest-xdist`; `docs/LOOP.md` states the restore
+      behaviour that changes. Nothing under `src/` is approved: this task changes what proves
+      the bot, never the bot.
