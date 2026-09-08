@@ -114,6 +114,16 @@ COMMANDS = {
         uv_python_command() + ["-m", "pytest", "tests/test_loop_fleet.py"],
         "Run parallel-loop eligibility, lane discovery, and pause board tests",
     ),
+    "pytest_loop_machinery": CommandSpec(
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_loop_machinery.py",
+            "tests/test_mutation_sweep.py",
+        ],
+        "Run the loop state machine, scope, freeze, and mutation sweep tests",
+    ),
     "freeze_tests": CommandSpec(
         uv_python_command() + ["scripts/freeze_tests.py"],
         "Rewrite the test freeze lock",
@@ -338,6 +348,10 @@ BASE_GATE_CHECKS = [
     # The fleet is repo tooling rather than phase work, so no contract declares it
     # and it belongs in the base gate.
     "pytest_loop_fleet",
+    # Same for the loop state machine and the mutation sweep's own tests. They are
+    # also the witness the narrowed mutations in verification/mutations.yml name, so
+    # the gate has to run them for that narrowing to mean anything.
+    "pytest_loop_machinery",
     "import_smoke",
     "uv_import_smoke",
     "pytest",

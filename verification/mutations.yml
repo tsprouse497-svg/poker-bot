@@ -18,10 +18,6 @@ mutations:
     replace: '_LATE_LABELS_BUTTON_FIRST: tuple[str, ...] = ("BTN", "HJ", "CO", "LJ")'
     must_fail:
       - pytest_preflop_artifacts
-      # The catch-all command runs every test file, so any mutation at all would cover
-      # it. It is named here rather than exempted because an exemption is a claim that
-      # something cannot be checked, and this one plainly can.
-      - pytest
 
   - id: lookup-tie-picks-an-action
     description: >-
@@ -373,7 +369,7 @@ mutations:
     find: "    return [path for path in paths if not path.startswith(UNREVIEWED_PATHS)]"
     replace: "    return []"
     must_fail:
-      - pytest
+      - pytest_loop_machinery
 
   - id: loop-blocker-stops-blocking
     description: >-
@@ -384,7 +380,7 @@ mutations:
     find: '        if in_section and stripped.startswith("- ") and RESOLVED_MARKER not in stripped:'
     replace: "        if False:"
     must_fail:
-      - pytest
+      - pytest_loop_machinery
 
   - id: contract-id-mismatch-goes-unreported
     description: >-
@@ -396,7 +392,7 @@ mutations:
     find: "    undeclared = sorted(seen_ids - declared_ids)"
     replace: "    undeclared = []"
     must_fail:
-      - pytest
+      - pytest_loop_machinery
 
   - id: live-mutation-passes-the-gate
     description: >-
@@ -407,7 +403,7 @@ mutations:
     find: "    if not sentinel.exists():"
     replace: "    if True:"
     must_fail:
-      - pytest
+      - pytest_loop_machinery
 
   - id: unmerged-dependency-counts-as-done
     description: >-
@@ -420,7 +416,6 @@ mutations:
     replace: 'FINISHED = "active"'
     must_fail:
       - pytest_loop_fleet
-      - pytest
 
   - id: finished-lane-occupies-a-lane-forever
     description: >-
@@ -431,7 +426,6 @@ mutations:
     replace: 'LIVE_LOOPS = {"running", "halted", "completed"}'
     must_fail:
       - pytest_loop_fleet
-      - pytest
 
   - id: dependency-cycle-goes-unreported
     description: >-
@@ -443,7 +437,24 @@ mutations:
     replace: "    return set()"
     must_fail:
       - pytest_loop_fleet
-      - pytest
+
+  - id: a-mutation-witness-outside-the-gate-goes-unreported
+    description: >-
+      The check that every command a mutation names is one the derived gate runs reads
+      no mutations, so it reports nothing while still printing that it passed. That check
+      is what makes the narrowing of 2026-09-08 safe: each `must_fail` list here dropped
+      the catch-all suite and now rests on one or two named commands, and a named command
+      leaves the derived gate silently whenever its phase's status changes in
+      `phase_status.yml`. Vacuous, the mutation registry keeps asserting a defect would be
+      caught by a command nothing but `check_gate_bite` runs.
+      Made vacuous rather than made to crash on purpose: a crash is loud and a check that
+      reports zero errors is the failure this repo makes most, so the canary attacks the
+      quiet one.
+    file: scripts/check_repo_consistency.py
+    find: "    for mutation in all_mutations:"
+    replace: "    for mutation in []:"
+    must_fail:
+      - pytest_loop_machinery
 
   - id: worktree-lock-collapses-to-the-repo-root
     description: >-
@@ -455,7 +466,6 @@ mutations:
     replace: '    resolved = ""'
     must_fail:
       - pytest_loop_fleet
-      - pytest
 
   - id: lanes-nest-inside-the-repository
     description: >-
@@ -481,7 +491,6 @@ mutations:
     replace: '_GTOPEN_RANKS = "AKQJT98765432"'
     must_fail:
       - pytest_solver_export
-      - pytest
 
   - id: solver-export-aggregates-ignore-the-arriving-range
     description: >-
@@ -502,7 +511,6 @@ mutations:
     replace: "                weight *= QUANTISATION_SCALE"
     must_fail:
       - pytest_solver_export
-      - pytest
 
   # Phase 11's four canaries, authored at stage 4 against the text the implementation must
   # produce rather than against the text that exists now. They therefore cannot apply until
@@ -522,7 +530,6 @@ mutations:
     replace: "            actions = [ActionKind.CHECK]"
     must_fail:
       - pytest_engine_fidelity
-      - pytest
 
   - id: reopening-measured-against-the-preceding-bet-again
     description: >-
@@ -534,7 +541,6 @@ mutations:
     replace: "            full_raise = new_round.current_bet - previous_bet >= previous_min_raise"
     must_fail:
       - pytest_engine_fidelity
-      - pytest
 
   - id: all-in-ceiling-loose-by-the-price-to-call-again
     description: >-
@@ -552,7 +558,6 @@ mutations:
     replace: "                max_target = self.query.current_bet + stacks[self.query.seat]"
     must_fail:
       - pytest_engine_fidelity
-      - pytest
 
   - id: fail-closed-can-invest-again
     description: >-
@@ -564,7 +569,6 @@ mutations:
     replace: '_PASSIVE_ORDER: tuple[str, ...] = ("fold", "call")'
     must_fail:
       - pytest_engine_fidelity
-      - pytest
 
   - id: under-sized-all-in-bet-becomes-the-reference-level
     description: >-
@@ -579,7 +583,6 @@ mutations:
     replace: "            reopen_level = new_round.current_bet"
     must_fail:
       - pytest_engine_fidelity
-      - pytest
 
   # Phase 12's own four canaries, authored at stage 4 against text the implementation
   # does not yet contain. Phases 08, 09 and 10 each wrote canaries for every command
@@ -603,7 +606,6 @@ mutations:
     must_fail:
       - pytest_spot_vocabulary
       - pytest_preflop_artifacts
-      - pytest
 
   - id: price-substitution-not-recorded
     description: >-
@@ -617,7 +619,6 @@ mutations:
     must_fail:
       - pytest_spot_vocabulary
       - generate_spot_vocabulary_report
-      - pytest
 
   - id: a-flat-re-raise-is-accepted
     description: >-
@@ -630,7 +631,6 @@ mutations:
     replace: "if size < previous_size:"
     must_fail:
       - pytest_spot_vocabulary
-      - pytest
 
   - id: a-folded-seat-may-act-again
     description: >-
@@ -644,7 +644,6 @@ mutations:
     replace: "if False and entry.position in folded:"
     must_fail:
       - pytest_spot_vocabulary
-      - pytest
 
   # Phase 13 canaries, authored at stage 4 before any implementation exists. Every `find`
   # below is therefore a specification the stage 6 builder must produce verbatim, the same
@@ -663,7 +662,6 @@ mutations:
     replace: "if False and self.pot != contributed_total:"
     must_fail:
       - pytest_table_state
-      - pytest
 
   - id: a-capped-hero-may-raise-again
     description: >-
@@ -676,7 +674,6 @@ mutations:
     replace: "if False and self.to_call == hero_stack and aggressive:"
     must_fail:
       - pytest_table_state
-      - pytest
 
   - id: hero-depth-is-derived-by-subtraction-again
     description: >-
@@ -695,7 +692,6 @@ mutations:
     must_fail:
       - pytest_table_state
       - generate_table_state_report
-      - pytest
 
   - id: a-folded-seat-makes-the-table-ragged
     description: >-
@@ -708,7 +704,6 @@ mutations:
     replace: "if False:"
     must_fail:
       - pytest_table_state
-      - pytest
 
   - id: an-absorbed-straddle-goes-unseen
     description: >-
@@ -728,7 +723,6 @@ mutations:
     must_fail:
       - pytest_table_state
       - generate_table_state_report
-      - pytest
 
   - id: the-depth-refusal-names-the-first-offender-in-seat-order
     description: >-
@@ -736,13 +730,13 @@ mutations:
       seat order rather than the deepest one. Decision 6 refuses any difference at all and keeps
       the seat and the depth it holds as the evidence whoever re-rules it will work from, and
       evidence that moves with the seating is not evidence: the same two stacks in swapped chairs
-      report 90bb and 20bb. `pytest` is named below but is NOT what notices this, and saying so is
-      the point rather than a hedge: all 66 frozen phase 13 tests pass under this mutation, because
-      no frozen test puts two live seats on the same side of hero, so first-in-seat-order and
-      deepest agree in every one of them. `pytest` still goes red, but only through
-      `test_every_mutation_applies_exactly_once_to_its_file`, which is a fact about this registry
-      rather than about the behaviour - the same trivially-true mechanism several sibling entries
-      lean on, named honestly here instead of being passed off as coverage.
+      report 90bb and 20bb. The whole suite was named below until 2026-09-08 and was never what
+      notices this, and saying so was the point rather than a hedge: all 66 frozen phase 13 tests
+      pass under this mutation, because no frozen test puts two live seats on the same side of
+      hero, so first-in-seat-order and deepest agree in every one of them. `pytest` went red only
+      through `test_every_mutation_applies_exactly_once_to_its_file`, which is a fact about this
+      registry rather than about the behaviour, and which fires for every mutation in this file
+      alike. A witness that cannot fail to fire is not a witness, so no entry names the suite now.
       `generate_table_state_report` is what actually has to fail, and it does so through two
       different checks in `_validate_depth_probes` depending on how the rule is broken. Change the
       strategy alone, as this mutation does, and the rule that kills it is the one comparing the
@@ -761,7 +755,6 @@ mutations:
     replace: "deep = next((pair for pair in live if pair[0] > hero_start), None)"
     must_fail:
       - generate_table_state_report
-      - pytest
 
   - id: the-short-seat-refusal-names-the-first-offender-in-seat-order
     description: >-
@@ -781,13 +774,13 @@ mutations:
       holds 9,000 and the shortest holds 2,000. `_validate_depth_probes` refuses to publish unless
       a distinguishing row exists in EACH direction, so neither branch can be quietly reverted
       behind a probe set that covers only the other one. As with its sibling, all 66 frozen phase
-      13 tests pass under this mutation and `pytest` goes red only through the registry check.
+      13 tests pass under this mutation, and the whole suite went red only through the registry
+      check, which fires for every mutation here. That is why it is no longer named below.
     file: src/poker_training_bot/strategy/preflop_chart.py
     find: "short = min(live, default=None)"
     replace: "short = next((pair for pair in live if pair[0] < hero_start), None)"
     must_fail:
       - generate_table_state_report
-      - pytest
 
   - id: the-residual-refusal-names-the-lowest-chair
     description: >-
@@ -804,10 +797,10 @@ mutations:
       omission: measured, all 66 frozen phase 13 tests pass under this mutation, because no
       frozen test builds a pot where two seats hold DIFFERENT amounts of unexplained money, and
       on a pot with one such seat the lowest chair and the most forced chips are the same answer.
-      `pytest` still goes red, but only through
+      The whole suite went red only through
       `test_every_mutation_applies_exactly_once_to_its_file`, which is a fact about this registry
-      rather than about the behaviour - the same mechanism its two siblings above lean on, named
-      honestly here instead of being passed off as coverage.
+      rather than about the behaviour, and which fires for every mutation here. It was dropped
+      from every entry on 2026-09-08 for that reason.
       `generate_table_state_report` is what actually has to fail, and it does so through
       `validate_residual_seat`, which recomputes the seat from the contributions rather than
       asking the rule. The pot that kills it is the report's own `two dead blinds of different
@@ -825,7 +818,6 @@ mutations:
     replace: "seat, chips = min(forced.items())"
     must_fail:
       - generate_table_state_report
-      - pytest
 
   - id: an-impossible-raise-sequence-still-constructs
     description: >-
@@ -873,10 +865,10 @@ mutations:
       `pytest_table_state` is deliberately not named below, and that is a finding rather than an
       omission: all 66 frozen phase 13 tests pass with this rule present or absent, because the
       tests were frozen at stage 5 and the defect was found at stage 8, so not one of them
-      constructs a sequence that goes backwards. `pytest` still goes red, but only through
+      constructs a sequence that goes backwards. The whole suite went red only through
       `test_every_mutation_applies_exactly_once_to_its_file`, which is a fact about this registry
-      rather than about the behaviour - the same mechanism several sibling entries above lean on,
-      named honestly here rather than passed off as coverage.
+      rather than about the behaviour, and which fires for every mutation here. It was dropped
+      from every entry on 2026-09-08 for that reason.
       `generate_table_state_report` is what actually has to fail, and it does so through
       `_validate_impossible_history_is_refused` in `table_state/checks.py`, which rebuilds one
       of the report's own straddle probes with a sub-level raise via `dataclasses.replace` - that
@@ -888,7 +880,6 @@ mutations:
     replace: "if False and entry.amount <= level:"
     must_fail:
       - generate_table_state_report
-      - pytest
 
   # Phase 14's canaries, authored at stage 4 before any implementation exists. Every `find`
   # below is therefore a specification the stage 6 builder must produce verbatim, the same way
@@ -957,7 +948,6 @@ mutations:
     must_fail:
       - pytest_derived_chart
       - generate_derived_chart_report
-      - pytest
 
   - id: the-four-bet-family-is-committed-after-all
     description: >-
@@ -984,7 +974,6 @@ mutations:
     must_fail:
       - pytest_derived_chart
       - generate_derived_chart_report
-      - pytest
 
   - id: the-cold-call-survives-into-the-published-chart
     description: >-
@@ -1012,7 +1001,6 @@ mutations:
     replace: '    return raises_faced(by_path, node) == 1 and node.actor_pos == "BB"'
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: committed-cells-claim-the-whole-range-arrived
     description: >-
@@ -1028,7 +1016,6 @@ mutations:
     replace: "reach_by_class[hand_class_text] = 10_000"
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: a-class-that-never-arrives-is-committed-anyway
     description: >-
@@ -1053,7 +1040,6 @@ mutations:
     replace: "        if False and node.reach_bp[gtopen_class_index(hand_class_text)] <= 0:"
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: every-spot-claims-its-line-is-always-played
     description: >-
@@ -1082,7 +1068,6 @@ mutations:
     replace: "        arrival_ppb[key] = 1_000_000_000"
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: the-walk-takes-each-action-from-the-node-that-follows-it
     description: >-
@@ -1097,7 +1082,6 @@ mutations:
     replace: 'entries.append(PreflopAction(node.actor_pos, "call"))'
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: the-artifact-declares-blinds-it-was-not-solved-at
     description: >-
@@ -1124,7 +1108,6 @@ mutations:
     replace: "        big_blind_bb=float(posts[-1]) * 3.0,"
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: a-jam-only-spot-goes-back-to-having-no-size
     description: >-
@@ -1153,7 +1136,6 @@ mutations:
     replace: '        if require_known_kind(node, action) == "raise":'
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: hero-may-limp-again
     description: >-
@@ -1173,7 +1155,6 @@ mutations:
     replace: "if False and call_weight > 0.0:"
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: the-derived-chart-report-renders-whatever-it-is-handed
     description: >-
@@ -1197,7 +1178,6 @@ mutations:
     replace: "    if False:"
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: the-old-versus-new-comparison-reads-the-new-chart-twice
     description: >-
@@ -1225,7 +1205,6 @@ mutations:
     must_fail:
       - generate_derived_chart_report
       - pytest_derived_chart
-      - pytest
 
   # Phase 14 stage-4 re-cut canaries, authored 2026-09-01.
   #
@@ -1262,7 +1241,6 @@ mutations:
     replace: "    return solved > counterfactual"
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: dominance-tolerance-widened-past-the-ruling
     description: >-
@@ -1290,7 +1268,6 @@ mutations:
     replace: "TOLERANCE_PCT = 25.0"
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   - id: the-transposed-reading-is-not-transposed
     description: >-
@@ -1318,7 +1295,6 @@ mutations:
     replace: "swapped[suited], swapped[offsuit] = cells[suited], cells[offsuit]"
     must_fail:
       - pytest_derived_chart
-      - pytest
 
   # Phase 14 stage-4 re-cut against the 249, authored 2026-09-02.
   #
@@ -1400,7 +1376,6 @@ mutations:
     must_fail:
       - pytest_derived_chart
       - generate_derived_chart_report
-      - pytest
 
   # The lane table's other stage-4 canary - "a wrong artifact fails the command
   # rather than being rendered" - is NOT written here, because it already exists as

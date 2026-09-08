@@ -81,7 +81,8 @@ def health_command_ids(mutations: list[dict]) -> list[str]:
     """Every command the sweep will have run, listed once, in a stable order.
 
     The sweep used to re-run one mutation's own commands right after restoring it,
-    which is the same evidence collected 74 times and was most of the three hours.
+    which is the same evidence collected once per mutation and was most of the three
+    hours.
     Once at the end asks for strictly more: the union covers commands this mutation
     never named, so a mutation that corrupts a file some other mutation's command
     reads is caught here and was not caught before.
