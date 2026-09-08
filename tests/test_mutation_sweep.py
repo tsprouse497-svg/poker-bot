@@ -484,6 +484,7 @@ def test_the_sweep_stops_rather_than_mutating_a_tree_it_no_longer_understands(
     """Carrying on would report later verdicts against an unknown tree as if it were clean."""
     sentinel = tmp_path / ".mutation_in_progress"
     seen: list[str] = []
+    health: list[str] = []
 
     def fake_check(mutation: dict) -> list[str]:
         seen.append(mutation["id"])
@@ -491,18 +492,30 @@ def test_the_sweep_stops_rather_than_mutating_a_tree_it_no_longer_understands(
             sentinel.write_text("left behind\n", encoding="utf-8")
         return []
 
+    def fake_run(command_id: str) -> bool:
+        health.append(command_id)
+        return True
+
     monkeypatch.setattr(check_gate_bite, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(check_gate_bite, "SENTINEL_PATH", sentinel)
     monkeypatch.setattr(check_gate_bite, "check_mutation", fake_check)
+    monkeypatch.setattr(check_gate_bite, "COMMANDS", {"fake_command": object()})
+    monkeypatch.setattr(check_gate_bite, "run_registered", fake_run)
     monkeypatch.setattr(
         check_gate_bite,
         "load_mutations",
-        lambda: [{"id": name, "must_fail": []} for name in ("first", "second", "third")],
+        lambda: [
+            {"id": name, "must_fail": ["fake_command"]} for name in ("first", "second", "third")
+        ],
     )
 
     assert check_gate_bite.main() == 1
     assert seen == ["first", "second"]
     assert sentinel.exists()
+    # The health pass is skipped too: on a tree known to be wrong every failure it
+    # produced would describe the damage rather than the gate, at the cost of running
+    # every witness once.
+    assert health == []
 
 
 def test_a_mutation_that_names_no_witness_is_refused_when_the_file_is_read(

@@ -218,6 +218,7 @@ def main() -> int:
         return 1
 
     errors: list[str] = []
+    stopped_early = False
     for mutation in mutations:
         errors.extend(check_mutation(mutation))
         if SENTINEL_PATH.exists():
@@ -230,6 +231,7 @@ def main() -> int:
                 " that nothing can be committed until it is repaired. The remaining"
                 " mutations were not run"
             )
+            stopped_early = True
             break
 
     # One health pass, after the last restore, over every command the sweep ran.
@@ -238,17 +240,22 @@ def main() -> int:
     # proves the tree still stands. Ids that are not registered are skipped rather
     # than looked up: check_mutation has already reported each one, and a lookup
     # here would raise a KeyError instead of printing the errors it collected.
-    for command_id in health_command_ids(mutations):
-        if command_id not in COMMANDS:
-            continue
-        if not run_registered(command_id):
-            errors.append(
-                f"the tree did not come back healthy after the sweep: {command_id!r} fails on"
-                " the restored tree. Check the working tree for a file left mutated, and swap"
-                " that mutation's 'replace' string back to its 'find' string from"
-                " verification/mutations.yml rather than reaching for git checkout,"
-                " which discards uncommitted work."
-            )
+    #
+    # Skipped when the sweep stopped on a bad restore. The tree is known to be wrong at
+    # that point, so every failure this pass produced would describe the damage rather
+    # than say anything about the gate, at the cost of running every witness once.
+    if not stopped_early:
+        for command_id in health_command_ids(mutations):
+            if command_id not in COMMANDS:
+                continue
+            if not run_registered(command_id):
+                errors.append(
+                    f"the tree did not come back healthy after the sweep: {command_id!r} fails"
+                    " on the restored tree. Check the working tree for a file left mutated, and"
+                    " swap that mutation's 'replace' string back to its 'find' string from"
+                    " verification/mutations.yml rather than reaching for git checkout,"
+                    " which discards uncommitted work."
+                )
 
     if errors:
         for error in errors:
