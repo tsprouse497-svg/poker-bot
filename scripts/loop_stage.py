@@ -57,7 +57,7 @@ from check_contracts import (  # noqa: E402
     MIN_SPECIFIC_CRITERIA,
     section_bullets,
 )
-from run_verify import COMMANDS  # noqa: E402
+from run_verify import COMMANDS, derive_gate  # noqa: E402
 
 LEGACY_STATE_PATH = REPO_ROOT / "verification" / "loop_state.yml"
 RUNS_DIR = REPO_ROOT / "verification" / "loop_runs"
@@ -69,6 +69,9 @@ COMPLETED_PLANS = REPO_ROOT / "docs" / "exec_plans" / "completed"
 REVIEWS_ROOT = REPO_ROOT / "reports" / "phase_audits" / "reviews"
 LOCK_NAME = "poker-loop.lock"
 SCHEMA_VERSION = 1
+# The mutation sweep, which stage 7 requires the gate to have run rather than running
+# a second time itself.
+SWEEP_COMMAND = "check_gate_bite"
 
 # Paths whose changes never require a review, because no human wrote a judgment
 # into them: the driver's own pointer, computed hashes, bookkeeping that dedicated
@@ -395,8 +398,37 @@ def check_build(ctx: Context) -> list[str]:
     return reasons
 
 
+def sweep_missing_from_gate() -> str | None:
+    """Say why a green `run_verify.py` would not count, or nothing if it would.
+
+    This stage used to run `check_gate_bite` a second time, after `run_verify.py`
+    had already run it as one of `BASE_GATE_CHECKS`. That is two three-hour sweeps
+    for one attempt at one stage, and the second one collected evidence the first
+    had already collected. What it was really guarding was not the sweep's verdict
+    but its presence: a green gate means something only if the sweep was in it, and
+    that is a question about what the gate contains, answerable in milliseconds.
+
+    Asked before the gate runs rather than after, because the answer comes from
+    `phase_status.yml` and the contracts either way, and a stage that already knows
+    the run will not count should not spend hours producing it.
+    """
+    try:
+        gate = derive_gate()
+    except Exception as exc:
+        # However it failed, the stage cannot show the gate would run the sweep.
+        return f"the gate could not be derived, so nothing shows it runs {SWEEP_COMMAND}: {exc}"
+    if SWEEP_COMMAND not in gate:
+        return (
+            f"{SWEEP_COMMAND} is not in the derived gate, so a green run_verify.py"
+            " would only say the tests pass, not that they would notice a defect:"
+            " the gate is decorative until the sweep is back in it"
+        )
+    return None
+
+
 def check_full_gate(ctx: Context) -> list[str]:
-    reasons = []
+    if reason := sweep_missing_from_gate():
+        return [reason]
     proc = subprocess.run(
         [sys.executable, str(REPO_ROOT / "scripts" / "run_verify.py")],
         cwd=REPO_ROOT,
@@ -404,11 +436,12 @@ def check_full_gate(ctx: Context) -> list[str]:
         capture_output=True,
     )
     if proc.returncode != 0:
-        reasons.append("run_verify.py is red")
-    passed, _ = run_command("check_gate_bite")
-    if not passed:
-        reasons.append("check_gate_bite is red: a mutation survived, so the gate is decorative")
-    return reasons
+        return [
+            f"run_verify.py is red, and it ran {SWEEP_COMMAND}: either a test failed"
+            " or a mutation survived, and a mutation surviving means the gate is"
+            " decorative"
+        ]
+    return []
 
 
 def validate_review(path) -> list[str]:
@@ -561,8 +594,8 @@ STAGES: tuple[Stage, ...] = (
     ),
     Stage(
         7, "gate", "script",
-        "Full run_verify.py green, then check_gate_bite to prove the gate"
-        " actually catches the mutations.",
+        "Full run_verify.py green, with check_gate_bite among the commands it"
+        " derived, so that green also says the gate catches the mutations.",
         check_full_gate,
         "Hand-written work at this stage escaped an earlier one. A canary added here"
         " is a canary nobody reviewed at stage 4, so review it now.",

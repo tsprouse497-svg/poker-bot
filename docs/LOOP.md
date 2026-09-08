@@ -78,7 +78,7 @@ Its shape is covered by `tests/test_loop_fleet.py` instead.
 | 4 | tests | model | the phase's `pytest_*` command fails, on an assertion or on a missing `poker_training_bot` module |
 | 5 | freeze | script | `check_test_freeze` green, `tests/` and `verification/` out of scope |
 | 6 | build | model | every command the contract declares is green |
-| 7 | gate | script | full `run_verify.py` green, `check_gate_bite` green |
+| 7 | gate | script | `check_gate_bite` is in the derived gate, and full `run_verify.py` green |
 | 8 | review | model | review notes exist covering mechanical, domain, and blocker status |
 | 9 | audit | model | audit packet names summary, checklist, review, decisions, and a recomputable number |
 | 10 | closeout | script | phase completed, ExecPlan filed, tag present, idle, clean tree |
@@ -121,6 +121,12 @@ Stage 7 does not stop at a green gate.
 `check_gate_bite` applies each mutation in `verification/mutations.yml` and requires the gate to notice.
 A surviving mutation means the gate is decorative for that behavior, which a green run cannot otherwise reveal and a test freeze cannot catch, because freezing preserves a weak test perfectly.
 
+Undoing a mutation by hand is never `git checkout`.
+A builder proving a canary bites applies it to a file that is already modified against HEAD, so checking that file out restores the pre-phase version and silently discards the work being verified, and nothing kept a copy of it.
+The repair is to open the file at the line the sentinel names, swap that mutation's `replace` string back to its `find` string from `verification/mutations.yml`, delete `verification/.mutation_in_progress` if it is there, and delete that file's cached `.pyc`.
+The line number is part of the repair rather than a convenience: a mutation can make its line identical to another one, and `spot-key-drops-the-raise-size` does, so swapping the first match found restores the wrong line.
+`check_gate_bite` says exactly that in its sentinel and in every error it prints.
+
 ## Reversibility, and when a human is required
 
 Every judgment call in a decision list declares one of two classes.
@@ -150,8 +156,8 @@ The loop stops rather than pushing through:
 
 - `scripts/loop_stage.py`: the state machine described above.
 - `scripts/freeze_tests.py`: writes `verification/freeze.lock`; `--check` verifies it. The writer is deliberately absent from the gate, because a gate that refreshes the lock every run is not a freeze.
-- `scripts/check_gate_bite.py`: applies `verification/mutations.yml` in place, requires the named command to fail, restores, and then re-runs the command to prove the restore worked. It purges cached bytecode around each mutation, because CPython validates a `.pyc` by mtime and size and an equal-length mutation changes neither.
-- `scripts/check_repo_consistency.py`: cross-checks that declared gate commands are registered, that every `pytest_*` command names a file holding tests, and that phase status agrees with where the ExecPlan lives.
+- `scripts/check_gate_bite.py`: applies `verification/mutations.yml` in place, requires the named command to fail, restores, and proves that restore by comparing the file to the bytes it held before. It purges cached bytecode around each mutation, because CPython validates a `.pyc` by mtime and size and an equal-length mutation changes neither. Health is proved once at the end, over the union of every command the sweep ran, which is also what rewrites the reports those commands emitted while a defect was live. It used to re-run each mutation's own commands on the restored tree instead, which was the same evidence collected 74 times and was most of a three hour check.
+- `scripts/check_repo_consistency.py`: cross-checks that declared gate commands are registered, that every `pytest_*` command names a file holding tests, that every command a mutation names as its witness is one the derived gate actually runs, and that phase status agrees with where the ExecPlan lives.
 - `scripts/check_scope.py`: reads the scope the task started from out of `base_commit`, so widening `approved_scope` or shrinking `forbidden_scope` needs a new `scope_change_log` entry. It also rejects patterns where `*` crosses a directory separator, and requires a real commit sha while a task is open.
 - `scripts/check_contracts.py`: requires an active or completed phase to carry acceptance criteria that are not gate boilerplate.
 

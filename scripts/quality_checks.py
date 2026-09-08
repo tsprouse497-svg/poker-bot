@@ -17,11 +17,22 @@ from pathlib import Path
 
 # Command IDs that no mutation needs to point at, with the reason each is exempt. The
 # list is here rather than in a config file so that adding to it appears in a diff a
-# reviewer reads. It is empty on purpose: the catch-all `pytest` command could have
-# lived here, since every mutation that fails any command fails it too, but naming it in
-# a mutation costs one line and an exemption is a claim that something cannot be
-# checked.
-EXEMPT_FROM_MUTATION_COVERAGE: dict[str, str] = {}
+# reviewer reads. Until 2026-09-08 it was empty on purpose, on the reasoning that naming
+# the catch-all `pytest` in a mutation costs one line while an exemption claims something
+# cannot be checked. That reasoning was wrong, and the mutation sweep paid for it: 45 of
+# the 74 mutations named the whole suite, and those runs were 2h22m of a 3h check.
+# `tests/test_loop_machinery.py::test_every_mutation_applies_exactly_once_to_its_file`
+# asserts each mutation's find string occurs exactly once in its file, so applying ANY
+# mutation makes the suite red before any behaviour is examined. Measured under four
+# mutations in turn, that bookkeeping test was the only new failure each time. A witness
+# that cannot fail to fire asserts nothing, which is what an exemption is for.
+EXEMPT_FROM_MUTATION_COVERAGE: dict[str, str] = {
+    "pytest": (
+        "the whole suite goes red for every mutation through the bookkeeping test that"
+        " counts each find string, so naming it witnesses nothing that could fail to be"
+        " true; each mutation names the narrower command that covers its behaviour instead"
+    ),
+}
 
 ALLOWED_BACKLOG_STATUSES: frozenset[str] = frozenset({"deferred", "done"})
 
@@ -60,14 +71,16 @@ CHECKS: tuple[CheckSpec, ...] = (
     CheckSpec(
         name="mutation coverage",
         covers=(
-            "Every registered pytest_* gate command is named by at least one committed"
-            " mutation, so check_gate_bite has something to prove about each one."
+            "Every registered gate command whose id begins pytest is named by at least"
+            " one committed mutation, or is exempt by name with a reason, so"
+            " check_gate_bite has something to prove about each one."
         ),
         does_not_cover=(
-            "It reads pytest_* commands only, so the checkers and generators in the gate"
+            "It reads pytest commands only, so the checkers and generators in the gate"
             " have no canary demanded of them. And it does not judge whether a mutation"
             " is a good one: one canary aimed at a command says the command can fail,"
-            " not that its tests are strong."
+            " not that its tests are strong. The catch-all pytest is exempt for exactly"
+            " that reason, being red for every mutation whatever the mutation does."
         ),
     ),
     CheckSpec(

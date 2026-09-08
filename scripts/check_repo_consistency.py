@@ -18,6 +18,11 @@ it.
   a typo makes a phase unstartable forever and a cycle makes a whole group of them
   unstartable. Both fail quietly as "waiting on a dependency", which is exactly what
   ordinary waiting looks like.
+- Every command a mutation names as its witness must be in the gate `run_verify.py`
+  derives. A mutation's `must_fail` list is a claim that a real regression of that
+  behaviour would be noticed, and it is only that while the named command runs. A
+  command leaves the derived gate the moment its phase's status changes in
+  `phase_status.yml`, and nothing about the mutation changes when it does.
 """
 
 from __future__ import annotations
@@ -35,8 +40,9 @@ except ModuleNotFoundError:
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from freeze_tests import test_function_count  # noqa: E402
-from run_verify import COMMANDS, parse_frontmatter  # noqa: E402
+from run_verify import COMMANDS, derive_gate, parse_frontmatter  # noqa: E402
 
+MUTATIONS = REPO_ROOT / "verification" / "mutations.yml"
 PHASE_STATUS = REPO_ROOT / "phase_status.yml"
 ACTIVE_PLANS = REPO_ROOT / "docs" / "exec_plans" / "active"
 COMPLETED_PLANS = REPO_ROOT / "docs" / "exec_plans" / "completed"
@@ -76,6 +82,35 @@ def check_pytest_commands_hold_tests(errors: list[str]) -> None:
                 errors.append(f"gate command {command_id!r} names missing test file {relative}")
             elif test_function_count(path) == 0:
                 errors.append(f"gate command {command_id!r} names {relative}, which holds no tests")
+
+
+def mutations() -> list[dict]:
+    return yaml.safe_load(MUTATIONS.read_text(encoding="utf-8"))["mutations"]
+
+
+def check_mutation_witnesses_run_in_the_gate(
+    all_mutations: list[dict], gate: list[str], errors: list[str]
+) -> None:
+    """A `must_fail` entry is a claim only for as long as the gate runs the command.
+
+    Narrowing a mutation off the catch-all suite and onto one command is what makes
+    the sweep affordable, and it is safe only while that command is in the derived
+    gate. Commands enter and leave the gate on their phase's status in
+    `phase_status.yml`, and no mutation notices when one leaves.
+    """
+    in_gate = set(gate)
+    for mutation in all_mutations:
+        for command_id in mutation.get("must_fail") or []:
+            if command_id in in_gate:
+                continue
+            errors.append(
+                f"mutation {mutation['id']!r} names gate command {command_id!r} as what"
+                " must go red for its defect, but scripts/run_verify.py does not derive"
+                " that command into the gate. Nothing but check_gate_bite would run it,"
+                " so the real regression this mutation stands for would reach a green"
+                " gate unreported. Return the command to the gate, or point the mutation"
+                " at one the gate runs"
+            )
 
 
 def plan_name(phase: dict) -> str:
@@ -148,6 +183,7 @@ def cyclic_phases(graph: dict[str, list[str]]) -> set[str]:
 def main() -> int:
     errors: list[str] = []
     check_pytest_commands_hold_tests(errors)
+    check_mutation_witnesses_run_in_the_gate(mutations(), derive_gate(), errors)
     check_dependency_graph(phases(), errors)
     for phase in phases():
         if phase["status"] in GATE_PHASE_STATUSES:

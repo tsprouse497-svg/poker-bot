@@ -61,6 +61,37 @@ def ruff_command() -> list[str]:
     return [sys.executable, "-m", "ruff", "check", "--no-cache", "."]
 
 
+# The two pytest commands that carry these are the only ones long enough to be worth
+# splitting. Measured on this commit, one core against four: the whole suite 265.7s and
+# 161.1s, `pytest_derived_chart` 190.0s and 100.9s. Readings taken earlier the same day,
+# on the same machine but with less running on it, were about 2.7x faster throughout:
+# 95.4s and 43.4s for a suite of 1,164 tests, 69.5s and 35.1s for the chart command. Both
+# pairs are recorded because the pair is the finding and the seconds are not: this machine
+# usually has a sibling lane gating on it, so the absolutes move with the load while the
+# roughly 1.7x to 2.2x does not.
+#
+# `pytest_derived_chart` is eleven chart files and the narrow command the mutation sweep
+# now runs most often, so its saving is paid back once per mutation rather than once per
+# gate.
+#
+# Four rather than `auto`: this machine has four performance cores and six efficiency
+# ones, so `auto` buys nothing above four; several lanes gate at once here and `auto`
+# would oversubscribe the machine; and a gate whose cost depends on which machine ran it
+# is harder to reason about.
+#
+# `loadfile` rather than the default split: it keeps one file's tests on one worker,
+# which is the conservative choice for a suite where several files write into a shared
+# tree. Parallel safety was measured before these flags went in - four worker-count and
+# split combinations over the whole suite, and no test failed that did not also fail on
+# one core.
+#
+# One asymmetry to know about, since check_gate_bite reads a non-zero exit as "the
+# mutation was caught": a real failure on any worker still exits non-zero, so a red
+# cannot look green, but a worker that dies of something unrelated also exits non-zero,
+# which would read as caught. That direction is the one to suspect if a mutation ever
+# looks caught for a reason nobody can reproduce serially.
+PARALLEL_WORKER_FLAGS = ["-n", "4", "--dist", "loadfile"]
+
 COMMANDS = {
     "generate_status": CommandSpec(
         uv_python_command() + ["scripts/generate_status.py"],
@@ -114,6 +145,24 @@ COMMANDS = {
         uv_python_command() + ["-m", "pytest", "tests/test_loop_fleet.py"],
         "Run parallel-loop eligibility, lane discovery, and pause board tests",
     ),
+    "pytest_loop_machinery": CommandSpec(
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_loop_machinery.py",
+            "tests/test_mutation_sweep.py",
+            # Without this deselect the command is red for every mutation in the
+            # registry, whatever that mutation does, because the deselected test counts
+            # each mutation's find string in the file it names and one is missing while
+            # the sweep has it applied. That is the exact vacuity the catch-all `pytest`
+            # is exempted for in scripts/quality_checks.py, and five mutations name this
+            # command as their only witness. The test still runs, in the base `pytest`.
+            "--deselect",
+            "tests/test_loop_machinery.py::test_every_mutation_applies_exactly_once_to_its_file",
+        ],
+        "Run the loop state machine, scope, freeze, and mutation sweep tests",
+    ),
     "freeze_tests": CommandSpec(
         uv_python_command() + ["scripts/freeze_tests.py"],
         "Rewrite the test freeze lock",
@@ -136,7 +185,7 @@ COMMANDS = {
         "Import package smoke test",
     ),
     "pytest": CommandSpec(
-        uv_python_command() + ["-m", "pytest", "tests"],
+        uv_python_command() + ["-m", "pytest", "tests"] + PARALLEL_WORKER_FLAGS,
         "Run tests",
     ),
     "pytest_poker_core": CommandSpec(
@@ -302,7 +351,8 @@ COMMANDS = {
             "tests/test_derived_chart_report_cutover.py",
             "tests/test_derived_chart_report_validators.py",
             "tests/test_chart_arrival_probability.py",
-        ],
+        ]
+        + PARALLEL_WORKER_FLAGS,
         "Run the derived-chart selection, conversion, artifact, and report tests",
     ),
     "generate_derived_chart_report": CommandSpec(
@@ -338,6 +388,10 @@ BASE_GATE_CHECKS = [
     # The fleet is repo tooling rather than phase work, so no contract declares it
     # and it belongs in the base gate.
     "pytest_loop_fleet",
+    # Same for the loop state machine and the mutation sweep's own tests. They are
+    # also the witness the narrowed mutations in verification/mutations.yml name, so
+    # the gate has to run them for that narrowing to mean anything.
+    "pytest_loop_machinery",
     "import_smoke",
     "uv_import_smoke",
     "pytest",

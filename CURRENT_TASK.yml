@@ -1813,3 +1813,49 @@ scope_change_log:
       and the plan, and forgot the place the independent review writes to - which is not optional here:
       AGENTS.md says the agent that wrote something is never the only one that judges it, so a lane
       that cannot record a review is a lane that cannot close.
+  - date: 2026-09-08
+    reason: >-
+      Lane activation for maint-cheaper-mutation-sweep, which starts from an idle task and so
+      reads as a widening of an empty scope. Taylor ruled the investigation's recommendation on
+      2026-09-08: make `check_gate_bite` stop paying for evidence it does not collect.
+      The ten approved paths are the smallest set that carries that ruling.
+      `scripts/check_gate_bite.py` is the sweep itself: it currently runs every command a
+      mutation names twice, once mutated and once restored, and the second run is half the bill.
+      `verification/mutations.yml` holds the 45 `must_fail` lists that name the whole suite;
+      those runs are satisfied by a bookkeeping test in `tests/test_loop_machinery.py` that
+      notices the tree was mutated, so they cost 2h22m and prove nothing.
+      `scripts/run_verify.py` is where a witness for those mutations has to be registered and
+      where the worker flag goes. `scripts/check_repo_consistency.py` gains the check that stops
+      a narrowed witness from silently leaving the gate. `scripts/loop_stage.py` runs the sweep
+      a second time at stage 7 on top of the one inside `run_verify.py`.
+      `tests/test_loop_machinery.py` and `verification/freeze.lock` carry the tests for all of
+      it; `pyproject.toml` and `uv.lock` carry `pytest-xdist`; `docs/LOOP.md` states the restore
+      behaviour that changes. Nothing under `src/` is approved: this task changes what proves
+      the bot, never the bot.
+  - date: 2026-09-08
+    reason: >-
+      Mid-task widening by one file, found while briefing the narrowing lane.
+      `scripts/quality_checks.py` holds `mutation_coverage_errors`, which demands that every
+      registered command whose id starts with `pytest` is named by at least one mutation, or is
+      exempted by name with a reason. Dropping `pytest` from all 45 lists therefore turns the
+      quality gate red unless the catch-all is exempted, and the comment above that dict states
+      the opposite of what this task measured: it says naming `pytest` in a mutation costs one
+      line and an exemption would be a claim that something cannot be checked, when in fact
+      `tests/test_loop_machinery.py::test_every_mutation_applies_exactly_once_to_its_file`
+      makes the whole suite red for every mutation, so naming it is the claim that cannot be
+      checked. The exemption and that comment are the whole of the widening.
+  - date: 2026-09-08
+    reason: >-
+      Mid-task widening by one new test file, forced by a cap rather than chosen.
+      `scripts/check_file_sizes.py` holds `tests/**/*.py` to 700 lines and
+      `tests/test_loop_machinery.py` was already at 698, so the three lanes of this task had two
+      lines between them. The sweep's own tests move to `tests/test_mutation_sweep.py`, which is
+      where they belonged anyway: that file tests `check_gate_bite`, and the one they left tests
+      the loop driver, the scope checker, and the freeze. The cap is not raised.
+  - date: 2026-09-08
+    reason: >-
+      Mid-task widening by the directory the independent review note lands in,
+      `reports/phase_audits/reviews/MAINT_CHEAPER_MUTATION_SWEEP/**`, on the MAINT-31 precedent
+      that scoped `reports/phase_audits/reviews/MAINT_ASK_THE_CHART_A_HAND/**` the same way.
+      AGENTS.md owes an independent read-only review whatever else a task does, and the note has
+      nowhere else to go.
