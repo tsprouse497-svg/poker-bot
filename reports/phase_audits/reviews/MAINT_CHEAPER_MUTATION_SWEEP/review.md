@@ -31,6 +31,14 @@ blocker below.
   in `tests/test_mutation_sweep.py` holds the fix in place. The reviewer verified the
   collateral before proposing it: `check_pytest_commands_hold_tests` filters on a `.py`
   suffix, so the `::` argument is ignored and both files are still seen.
+  The original finding was reasoned rather than run, because the reviewer was barred from
+  applying a mutation to the tree. On the verification pass it applied all five in a copy of
+  the worktree in scratch, never the live tree, and ran the registered command with the
+  deselect: all five exit 1, and in every case the first failure is a behaviour test rather
+  than the bookkeeping one. For the new canary the whole claim rests on a single test,
+  `test_a_witness_the_derived_gate_does_not_run_is_reported`, because the two sibling tests
+  that call the same check assert an empty error list and so pass when it is made vacuous.
+  One thread, and it is the right one.
 
 - [resolved] **A detected bad restore deleted the sentinel that says the tree is broken.**
   `restore_errors` is the first thing in the repo that can know a restore came back wrong,
@@ -42,7 +50,17 @@ blocker below.
   rather than applying the next mutation to a tree whose state nobody knows.
   `test_a_failed_restore_keeps_the_sentinel_that_blocks_a_commit` and
   `test_the_sweep_stops_rather_than_mutating_a_tree_it_no_longer_understands` cover both
-  halves.
+  halves. On the verification pass the reviewer added the reason this is better rather than
+  merely safer: `check_mutation` reads its `original` fresh from disk, so the mutation after
+  a bad restore would have adopted the corrupt file as its baseline and restored to it,
+  laundering the damage into what the sweep believes is clean and reporting 70 downstream
+  verdicts taken against an unknown tree.
+  Two follow-ups came out of that pass and are fixed at `f317014` and after it: the stop left
+  the end-of-sweep health pass running over the tree it had just disclaimed, which would have
+  written reports derived from defective source, and the test that proved the stop gave its
+  fake mutations no witness, so it could not have noticed. The health pass is now skipped on a
+  stop, the stop message says the reports were not rewritten, and the test asserts no command
+  runs afterwards.
 
 ## Non-blocker
 
@@ -75,6 +93,15 @@ blocker below.
   and the correction says what the figure no longer means.
 - **The ExecPlan did not describe the tree it sits beside.** Lane statuses, slices, the test
   file that moved, and the Outcome were all stale. Updated at closeout.
+- **The Outcome then recorded the saving with the wrong number.** It said 148 command runs
+  before, which is 74 times 2, a mutation count where a command-run count belongs. Measured at
+  `b5eb610`: 74 mutations carrying 125 `must_fail` entries, each run twice, so 250. After: 104.
+  Caught on the verification pass, and worth being right because it is the figure the saving is
+  recorded as.
+- **The claim that every reader can now index `must_fail` reached further than the change.**
+  `load_mutations` validates, and the sweep can index. `check_repo_consistency` and
+  `tests/test_quality_hardening` load the file themselves and still tolerate an absent list. The
+  comment says so now.
 
 ## Alignment
 
@@ -87,6 +114,14 @@ blocker below.
   an instance of a shape nothing detects. Any narrow `pytest_*` command whose files happen
   to include a registry-wide assertion becomes an unfalsifiable witness, and mutation
   coverage checks only that a command is named, never that it could pass under a mutation.
+
+## Verification pass
+
+The same reviewer re-read `5d3281d..f317014` after the fixes and reported no blockers. Its
+verdicts: stopping on a bad restore is strictly better than continuing rather than a new risk;
+the deselect is enough, on the single-thread evidence above; and nothing in the fixes is worse
+than what it replaced. Its three findings on that pass are folded into the non-blocker list
+above and all three are fixed.
 
 ## Checked and clean
 

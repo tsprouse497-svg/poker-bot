@@ -55,9 +55,11 @@ def load_mutations() -> list[dict]:
     mutations = data.get("mutations") or []
     if not mutations:
         raise ValueError("mutations.yml declares no mutations, so the gate is unproven")
-    # Validated here so that every reader of a mutation can index `must_fail` rather
-    # than guess what an absent one means. A mutation with no witness is not a weak
-    # claim, it is no claim, and it would pass a sweep by naming nothing to run.
+    # Validated here so that the sweep can index `must_fail` rather than guess what an
+    # absent one means. A mutation with no witness is not a weak claim, it is no claim,
+    # and it would pass a sweep by naming nothing to run. Two other readers load the file
+    # themselves rather than through here - `check_repo_consistency` and
+    # `tests/test_quality_hardening` - and both still tolerate an absent list.
     witnessless = [m.get("id") for m in mutations if not m.get("must_fail")]
     if witnessless:
         raise ValueError(
@@ -229,7 +231,9 @@ def main() -> int:
                 f"stopping after {mutation['id']!r}: the tree is not as the sweep found"
                 f" it, and {SENTINEL_PATH.relative_to(REPO_ROOT)} is left in place so"
                 " that nothing can be committed until it is repaired. The remaining"
-                " mutations were not run"
+                " mutations were not run, and neither was the health pass, so any report"
+                " a command wrote from defective source is still on disk and has to be"
+                " regenerated after the repair"
             )
             stopped_early = True
             break

@@ -103,8 +103,11 @@ run that certified this lane.
 
 - Before, on `main` at `b5eb610`: the gate took 11,525 seconds, of which `check_gate_bite` was
   11,313. 45 of the 74 mutations named the whole suite, so the sweep ran it 90 times.
-- After: see the committed verify report. No mutation names the whole suite. The sweep runs 85
-  command runs plus one health pass over the 19 distinct witnesses, against 148 runs before.
+- After: see the committed verify report. No mutation names the whole suite. The sweep makes 85
+  command runs plus one health pass over the 19 distinct witnesses, so 104, against 250 before:
+  the 74 mutations carried 125 `must_fail` entries and every entry ran twice. An earlier draft of
+  this line said 148, which was 74 times 2, a mutation count where a command-run count belongs.
+  The review caught it.
 - What the sweep asks for went up, not down. Every mutation is now witnessed by a command that
   exercises the behaviour it breaks, rather than by a suite that a bookkeeping test reddens for
   any mutation at all. `check_repo_consistency` refuses a witness the derived gate does not run,
