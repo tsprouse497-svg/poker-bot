@@ -121,6 +121,11 @@ Stage 7 does not stop at a green gate.
 `check_gate_bite` applies each mutation in `verification/mutations.yml` and requires the gate to notice.
 A surviving mutation means the gate is decorative for that behavior, which a green run cannot otherwise reveal and a test freeze cannot catch, because freezing preserves a weak test perfectly.
 
+Undoing a mutation by hand is never `git checkout`.
+A builder proving a canary bites applies it to a file that is already modified against HEAD, so checking that file out restores the pre-phase version and silently discards the work being verified, and nothing kept a copy of it.
+The repair is to open the file, swap that mutation's `replace` string back to its `find` string from `verification/mutations.yml`, delete `verification/.mutation_in_progress` if it is there, and delete that file's cached `.pyc`.
+`check_gate_bite` says exactly that in its sentinel and in every error it prints.
+
 ## Reversibility, and when a human is required
 
 Every judgment call in a decision list declares one of two classes.

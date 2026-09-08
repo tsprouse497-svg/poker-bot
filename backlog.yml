@@ -1679,7 +1679,7 @@ items:
       Recorded as done rather than deleted, because the wrong reason is the useful part: an
       unreachable defect with a plausible argument for leaving it is exactly what a review is for.
   - id: MUTATION-DRILL-CHECKOUT-DESTROYS-UNCOMMITTED-WORK
-    status: deferred
+    status: done
     phase: contract-update
     title: Restoring a hand-applied mutation with git checkout throws away the uncommitted build
     reason: >-
@@ -1695,6 +1695,14 @@ items:
       fix is a rule in docs/LOOP.md, or a helper that snapshots and restores, and either is
       loop-driver territory a phase task must not reach. Filed as contract-update on the
       LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS precedent.
+      CLOSED 2026-09-08 by MAINT-33, which took the first route and removed the source of the
+      advice as well. docs/LOOP.md now states the repair under its stage 7 section: swap that
+      mutation's `replace` string back to its `find` string, delete the sentinel, delete the
+      cached `.pyc`, and never check the file out. `scripts/check_gate_bite.py` printed
+      `restore that file with git checkout` in its sentinel, its startup refusal, and its
+      restore error; all three print that repair now. Still true, and why this is a rule rather
+      than a check: the destroyed state was never committed, so nothing mechanical can catch a
+      builder who does it anyway.
   - id: TABLE-STATE-REPORT-RENDERER-HAS-NO-SIZE-CAP
     status: deferred
     phase: contract-update
@@ -6193,6 +6201,12 @@ items:
       One item is split out rather than kept here, because its repair is specific and already in the tree
       where the rest of this census is a policy question:
       EQUITY-MATRIX-SHIPS-WITH-NO-COMMAND-THAT-READS-IT.
+      AMENDED 2026-09-08 by MAINT-33, which changed two of the figures above rather than re-measuring
+      them. `EXEMPT_FROM_MUTATION_COVERAGE` is no longer empty: it carries the catch-all `pytest`,
+      because `test_every_mutation_applies_exactly_once_to_its_file` makes the whole suite red for every
+      mutation, so naming it in a `must_fail` list witnesses nothing that could fail to be true. The
+      canary count is 75, not 74, and 30 of the 49 registered commands are named by no mutation, of which
+      none begins `pytest`. Every other figure here stands as measured on the day it was written.
 
   - id: A-PRICE-IS-INDEXED-BY-THE-WRONG-SPOTS-HERO
     status: deferred
@@ -6510,3 +6524,46 @@ items:
       and the answer should be decided deliberately if more of them arrive. A registered command id
       also needs a phase contract to declare it, which a maintenance task does not have, so the
       question is a `contract-update` one rather than something a maint lane can settle.
+
+  - id: MUTATION-SWEEP-RUNS-ONE-MUTATION-AT-A-TIME
+    status: deferred
+    phase: contract-update
+    title: The sweep uses one core, and it mutates the tree you are working in
+    reason: >-
+      MAINT-33 took `check_gate_bite` from 3h08m to minutes by removing the second run of every
+      command and by pointing each mutation at the command that actually catches it. It did not
+      touch the two structural facts underneath. The sweep applies its mutations to the working
+      tree, one at a time, on one core, and the machine has ten. The measured option is a copy of
+      the tree per worker: four whole suites at once in four copies took 170 seconds against 95
+      for one, so about 2.2 times rather than four, because this machine has four performance
+      cores and six efficiency ones. Peak memory across the four was 4.3GB of 32GB, so memory is
+      not the limit. The tree is 44MB without its history, so a worker copy is cheap.
+      The saving is now the smaller half of the reason. The larger half is that a sweep against
+      copies stops editing the checkout a session is working in, which is where two recorded
+      hazards come from: MUTATION-SENTINEL-IS-COMMITTABLE, and the git checkout repair that
+      MAINT-33 removed the advice for but not the possibility of. What it costs is a red result
+      that has to name which copy failed, and a worker pool that has to clean up after itself.
+      Deferred rather than done because the ruling of 2026-09-08 took the three cheap options and
+      left this one to be decided once their saving is real.
+
+  - id: SEAT-ORDER-REFUSALS-HAVE-NO-TEST
+    status: deferred
+    phase: strategy
+    title: Four refusal behaviours are witnessed by a report script and by no test at all
+    reason: >-
+      Four committed mutations break which seat a refusal names:
+      `the-depth-refusal-names-the-first-offender-in-seat-order`,
+      `the-short-seat-refusal-names-the-first-offender-in-seat-order`,
+      `the-residual-refusal-names-the-lowest-chair` in
+      `src/poker_training_bot/strategy/preflop_chart.py`, and
+      `an-impossible-raise-sequence-still-constructs` in
+      `src/poker_training_bot/strategy/contract.py`. Each named `generate_table_state_report` and
+      the whole suite. Measured on 2026-09-08 by applying each one and running all 1,164 tests:
+      the only new failure was the bookkeeping test that counts each mutation's find string. No
+      test of the behaviour notices. `tests/test_full_table_preflop.py` was checked as the
+      obvious candidate, with its environment repaired so it could run, and it stays green.
+      So what proves these four is a report generator crashing, which is honest evidence that the
+      gate notices, and is not evidence that any test asserts what seat the refusal should name.
+      MAINT-33 dropped the catch-all from their `must_fail` lists rather than pretend otherwise;
+      writing the tests is the fix and it belongs to whoever next opens the refusal code. Until
+      then, `check_gate_bite` reporting these four as caught means the script fell over.

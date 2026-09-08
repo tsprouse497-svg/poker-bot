@@ -61,6 +61,31 @@ def ruff_command() -> list[str]:
     return [sys.executable, "-m", "ruff", "check", "--no-cache", "."]
 
 
+# The two pytest commands that carry these are the only ones long enough to be worth
+# splitting. Measured on this commit, one core against four: the whole suite 265.7s and
+# 161.1s, `pytest_derived_chart` 190.0s and 100.9s. Readings taken earlier the same day,
+# on the same machine but with less running on it, were about 2.7x faster throughout:
+# 95.4s and 43.4s for a suite of 1,164 tests, 69.5s and 35.1s for the chart command. Both
+# pairs are recorded because the pair is the finding and the seconds are not: this machine
+# usually has a sibling lane gating on it, so the absolutes move with the load while the
+# roughly 1.7x to 2.2x does not.
+#
+# `pytest_derived_chart` is eleven chart files and the narrow command the mutation sweep
+# now runs most often, so its saving is paid back once per mutation rather than once per
+# gate.
+#
+# Four rather than `auto`: this machine has four performance cores and six efficiency
+# ones, so `auto` buys nothing above four; several lanes gate at once here and `auto`
+# would oversubscribe the machine; and a gate whose cost depends on which machine ran it
+# is harder to reason about.
+#
+# `loadfile` rather than the default split: it keeps one file's tests on one worker,
+# which is the conservative choice for a suite where several files write into a shared
+# tree. Parallel safety was measured before these flags went in - four worker-count and
+# split combinations over the whole suite, and no test failed that did not also fail on
+# one core.
+PARALLEL_WORKER_FLAGS = ["-n", "4", "--dist", "loadfile"]
+
 COMMANDS = {
     "generate_status": CommandSpec(
         uv_python_command() + ["scripts/generate_status.py"],
@@ -146,7 +171,7 @@ COMMANDS = {
         "Import package smoke test",
     ),
     "pytest": CommandSpec(
-        uv_python_command() + ["-m", "pytest", "tests"],
+        uv_python_command() + ["-m", "pytest", "tests"] + PARALLEL_WORKER_FLAGS,
         "Run tests",
     ),
     "pytest_poker_core": CommandSpec(
@@ -312,7 +337,8 @@ COMMANDS = {
             "tests/test_derived_chart_report_cutover.py",
             "tests/test_derived_chart_report_validators.py",
             "tests/test_chart_arrival_probability.py",
-        ],
+        ]
+        + PARALLEL_WORKER_FLAGS,
         "Run the derived-chart selection, conversion, artifact, and report tests",
     ),
     "generate_derived_chart_report": CommandSpec(

@@ -15,6 +15,7 @@ approved_scope:
   - pyproject.toml
   - uv.lock
   - docs/LOOP.md
+  - reports/phase_audits/reviews/MAINT_CHEAPER_MUTATION_SWEEP/**
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -1864,3 +1865,10 @@ scope_change_log:
       lines between them. The sweep's own tests move to `tests/test_mutation_sweep.py`, which is
       where they belonged anyway: that file tests `check_gate_bite`, and the one they left tests
       the loop driver, the scope checker, and the freeze. The cap is not raised.
+  - date: 2026-09-08
+    reason: >-
+      Mid-task widening by the directory the independent review note lands in,
+      `reports/phase_audits/reviews/MAINT_CHEAPER_MUTATION_SWEEP/**`, on the MAINT-31 precedent
+      that scoped `reports/phase_audits/reviews/MAINT_ASK_THE_CHART_A_HAND/**` the same way.
+      AGENTS.md owes an independent read-only review whatever else a task does, and the note has
+      nowhere else to go.

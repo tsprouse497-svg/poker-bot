@@ -6,13 +6,20 @@ ran once with the bug in and once on the restored tree. These tests hold the che
 shape in place - a restore proved by comparing the bytes the sweep already held, and one
 health pass at the end over the union of everything it ran.
 
+They also hold the two other places that cost bought back: the loop's stage 7, which ran
+the whole sweep a second time after `run_verify.py` had just run it, and the two pytest
+commands long enough to be worth splitting across workers.
+
 They live apart from `test_loop_machinery.py` only because that file is at its size cap.
 """
 
 from __future__ import annotations
 
+import subprocess
+
 import scripts.check_gate_bite as check_gate_bite
 import scripts.check_repo_consistency as consistency
+import scripts.loop_stage as loop_stage
 import scripts.quality_checks as quality_checks
 import scripts.run_verify as run_verify
 
@@ -278,3 +285,149 @@ def test_the_exemption_silences_only_the_catch_all() -> None:
 
     assert len(errors) == 1
     assert "pytest_naked" in errors[0]
+
+
+# --------------------------------------------------------------------------- #
+# what the sweep costs the loop, and the two commands that split their work
+# --------------------------------------------------------------------------- #
+
+
+def test_stage_seven_refuses_a_gate_that_would_not_run_the_sweep(monkeypatch) -> None:
+    """The guarantee the deleted second sweep was really providing.
+
+    A command leaves the derived gate silently when its phase's status changes, and a
+    stage 7 that only watched `run_verify.py`'s exit code would then pass on a gate
+    that never asked whether a defect would be noticed.
+    """
+    monkeypatch.setattr(loop_stage, "derive_gate", lambda: ["pytest", "ruff_check"])
+
+    reason = loop_stage.sweep_missing_from_gate()
+
+    assert reason
+    assert "check_gate_bite" in reason
+    assert "decorative" in reason
+
+
+def test_stage_seven_is_satisfied_by_a_gate_that_contains_the_sweep(monkeypatch) -> None:
+    monkeypatch.setattr(loop_stage, "derive_gate", lambda: ["pytest", "check_gate_bite"])
+
+    assert loop_stage.sweep_missing_from_gate() is None
+
+
+def test_the_committed_gate_is_one_stage_seven_would_accept() -> None:
+    """The claim that matters: today's gate really does run the sweep."""
+    assert loop_stage.sweep_missing_from_gate() is None
+
+
+def test_a_gate_that_cannot_be_derived_is_a_reason_and_not_a_traceback(monkeypatch) -> None:
+    """Stage 7 answers in reasons. A malformed `phase_status.yml` is one of them."""
+
+    def explode() -> list[str]:
+        raise ValueError("phase_status.yml is not a mapping")
+
+    monkeypatch.setattr(loop_stage, "derive_gate", explode)
+
+    reason = loop_stage.sweep_missing_from_gate()
+
+    assert reason
+    assert "phase_status.yml is not a mapping" in reason
+
+
+def test_stage_seven_runs_the_sweep_once_by_running_it_only_inside_run_verify(
+    monkeypatch,
+) -> None:
+    """Until 2026-09-08 this stage paid for the sweep twice.
+
+    `check_gate_bite` is in `BASE_GATE_CHECKS`, so `run_verify.py` had just run it when
+    the stage ran it again through `run_command`. Two three-hour sweeps, one attempt,
+    and the second collected the evidence the first already had.
+    """
+    started: list[list[str]] = []
+    directly_run: list[str] = []
+
+    def fake_subprocess_run(command, **kwargs):
+        started.append([str(part) for part in command])
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    def fake_run_command(command_id: str, clip: int | None = 4000) -> tuple[bool, str]:
+        directly_run.append(command_id)
+        return True, ""
+
+    monkeypatch.setattr(loop_stage, "derive_gate", lambda: ["pytest", "check_gate_bite"])
+    monkeypatch.setattr(loop_stage.subprocess, "run", fake_subprocess_run)
+    monkeypatch.setattr(loop_stage, "run_command", fake_run_command)
+
+    assert loop_stage.check_full_gate(object()) == []
+    assert len(started) == 1
+    assert started[0][-1].endswith("run_verify.py")
+    assert directly_run == []
+
+
+def test_stage_seven_does_not_spend_the_gate_on_a_run_that_would_not_count(
+    monkeypatch,
+) -> None:
+    """The gate takes hours. A stage that already knows the answer will not count
+    should say so before spending them, not after."""
+    started: list[object] = []
+
+    monkeypatch.setattr(loop_stage, "derive_gate", lambda: ["pytest"])
+    monkeypatch.setattr(
+        loop_stage.subprocess, "run", lambda command, **kwargs: started.append(command)
+    )
+
+    reasons = loop_stage.check_full_gate(object())
+
+    assert len(reasons) == 1
+    assert started == []
+
+
+def test_a_red_run_verify_still_says_why_a_surviving_mutation_would_matter(
+    monkeypatch,
+) -> None:
+    """The reason text moved from the deleted second call to the one that remains.
+    A red gate now covers both a failing test and a surviving mutation, so it has to
+    name both rather than leaving the sweep's meaning behind with the call."""
+    monkeypatch.setattr(loop_stage, "derive_gate", lambda: ["check_gate_bite"])
+    monkeypatch.setattr(
+        loop_stage.subprocess,
+        "run",
+        lambda command, **kwargs: subprocess.CompletedProcess(command, 1, "", ""),
+    )
+
+    reasons = loop_stage.check_full_gate(object())
+
+    assert len(reasons) == 1
+    assert "check_gate_bite" in reasons[0]
+    assert "decorative" in reasons[0]
+
+
+def test_only_the_two_measured_commands_are_split_across_workers() -> None:
+    """`-n 4 --dist loadfile` is not free: it costs four interpreter startups and it
+    reorders the output a human reads. It is worth that on the whole suite and on the
+    eleven chart files, which were measured at 95.4s and 69.5s on one core, and worth
+    nothing on a command that finishes in a second. Anything else carrying the flags
+    is a copy-paste, and anything that stops carrying them is a lost measurement.
+    """
+    split = [
+        command_id
+        for command_id, spec in run_verify.COMMANDS.items()
+        if "-n" in spec.command or "--dist" in spec.command
+    ]
+
+    assert sorted(split) == ["pytest", "pytest_derived_chart"]
+
+
+def test_each_split_command_carries_the_whole_flag_group_at_the_end() -> None:
+    """`-n 4` without `--dist loadfile` is the default split, which does not keep a
+    file's tests on one worker; that grouping is the reason these flags are safe for a
+    suite whose files write into a shared tree."""
+    for command_id in ["pytest", "pytest_derived_chart"]:
+        command = run_verify.COMMANDS[command_id].command
+        tail = command[-len(run_verify.PARALLEL_WORKER_FLAGS) :]
+        assert tail == run_verify.PARALLEL_WORKER_FLAGS, command_id
+
+
+def test_the_worker_count_is_a_number_and_not_the_machine_it_ran_on() -> None:
+    """`auto` would make the gate's cost, and its oversubscription when several lanes
+    gate at once on this machine, depend on which machine that is."""
+    assert run_verify.PARALLEL_WORKER_FLAGS == ["-n", "4", "--dist", "loadfile"]

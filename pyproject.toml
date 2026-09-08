@@ -12,6 +12,10 @@ dev = [
     # committed table. `dependencies` above stays empty: the bot never imports numpy.
     "numpy>=2.0",
     "pytest>=8.0",
+    # Spreads the two slowest gate commands across four workers. Nothing imports it;
+    # the gate passes its flags on the command line. `PARALLEL_WORKER_FLAGS` in
+    # `scripts/run_verify.py` holds the measurements and the choice of four.
+    "pytest-xdist>=3.8.0",
     "pyyaml>=6.0",
     "ruff>=0.11",
 ]
