@@ -5,11 +5,13 @@ base_commit: b5eb6108e506c554c8c398fe43940de3076d7638
 approved_scope:
   - scripts/check_gate_bite.py
   - scripts/check_repo_consistency.py
+  - scripts/quality_checks.py
   - scripts/run_verify.py
   - scripts/loop_stage.py
   - verification/mutations.yml
   - verification/freeze.lock
   - tests/test_loop_machinery.py
+  - tests/test_mutation_sweep.py
   - pyproject.toml
   - uv.lock
   - docs/LOOP.md
@@ -1842,3 +1844,23 @@ scope_change_log:
       it; `pyproject.toml` and `uv.lock` carry `pytest-xdist`; `docs/LOOP.md` states the restore
       behaviour that changes. Nothing under `src/` is approved: this task changes what proves
       the bot, never the bot.
+  - date: 2026-09-08
+    reason: >-
+      Mid-task widening by one file, found while briefing the narrowing lane.
+      `scripts/quality_checks.py` holds `mutation_coverage_errors`, which demands that every
+      registered command whose id starts with `pytest` is named by at least one mutation, or is
+      exempted by name with a reason. Dropping `pytest` from all 45 lists therefore turns the
+      quality gate red unless the catch-all is exempted, and the comment above that dict states
+      the opposite of what this task measured: it says naming `pytest` in a mutation costs one
+      line and an exemption would be a claim that something cannot be checked, when in fact
+      `tests/test_loop_machinery.py::test_every_mutation_applies_exactly_once_to_its_file`
+      makes the whole suite red for every mutation, so naming it is the claim that cannot be
+      checked. The exemption and that comment are the whole of the widening.
+  - date: 2026-09-08
+    reason: >-
+      Mid-task widening by one new test file, forced by a cap rather than chosen.
+      `scripts/check_file_sizes.py` holds `tests/**/*.py` to 700 lines and
+      `tests/test_loop_machinery.py` was already at 698, so the three lanes of this task had two
+      lines between them. The sweep's own tests move to `tests/test_mutation_sweep.py`, which is
+      where they belonged anyway: that file tests `check_gate_bite`, and the one they left tests
+      the loop driver, the scope checker, and the freeze. The cap is not raised.

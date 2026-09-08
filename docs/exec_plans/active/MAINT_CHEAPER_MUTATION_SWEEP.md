@@ -25,6 +25,9 @@ Approved:
   slow pytest commands.
 - `scripts/check_repo_consistency.py` - new check: every command a mutation names is in the
   derived gate.
+- `scripts/quality_checks.py` - exempt the catch-all `pytest` from the rule that every
+  `pytest*` command must be named by a mutation, with the measured reason. Added mid-task; the
+  scope log carries why.
 - `scripts/loop_stage.py` - stage 7 stops running the sweep a second time.
 - `verification/mutations.yml` - narrow the 45 `must_fail` lists that name the whole suite.
 - `verification/freeze.lock`, `tests/test_loop_machinery.py` - tests for all of the above.
@@ -45,8 +48,8 @@ file, and two of them edit `scripts/run_verify.py`.
 - Worker lanes: three sequential worker subagents. Lane 1 sweep-mechanics, lane 2
   witness-narrowing, lane 3 parallel-tests-and-stage-7.
 - Ownership: lane 1 owns `scripts/check_gate_bite.py`; lane 2 owns
-  `verification/mutations.yml` and `scripts/check_repo_consistency.py`, and registers the new
-  command in `scripts/run_verify.py`; lane 3 owns `pyproject.toml`, `uv.lock`,
+  `verification/mutations.yml`, `scripts/check_repo_consistency.py` and
+  `scripts/quality_checks.py`, and registers the new command in `scripts/run_verify.py`; lane 3 owns `pyproject.toml`, `uv.lock`,
   `scripts/loop_stage.py`, and the command flags in `scripts/run_verify.py`. Each lane appends
   its own tests to `tests/test_loop_machinery.py` while it holds the file. The coordinator owns
   integration, `docs/LOOP.md`, `backlog.yml`, the freeze lock refresh, the gate, and closeout.
@@ -72,7 +75,10 @@ file, and two of them edit `scripts/run_verify.py`.
       already name a narrower command drop `pytest`; the four that name only the suite name the
       new command; the four that name only a report generator drop `pytest` and get a backlog
       entry saying no test covers them. New consistency check that every named command is in
-      the derived gate. Evidence: the check fails on a mutation naming an unreachable command.
+      the derived gate. The catch-all `pytest` becomes the first entry in
+      `EXEMPT_FROM_MUTATION_COVERAGE`, because the bookkeeping test makes it red for every
+      mutation and a witness that cannot fail to fire is not a witness. Evidence: the check
+      fails on a mutation naming an unreachable command.
 - [ ] Lane 3: `pytest-xdist` in the dev group, `-n 4` on `pytest` and `pytest_derived_chart`,
       stage 7 stops calling `check_gate_bite` a second time and instead refuses if the derived
       gate does not contain it. Evidence: the suite green under workers, and a test that stage
