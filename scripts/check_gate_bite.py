@@ -69,7 +69,20 @@ def load_mutations() -> list[dict]:
     return mutations
 
 
-def recovery_advice(mutation_id: str, relative_file: str) -> str:
+def mutated_line_number(original: str, find: str) -> int:
+    """Which line the mutation sits on, counted from one.
+
+    The repair says to swap the `replace` string back to the `find` string, and that
+    is ambiguous whenever the `replace` string also occurs somewhere else in the file.
+    It really happens: `spot-key-drops-the-raise-size` deletes a size from a rendered
+    key, which makes the mutated line identical to the line below it, and a repair that
+    swaps the first match it sees restores the wrong one. Naming the line removes the
+    guess. The sweep already requires `find` to occur exactly once, so this is exact.
+    """
+    return original[: original.index(find)].count("\n") + 1
+
+
+def recovery_advice(mutation_id: str, relative_file: str, line: int | None = None) -> str:
     """Say how to undo a live mutation by hand without destroying anything.
 
     Every one of these messages used to say "restore that file with git checkout".
@@ -80,10 +93,12 @@ def recovery_advice(mutation_id: str, relative_file: str) -> str:
     it, which is why the safe route is spelled out here rather than left to the
     reader under pressure.
     """
+    where = f"{relative_file}" if line is None else f"{relative_file} at line {line}"
     return (
-        f"To undo it by hand, open {relative_file}, swap the {mutation_id!r} 'replace' string"
+        f"To undo it by hand, open {where}, swap the {mutation_id!r} 'replace' string"
         " back to its 'find' string from verification/mutations.yml, delete"
         f" {SENTINEL_PATH.relative_to(REPO_ROOT)}, and delete that file's cached .pyc files."
+        " The line number matters: a mutation can make its line identical to another one."
         " Do not use git checkout on it: that silently discards uncommitted work."
     )
 
@@ -173,9 +188,10 @@ def check_mutation(mutation: dict) -> list[str]:
     if unknown:
         return [f"mutation {mutation_id!r} names unregistered commands: {unknown}"]
 
+    line = mutated_line_number(original, mutation["find"])
     SENTINEL_PATH.write_text(
         f"mutating {mutation['file']} for {mutation_id}. If this file still exists, that"
-        f" mutation may still be live. {recovery_advice(mutation_id, mutation['file'])}\n",
+        f" mutation may still be live. {recovery_advice(mutation_id, mutation['file'], line)}\n",
         encoding="utf-8",
     )
     try:

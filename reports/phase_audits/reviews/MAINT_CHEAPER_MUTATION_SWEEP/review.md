@@ -115,6 +115,21 @@ blocker below.
   to include a registry-wide assertion becomes an unfalsifiable witness, and mutation
   coverage checks only that a command is named, never that it could pass under a mutation.
 
+## Found by using it
+
+The first full gate run in this lane was killed by the machine's memory monitor while the
+sweep held `spot-key-drops-the-raise-size` live in
+`src/poker_training_bot/solver_artifacts/spot_key.py`. The recovery this task had just
+written was followed to the letter and it worked, and it exposed a gap in its own advice:
+that mutation deletes a rendered size, which makes the mutated line identical to the line
+below it, so the `replace` string then occurs twice and "swap it back" does not say which
+one. A repair that took the first match would have restored the wrong line and left the
+file wrong in a way the tests would not have noticed, because both lines are valid Python
+that returns a string.
+The sentinel now names the line, `docs/LOOP.md` says the line number is part of the repair
+rather than a convenience, and `test_the_recovery_advice_names_the_line_because_a_repair_can_hit_the_wrong_one`
+holds it. Filed nothing: the fix is here.
+
 ## Verification pass
 
 The same reviewer re-read `5d3281d..f317014` after the fixes and reported no blockers. Its

@@ -123,7 +123,8 @@ A surviving mutation means the gate is decorative for that behavior, which a gre
 
 Undoing a mutation by hand is never `git checkout`.
 A builder proving a canary bites applies it to a file that is already modified against HEAD, so checking that file out restores the pre-phase version and silently discards the work being verified, and nothing kept a copy of it.
-The repair is to open the file, swap that mutation's `replace` string back to its `find` string from `verification/mutations.yml`, delete `verification/.mutation_in_progress` if it is there, and delete that file's cached `.pyc`.
+The repair is to open the file at the line the sentinel names, swap that mutation's `replace` string back to its `find` string from `verification/mutations.yml`, delete `verification/.mutation_in_progress` if it is there, and delete that file's cached `.pyc`.
+The line number is part of the repair rather than a convenience: a mutation can make its line identical to another one, and `spot-key-drops-the-raise-size` does, so swapping the first match found restores the wrong line.
 `check_gate_bite` says exactly that in its sentinel and in every error it prints.
 
 ## Reversibility, and when a human is required

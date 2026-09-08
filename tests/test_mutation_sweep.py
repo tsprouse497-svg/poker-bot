@@ -553,3 +553,18 @@ def test_the_narrow_machinery_witness_cannot_answer_before_it_is_asked() -> None
     deselected = command[command.index("--deselect") + 1]
     assert deselected.endswith("::test_every_mutation_applies_exactly_once_to_its_file")
     assert deselected.split("::")[0] in command
+
+
+def test_the_recovery_advice_names_the_line_because_a_repair_can_hit_the_wrong_one() -> None:
+    """`spot-key-drops-the-raise-size` is the case that proved this ambiguous.
+
+    It deletes a rendered size, which makes the mutated line identical to the line
+    below it, so the `replace` string then occurs twice and "swap it back" does not
+    say which one. This was found by repairing a real interrupted sweep by hand.
+    """
+    original = 'a = 1\nif x:\n    return "plain"\nreturn "plain"\n'
+    find = '    return "plain"'
+
+    assert check_gate_bite.mutated_line_number(original, find) == 3
+    assert "line 3" in check_gate_bite.recovery_advice("some-id", "src/thing.py", 3)
+    assert "identical to another one" in check_gate_bite.recovery_advice("some-id", "src/thing.py")
