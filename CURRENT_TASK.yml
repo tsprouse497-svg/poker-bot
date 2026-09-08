@@ -1,21 +1,8 @@
-task_id: maint-cheaper-mutation-sweep
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: b5eb6108e506c554c8c398fe43940de3076d7638
-approved_scope:
-  - scripts/check_gate_bite.py
-  - scripts/check_repo_consistency.py
-  - scripts/quality_checks.py
-  - scripts/run_verify.py
-  - scripts/loop_stage.py
-  - verification/mutations.yml
-  - verification/freeze.lock
-  - tests/test_loop_machinery.py
-  - tests/test_mutation_sweep.py
-  - pyproject.toml
-  - uv.lock
-  - docs/LOOP.md
-  - reports/phase_audits/reviews/MAINT_CHEAPER_MUTATION_SWEEP/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml

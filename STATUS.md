@@ -1,8 +1,8 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `maint-cheaper-mutation-sweep`
-Task mode: `maintenance`
+Current task: `none (idle)`
+Task mode: `idle`
 Active phase: `none`
 Completed phases: `15`
 
