@@ -6205,8 +6205,11 @@ items:
       them. `EXEMPT_FROM_MUTATION_COVERAGE` is no longer empty: it carries the catch-all `pytest`,
       because `test_every_mutation_applies_exactly_once_to_its_file` makes the whole suite red for every
       mutation, so naming it in a `must_fail` list witnesses nothing that could fail to be true. The
-      canary count is 75, not 74, and 30 of the 49 registered commands are named by no mutation, of which
-      none begins `pytest`. Every other figure here stands as measured on the day it was written.
+      canary count is 75, not 74, and 30 of the 49 registered commands are named by no mutation. The
+      catch-all `pytest` is now one of those 30, which is what the exemption is for and is the one way
+      this reads differently from the census above: the figure no longer means that every command whose
+      id begins `pytest` has a canary aimed at it. Every other figure here stands as measured on the day
+      it was written.
 
   - id: A-PRICE-IS-INDEXED-BY-THE-WRONG-SPOTS-HERO
     status: deferred
@@ -6567,3 +6570,39 @@ items:
       MAINT-33 dropped the catch-all from their `must_fail` lists rather than pretend otherwise;
       writing the tests is the fix and it belongs to whoever next opens the refusal code. Until
       then, `check_gate_bite` reporting these four as caught means the script fell over.
+
+  - id: MERGE-INTEGRATION-STILL-RUNS-THE-SWEEP-TWICE
+    status: deferred
+    phase: contract-update
+    title: AGENTS.md and docs/LOOP.md both prescribe the duplicate sweep MAINT-33 deleted
+    reason: >-
+      `AGENTS.md` under Parallel Phases and `docs/LOOP.md` in its integration paragraph both say
+      that at merge integration "the full gate plus `check_gate_bite` run again". `check_gate_bite`
+      is in `BASE_GATE_CHECKS`, so the full gate has already run it: this is the same double
+      payment MAINT-33 removed from loop stage 7 on 2026-09-08, for the same reason, and every
+      merge integration from here runs the sweep twice.
+      MAINT-33 left it alone deliberately and only scope makes that defensible. Taylor's ruling
+      named stage 7, `AGENTS.md` was not in that task's approved scope, and `AGENTS.md` wins over
+      `docs/LOOP.md` where they disagree, so correcting the doc alone would have manufactured a
+      contradiction rather than removed one. The correction belongs to one `contract-update` task
+      that edits both sentences together. Found by the independent review of MAINT-33.
+
+  - id: A-NARROW-COMMAND-CAN-HOLD-A-TEST-THAT-REDDENS-FOR-EVERY-MUTATION
+    status: deferred
+    phase: contract-update
+    title: Nothing detects a witness that fires for every defect and so distinguishes none
+    reason: >-
+      MAINT-33 exempted the catch-all `pytest` from mutation coverage because
+      `tests/test_loop_machinery.py::test_every_mutation_applies_exactly_once_to_its_file` counts
+      each mutation's find string in the tree, so the suite is red while any mutation is applied
+      whatever that mutation does. The same task then registered `pytest_loop_machinery` over the
+      file holding that test and pointed five mutations at it, reproducing the vacuity it had just
+      named. The independent review caught it before the gate and the command now deselects that
+      one test, which is the cheap fix and not a rule.
+      The general shape has no guard. Any narrow `pytest_*` command whose files happen to include
+      a registry-wide or tree-wide assertion silently becomes a witness that cannot fail to fire,
+      and `mutation_coverage_errors` checks only that a command is named by some mutation, never
+      that the command could pass under one. A check is conceivable - flag a `must_fail` command
+      whose file set contains a test that reads `verification/mutations.yml` and asserts against
+      the tree - and it belongs beside REPORT-VALIDATORS-CAN-HOLD-GUARDS-THAT-CANNOT-FAIL, which
+      is the same argument about a validator that cannot go red.

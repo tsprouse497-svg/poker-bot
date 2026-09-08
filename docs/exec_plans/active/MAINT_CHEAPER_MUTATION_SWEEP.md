@@ -55,7 +55,10 @@ file, and two of them edit `scripts/run_verify.py`.
   integration, `docs/LOOP.md`, `backlog.yml`, the freeze lock refresh, the gate, and closeout.
 - Expected outputs: from each lane, the changed files plus a summary naming what it changed,
   the tests it added, and the command it ran to prove them. No lane runs the full gate.
-- Status: lane 1 planned, lane 2 planned, lane 3 planned.
+- Status: lane 1 completed and integrated at `831c020`, lane 2 at `85276f2`, lane 3 at
+  `5d3281d`. The independent review is written and its two blockers are fixed and marked
+  resolved in the note. Those fixes are coordinator-owned because they are integration: they
+  span three lanes' files and arrived after all three closed.
 - Integration order: lane 1, then lane 2, then lane 3, coordinator checking the tree is green
   between lanes with the narrow commands rather than the gate. Lane 2 runs after lane 1 because
   narrowing changes what the sweep does, and lane 3 last because its flags change the timings
@@ -68,10 +71,10 @@ file, and two of them edit `scripts/run_verify.py`.
 
 ## Slices
 
-- [ ] Lane 1: restore proved by byte comparison, one health run at the end of the sweep over
+- [x] Lane 1: restore proved by byte comparison, one health run at the end of the sweep over
       the union of commands the sweep ran. Evidence: a test that a corrupted restore is caught,
       and a test that the health run covers every command named.
-- [ ] Lane 2: `pytest_loop_machinery` registered and in the base gate; the 41 mutations that
+- [x] Lane 2: `pytest_loop_machinery` registered and in the base gate; the 41 mutations that
       already name a narrower command drop `pytest`; the four that name only the suite name the
       new command; the four that name only a report generator drop `pytest` and get a backlog
       entry saying no test covers them. New consistency check that every named command is in
@@ -79,11 +82,11 @@ file, and two of them edit `scripts/run_verify.py`.
       `EXEMPT_FROM_MUTATION_COVERAGE`, because the bookkeeping test makes it red for every
       mutation and a witness that cannot fail to fire is not a witness. Evidence: the check
       fails on a mutation naming an unreachable command.
-- [ ] Lane 3: `pytest-xdist` in the dev group, `-n 4` on `pytest` and `pytest_derived_chart`,
+- [x] Lane 3: `pytest-xdist` in the dev group, `-n 4` on `pytest` and `pytest_derived_chart`,
       stage 7 stops calling `check_gate_bite` a second time and instead refuses if the derived
       gate does not contain it. Evidence: the suite green under workers, and a test that stage
       7 still requires the sweep.
-- [ ] Coordinator: `docs/LOOP.md`, backlog entries for D and for the four uncovered
+- [x] Coordinator: `docs/LOOP.md`, backlog entries for D and for the four uncovered
       behaviours, freeze lock, full gate, independent review, audit note, closeout.
 
 ## Verification
@@ -95,17 +98,35 @@ own cost is recorded before and after in this plan's Outcome from
 
 ## Outcome
 
-Fill in before completing the gate.
+Filled after the gate; the numbers below are from `reports/active/verify_results.json` on the
+run that certified this lane.
+
+- Before, on `main` at `b5eb610`: the gate took 11,525 seconds, of which `check_gate_bite` was
+  11,313. 45 of the 74 mutations named the whole suite, so the sweep ran it 90 times.
+- After: see the committed verify report. No mutation names the whole suite. The sweep runs 85
+  command runs plus one health pass over the 19 distinct witnesses, against 148 runs before.
+- What the sweep asks for went up, not down. Every mutation is now witnessed by a command that
+  exercises the behaviour it breaks, rather than by a suite that a bookkeeping test reddens for
+  any mutation at all. `check_repo_consistency` refuses a witness the derived gate does not run,
+  and that check has a canary of its own.
+- Two findings this work could not close are filed rather than fixed:
+  `SEAT-ORDER-REFUSALS-HAVE-NO-TEST` and `MUTATION-SWEEP-RUNS-ONE-MUTATION-AT-A-TIME`. Two more
+  came from the review: `MERGE-INTEGRATION-STILL-RUNS-THE-SWEEP-TWICE` and
+  `A-NARROW-COMMAND-CAN-HOLD-A-TEST-THAT-REDDENS-FOR-EVERY-MUTATION`.
+- One deferred item closed: `MUTATION-DRILL-CHECKOUT-DESTROYS-UNCOMMITTED-WORK`, whose named fix
+  was the rule `docs/LOOP.md` now carries.
 
 ## Next Agent Bootstrap
 
 Lane worktree `/Users/taylorsprouse/projects/poker-bot-worktrees/maint-33` on branch
 `maint/33-cheaper-mutation-sweep`, seeded from `b5eb610` on `main`.
 
-State: task activated in `maintenance` mode, no implementation yet.
+State: all three lanes integrated, the independent review written with both blockers fixed and
+marked resolved, and the freeze lock rebuilt. What remains is the full gate, the closeout, and a
+ruling on whether this merges to `main` now, since a merge makes four live lanes rebase.
 
-Next command: `uv run python scripts/run_verify.py --commands check_scope check_execplan_delegation`
-to confirm the lane is legal, then start lane 1.
+Next command: `uv run python scripts/run_verify.py`, once no sibling lane is running one. Only one
+full gate fits on this machine at a time.
 
 Open, and not to be invented: whether the four refusal mutations
 (`the-depth-refusal-names-the-first-offender-in-seat-order` and its three siblings) should keep

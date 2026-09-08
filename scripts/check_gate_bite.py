@@ -55,6 +55,15 @@ def load_mutations() -> list[dict]:
     mutations = data.get("mutations") or []
     if not mutations:
         raise ValueError("mutations.yml declares no mutations, so the gate is unproven")
+    # Validated here so that every reader of a mutation can index `must_fail` rather
+    # than guess what an absent one means. A mutation with no witness is not a weak
+    # claim, it is no claim, and it would pass a sweep by naming nothing to run.
+    witnessless = [m.get("id") for m in mutations if not m.get("must_fail")]
+    if witnessless:
+        raise ValueError(
+            f"mutations name no command that must go red: {witnessless}."
+            " A mutation without a witness asserts nothing"
+        )
     return mutations
 
 
@@ -82,10 +91,11 @@ def health_command_ids(mutations: list[dict]) -> list[str]:
 
     The sweep used to re-run one mutation's own commands right after restoring it,
     which is the same evidence collected once per mutation and was most of the three
-    hours.
-    Once at the end asks for strictly more: the union covers commands this mutation
-    never named, so a mutation that corrupts a file some other mutation's command
-    reads is caught here and was not caught before.
+    hours. Once at the end is more commands and later, not strictly more: the union
+    covers commands this mutation never named, so damage that crosses between them is
+    caught here and was not caught before, but it is caught after the fact rather than
+    at the mutation that did it. The bytes comparison is what holds the line per
+    mutation.
     """
     command_ids: set[str] = set()
     for mutation in mutations:
@@ -178,8 +188,15 @@ def check_mutation(mutation: dict) -> list[str]:
     finally:
         target.write_text(original, encoding="utf-8")
         purge_bytecode(target)
-        errors.extend(restore_errors(mutation, target, original))
-        SENTINEL_PATH.unlink(missing_ok=True)
+        failures = restore_errors(mutation, target, original)
+        errors.extend(failures)
+        # The sentinel is what stops a defect being committed, and a failed restore is
+        # the one moment it is provably needed rather than precautionary. Deleting it
+        # here would have removed the guard exactly when the tree is known to be wrong,
+        # which is how MUTATION-SENTINEL-IS-COMMITTABLE happened twice. It stays, and
+        # main stops the sweep rather than mutating a tree it no longer understands.
+        if not failures:
+            SENTINEL_PATH.unlink(missing_ok=True)
     return errors
 
 
@@ -203,6 +220,17 @@ def main() -> int:
     errors: list[str] = []
     for mutation in mutations:
         errors.extend(check_mutation(mutation))
+        if SENTINEL_PATH.exists():
+            # check_mutation removes the sentinel unless the restore came back wrong.
+            # Carrying on would apply the next mutation to a tree whose state nobody
+            # knows, and would report its verdict as though the tree were clean.
+            errors.append(
+                f"stopping after {mutation['id']!r}: the tree is not as the sweep found"
+                f" it, and {SENTINEL_PATH.relative_to(REPO_ROOT)} is left in place so"
+                " that nothing can be committed until it is repaired. The remaining"
+                " mutations were not run"
+            )
+            break
 
     # One health pass, after the last restore, over every command the sweep ran.
     # Several of those commands write reports, and each one wrote its report from

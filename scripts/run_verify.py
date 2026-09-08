@@ -84,6 +84,12 @@ def ruff_command() -> list[str]:
 # tree. Parallel safety was measured before these flags went in - four worker-count and
 # split combinations over the whole suite, and no test failed that did not also fail on
 # one core.
+#
+# One asymmetry to know about, since check_gate_bite reads a non-zero exit as "the
+# mutation was caught": a real failure on any worker still exits non-zero, so a red
+# cannot look green, but a worker that dies of something unrelated also exits non-zero,
+# which would read as caught. That direction is the one to suspect if a mutation ever
+# looks caught for a reason nobody can reproduce serially.
 PARALLEL_WORKER_FLAGS = ["-n", "4", "--dist", "loadfile"]
 
 COMMANDS = {
@@ -146,6 +152,14 @@ COMMANDS = {
             "pytest",
             "tests/test_loop_machinery.py",
             "tests/test_mutation_sweep.py",
+            # Without this deselect the command is red for every mutation in the
+            # registry, whatever that mutation does, because the deselected test counts
+            # each mutation's find string in the file it names and one is missing while
+            # the sweep has it applied. That is the exact vacuity the catch-all `pytest`
+            # is exempted for in scripts/quality_checks.py, and five mutations name this
+            # command as their only witness. The test still runs, in the base `pytest`.
+            "--deselect",
+            "tests/test_loop_machinery.py::test_every_mutation_applies_exactly_once_to_its_file",
         ],
         "Run the loop state machine, scope, freeze, and mutation sweep tests",
     ),

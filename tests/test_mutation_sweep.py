@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import subprocess
 
+import pytest
+
 import scripts.check_gate_bite as check_gate_bite
 import scripts.check_repo_consistency as consistency
 import scripts.loop_stage as loop_stage
@@ -431,3 +433,110 @@ def test_the_worker_count_is_a_number_and_not_the_machine_it_ran_on() -> None:
     """`auto` would make the gate's cost, and its oversubscription when several lanes
     gate at once on this machine, depend on which machine that is."""
     assert run_verify.PARALLEL_WORKER_FLAGS == ["-n", "4", "--dist", "loadfile"]
+
+
+# --------------------------------------------------------------------------- #
+# a tree that did not come back, and a witness that answers before it is asked
+# --------------------------------------------------------------------------- #
+
+
+def test_a_failed_restore_keeps_the_sentinel_that_blocks_a_commit(monkeypatch, tmp_path) -> None:
+    """The one moment the guard is provably needed is the one it used to be removed.
+
+    `check_scope` refuses a commit while the sentinel exists, which is what stopped a
+    live mutation reaching history twice. A restore that comes back wrong is the case
+    where that refusal is not precautionary, so the sentinel stays and the sweep says
+    it did.
+    """
+    target = tmp_path / "src" / "thing.py"
+    target.parent.mkdir(parents=True)
+    target.write_text("value = 1\n", encoding="utf-8")
+    sentinel = tmp_path / "verification" / ".mutation_in_progress"
+    sentinel.parent.mkdir(parents=True)
+
+    monkeypatch.setattr(check_gate_bite, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(check_gate_bite, "SENTINEL_PATH", sentinel)
+    monkeypatch.setattr(check_gate_bite, "COMMANDS", {"fake_command": object()})
+    monkeypatch.setattr(check_gate_bite, "run_registered", lambda command_id: False)
+    monkeypatch.setattr(
+        check_gate_bite,
+        "restore_errors",
+        lambda mutation, path, original: ["the file did not come back"],
+    )
+
+    errors = check_gate_bite.check_mutation(
+        {
+            "id": "value-swap",
+            "file": "src/thing.py",
+            "find": "value = 1",
+            "replace": "value = 2",
+            "must_fail": ["fake_command"],
+        }
+    )
+
+    assert errors == ["the file did not come back"]
+    assert sentinel.exists()
+
+
+def test_the_sweep_stops_rather_than_mutating_a_tree_it_no_longer_understands(
+    monkeypatch, tmp_path
+) -> None:
+    """Carrying on would report later verdicts against an unknown tree as if it were clean."""
+    sentinel = tmp_path / ".mutation_in_progress"
+    seen: list[str] = []
+
+    def fake_check(mutation: dict) -> list[str]:
+        seen.append(mutation["id"])
+        if mutation["id"] == "second":
+            sentinel.write_text("left behind\n", encoding="utf-8")
+        return []
+
+    monkeypatch.setattr(check_gate_bite, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(check_gate_bite, "SENTINEL_PATH", sentinel)
+    monkeypatch.setattr(check_gate_bite, "check_mutation", fake_check)
+    monkeypatch.setattr(
+        check_gate_bite,
+        "load_mutations",
+        lambda: [{"id": name, "must_fail": []} for name in ("first", "second", "third")],
+    )
+
+    assert check_gate_bite.main() == 1
+    assert seen == ["first", "second"]
+    assert sentinel.exists()
+
+
+def test_a_mutation_that_names_no_witness_is_refused_when_the_file_is_read(
+    monkeypatch, tmp_path
+) -> None:
+    """A mutation with an empty `must_fail` asserts nothing and would pass by naming nothing."""
+    path = tmp_path / "mutations.yml"
+    path.write_text(
+        "schema_version: 1\n"
+        "mutations:\n"
+        "  - id: names-nothing\n"
+        "    file: src/thing.py\n"
+        "    find: a\n"
+        "    replace: b\n"
+        "    must_fail: []\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(check_gate_bite, "MUTATIONS_PATH", path)
+
+    with pytest.raises(ValueError, match="names-nothing"):
+        check_gate_bite.load_mutations()
+
+
+def test_the_narrow_machinery_witness_cannot_answer_before_it_is_asked() -> None:
+    """The command five mutations name must not contain the registry-wide assertion.
+
+    `test_every_mutation_applies_exactly_once_to_its_file` counts each mutation's find
+    string in the tree, so it is red while any mutation is applied, whatever that
+    mutation does. A witness that fires for every defect distinguishes none of them,
+    which is why the catch-all suite is exempt from mutation coverage rather than named.
+    """
+    command = run_verify.COMMANDS["pytest_loop_machinery"].command
+
+    assert "--deselect" in command
+    deselected = command[command.index("--deselect") + 1]
+    assert deselected.endswith("::test_every_mutation_applies_exactly_once_to_its_file")
+    assert deselected.split("::")[0] in command

@@ -1313,13 +1313,18 @@ mutations:
   # assumed, because a canary that quietly reddens a command outside its own phase is a
   # regression dressed as rigour:
   #   - `check_gate_bite` reports zero occurrences for it. That command is already red at
-  #     stage 4 for every phase-14 canary anyway: after restoring a mutation it re-runs
-  #     `pytest_derived_chart` and requires it to pass, and that command is red by design.
+  #     stage 4 for every phase-14 canary anyway: until 2026-09-08, after restoring a
+  #     mutation it re-ran `pytest_derived_chart` and required it to pass, and that command
+  #     is red by design. MAINT-33 removed that re-run; the restore is proved by comparing
+  #     bytes now, and health is proved once at the end of the sweep.
   #   - `tests/test_loop_machinery.py::test_every_mutation_applies_exactly_once_to_its_file`
   #     fails on its own assertion, since it counts each `find` in its file and wants one.
   #     That test is frozen, it was green against HEAD - all 71 entries there resolve - and
-  #     it runs under no command but the catch-all `pytest`, which is itself red at stage 4
-  #     because it runs this phase's own files. So no green command is turned red, and both
+  #     until 2026-09-08 it ran under no command but the catch-all `pytest`, which is itself
+  #     red at stage 4 because it runs this phase's own files. It now also sits in
+  #     `pytest_loop_machinery`, which deselects it for exactly the reason this paragraph
+  #     describes: a test that reddens for every mutation witnesses none of them.
+  #     So no green command is turned red, and both
   #     reds clear the moment stage 6 writes the constant, which is the whole shape of a
   #     specification: it fails until the thing it specifies exists.
   # Stage 6 must write the constant as a bare `NAME = 10.0`, matching every other module

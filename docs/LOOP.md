@@ -78,7 +78,7 @@ Its shape is covered by `tests/test_loop_fleet.py` instead.
 | 4 | tests | model | the phase's `pytest_*` command fails, on an assertion or on a missing `poker_training_bot` module |
 | 5 | freeze | script | `check_test_freeze` green, `tests/` and `verification/` out of scope |
 | 6 | build | model | every command the contract declares is green |
-| 7 | gate | script | full `run_verify.py` green, `check_gate_bite` green |
+| 7 | gate | script | `check_gate_bite` is in the derived gate, and full `run_verify.py` green |
 | 8 | review | model | review notes exist covering mechanical, domain, and blocker status |
 | 9 | audit | model | audit packet names summary, checklist, review, decisions, and a recomputable number |
 | 10 | closeout | script | phase completed, ExecPlan filed, tag present, idle, clean tree |
