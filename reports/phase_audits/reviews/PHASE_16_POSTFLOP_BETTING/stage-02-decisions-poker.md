@@ -43,8 +43,10 @@ shallower one, both determinism runs stopped at 240 iterations, and that is deci
 open item. For a training artifact the frequencies **are** the product, so this phase is about to
 commit a frequency table that nobody has checked is one. Beyond that, the two things a strong
 player would query are narrower than I first said, and both reach the flop only through
-continuation values: no player can ever jam, and the out-of-position player cannot lead a turn or
-river into the previous street's aggressor.
+continuation values: the out-of-position player cannot lead a turn or river into the previous
+street's aggressor, and all-in is never an offered size although the tree still snaps a configured
+bet to a stack-off at 85% of the stack behind - which on later streets it does, and on the flop it
+does not. The seventh blocker has the arithmetic.
 
 So: worth committing, conditionally, and the condition is one solve. Rule the menu so the finer
 tree lands in the single-raised pot, publish the missing jam and the missing turn and river lead on
@@ -155,8 +157,8 @@ dated 2026-09-09, is new and open.
   of genuine solved strategy, which is a worse outcome than the error it was meant to fix. It must
   be struck, not softened.
 
-  What survives, precisely. `add_allin: false` stands in full: no jam branch exists anywhere, and
-  line 504's `if self.config.add_allin && (...)` is the only place one is added. The donk half
+  What survives, precisely. The `add_allin: false` half needed the same check and did not get it
+  in this item; the next blocker corrects it. The donk half
   survives only in its narrow form: the missing action is the out-of-position player **leading the
   turn or the river when the in-position player was the previous street's aggressor** - the probe
   into a called flop bet. That is a real and frequent line and it does bias hero's flop bet upward,
@@ -165,6 +167,39 @@ dated 2026-09-09, is new and open.
   missing flop node. My fifth blocker should be read with its wide reading deleted; its conclusion
   that the sign of the net flop-aggression effect must be measured rather than argued is unchanged,
   because the jam and the missing probe still pull opposite ways.
+
+- **New, 2026-09-09. Seventh blocker, and it retracts my "no jam anywhere" as well: `add_allin: false` does not mean the tree has no all-in, and `allin_threshold` is a fraction of the remaining STACK rather than of the pot, which the solver notes and the contract both state wrongly.** Two source facts. `crates/server/src/main.rs:241` converts the posted field as `allin_threshold: self.allin_threshold / 100.0`, so the posted 85.0 becomes 0.85 - the notes are right that it is a percent rather than the preflop fraction. But `crates/solver/src/tree.rs:435` defines `stack_me = effective_stack - (put[me] - starting_pot / 2.0)`, line 491 sets `max_to = stack_me`, and the snap at lines 468 and 512 reads `if to >= max_to - 1e-9 || to >= self.config.allin_threshold * max_to - 1e-9 { to = max_to; }`. The denominator is the **stack behind**, not the pot. And that snap sits **outside** the `add_allin` guard: `add_allin` controls only whether an *extra* all-in candidate is pushed (lines 459, 504), while every configured bet and raise is silently converted to a stack-off once it reaches 85% of the stack behind. So `add_allin: false` removes all-in as an offered *size*; it does not remove all-in from the tree.
+
+  Where it fires, computed from the committed configs. On the flop it never does, in either pot
+  type, and that part of my claim survives:
+
+  | line | deepest flop amount | % of stack behind | snapped? |
+  |---|---|---|---|
+  | single-raised, 75% then two 2.5x raises | 25.78 | 26.4% | no |
+  | 3-bet, 75% then two 2.5x raises | 75.00 | **81.1%** | no, by 3.6 chips |
+
+  The 3-bet pot's deepest flop line misses the 78.625 threshold by under 4% of stack, so a change to
+  `max_raises`, to the raise multiplier, or to the 3-bet size flips the flop's action set from a
+  sized raise to a stack-off, and no field in the artifact would record which one a cell was solved
+  under. That alone is worth a line in decision 11.
+
+  On later streets it fires, and it discriminates between decision 11's menus in a way nobody has
+  said. After a 3-bet-pot flop bet-to-12, raise-to-30, call: pot 76, stack behind 62.5, threshold
+  53.125. The configured turn 75% is 57, which snaps to **all-in**. The pinned menu's turn 33% is
+  25.08 and does not. So in that line the **reduced menu's only turn action is a stack-off** while
+  the pinned menu still offers a real turn bet. This is not "the reduced menu has fewer sizes"; it
+  is the reduced menu replacing the turn with a jam wherever the flop built a pot. My poker reading
+  of the consequence, flagged as reasoning rather than measurement: a flop solved above that tree
+  will **raise the flop less**, because raising commits hero to a turn jam rather than to a turn bet
+  he can size. That is a second, independent reason the settling experiment must be the
+  single-raised-pot pinned-against-reduced diff and not an argument.
+
+  What must change: the contract criterion describing `allin_threshold` as "a percent of pot on the
+  postflop route" should read a percent of the effective stack behind, and its guard should be
+  restated on that quantity. The notes' practical warning survives its own wrong mechanism - posting
+  0.67 gives 0.0067, a 33% flop bet of 1.815 exceeds 0.0067 x 97.5 = 0.653, so every bet does become
+  a jam - but a driver written to the pot description would compute the guard against the wrong
+  number. And the phase should stop describing these trees as having no all-in.
 
 ## Non-blocker
 
@@ -231,7 +266,7 @@ that matters.
 
 - `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` (exists, deferred, phase 14). Its own text reaches the conclusion decision 12 declines: the residue "costs a factor of two in memory and buys nothing". It also holds the smoothing half that the second blocker above says must land before the floor. The entry is filed against phase 14, which is completed, so on current status this conditioning step has no owner and phase 16 consumes an unsmoothed export.
 
-- `NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT` (new). Every measured menu tops out at 75% of pot with no jam, and 75% three times in a 100bb single-raised pot leaves 57.3 of a 97.5 stack behind. Real solutions at SPR 17.7 use overbets on polarising turn and river cards, and the flop's polar branch exists partly to set them up. This is not a discriminator between decision 11's four options, since all four share it, which is exactly why it needs its own entry: it is the abstraction error none of the options can fix and none of them discloses.
+- `NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT` (new, amended 2026-09-09 by the seventh blocker: all-in is never an offered *size*, but the builder snaps a configured bet to a stack-off at 85% of the stack behind, which the single-raised flop never reaches and later streets do). Every measured menu tops out at 75% of pot, and 75% three times in a 100bb single-raised pot leaves 57.3 of a 97.5 stack behind. Real solutions at SPR 17.7 use overbets on polarising turn and river cards, and the flop's polar branch exists partly to set them up. This is not a discriminator between decision 11's four options, since all four share it, which is exactly why it needs its own entry: it is the abstraction error none of the options can fix and none of them discloses.
 
 - `NOTHING-MEASURES-POSTFLOP-ACTION-COVERAGE-AGAINST-REAL-BET-SIZES` (new). Board coverage will be reported at 1,755 of 1,755 while action coverage against any real distribution of bet sizes is unmeasured and unmeasurable in this repo today: self-play never bets postflop, and the corpus comparison is preflop-only by design. The refusal inventory ranks preflop gaps; there is no postflop equivalent.
 
@@ -245,7 +280,7 @@ that matters.
 
 - `POSTFLOP-CELLS-ARE-STACK-FRAGILE-WHERE-THE-PREFLOP-CHART-IS-NOT` (new, 2026-09-09). The geometric three-street size in the single-raised pot moves from 103.9% to 130.9% of pot across 77.5bb to 127.5bb effective. Decision 10's payload validation therefore has to refuse an off-depth spot rather than tolerate it, which is a stricter rule than the preflop chart's nearest-price substitution applies, and the difference should be stated where both live.
 
-- `A-SOLVER-CONFIG-FIELD-IS-READ-FROM-ITS-NAME-AND-NOT-FROM-THE-BUILDER` (new, 2026-09-09). I asserted that `donk: ""` removed the out-of-position flop bet, from the field's name and the standard meaning of the word, and the builder does not consult that list on the root street at all. The repo already has the sibling: `allin_threshold` reads as a fraction preflop and a percent of pot postflop, and the contract carries a guard for it. GTOpen is a local clone and its tree builder is 900 lines; any claim about which actions a committed config admits should be read out of `crates/solver/src/tree.rs` rather than out of the config's field names. This entry exists so the next reader of a menu body checks the builder first.
+- `A-SOLVER-CONFIG-FIELD-IS-READ-FROM-ITS-NAME-AND-NOT-FROM-THE-BUILDER` (new, 2026-09-09; the ID reads right and `SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE` at `backlog.yml:3020` is the correct sibling to file it under). Three instances now, two of them mine. I asserted that `donk: ""` removed the out-of-position flop bet, from the field's name; the builder does not consult that list on the root street. I then asserted that `add_allin: false` removed every all-in; the flag governs only whether an extra all-in *candidate* is pushed, while the snap that converts a configured size to a stack-off sits outside it. And the existing entry has `allin_threshold` reading as a fraction preflop and a percent postflop - to which the seventh blocker adds that its denominator is the stack behind and not the pot, so that entry needs the correction too. GTOpen is a local clone; any claim about which actions a committed config admits belongs in `crates/solver/src/tree.rs` and not in a field name. Three for three says this is the failure mode of reading a solver config as English.
 
 - `THE-QUERY-TIME-PRICE-SUBSTITUTION-IS-NOT-BOUNDED-POSTFLOP` (new, 2026-09-09). Decision 8's default correctly commits the substitution as provenance, and the substitution that happens at lookup is a different object with no bound on it: a 2.25bb open served an `@2.5` cell moves the pot 9.1%, the SPR 10.3%, the geometric size 5.3 points and both ranges, and decision 10's validation cannot see it because it compares the payload to the line rather than to the query. The preflop chart's tolerance for the same 0.25bb is defensible and does not transfer.
 

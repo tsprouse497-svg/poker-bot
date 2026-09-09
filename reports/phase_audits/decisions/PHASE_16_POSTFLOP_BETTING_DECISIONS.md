@@ -87,10 +87,12 @@ against a 12,026 MB ceiling, which fails rather than slows); reduced is measured
 pots only; one-per-pot-type is the only option measured on both, **but the poker says it is
 backwards** - a single geometric size is 66% of pot in a 3-bet pot and 116% in a single-raised one,
 so it puts two sizes where one nearly suffices; and flooring to fit is a **build, not a solve**.
-Rainbow is unmeasured in all four. Whatever is ruled also freezes **no all-in anywhere** and **no
-out-of-position probe on the turn or river**, which push flop aggression in opposite directions.
-**No default**, it collides with decision 3 already ruled, and **rule it with 12** - the settling
-experiment needs a floor.
+Rainbow is unmeasured in all four. Whatever is ruled also freezes **no out-of-position probe on the
+turn or river**, which pushes hero's flop betting up. Jams are **not** absent, contrary to two
+earlier drafts: any bet reaching 85% of the stack behind is snapped to a stack-off regardless of
+`add_allin`, and the deepest 3-bet flop line sits 4% of stack under that line. **No default**, it
+collides with decision 3 already ruled, and **rule it with 12** - the settling experiment needs a
+floor.
 
 **12. Whether the solve floors its input ranges, and at what weight.** A floor at 0.01 halves the
 memory needed and deletes 68.9% of the defender's combos - but **0.199% of its weight**: the
@@ -824,9 +826,39 @@ option 2 and of option 3's cheaper half, and it is not a cost decision 6 can pri
 because every measured config carries them.** They are stated carefully, because the first version
 of this paragraph got one of them wrong in a way that would have destroyed real data.
 
-**`add_allin: false` stands in full.** No jam branch exists anywhere in the tree, so neither player
-can threaten a stack, and hero's flop strategy is solved in a game where that threat does not
-exist.
+**`add_allin: false` does not mean the tree has no all-in, and two earlier drafts of this item said
+it did.** Read in `crates/solver/src/tree.rs` rather than inferred: `add_allin` controls only
+whether an extra all-in *candidate* is appended (lines 459 and 504). Separately and outside that
+guard, every configured bet and raise is snapped to a stack-off by
+`if to >= max_to - 1e-9 || to >= self.config.allin_threshold * max_to - 1e-9 { to = max_to; }`
+(lines 468 and 512). So jams exist in these trees; they arrive by conversion rather than by menu.
+
+**And `allin_threshold` is a percent of the stack behind, not of the pot.** `max_to = stack_me` and
+`stack_me = effective_stack - (st.put[me] - starting_pot / 2.0)`, so at 85.0 - which the server
+divides to 0.85 - the snap fires when a bet reaches 85% of what the acting player has left, and the
+pot is not in that comparison at all. `docs/GTOPEN_SOLVER_NOTES.md` calls it a percent of pot; its
+practical warning survives its wrong mechanism, since 0.67 becomes 0.0067 and every bet then
+exceeds the threshold, but a driver written to the pot description computes the guard against the
+wrong quantity.
+
+**On the flop the snap never fires under either menu**, which is the part of the earlier claim that
+survives. Deepest flop line at `max_raises: 2`: single-raised reaches 25.78, **26.4%** of the 97.5
+behind; 3-bet reaches 75.00, **81.1%** of the 92.5 behind against a 78.625 threshold - under it by
+3.625 chips, under 4% of stack. That margin is thin enough that a change to `max_raises`, the raise
+multiplier or the 3-bet size flips a sized raise into a stack-off, and no field on a committed cell
+would record which it was solved under.
+
+**On later streets it does fire, and it does not discriminate between decision 11's menus the way an
+earlier draft of this item claimed.** That draft gave a worked turn example with the stack behind at
+62.5 and the reduced menu's 75% turn bet snapping while the pinned menu's 33% did not. The stack
+behind in that line is **70.5**, not 62.5 - the draft subtracted the whole `put` instead of
+`put - starting_pot/2` - so the threshold is 59.925 and a 57.00 turn bet does not snap. Walking the
+reachable lines under both menus, in the 3-bet pot the snap fires at the same single node under
+**both** menus, and in the single-raised pot it fires once under the **pinned** menu and not at all
+under the reduced one, which is the opposite direction. So the poker conclusion that draft drew -
+that hero raises the flop less because the reduced tree replaces his turn with a jam - does not
+follow from the pots measured. That walk assumes symmetric contributions and one raise pattern, so
+read it as refuting the specific claim rather than as a census of the tree.
 
 **`donk: ""` does not mean the out-of-position player never bets the flop**, and an earlier draft of
 this item said it did, then went further and said the out-of-position flop root has one legal
@@ -846,9 +878,10 @@ into a called flop bet. That is a frequent line, its absence biases hero's flop 
 it reaches a flop-only artifact through continuation values, the same channel as the turn and river
 size restriction rather than a missing flop node.
 
-So the two still pull in opposite directions - the missing probe pushing hero's flop betting up, the
-missing jam capping what either can threaten - and the net sign has to be measured rather than
-argued.
+So what remains is the missing probe, pushing hero's flop betting up. The "missing jam" half is
+withdrawn: jams exist by conversion. The net sign still has to be measured rather than argued, and
+the reason is now the probe against the turn and river size restriction rather than the probe
+against a jam that is not absent.
 
 **"The menu MAINT-26 measured" is not one object, and an earlier draft of this item said it was.**
 The stage-2 review parsed all 55 committed rows and I re-derived it: of the **7 of 30** `group:

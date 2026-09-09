@@ -118,9 +118,14 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
 - The solve driver carries its own memory ceiling and refuses above it before solving.
   `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` records that GTOpen's guard reads `/proc/meminfo` and
   cannot fire here, so the arena is a hard wall a solve fails against rather than slows.
-- `allin_threshold` is posted as a percent of pot on the postflop route and as a fraction preflop.
-  The driver refuses a value below 1.0 rather than silently asking for a 0.67% threshold, which
-  replaces every configured bet with a jam. `SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE`.
+- **`allin_threshold` is a percent of the acting player's remaining stack, not of the pot**, and it
+  is posted as a percent postflop where preflop takes a fraction. `tree.rs` snaps any bet reaching
+  `allin_threshold * max_to` to a stack-off, with `max_to` the stack behind, and that snap sits
+  outside the `add_allin` guard - so a tree with `add_allin: false` still holds jams by conversion.
+  The driver refuses a value below 1.0 rather than silently asking for 0.67%, which puts every bet
+  over the threshold. Any guard is computed against the stack behind; the notes' description as a
+  percent of pot is wrong about the quantity even though its warning holds.
+  `SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE`.
 - Any range flooring is class-level. One suit-specific weight anywhere in either range collapses
   the isomorphism group to the identity and forfeits the whole suit saving on every non-rainbow
   board. `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP`.

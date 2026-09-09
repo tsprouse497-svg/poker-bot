@@ -7184,5 +7184,19 @@ items:
       second pass dropped the hedge, which is why this sits beside
       A-REVIEW-FINDING-IS-QUOTED-INTO-THE-RECORD-AS-IF-MEASURED rather than inside it - there the
       hedge was lost in transcription, here the reviewer lost its own.
+      **A third instance in the same phase, and the same field.** `add_allin: false` was read as "the
+      tree has no all-in". It controls only whether an extra all-in candidate is appended;
+      separately and outside that guard, `tree.rs` snaps any bet reaching `allin_threshold * max_to`
+      to a stack-off, with `max_to` the stack behind. So jams exist by conversion, and
+      `allin_threshold` is a percent of the **remaining stack** rather than of the pot, which
+      `docs/GTOPEN_SOLVER_NOTES.md` and this phase's contract both had wrong. The notes' practical
+      warning survived its wrong mechanism, which is why nobody caught it: 0.67 becomes 0.0067 and
+      every bet exceeds the threshold either way.
+      The retraction chain is itself the evidence for the rule. Three claims, three self-retractions
+      by the reviewer that made them, and the third retraction carried a worked example that was
+      also wrong - it subtracted the whole contribution instead of `put - starting_pot/2`, giving a
+      stack behind of 62.5 where the formula gives 70.5, and drew a poker conclusion about menu
+      choice from it that a walk of the reachable lines does not support. Reading the consumer once
+      would have settled all four; each was instead settled by a later round.
       Filed by phase 16's stage-2 independent poker review, 2026-09-09, which retracted the finding
       itself after reading the builder.
