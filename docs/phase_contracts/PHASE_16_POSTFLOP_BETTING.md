@@ -43,8 +43,9 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
 ## Non-goals
 
 - No PokerNow automation, browser or platform observation, runtime solver calls, LLM-backed poker
-  decisions, or training UI surfaces. The gate must pass on a machine with no GTOpen, no Rust
-  toolchain and no network.
+  decisions, training UI surfaces, or large hand-history ingestion - `AGENTS.md`'s six V1
+  boundaries, none of which this phase touches. The gate must pass on a machine with no GTOpen, no
+  Rust toolchain and no network.
 - Do not map an unsolved board onto a solved one by rank texture. Decision 2 deferred that as
   `POSTFLOP-BOARD-ABSTRACTION` and `AGENTS.md` forbids heuristic guessing for a missing chart spot.
   Decision 6's size finding is not a licence to reopen it.
@@ -78,8 +79,11 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
   collapse permitted; a test must show a rank-texture neighbour maps to a different key.
 - **A postflop key must not be mistaken for a preflop key by any existing reader.**
   `self_play_reference.py` recovers keys from the self-play inventory by scraping any token starting
-  with `t` that holds at least three slashes, and it raises rather than returning empty. A test
-  pins what that reader does when a postflop key is present.
+  with `t` that holds at least three slashes, and it raises rather than returning empty. **A
+  postflop key must not be returned by that reader**, and a test asserts the returned set contains
+  no postflop key while the reader still finds every preflop one and still raises on an empty
+  inventory. A test that merely records whatever the reader does today would be satisfied by the
+  reader swallowing a postflop key, which is the defect.
 - `postflop_action_order` is added to `poker_core/positions.py`, which already keeps
   `preflop_action_order` separate by name and says why: the blinds act first once the flop is out.
   Deriving postflop order from the seating order is the defect this criterion exists to prevent.
@@ -137,9 +141,12 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
   directly under that directory, so a postflop file there is read as a preflop chart and fails
   import. A test pins that the preflop library ignores the postflop tree.
 - **The committed tree stays inside the 20 MB `data/artifacts` cap, and the phase's own report
-  prints the bytes used, the headroom left, and the per-spot cost.** Decision 6 measured that the
-  preflop chart's JSON format is 2.4x over the headroom at one line and one node, and 98x at ten
-  nodes as committed. Whichever way out decision 6 rules, this criterion is what proves it worked.
+  prints the bytes used, the headroom left, and the per-spot cost, each recomputed rather than
+  quoted.** Decision 6 measured that the headroom buys on the order of one hero decision node for
+  one preflop line in any JSON encoding, against a phase that needs several nodes across several
+  lines. Whichever way out decision 6 rules, this criterion is what proves it worked. No figure
+  here is a per-weight rate that includes non-weight bytes; the generator exits non-zero on one
+  that does not reconcile against the bytes on disk.
 - The solver export's source card is regenerated in the same task, because its `headroom_bytes`
   counts the whole artifact tree and `test_the_committed_export_sits_under_the_limit_with_stated_headroom`
   reds the moment any flop artifact lands.
@@ -162,8 +169,10 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
 - The lookup fails closed on the preflop library's own walk: coarsest gap first, so the code names
   the first thing actually missing rather than the last thing checked. No nearest-neighbour
   substitution of board, line, or flop action.
-- **The five existing mutation canaries that pin exact lines in `postflop_fallback.py` and
-  `composite.py` are re-pointed with their claims unchanged, never retired.** Phase 13 found a
+- **Every mutation in `verification/mutations.yml` whose `find` string pins a line in
+  `postflop_fallback.py` or `composite.py` is re-pointed with its claim unchanged, never retired.**
+  Stated as a predicate rather than a count, because a count is a second place to keep the number
+  right and there are six today, not the five an earlier draft of this contract asserted. Phase 13 found a
   phase 11 canary whose `find` string had stopped matching, which would have retired a legality
   claim by accident behind a green gate.
 - The refusal inventory keeps working at a non-flat table. `REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL`
@@ -203,16 +212,25 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
 ### The backlog entries this phase settles
 
 - Closed: `V2-POSTFLOP-STRATEGY`, `POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK`,
-  `POSTFLOP-UNBEATABLE-EARLIER-STREETS`, `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED`,
-  `SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE`, `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS`,
-  `ISOMORPHISM-FACTORS-MISREAD-AS-SPEEDUPS`.
+  `POSTFLOP-UNBEATABLE-EARLIER-STREETS`, `SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE`,
+  `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS`, `ISOMORPHISM-FACTORS-MISREAD-AS-SPEEDUPS`.
+- `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` is closed **only** once no live document still asserts the
+  ratio it falsifies. The correction landed in this phase's decision list at stage 1; the entry
+  itself calls the fix a contract-shaped edit this phase owns, so closing it while a sentence
+  somewhere still says the turn costs 49 flops is the defect it was filed against.
 - **Explicitly not closed**: `POSTFLOP-BOARD-ABSTRACTION`, deferred by decision 2 and not reopened
   by decision 6's size finding; `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`, which needs a solve this
   phase may not perform; `ARTIFACT-SIZE-LIMIT-VERSUS-SOLVE-COVERAGE`, which decision 6 answers for
   the flop only. All three restated, none marked done.
-- Filed here: the three stale claims that `data/artifacts/**` has no size check, in
-  `docs/V2_RULING_MITIGATIONS.md` at 103 and 259 and `docs/V2_ROADMAP.md` at 161, corrected in this
-  phase's decision list and owed elsewhere.
+- Filed here, with IDs rather than a promise: `TWO-DOCS-STILL-SAY-DATA-ARTIFACTS-HAS-NO-SIZE-CHECK`
+  for the three places still saying `data/artifacts/**` has no size check, which are outside every
+  scope this phase declares and so cannot be corrected from here; and
+  `AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE` and
+  `A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT`, both raised by this stage's own
+  reviews after a count copied out of another phase's completed ExecPlan and a projection that did
+  not reconcile against the rate beside it both passed every mechanical check in the repo; and
+  `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES`, which this phase makes worse rather
+  than closes.
 
 ## Required reports
 
@@ -255,8 +273,15 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
   file-size and scope checks continue to pass.
 - The preflop chart, its key, its artifact and its refusal codes are unchanged. A moved preflop
   number is a defect in this phase, not a result.
-- The 137 frozen tests across the completed phases that assert the query shape are migrated in this
-  task, authored at stage 4 with this phase's own tests, because this phase changes the shape they
-  assert against.
+- **The frozen tests of completed phases that assert against the query shape are migrated in this
+  task**, authored at stage 4 with this phase's own tests, because this phase changes the shape they
+  assert against. Exactly one frozen test asserts the thing this phase inverts:
+  `test_rejects_a_bet_because_preflop_has_no_bet` in `tests/test_strategy_contract.py`, which
+  requires `SeatAction(0, "bet")` to raise. Twenty-two frozen tests name the query shape in their
+  own body and at most 334 sit in files that reference it anywhere; none breaks from adding a
+  postflop history field that defaults the way `preflop_actions` does. Stage 4 measures the set
+  again rather than trusting these three numbers. An earlier draft asserted 137, which is phase
+  13's count of frozen tests one of its lanes got green after an unrelated rename, copied out of
+  its completed ExecPlan and describing nothing here.
 - The postflop fallback's turn and river behaviour is preserved where this phase does not replace
   it, and the report says which of its codes are now unreachable.

@@ -59,7 +59,20 @@ The 1,755 is per preflop line and has to be multiplied by however many lines dec
 And no solve in this repo has ever been timed to a real exploitability target: only a 300-iteration preflop smoke test was ever run, and solve time and determinism are both still on phase 10's unverified list.
 So affordability at any depth is unmeasured.
 
-What survives that is the ratio rather than the absolute: the turn is about 49 times a flop and the river about 2,350 times, whatever a flop turns out to cost. Every conclusion below rests on the ratio only.
+What survived that, when this file was written, was a ratio rather than an absolute: the turn was
+taken to be about 49 times a flop and the river about 2,350 times, whatever a flop turned out to
+cost, and every conclusion below was rewritten to rest on the ratio only.
+
+**The ratio is falsified, 2026-09-08** (`POSTFLOP-DEPTH-RATIOS-ARE-INVERTED`). It runs the other
+way. MAINT-26 measured a turn-rooted solve at about 1/212 of a flop solve and a river root at about
+1/38,000, because a flop-rooted tree already contains and iterates its own turn and river subgames -
+it is 99.5% river nodes and holds 158,466 river subgames. So a turn spot is far cheaper than a flop
+spot, not 49 times dearer, and the counts table above is a count of spots rather than a cost.
+
+The rulings are unaffected and are not reopened here. Decision 1 is flop only and it now has a
+second, better reason than cost: a flop solve is where the work already is. What the falsified
+ratio does change is that no conclusion below may be supported by it, and any sentence that says
+the turn is expensive because of the ratio is supported by nothing.
 
 ## 1. How deep the committed solution goes
 
@@ -230,11 +243,34 @@ The measurement, every input recomputed here rather than quoted:
 - 14.8 bytes per action weight, measured off the committed chart's own `action_weights` block in
   compact JSON; 26.8 as actually committed with `indent=2`.
 
-So the floor - one preflop line, one hero decision node, compact JSON, and only check and bet - is
-**36 MB against 15.0 MB of headroom, 2.4x over**. As committed, indent and all, 99 MB. A flop is
-not one decision either: hero acts, villain answers, hero faces a bet or a raise, so ten hero
-nodes at three actions is 363 MB compact and 1,481 MB as committed, 24x and 98x. Compression is not
-available on the existing path, because `import_preflop_artifacts` globs `*.json` and reads text.
+**The finding is the node count, not a ratio against one encoding.** Fifteen megabytes of headroom
+buys, for **one** preflop line, on the order of **one hero decision node** - and that holds in any
+JSON encoding, which is why no format change answers it. In the leanest plausible JSON, action
+names hoisted to one array, hero's classes as a parallel array in canonical order, three-decimal
+floats and one free weight per class, one two-action node for one line measures 7,740,095 bytes,
+which is 0.49x the headroom: it fits, with room for a second node. That same encoding buys 2.04
+nodes at two actions, 1.02 at three storing two free weights, and 0.68 storing all three. A flop is
+not one decision - hero acts, villain answers, hero faces a bet or a raise - and decision 3 asks
+for a head of common preflop lines, plural. Several nodes across several lines is what the phase
+needs, and one node for one line is what the cap affords.
+
+The chart's own format is worse, and the figures are given as pairs that recompute from the rates
+above rather than from any other rate. One line, one node, only check and bet: 36 MiB compact, 66
+MiB as committed, 2.4x and 4.4x. Ten hero nodes at three actions: 544 MiB compact, 986 MiB as
+committed, 36.2x and 65.6x. Building the structures directly rather than multiplying the rate gives
+43, 76 and 1,007 MiB, so the multiplications err low. Compression is not available:
+`import_preflop_artifacts` globs `*.json` and reads text.
+
+An earlier draft of this paragraph led with the 2.4x, gave 99 MB and 1,481 MB for the two
+as-committed figures and 24x and 98x for the ten-node row, and the independent numbers review at
+`reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-01-numbers-verification.md` held the
+stage over all of it. The two as-committed figures had silently used 40.227 bytes per weight, the
+whole committed file over its weight count, in place of the 26.789 stated one line above; that rate
+charges the chart's `spots`, `arrival_ppb`, `arriving_reach_bp` and `audit_fields` blocks against
+every weight when those scale per spot. The ten-node compact figure had dropped the third action
+and so ran low while the other two ran high, which is why the paragraph could not be repaired by
+scaling. And leading with 2.4x invited the one ruling that would be wrong, since a format change
+defeats 2.4x and does not touch the node count.
 
 `ARTIFACT-SIZE-LIMIT-VERSUS-SOLVE-COVERAGE` already records phase 14 measuring 4.5x to 26x over
 the same cap for a different reason, so this is the second phase to meet it and the first to be

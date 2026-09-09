@@ -6842,3 +6842,86 @@ items:
       not.
       Compounded by A-COMMITTED-LANE-POINTER-CLONES-ITSELF-INTO-EVERY-WORKTREE, which multiplies
       whatever this produces by the number of worktrees.
+
+  - id: TWO-DOCS-STILL-SAY-DATA-ARTIFACTS-HAS-NO-SIZE-CHECK
+    status: deferred
+    phase: contract-update
+    title: Three passages still state that committed artifacts are covered by no size limit
+    reason: >-
+      `docs/V2_RULING_MITIGATIONS.md` at 104-105 and at 259, and `docs/V2_ROADMAP.md` at 161, state
+      that `data/artifacts/**` is covered by no size check. It has been capped at 20 MB in
+      `DIRECTORY_BYTE_LIMITS` in `scripts/check_file_sizes.py` since `2430894`, 2026-08-18. The
+      2026-08-18 commit is why the claim is false and the third list is why it survived: a reader
+      checking `LINE_LIMITS` and `BYTE_LIMITS` finds nothing and concludes correctly about the two
+      lists it read.
+      Phase 16's decision list carried the same claim and is corrected in that phase. Neither of
+      these two files is in any scope phase 16 declares, so they cannot be corrected from there.
+      The cost is not cosmetic. Phase 16 planned an artifact against the belief that nothing
+      constrained its size, and the constraint turns out to be the thing that stops the phase.
+      `V2_RULING_MITIGATIONS.md:259` additionally lists adding the limit as an open mitigation,
+      which is work already done.
+      Filed by phase 16's stage-1 independent contract review, 2026-09-08.
+
+  - id: AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE
+    status: deferred
+    phase: contract-update
+    title: A number copied from another phase's document reads as this phase's measurement
+    reason: >-
+      Phase 16's first contract draft asserted "the 137 frozen tests across the completed phases
+      that assert the query shape". The figure comes from
+      `docs/exec_plans/completed/PHASE_13_TABLE_STATE.md:76`, where it is phase 13's count of frozen
+      tests one of its lanes got green after the `street_bet` rename, across the three phases
+      completed then. It is not a count of query-shape tests, and phase 16's real figure is one.
+      It passed every mechanical check in this repo. `check_contracts.py` reads frontmatter, counts
+      criteria against boilerplate and reconciles phase ids; `repo_facts.py` guards ten corpus and
+      chart figures and no counts or byte totals. Nothing could have disagreed, and the sentence sat
+      in `## Regression expectations`, so a stage-4 test author would have gone looking for 137
+      migrations, found one, and had no way to tell whether the other 136 were missing or never real.
+      Distinct from A-CONTRACT-STATES-MEASURED-LEVELS-WITHOUT-NAMING-THE-ARTIFACT, which is about a
+      level whose artifact is unnamed. Here the provenance is intact and irrelevant: the number is
+      correctly attributable to a document that was never talking about this phase. A check is
+      conceivable - flag a figure in a contract that appears verbatim in a completed ExecPlan or
+      audit packet for a different phase - and it would have caught this one.
+      Caught by phase 16's stage-1 independent numbers verification, 2026-09-08.
+
+  - id: A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT
+    status: deferred
+    phase: contract-update
+    title: A document publishes a rate and a projection from it that do not reconcile
+    reason: >-
+      Phase 16's first contract draft published 26.789 bytes per action weight and, two clauses
+      later, projections that only reproduce from 40.227 - the whole committed chart divided by its
+      weight count, which charges the chart's `spots`, `arrival_ppb`, `arriving_reach_bp` and
+      `audit_fields` blocks against every weight when those scale per spot. A third figure in the
+      same sentence dropped a factor of 1.5, so one number ran low while two ran high and the
+      paragraph could not be repaired by scaling.
+      Every input was published in the same document, so the arithmetic was checkable from the page
+      itself, and nothing checked it. That is what separates this from
+      A-CONTRACT-STATES-MEASURED-LEVELS-WITHOUT-NAMING-THE-ARTIFACT: there the number cannot be
+      re-derived because its artifact is gone, here it can be re-derived from the paragraph and is
+      not. `scripts/repo_facts.py` is the existing mechanism for rendering a guarded figure and has
+      no notion of one figure being a function of another.
+      It mattered because the projection was the whole evidence for a `frozen-into-data` decision
+      that halts on a human, and an inflated multiple sends a ruling in the wrong direction as
+      surely as a deflated one.
+      Caught by phase 16's stage-1 independent numbers verification, 2026-09-08.
+
+  - id: A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES
+    status: deferred
+    phase: contract-update
+    title: Committed solve provenance has no witness but the producer that wrote it
+    reason: >-
+      Phase 16 commits, per flop spot, the achieved exploitability as a percent of the starting pot,
+      the iteration count, and the strategy digest. None can be recomputed in the gate, and by
+      design: `AGENTS.md` forbids runtime solver calls and phase 10's contract states that the gate
+      must pass on a machine with no GTOpen, no Rust toolchain and no network. So the gate can check
+      the fields are present and well-formed and can check nothing about whether they are true.
+      Its determinism criterion has the same shape: byte-identical output records a digest, and
+      output that is not byte-identical records an accuracy target and the observed divergence
+      instead, so either outcome satisfies it and no outcome falsifies it.
+      This sits beside AN-UNCHECKED-BINARY-IS-DESCRIBED-BY-A-CARD-NOTHING-READS and
+      EQUITY-MATRIX-SHIPS-WITH-NO-COMMAND-THAT-READS-IT, which are the same argument about committed
+      data whose only witness is its own producer. Phase 16 cannot close it - it is the phase that
+      makes it worse, since a preflop chart has 249 such claims and a flop artifact has thousands -
+      so it needs an entry rather than a criterion.
+      Filed by phase 16's stage-1 independent contract review, 2026-09-08.

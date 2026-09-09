@@ -76,10 +76,34 @@ Against that, the exact size of a flop artifact in the format the preflop chart 
 - 14.8 bytes per action weight measured off the committed chart's `action_weights` block in
   compact JSON, 26.8 as actually committed with `indent=2`.
 
-So one preflop line, one hero decision node, compact JSON, and only check and bet is **36 MB, or
-2.4x the headroom**. As committed, indent and all, it is 99 MB. Ten hero nodes at three actions is
-363 MB compact and 1,481 MB as committed, 24x and 98x. Compression is not available:
+**The finding is the node count, not a ratio against one encoding.** Fifteen megabytes of headroom
+buys, for **one** preflop line, on the order of **one hero decision node** - and that holds in any
+JSON encoding, which is why no format change answers it. In the leanest plausible JSON, action
+names hoisted to one array, hero's classes as a parallel array in canonical order, three-decimal
+floats and one free weight per class, one two-action node for one line measures 7,740,095 bytes,
+which is 0.49x the headroom: it fits, with room for a second node. That same encoding buys 2.04
+nodes at two actions, 1.02 at three storing two free weights, and 0.68 storing all three. A flop is
+not one decision - hero acts, villain answers, hero faces a bet or a raise - and decision 3 asks
+for a head of common preflop lines, plural. Several nodes across several lines is what the phase
+needs, and one node for one line is what the cap affords.
+
+The chart's own format is worse, and the figures are given as pairs that recompute from the rates
+above rather than from any other rate. One line, one node, only check and bet: 36 MiB compact, 66
+MiB as committed, 2.4x and 4.4x. Ten hero nodes at three actions: 544 MiB compact, 986 MiB as
+committed, 36.2x and 65.6x. Building the structures directly rather than multiplying the rate gives
+43, 76 and 1,007 MiB, so the multiplications err low. Compression is not available:
 `import_preflop_artifacts` globs `*.json` and reads text.
+
+An earlier draft of this paragraph led with the 2.4x, gave 99 MB and 1,481 MB for the two
+as-committed figures and 24x and 98x for the ten-node row, and the independent numbers review at
+`reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-01-numbers-verification.md` held the
+stage over all of it. The two as-committed figures had silently used 40.227 bytes per weight, the
+whole committed file over its weight count, in place of the 26.789 stated one line above; that rate
+charges the chart's `spots`, `arrival_ppb`, `arriving_reach_bp` and `audit_fields` blocks against
+every weight when those scale per spot. The ten-node compact figure had dropped the third action
+and so ran low while the other two ran high, which is why the paragraph could not be repaired by
+scaling. And leading with 2.4x invited the one ruling that would be wrong, since a format change
+defeats 2.4x and does not touch the node count.
 
 This does not overturn a ruling. Decision 1 fixed the depth and decision 2 the breadth, both on
 solve-time grounds, and disk was never measured. What it says is that the artifact's *format*
