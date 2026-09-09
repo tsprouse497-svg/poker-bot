@@ -303,13 +303,30 @@ decision nodes 15.04 MiB buys for ONE preflop line**:
 | binary, one byte per weight, 2 actions | 1.23 | 12.26 |
 
 **Re-encoding is worth about 40x and it is not enough.** At the most aggressive entry in that
-table - binary, one byte per weight, which quantises a frequency to about 0.4% and so sits at the
-edge of the 0.3%-of-pot target it would be storing - the cap affords 5 hero nodes for one preflop
+table - binary, one byte per weight - the cap affords 5 hero nodes for one preflop
 line (12.3 MiB, 0.82x), 1 node for three lines (7.4 MiB, 0.49x), and 1 node for five lines
 (12.3 MiB, 0.82x). Three lines at five nodes is 2.45x over; five lines at five nodes is 4.08x.
 So the finding is not about serialization at all: **no encoding, text or binary, fits several hero
 decision nodes across several preflop lines inside 20 MB.** The four options below are what remains
 once that is settled.
+
+What one byte per weight costs is **unmeasured, and it is not the 0.3% target.** An earlier draft
+of this paragraph said one byte quantises a frequency to about 0.4% and so sits at the edge of the
+0.3%-of-pot target it would be storing. The arithmetic is right - one byte over [0,1] is 1/255,
+0.392% - and the comparison is meaningless: 0.4% is a granularity in *action frequency* and 0.3%
+of pot is an *exploitability* bound, there is no conversion between them, and rounding a frequency
+does not add its own size to exploitability. Struck rather than reworded, and filed as
+`A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS`, because this repo has already shipped one
+cross-unit percentage confusion into committed config.
+
+The real exposure runs the other way from where that draft pointed it, and stating it is the
+condition on option 1. A solver mixes only where it has driven a hand to indifference, and at
+indifference the EV gap between the mixed actions is near zero, so perturbing that split costs
+almost nothing. Pure strategies are lossless, since 0 and 255/255 are exactly representable. What
+quantisation actually damages is the long tail of near-zero weights, where rounding 0.002 to 0
+removes a rare action outright and moves it by a large relative amount. Whether that matters is a
+question about the committed strategy, nobody has measured it, and it is smaller than the
+struck claim implied.
 
 1. **A leaner encoding, text or binary.** Real, bounded, and already costed above. The repo commits
    a binary artifact today, `preflop_eq169.bin` at 114,244 bytes with a `.source.json` beside it, so

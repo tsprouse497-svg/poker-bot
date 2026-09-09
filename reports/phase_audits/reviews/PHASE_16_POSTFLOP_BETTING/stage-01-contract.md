@@ -76,10 +76,13 @@ restated, and it names its own test instead.
 
 ## Blocker
 
-Round 1 filed five blockers. The coordinator's fix is commit `92c4f39`. All five are verified fixed
-and marked `[resolved]`, with the evidence recorded under each. Round 2 files one new blocker, **6**,
-on a contradiction the fix to blocker 1 introduced inside the same `frozen-into-data` ask. It is
-unmarked, so the stage stays held.
+Seven findings over three rounds; six are verified fixed and marked `[resolved]`, each with the
+evidence recorded under it. Round 1 filed blockers 1-5, fixed at `92c4f39`. Round 2 filed blocker 6,
+a contradiction the fix to blocker 1 introduced, fixed at `62d8237`. Round 3 files blocker **7**, on
+a claim the fix to blocker 6 introduced. It is unmarked, so the stage stays held.
+
+Every marked item was re-derived in this worktree; none is marked on the strength of a commit
+message. A form note at the end of this section explains why blocker 2's evidence is a table.
 
 - **1. [resolved] Three of the four artifact-size figures do not reproduce, and they are the numbers stage 3
   puts to a human.** The contract, the ExecPlan and decision 6 all state: "one preflop line, one
@@ -133,15 +136,18 @@ unmarked, so the stage stays held.
 - **2. [resolved] "The five existing mutation canaries" is six, and the sixth is the one that would break
   differently.** The criterion reads: "**The five existing mutation canaries that pin exact lines
   in `postflop_fallback.py` and `composite.py` are re-pointed with their claims unchanged, never
-  retired.**" `verification/mutations.yml` holds six:
+  retired.**" `verification/mutations.yml` holds six. Given as a table rather than as nested bullets
+  because the advance gate reads any indented bullet under this heading as a finding of its own —
+  see the form note at the end of this section:
 
-  - `fallback-answers-preflop`, `fallback-folds-guaranteed-chops`, `fallback-abandons-the-turn`,
-    `fallback-turn-needs-only-one-safe-river` — `postflop_fallback.py`, witness
-    `pytest_postflop_fallback`
-  - `composite-routes-preflop-to-the-fallback` — `composite.py`, witness `pytest_postflop_fallback`
-  - `fail-closed-can-invest-again` — `postflop_fallback.py`, pinning
-    `_PASSIVE_ORDER: tuple[str, ...] = ("fold",)` at `postflop_fallback.py:103`, witness
-    **`pytest_engine_fidelity`**
+  | canary id | file | witness |
+  |---|---|---|
+  | `fallback-answers-preflop` | `postflop_fallback.py` | `pytest_postflop_fallback` |
+  | `fallback-folds-guaranteed-chops` | `postflop_fallback.py` | `pytest_postflop_fallback` |
+  | `fallback-abandons-the-turn` | `postflop_fallback.py` | `pytest_postflop_fallback` |
+  | `fallback-turn-needs-only-one-safe-river` | `postflop_fallback.py` | `pytest_postflop_fallback` |
+  | `composite-routes-preflop-to-the-fallback` | `composite.py` | `pytest_postflop_fallback` |
+  | `fail-closed-can-invest-again` | `postflop_fallback.py:103`, pinning `_PASSIVE_ORDER: tuple[str, ...] = ("fold",)` | **`pytest_engine_fidelity`** |
 
   The sixth is the one this criterion most needs to cover. It pins the fail-closed branch's refusal
   to invest — the branch a phase that starts returning `bet` and `raise` will reach for the first
@@ -249,7 +255,7 @@ unmarked, so the stage stays held.
   it keeps both of the reader's existing guarantees under test, so a fix that empties the reader to
   pass the new assertion is caught too.
 
-- **6. Decision 6's ways-out list now contradicts decision 6's own measurement, in the direction of
+- **6. [resolved] Decision 6's ways-out list now contradicts decision 6's own measurement, in the direction of
   foreclosing one of the four options.** Introduced by the fix to blocker 1 and not present in
   round 1. The new framing paragraph states, of the leanest plausible JSON: "one two-action node for
   one line measures 7,740,095 bytes, which is 0.49x the headroom: **it fits, with room for a second
@@ -272,6 +278,77 @@ unmarked, so the stage stays held.
   chart's format") and saying what the lean-JSON measurement does to it: fewer lines plus a leaner
   JSON is a combination that reaches one node for one line, which is the actual frontier the other
   three options are being weighed against.
+
+  **Verified fixed at `62d8237`, and the fix is better than what I asked for.** Rather than patching
+  option 2, decision 6 now opens its options with a measured encoding table in nodes-per-line, which
+  removes the soft spot instead of correcting one sentence. Every cell reproduces against my own
+  walk (1,286,792 classes, 15.043 MiB of headroom, free weights only from the lean rows down): 98.62
+  MiB/node/line and 0.15 nodes for chart-as-committed, 54.43 and 0.28 compact, 14.73 and 1.02 lean
+  at three actions (stated 14.76 — a 0.2% rounding difference, and the affordable-node figure it
+  drives is identical), 7.36 and 2.04 lean at two, 9.82 and 1.53 float32, 2.45 and 6.13 one-byte at
+  three, 1.23 and 12.26 one-byte at two. The derived claims reproduce too: re-encoding worth "about
+  40x" is 40.18; 5 nodes x 1 line = 12.27 MiB / 0.82x; 1 x 3 = 7.36 / 0.49x; 1 x 5 = 12.27 / 0.82x;
+  3 lines x 5 nodes = 2.45x; 5 x 5 = 4.08x. Option 2 is qualified to the chart's format with the
+  correction dated, and option 4 is marked as the only one that fits today without touching the cap
+  and pointed at option 3.
+
+  I also accept the stronger framing and do not think it overreaches. "No encoding, text or binary,
+  fits several hero decision nodes across several preflop lines inside 20 MB" is exactly what the
+  table shows, it is stated over the most favourable entry rather than a middling one, and the
+  conclusion it draws — that the ruling is a choice between the coverage decisions 1-3 fixed and the
+  cap — is the honest reduction. One residue, filed as blocker 7 rather than folded in here, because
+  it is a new claim of its own rather than a defect in this one.
+
+- **7. The one-byte quantisation caution compares two different quantities and reads as a
+  measurement.** New at `62d8237`. The table's most aggressive row is annotated: "binary, one byte
+  per weight, which quantises a frequency to about 0.4% and so sits at the edge of the 0.3%-of-pot
+  target it would be storing". The coordinator flagged this as their own claim and asked for it to be
+  checked. The arithmetic half is right — one byte over [0,1] is a step of 1/255 = 0.392%, or
+  0.391% at 1/256, so "about 0.4%" is correct. The inference is not.
+
+  The two numbers are in different units and do not meet. 0.4% is a granularity in **action
+  frequency**, a probability. 0.3% of pot is an **exploitability** bound, in pot fractions.
+  Rounding a frequency by ε does not add ε of exploitability, and there is no general rate that
+  converts one into the other; the loss depends on the EV gap between the actions whose frequency
+  moved.
+
+  Worse for the claim, the reasoning runs the wrong way where it matters most. Frequency rounding is
+  cheapest exactly where frequencies are mixed, because a solver mixes only at hands it has driven
+  to indifference, and at indifference the EV gap between the mixed actions is by definition near
+  zero — so perturbing that split costs almost nothing in exploitability. And a pure strategy is
+  lossless under this encoding in both directions, since 0 and 255/255 are exactly representable.
+  What one-byte quantisation actually threatens is neither of those: it is the many near-zero
+  weights, where rounding 0.002 to 0 or to 0.004 changes a rare action's frequency by a large
+  relative amount — which is a different and smaller concern than the annotation states, and it is
+  the one a reader should be told about.
+
+  Why this is a blocker and not a non-blocker: it sits in the `frozen-into-data` ask, it is the only
+  cost attached to the single table row the whole "40x is not enough" argument is anchored on, and
+  it argues against that row on grounds that do not hold. A human weighing option 1 against option 3
+  is being told the aggressive encoding is already at the edge of the accuracy target, which nothing
+  measures. Fix by stating it as unmeasured — "the exploitability cost of one-byte quantisation is
+  not measured anywhere in this repo; the granularity is 0.39% of frequency, which is not
+  commensurable with the 0.3%-of-pot exploitability target and must not be read as approaching it" —
+  or by dropping the clause and leaving the row's cost as the reviewability loss option 1 already
+  names.
+
+### A form note the machinery requires
+
+Not a finding, recorded here because it governs how this section must be written. `unresolved_blockers`
+in `scripts/loop_stage.py:179-181` calls `line.strip()` before testing `startswith("- ")`, so an
+**indented** bullet under `## Blocker` is indistinguishable from a top-level finding. I confirmed
+this by importing the function and running it against this note: before the fix above it reported
+four open items, of which three were mutation-canary names from blocker 2's evidence list and only
+one was a real finding. Those three could not honestly be marked `[resolved]`, because a canary's
+name was never a finding and marking it would assert a closure that never existed. Blocker 2's list
+is therefore a table now, and no bullet appears at any depth under this heading. Every word of every
+finding is unchanged. The defect is the coordinator's to carry, filed as
+`REVIEW-QUEUE-COUNTS-EVIDENCE-BULLETS-AS-BLOCKERS`; the extension it now records — that this bites
+the advance gate and not only the derived queue — is the part that matters, because a queue that
+miscounts is noise a human filters, while an advance gate that miscounts refuses a stage for a
+reason no one can resolve. Also worth stating: evidence tables are not a general substitute for
+evidence, so the right long-term fix is the parser, not a house style that forbids sub-structure in
+review notes.
 
 ## Non-blocker
 
@@ -489,8 +566,18 @@ unmarked, so the stage stays held.
   **withdraw the concern**; the reasoning is under blocker 4. The 137 and the 99-MB figure are the
   two instances, and both were caught by a reader doing arithmetic rather than by anything in the
   repo, which is what makes them worth entries.
-- **New ID must be filed** — propose `A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT-FALSIFIED-IT`.
-  Owner `maintenance`. Content: `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` was falsified in the phase 16
+- `REVIEW-QUEUE-COUNTS-EVIDENCE-BULLETS-AS-BLOCKERS` — filed and verified present, extended by the
+  coordinator to record that the miscount reaches the advance gate and not only the derived queue,
+  and named as the half of MAINT-29 that lands first. I agree with that ordering and with the
+  diagnosis. What I would add to the entry, from having been the note it bit: the fix must key on
+  the bullet's indent rather than on a house rule against sub-structure, because the alternative is a
+  review format in which evidence cannot be listed, and the three lines this defect flagged as
+  unresolved blockers were the six-canary inventory that made blocker 2 checkable. A parser that
+  cannot tell a finding from its support pushes reviewers toward vaguer notes, which is the opposite
+  of what the review stages exist for. Existing entry; nothing owed by phase 16.
+- ~~**New ID must be filed**~~ `A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT-FALSIFIED-IT` —
+  **filed at `5e7ef7f`/`62d8237`** with both instances, and verified present. Proposed content was:
+  `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` was falsified in the phase 16
   decision list on 2026-09-08, and eleven lines below the dated falsification the same file still
   says "The cost is not linear: one flop spot is 49 turn spots ... each has to be solved to a target
   exploitability rather than derived", while `docs/V2_ROADMAP.md:215-216` states the ratio outright
@@ -503,19 +590,39 @@ unmarked, so the stage stays held.
   tracked tree. Phase 16's contract now imposes exactly that condition on itself by hand, for one
   ID; nothing generalises it, and nothing would have caught it here if this review had stopped at
   the paragraph the fix touched.
+- **New ID must be filed** — propose `A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS`. Owner
+  `contract-update` or the phase that rules decision 6. Content: blocker 7 above. An encoding
+  choice's accuracy cost was stated by comparing a frequency granularity (0.39%, one byte over
+  [0,1]) against an exploitability target (0.3% of pot) as though the two were the same scale. They
+  are not commensurable, and the comparison happened inside a `frozen-into-data` option list where
+  it argues against a specific encoding. The general shape is that this repo's solve vocabulary
+  carries at least four percentages — exploitability as percent of pot, action frequency, range
+  weight, and `allin_threshold` as percent of pot — and
+  `SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE` already records one unit confusion among them
+  reaching committed config. What is owed is a habit rather than a check: any percentage stated
+  next to another names its unit. Related to
+  `A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT` but distinct — that entry is a
+  figure that fails to reconcile against a rate in the same units; this is two figures in different
+  units compared as if they reconciled, which no arithmetic check catches because the arithmetic on
+  each side is right.
 
 ## Method
 
-Read-only throughout, both rounds. Commands used: `git diff`, `git log`, `git show`,
-`git worktree list`, `grep`, `sed -n`, `cat`, `wc`, `ls`, `find`, and `uv run python` for eight
+Read-only throughout, all three rounds. Commands used: `git diff`, `git log`, `git show`,
+`git worktree list`, `grep`, `sed -n`, `cat`, `wc`, `ls`, `find`, and `uv run python` for ten
 read-only computations — round 1: the flop isomorphism enumeration (22,100 boards, 1,755 classes,
 455 rainbow, 1,286,792 hero-combo classes), the `action_weights` byte measurement, the converged-row
 scan over `latest_postflop_solve_cost.txt`, and the artifact-tree byte total; round 2: the 40.227
 whole-file-over-weights rate, a direct structural build of the chart-shaped payload at both node
 counts and both indent settings, the lean parallel-array encoding, and a per-test-function scan of
-`tests/**` for query-shape references. No tracked file was modified in either round.
-`scripts/run_verify.py` and `scripts/check_gate_bite.py` were not run.
+`tests/**` for query-shape references; round 3: the full seven-row encoding table with its
+affordable-node column and the five node-by-line combinations, and the one-byte quantisation step.
+No tracked file was modified in any round. `scripts/run_verify.py` and `scripts/check_gate_bite.py`
+were not run.
 
-Round 2 reviewed `92c4f39` against `git show 92c4f39` and
-`git diff 2942e8d..HEAD -- <the three documents> backlog.yml`. Marks are mine and cover only what I
-re-derived in this worktree; blocker 6 is unmarked and holds the stage.
+Rounds reviewed: `92c4f39` (round 2) and `62d8237` with `5e7ef7f` (round 3), each against
+`git show` plus `git diff 2942e8d..HEAD` over the three stage documents and `backlog.yml`. Round 3
+also imported `unresolved_blockers` from `scripts/loop_stage.py` and ran it against this note, both
+to confirm the parser defect and to confirm the restructured note now reports exactly one open item.
+
+Marks are mine and cover only what I re-derived here. Blocker 7 is unmarked and holds the stage.

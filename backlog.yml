@@ -6856,6 +6856,10 @@ items:
       That makes this a defect in the loop's advance gate and not only in a derived view, so it is
       the half of MAINT-29 that has to land first. A fix is two lines: measure the bullet's indent
       before stripping, and count only bullets at the section's own level.
+      Key it on the indent and not on a house rule against sub-structure. The three lines it
+      flagged here were the inventory that made the finding checkable, and a parser that cannot
+      tell a finding from its support pushes reviewers toward vaguer notes, which is the opposite
+      of what the review stages exist for.
 
   - id: TWO-DOCS-STILL-SAY-DATA-ARTIFACTS-HAS-NO-SIZE-CHECK
     status: deferred
@@ -6970,3 +6974,26 @@ items:
       AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE, which are the two other ways a
       number in a governing document goes wrong without any check disagreeing.
       Proposed by phase 16's stage-1 independent contract review, 2026-09-08.
+
+  - id: A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS
+    status: deferred
+    phase: contract-update
+    title: Two percentages in different units are compared as though one bounded the other
+    reason: >-
+      Phase 16's stage-1 decision record argued against a one-byte-per-weight encoding on the
+      grounds that it "quantises a frequency to about 0.4% and so sits at the edge of the
+      0.3%-of-pot target it would be storing". The arithmetic is right, one byte over [0,1] being
+      1/255 or 0.392%, and the comparison is empty: 0.4% is a granularity in action frequency and
+      0.3% is an exploitability bound in fractions of the pot. No conversion exists between them,
+      and rounding a frequency by epsilon does not add epsilon of exploitability.
+      The inference also ran the wrong way. A solver mixes only where it has driven a hand to
+      indifference, and at indifference the EV gap between the mixed actions is near zero, so
+      perturbing the split is close to free; pure strategies are exactly representable. The real
+      exposure is the long tail of near-zero weights, where rounding 0.002 to 0 removes a rare
+      action outright - a smaller and different concern, and one nobody has measured.
+      This repo has already shipped one cross-unit percentage confusion into committed config:
+      SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE, where a threshold read as a fraction on one
+      surface and a percent on another turned every configured bet into a jam and shrank the tree
+      about 4.5x. Two percentages meeting in one sentence is the shape, and nothing checks it.
+      Caught by phase 16's stage-1 independent contract review, 2026-09-08, in the frozen-into-data
+      ask where it was the only stated cost of the row the whole affordability argument rests on.
