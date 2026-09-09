@@ -47,6 +47,11 @@ Expected at later stages, each needing its own dated `scope_change_log` entry wh
 - Stage 6 or later, and only after stage 3 has a human answer on decisions 4 and 6:
   `data/artifacts/postflop/**`. This is the committed data the phase exists to write and the one
   path no lane opens on its own judgment.
+- Stage 6, with the artifact and not before it:
+  `data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json`. The contract requires
+  that card regenerated because its `headroom_bytes` counts the whole artifact tree, and the
+  stage-1 review found the obligation had no scope to land in. It is a preflop path serving a
+  postflop obligation, which is why it needs naming rather than assuming.
 - Stage 9: `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md`.
 
 Forbidden throughout: `data/raw/**` and `data/processed/**` as an existence rule; PokerNow
