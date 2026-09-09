@@ -7391,8 +7391,9 @@ items:
     phase: contract-update
     title: All four candidate menus cap at 75 percent of pot and none discloses the missing overbet
     reason: >-
-      Real solutions at the single-raised pot's SPR of 17.7 use overbets on polarising turn and river
-      cards, and the flop's polar branch exists partly to set them up. Every menu in the record caps
+      From poker knowledge and unmeasured here: real solutions at the single-raised pot's SPR of 17.7
+      use overbets on polarising turn and river cards, and the flop's polar branch exists partly to
+      set them up. The menu caps below are repo figures; this sentence is not. Every menu in the record caps
       at 75% of pot on every street.
       This is not a discriminator between phase 16's decision 11 options, since all four share it,
       which is precisely why it needs its own entry: it is the abstraction error none of the options
