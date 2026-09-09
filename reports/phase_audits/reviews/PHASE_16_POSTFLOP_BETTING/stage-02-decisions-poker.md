@@ -310,6 +310,22 @@ that matters.
 
 ## Alignment
 
+**Checked 2026-09-09, and this is the one thing outstanding.** `AGENTS.md` says an alignment item
+"must be filed in `backlog.yml` rather than left in the note". Of the entries below, one is filed
+(`A-SOLVER-CONFIG-FIELD-IS-READ-FROM-ITS-NAME-AND-NOT-FROM-THE-BUILDER`, `backlog.yml:7160`), one
+already existed (`EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP`), one is withdrawn and must
+**not** be filed, and the remaining **nine are unfiled**. An ID cited from a review note but absent
+from the tree is exactly `A-BACKLOG-ID-IS-ONLY-CITABLE-FROM-THE-TREE-THAT-DECLARES-IT`, so these
+are citations to nothing until they land. Not a poker finding and not a blocker on the poker; it is
+the stage's own rule and it is the last thing between this note and a clean advance.
+
+And one of the two that do exist has no owner. `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` is
+`status: deferred` against `phase: "14"`, and phase 14 is `status: completed` in
+`phase_status.yml:77`. The pair-ladder smoothing that decision 12's floor default now depends on is
+therefore filed against a phase that has closed, which is the shape
+`NOTHING-SWEEPS-DEFERRED-BACKLOG-ENTRIES-A-LATER-TASK-FALSIFIED` and the closeout blind spot both
+describe. Decision 12's condition should name its owner rather than the entry.
+
 - `A-RANGE-TRUNCATION-IS-REPORTED-IN-COMBOS-WHERE-THE-COST-IS-IN-MASS` (new). Three committed documents now describe the 0.01 floor by its combo count - "68% truncation of the defending range", "hands from 1131v679 to 360v559" - and none states the mass. The combo figure is 345x the poker quantity (68.9% against 0.199%), it is the figure the no-floor default rests on, and it is the same class of error as `A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS`, filed against this same file at stage 1. A range truncation reported in labels rather than in arrival frequency will mislead every future reader the same way.
 
 - `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` (exists, deferred, phase 14). Its own text reaches the conclusion decision 12 declines: the residue "costs a factor of two in memory and buys nothing". It also holds the smoothing half that the second blocker above says must land before the floor. The entry is filed against phase 14, which is completed, so on current status this conditioning step has no owner and phase 16 consumes an unsmoothed export.

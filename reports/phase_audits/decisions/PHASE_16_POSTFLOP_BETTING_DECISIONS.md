@@ -1061,8 +1061,12 @@ closed and no floor requires no action to be safe; that reasoning was right in f
 the 68% figure being a quantity of range, which it is not. Class-level remains a constraint rather
 than a choice, because one suit-specific weight collapses the isomorphism group.
 
-The condition on that default: the 44 asymmetry above is stated as a known defect of the input, not
-repaired by this phase, and the report publishes each committed range's pair weights on both sides
+The condition on that default names an owner rather than an entry, because the entry it would have
+named had none: `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` held the pair-ladder smoothing
+this default depends on and was filed against phase 14, which is `completed`. It is re-pointed to
+phase 16. **So the smoothing is this phase's to do or to refuse explicitly, not a thing it waits
+on.** The rest of the condition: the 44 asymmetry above is stated as a known defect of the input,
+not repaired by this phase unless the smoothing lands, and the report publishes each committed range's pair weights on both sides
 so a reader can see what hero was solved against - and can see that the pairs missing from a
 flat-calling range are missing because they 3-bet, which is the reading a repair would destroy.
 

@@ -3168,7 +3168,7 @@ items:
       measurement task can settle.
   - id: EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP
     status: deferred
-    phase: "14"
+    phase: "16"
     title: The preflop export's ranges carry indifference artifacts and unfloored residue
     reason: >-
       The committed preflop export's conditional ranges are a faithful record of what the solver
@@ -3190,6 +3190,15 @@ items:
       board. So the floor and any smoothing have to be applied at class level, uniformly across
       the combos of a class. Filed against phase 14 because that phase re-keys the chart and is
       where a conditioning step belongs; phase 16 consumes the result.
+
+      **Re-pointed from phase 14 to phase 16 on 2026-09-09.** Phase 14 is `completed`, so this sat
+      deferred against a closed phase - the shape both
+      NOTHING-SWEEPS-DEFERRED-BACKLOG-ENTRIES-A-LATER-TASK-FALSIFIED and the closeout blind spot
+      describe. Phase 16 is the phase that consumes the export, and its decision 12 default to floor
+      the ranges is conditioned on the pair-ladder smoothing this entry holds, so leaving it
+      ownerless would ship the floor while the smoothing it depends on never happens. Found by phase
+      16's stage-2 independent poker review.
+
   - id: ROADMAP-CLAIMS-NO-SOLVE-WAS-EVER-TIMED
     status: deferred
     phase: contract-update
@@ -7192,6 +7201,11 @@ items:
       `docs/GTOPEN_SOLVER_NOTES.md` and this phase's contract both had wrong. The notes' practical
       warning survived its wrong mechanism, which is why nobody caught it: 0.67 becomes 0.0067 and
       every bet exceeds the threshold either way.
+      **The rule that would prevent the next one is not "read the source", because both parties did.**
+      It is that a claim about a solver's action set has a cheap self-consistency check sitting
+      beside it, and nobody ran one until challenged. "The reduced menu jams the turn" cannot hold
+      beside a reduced tree with strictly fewer lines. A pot of 76 and a stack behind of 70.5 cannot
+      both follow from the same `put`. Each wrong claim carried its own refutation one line away.
       The retraction chain is itself the evidence for the rule. Three claims, three self-retractions
       by the reviewer that made them, and the third retraction carried a worked example that was
       also wrong - it subtracted the whole contribution instead of `put - starting_pot/2`, giving a
@@ -7200,3 +7214,192 @@ items:
       would have settled all four; each was instead settled by a later round.
       Filed by phase 16's stage-2 independent poker review, 2026-09-09, which retracted the finding
       itself after reading the builder.
+
+  - id: A-RANGE-TRUNCATION-IS-REPORTED-IN-COMBOS-WHERE-THE-COST-IS-IN-MASS
+    status: deferred
+    phase: contract-update
+    title: A range truncation reported by combo count overstates its poker cost by two orders
+    reason: >-
+      Three committed documents described phase 16's 0.01 range floor by its combo count - "68%
+      truncation of the defending range", "hands from 1131v679 to 360v559" - and none stated the
+      mass. Measured on `config.range_oop@717f36499fb4`: 878 of 1,274 combos, 68.9%, and 0.199% of
+      the weight. The combo figure is about 345 times the poker quantity, and it was the figure a
+      no-floor default rested on until the stage-2 poker review measured the mass and the default
+      reversed.
+      Same class as A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS, filed against the same document
+      at the same stage: a count of labels standing in for the frequency a player meets them. A
+      truncation stated in labels rather than in arrival frequency will mislead every later reader
+      the same way.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+
+  - id: A-TEXTURE-FAMILYS-CLASS-COUNT-IS-NOT-ITS-BOARD-SHARE
+    status: deferred
+    phase: contract-update
+    title: Texture coverage stated in canonical classes rather than in the flops a player meets
+    reason: >-
+      Rainbow is 455 of 1,755 canonical classes, 25.9%, and 8,788 of 22,100 boards, 39.76%. Monotone
+      is 286 classes, 16.3%, and 1,144 boards, 5.18%. Rainbow classes carry 19.3 boards each against
+      monotone's 4.0.
+      Every statement phase 16 made about texture coverage, texture cost weighting and texture
+      evidence was written in classes. The two figures differ by 1.53x for the family that drives
+      the refusal risk and by 3.1x for the family the phase's converged evidence sits on, so a
+      refusal exposure read as 25.9% is really two flops in five, and an evidence base read as 16.3%
+      of the space is really 5.18%.
+      The conversion already exists in the repo - the cost model weights by orbit factor - and is
+      simply not applied where the coverage claims are made. Sibling of
+      A-RANGE-TRUNCATION-IS-REPORTED-IN-COMBOS-WHERE-THE-COST-IS-IN-MASS: a count of equivalence
+      classes standing in for a frequency.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+
+  - id: NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED
+    status: deferred
+    phase: "16"
+    title: A training chart's product is its action frequencies and nothing checks those have converged
+    reason: >-
+      Phase 16's decision 4 lists this as the first thing its exploitability default does not cover,
+      and `docs/GTOPEN_SOLVER_NOTES.md` lists it first under "Not verified". No backlog entry owned
+      it and no command would produce it.
+      The substance is a poker point rather than a process one. A 0.3%-of-pot solve does not get
+      *which* hands bet wrong; what a reader takes off a flop chart is *how often*, and frequencies
+      on hands driven to indifference settle well after exploitability does. Both of MAINT-26's
+      determinism runs stopped at 240 iterations, and nothing in the repo has solved a cell deep and
+      diffed the frequencies. So as things stand this phase would commit a frequency table nobody
+      has checked is one.
+      The measurement is one solve at several times 240 iterations on the committed config, diffed
+      against the 240-iteration strategy, and it is cheaper than every other open measurement in the
+      phase. NOTHING-MEASURES-HOW-MUCH-THE-SOLVE-MIXES is the preflop sibling.
+      The stage-2 poker review made this the single condition on its verdict that the phase is worth
+      committing at all. Filed 2026-09-09.
+
+  - id: A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE
+    status: deferred
+    phase: "16"
+    title: Committed flop frequencies assume a continuation the flop-only bot refuses
+    reason: >-
+      At the single-raised pot's SPR of 17.7 a flop bet's value is largely the leverage it creates on
+      later streets, so the committed frequencies are correct for an agent that can barrel and this
+      agent refuses the turn. They are therefore not the correct frequencies for the game it plays.
+      Decision 1 accepted a seam and named it a worse experience than never betting; this is the
+      narrower and sharper statement, that the artifact's own numbers assume a continuation that
+      does not exist.
+      The training use survives, because a refusal voids the hand rather than checking it down, so
+      the bot never plays out the strategy it did not solve for. What does not survive is
+      measurement: no winrate or EV figure may be reported over this artifact, because the hands it
+      would be computed from are the ones that ended at the refusal.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+
+  - id: POSTFLOP-CELLS-ARE-STACK-FRAGILE-WHERE-THE-PREFLOP-CHART-IS-NOT
+    status: deferred
+    phase: contract-update
+    title: A postflop cell is far more depth-sensitive than a preflop cell and needs a stricter rule
+    reason: >-
+      The geometric three-street size in a single-raised pot moves from 103.9% to 115.8% to 130.9% of
+      pot at 77.5, 97.5 and 127.5bb effective. The same board and the same ranges at a nearby depth
+      is therefore a materially different strategy, where a preflop cell at a nearby depth is nearly
+      the same one.
+      The consequence is a rule difference that should be stated where both rules live: a postflop
+      payload validation must **refuse** an off-depth spot rather than tolerate it, which is
+      stricter than the preflop chart's nearest-price substitution. The preflop tolerance is
+      defensible for the same 0.25bb and does not transfer, because postflop that 0.25bb moves the
+      pot, the SPR and both ranges at once.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+
+  - id: NOTHING-MEASURES-POSTFLOP-ACTION-COVERAGE-AGAINST-REAL-BET-SIZES
+    status: deferred
+    phase: contract-update
+    title: Board coverage will read 1755 of 1755 while action coverage is unmeasured and unmeasurable
+    reason: >-
+      Phase 16 will report board coverage at 1,755 of 1,755 canonical classes. Action coverage - how
+      often a real opponent's bet size is one the committed cells hold an answer for - is unmeasured
+      and cannot be measured in this repo today. Self-play never bets postflop, the corpus
+      comparison is preflop-only by design (`decision_query.query_for` returns None for every
+      non-preflop street), and the refusal inventory ranks preflop gaps with no postflop equivalent.
+      So a coverage claim that reads complete describes one axis and is silent on the axis a student
+      meets, which is the same shape as
+      A-TEXTURE-FAMILYS-CLASS-COUNT-IS-NOT-ITS-BOARD-SHARE one level up.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+
+  - id: POSTFLOP-EVIDENCE-IS-ALL-MONOTONE-AND-MONOTONE-GENERALISES-WORST
+    status: deferred
+    phase: "16"
+    title: The whole converged evidence base sits on the texture whose solution transfers least
+    reason: >-
+      MAINT-26's seven converged rows are six monotone and one two-tone; the report's own texture
+      line reads "rainbow 0, two-tone 1, monotone 6". POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL covers
+      the cost consequence.
+      The strategy consequence is separate and larger. Monotone is the texture whose solution
+      transfers least to the rest of the set - the flush possibilities dominate the strategy and
+      exist on no other texture - so the phase's entire converged evidence base says close to
+      nothing about the strategies it will commit on the other 1,469 classes. In board terms rather
+      than class terms the evidence covers 5.18% of flops.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+
+  - id: THE-QUERY-TIME-PRICE-SUBSTITUTION-IS-NOT-BOUNDED-POSTFLOP
+    status: deferred
+    phase: "16"
+    title: A cell solved at one opening price answers a hand played at another, unbounded
+    reason: >-
+      Phase 16's decision 8 commits the price substitution as provenance, which is honest. The
+      substitution that happens at **lookup** is a different object and nothing bounds it. A hand
+      actually opened to 2.25bb served an `@2.5` cell moves the pot 9.1%, the SPR 10.3%, the
+      geometric three-street size 5.3 points, and both ranges.
+      Two channels, and because the committed corpus's median open is below 2.5 both run the same
+      way on every hand, so neither averages out. The range channel is the larger: 2.25bb is a
+      cheaper price, so the real defender is wider and weaker than the range the cell was solved
+      against, and hero c-bets and bluffs too little. The geometry channel is smaller and opposite
+      in character, the real SPR being higher than the cell assumes so the cell reads as too willing
+      to commit.
+      Decision 10's payload validation cannot see either, because it compares the payload to the
+      **line** the spot names rather than to the query being asked - the artifact is checked against
+      itself. The preflop chart's tolerance for the same 0.25bb is defensible and does not transfer.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+
+  - id: AN-ISOMORPHISM-TEST-ON-BOARDS-DOES-NOT-COVER-HERO-HANDS
+    status: deferred
+    phase: "16"
+    title: A board-only isomorphism test passes a hand permuted inconsistently with its board
+    reason: >-
+      Phase 16's contract requires a test proving every one of the 22,100 three-card boards maps into
+      exactly one of the 1,755 canonical classes, and that a rank-texture neighbour maps to a
+      different key. Suit isomorphism is exact only if hero's cards are permuted by the **same** map
+      as the board.
+      A hand permuted inconsistently with its board passes that test and produces a legal, plausible
+      strategy for the wrong hand - a flush draw served the strategy of the same ranks without the
+      draw, on a two-tone flop. Exploitability cannot catch it, because the returned strategy is a
+      real strategy for a real hand.
+      The check is one line and belongs beside the board test: a flush-draw combo must not receive a
+      strategy identical to the same ranks without the draw.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+
+  - id: POSTFLOP-SOLVE-IS-RAKE-FREE-AND-THE-GAME-IS-NOT
+    status: deferred
+    phase: "16"
+    title: A rake-free flop solution continues wider than correct play in the raked game a student sits in
+    reason: >-
+      Every measured row is `rake_pct: 0.0, rake_cap: 0.0`, consistent with the rake-free preflop
+      export, so the convention is coherent and the ranges match the solve. That is the right
+      choice and this entry does not reopen it.
+      The consequence for a training bot is the postflop mirror of
+      OPENING-RANGES-READ-NARROWER-THAN-A-RAKED-REFERENCE: a rake-free flop solution continues and
+      bets marginally wider than correct play in a raked game, and the effect concentrates on
+      exactly the thin continue decisions a flop chart is consulted for. Direction stated, magnitude
+      unmeasured; this is poker reasoning rather than a repo number.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+
+  - id: NO-MENU-IN-THE-RECORD-OFFERS-AN-OVERBET
+    status: deferred
+    phase: contract-update
+    title: All four candidate menus cap at 75 percent of pot and none discloses the missing overbet
+    reason: >-
+      Real solutions at the single-raised pot's SPR of 17.7 use overbets on polarising turn and river
+      cards, and the flop's polar branch exists partly to set them up. Every menu in the record caps
+      at 75% of pot on every street.
+      This is not a discriminator between phase 16's decision 11 options, since all four share it,
+      which is precisely why it needs its own entry: it is the abstraction error none of the options
+      can fix and none of them discloses. A reader comparing the four would conclude the choice is
+      between degrees of turn and river resolution when all four are missing a size class that
+      changes flop construction.
+      Distinguished from the withdrawn NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT,
+      which claimed all-in was unreachable and was false - raises reach the stack even where bets do
+      not, 96 distinct all-in states in the single-raised pinned tree.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
