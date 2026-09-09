@@ -1884,3 +1884,20 @@ scope_change_log:
       that scoped `reports/phase_audits/reviews/MAINT_ASK_THE_CHART_A_HAND/**` the same way.
       AGENTS.md owes an independent read-only review whatever else a task does, and the note has
       nowhere else to go.
+  - date: 2026-09-08
+    reason: >-
+      Opening the phase 16 lane. base_commit is main at 19beb97, where the task rested idle with an
+      empty approved_scope, so seeding this lane's scope reads as a widening and needs its reason on
+      the record.
+      Eligibility was not assumed: scripts/loop_fleet.py --plan measures depends_on against main and
+      named 16 the one phase that may start. Phase 16 depends on 14 alone, and 14 is completed on
+      main. The 2026-09-06 amendment that cut the edge to 15 is what makes that true.
+      Three paths enter scope for the contract stage and nothing else: the phase 16 contract, which
+      is still a skeleton and is here to be written rather than corrected; this phase's decision
+      list, which carries three of Taylor's 2026-08-19 rulings and two unanswered items; and this
+      phase's review notes.
+      The implementation paths are deliberately absent. tests/test_postflop_betting.py enters at
+      stage 4 and leaves again at stage 5; the strategy and artifact modules, the solve driver and
+      scripts/run_verify.py enter at stage 6; data/artifacts/postflop/** enters only once stage 3
+      has a human answer on decision 4, because that is the committed data the phase exists to
+      write; the audit packet at stage 9. Each needs its own dated entry here when it does.
