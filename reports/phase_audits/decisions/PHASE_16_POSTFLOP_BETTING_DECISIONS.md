@@ -442,7 +442,9 @@ A uniform unseen deck flatters hero, so this makes the bot over-call as the mirr
 
 Default: build it, behind an explicit flag, and report the frequency it fires rather than claiming it is correct. It is runtime-reversible because no committed data records it; it is a rule the query evaluates.
 
-Answer:
+Answer: [Confirmed by Taylor, 2026-09-09] Take the default. This item is `runtime-reversible` and
+would have proceeded on its default regardless; the confirmation is recorded so a later reader does
+not read the empty bracket as an unasked question.
 ## 6. How the committed flop artifact is encoded, given that it does not fit
 
 Reversibility: frozen-into-data
@@ -735,7 +737,15 @@ field is frozen data and a computed one is not. Committed, because the substitut
 which ranges the spot was solved against, and that is settled when the solve is committed rather
 than when a hand is played.
 
-Answer:
+Answer: [Ruled by Taylor, 2026-09-09] **Verbatim.** Take the default: the postflop key carries the
+preflop spot key entire, sizes included, inside a key that does not begin with `t`, and the price
+substitution is recorded on the committed spot.
+
+The query-time substitution this item raises is **not** settled by that ruling and is not closed by
+it. `THE-QUERY-TIME-PRICE-SUBSTITUTION-IS-NOT-BOUNDED-POSTFLOP` carries it: a hand opened to 2.25bb
+served an `@2.5` cell meets a defender who is really wider and weaker, so hero c-bets and bluffs
+too little, and decision 10's validation cannot see it. Verbatim keys make that visible rather than
+fixing it, which is the honest reading of what was ruled.
 
 ## 9. Whether flop bet sizes appear in the postflop spot key
 
@@ -770,7 +780,9 @@ size-named key is the safer one under a menu change, not the more brittle one.
 Default: **name the size**, on the preflop key's own precedent, on the equity and defence numbers
 above, and because it is the option that fails closed when the thing it depends on moves.
 
-Answer:
+Answer: [Ruled by Taylor, 2026-09-09] **Name the bet size.** Take the default. It costs no bytes,
+and it means a later menu change makes the lookup refuse a size it holds no cell for rather than
+silently answering it from a cell solved against a different one.
 
 ## 10. Whether pot and effective stack appear in the postflop spot key
 
@@ -1070,7 +1082,14 @@ not repaired by this phase unless the smoothing lands, and the report publishes 
 so a reader can see what hero was solved against - and can see that the pairs missing from a
 flat-calling range are missing because they 3-bet, which is the reading a repair would destroy.
 
-Answer:
+Answer: [Ruled by Taylor, 2026-09-09] **Floor at 1 percent, class-level.** Take the default.
+Taylor's reasoning, recorded because it is narrower than the default's and worth keeping: a hand the
+solve holds at a 1% weight is a hand whose call-or-fold decision makes no difference, so removing it
+costs nothing. That is the mass argument rather than the combo argument, which is what reversed this
+item.
+
+What the ruling does **not** settle is the pair asymmetry below. It is a defect of the input rather
+than of the floor, and the smoothing it needs now has an owner.
 
 ## 13. Whether this is one phase
 
