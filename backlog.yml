@@ -4479,6 +4479,14 @@ items:
       a number and which rest on an argument.
       The rule: every `Options:` line marks each option measured, bounded by argument, or unexamined,
       so a human can tell what a rejection cost to establish.
+      Phase 16's decision 11 shows the three states are not enough, and it is the sharpest instance
+      the entry has, because that item deliberately carries no default and its evidence labels are
+      then the whole of what a human reads. Measured status is not a boolean: option 3 is measured
+      on both line types and no option is measured on rainbow, which is 455 of the 1,755 flop
+      classes and the expensive end. A single label collapses those, and the first draft of that
+      sheet gave option 3 a clean bill on the strength of the axis it happened to be measured on.
+      So the family wants a fourth **field** rather than a fourth state: each option says measured
+      on what, and unexamined on what.
       This is the third property in one family and they should be adopted as one rule rather than three
       entries: `DECISION-ITEMS-STATE-WHAT-AN-OPTION-COMMITS-NOT-WHAT-IT-REMOVES` is the first, and round
       14 of phase 14's stage-01 note asking an option sheet to state the *stake* at the decisions it
@@ -6969,7 +6977,13 @@ items:
       file was swept.
       A check is conceivable and narrow: a document carrying a dated "no longer true" or
       "corrected" paragraph is flagged when a distinctive figure from that paragraph still appears
-      elsewhere in the same file outside a passage marked historical. It sits beside
+      elsewhere in the same file outside a passage marked historical.
+      One special case is cheap and is where three of the five instances landed, all in phase 16's
+      decision 6 and 11: the correction goes into the item's arguing preamble and the numbered
+      option list below it goes untouched - and the list is what a human actually rules off. So a
+      fix to an item carrying a numbered list is not finished until the list has been re-read
+      against it, and a closure check should treat a numbered list as a separate region from the
+      prose above it. It sits beside
       A-CONTRACT-STATES-MEASURED-LEVELS-WITHOUT-NAMING-THE-ARTIFACT and
       AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE, which are the two other ways a
       number in a governing document goes wrong without any check disagreeing.
@@ -7090,4 +7104,14 @@ items:
       Not to be merged with A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT. A count
       that fails to reconcile against a line printed in the same file is that entry; this one is a
       hedge lost in transcription. Merging them yields an entry whose remedy is "be careful".
+      Three forms, with three different mitigations, all seen in this one phase.
+      A **lost hedge** is restored by quoting the review as a review and attributing it.
+      An **adopted inference** - the reviewer's reading of the contract's flop decision count, taken
+      as a premise - has to be tested against the thing it claims about, since quoting it faithfully
+      would preserve the error.
+      An **adopted limit** is the third and the reviewer caught itself in it: it recorded that the
+      cost report does not expand its sizing configs, having stopped searching too early, and the
+      appendix does expand them. A reviewer's stated limit on what it checked is not evidence that
+      the thing is missing, and a coordinator must re-run the search rather than inherit the
+      boundary.
       Filed by phase 16's stage-2 independent decisions review, 2026-09-08.

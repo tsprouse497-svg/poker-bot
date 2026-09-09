@@ -584,9 +584,26 @@ The choice, therefore:
    coverage decision 3 wants is reachable. **It has the mirror image of option 1's gap and an
    earlier draft of this list did not disclose it**: no 3-bet row in the record uses the reduced
    config at all, not a solve and not a build, so this option is unmeasured on exactly the half
-   option 1 is measured on. Its rows are also marked not cost-comparable, so decision 6's budget
-   and every hour figure would be re-derived on it, and a narrower betting tree is a coarser
-   strategy in the spots that matter most.
+   option 1 is measured on. Its rows are also marked not cost-comparable, so every hour figure
+   would be re-derived on it - the byte budget would not, per the preamble above, and an earlier
+   draft of this line said it would.
+
+   **The one thing this option turns on is unmeasured, and it is a poker claim, so it needs a
+   number.** That a narrower turn and river tree changes hero's flop strategy is certain and is
+   argued above. That the change is *worse*, by how much, and in which spots, is not established,
+   and an earlier draft asserted the sign - "a coarser strategy in the spots that matter most" -
+   with nothing behind it. The record cannot settle it: the only same-board pair, `matrix-01`
+   against `matrix-03`, moves the menu, the pot from 16.0 to 5.5, the effective stack from 92.5 to
+   97.5, both ranges and the SPR at once.
+
+   **The measurement is one solve and it is cheap.** Run the reduced config on a 3-bet pot at
+   `9c8c7c` or `Kc7c2c` and diff the flop strategy against `matrix-01` or `matrix-02`: board, pot,
+   stack and both ranges held, only turn and river moving. It is affordable on evidence already in
+   the record - the same ranges as the pinned 3-bet rows, strictly fewer nodes than their
+   1,073,702, and those converged at 220 to 260 iterations inside 3,726 MB, so a strictly smaller
+   tree over identical hands cannot need more. It also closes this option's disclosed gap at the
+   same time, since no 3-bet row uses the reduced config at all. It is far cheaper than the rainbow
+   single-raised-pot cell noted below, which needs 21.7 GB or decision 12's floor.
 3. **A menu per line type**, pinned for 3-bet pots and reduced for single-raised. **This is the only
    option measured on both line types**, because it is precisely the pair that converged: the
    record's solve rows are pinned at pot 16.0 and reduced at pot 5.5 and nothing else. It is not
