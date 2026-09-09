@@ -167,9 +167,10 @@ REFERENCE_SOURCE = ARTIFACT_DIR / "sources" / "gtowizard_6max_nl25_100bb_preflop
 defence - and the file it comes from carries per-hand strategies for thirty-six spots: five
 first-in, fifteen facing an open, fifteen facing a three-bet and the blind-versus-blind limp.
 Until this section was written, the one measurement in this repo able to catch a range that is
-uniformly wrong was applied to two of the five committed families, and those were the two that
-pass. It is still a raked NL25 solve, so reading wider than it is still a floor and never a pass,
-and none of it gates anything.
+uniformly wrong was applied to two of the five committed families, and **neither of the two comes
+back clean**: the big blind's defence reads under the reference against the button, and the opening
+ranges read under it at three seats of the five. It is still a raked NL25 solve, so reading wider
+than it is still a floor and never a pass, and none of it gates anything.
 """
 
 REFERENCE_SEAT = {"LJ": "UTG", "HJ": "HJ", "CO": "CO", "BTN": "BTN", "SB": "SB", "BB": "BB"}
@@ -1890,6 +1891,48 @@ def equity_section(measured: Measured) -> list[str]:
     ]
 
 
+def reference_gaps(measured: Measured) -> dict[str, list[tuple[str, float, float, float]]]:
+    """Each family this repo can read against an outside number, with the gap and its sign.
+
+    The gap is derived minus reference. The sign is the whole reason the comparison is printed:
+    the reference is a RAKED NL25 game and this is a rake-free solve, rake is a toll on every pot
+    that gets contested, so a rake-free solve is supposed to open wider and defend wider. A
+    POSITIVE gap is therefore a floor cleared and never a level confirmed, and a NEGATIVE gap is
+    the one direction the rake argument cannot explain away.
+
+    Nothing here is hand-typed (`HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES`): both
+    columns are read on this run, the first from the committed artifact and the second from
+    `expectations/six_max_nl25_100bb.json`.
+
+    **The small blind's opening row is not like-for-like and is flagged rather than dropped.** The
+    reference both opens and limps from that seat and this solve has no limp branch at all, so its
+    raise-only column is not the reference's raise-only column measuring the same decision. It is
+    carried here because dropping it would publish a four-row family under a five-row name, and the
+    caveat travels with the row.
+    """
+    reference = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
+    families = {
+        "opens": (reference["open_frequency_pct"], "t6/d100/{seat}/rfi"),
+        "big blind defends": (reference["big_blind_defence_pct"], "t6/d100/BB/{seat}:raise@2.5"),
+    }
+    gaps: dict[str, list[tuple[str, float, float, float]]] = {}
+    for name, (quoted, template) in families.items():
+        rows = []
+        for seat in OPENERS:
+            derived = measured.plays[template.format(seat=seat)]
+            cited = float(quoted[seat])
+            rows.append((seat, derived, cited, derived - cited))
+        gaps[name] = rows
+    return gaps
+
+
+def narrower_rows(
+    rows: Sequence[tuple[str, float, float, float]],
+) -> list[tuple[str, float, float, float]]:
+    """The rows reading under the raked reference, worst first."""
+    return sorted((row for row in rows if row[3] < 0), key=lambda row: row[3])
+
+
 def defects_section(measured: Measured) -> list[str]:
     """Accepted defects, never caveats, each with the number the phase accepted it on."""
     counted = {name: len(rows) for name, rows in measured.relations.items()}
@@ -1910,14 +1953,25 @@ def defects_section(measured: Measured) -> list[str]:
     raise_action = counted["pair ladder on the raise weight"]
     merged_spots = len(measured.walk.merged_spot_keys)
     moved = measured.walk.merged_cell_count
+    opening = reference_gaps(measured)["opens"]
+    opening_narrow = narrower_rows(opening)
     lines = [
-        "Four defects this phase accepts on purpose, each with the measurement it was accepted on.",
+        "Five defects this phase accepts on purpose, each with the measurement it was accepted on.",
         "They are defects and are recorded as defects; none is small print, and the packet",
         "requirements forbid that word for exactly this list.",
         "",
         f"  defect  the big blind over-folds against every opener   it defends {min(defends):.2f}"
         f" to {max(defends):.2f} percent where rake-free solves are roughly 40 through 65, and its"
         " flat barely moves with who opened",
+        f"  defect  the opening ranges read narrower than a raked reference   at"
+        f" {len(opening_narrow)} of {len(opening)} seats this chart opens fewer hands than a game"
+        f" that is paying rake, worst at {opening_narrow[0][0]} with {opening_narrow[0][1]:.3f}"
+        f" against {opening_narrow[0][2]:.3f} and slightest at {opening_narrow[-1][0]} with"
+        f" {opening_narrow[-1][3]:.3f} points, which is a tie rather than a shortfall and is"
+        " counted"
+        " because the rule is the SIGN and not the size, where rake-free is supposed to open WIDER"
+        " rather than tighter - the same realization fit as the row above, read at the seats that"
+        " open rather than the seat that answers",
         f"  defect  the pair ladder inverts   {pair} cases on play-not-fold and {raise_action} on"
         f" the raise weight the bot plays, {invisible} of those invisible to play-not-fold",
         f"  defect  the kicker row ladder inverts   {kicker} cases, of which {wheel} are exempted"
@@ -2252,6 +2306,7 @@ def expectations_section(measured: Measured) -> list[str]:
         "opens": reference["open_frequency_pct"],
         "big blind defends": reference["big_blind_defence_pct"],
     }
+    gaps = reference_gaps(measured)
     defence = reference_action_pct(("defence",))
     faced = sorted(
         (key, str(reference_key_for(key)))
@@ -2291,11 +2346,58 @@ def expectations_section(measured: Measured) -> list[str]:
         "",
         "The small blind's gap is the largest and has a second cause on top of that: the reference",
         "solve limps 13.73 percent of the time from the small blind, where this one has no limp",
-        "branch at all, so the hands that limped there open here.",
+        "branch at all, so the hands that limped there open here. That row is therefore not a",
+        "like-for-like reading and is marked below rather than dropped.",
         "",
-        "Those two families are two of the five this chart ships, and until this block was written",
-        "they were the only two anything outside the repo was read against - and they are the two",
-        "that pass. The file the expectations are distilled from carries full per-hand strategies",
+        "Read for direction, which is the whole reason these columns are printed. The gap is",
+        "derived minus reference. POSITIVE is wider, which the rake argument makes a floor cleared",
+        "and never a level confirmed. NEGATIVE is narrower, and that is the one direction the rake",
+        "argument cannot explain away, because rake makes a game tighter rather than looser:",
+        "",
+    ]
+    for measure_name, rows in gaps.items():
+        for seat, _derived, _cited, gap in rows:
+            note = "  not like-for-like, the reference limps from this seat" if (
+                measure_name == "opens" and seat == "SB"
+            ) else ""
+            lines.append(
+                f"  gap  {measure_name}  {seat}  {gap:+.3f}"
+                f"  {'wider' if gap > 0 else 'narrower'}{note}"
+            )
+    entry = float(reference["limp_frequency_pct"]["SB"])
+    sb = next(row for row in gaps["opens"] if row[0] == "SB")
+    lines += [
+        "",
+        f"  gap  opens  SB read on ENTRY  {sb[1] - (sb[2] + entry):+.3f}  wider"
+        f"  ({sb[2]:.3f} raised plus {entry:.3f} limped is {sb[2] + entry:.3f} entered)",
+        "",
+        "That last row is the honest reading of the small blind and the one above it is not. The",
+        "reference plays a split strategy from that seat, raising some hands and limping others,",
+        "while this chart has raise and fold and nothing else, so every hand it wants to play is",
+        "forced into the raise column. Setting its raise-only number beside the reference's",
+        "raise-only number reports a missing branch as though it were range width. Compared entry",
+        "to entry the small blind is wider by six points rather than twenty.",
+        "",
+    ]
+    for measure_name, rows in gaps.items():
+        narrow = narrower_rows(rows)
+        if narrow:
+            lines.append(
+                f"  narrower at  {measure_name}  {len(narrow)} of {len(rows)} seats"
+                f"  worst  {narrow[0][0]}  {narrow[0][1]:.3f} against {narrow[0][2]:.3f}"
+            )
+        else:
+            lines.append(f"  narrower at  {measure_name}  0 of {len(rows)} seats")
+    lines += [
+        "",
+        "So the sentence this report carried until 2026-09-06 - that both of these families clear",
+        "the check - was wrong about each of them, and it was the only prose a reader was given",
+        "about the opening ranges. Neither family comes back clean. The opening ranges are now on",
+        "the accepted-defect list above for this reason. What has NOT changed is that nothing here",
+        "gates and no range moved: this is a correction to what the phase says about what it",
+        "shipped, not to what it shipped.",
+        "",
+        "The file the expectations are distilled from carries full per-hand strategies",
         f"for {len(defence)} spots ({REFERENCE_SOURCE.relative_to(REPO_ROOT)}), so the rest of",
         "what it can reach is read below. The same caveat holds throughout and it is the whole",
         "caveat: the reference is RAKED, so this chart reading WIDER than it is a floor cleared",
@@ -2338,8 +2440,9 @@ def expectations_section(measured: Measured) -> list[str]:
         "So the over-folding is a property of every seat that has to answer an open rather than of",
         "the big blind, and a reader may not take the defect list's naming of one seat as clearing",
         "the merged three-bet ranges. What this measurement does not do is re-price anything or",
-        "move a weight: the four accepted defects are the four that were ruled, and whether the",
-        "list is extended to name this family is a ruling and not a measurement.",
+        "move a weight. The opening ranges were added to the defect list on 2026-09-06 and this",
+        "family was not, so whether the list is extended to name it too is a ruling and not a",
+        "measurement.",
         "",
         f"Second, hero's own four-bet at the {len(three_bet)} spots where he opened and then faced",
         "a three-bet - the family the bands section declines to publish a band over. Both columns",
@@ -2379,7 +2482,8 @@ def expectations_section(measured: Measured) -> list[str]:
         "defence column clears the floor at every spot and the four-bet column is below at every",
         "spot, which is a shape rather than a scatter.",
         "",
-        "The price column is why it is published and not accepted as a fifth defect. It is the",
+        "The price column is why it is published and not accepted as a defect of its own. It is",
+        "the",
         "four-bet as a multiple of the three-bet being answered, and this chart's four-bet is the",
         "dearer of the two at every one of these spots - the reference answers a bigger three-bet",
         "with a raise that is proportionally smaller. A dearer four-bet is four-bet less often by",
@@ -3106,7 +3210,7 @@ HEADINGS: tuple[str, ...] = (
     "## The group-order ladders, published for a human",
     "## The two counterfactual arms, on every partition",
     "## The equity relation, published and gating nothing",
-    "## The four accepted defects, and what each costs",
+    "## The five accepted defects, and what each costs",
     "## The two orderings",
     "## The big blind's defence and flat, per opener",
     "## Every published band, against its family's extremes",
@@ -3143,7 +3247,7 @@ big blinds, rake-free. The old chart is deleted from the tree and is read out of
 Nothing below is a grade on the new chart. Two of the three things that could explain a gap
 between it and how people played are still uncontrolled, real players are not an oracle, and the
 corpus verdict belongs to a later phase. What this report can do is show that the conversion was
-faithful, that the hand index survived it, what coverage was bought and sold, and what the four
+faithful, that the hand index survived it, what coverage was bought and sold, and what the five
 accepted defects cost - and say plainly which of its figures gate and which are published."""
 
 

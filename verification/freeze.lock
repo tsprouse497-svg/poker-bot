@@ -33,13 +33,13 @@ files:
     sha256: eca3a96ae354aa7448748be2cbce6c1e54a53fe67facce24355bca01d77cd3d5
     test_functions: 12
   tests/test_derived_chart_report.py:
-    sha256: e7da57008c79ca2dddb23dd9caa74996559a24f759158feba1500adc40a4c802
+    sha256: 4599bf32ba863ed01e3e484c9f4f1da05ef4acbe4596d93728bbe512bb0f778a
     test_functions: 5
   tests/test_derived_chart_report_cutover.py:
     sha256: 29fd22d85b9ad500da88c08dddc7095557ae9c222ead59dbafb7ac8aad864fa0
     test_functions: 4
   tests/test_derived_chart_report_ranges.py:
-    sha256: 0892bf46c956ec0f684135c4aaa6727be2d94aa3293d7e2e6fb59f1eee96b7eb
+    sha256: a1af72fec4f511ceb3c52724ab3e25b9fe95953ffa4e3c7b113300c445d0e940
     test_functions: 9
   tests/test_derived_chart_report_validators.py:
     sha256: 18b6f0f54c85803310b1391222698441ec25b2c45d768e9b25997104e8496313
