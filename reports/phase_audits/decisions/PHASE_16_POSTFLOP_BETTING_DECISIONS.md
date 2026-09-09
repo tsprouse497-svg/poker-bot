@@ -178,7 +178,7 @@ Growing this later is cheap and it is the pattern the repo already runs, verifie
 
 What is *not* cheap later is the spot key itself. Adding spots at a fixed key is additive; changing what the key can express re-derives every committed cell, which is why phase 12 sits ahead of phase 14 and why the ordering rule is format before data. So the one thing this phase must get right up front is the postflop spot key, and coverage may start as small as it likes.
 
-## 4. Exploitability target, and whether the solve is reproducible
+## 4. Exploitability target, and what happens to a cell that never reaches it
 
 Reversibility: frozen-into-data
 
@@ -200,13 +200,25 @@ What actually answers this item is MAINT-26, on 2026-08-23 and 2026-08-24, for t
 
 - **Target reached: 0.3% of the starting pot**, on 7 of 30 solve rows, at 220 to 260 iterations
   with a 20-iteration bracket. The other 23 rows stopped on an iteration cap and are floors.
-- **Determinism: byte-identical.** Same root-strategy sha256 across two runs in separate processes
-  against a restarted server, zero per-action divergence, zero combos present in one run only, and
-  the same digest as a row recorded a day earlier. No tolerance was needed, so the phase 10
-  fallback of recording a tolerance in place of a checksum does not arise.
 
-Default: **target 0.3% of the starting pot, and record the achieved percent, the iteration count
-and the strategy digest on every committed spot.**
+Reproducibility moved to decision 7 on 2026-09-08. It shared this heading, and
+`decision_items` in `scripts/loop_stage.py` collects one `Answer:` per heading, so answering the
+target here would have discharged reproducibility at stage 3 without anyone ruling it - invisibly
+to `review_queue.py`. Two frozen questions cannot share one answer slot.
+
+**A second frozen choice this item was hiding, and it is not the target.** 23 of the 30 measured
+rows never reached 0.3%; every one reads `hit-iteration-cap`, and rainbow - 455 of the 1,755
+classes and the expensive end - was never solved to target at all. So a real run produces cells
+that hit the cap first. **What happens to a cap-bound cell is frozen into the data and nobody has
+been asked**: commit it with its achieved percent recorded as a floor, or refuse the spot the way
+an uncovered preflop spot refuses. Committing floors means the artifact's stated accuracy is a
+claim about its best cells rather than all of them; refusing means a bot that has no answer on the
+boards it will most often see.
+
+Default: **target 0.3% of the starting pot, record the achieved percent and the iteration count on
+every committed spot, and refuse rather than commit a cell that hit the cap** - refusing because
+this repo fails closed everywhere else and a floor recorded as a cost is still a cell the bot
+plays.
 
 Three things that default does not cover, stated because a packet that quoted 0.3% as settled
 accuracy would be claiming more than the measurement supports:
@@ -228,6 +240,17 @@ accuracy would be claiming more than the measurement supports:
 
 Answer:
 
+## 5. Whether the pot-odds river call ships alongside
+
+Reversibility: runtime-reversible
+
+`POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK` calls a river bet when equity against the full unseen deck beats the price. It needs no solved data and invents no constant: equity is `(wins + ties/2) / 990` from the enumeration `hand_cannot_lose` already runs, and the price comes off the query.
+
+A uniform unseen deck flatters hero, so this makes the bot over-call as the mirror of its current over-folding. Under the flop-only default it is also the only thing that acts on a river at all.
+
+Default: build it, behind an explicit flag, and report the frequency it fires rather than claiming it is correct. It is runtime-reversible because no committed data records it; it is a rule the query evaluates.
+
+Answer:
 ## 6. How the committed flop artifact is encoded, given that it does not fit
 
 Reversibility: frozen-into-data
@@ -285,7 +308,12 @@ stopped by it. `SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE` mean
 artifact also reds `test_the_committed_export_sits_under_the_limit_with_stated_headroom` until the
 export's source card is regenerated.
 
-The four ways out, stated without a recommendation because the cost of each falls in a different
+**What an answer must fix**, because the contract needs three things from it and no single option
+below supplies them: the **encoding**, the **per-spot byte budget** including the provenance
+fields, and the **number of preflop lines**. A pick from the list is not an answer on its own; a
+pick plus a product from the budget above is.
+
+The six levers, stated without a recommendation because the cost of each falls in a different
 place:
 
 First, what encoding is worth, measured, so no option below rests on a format argument. Hero
@@ -302,13 +330,30 @@ decision nodes 15.04 MiB buys for ONE preflop line**:
 | binary, one byte per weight, 3 actions | 2.45 | 6.13 |
 | binary, one byte per weight, 2 actions | 1.23 | 12.26 |
 
-**Re-encoding is worth about 40x and it is not enough.** At the most aggressive entry in that
-table - binary, one byte per weight - the cap affords 5 hero nodes for one preflop
-line (12.3 MiB, 0.82x), 1 node for three lines (7.4 MiB, 0.49x), and 1 node for five lines
-(12.3 MiB, 0.82x). Three lines at five nodes is 2.45x over; five lines at five nodes is 4.08x.
+**Re-encoding is worth about 40x, and what it buys is a budget rather than a yes or no.** Read the
+right-hand column as **node-line units**: one unit is hero's strategy at one flop decision node,
+over all 1,755 flops, for one preflop line. Cost is the *product* of nodes and lines, so five
+nodes for one line and one node for five lines are the same 12,867,920 bytes. At the most
+aggressive row the cap affords **about 6 units**, and the whole affordable frontier is: 6x1, 3x2,
+2x3, 1x6, and everything under them. At lean JSON it is 1 unit. At the chart's committed format it
+is 0.15.
+
+An earlier draft of this entry gave 5x1, 1x3 and 1x5 as its examples and called option 4 "the only
+option that fits today without touching the cap". Both were wrong and the stage-2 review held the
+stage over them. The example set skipped the middle of the frontier, where 3x2 and 2x3 both land at
+0.979x and where the contract's own count of a flop - hero acts, villain answers, hero faces a bet
+or a raise, so three nodes - actually sits. And "the only option that fits" is false by this table:
+5x1 *is* option 2 driven to its limit, and option 4's 0.49x and 0.82x are quoted in the aggressive
+encoding, so ruling option 4 alone silently also rules the encoding. In the chart's own format
+option 4 is 98.62 MiB per node-line, 6.6x over, and fits nothing.
+
+The budget also excludes something the contract mandates. Every committed spot must carry its
+achieved exploitability, its iteration count and its strategy digest, and the table prices hero's
+free weights only. At 24 to 120 bytes a spot that is 0.3% to 6.7% of the headroom depending on the
+line count - small, real, and not zero, and it is what a per-spot cost has to include.
+
 So the finding is not about serialization at all: **no encoding, text or binary, fits several hero
-decision nodes across several preflop lines inside 20 MB.** The four options below are what remains
-once that is settled.
+decision nodes across several preflop lines inside 20 MB.** What an answer has to fix is below.
 
 What one byte per weight costs is **unmeasured, and it is not the 0.3% target.** An earlier draft
 of this paragraph said one byte quantises a frequency to about 0.4% and so sits at the edge of the
@@ -349,10 +394,22 @@ struck claim implied.
    limit here "is a halt and a decision, not a number to raise", which is what this entry is. The
    cost is repo weight, permanently, since git keeps every version of a committed artifact.
 4. **Commit fewer nodes per flop.** Store hero's flop root only and refuse every later flop node.
-   This is the only option that fits today without touching the cap: one node for three or five
-   lines is 0.49x and 0.82x in the aggressive encoding. It buys a bot that opens a flop and then
-   refuses inside the same street, which is a worse seam than the turn seam decision 1 accepted,
-   and it is the option a reader should weigh against option 3 rather than against the others.
+   One unit, so it fits at any encoding from lean JSON up and fits nothing in the chart's format.
+   It buys a bot that opens a flop and then refuses inside the same street, a worse seam than the
+   turn seam decision 1 accepted, and it spends the whole budget on breadth.
+5. **A flop subset plus refusal.** Decision 2's *ruled* text names this as its own second fallback -
+   "if 1,755 per line proves unaffordable once solve time is measured, the fallback is fewer preflop
+   lines, then a flop subset plus refusal, and never a subset plus abstraction" - so it is inside
+   what Taylor already ruled and was omitted from an earlier draft of this list. It is not
+   abstraction: an unsolved board refuses rather than borrowing a solved one. It scales the unit
+   directly, and its cost is stated in decision 3: GTOpen's 47-flop subset covers 2.7% of flops.
+6. **Keep the solves outside `data/artifacts` and commit only what the bot reads.**
+   `ARTIFACT-SIZE-LIMIT-VERSUS-SOLVE-COVERAGE` names this and nothing in the contract forbids it.
+   The cap is on a directory, not on the concept of committed data, so the question it raises is
+   what the cap is for: if the answer is reviewability, moving the bytes elsewhere and calling them
+   not-an-artifact is an evasion; if the answer is repo weight, it is a real fix. That is a ruling
+   about the rule rather than about this phase, which is why it is last and why it is stated as the
+   uncomfortable option rather than the clever one.
 
 What is **not** on the list: grouping unsolved boards onto solved ones. Decision 2 deferred that as
 `POSTFLOP-BOARD-ABSTRACTION` and `AGENTS.md` forbids heuristic guessing for a missing chart spot.
@@ -360,14 +417,128 @@ A size problem is not a licence to reopen it.
 
 Answer:
 
-## 5. Whether the pot-odds river call ships alongside
 
-Reversibility: runtime-reversible
+## 7. Whether the committed solve is reproducible, and what is recorded if it is not
 
-`POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK` calls a river bet when equity against the full unseen deck beats the price. It needs no solved data and invents no constant: equity is `(wins + ties/2) / 990` from the enumeration `hand_cannot_lose` already runs, and the price comes off the query.
+Reversibility: frozen-into-data
 
-A uniform unseen deck flatters hero, so this makes the bot over-call as the mirror of its current over-folding. Under the flop-only default it is also the only thing that acts on a river at all.
+Split off decision 4 on 2026-09-08 by the stage-2 review. It shared that heading, and
+`decision_items` reads one `Answer:` per heading, so ruling the target there would have discharged
+this without anyone ruling it.
 
-Default: build it, behind an explicit flag, and report the frequency it fires rather than claiming it is correct. It is runtime-reversible because no committed data records it; it is a rule the query evaluates.
+MAINT-26 found byte-identical output: the same root-strategy sha256 across two runs in separate
+processes against a restarted server, zero per-action divergence, zero combos present in one run
+only, and the same digest as a row recorded a day earlier. Phase 10 found the same preflop, diffed
+node by node rather than checksummed.
+
+What that does **not** settle is the run this phase would actually make. Both were a single spot.
+A 1,755-flop run reaches the batch `REPORTS` route, which `docs/GTOPEN_SOLVER_NOTES.md` records as
+README-sourced and never executed, and a long-lived batch process is exactly the case where
+MAINT-26 measured process state to be worth 1.6x and recommended restarting the server between
+solves. Determinism across two single solves is not determinism across two batches.
+
+The contract keeps a fallback branch alive with no number in it: if a run is not byte-identical, an
+accuracy target and the observed maximum divergence are recorded in place of the digest. Nothing in
+the gate can tell those branches apart, because the gate must pass with no GTOpen and no network,
+so whichever is written is what the repo believes.
+
+Default: **prove it on the run that is committed, not on a proxy** - solve the committed
+configuration twice in separate processes against a restarted server, diff the strategies rather
+than compare checksums, and record the digest. If it is not byte-identical, the tolerance is a
+number a human sets here rather than one an implementer picks, because it becomes the accuracy the
+artifact claims.
+
+Answer:
+
+## 8. How the preflop line compresses into the postflop spot key
+
+Reversibility: frozen-into-data
+
+Filed 2026-09-08 by the stage-2 review, which found the key's grammar on no list at all. The
+contract and decision 3 both call the key "the one thing this phase must get right before any
+data" and say that changing what it can express re-derives every committed cell. That is this class
+restated, and it is the same reason `verification/loop_policy.yml` gives for phase 12 not
+auto-advancing. Phase 12 got thirty decisions for the preflop vocabulary; this had none.
+
+Postflop strategy is range against range, so the key's action summary is a handle on a pair of
+ranges rather than history for its own sake. The open part is what that handle keeps. The preflop
+key already renders `CO:raise@2.5` with its size, and `t6/d100/CO/HJ:raise@2.5` is the whole
+grammar; a postflop key could carry the preflop key entire, or a coarser class of it.
+
+One sub-choice is not obvious and is easy to freeze by accident. The corpus's median open is
+2.25bb and every corpus-derived key reads `@2.5`, because the lookup normalises a price to the
+nearest one the artifacts declare and records the substitution. If the postflop key carries the
+preflop raise size, it inherits that normalisation, and the ranges a spot was solved against are
+then the ranges at the *substituted* price rather than the one the hand was actually played at.
+
+Default: **carry the preflop spot key verbatim, sizes included**, so a postflop spot names exactly
+the preflop spot whose ranges it was solved from and no compression is invented; and record the
+price substitution on the postflop spot the way `ChartHit.price_substitutions` records it preflop,
+so a substituted answer stays distinguishable rather than becoming the truth.
+
+Answer:
+
+## 9. Whether flop bet sizes appear in the postflop spot key
+
+Reversibility: frozen-into-data
+
+Filed 2026-09-08 by the stage-2 review.
+
+Within a flop, hero can face a 33% bet or a 75% bet, and those are different spots with different
+ranges. The key either names the size, the way the preflop key names a raise size, or it names only
+the action class and lets the size live in the spot's payload.
+
+Naming the size makes the key exact and multiplies the spots by the menu, and it ties the committed
+data to the menu decision 11 fixes: change the menu later and every key changes. Naming only the
+class keeps the key stable across a menu change and makes two genuinely different spots share a
+cell, which is the merge defect phase 14 accepted preflop and published a cost for.
+
+Default: **name the size**, on the preflop key's own precedent and because the alternative merges
+spots that play differently, which is the one thing decision 2 refuses to do by texture and should
+not do by price either.
+
+Answer:
+
+## 10. Whether pot and effective stack appear in the postflop spot key
+
+Reversibility: frozen-into-data
+
+Filed 2026-09-08 by the stage-2 review.
+
+A postflop spot is self-contained in its board, both ranges, pot, effective stack and sizes. Pot
+and stack are determined by the preflop line at 100bb symmetric stacks, so under decision 8's
+default they are recoverable from the key and putting them in it is redundant. They stop being
+recoverable the moment the phase covers a depth other than 100bb or a table that is not flat -
+which the preflop key already handles with its `d100` segment and its flat-table refusals.
+
+Default: **leave them out of the key and carry them in the spot's payload, validated against the
+preflop line they come from**, so a spot whose pot does not follow from its line is refused at
+import rather than played. The `d` segment inherited from decision 8's verbatim preflop key is
+what carries depth.
+
+Answer:
+
+## 11. The bet-size menu the committed solve is configured with
+
+Reversibility: frozen-into-data
+
+Filed 2026-09-08 by the stage-2 review, which found this on no list while decision 4's own second
+qualification says it dominates the accuracy the phase publishes: the 0.3% bound is measured by a
+best response walking the same tree, so "the abstraction error of a two-size menu is larger than
+the target". The menu is also decision 6's silent input, since every row of that budget is priced
+at two or three actions and the step is worth 1.5x.
+
+MAINT-26's measured menu is `Check | Bet 33% | Bet 75%` with `max_raises: 2`, and every cost figure
+this phase has rests on it. Widening it is not free in either axis: it multiplies the tree, it
+multiplies the key space under decision 9, and it multiplies the artifact.
+
+Two things about it are measurements rather than judgement, and they bound the choice. The
+single-raised-pot tree at that menu needs a 21.7 GB arena and was never attempted, against a 3.7 GB
+arena for the 3-bet line; and flooring both ranges at 0.01 halves the arena with the action-node
+count unchanged, which is the cheap way to fit a wider menu rather than dropping a size.
+
+Default: **the menu MAINT-26 measured**, unchanged, because every affordability figure in this
+phase is measured on it and changing it invalidates all of them at once. If it is widened, the cost
+model has to be re-measured before decision 6 can be answered, not after.
 
 Answer:

@@ -270,10 +270,12 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
   number is a defect in this phase, not a result.
 - **The frozen tests of completed phases that assert against the query shape are migrated in this
   task**, authored at stage 4 with this phase's own tests, because this phase changes the shape they
-  assert against. Exactly one frozen test asserts the thing this phase inverts:
-  `test_rejects_a_bet_because_preflop_has_no_bet` in `tests/test_strategy_contract.py`, which
-  requires `SeatAction(0, "bet")` to raise. At most 334 frozen tests sit in files that reference the
-  query shape at all, and none breaks from adding a postflop history field that defaults the way
-  `preflop_actions` does. Stage 4 measures the set itself rather than trusting either figure.
+  assert against. **Stage 4 measures that set itself and states it, rather than inheriting a count
+  from here.** Three frozen tests are known to invert: `test_rejects_a_bet_because_preflop_has_no_bet`
+  in `tests/test_strategy_contract.py`, which requires `SeatAction(0, "bet")` to raise, and the two
+  that pin `DECISION_AUDIT_SCHEMA_VERSION == 3` in `tests/test_table_state.py` and
+  `tests/test_spot_vocabulary_downstream.py`. Three is what two review passes found, not a bound:
+  the first pass said one and the second found a second, which is why this is a predicate and the
+  obligation is to sweep rather than to migrate a number.
 - The postflop fallback's turn and river behaviour is preserved where this phase does not replace
   it, and the report says which of its codes are now unreachable.

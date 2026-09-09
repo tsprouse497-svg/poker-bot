@@ -6997,3 +6997,64 @@ items:
       about 4.5x. Two percentages meeting in one sentence is the shape, and nothing checks it.
       Caught by phase 16's stage-1 independent contract review, 2026-09-08, in the frozen-into-data
       ask where it was the only stated cost of the row the whole affordability argument rests on.
+
+  - id: A-CONTRACT-CAN-NAME-A-FROZEN-CHOICE-NO-DECISION-ITEM-CARRIES
+    status: deferred
+    phase: contract-update
+    title: A contract can call a choice irreversible while the decision list has no item for it
+    reason: >-
+      Phase 16's stage-2 review found the postflop spot key's grammar and the solve's bet-size menu
+      on no decision list, while the contract said of the key that changing what it can express
+      "re-derives every committed cell" - which is the definition of frozen-into-data, and the exact
+      reason verification/loop_policy.yml gives for phase 12 not auto-advancing. Phase 12 got thirty
+      decisions for the preflop vocabulary. Phase 16 reached stage 2 with none for the postflop one,
+      and the grammar would have arrived at a stage-4 test author as an implementation detail.
+      Nothing connects the two documents. scripts/check_contracts.py counts criteria and reconciles
+      phase ids; loop_stage.py checks that each decision item declares a class; neither asks whether
+      every frozen choice the contract names has an item. A check is conceivable and would be
+      keyword-shaped rather than semantic - a contract phrase like "re-derives every committed cell",
+      "frozen", "every later measurement" or "cannot be changed later" with no decision heading
+      covering the same noun.
+      Four items were added at stage 2 to close it for this phase (the key's preflop-line
+      compression, whether flop bet sizes are in the key, whether pot and stack are, and the bet-size
+      menu). The general defect stays open, and it is the one that decides whether a human is asked
+      at all.
+      Filed by phase 16's stage-2 independent decisions review, 2026-09-08.
+
+  - id: TWO-FROZEN-QUESTIONS-SHARE-ONE-ANSWER-SLOT
+    status: deferred
+    phase: contract-update
+    title: A decision heading carrying two frozen questions discharges both from one answer
+    reason: >-
+      `decision_items` in `scripts/loop_stage.py` collects one `Answer:` per `##` heading, and
+      `unanswered_frozen` treats a non-empty bracket as the item being answered. Phase 16's decision
+      4 was headed "Exploitability target, and whether the solve is reproducible" - two
+      frozen-into-data questions under one heading - so writing "0.3% of pot" would have discharged
+      reproducibility at stage 3 without anyone ruling it, and `review_queue.py` would have stopped
+      printing the ask. Split into decisions 4 and 7 at stage 2.
+      This is the fourth member of the family in
+      poker-bot-human-gate-answer-bracket's shape: the loop's parsers read one exact token and
+      ignore the prose around it, so a judgement expressed by decorating or bundling a token is a
+      judgement the driver cannot see. The others are a pre-filled Answer bracket, a decorated
+      Reversibility line, and a qualified [resolved] marker.
+      A check is narrow: flag a decision heading containing " and whether ", " and what ", or a
+      second question mark, since one heading should carry one ruling. Weaker but cheaper than
+      asking whether the prose holds two questions.
+      Filed by phase 16's stage-2 independent decisions review, 2026-09-08.
+
+  - id: A-SIZE-BUDGET-EXCLUDES-THE-PROVENANCE-THE-CONTRACT-MANDATES
+    status: deferred
+    phase: contract-update
+    title: An artifact size budget prices the payload and omits the per-spot provenance beside it
+    reason: >-
+      Phase 16's decision 6 budget prices hero's free strategy weights per flop spot and omits the
+      three fields the same contract requires on every committed spot: achieved exploitability as a
+      percent of the starting pot, iteration count, and strategy digest. At 24 to 120 bytes a spot
+      over 1,755 flops that is 0.3% to 6.7% of the cap's headroom depending on the line count.
+      Small, real, not zero, and it is what a stated per-spot cost has to include.
+      The shape is general and this repo has the same gap preflop: the committed chart's checksum
+      covers action_weights only, so `spots`, `blind_structure`, `arriving_reach_bp` and
+      `arrival_ppb` are neither checksummed nor counted in any per-cell figure. A size argument that
+      prices the payload and forgets the provenance underestimates in the direction that matters,
+      because provenance is exactly what a phase adds when a reviewer asks for more evidence.
+      Filed by phase 16's stage-2 independent decisions review, 2026-09-08.
