@@ -322,7 +322,12 @@ cross-unit percentage confusion into committed config.
 The real exposure runs the other way from where that draft pointed it, and stating it is the
 condition on option 1. A solver mixes only where it has driven a hand to indifference, and at
 indifference the EV gap between the mixed actions is near zero, so perturbing that split costs
-almost nothing. Pure strategies are lossless, since 0 and 255/255 are exactly representable. What
+almost nothing - at a converged equilibrium. A mix in an unconverged average may not be a true
+indifference but an artifact of regrets that have not settled, and there the EV gap need not be
+near zero at all; decision 4 leaves exactly that open, since both determinism runs stopped at 240
+iterations and nothing has solved deep and diffed. So this argument is weaker for the strategy
+this phase would actually commit than for one at equilibrium, which pushes the cost further into
+unmeasured rather than out of it. Pure strategies are lossless, since 0 and 255/255 are exactly representable. What
 quantisation actually damages is the long tail of near-zero weights, where rounding 0.002 to 0
 removes a rare action outright and moves it by a large relative amount. Whether that matters is a
 question about the committed strategy, nobody has measured it, and it is smaller than the

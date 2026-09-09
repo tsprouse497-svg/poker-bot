@@ -76,13 +76,20 @@ restated, and it names its own test instead.
 
 ## Blocker
 
-Seven findings over three rounds; six are verified fixed and marked `[resolved]`, each with the
-evidence recorded under it. Round 1 filed blockers 1-5, fixed at `92c4f39`. Round 2 filed blocker 6,
-a contradiction the fix to blocker 1 introduced, fixed at `62d8237`. Round 3 files blocker **7**, on
-a claim the fix to blocker 6 introduced. It is unmarked, so the stage stays held.
+Seven findings over four rounds. **All seven are verified fixed and marked `[resolved]`**, each with
+the evidence recorded under it, so nothing in this section holds the stage. Round 1 filed blockers
+1-5, fixed at `92c4f39`. Round 2 filed blocker 6, a contradiction the fix to blocker 1 introduced,
+fixed at `62d8237`. Round 3 filed blocker 7, a units error the fix to blocker 6 introduced, fixed at
+`161377f`. Round 4 verified that fix and found nothing new that holds.
 
-Every marked item was re-derived in this worktree; none is marked on the strength of a commit
-message. A form note at the end of this section explains why blocker 2's evidence is a table.
+Three of the seven were defects in a fix rather than in the original draft, which is worth recording
+as a fact about this contract's history: each repair was smaller and more local than the one before,
+and the last two were caught only because the reviewer re-derived the replacement figures instead of
+reading the commit message. Every marked item was re-derived in this worktree; none is marked on the
+strength of a coordinator's summary. A form note at the end of this section explains why blocker 2's
+evidence is a table rather than a nested list.
+
+Open non-blockers and alignment items remain below and are the stage's to carry, not to clear.
 
 - **1. [resolved] Three of the four artifact-size figures do not reproduce, and they are the numbers stage 3
   puts to a human.** The contract, the ExecPlan and decision 6 all state: "one preflop line, one
@@ -299,7 +306,7 @@ message. A form note at the end of this section explains why blocker 2's evidenc
   cap — is the honest reduction. One residue, filed as blocker 7 rather than folded in here, because
   it is a new claim of its own rather than a defect in this one.
 
-- **7. The one-byte quantisation caution compares two different quantities and reads as a
+- **7. [resolved] The one-byte quantisation caution compares two different quantities and reads as a
   measurement.** New at `62d8237`. The table's most aggressive row is annotated: "binary, one byte
   per weight, which quantises a frequency to about 0.4% and so sits at the edge of the 0.3%-of-pot
   target it would be storing". The coordinator flagged this as their own claim and asked for it to be
@@ -332,6 +339,24 @@ message. A form note at the end of this section explains why blocker 2's evidenc
   or by dropping the clause and leaving the row's cost as the reviewability loss option 1 already
   names.
 
+  **Verified fixed at `161377f`.** The clause is struck from the table's annotation rather than
+  reworded, which is the better of the two repairs I offered: the row now carries no accuracy claim
+  at all, and the correction lives in its own paragraph where it can be read as a correction. I
+  checked each assertion in the replacement and each holds — 1/255 = 0.392%; the two percentages
+  named as a frequency granularity against a pot-fraction exploitability bound with no conversion;
+  "rounding a frequency does not add its own size to exploitability"; indifference implying a
+  near-zero EV gap between the mixed actions; 0 and 255/255 exactly representable so pure
+  strategies are lossless; and the near-zero tail named as the real exposure with `0.002 → 0`
+  removing a rare action outright. Option 1's cost is back to the reviewability loss and nothing
+  else, and the exposure is stated as the condition on option 1 rather than as an argument against
+  it, which is the distinction that matters for a human reading four options.
+  `A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS` is filed and verified present, so every ID this
+  note names now resolves.
+
+  One refinement of my own argument, filed as a non-blocker below rather than held here: "a solver
+  mixes only at hands it has driven to indifference" is an idealisation, and this phase's own
+  decision 4 is the reason it matters.
+
 ### A form note the machinery requires
 
 Not a finding, recorded here because it governs how this section must be written. `unresolved_blockers`
@@ -351,6 +376,27 @@ evidence, so the right long-term fix is the parser, not a house style that forbi
 review notes.
 
 ## Non-blocker
+
+### Round 3, from the fixes at `62d8237` and `161377f`
+
+- **"A solver mixes only where it has driven a hand to indifference" is an idealisation, and
+  decision 4 is why that matters here.** This is my own reasoning, now quoted into the decision
+  record, and it should carry its caveat. At a *converged* equilibrium the claim holds and the
+  argument built on it is sound. At a finite iteration count it is weaker: a hand can be mixed in
+  the average strategy because regrets have not settled, not because the actions are genuinely
+  EV-equal — and decision 4 states plainly that convergence at the committed iteration count is
+  unproven, with both determinism runs stopping at 240 iterations. Where a mix is an artifact of an
+  unconverged average rather than true indifference, the EV gap between the mixed actions need not
+  be near zero, so "perturbing that split costs almost nothing" is not guaranteed for the strategy
+  this phase would actually commit. This does not reverse anything: the paragraph's conclusion is
+  that the cost is unmeasured, and this makes it more unmeasured rather than less. Worth one clause
+  so the two paragraphs of decision 6 and decision 4 do not quietly disagree — something like "at a
+  converged equilibrium; a mix in an unconverged average may not be a true indifference, which
+  decision 4 leaves open."
+- **The 14.73 versus 14.76 MiB rounding: leave the table as it stands.** The coordinator asked.
+  Mine is 14.73 and the difference is 0.2%, the affordable-node column it drives is 1.02 either way,
+  and the table exists to carry that column. Not worth a round, and re-touching a table that four
+  people have now checked to move a figure by 0.03 MiB is a worse trade than the imprecision.
 
 ### Round 2, from the fix at `92c4f39`
 
@@ -590,8 +636,9 @@ review notes.
   tracked tree. Phase 16's contract now imposes exactly that condition on itself by hand, for one
   ID; nothing generalises it, and nothing would have caught it here if this review had stopped at
   the paragraph the fix touched.
-- **New ID must be filed** — propose `A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS`. Owner
-  `contract-update` or the phase that rules decision 6. Content: blocker 7 above. An encoding
+- ~~**New ID must be filed**~~ `A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS` — **filed at
+  `161377f`** and verified present, with the `SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE`
+  cross-reference. Proposed content was: blocker 7 above. An encoding
   choice's accuracy cost was stated by comparing a frequency granularity (0.39%, one byte over
   [0,1]) against an exploitability target (0.3% of pot) as though the two were the same scale. They
   are not commensurable, and the comparison happened inside a `frozen-into-data` option list where
@@ -620,9 +667,12 @@ affordable-node column and the five node-by-line combinations, and the one-byte 
 No tracked file was modified in any round. `scripts/run_verify.py` and `scripts/check_gate_bite.py`
 were not run.
 
-Rounds reviewed: `92c4f39` (round 2) and `62d8237` with `5e7ef7f` (round 3), each against
-`git show` plus `git diff 2942e8d..HEAD` over the three stage documents and `backlog.yml`. Round 3
+Rounds reviewed: `92c4f39` (round 2), `62d8237` with `5e7ef7f` (round 3), and `161377f` (round 4),
+each against `git show` plus `git diff` over the three stage documents and `backlog.yml`. Round 3
 also imported `unresolved_blockers` from `scripts/loop_stage.py` and ran it against this note, both
-to confirm the parser defect and to confirm the restructured note now reports exactly one open item.
+to confirm the parser defect and to confirm the restructured note reports only real findings; round
+4 re-ran it and confirmed zero open items. Round 4 also re-checked that every backlog ID this note
+names resolves to exactly one entry — seventeen IDs, all present.
 
-Marks are mine and cover only what I re-derived here. Blocker 7 is unmarked and holds the stage.
+Marks are mine and cover only what I re-derived here. No blocker is open. Nothing in this note
+holds the stage; the non-blockers and alignment items are the stage's to carry.
