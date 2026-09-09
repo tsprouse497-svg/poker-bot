@@ -314,7 +314,7 @@ fields, and the **number of preflop lines**. A pick from the list is not an answ
 pick plus a product from the budget above is.
 
 Default: **none, deliberately.** Not an omission and not a coordinator declining to think: the
-three levers trade reviewability, coverage and repo weight against each other, and there is no
+six levers trade reviewability, coverage and repo weight against each other, and there is no
 fail-closed option among them, because every one of them still commits data. The six levers,
 stated without a recommendation because the cost of each falls in a different place:
 
@@ -343,9 +343,9 @@ is 0.15.
 An earlier draft of this entry gave 5x1, 1x3 and 1x5 as its examples and called option 4 "the only
 option that fits today without touching the cap". Both were wrong and the stage-2 review held the
 stage over them. The example set skipped the middle of the frontier, where 3x2 and 2x3 both land at
-0.979x and where the contract's own count of a flop - hero acts, villain answers, hero faces a bet
-or a raise - actually sits. An earlier draft called that count three, quoting a reviewer's reading
-of the contract as though the contract stated it.
+0.979x. An earlier draft put a flop's decision count at three there and attributed it to the
+contract, which neither states nor implies it; the phrase was a reviewer's reading quoted back as
+the document's own.
 That was a reviewer's hedged phrase quoted back as a flat assertion, and it is an under-count:
 under decision 11's pinned menu with `max_raises: 2` hero has about five flop decision nodes, so
 about six units buys **one** preflop line at full flop depth, not the two that 3x2 suggests. The
@@ -542,8 +542,23 @@ Reversibility: frozen-into-data
 Filed 2026-09-08 by the stage-2 review, which found this on no list while decision 4's own second
 qualification says it dominates the accuracy the phase publishes: the 0.3% bound is measured by a
 best response walking the same tree, so "the abstraction error of a two-size menu is larger than
-the target". The menu is also decision 6's silent input, since every row of that budget is priced
-at two or three actions and the step is worth 1.5x.
+the target". **This item claimed to be decision 6's silent input and it is not.** The claim was that the budget
+is priced at two or three actions so the step is worth 1.5x. The stage-2 review retracted its own
+argument for it and the config bodies settle the part it could not: `config.ip@2315abe88f71` and
+`config.oop@2315abe88f71`, the reduced pair, read `bet: "33 75"`, `donk: ""`, `raise: "2.5x"` **on
+the flop**, identical to the pinned `2827d093808a` on both sides; they differ only at turn and
+river, where `33 75` becomes `75`. Every converged row's observed flop root menu is the same three
+actions - check, 33%, 75% - pinned and reduced alike, and the two-action menus in the record belong
+to build-only ladder rows. So no flop raise or donk size changes, hero's committed flop node
+carries three actions under options 1, 2 and 3, and **decision 6's byte budget does not move on
+this ruling.**
+
+What does move is hours, and something the retraction did not reach: **strategy quality on the
+flop, even though only the flop is committed.** Hero's flop betting frequencies are solved against
+the continuations available below them, and the reduced tree gives both players one turn and river
+size instead of two. A flop-only artifact is therefore not insulated from the turn and river menu -
+the same flop, solved above a coarser tree, is a different flop strategy. That is the real cost of
+option 2 and of option 3's cheaper half, and it is not a cost decision 6 can price.
 
 **"The menu MAINT-26 measured" is not one object, and an earlier draft of this item said it was.**
 The stage-2 review parsed all 55 committed rows and I re-derived it: of the **7 of 30** `group:
@@ -573,8 +588,13 @@ The choice, therefore:
    and every hour figure would be re-derived on it, and a narrower betting tree is a coarser
    strategy in the spots that matter most.
 3. **A menu per line type**, pinned for 3-bet pots and reduced for single-raised. **This is the only
-   option with no unmeasured half**, because it is precisely the pair that converged: the record's
-   solve rows are pinned at pot 16.0 and reduced at pot 5.5 and nothing else. Its cost is real and
+   option measured on both line types**, because it is precisely the pair that converged: the
+   record's solve rows are pinned at pot 16.0 and reduced at pot 5.5 and nothing else. It is not
+   measured everywhere, and an earlier draft of this line said "the only option with no unmeasured
+   half", which is a clean bill no option can earn. **Rainbow is unmeasured in every half of every
+   option**: the seven converged rows are six monotone and one two-tone, and the report's own
+   texture line reads "rainbow 0, two-tone 1, monotone 6". Option 3's two halves are `9c8c7c` and
+   `Kc7c2c`, monotone both times. Rainbow is 455 of the 1,755 classes and the expensive end. Its cost is real and
    it is not an evidence gap - the artifact carries two abstraction levels with a seam between them
    that nothing in the repo would record, so a cell's strategy is coarser or finer depending on the
    preflop line and no field says which.
