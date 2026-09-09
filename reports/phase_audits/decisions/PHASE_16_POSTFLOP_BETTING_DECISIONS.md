@@ -30,18 +30,24 @@ in a phase that commits no data. A phase taking its definitions from this list r
 
 ## What is being asked
 
-Eight choices are open. Each is `frozen-into-data`, so the loop stops here rather than proceeding
+Nine choices are open. Each is `frozen-into-data`, so the loop stops here rather than proceeding
 on a default. The full argument for each is in its own section below; this is the index, and no
-ruling needs more than its three lines.
+ruling needs more than its three lines. **Read 13 first**: it asks whether the other eight belong
+in one phase, and if they do not, some of them are not yours to rule yet.
 
 **4. Exploitability target, and a cell that never reaches it.** Target 0.3% of the starting pot,
-and commit a cap-bound cell with its achieved percent as a floor, or refuse it.
-Default: 0.3%, and refuse. Produces: the target, and the fate of a cell that misses it.
+and commit a cap-bound cell with its achieved percent as a floor, or refuse it. The scale is what
+makes this consequential: **23 of 30 measured rows missed the target** and rainbow never reached it
+at all, so refusing leaves about **455 of 1,755 flop classes with no cell** and makes the
+board-miss refusal code live. Default: 0.3%, and refuse.
 
-**6. How the committed artifact is encoded, given that it does not fit.** A budget, not a menu:
-20 MB affords about six node-line units at the tightest encoding, and the affordable products are
-6x1, 3x2, 2x3, 1x6. Six levers, none fail-closed. **No default** - and an answer must fix three
-things: the encoding, the per-spot byte budget including provenance, and the number of preflop lines.
+**6. How the committed artifact is encoded, given that it does not fit.** A budget, not a menu: the
+**15.0 MB of headroom** left under the 20 MB cap affords about six node-line units at one byte per
+weight, and the affordable products are 6x1, 3x2, 2x3, 1x6 and everything under them. But a
+complete flop is about **five** hero decision nodes under the ruled menu, so six units is **one**
+preflop line at full flop depth, not the two 3x2 suggests. Six levers, none fail-closed.
+**No default** - an answer must fix the encoding, the per-spot byte budget including provenance, and
+the number of preflop lines, and the six units are quoted at an encoding the answer itself chooses.
 
 **7. Whether the committed solve is reproducible, and what is recorded if not.** Byte-identical was
 measured on one spot; a 1,755-flop run reaches a route recorded unrun.
@@ -57,13 +63,25 @@ Default: name the size. Produces: whether a menu change later re-derives every c
 **10. Whether pot and effective stack appear in the key.** In the key, or in the payload validated
 against the line. Default: payload, validated.
 
-**11. The bet-size menu the solve is configured with.** Pinned for 3-bet pots only, reduced
-everywhere, one menu per line type, or floor the ranges to fit. Each is unmeasured on some axis and
-rainbow on all of them. **No default** - and it collides with decision 3, already ruled.
+**11. The bet-size menu the solve is configured with.** Four levers, and their evidence differs:
+the pinned menu is measured on 3-bet pots only and its single-raised tree is a hard memory wall
+(21,282-21,715 MB against a 12,026 MB ceiling, which fails rather than slows); the reduced menu is
+measured on single-raised pots only; **one menu per pot type is the only option measured on both**;
+and flooring the ranges to fit is a **build, not a solve**. Rainbow is unmeasured in all four.
+**No default** - and it collides with decision 3, already ruled, because single-raised pots
+dominate the coverage decision 3 says to take. **Rule it with 12**, the only pair a ruling cannot
+take separately.
 
 **12. Whether the solve floors its input ranges, and at what weight.** A floor at 0.01 halves the
-arena and truncates the defending range by 68%. Default: **no floor** - the one default here that
-is taken by not acting.
+memory needed and truncates the defending range by 68%. Default: **no floor** - the one default
+here that is taken by not acting. **Rule it with 11**: that item's lever 4 exists only if a floor is
+permitted, and this default forecloses it, so ruling 11-lever-4 and 12-no-floor together rules
+nothing.
+
+**13. Whether this is one phase.** Items 8, 9 and 10 define a key format; 4, 6, 7, 11 and 12 define
+a data campaign. This repo's rule is format before data and its own precedent for that is a phase
+boundary, not a stage one. Default: **none** - and phase 14 asked this same question and answered
+"split it".
 
 Decisions 1, 2 and 3 were ruled on 2026-08-19 and are not reopened; five of their premises are
 annotated below as no longer true, none re-ruled. Decision 5 is `runtime-reversible` and proceeds
@@ -797,5 +815,47 @@ implies stated beside it. An implementer picking 0.01 because the notes used it 
 No floor covers decision 11 options 1, 2 and 3, all three of which are affordable unfloored on the
 half of the coverage each is measured on. It does not cover option 4, which exists only because of
 a floor and is a build rather than a solve.
+
+Answer:
+
+## 13. Whether this is one phase
+
+Reversibility: frozen-into-data
+
+Filed 2026-09-09 by the stage-2 independent decisions review, which observed that nothing asked -
+and that phase 14 carried exactly this item, as its own decision 21, classed `frozen-into-data` and
+described there as "a structural question rather than a poker one". Taylor answered it "split it"
+on 2026-08-31, and phase 17 exists because of that answer.
+
+The shape of the problem. Of the eight other open items, **three define a format**: how the preflop
+line compresses into the key (8), whether flop bet sizes are in it (9), whether pot and stack are
+(10). **Five define a data campaign**: the accuracy target and what happens to a cell that misses
+it (4), the encoding and the size budget (6), reproducibility (7), the bet-size menu (11), the range
+floor (12).
+
+This repo's ordering rule is quoted in decision 3 and it is this file's own words: "What is *not*
+cheap later is the spot key itself. Adding spots at a fixed key is additive; changing what the key
+can express re-derives every committed cell, which is why phase 12 sits ahead of phase 14 and why
+the ordering rule is format before data." **The precedent that sentence cites is a phase boundary,
+not a stage boundary.** Phase 12 set the vocabulary and closed; phase 14 committed the chart against
+it. Ruling both halves in one sitting means a format mistake surfaces after the artifact has been
+committed against it, which is the exact cost that sentence names.
+
+What forced the question in phase 14 was mechanical - five contract lines over a 300-line cap. A
+decision list has no cap, so nothing forced it here, and this phase has twice phase 14's open
+frozen count.
+
+The real argument against splitting, and it is not weak: decision 9 asks whether the key names the
+bet size, and the sizes it would name are chosen by decision 11. So the format half is not fully
+independent of the data half. **That coupling runs one way** - the key needs to know the menu, the
+menu does not need to know the key - which is why this is worth asking rather than assuming, and it
+bounds a split rather than forbidding one: a format phase would have to rule 11 with 9, or 9 would
+have to name a size vocabulary wide enough to survive a later menu choice.
+
+Default: **none.** Both answers are defensible and the choice is about how much is committed before
+anything is checked, which is a judgement about risk appetite rather than about poker or arithmetic.
+It is `frozen-into-data` on phase 14's own reasoning: not because a split writes anything to disk,
+but because not splitting is what allows an artifact to be committed against a format nobody has
+built against yet, and that artifact is the thing later phases are measured on.
 
 Answer:
