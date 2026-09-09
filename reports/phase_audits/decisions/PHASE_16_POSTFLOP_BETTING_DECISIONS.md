@@ -10,10 +10,64 @@ written `verification/loop_policy.yml` marked phase 16 `needs_human_data`; it no
 gates the phase is every `frozen-into-data` item below that has no answer, which stage 3 halts on
 one at a time.
 
-Every item carries a reversibility class, which the loop driver reads at stage 2 to decide whether it must stop for a human.
+Every item carries a reversibility class. Stage 2 checks only that a class is declared; **stage 3
+is where the loop stops for a human**, and an earlier version of this paragraph put the stop at
+stage 2.
 
-- `runtime-reversible`: the choice only changes behavior at query time, so a later edit changes it. The loop takes the default, proceeds, and reports what it chose.
-- `frozen-into-data`: the choice is written into a committed artifact that every later measurement then runs against. The loop halts until a human answers.
+The two classes are quoted from `docs/LOOP.md` rather than paraphrased, because an earlier version
+of this list narrowed one of them:
+
+- `runtime-reversible`: "the choice only changes behavior at query time, so a later edit **can**
+  change it. The loop takes the recorded default, proceeds, and reports what it chose."
+- `frozen-into-data`: "the choice gets written into a committed artifact **or fixture** that later
+  phases are then measured against. The loop halts until a human answers."
+
+The words "or fixture" are load-bearing and this file had dropped them.
+`LOOP-NO-CLASS-FOR-A-HUMAN-OWNED-THRESHOLD` records its own resolution on exactly them: a behaviour
+default that a contract requires a frozen test to pin is a fixture, so it carries this class even
+in a phase that commits no data. A phase taking its definitions from this list rather than from
+`docs/LOOP.md` would have called such a threshold reversible and never asked anyone.
+
+## What is being asked
+
+Eight choices are open. Each is `frozen-into-data`, so the loop stops here rather than proceeding
+on a default. The full argument for each is in its own section below; this is the index, and no
+ruling needs more than its three lines.
+
+**4. Exploitability target, and a cell that never reaches it.** Target 0.3% of the starting pot,
+and commit a cap-bound cell with its achieved percent as a floor, or refuse it.
+Default: 0.3%, and refuse. Produces: the target, and the fate of a cell that misses it.
+
+**6. How the committed artifact is encoded, given that it does not fit.** A budget, not a menu:
+20 MB affords about six node-line units at the tightest encoding, and the affordable products are
+6x1, 3x2, 2x3, 1x6. Six levers, none fail-closed. **No default** - and an answer must fix three
+things: the encoding, the per-spot byte budget including provenance, and the number of preflop lines.
+
+**7. Whether the committed solve is reproducible, and what is recorded if not.** Byte-identical was
+measured on one spot; a 1,755-flop run reaches a route recorded unrun.
+Default: prove it on the committed configuration, and a human sets the tolerance if it is not.
+
+**8. How the preflop line compresses into the postflop key.** Verbatim, or a coarser class; and
+whether the price substitution is baked in. Default: verbatim, sizes included, inside a key that
+does not begin with `t`, with the substitution recorded on the committed spot.
+
+**9. Whether flop bet sizes appear in the key.** Name the size, or name only the action class.
+Default: name the size. Produces: whether a menu change later re-derives every cell.
+
+**10. Whether pot and effective stack appear in the key.** In the key, or in the payload validated
+against the line. Default: payload, validated.
+
+**11. The bet-size menu the solve is configured with.** Pinned for 3-bet pots only, reduced
+everywhere, one menu per line type, or floor the ranges to fit. Each is unmeasured on some axis and
+rainbow on all of them. **No default** - and it collides with decision 3, already ruled.
+
+**12. Whether the solve floors its input ranges, and at what weight.** A floor at 0.01 halves the
+arena and truncates the defending range by 68%. Default: **no floor** - the one default here that
+is taken by not acting.
+
+Decisions 1, 2 and 3 were ruled on 2026-08-19 and are not reopened; five of their premises are
+annotated below as no longer true, none re-ruled. Decision 5 is `runtime-reversible` and proceeds
+on its default.
 
 ## What changed, and why this file exists
 
@@ -56,8 +110,25 @@ Per preflop line covered:
 Two things about that table are assumptions rather than measurements, and both are stated here so nothing downstream quotes them as facts.
 
 The 1,755 is per preflop line and has to be multiplied by however many lines decision 3 covers.
-And no solve in this repo has ever been timed to a real exploitability target: only a 300-iteration preflop smoke test was ever run, and solve time and determinism are both still on phase 10's unverified list.
-So affordability at any depth is unmeasured.
+
+**Corrected 2026-09-08.** This paragraph said no solve in this repo had ever been timed to a real
+exploitability target, that only a 300-iteration preflop smoke test was ever run, that solve time
+and determinism were both still on phase 10's unverified list, and that affordability at any depth
+is unmeasured. All four are false, and the paragraph whose stated job is to stop anything
+downstream quoting an assumption as a fact was the last place in the file still carrying them.
+Decision 4 corrects the first three by name a hundred lines below, which is the eighth time in this
+file a correction has reached one item and not its siblings.
+
+- MAINT-26 reached 0.3% of the starting pot on 7 of 30 solve rows, at 220 to 260 iterations.
+- Phase 14 re-solved preflop to 0.00016bb at iteration 1,900 in 200.4 seconds; MAINT-26 ran 30
+  postflop solves.
+- Determinism is measured and byte-identical across two processes against a restarted server.
+- Flop affordability is measured on three axes: disk in decision 6, arena in decisions 11 and 12,
+  and per-iteration cost in MAINT-26.
+
+What is still honestly unmeasured, and stays: the 1,755 is per line and the line count is
+unruled; rainbow was never solved to target and is 455 of the 1,755 classes; and no solve has been
+diffed against a deeper one, so convergence at the committed iteration count is unproven.
 
 What survived that, when this file was written, was a ratio rather than an absolute: the turn was
 taken to be about 49 times a flop and the river about 2,350 times, whatever a flop turned out to

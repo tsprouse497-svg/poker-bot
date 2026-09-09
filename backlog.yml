@@ -7134,3 +7134,25 @@ items:
       the thing is missing, and a coordinator must re-run the search rather than inherit the
       boundary.
       Filed by phase 16's stage-2 independent decisions review, 2026-09-08.
+
+  - id: A-LOOP-POLICY-REASON-OUTLIVES-THE-PHASE-IT-DESCRIBES
+    status: deferred
+    phase: contract-update
+    title: A loop-policy reason decays unwatched in the file that decides whether a human is consulted
+    reason: >-
+      `verification/loop_policy.yml`'s phase 16 entry still says that one judgment call stays open by
+      design, that the exploitability target and whether a solve is reproducible are inherited from
+      phase 10's measurements rather than ruled in the phase, and that stage 3 halts if phase 10
+      never produced them. All three are now wrong. Phase 16's stage-2 review found eleven frozen
+      choices rather than one; phase 10's numbers are preflop, in big blinds against a percent of
+      pot, and transfer to nothing here; and MAINT-26 produced the postflop answers instead.
+      No phase can fix its own entry. `loop_policy.yml` is outside every scope a phase declares, and
+      it is read before stage 1, so the entry describing a phase is least able to be corrected by
+      the phase that learns it is wrong.
+      Same failure as DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE and in a file with more
+      authority. A stale decision-list premise misleads a human who is reading; a stale policy
+      reason is read by the driver to decide whether a human is consulted at all, and its
+      `auto_advance` and `needs_human_data` flags sit in the same entry as the prose that justifies
+      them. Phase 16's entry already carries one dated correction - "No longer gated on a human
+      input" - so the pattern of amending it exists and stopped being applied.
+      Filed by phase 16's stage-2 independent decisions review, 2026-09-08.

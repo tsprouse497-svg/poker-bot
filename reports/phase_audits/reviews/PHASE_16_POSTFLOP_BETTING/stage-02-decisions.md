@@ -26,8 +26,21 @@ all: decision 11's default pinned a solver menu that has never been solved on a 
 and whose single-raised-pot tree measures 1.8x the arena ceiling on all eight committed build rows.
 A fifth frozen choice, the range floor, is what closes that gap and was itself on no list.
 
-**The headline, round 6, and it is the answer to the closing question: yes, and there were five of
-them.** The three ruled items and the runtime-reversible one were read in full for the first time.
+**The headline, round 7, and it answers the last two questions.** The preamble has decayed the same
+way the answered items had, in one paragraph badly: the four claims it exists to stop a reader
+quoting as fact are the same claims decision 4 corrects a hundred lines below it, and its own
+restatement of the reversibility classes is narrower than `docs/LOOP.md`'s in the one clause the
+repo has an open entry about. On the second question, straight: **the document has not become a
+record of its own corrections, and it is not safely rulable as it stands.** Measured rather than
+felt - 730 lines, 214 of them correction narrative in 24 paragraphs, eight open frozen choices
+spread from line 229 to line 730, and 276 lines in the two defaultless items a human must rule
+hardest. The corrections are not the problem and I would not trim one line of them; they are what
+made round 6 possible. What is missing is about thirty lines at the head saying what the eight
+questions are, which is the convention `DECISION-LIST-HAS-NO-FIXED-PLACE-FOR-A-RULING` already names
+and which this file has only half of.
+
+**The headline, round 6, and it is the answer to the previous closing question: yes, and there were
+five of them.** The three ruled items and the runtime-reversible one were read in full for the first time.
 Decision 5 is clean and I tried to break it. Decisions 1, 2 and 3 carry five premises this phase has
 since falsified, and two of them are load-bearing for choices a human is about to make: decision 2's
 "all 1,755 flops is affordable", which is the stated reason abstraction is deferred and which
@@ -68,13 +81,17 @@ in this phase.
 
 ## Blocker
 
-Twenty-seven findings over six rounds. Round 1 filed 1 through 7, fixed at `f2d34c3`. Round 2 filed 8
+Thirty findings over seven rounds. Round 6 filed 23 through 27, all amended at `3d3282a`. Round 7
+reads the preamble and files 28 and 29, and files 30, which is a judgment about the document as a
+whole rather than a defect in a sentence. **Twenty-seven are marked `[resolved]`; 28, 29 and 30 hold
+the stage.**
+
+Round 1 filed 1 through 7, fixed at `f2d34c3`. Round 2 filed 8
 through 13, fixed at `408b2c3`. Round 3 filed 14 through 17, of which three were fixed at `39e6074`
 and 17 needed a second attempt at `a58d7cf` because the first edit changed the wrong sentence. Round
 4 filed 18, 19 and 20, all fixed at `a58d7cf`. Round 5 filed 21 and 22, both fixed at `a6add75`.
-Round 6 answers the coordinator's closing question by reading decisions 1, 2, 3 and 5 in full for
-the first time, and files 23 through 27. **Twenty-two are marked `[resolved]`; 23 through 27 hold
-the stage.**
+Round 6 answered the coordinator's closing question by reading decisions 1, 2, 3 and 5 in full for
+the first time, and filed 23 through 27.
 
 Each mark carries what I re-derived under it, and nothing is marked on the strength of a commit
 message. From round 4 on I stopped comparing fixed text against my own earlier note and re-derived
@@ -791,7 +808,7 @@ its tree is 1.8x the solver's arena ceiling.
   argument. I re-read it against my own text rather than assuming, since this was my specification
   and the failure mode filed at `408b2c3` is a reviewer's own words returned to it.
 
-### Round 6, new. Five findings on the four items no round had read.
+### Round 6, filed. All five amended at `3d3282a`.
 
 The coordinator asked, before advancing to the human gate, whether anything in decisions 1, 2, 3 or
 5 had gone unexamined because it was never in a diff. It is the right question and the answer is
@@ -804,7 +821,7 @@ to ruling the eight open items. None of the five reopens a ruling and I am not a
 re-ruled; each is an amendment of the kind decision 3 already models with its dated "Annotated
 2026-09-06, not re-ruled".
 
-- **23. Decision 2's ruled default says "the bot never faces a flop it has no cell for", and
+- [resolved] **23. Decision 2's ruled default says "the bot never faces a flop it has no cell for", and
   decision 4's default now says it does.** The sentence is inside the Default paragraph that Taylor
   adopted verbatim - the answer reads "Take the default" - so the ruled text asserts it. Decision 4
   now defaults to refusing rather than committing a cell that never reaches the target, and no
@@ -813,7 +830,7 @@ re-ruled; each is an amendment of the kind decision 3 already models with its da
   says the board-miss code is live; decision 2, which is where the claim originates, was not. Fix as
   an annotation in decision 3's style: the ruling stands, the coverage claim is now conditional on
   decision 4.
-- **24. Decision 2's "All 1,755 flops is affordable" is falsified on both axes this phase has since
+- [resolved] **24. Decision 2's "All 1,755 flops is affordable" is falsified on both axes this phase has since
   measured, and it is the premise the abstraction deferral rests on.** The sentence supports the
   paragraph immediately above it - "abstraction is the enabling condition for **depth**, not for
   breadth" - which is why `POSTFLOP-BOARD-ABSTRACTION` is deferred rather than reopened. Decision 6
@@ -827,7 +844,7 @@ re-ruled; each is an amendment of the kind decision 3 already models with its da
   why decision 6 exists at all. `AGENTS.md` is explicit about this shape for contracts - a completed
   claim a later phase contradicts is amended rather than left asserting the opposite - and a ruled
   decision a later item falsifies is the same thing one document over.
-- **25. Decision 2's "roughly 3.8 million spots" is the pre-correction hero's-view count, and the
+- [resolved] **25. Decision 2's "roughly 3.8 million spots" is the pre-correction hero's-view count, and the
   corrected figure is in `backlog.yml` already.** 1,755 x 47 x 46 = 3,794,310, which is 3.8 million
   and is the count decision 1 corrected on 2026-09-08 as "hero's view of a board he holds two cards
   against". The corrected count is 1,755 x 49 x 48 = 4,127,760, and
@@ -839,7 +856,7 @@ re-ruled; each is an amendment of the kind decision 3 already models with its da
   and decision 2's figure, computed off the old numbers, was never touched. The direction is
   harmless - 3.8 million understates 4.1 million and the conclusion is "not affordable" either way -
   which is why it survived six rounds.
-- **26. Decision 3's two sentences about the flop axis are both wrong in the same units, and
+- [resolved] **26. Decision 3's two sentences about the flop axis are both wrong in the same units, and
   decision 6's lever 5 now quotes one of them as its cost.** Both were written before a flop subset
   was an option, and both are now load-bearing. I brute-forced all 22,100 three-card boards under
   all 24 suit permutations rather than reasoning about it:
@@ -866,7 +883,7 @@ re-ruled; each is an amendment of the kind decision 3 already models with its da
   abstraction: an unsolved board refuses rather than borrowing a solved one". So decision 3 tells a
   reader the subset route needs a boundary amendment and decision 6 offers it as a lever needing
   none. A human reading top to bottom meets the discouragement before the option.
-- **27. Decision 1 validates its accepted cost against phase 15, twice, and phase 15 is `future` in
+- [resolved] **27. Decision 1 validates its accepted cost against phase 15, twice, and phase 15 is `future` in
   `phase_status.yml`.** "Whether that matters is evidence phase 15 produces", in the Default
   paragraph, and "phase 15's drill is where that either matters or does not", in the ruled answer.
   Decision 3 carries the dated annotation for this exact problem and names the ID:
@@ -879,6 +896,103 @@ re-ruled; each is an amendment of the kind decision 3 already models with its da
   sibling, and the second where the ID for the pattern was already filed against the sibling it did
   reach. The fix is one annotation and the honest form of the cost: nothing in the repo will tell us
   whether the seam matters, so it is accepted unmeasured.
+  **All five verified amended at `3d3282a`.** Blockers 23, 24 and 25 are one dated annotation on
+  decision 2, each claim quoted and each paired with what replaced it, and all three say the ruling
+  survives; the 4,127,760 is correct and the note that two committed documents disagreed is kept.
+  Blocker 26 is two annotations on decision 3, and the distribution one keeps the shape I asked for -
+  the ruling survives because a 6x spread over a flat-ish bulk is not the preflop-line tail, with
+  63.5% of flops in one orbit class, while "no head to solve" is stronger than the measurement
+  supports. Every figure reproduces against my own enumeration: 286 classes at 31.1% and 1.91x
+  over-represented, 1,170 at 63.5%, 299 at 5.4% and 0.32x. The subset annotation states both errors,
+  says they pull opposite ways, and says plainly that "only usable with the abstraction decision 2
+  defers" is wrong because a subset plus refusal borrows nothing. Blocker 27 is on decision 1 in
+  decision 3's own annotation form, naming the same ID, and its closing sentence is better than my
+  proposed fix: the cost stands and is now accepted *without* the check that was to validate it.
+  **And the coordinator fixed lever 5, which I did not flag.** Lever 5 had inherited decision 3's
+  2.7% by quoting it; it now bounds the board share at 0.85% to 5.10%, says the weighting means the
+  count does not give it, and says a subset's real cost is a refusal rate somebody measures on the
+  chosen subset. That is the propagation half of blocker 26 and I missed it - I checked the sentence
+  I had found and not the sentence citing it, which is the same closure-region defect I filed against
+  this document three times.
+
+### Round 7, new. Two decayed premises in the preamble, and one judgment on the whole document.
+
+The coordinator asked whether the preamble - lines 1 to 76, above decision 1, which no round had
+read - has decayed the same way the answered items had. It has, in one paragraph badly and in the
+definitions subtly.
+
+- **28. The preamble states, as the thing a reader must not quote as fact, four claims that decision
+  4 corrects a hundred lines below it.** The paragraph is introduced by "Two things about that table
+  are assumptions rather than measurements, and both are stated here so nothing downstream quotes
+  them as facts", which makes it the one paragraph in the file whose whole job is to prevent
+  over-claiming. It now reads: "no solve in this repo has ever been timed to a real exploitability
+  target: only a 300-iteration preflop smoke test was ever run, and solve time and determinism are
+  both still on phase 10's unverified list. So affordability at any depth is unmeasured." Decision 4
+  opens with "**Premise corrected 2026-09-08.** This item said nothing in the repo had measured a
+  real solve to any target, that determinism was unverified, and that phase 16 inherits whatever
+  phase 10 establishes. All three are now wrong". The preamble carries the same three, plus a
+  fourth, uncorrected:
+
+  | preamble claim | what the repo now holds |
+  |---|---|
+  | no solve timed to a real exploitability target | 7 of 30 rows reached 0.3% of pot at 220 to 260 iterations |
+  | only a 300-iteration preflop smoke test was ever run | phase 14 re-solved to 0.00016bb at iteration 1900 in 200.4 s; MAINT-26 ran 30 postflop solves |
+  | solve time and determinism still unverified | both measured by MAINT-26, determinism byte-identical across two processes |
+  | affordability at any depth is unmeasured | flop affordability measured on three axes: disk in decision 6, arena in 11 and 12, per-iteration cost by MAINT-26 |
+
+  This is the worst-placed instance of the pattern in the file, because it is above decision 1 and a
+  reader meets it before any item. It is also the eighth instance of a correction reaching one item
+  and not its siblings, and this time the correction is in the very item whose premise the preamble
+  states. Amend it the way decision 4 amends itself, and keep the honest residue, which is real: the
+  1,755 is still per line and still has to be multiplied, and rainbow is still unmeasured at target.
+- **29. The preamble restates the two reversibility definitions in its own words, and its
+  `frozen-into-data` is narrower than the rule it paraphrases.** `docs/LOOP.md` says the choice "gets
+  written into a committed artifact **or fixture** that later phases are then measured against"; the
+  preamble says "is written into a committed artifact that every later measurement then runs
+  against". The dropped words are the ones the repo has an open entry about:
+  `LOOP-NO-CLASS-FOR-A-HUMAN-OWNED-THRESHOLD` records its own resolution as "the class says
+  'committed artifact or fixture', and a behaviour default a contract requires a frozen test to pin
+  is a fixture", which is the reading that lets the class cover a threshold at all. A phase reading
+  only this preamble would classify such a threshold as reversible and be wrong. I judged all twelve
+  classes in this file against `docs/LOOP.md` rather than against the preamble, and said so, which is
+  why the classes are right despite this.
+  Two smaller divergences in the same three lines. The preamble says the driver reads the class "at
+  stage 2 to decide whether it must stop for a human"; stage 2's `check_decisions` only validates
+  that a class is declared, and the stop is stage 3's `check_human_gate` through
+  `unanswered_frozen`. And `runtime-reversible` reads "so a later edit changes it" against
+  `docs/LOOP.md`'s "so a later edit **can** change it", which drops the modality that makes it a
+  property of the choice rather than a promise about what happens. The fix for all three is one
+  clause: quote `docs/LOOP.md` and cite it, rather than paraphrasing the governing rule in a document
+  that a later phase will use as a template.
+- **30. My answer to the second question, and it is a blocker: the document is still rulable in
+  substance and is not safely rulable as it stands, and the missing piece is about thirty lines at
+  the head rather than the removal of anything.** Taking the question as asked, because it deserves
+  a straight answer rather than a hedge. **It has not become a record of its own corrections.** I
+  measured it rather than judging by feel: 730 lines, of which 214 in 24 paragraphs are correction
+  narrative - 29%. That is high and it is not the problem, and I would resist trimming a line of it,
+  because it is what caught blockers 24 through 27: decision 2's stale premises were findable only by
+  comparing them against decision 1's dated correction, which existed because an earlier round
+  insisted on it. A record that keeps its corrections is why round 6 was possible.
+  What is not safe is the shape. Eight open frozen choices are spread from line 229 to line 730 with
+  no index, and the two hardest carry the most reading: decision 6 is 178 lines and decision 11 is
+  98, so 38% of the file is two items, both defaultless, and a human ruling those two reads 276
+  lines before answering either. There is no summary at the head saying what the eight questions are.
+  `DECISION-LIST-HAS-NO-FIXED-PLACE-FOR-A-RULING` already names the convention and the natural
+  answer - "both: a summary section at the head and the full record beside the item it settles" -
+  and this file has the second and not the first.
+  Why that is a blocker rather than a preference. This stage exists because a wrong `frozen-into-data`
+  choice cannot be undone, and the failure mode is not a human who reads 730 lines and rules wrongly;
+  it is a human who rules from the parts they reached. The one person who must read this has a
+  standing instruction on the record that walls of text are a real obstacle for him, so a 730-line
+  document with no index is misaligned with its only reader, and that is a property of the document
+  rather than of him.
+  What I would add, and it is additive only: a `## What is being asked` section at the head, eight
+  entries, three lines each - the question in one sentence, the options or the budget in one, and
+  what the answer must produce in one - with the two defaultless items marked as such and decision
+  12's fail-closed default marked as the one that can be taken by not acting. Thirty-two lines,
+  pointing down at the full record, nothing deleted. That is also the shape stage 3's own review
+  question wants, since it asks whether the record says what was ruled including the cost accepted,
+  and a head section is where a ruling can be written down in one place.
 
 ## Non-blocker
 
@@ -1149,6 +1263,37 @@ sentence, so all three read as choices rather than as one choice and two omissio
   mechanism and the fifth is a units error nobody had reason to check. This is the process gap and
   it belongs in Alignment rather than here.
 
+### Round 7, from the preamble read
+
+- **`verification/loop_policy.yml`'s reason for phase 16 has decayed the same way, and it is outside
+  every scope this task declares.** It still reads "One judgment call stays open by design: the
+  exploitability target and whether a solve is reproducible are inherited from phase 10's
+  measurements rather than ruled here, so stage 3 halts if phase 10 never produced them." Three
+  things there are now wrong: decision 4 establishes that phase 10's numbers do not transfer, being
+  in the wrong unit against a different tree; reproducibility is decision 7's own item rather than
+  half of that one; and eight items stay open rather than one. That file decides whether a phase may
+  advance unattended, so a stale reason in it is worse than a stale sentence in a decision list, but
+  nothing in `approved_scope` or `standing_scope` reaches it. It needs an ID rather than an edit
+  here.
+- **"And generation stays sequential even though storage does not" survives from the model
+  `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` falsified.** The preamble says "villain's turn range is
+  whatever he would bet and check with on the flop, which is the flop solution. So enumerating turn
+  spots requires the flop spots first." That was written when a turn was thought to be a separate
+  solve. Under the corrected model a flop-rooted tree already contains and iterates all 49 of its
+  turn subgames, so turn strategies are read out of the flop solution rather than generated after
+  it. The sentence is not false, but "generation stays sequential" describes a sequencing constraint
+  where the real one is storage - which is what decision 1's corrected text now says. One clause.
+- **"keyed the way the preflop chart already is" is now qualified by decision 8.** A postflop key
+  carries the preflop key verbatim and must not begin with `t`, so it is keyed *from* the preflop
+  grammar rather than the same way. Trivial on its own; noted because that phrase is the design
+  point the whole file rests on and a reader of the preamble alone would take it literally.
+- **The preamble is the part of the file with the fewest dated corrections, which is why it decayed
+  furthest.** Every item below carries at least one dated amendment and most carry three or four; the
+  preamble carries one, the 47-to-49 fan-out correction. The shape is worth noticing on its own: the
+  sections argued over most are the ones still true, and the section nobody argued over is the one
+  holding four falsified claims. That is the same asymmetry `CONTRACT-LINE-CAP-BLOCKS-ITS-OWN-AMENDMENT`
+  records from the other side, where the most-corrected document is the first to run out of room.
+
 ## Alignment
 
 Long-term drift this stage cannot fix. Each carries an ID.
@@ -1414,6 +1559,40 @@ one entry in `backlog.yml`. Two more from this round.
   entry usually does not see - the generated-adjacent document was correct and the hand-written one
   was stale. Existing entry.
 
+### Round 7
+
+- `DECISION-LIST-HAS-NO-FIXED-PLACE-FOR-A-RULING` - **this is blocker 30's entry and it already
+  contains the answer.** Filed off phases 12 and 13 differing about where a ruling goes, it concludes
+  that the natural convention is "both: a summary section at the head and the full record beside the
+  item it settles". Phase 16 has the full record in unusual depth and no head section at all, and it
+  is the first phase where the absence is quantified: 730 lines, eight open frozen choices spread
+  from line 229 to line 730, and 276 of those lines in the two defaultless items a human must rule
+  hardest. What this phase adds is that the entry reads as a tidiness convention and is not one - at
+  this document size the head section is what makes the ruling safe, and its absence is a stage-3
+  readiness problem rather than a formatting one. Existing entry; it should carry these numbers.
+- `LOOP-NO-CLASS-FOR-A-HUMAN-OWNED-THRESHOLD` - blocker 29 is a new way for this entry to bite that
+  it does not currently record. Its resolution reading depends on the exact words of
+  `docs/LOOP.md` - "committed artifact **or fixture**" - and phase 16's decision list paraphrases the
+  class without them. So a phase that takes its definitions from a sibling decision list rather than
+  from `docs/LOOP.md`, which is the obvious thing to do when writing a new one, inherits a narrower
+  class than the rule states and would classify exactly the threshold this entry is about as
+  reversible. Worth one line in the entry: whatever fix it gets, the definitions belong in one place
+  and decision lists should cite rather than restate them. Existing entry.
+- `A-LOOP-POLICY-REASON-OUTLIVES-THE-PHASE-IT-DESCRIBES` - **must be filed; no existing entry covers
+  it.** Proposed content: `verification/loop_policy.yml` carries a prose `reason` per phase deciding
+  whether it may advance unattended, and nothing re-reads that reason once the phase starts. Phase
+  16's says one judgment call stays open by design, that the exploitability target and reproducibility
+  are inherited from phase 10, and that stage 3 halts if phase 10 never produced them. All three are
+  now wrong - phase 10's numbers are in the wrong unit against a different tree and do not transfer,
+  reproducibility is a separate item, and eight items are open - and the file is outside every scope
+  a phase declares, so no phase can fix its own entry. This is the same failure as
+  `DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE` in a file with more authority: the decision list is
+  read by a human, and this one is read by the driver to decide whether a human is consulted at all.
+  Cross-cite that entry and `COMPLETED-CONTRACT-ASSERTS-THE-CURRENT-TREE`, which is the same shape
+  for a contract. The cheap mechanism: the `auto_advance` and `needs_human_data` flags are what the
+  driver reads, so the reason is prose nothing checks - a closeout could require the reason to be
+  re-read and dated, the way a phase already re-reads its own contract.
+
 ## Method
 
 Read-only throughout. Commands used: `git log`, `git diff`, `git show`, `git branch`, `grep`,
@@ -1536,6 +1715,24 @@ What I did not do in round 6, named so this read is not taken as broader than it
 re-examine decisions 4, 6, 7 through 12 beyond blockers 21 and 22, and I did not check the ruled
 answers themselves against poker merit - only their stated premises against measurements this phase
 has since made. Decision 5's poker content is checked as arithmetic and mechanism, not as strategy.
+
+### Round 7, against `3d3282a`, plus a first read of the preamble
+
+The five amendments were verified against the amended text and against my own enumeration rather
+than against my round-6 note. Then the preamble, lines 1 to 76, was read in full for the first time
+in this review, and `docs/LOOP.md`'s reversibility section and `verification/loop_policy.yml`'s
+phase-16 entry were read beside it for comparison.
+
+New read-only computation, for blocker 30 rather than for a claim about poker: the decision file
+was parsed into its twelve items and its preamble, giving 730 lines total, a 76-line preamble, and
+per-item spans of which decision 6 is 178 lines and decision 11 is 98; and its paragraphs were
+scanned for correction markers, giving 214 lines across 24 paragraphs, 29% of the file. Those are
+the numbers blocker 30 rests on, and they are structural counts rather than judgements - the
+judgement is stated separately and marked as mine.
+
+Not verified in round 7: whether a head section of the kind blocker 30 proposes would in fact be
+read, which is a question about a human and not about the document; and nothing new about the solve
+data, since round 7 read prose.
 
 No tracked file was modified in any round. `scripts/run_verify.py` and `scripts/check_gate_bite.py`
 were not run.
