@@ -1,0 +1,105 @@
+# Stage 2 review: the poker in decisions 9, 11 and 12
+
+Independent read-only review of the poker consequences of what phase 16 is about to freeze. I did
+not write the contract, the ExecPlan, the decision list, or the two earlier notes in this
+directory. Three passes have already run on this phase and none had a poker brief; this one judges
+the poker and not the fidelity of anything to any document.
+
+Method, so every number can be re-run rather than trusted. The range strings were pulled out of
+the `Appendix data:` lines of `reports/active/latest_postflop_solve_cost.txt` and re-parsed from
+scratch; combo counts are 6 per pair, 4 per suited class, 12 per offsuit class; "mass" below means
+the sum of `combos x weight`, which is the frequency with which a player actually arrives at the
+flop holding something from that set. The tree rows were re-parsed from the same file's `Row data:`
+lines. Pot-odds, minimum-defence and geometric-sizing figures are arithmetic I did here from the
+pot and stack in the committed configs. Where I am reasoning from poker knowledge rather than from
+a repo measurement I say so on the line. No tracked file was modified; `run_verify.py` and
+`check_gate_bite.py` were not run.
+
+Read this first, because two of the three items turn on it. **The 68% in decision 12 is a count of
+labels, not a quantity of poker.** Flooring the single-raised-pot out-of-position range at 0.01
+removes 68.9% of its nonzero-weight combos and **0.199% of its mass**. The other side loses 18.4%
+of combos and 0.039% of mass. Those are recomputed, not quoted:
+
+| range | combos | combos at floor 0.01 | mass | mass at floor 0.01 | combo cut | mass cut |
+|---|---|---|---|---|---|---|
+| SRP out of position `717f36499fb4` | 1,274 | 396 | 300.24 | 299.64 | 68.9% | **0.199%** |
+| SRP in position `23642f5e22e7` | 762 | 622 | 533.79 | 533.58 | 18.4% | **0.039%** |
+| 3-bet out of position `568ae7b39c57` | 266 | 220 | 188.53 | 188.47 | 17.3% | **0.032%** |
+| 3-bet in position `75dddc9d9ce2` | 526 | 278 | 234.92 | 234.52 | 47.1% | **0.170%** |
+
+My combo counts are pre-board and the report's `hands_oop`/`hands_ip` are post-board, which is the
+whole of the difference: 1,274 -> 396 pre-board is 1,131 -> 360 on `Kc7d2h`, exactly the figures in
+the record. Both sides agree, so the mass column is the new information.
+
+## Blocker
+
+- **Decision 12's default is poker-wrong. It should be: floor, at class level, at 0.01.** The item's central sentence is "hero's committed strategy is solved against an opponent who has folded two thirds of what he would really hold." That is false. The opponent holds two thirds fewer *labels* and 99.8% of the *hands*, weighted by how often he holds them. The heaviest class the floor deletes from the single-raised-pot defending range is 87s at weight 0.0099; the next four are KJs 0.0054, AJs 0.0045, 66 0.0043 and 77 0.0041; the bulk sit at 0.0001 to 0.0005 and include 32o at 0.0003 and 72o at 0.0002. Those are not defends. They are regrets the preflop solve never drove to zero, in a range whose real content is 300 combos of mass spread over 1,274 labels. "No floor" is being defended as the fail-closed option, and it is not one: keeping the residue does not make the artifact safer, it costs 2.0x memory (21,663 MB to 10,881 MB, action-node count identical at 2,347,996) and it is the reason the pinned menu cannot be solved in the commonest way to see a flop. The repo's own `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` already says the residue "costs a factor of two in memory and buys nothing", and this item defaults to keeping it.
+
+  The EV argument in the units the item asked for, and this is my reasoning rather than a repo
+  measurement. Hero's EV in a spot is linear in the opponent's range weights, so deleting mass
+  fraction `f` and re-solving costs hero, to first order, nothing at all: at an optimum the
+  envelope theorem makes the loss second order in `f`. With `f = 0.002` that is 4e-6 of the EV
+  spread across villain's holdings. Even the crude first-order bound is small: if hero's response
+  to the deleted 0.2% of mass were wrong by a full pot, the cost is `0.002 x 5.5 = 0.011` chips
+  against a 0.0165-chip target, and "wrong by a full pot" is absurd for hands hero was already
+  near-indifferent about. The one honest caveat is the same one decision 6 applies to quantisation:
+  the envelope argument is a statement about an optimum, and both determinism runs stopped at 240
+  iterations with convergence unproven, so it is weaker for the strategy this phase would actually
+  commit than for one at equilibrium. It is still nothing like a 68% truncation.
+
+  The value is also not delicate, which is worth telling whoever picks it. The distinct weights in
+  the defending range jump from 0.0114 (AQo) straight to 0.0249 (T9s) with nothing in between, so
+  every threshold in [0.0115, 0.0249] deletes the identical 98 classes. Mass lost by floor: 0.005
+  -> 0.179%, 0.01 -> 0.199%, 0.02 -> 0.245%, 0.05 -> 0.320%, 0.10 -> 1.093%. The knee is at 0.10,
+  an order of magnitude above the proposed value.
+
+  One arithmetic consequence for whoever implements it: arena is linear in the **sum** of the two
+  hand counts, not their product. Across all eight unfloored pinned single-raised builds,
+  `arena_MB = 5.097e-6 x action_nodes x (hands_oop + hands_ip)` holds to three digits, and the
+  floored build reads 5.043. So flooring only the defender gives 1810 -> 1039, about 12,450 MB,
+  which is still over the measuring script's 12,026 MB ceiling. Both sides have to be floored to
+  reach 10,881 MB, and both sides are near-free by the table above.
+
+- **Decision 12 does not name the floor's real poker cost, and it is not the truncation: the floor makes the preflop solve's pair indifference permanent.** Recomputed from the floored range the record already carries, `config.range_oop@b6fe98063c86`: the 3-bet out-of-position range after flooring holds AA, KK 0.9996, QQ 0.9993, JJ 0.9725, TT 0.9579, 99 0.9982, 88 0.9988, 77 0.9985, 66 0.999, 55 0.9776, 33 0.162, 22 0.9994 - and **no 44**, because 44 sat at 0.0007 and the floor deleted it. A committed artifact in which the big blind 3-bets 22 every time, 33 one time in six and 44 never is visibly wrong to any student, and after flooring hero holding 44 in that 3-bet pot has no cell at all. This is the indifference-artifact half of `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP`, which the unfloored range merely hides and the floor hardens into data. The floor should still be ruled yes, but the item must state this, and the class-level smoothing of the small-pair and suited-king indifference has to land before or with the floor rather than after it. Flooring an unsmoothed export is the one version of this decision that is genuinely worse than no floor.
+
+- **Decision 11 proposes the wrong measurement, in the pot type where the effect it is measuring is smallest.** The item says to "run the reduced config on a 3-bet pot at `9c8c7c` or `Kc7c2c` and diff the flop strategy against `matrix-01` or `matrix-02`". That experiment is well-controlled and it will systematically understate the thing it is meant to bound, because 75% is almost exactly the geometric size in a 3-bet pot and is nowhere near it in a single-raised pot. Arithmetic from the committed configs: to get all in over three streets the pot must grow by a factor of `(P + 2S)/P` split three ways, which is `(16 + 185)/16 = 12.56`, cube root 2.32, so `b = 66%` of pot in the 3-bet pot at SPR 5.78; and `(5.5 + 195)/5.5 = 36.5`, cube root 3.32, so `b = 116%` of pot in the single-raised pot at SPR 17.7. Three consecutive 75% bets in the 3-bet pot reach a river all-in (16 -> 40 -> 100, with 50.5 behind into a pot of 100). Three consecutive 75% bets in the single-raised pot go 5.5 -> 13.75 -> 34.4 -> 85.9 and leave **57.3 of a 97.5 stack behind**. So in the shallow pot one size is close to the whole job and the second size buys little; in the deep pot the menu is short of the geometric size on every street and the small size is doing genuinely separate work. A small diff measured in the 3-bet pot would then be read as licence for the reduced menu in the single-raised pot, which is exactly the half where the distortion lives and where option 2 would actually be used.
+
+  The right measurement is affordable and the record already prices it. Diff pinned against reduced
+  in the **single-raised** pot with both ranges floored at 0.01, board, pot, stack and ranges held:
+  pinned floored is the measured 10,881 MB build, and reduced floored comes to `750,792 x 919 x
+  4.49e-6 = 3,098 MB` by the arena law above. Both are under the 12,026 MB ceiling, both use the
+  same hands, and the pinned 3-bet rows converged at 220 to 260 iterations on a tree of the same
+  order. That single pair of solves answers decision 11's open question and decision 12's at the
+  same time, which is why the two items should be ruled together rather than in sequence.
+
+- **Option 3 is backwards on poker grounds, and the item ranks it highest.** Option 3 is "pinned for 3-bet pots and reduced for single-raised" and it is presented as the only option measured on both line types. By the geometry above that is the pair that puts the finer turn and river menu in the pot where a single size is nearly sufficient, and the coarser one in the pot where two sizes matter most. It is measured on both halves because the two halves are what happened to fit in memory, not because they are the two halves worth having. My poker reasoning for the direction of the distortion, stated as reasoning: in a 100bb single-raised pot the dominant flop strategy for the preflop raiser is a high-frequency small bet on static high-card boards, and its value comes from being repeatable cheaply on later streets; force the turn to a single 75% and the small flop bet loses its continuation, so weight moves off 33% toward checking and toward 75%. The reduced menu also removes the small turn bet from the **defender**, so hero's flop check-back is punished only by a large turn bet that is easy to defend and never by a cheap stab, which makes checking look better than it is. Both effects push the same way, so the reduced single-raised-pot flop strategy should be expected to bet less, bet small much less, and respond less to texture than the truth. The boards where that bites hardest are the dry rainbow high-card boards - which is also the texture family this repo has never once solved to target.
+
+- **Whatever decision 11 rules also silently rules that the out-of-position player cannot lead and that neither player can ever jam, and no item says so.** Every menu body in the record, pinned and reduced alike, reads `donk: ""` on all three streets, and every config row reads `add_allin: false`. Those are not menu trimmings, they are missing actions. I could not determine from this repo whether GTOpen's "donk" covers only an out-of-position lead into the previous street's aggressor or every out-of-position first-in bet, and the answer changes which nodes exist: under the wide reading the defender never bets first on any street and the committed solve is "in position bets, out of position responds", which is not the game, and decision 9's own premise that hero "can face a 33% bet or a 75% bet" would be unreachable for the in-position seat. Under the narrow reading the missing action is the out-of-position turn lead after a called flop bet, which is still a frequent and strategically important line. Either way hero's flop bet is being valued against an opponent who can never take the betting lead back, which overstates betting; and with no size above 75% and no jam, no bet-bet-bet line in the single-raised pot can threaten the stack, which understates the polar branch. Those two errors push flop betting frequency in **opposite** directions, which is precisely why the sign of the net cannot be settled by argument and why the measurement above is needed rather than optional. Decision 11 is titled "the bet-size menu the committed solve is configured with"; the donk and all-in fields are part of that configuration and belong in its option text.
+
+## Non-blocker
+
+- **Decision 9's default is poker-right and it is not a close call.** Facing 33% and facing 75% on the same board are different strategic problems by every measure that governs the decision. Required equity to call is `b/(1+2b)`: 19.9% against 33%, 30.0% against 75% - a 51% relative jump in the continue threshold. Minimum defence frequency is `1/(1+b)`: 75.2% against 33%, 57.1% against 75% - an 18-point swing in how much of hero's range continues, larger than any other single input in the spot. And the bettor's maximum bluff share is `b/(1+b)`: 24.8% at 33% against 42.9% at 75%, so the *bettor's* range composition at the two sizes differs by design and the "same ranges" premise in the question is false in practice. Composition follows: against a small bet the correct defence is call-heavy and raise-heavy and reaches down to bottom pairs and gutshots; against a large bet it is polarised into strong calls and folds. A merged cell would be an average of a 75%-defence and a 57%-defence, which means the bot **overfolds against small bets and overcalls against large ones** - the two errors an opponent farms by simply choosing his size, and findable in one session by a human. Merging is not "slightly coarse" here, it is a size-selection leak handed to the opponent.
+
+- **Decision 9's stated cost is wrong: naming the size costs no bytes.** The item says naming the size "multiplies the spots by the menu". It does not. "Facing 33%" and "facing 75%" are already two distinct decision nodes in the solved tree, and they are already two of the roughly five hero flop nodes that decision 6's byte budget is priced at. Naming the size in the key labels nodes the solve produced anyway; naming only the action class would *merge* two solved nodes into one cell, which saves bytes by discarding data. So the trade is not exactness against size, it is exactness against a lossy compression, and the compression is the leak above. The coupling to decision 11's menu is likewise not a cost of the key: a cell solved at a 33/75 menu is only valid at a 33/75 menu whether or not the key admits it. A size-named key makes a later menu change fail closed, because the new key is not found and the lookup refuses. A class-only key makes the same change silently reinterpret every committed cell, applying a 33%-solved response to a 50% bet. Naming the size is the fail-closed option as well as the accurate one.
+
+- **The size-named key exposes a coverage cliff nobody has priced: the artifact answers only 33% and 75%, and real opponents bet neither.** The contract already forbids the fix that would hide it ("no nearest-neighbour substitution of board, line, or flop action"), which is the right poker call - mapping a 50% bet onto the 33% cell would have hero defending at 75.2% where 66.7% is correct, and onto the 75% cell would have him defending at 57.1%, so both substitutions are near-9-point MDF errors, far larger than the preflop `@2.5` price substitution the repo already tolerates. But the consequence is that hero's facing-a-bet nodes refuse against any opponent who does not bet exactly a third or exactly three quarters, and nothing in this repo can measure how often that is. Self-play never bets postflop at all (`postflop_fallback.py` returns no bet or raise on any path), and the corpus instrument is preflop-only by its own docstring in `comparison_report.py`. So a phase named Postflop That Can Bet can ship 100% board coverage and a green gate while the bot bets fine and refuses to answer a bet. The covered-set inventory decision 3 mandates should name the bet menu as part of coverage, not only the preflop lines.
+
+- **Flooring hero's own range creates a refusal hole, and its size is 0.2%, not 68%.** The floor removes hands from both ranges, so hero's own deleted classes have no committed strategy. Because mass is arrival frequency, the refusal fires on 0.199% of flop arrivals for the single-raised out-of-position seat and 0.039% for the in-position seat, not on 68% of them. That is small and it is fail-closed, but it must be written down, because an implementer who meets 99 missing hero hand classes and does not know their arrival weight will be tempted to fall back on the nearest hand class, which is the heuristic `AGENTS.md` forbids by name.
+
+- **The converged evidence base is the least generalisable texture family there is.** Five solve rows plus two determinism repeats reached target; six are monotone and one is two-tone, on two rank patterns. Monotone flops are the worst possible sample for a flop-sizing artifact, because the flush possibility dominates range interaction and suppresses exactly the small-bet-heavy strategies that the other 84% of boards use. Never reached target: rainbow-dry, rainbow-connected, paired, ace-high connected, disconnected-low. Rainbow is 455 of 1,755 classes. So the untested set is the pedagogically central set, and by the reasoning in the option-3 blocker it is also the set most sensitive to the turn and river menu. The evidence gap and the abstraction-sensitivity gap sit on the same boards, which means neither can be used to reassure about the other.
+
+- **Hero-strategy-only storage covers one seat of a line, so decision 6's "one preflop line" is one line-seat pair.** A postflop key inherits the preflop key's position segments, so a spot names one seat. To play "button opens, big blind calls" the bot needs the button's cells and the big blind's cells, or it refuses on whichever seat it happens to occupy. That doubles the node-line units per line the bot can actually play, and it should be stated in decision 6's budget rather than discovered when half the drills refuse.
+
+## Alignment
+
+- `A-RANGE-TRUNCATION-IS-REPORTED-IN-COMBOS-WHERE-THE-COST-IS-IN-MASS` (new). Three committed documents now describe the 0.01 floor by its combo count - "68% truncation of the defending range", "hands from 1131v679 to 360v559" - and none states the mass. The combo figure is 345x the poker quantity (68.9% against 0.199%), it is the figure the no-floor default rests on, and it is the same class of error as `A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS`, filed against this same file at stage 1. A range truncation reported in labels rather than in arrival frequency will mislead every future reader the same way.
+
+- `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` (exists, deferred, phase 14). Its own text reaches the conclusion decision 12 declines: the residue "costs a factor of two in memory and buys nothing". It also holds the smoothing half that the second blocker above says must land before the floor. The entry is filed against phase 14, which is completed, so on current status this conditioning step has no owner and phase 16 consumes an unsmoothed export.
+
+- `NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT` (new). Every measured menu tops out at 75% of pot with no jam, and 75% three times in a 100bb single-raised pot leaves 57.3 of a 97.5 stack behind. Real solutions at SPR 17.7 use overbets on polarising turn and river cards, and the flop's polar branch exists partly to set them up. This is not a discriminator between decision 11's four options, since all four share it, which is exactly why it needs its own entry: it is the abstraction error none of the options can fix and none of them discloses.
+
+- `NOTHING-MEASURES-POSTFLOP-ACTION-COVERAGE-AGAINST-REAL-BET-SIZES` (new). Board coverage will be reported at 1,755 of 1,755 while action coverage against any real distribution of bet sizes is unmeasured and unmeasurable in this repo today: self-play never bets postflop, and the corpus comparison is preflop-only by design. The refusal inventory ranks preflop gaps; there is no postflop equivalent.
+
+- `POSTFLOP-EVIDENCE-IS-ALL-MONOTONE-AND-MONOTONE-GENERALISES-WORST` (new). `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL` covers the cost consequence of the converged set being six monotone and one two-tone. The strategy consequence is separate and larger: monotone boards are the texture whose solution transfers least to the rest of the set, so the phase's entire converged evidence base says close to nothing about the strategies it will commit on the other 1,469 classes.
+
+- `POSTFLOP-SOLVE-IS-RAKE-FREE-AND-THE-GAME-IS-NOT` (new). Every measured row is `rake_pct: 0.0, rake_cap: 0.0`, consistent with the rake-free preflop export, so the convention is coherent and the ranges match the solve. The consequence for a training bot is the postflop mirror of `OPENING-RANGES-READ-NARROWER-THAN-A-RAKED-REFERENCE`: a rake-free flop solution continues and bets marginally wider than correct play in the raked game a student actually sits in, and the effect concentrates on exactly the thin continue decisions a flop chart is consulted for. Direction stated, magnitude unmeasured; this is poker reasoning, not a repo number.

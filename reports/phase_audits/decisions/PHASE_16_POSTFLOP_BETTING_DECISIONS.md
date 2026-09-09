@@ -58,27 +58,30 @@ whether the price substitution is baked in. Default: verbatim, sizes included, i
 does not begin with `t`, with the substitution recorded on the committed spot.
 
 **9. Whether flop bet sizes appear in the key.** Name the size, or name only the action class.
-Default: name the size. Produces: whether a menu change later re-derives every cell. **Rulable
-without 11**: all four of that item's levers carry the same flop sizes, 33 and 75, so only a lever
-widening the *flop* menu would couple them and none does.
+Facing 33% needs 19.9% equity and facing 75% needs 30.0%; defence frequency goes 75.2% to 57.1%,
+so a merged cell overfolds to small bets and overcalls to large ones and an opponent picks his size
+to farm it. Naming the size costs **zero** bytes and makes a later menu change fail closed rather
+than silently reinterpret cells. Default: name the size. **Rulable without 11.**
 
 **10. Whether pot and effective stack appear in the key.** In the key, or in the payload validated
 against the line. Default: payload, validated.
 
-**11. The bet-size menu the solve is configured with.** Four levers, and their evidence differs:
-the pinned menu is measured on 3-bet pots only and its single-raised tree is a hard memory wall
-(21,282-21,715 MB against a 12,026 MB ceiling, which fails rather than slows); the reduced menu is
-measured on single-raised pots only; **one menu per pot type is the only option measured on both**;
-and flooring the ranges to fit is a **build, not a solve**. Rainbow is unmeasured in all four.
-**No default** - and it collides with decision 3, already ruled, because single-raised pots
-dominate the coverage decision 3 says to take. **Rule it with 12**, the only pair a ruling cannot
-take separately.
+**11. The bet-size menu the solve is configured with.** Four levers with different evidence: pinned
+is measured on 3-bet pots only and its single-raised tree is a hard memory wall (21,282-21,715 MB
+against a 12,026 MB ceiling, which fails rather than slows); reduced is measured on single-raised
+pots only; one-per-pot-type is the only option measured on both, **but the poker says it is
+backwards** - a single geometric size is 66% of pot in a 3-bet pot and 116% in a single-raised one,
+so it puts two sizes where one nearly suffices; and flooring to fit is a **build, not a solve**.
+Rainbow is unmeasured in all four. Whatever is ruled also freezes **no donk bet and no all-in**,
+which push flop aggression in opposite directions. **No default**, it collides with decision 3
+already ruled, and **rule it with 12** - the settling experiment needs a floor.
 
 **12. Whether the solve floors its input ranges, and at what weight.** A floor at 0.01 halves the
-memory needed and truncates the defending range by 68%. Default: **no floor** - the one default
-here that is taken by not acting. **Rule it with 11**: that item's lever 4 exists only if a floor is
-permitted, and this default forecloses it, so ruling 11-lever-4 and 12-no-floor together rules
-nothing.
+memory needed and deletes 68.9% of the defender's combos - but **0.199% of its weight**: the
+heaviest hand cut is `87s` at 0.0099 and the bulk are preflop residue like `32o`. Default,
+**reversed 2026-09-09** after the poker review measured the mass: **floor, class-level, at 0.01**.
+The cost it does carry is the pair ladder - a 0.01 floor leaves the 3-bet defender every pair
+except `44`, and the single-raised defender only `55 44 33 22`. **Rule it with 11.**
 
 **13. Whether this is one phase.** Items 8, 9 and 10 define a key format; 4, 6, 7, 11 and 12 define
 a data campaign, and this repo's rule is format before data with a phase boundary as its precedent.
@@ -654,14 +657,28 @@ Within a flop, hero can face a 33% bet or a 75% bet, and those are different spo
 ranges. The key either names the size, the way the preflop key names a raise size, or it names only
 the action class and lets the size live in the spot's payload.
 
-Naming the size makes the key exact and multiplies the spots by the menu, and it ties the committed
-data to the menu decision 11 fixes: change the menu later and every key changes. Naming only the
-class keeps the key stable across a menu change and makes two genuinely different spots share a
-cell, which is the merge defect phase 14 accepted preflop and published a cost for.
+**The poker is not close, and the stage-2 poker review measured it.** Against a 33% bet a caller
+needs 19.9% equity; against 75% he needs 30.0%. Minimum defence frequency goes from 75.2% to 57.1%,
+and the bettor's maximum bluff share from 24.8% to 42.9%. A cell that merged the two would overfold
+against small bets and overcall against large ones, and an opponent farms that by choosing his size
+- which is the one exploit a bot with a fixed strategy cannot adapt away from.
 
-Default: **name the size**, on the preflop key's own precedent and because the alternative merges
-spots that play differently, which is the one thing decision 2 refuses to do by texture and should
-not do by price either.
+**Two costs an earlier draft of this item claimed, and both are wrong.**
+
+It said naming the size multiplies the spots by the menu. It costs **zero** bytes: facing-33 and
+facing-75 are already distinct nodes in decision 6's own budget, because they are distinct nodes in
+the tree. Naming only the action class would not buy a cheaper key, it would perform a lossy merge
+of two cells that already exist separately.
+
+It said naming the size ties the committed data to decision 11's menu, so a later menu change
+re-derives every key. The tie is a property of the **data**, not of the key: a cell solved at
+33/75 describes a spot facing 33 or 75 whatever the key says. Naming the size means a later menu
+change makes the lookup **fail closed** on a size it holds no cell for; naming only the class means
+the same change silently reinterprets every cell as though it answered the new size. The
+size-named key is the safer one under a menu change, not the more brittle one.
+
+Default: **name the size**, on the preflop key's own precedent, on the equity and defence numbers
+above, and because it is the option that fails closed when the thing it depends on moves.
 
 Answer:
 
@@ -709,6 +726,15 @@ size instead of two. A flop-only artifact is therefore not insulated from the tu
 the same flop, solved above a coarser tree, is a different flop strategy. That is the real cost of
 option 2 and of option 3's cheaper half, and it is not a cost decision 6 can price.
 
+**Whatever is ruled here also freezes two things nobody raised until the stage-2 poker review,
+because every measured config carries them.** `donk: ""` on all three streets means the
+out-of-position player never leads - he checks or he does nothing - so hero's flop strategy is
+solved against an opponent with no lead. And `add_allin: false` means neither player can jam. The
+two omissions push hero's flop betting frequency in **opposite** directions, no donk letting hero
+bet more freely in position and no jam capping what either can threaten, which is why the net sign
+has to be measured rather than argued and why neither belongs in a ruling as an unstated side
+effect.
+
 **"The menu MAINT-26 measured" is not one object, and an earlier draft of this item said it was.**
 The stage-2 review parsed all 55 committed rows and I re-derived it: of the **7 of 30** `group:
 solve` rows that reached 0.3% of pot, **five** are `starting_pot: 16.0` - a 3-bet pot, at the pinned
@@ -745,14 +771,18 @@ The choice, therefore:
    against `matrix-03`, moves the menu, the pot from 16.0 to 5.5, the effective stack from 92.5 to
    97.5, both ranges and the SPR at once.
 
-   **The measurement is one solve and it is cheap.** Run the reduced config on a 3-bet pot at
-   `9c8c7c` or `Kc7c2c` and diff the flop strategy against `matrix-01` or `matrix-02`: board, pot,
-   stack and both ranges held, only turn and river moving. It is affordable on evidence already in
-   the record - the same ranges as the pinned 3-bet rows, strictly fewer nodes than their
-   1,073,702, and those converged at 220 to 260 iterations inside 3,726 MB, so a strictly smaller
-   tree over identical hands cannot need more. It also closes this option's disclosed gap at the
-   same time, since no 3-bet row uses the reduced config at all. It is far cheaper than the rainbow
-   single-raised-pot cell noted below, which needs 21.7 GB or decision 12's floor.
+   **The measurement, corrected 2026-09-09 by the stage-2 poker review.** An earlier draft proposed
+   running the reduced config on a **3-bet pot** and diffing against `matrix-01` or `matrix-02`.
+   That comparison is clean and it answers the wrong question: 75% is near the geometric size in a
+   3-bet pot, so restricting turn and river to it there is close to harmless, the diff would come
+   back small, and it would be read as licence for the pot where the same restriction is largest.
+
+   The experiment that settles it is the **single-raised** pot, floored on both sides so the pinned
+   menu fits at all: floored pinned against floored reduced at one board, pot, stack and both
+   ranges held and only turn and river moving. Both fit the ceiling - about 10,881 MB and about
+   3,098 MB against 12,026 - so it is affordable, and it is the only comparison that measures the
+   thing being ruled. It needs decision 12 to permit a floor, which is why **decisions 11 and 12
+   are ruled together rather than in sequence.**
 3. **A menu per line type**, pinned for 3-bet pots and reduced for single-raised. **This is the only
    option measured on both line types**, because it is precisely the pair that converged: the
    record's solve rows are pinned at pot 16.0 and reduced at pot 5.5 and nothing else. It is not
@@ -760,7 +790,14 @@ The choice, therefore:
    half", which is a clean bill no option can earn. **Rainbow is unmeasured in every half of every
    option**: the seven converged rows are six monotone and one two-tone, and the report's own
    texture line reads "rainbow 0, two-tone 1, monotone 6". Option 3's two halves are `9c8c7c` and
-   `Kc7c2c`, monotone both times. Rainbow is 455 of the 1,755 classes and the expensive end. Its cost is real and
+   `Kc7c2c`, monotone both times. Rainbow is 455 of the 1,755 classes and the expensive end.
+
+   **And the poker runs the other way from the evidence.** A single geometric size that gets all-in
+   over three streets is **66% of pot** at the 3-bet pot's SPR of 5.78 and **116%** at the
+   single-raised pot's 17.73. So one 75% size is nearly right in a 3-bet pot and nowhere near right
+   in a single-raised one, where three 75% bets leave 57.3 of a 97.5 stack behind. This option
+   therefore puts **two sizes in the pot where one nearly suffices and one size in the pot where
+   two matter most**, which is backwards from what its evidence recommends it for. Its cost is real and
    it is not an evidence gap - the artifact carries two abstraction levels with a seam between them
    that nothing in the repo would record, so a cell's strategy is coarser or finer depending on the
    preflop line and no field says which.
@@ -778,7 +815,10 @@ grounds that every affordability figure rests on it; that reasoning was sound an
 false, since the figures rest on two different menus depending on the pot. Whatever is chosen,
 the cost model is re-measured before decision 6 is answered rather than after, and a rainbow
 single-raised-pot cell at the chosen menu is the one solve that would make this phase's arithmetic
-real rather than scaled.
+real rather than scaled. The poker review's expected direction, from poker reasoning rather than a
+repo measurement and flagged as such: a single 75% turn and river size pushes hero **away from the
+33% flop bet and toward checking**, worst on dry rainbow high-card boards - the texture family
+never once solved to target here.
 
 Answer:
 
@@ -794,12 +834,19 @@ MAINT-26 measured it at 0.01: the single-raised-pot arena falls from 21,663 MB t
 the action-node count **identical** at 2,347,996, because what shrinks is the number of hands and
 not the shape of the tree. On the 3-bet line it is 3,726 MB to 2,385 MB.
 
-What it costs is a poker question and the numbers are the argument, not the answer. At 0.01 the
-out-of-position range falls from 1,131 combos to 360 and the in-position range from 679 to 559.
-That is a **68% truncation of the defending range**, and every hand removed is one the solver then
-never has to beat, so hero's committed strategy is solved against an opponent who has folded two
-thirds of what he would really hold. Whether that changes hero's flop strategy materially is
-unmeasured.
+**"A 68% truncation of the defending range" is a count, not a quantity of range, and an earlier
+draft of this item led with it.** Recomputed here from the range strings the cost report commits,
+for the single-raised-pot out-of-position range `config.range_oop@717f36499fb4`: the 0.01 floor
+deletes 99 of its 162 labels, which is **878 of 1,274 combos, 68.9%** - and **0.199% of its
+weight**. The heaviest hand deleted is `87s` at 0.0099. The bulk sit at 0.0002 to 0.0005 and
+include `32o` and `72o`, which are not defends; they are residue from the preflop solve, hands the
+solver left a rounding of a percent in rather than hands the defender holds.
+
+So the poker answer, from the stage-2 poker review and reproduced here, is the opposite of that
+draft's: **flooring at 0.01 removes two hundredths of one percent of the range hero must beat.** It
+is close to free in the units that matter, and the units argument the notes give for it is still
+the wrong argument. The floor value is also not delicate: the weights straddling it run
+0.0099, then 0.0114, then 0.0249, so a gap sits just above the threshold.
 
 `docs/GTOPEN_SOLVER_NOTES.md` argues the 2.0x is "close to free" because "two thirds of the grid
 sits below a 1% weight, far under the resolution of a 0.3%-of-pot target". Treat that as an
@@ -813,16 +860,30 @@ anywhere in either range collapses the suit-isomorphism group to the identity an
 entire saving on every board that is not rainbow, which is what
 `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` records.
 
-Default: **no floor.** Unlike decision 11 and decision 6 there is a fail-closed option here and it
-is the status quo: solving the ranges as the export gives them requires no action to be safe, and
-this repo fails closed everywhere else - decision 4's own default invokes that convention by name.
-So the floored route is the opt-in, and a floor is a level a human sets with the truncation it
-implies stated beside it. An implementer picking 0.01 because the notes used it would be freezing a
-68% range truncation into every committed cell on the strength of a cross-unit argument.
+**But flooring an unsmoothed export has a cost this item never named, and it is a poker cost.** The
+floor does not only delete residue; it cuts a rank-ordered block out of the defender's pair ladder,
+and differently in each pot type. Measured here over every committed range:
 
-No floor covers decision 11 options 1, 2 and 3, all three of which are affordable unfloored on the
-half of the coverage each is measured on. It does not cover option 4, which exists only because of
-a floor and is a build rather than a solve.
+- The **3-bet-pot** out-of-position ranges (`568ae7b39c57`, `b6fe98063c86`) keep every pair after a
+  0.01 floor **except 44**.
+- The **single-raised-pot** out-of-position ranges (`1f1afe475a98`, `717f36499fb4`) keep only
+  `55 44 33 22`, deleting `TT 99 88 77 66` - the better pairs, while the worse ones survive.
+
+Neither is poker. Both are the preflop solve's own indifference frozen into the postflop input, and
+they are the same pair-ladder inversion phase 14 accepted and published a cost for, now arriving
+where it changes what hero is solved against. `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP`
+is the entry that owns it, and the floor is what makes it visible rather than what causes it -
+unfloored, those pairs are present at a weight that does nothing.
+
+Default: **floor, class-level, at 0.01** - reversed on 2026-09-09 from "no floor" after the
+stage-2 poker review measured the mass. The earlier default was chosen because this repo fails
+closed and no floor requires no action to be safe; that reasoning was right in form and rested on
+the 68% figure being a quantity of range, which it is not. Class-level remains a constraint rather
+than a choice, because one suit-specific weight collapses the isomorphism group.
+
+The condition on that default: the pair ladders above are stated as a known defect of the input,
+not repaired by this phase, and the report publishes which pairs each committed range holds so a
+reader can see what hero was solved against.
 
 Answer:
 
