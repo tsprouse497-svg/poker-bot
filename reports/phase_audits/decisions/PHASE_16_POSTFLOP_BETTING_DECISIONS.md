@@ -342,7 +342,11 @@ An earlier draft of this entry gave 5x1, 1x3 and 1x5 as its examples and called 
 option that fits today without touching the cap". Both were wrong and the stage-2 review held the
 stage over them. The example set skipped the middle of the frontier, where 3x2 and 2x3 both land at
 0.979x and where the contract's own count of a flop - hero acts, villain answers, hero faces a bet
-or a raise, so three nodes - actually sits. And "the only option that fits" is false by this table:
+or a raise - actually sits. An earlier draft called three "the contract's own count of a flop".
+That was a reviewer's hedged phrase quoted back as a flat assertion, and it is an under-count:
+under decision 11's pinned menu with `max_raises: 2` hero has about five flop decision nodes, so
+about six units buys **one** preflop line at full flop depth, not the two that 3x2 suggests. The
+frontier below is arithmetically right and reads roomier than the ruled defaults allow. And "the only option that fits" is false by this table:
 5x1 *is* option 2 driven to its limit, and option 4's 0.49x and 0.82x are quoted in the aggressive
 encoding, so ruling option 4 alone silently also rules the encoding. In the chart's own format
 option 4 is 98.62 MiB per node-line, 6.6x over, and fits nothing.
@@ -471,10 +475,20 @@ nearest one the artifacts declare and records the substitution. If the postflop 
 preflop raise size, it inherits that normalisation, and the ranges a spot was solved against are
 then the ranges at the *substituted* price rather than the one the hand was actually played at.
 
-Default: **carry the preflop spot key verbatim, sizes included**, so a postflop spot names exactly
-the preflop spot whose ranges it was solved from and no compression is invented; and record the
-price substitution on the postflop spot the way `ChartHit.price_substitutions` records it preflop,
-so a substituted answer stays distinguishable rather than becoming the truth.
+Default: **carry the preflop spot key verbatim, sizes included, inside a postflop key that does not
+begin with `t`**, so a postflop spot names exactly the preflop spot whose ranges it was solved from,
+no compression is invented, and no existing reader mistakes one for the other. The prefix is not
+cosmetic: `self_play_reference.py` recovers keys by taking any token that starts with `t` and holds
+at least three slashes, and a verbatim preflop key inside a postflop one would satisfy that and be
+returned as a preflop spot. An earlier draft of this default omitted the prefix and collided with
+the contract criterion requiring that reader to return no postflop key.
+
+And the substitution is **recorded on the committed spot, not computed at query time.** The preflop
+`price_substitutions` field is a query-time field on the lookup result; naming it here without
+saying which side of the line it falls on would leave the class itself ambiguous, since a committed
+field is frozen data and a computed one is not. Committed, because the substitution is a fact about
+which ranges the spot was solved against, and that is settled when the solve is committed rather
+than when a hand is played.
 
 Answer:
 
@@ -528,17 +542,78 @@ best response walking the same tree, so "the abstraction error of a two-size men
 the target". The menu is also decision 6's silent input, since every row of that budget is priced
 at two or three actions and the step is worth 1.5x.
 
-MAINT-26's measured menu is `Check | Bet 33% | Bet 75%` with `max_raises: 2`, and every cost figure
-this phase has rests on it. Widening it is not free in either axis: it multiplies the tree, it
-multiplies the key space under decision 9, and it multiplies the artifact.
+**"The menu MAINT-26 measured" is not one object, and an earlier draft of this item said it was.**
+The stage-2 review parsed all 55 committed rows and I re-derived it: of the eight rows that reached
+0.3% of pot, six are `starting_pot: 16.0` - a 3-bet pot, at the pinned menu
+`Check | Bet 33% | Bet 75%` with `max_raises: 2` - and the only two at `starting_pot: 5.5`, a
+single-raised pot, carry `reduced-tree-not-cost-comparable` in their own row labels. **The pinned
+menu has never been solved to target in a single-raised pot.** It was not slow; it was never
+attempted, because that tree measures 21,282 to 21,715 MB of arena on all eight build rows against
+the measuring script's 12,026 MB ceiling, and an arena over a box's RAM fails rather than slows.
 
-Two things about it are measurements rather than judgement, and they bound the choice. The
-single-raised-pot tree at that menu needs a 21.7 GB arena and was never attempted, against a 3.7 GB
-arena for the 3-bet line; and flooring both ranges at 0.01 halves the arena with the action-node
-count unchanged, which is the cheap way to fit a wider menu rather than dropping a size.
+That collides with decision 3, which is already ruled. A single-raised pot is the ordinary way to
+see a flop, and the head of the corpus ranking decision 3 says to cover is dominated by them. So
+the pinned menu plus decision 3's ruling produces a bot that refuses the head of its own coverage
+list, which is the opposite of what either decision intends.
 
-Default: **the menu MAINT-26 measured**, unchanged, because every affordability figure in this
-phase is measured on it and changing it invalidates all of them at once. If it is widened, the cost
-model has to be re-measured before decision 6 can be answered, not after.
+The choice, therefore:
+
+1. **The pinned menu, 3-bet pots only.** Fully measured, and it abandons the commonest way to see
+   a flop. Decision 3's head would have to be re-read as "the head of the 3-bet lines".
+2. **The reduced menu everywhere.** The only menu with a converged single-raised-pot solve, so the
+   coverage decision 3 wants is reachable. Its rows are marked not cost-comparable, so decision 6's
+   budget and every hour figure in this phase would have to be re-derived on it, and a narrower
+   betting tree is a coarser strategy in the spots that matter most.
+3. **A menu per line type**, pinned for 3-bet pots and reduced for single-raised. Each half rests on
+   evidence, and the artifact then carries two abstraction levels with a seam between them that
+   nothing in the repo would record.
+4. **Floor the ranges so the pinned menu fits a single-raised pot.** The one measured route to
+   having both, and it is a poker choice of its own rather than a tuning knob, which is why it is
+   decision 12 and not a clause here.
+
+Default: **none, deliberately.** An earlier draft defaulted to "the menu MAINT-26 measured" on the
+grounds that every affordability figure rests on it; that reasoning was sound and its premise was
+false, since the figures rest on two different menus depending on the pot. Whatever is chosen,
+the cost model is re-measured before decision 6 is answered rather than after, and a rainbow
+single-raised-pot cell at the chosen menu is the one solve that would make this phase's arithmetic
+real rather than scaled.
+
+Answer:
+
+## 12. Whether the solve floors its input ranges, and at what weight
+
+Reversibility: frozen-into-data
+
+Filed 2026-09-08 by the stage-2 review, which found it to be the only measured way decision 11's
+pinned menu fits a single-raised pot and therefore a load-bearing choice with no item.
+
+Flooring means dropping every hand below a weight threshold out of the range before solving.
+MAINT-26 measured it at 0.01: the single-raised-pot arena falls from 21,663 MB to 10,881 MB with
+the action-node count **identical** at 2,347,996, because what shrinks is the number of hands and
+not the shape of the tree. On the 3-bet line it is 3,726 MB to 2,385 MB.
+
+What it costs is a poker question and the numbers are the argument, not the answer. At 0.01 the
+out-of-position range falls from 1,131 combos to 360 and the in-position range from 679 to 559.
+That is a **68% truncation of the defending range**, and every hand removed is one the solver then
+never has to beat, so hero's committed strategy is solved against an opponent who has folded two
+thirds of what he would really hold. Whether that changes hero's flop strategy materially is
+unmeasured.
+
+`docs/GTOPEN_SOLVER_NOTES.md` argues the 2.0x is "close to free" because "two thirds of the grid
+sits below a 1% weight, far under the resolution of a 0.3%-of-pot target". Treat that as an
+argument rather than a measurement, and note that it compares a **weight** threshold to an
+**exploitability** target - two percentages in different units with no conversion between them,
+which is exactly the shape filed as `A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS` after the same
+reasoning was caught in this file at stage 1. It may well be right. Nothing has measured it.
+
+One constraint is not a judgement: the floor must be class-level. A single suit-specific weight
+anywhere in either range collapses the suit-isomorphism group to the identity and forfeits the
+entire saving on every board that is not rainbow, which is what
+`EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` records.
+
+Default: **none, deliberately.** The honest options are no floor and accept decision 11 option 1 or
+2, or a floor at a level a human sets with the truncation it implies stated beside it. An
+implementer picking 0.01 because the notes used it would be freezing a 68% range truncation into
+every committed cell on the strength of a cross-unit argument.
 
 Answer:

@@ -82,7 +82,8 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
   with `t` that holds at least three slashes, and it raises rather than returning empty. **A
   postflop key must not be returned by that reader**, and a test asserts the returned set contains
   no postflop key while the reader still finds every preflop one and still raises on an empty
-  inventory.
+  inventory. Decision 8's default is what makes this satisfiable: a postflop key carries the preflop
+  key verbatim but does not begin with `t`.
 - `postflop_action_order` is added to `poker_core/positions.py`, which already keeps
   `preflop_action_order` separate by name and says why: the blinds act first once the flop is out.
   Deriving postflop order from the seating order is the defect this criterion exists to prevent.
@@ -162,9 +163,11 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
   silently under `CODE_FOLD_ON_THE_FLOP`; after this phase the flop is answered and the two later
   streets carry the refusal. A refusal is not an action: the composite returns it untouched and the
   simulator voids the hand.
-- **An uncovered preflop line refuses with a code that names the line**, and an uncovered board
-  cannot occur, because decision 2 keeps all 1,755 classes. A test asserts the board-miss code is
-  unreachable and labels it vacuous wherever it is reported, never counted as a check that passed.
+- **An uncovered preflop line refuses with a code that names the line.** Whether an uncovered
+  *board* can occur follows from decision 4 and is not asserted here: decision 2 keeps all 1,755
+  classes, but if a cell that never reaches the target is refused rather than committed as a floor
+  then boards go uncovered, and rainbow has never been solved to target. The board-miss code is
+  therefore live, and the test that reports it is labelled vacuous only if decision 4 makes it so.
 - The lookup fails closed on the preflop library's own walk: coarsest gap first, so the code names
   the first thing actually missing rather than the last thing checked. No nearest-neighbour
   substitution of board, line, or flop action.

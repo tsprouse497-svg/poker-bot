@@ -7058,3 +7058,31 @@ items:
       prices the payload and forgets the provenance underestimates in the direction that matters,
       because provenance is exactly what a phase adds when a reviewer asks for more evidence.
       Filed by phase 16's stage-2 independent decisions review, 2026-09-08.
+
+  - id: A-REVIEW-FINDING-IS-QUOTED-INTO-THE-RECORD-AS-IF-MEASURED
+    status: deferred
+    phase: contract-update
+    title: A reviewer's hedged argument becomes a flat assertion when the coordinator writes the fix
+    reason: >-
+      Twice in phase 16's stage 1 and 2 a reviewer's carefully hedged phrase was quoted into a
+      governing document as a measured fact, by the coordinator, while fixing the blocker the
+      reviewer raised.
+      First: a review note said a solver "mixes only where it has driven a hand to indifference",
+      offered as an idealisation. It entered the decision record as the basis for a cost argument,
+      and the same reviewer then had to point out that at a finite iteration count a mix can be an
+      unconverged artifact where the EV gap is not near zero at all.
+      Second: a review note called three hero decision nodes "the contract's own count of a flop",
+      as its own reading rather than a measurement. That entered the decision record as a flat
+      assertion, and it is an under-count: under the ruled menu with max_raises 2 hero has about
+      five flop decision nodes, so a budget stated in node-line units read roomier than the ruled
+      defaults allow.
+      The mechanism is specific to this workflow and not to carelessness. A reviewer writes to
+      argue and hedges accordingly; a coordinator writing a fix wants a citable sentence, and the
+      hedge is the first thing that goes. The reviewer then reviews its own words returned to it
+      without their qualification, which is the one case where an independent reviewer is least
+      independent.
+      Both were caught, both by the same reviewer on a later round, which is the argument for
+      sending a fix back rather than closing a blocker on the coordinator's word. A check is not
+      obvious. What is cheap is a habit: quote a reviewer's argument as an argument, attribute it,
+      and measure it before it becomes a premise.
+      Filed by phase 16's stage-2 independent decisions review, 2026-09-08.
