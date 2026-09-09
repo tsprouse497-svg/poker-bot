@@ -3928,7 +3928,26 @@ items:
       carries; nothing in the allowed set names repo tooling, which is the complaint itself.
       This concedes the gate, not the argument:
       BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS stays deferred and holds the
-      case that the constants are what should have moved.
+      case that the constants are what should have moved.      **Phase 16 is the strongest evidence this entry has, and it narrows the diagnosis.** Its
+      stage-2 review read the three decisions Taylor ruled on 2026-08-19 for the first time after
+      five rounds of correcting their siblings, and found five falsified premises: that the bot
+      never faces a flop it has no cell for, that all 1,755 flops is affordable, a spot count of
+      3.8 million that a sibling item had already corrected to 4,127,760, a "broadly comparable"
+      flop distribution that is a measured 6x spread, and a 2.7% coverage figure that is a share of
+      classes read as a share of boards.
+      The mechanism is exact and it is not memory. `check_decisions` validates reversibility
+      classes; `unanswered_frozen` skips any item whose `Answer:` bracket is non-empty;
+      `review_queue.py` derives from that same function; and the stage-2 reviewer's brief asks about
+      classes. So **an answered decision is never read again by anything.** A ruling is reviewed
+      once, at the moment it is made, and its premises then decay unwatched while every item around
+      it is corrected - here for three weeks.
+      This entry's proposed fix, an item naming the artifact its measurement came from, would not
+      have caught four of the five, because they were falsified by *sibling decisions* rather than by
+      a moved artifact. The cheaper mechanism the review proposed: a correction names which other
+      items cited the claim, and a stage that files a new item re-reads the answered ones once.
+      None of the five was re-ruled. Each took the form decision 3 already models, "Annotated, not
+      re-ruled", which is the shape this entry should recommend.
+
   - id: DECISION-REFERENCES-ARE-AMBIGUOUS-ACROSS-PHASES
     status: deferred
     phase: contract-update

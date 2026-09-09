@@ -26,6 +26,18 @@ all: decision 11's default pinned a solver menu that has never been solved on a 
 and whose single-raised-pot tree measures 1.8x the arena ceiling on all eight committed build rows.
 A fifth frozen choice, the range floor, is what closes that gap and was itself on no list.
 
+**The headline, round 6, and it is the answer to the closing question: yes, and there were five of
+them.** The three ruled items and the runtime-reversible one were read in full for the first time.
+Decision 5 is clean and I tried to break it. Decisions 1, 2 and 3 carry five premises this phase has
+since falsified, and two of them are load-bearing for choices a human is about to make: decision 2's
+"all 1,755 flops is affordable", which is the stated reason abstraction is deferred and which
+decisions 6 and 11 both contradict, and decision 3's account of the flop axis, which tells a reader
+a subset needs the forbidden abstraction while decision 6's lever 5 offers a subset needing none -
+and which prices that subset in the wrong units. None of the five reopens a ruling; all five are
+amendments of the kind decision 3 already models. The mechanism behind four of them is worth more
+than the four: **an answered decision is never read again by anything in the loop**, so a ruling is
+reviewed once and its premises decay unwatched while the items around it are corrected.
+
 **The headline, round 5: the poker claim put to me is sound and I would not weaken it; what it needs
 is its sign marked unmeasured and the one solve that would price it.** A flop-only artifact is
 genuinely not insulated from the turn and river menu - a flop action's value is obtained by walking
@@ -56,11 +68,13 @@ in this phase.
 
 ## Blocker
 
-Twenty-two findings over five rounds. Round 1 filed 1 through 7, fixed at `f2d34c3`. Round 2 filed 8
+Twenty-seven findings over six rounds. Round 1 filed 1 through 7, fixed at `f2d34c3`. Round 2 filed 8
 through 13, fixed at `408b2c3`. Round 3 filed 14 through 17, of which three were fixed at `39e6074`
 and 17 needed a second attempt at `a58d7cf` because the first edit changed the wrong sentence. Round
-4 filed 18, 19 and 20, all fixed at `a58d7cf`. Round 5 files 21 and 22 against `a58d7cf`.
-**Twenty are marked `[resolved]`; 21 and 22 hold the stage.**
+4 filed 18, 19 and 20, all fixed at `a58d7cf`. Round 5 filed 21 and 22, both fixed at `a6add75`.
+Round 6 answers the coordinator's closing question by reading decisions 1, 2, 3 and 5 in full for
+the first time, and files 23 through 27. **Twenty-two are marked `[resolved]`; 23 through 27 hold
+the stage.**
 
 Each mark carries what I re-derived under it, and nothing is marked on the strength of a commit
 message. From round 4 on I stopped comparing fixed text against my own earlier note and re-derived
@@ -718,9 +732,9 @@ its tree is 1.8x the solver's arena ceiling.
   others. It is the fifth count in this phase that did not survive a re-derivation.
   **Verified fixed at `a58d7cf`.** The line reads "the six levers" and the substance is unchanged.
 
-### Round 5, new at `a58d7cf`. These two hold the stage.
+### Round 5, filed at `a58d7cf`. Both fixed at `a6add75`.
 
-- **21. Option 2 still says decision 6's budget would be re-derived on it, which the paragraph added
+- [resolved] **21. Option 2 still says decision 6's budget would be re-derived on it, which the paragraph added
   in the same commit denies.** The new preamble ends "**decision 6's byte budget does not move on
   this ruling.**" Option 2, twenty lines below and untouched, still reads: "Its rows are also marked
   not cost-comparable, so **decision 6's budget** and every hour figure would be re-derived on it".
@@ -735,7 +749,13 @@ its tree is 1.8x the solver's arena ceiling.
   list that decides, the corrections keep arriving in the preamble, and the list is what a ruling is
   taken off. A fix to an item with a numbered list is not finished until the list has been re-read
   against it.
-- **22. The new poker cost is right, and the item states its sign as if it were measured when
+  **Verified fixed at `a6add75`.** Option 2 now reads "so every hour figure would be re-derived on
+  it - the byte budget would not, per the preamble above, and an earlier draft of this line said it
+  would", which keeps the true half and records the struck one. The meta-finding is on
+  `A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT-FALSIFIED-IT` with a sharper form than I
+  proposed: a closure check should treat a numbered list as a region separate from the prose above
+  it. That is mechanical where mine was a habit, and it is the version worth keeping.
+- [resolved] **22. The new poker cost is right, and the item states its sign as if it were measured when
   nothing in the record can measure it - though one cheap solve could.** Taking the claim first,
   because it was put to me to check hard: **it holds.** Hero's flop strategy in a CFR solve is the
   fixed point of regrets over the values of his flop actions, and each of those values is obtained
@@ -765,6 +785,100 @@ its tree is 1.8x the solver's arena ceiling.
   the reduced config at all. One solve, two holes, and far cheaper than the rainbow single-raised-pot
   cell decision 11's closing note asks for, which needs either 21.7 GB or decision 12's floor. That
   belongs in the item as the measurement path rather than in this note.
+  **Verified fixed at `a6add75`, in full and as specified.** Option 2 now separates the certain
+  mechanism from the asserted sign, quotes the struck "a coarser strategy in the spots that matter
+  most", states the four confounds by name, and carries the measurement path with its affordability
+  argument. I re-read it against my own text rather than assuming, since this was my specification
+  and the failure mode filed at `408b2c3` is a reviewer's own words returned to it.
+
+### Round 6, new. Five findings on the four items no round had read.
+
+The coordinator asked, before advancing to the human gate, whether anything in decisions 1, 2, 3 or
+5 had gone unexamined because it was never in a diff. It is the right question and the answer is
+yes. I read all four in full for the first time. **Decision 5 is clean** - I tried to break it and
+could not: 990 is still `C(45,2)`, the over-calling mirror still describes today's fallback, and
+"the only thing that acts on a river at all" still follows from decision 1. **Decisions 1, 2 and 3
+carry five falsified premises between them**, all of them written on 2026-08-19 or annotated before
+this phase's own measurements existed, and every one of them sits in text a human reads on the way
+to ruling the eight open items. None of the five reopens a ruling and I am not asking for one to be
+re-ruled; each is an amendment of the kind decision 3 already models with its dated "Annotated
+2026-09-06, not re-ruled".
+
+- **23. Decision 2's ruled default says "the bot never faces a flop it has no cell for", and
+  decision 4's default now says it does.** The sentence is inside the Default paragraph that Taylor
+  adopted verbatim - the answer reads "Take the default" - so the ruled text asserts it. Decision 4
+  now defaults to refusing rather than committing a cell that never reaches the target, and no
+  rainbow board has ever reached it; rainbow is 455 of the 1,755 classes. So on today's evidence the
+  bot faces 455 classes with no cell. The contract was amended for exactly this at blocker 13 and now
+  says the board-miss code is live; decision 2, which is where the claim originates, was not. Fix as
+  an annotation in decision 3's style: the ruling stands, the coverage claim is now conditional on
+  decision 4.
+- **24. Decision 2's "All 1,755 flops is affordable" is falsified on both axes this phase has since
+  measured, and it is the premise the abstraction deferral rests on.** The sentence supports the
+  paragraph immediately above it - "abstraction is the enabling condition for **depth**, not for
+  breadth" - which is why `POSTFLOP-BOARD-ABSTRACTION` is deferred rather than reopened. Decision 6
+  measures that all 1,755 flops do not fit the 20 MB cap in any encoding at the coverage decision 3
+  asks for. Decision 11 measures that the single-raised-pot tree at the pinned menu needs 21,282 to
+  21,715 MB against a 12,026 MB arena ceiling and was never attempted. So breadth is unaffordable on
+  disk and, at one of the two candidate menus, unsolvable in memory.
+  The ruling itself is not in question and decision 6 says why: "A size problem is not a licence to
+  reopen it", and lever 5 gives the size answer without abstraction. What must go is the reason as
+  stated, because a reader who takes "all 1,755 flops is affordable" as current will not understand
+  why decision 6 exists at all. `AGENTS.md` is explicit about this shape for contracts - a completed
+  claim a later phase contradicts is amended rather than left asserting the opposite - and a ruled
+  decision a later item falsifies is the same thing one document over.
+- **25. Decision 2's "roughly 3.8 million spots" is the pre-correction hero's-view count, and the
+  corrected figure is in `backlog.yml` already.** 1,755 x 47 x 46 = 3,794,310, which is 3.8 million
+  and is the count decision 1 corrected on 2026-09-08 as "hero's view of a board he holds two cards
+  against". The corrected count is 1,755 x 49 x 48 = 4,127,760, and
+  `POSTFLOP-BOARD-ABSTRACTION` in `backlog.yml` states it that way: "per preflop line the turn is
+  85995 spots and the river 4127760". So the decision list and the backlog entry give different
+  counts for the same quantity and nothing compares them, which is
+  `THE-SAME-MEASUREMENT-IS-STATED-IN-TWO-COMMITTED-DOCUMENTS-AND-NOTHING-COMPARES-THEM`. Sixth
+  instance in this file of a dated correction not reaching a sibling item: decision 1 fixed 47 to 49
+  and decision 2's figure, computed off the old numbers, was never touched. The direction is
+  harmless - 3.8 million understates 4.1 million and the conclusion is "not affordable" either way -
+  which is why it survived six rounds.
+- **26. Decision 3's two sentences about the flop axis are both wrong in the same units, and
+  decision 6's lever 5 now quotes one of them as its cost.** Both were written before a flop subset
+  was an option, and both are now load-bearing. I brute-forced all 22,100 three-card boards under
+  all 24 suit permutations rather than reasoning about it:
+
+  | orbit size | classes | share of classes | boards | share of flops |
+  |---|---|---|---|---|
+  | 24 | 286 | 16.3% | 6,864 | 31.1% |
+  | 12 | 1,170 | 66.7% | 14,040 | 63.5% |
+  | 4 | 299 | 17.0% | 1,196 | 5.4% |
+
+  First: "The 1,755 classes come up at broadly comparable rates, so there is no head to solve." The
+  spread is exactly 6x, and 16.3% of the classes cover 31.1% of flops while 17.0% cover 5.4%. There
+  is a head, it is measurable, and it is worth about 1.9x - a subset chosen by orbit size covers
+  nearly twice its class share. That is not a reason to reopen abstraction, because lever 5 refuses
+  rather than substitutes, but it is a measured reason lever 5 is cheaper than this document says.
+  Second, and this is the one a human would act on: "a 47-flop subset covers 2.7% of flops and
+  refuses the rest". 47/1,755 = 2.68%, which is a share of **classes**, not of flops. The board share
+  of 47 classes is between 47x4/22,100 = 0.85% and 47x24/22,100 = 5.10% depending on which classes
+  they are, and GTOpen's subsets are described as *weighted*, so the number cannot be inferred from
+  the count at all. Lever 5's cost is therefore stated in the wrong units and is unmeasured in the
+  right ones.
+  Third, following from the same paragraph: "so it is only usable with the abstraction decision 2
+  defers". Lever 5 is a flop subset plus refusal and decision 6 says in its own words that it "is not
+  abstraction: an unsolved board refuses rather than borrowing a solved one". So decision 3 tells a
+  reader the subset route needs a boundary amendment and decision 6 offers it as a lever needing
+  none. A human reading top to bottom meets the discouragement before the option.
+- **27. Decision 1 validates its accepted cost against phase 15, twice, and phase 15 is `future` in
+  `phase_status.yml`.** "Whether that matters is evidence phase 15 produces", in the Default
+  paragraph, and "phase 15's drill is where that either matters or does not", in the ruled answer.
+  Decision 3 carries the dated annotation for this exact problem and names the ID:
+  `A-RULED-DECISION-CAN-NAME-A-SOURCE-THE-REPO-WILL-NOT-HAVE`, recording that the drill "produces no
+  data at its own completion, only through a human using it over time, and phase 15 is now parked at
+  its human gate and no longer sits ahead of this phase". Decision 1 names the same source for the
+  same kind of claim and was never annotated, so the one cost this phase explicitly accepts - a bot
+  that bets a flop and then goes quiet - is currently underwritten by evidence that will not exist
+  when the phase closes. That is the seventh instance of a correction reaching one item and not its
+  sibling, and the second where the ID for the pattern was already filed against the sibling it did
+  reach. The fix is one annotation and the honest form of the cost: nothing in the repo will tell us
+  whether the seam matters, so it is accepted unmeasured.
 
 ## Non-blocker
 
@@ -1008,6 +1122,33 @@ sentence, so all three read as choices rather than as one choice and two omissio
   "reduced menu" means reduced *after the flop*, and a reader who takes it for a narrower flop menu
   will draw the wrong conclusion about decision 6 - which is what I did for four rounds.
 
+### Round 6, on the four items no round had read
+
+- **Decision 5 is clean and I tried to break it.** Recording what I checked so the next reader does
+  not repeat it. `(wins + ties/2) / 990` is right: 990 is `C(45,2)`, the unseen deck after five board
+  cards and hero's two. "Under the flop-only default it is also the only thing that acts on a river
+  at all" still follows from decision 1, which was not re-ruled. "A uniform unseen deck flatters
+  hero, so this makes the bot over-call as the mirror of its current over-folding" still describes
+  today's `PostflopFallbackStrategy`, which folds the flop without asking and calls only what cannot
+  lose. And the class survives everything the later items did: no committed data records the rule, it
+  is behind a flag, and decision 8's new "committed, not computed" ruling is about the price
+  substitution on a flop spot and does not touch it.
+- **One reporting consequence for decision 5 that is not a falsified premise.** Decision 4 now
+  refuses a cap-bound cell and decision 2's coverage claim is conditional on that, so more hands are
+  voided at the flop before a river exists. The pot-odds firing rate the contract requires is
+  therefore measured over a denominator that shrinks with decisions 4 and 11, and a rate quoted
+  without it says less than it appears to. The contract already requires the report to print the
+  refusal counts by code, so the denominator is available; it should be printed on the same line as
+  the rate.
+- **Why five findings surfaced in one read after five rounds, since that is a fact about the process
+  rather than about the document.** Every previous round reviewed a diff, and the loop's own stage-2
+  question is about the classes, which these four items all pass. Nothing in `check_decisions`,
+  `unanswered_frozen` or the driver's review prompt looks at an answered item again, so a ruled
+  decision is read once, at the moment it is ruled, and never afterwards - while the items around it
+  go on falsifying its premises for three weeks. Four of the five findings above are that exact
+  mechanism and the fifth is a units error nobody had reason to check. This is the process gap and
+  it belongs in Alignment rather than here.
+
 ## Alignment
 
 Long-term drift this stage cannot fix. Each carries an ID.
@@ -1241,6 +1382,38 @@ one entry in `backlog.yml`. Two more from this round.
   naming: when the corrected document holds a numbered option list, the list is re-read against the
   correction before the fix is called done. Existing entry.
 
+### Round 6
+
+- `DECISION-RECORD-HAS-NO-SUPERSESSION-DISCIPLINE` - **this is the entry round 6 belongs to and it
+  predicted round 6 exactly.** It was filed off phase 14, where "the re-source invalidated the
+  premises of four items in its own decision record" and "the only mechanism is memory". Phase 16 is
+  the same thing with a larger count: five premises in three ruled items, falsified by items filed
+  in the same document three weeks later, and found only because a coordinator asked a reviewer to
+  read the items nobody had a reason to re-read. What phase 16 adds is the mechanism, which the entry
+  gestures at and does not name: **an answered item is never read again by anything.**
+  `check_decisions` validates classes, `unanswered_frozen` skips anything with a non-empty answer,
+  `review_queue.py` derives from the same function, and the driver's stage-2 prompt asks only about
+  the classes. So a ruling is reviewed once, at the moment it is made, and its premises decay
+  unwatched while the items around it are corrected. The entry's proposed mechanism - letting an item
+  name the artifact its measurement came from so a checksum change can flag it - would not have
+  caught four of these five, because they are premises falsified by *sibling decisions* rather than
+  by a moved artifact. The cheaper mechanism this phase suggests: when an item is corrected, the
+  correction names which other items cited the claim, and a stage that files a new item re-reads the
+  answered ones once. Existing entry; phase 16 is its strongest evidence and should be cited.
+- `A-RULED-DECISION-CAN-NAME-A-SOURCE-THE-REPO-WILL-NOT-HAVE` - blocker 27 is a second instance in
+  the same document, and the first one is annotated on decision 3 while decision 1 names the same
+  source for the same kind of claim. Worth adding, because it shows the entry's own repair being
+  applied to one site and not to the other in the same file, which is the closure-region point from
+  `A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT-FALSIFIED-IT` arriving across items rather than
+  within one. Existing entry.
+- `THE-SAME-MEASUREMENT-IS-STATED-IN-TWO-COMMITTED-DOCUMENTS-AND-NOTHING-COMPARES-THEM` - blocker 25
+  is a clean instance with the two figures named: the decision list says roughly 3.8 million turn and
+  river spots, `POSTFLOP-BOARD-ABSTRACTION` in `backlog.yml` says 85,995 and 4,127,760, and the
+  difference is that one was computed from hero's view of the board and the other from the board.
+  The backlog entry has the right number, which is worth recording because it is the direction this
+  entry usually does not see - the generated-adjacent document was correct and the hand-written one
+  was stale. Existing entry.
+
 ## Method
 
 Read-only throughout. Commands used: `git log`, `git diff`, `git show`, `git branch`, `grep`,
@@ -1342,6 +1515,27 @@ rows' own node count and arena.
 Still not verified: the sign and size of that effect, which is the point of blocker 22; whether
 rainbow reaches target at a higher iteration count; and whether a 68% range truncation moves hero's
 flop strategy. All three are solves, none is a reading.
+
+### Round 6, against `a6add75`, plus a first read of decisions 1, 2, 3 and 5
+
+Blockers 21 and 22 verified against the amended text. Then, on the coordinator's question, decisions
+1, 2, 3 and 5 were read in full for the first time in this review - no diff, the whole item each,
+including the paragraphs below the answers where the 2026-08-19 reasoning sits.
+
+New read-only computation: the flop isomorphism enumerated from scratch, all 22,100 three-card
+boards under all 24 suit permutations, giving 1,755 classes with orbit sizes 24, 12 and 4 over 286,
+1,170 and 299 classes and board shares of 31.1%, 63.5% and 5.4%. That is the arithmetic behind
+blocker 26 and it was built rather than taken from stage 1's note, because stage 1 measured
+stabilisers and hero-combo orbits and not board-frequency shares. Also computed: 1,755 x 47 x 46 =
+3,794,310 against 1,755 x 49 x 48 = 4,127,760, which identifies decision 2's "3.8 million" as the
+pre-correction count; and 47/1,755 = 2.68% against the 0.85% and 5.10% bounds on a 47-class subset's
+board share. `phase_status.yml` was read for phase 15's status, which is `future`, and
+`backlog.yml` for `POSTFLOP-BOARD-ABSTRACTION`'s figures.
+
+What I did not do in round 6, named so this read is not taken as broader than it is: I did not
+re-examine decisions 4, 6, 7 through 12 beyond blockers 21 and 22, and I did not check the ruled
+answers themselves against poker merit - only their stated premises against measurements this phase
+has since made. Decision 5's poker content is checked as arithmetic and mechanism, not as strategy.
 
 No tracked file was modified in any round. `scripts/run_verify.py` and `scripts/check_gate_bite.py`
 were not run.

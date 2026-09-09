@@ -110,6 +110,15 @@ The turn waits on `POSTFLOP-BOARD-ABSTRACTION` from decision 2, which is what ma
 
 The accepted cost is the one above. A bot that bets a flop and then checks or folds every turn is a bot with a visible seam, and phase 15's drill is where that either matters or does not.
 
+**Annotated 2026-09-08, not re-ruled** (`A-RULED-DECISION-CAN-NAME-A-SOURCE-THE-REPO-WILL-NOT-HAVE`).
+Twice above, this item validates its accepted cost against phase 15 - "whether that matters is
+evidence phase 15 produces", and the sentence before this one. Phase 15 is `future` in
+`phase_status.yml` and its lane is parked at its own human gate, so that evidence does not arrive
+before this phase ships and may not arrive at all. Decision 3 carries this exact annotation for the
+same source; decision 1 names it for the same kind of claim and was never annotated. The accepted
+cost stands and is now accepted **without** the check that was to validate it, which is a harder
+thing to accept and is what a reader should be told.
+
 ## 2. What the bot does on a board it holds no cell for
 
 Reversibility: frozen-into-data
@@ -119,6 +128,28 @@ Any canonical subset smaller than all 1,755 flops guarantees the bot meets board
 So this is a boundary question, not an implementation detail. Either the rule holds and the bot refuses on an unsolved texture, or the rule is amended for board texture specifically, which is a `contract-update` to `AGENTS.md` in its own right.
 
 Default: **solve all 1,755 flops and keep the boundary.** With a flop-only solution the runout fan-out is gone, so the full canonical set is the thing that removes the question rather than answers it, and the bot never faces a flop it has no cell for. If 1,755 per line proves unaffordable once solve time is measured, the fallback is fewer preflop lines, then a flop subset plus refusal, and never a subset plus abstraction.
+
+**Annotated 2026-09-08, not re-ruled.** Three claims in this item were true when written and are
+not now, and the ruling survives all three.
+
+*"The bot never faces a flop it has no cell for"* no longer follows. Decision 4's default refuses a
+cell that never reaches the exploitability target, and rainbow - 455 of the 1,755 classes - has
+never been solved to target at all, so uncovered boards are possible from inside this phase's own
+choices rather than from a subset. The contract was amended for this; this item, where the claim
+originates, is amended here.
+
+*"All 1,755 flops is affordable"* is false on both axes this phase measured, and it is the stated
+reason abstraction is deferred rather than needed. Decision 6 measures that the flop artifact does
+not fit 20 MB in any encoding at the depth and breadth ruled; decision 11 measures the
+single-raised-pot tree at 21.7 GB against a 12.0 GB ceiling. The deferral still holds, because
+decision 6 says a size problem is not a licence to reopen abstraction and its lever 5 answers
+without one - but a reader taking the affordability sentence as current cannot see why decision 6
+exists.
+
+*"Roughly 3.8 million spots"* is 1,755 x 47 x 46 = 3,794,310, hero's view of a board he holds two
+cards against. Decision 1 corrected that fan-out to 49 and 48 on 2026-09-08; board-keyed it is
+1,755 x 49 x 48 = **4,127,760**, which is what `POSTFLOP-BOARD-ABSTRACTION` already says. Two
+committed documents disagreed and nothing compares them.
 
 Answer: [Ruled by Taylor, 2026-08-19] Take the default, and defer abstraction rather than reject it.
 Grouping similar flops so the bot plays them identically will eventually be needed, and it is filed as `POSTFLOP-BOARD-ABSTRACTION` rather than left as an unstated intention.
@@ -163,8 +194,25 @@ This is the axis where pruning is honest, and it is the opposite of the flop axi
 Preflop lines have a real long tail: some come up constantly and most almost never, which the refusal inventory already demonstrates for preflop spots.
 Canonical flops do not. The 1,755 classes come up at broadly comparable rates, so there is no head to solve, which is why decision 1 keeps all of them and this one keeps very few lines.
 
+**Annotated 2026-09-08, not re-ruled.** "Broadly comparable" understates a **6x spread**, measured
+here by brute force over all 22,100 boards under all 24 suit permutations rather than argued.
+Orbit sizes are 24, 12 and 4: **286 classes (16.3%) cover 6,864 boards (31.1% of flops)**, 1,170
+(66.7%) cover 63.5%, and 299 (17.0%) cover 5.4%. So the most-multiple sixth of the classes is
+over-represented 1.91x and the least 0.32x. The ruling survives - a 6x spread over a flat-ish bulk
+is still not the long tail the preflop-line axis has, and 63.5% of flops sit in one orbit class -
+but "no head to solve" is a stronger statement than the measurement supports.
+
 That also settles what GTOpen's 47, 95 and 184 flop subsets are for here, which is nothing.
 They are study sets: a human reads texture patterns off a report. As a bot's lookup table a 47-flop subset covers 2.7% of flops and refuses the rest, so it is only usable with the abstraction decision 2 defers.
+
+**Annotated 2026-09-08, not re-ruled.** Two errors in that sentence, and they pull opposite ways.
+**2.7% is 47/1,755, a share of *classes*, not of flops.** Because orbit sizes are 24, 12 and 4 the
+board share of 47 classes lies between **0.85% and 5.10%**, and GTOpen's subsets are weighted, so
+it cannot be inferred from the count at all. And **"only usable with the abstraction decision 2
+defers" is wrong**: a subset plus refusal borrows no solved board for an unsolved one, which
+decision 6's lever 5 states in its own words and which decision 2's own ruled fallback names
+before abstraction. As written, a reader meets the discouragement before the option, in the item
+that lever 5 cites for that lever's cost.
 
 Growing this later is cheap and it is the pattern the repo already runs, verified rather than assumed:
 
@@ -409,7 +457,11 @@ struck claim implied.
    lines, then a flop subset plus refusal, and never a subset plus abstraction" - so it is inside
    what Taylor already ruled and was omitted from an earlier draft of this list. It is not
    abstraction: an unsolved board refuses rather than borrowing a solved one. It scales the unit
-   directly, and its cost is stated in decision 3: GTOpen's 47-flop subset covers 2.7% of flops.
+   directly, and its cost is bounded rather than quoted: decision 3 says a 47-flop subset covers
+   2.7% of flops, which is 47/1,755 and a share of *classes*; because orbit sizes are 24, 12 and 4
+   the board share of 47 classes is between 0.85% and 5.10%, and GTOpen's subsets are weighted so
+   the count does not give it. A subset's real cost is a refusal rate somebody measures on the
+   chosen subset.
 6. **Keep the solves outside `data/artifacts` and commit only what the bot reads.**
    `ARTIFACT-SIZE-LIMIT-VERSUS-SOLVE-COVERAGE` names this and nothing in the contract forbids it.
    The cap is on a directory, not on the concept of committed data, so the question it raises is
