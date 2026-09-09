@@ -79,11 +79,16 @@ the turn is expensive because of the ratio is supported by nothing.
 Reversibility: frozen-into-data
 
 Flop, flop plus turn, or all three streets.
-The cost is not linear: one flop spot is 49 turn spots and 48 rivers below each of those, before
-any preflop line is counted, and each has to be solved to a target exploitability rather than
-derived. This sentence read 47 and about 2,160 until 2026-09-08, which is hero's view of a board
-he holds two cards against; the counts table above had already been corrected and this line had
-not.
+The **spot count** is not linear: one flop spot is 49 turn spots and 48 rivers below each of
+those, before any preflop line is counted. This sentence read 47 and about 2,160 until 2026-09-08,
+which is hero's view of a board he holds two cards against; the counts table above had already been
+corrected and this line had not.
+
+It said "and each has to be solved to a target exploitability rather than derived" until the same
+date, which is the compute rationale `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` falsifies and which is
+struck rather than reworded. A turn is not solved separately from the flop above it: a flop-rooted
+tree already contains and iterates its own turn and river subgames. So the spot count is a count of
+storage, and it says nothing about compute in either direction.
 
 Committing turns and rivers is also where the artifact stops resembling a chart.
 
@@ -247,7 +252,8 @@ The measurement, every input recomputed here rather than quoted:
 buys, for **one** preflop line, on the order of **one hero decision node** - and that holds in any
 JSON encoding, which is why no format change answers it. In the leanest plausible JSON, action
 names hoisted to one array, hero's classes as a parallel array in canonical order, three-decimal
-floats and one free weight per class, one two-action node for one line measures 7,740,095 bytes,
+floats and one free weight per class, one two-action node for one line measures 7,740,095 bytes -
+two independent builds agreed to within 38 bytes, both at 0.4907x -
 which is 0.49x the headroom: it fits, with room for a second node. That same encoding buys 2.04
 nodes at two actions, 1.02 at three storing two free weights, and 0.68 storing all three. A flop is
 not one decision - hero acts, villain answers, hero faces a bet or a raise - and decision 3 asks
@@ -258,7 +264,8 @@ The chart's own format is worse, and the figures are given as pairs that recompu
 above rather than from any other rate. One line, one node, only check and bet: 36 MiB compact, 66
 MiB as committed, 2.4x and 4.4x. Ten hero nodes at three actions: 544 MiB compact, 986 MiB as
 committed, 36.2x and 65.6x. Building the structures directly rather than multiplying the rate gives
-43, 76 and 1,007 MiB, so the multiplications err low. Compression is not available:
+43, 76 and 1,007 MiB, so the multiplications err low; those three are the independent numbers
+verification's builds, recorded in its note beside this stage's. Compression is not available:
 `import_preflop_artifacts` globs `*.json` and reads text.
 
 An earlier draft of this paragraph led with the 2.4x, gave 99 MB and 1,481 MB for the two
@@ -281,19 +288,49 @@ export's source card is regenerated.
 The four ways out, stated without a recommendation because the cost of each falls in a different
 place:
 
-1. **A binary encoding.** The repo already commits one, `preflop_eq169.bin` at 114,244 bytes with a
-   `.source.json` beside it, so the precedent and the provenance pattern exist. Float32 at one
-   node and three actions is 14.7 MB per line, which fits once and leaves nothing. Quantising a
-   weight to one byte gets a node-line to about 3.7 MB. It costs the property that a reviewer can
-   read the artifact, which is the property `check_file_sizes` says the cap exists to protect.
-2. **Fewer preflop lines.** Decision 3 already prunes on this axis and calls it the honest one. But
-   even a single line does not fit in JSON, so this alone does not close the gap.
+First, what encoding is worth, measured, so no option below rests on a format argument. Hero
+strategy only, storing only the free weights, over all 1,755 flops, and read as **how many hero
+decision nodes 15.04 MiB buys for ONE preflop line**:
+
+| Encoding | MiB per node per line | Nodes affordable |
+|---|---|---|
+| chart JSON as committed, 3 actions | 98.62 | 0.15 |
+| chart JSON compact, 3 actions | 54.43 | 0.28 |
+| lean JSON (hoisted actions, parallel class array, 3-decimal floats), 3 actions | 14.76 | 1.02 |
+| same, 2 actions | 7.38 | 2.04 |
+| binary float32, 3 actions | 9.82 | 1.53 |
+| binary, one byte per weight, 3 actions | 2.45 | 6.13 |
+| binary, one byte per weight, 2 actions | 1.23 | 12.26 |
+
+**Re-encoding is worth about 40x and it is not enough.** At the most aggressive entry in that
+table - binary, one byte per weight, which quantises a frequency to about 0.4% and so sits at the
+edge of the 0.3%-of-pot target it would be storing - the cap affords 5 hero nodes for one preflop
+line (12.3 MiB, 0.82x), 1 node for three lines (7.4 MiB, 0.49x), and 1 node for five lines
+(12.3 MiB, 0.82x). Three lines at five nodes is 2.45x over; five lines at five nodes is 4.08x.
+So the finding is not about serialization at all: **no encoding, text or binary, fits several hero
+decision nodes across several preflop lines inside 20 MB.** The four options below are what remains
+once that is settled.
+
+1. **A leaner encoding, text or binary.** Real, bounded, and already costed above. The repo commits
+   a binary artifact today, `preflop_eq169.bin` at 114,244 bytes with a `.source.json` beside it, so
+   the precedent and the provenance pattern exist. It buys a factor of about 40 over the chart's
+   committed format and it costs the property that a reviewer can read the artifact, which is what
+   `check_file_sizes` says the cap exists to protect. On its own it moves the phase from a fraction
+   of one node to a handful, and decision 3 asks for lines plural.
+2. **Fewer preflop lines.** Decision 3 already prunes on this axis and calls it the honest one, but
+   it is the wrong axis for this constraint: the table above is *per line*, so cutting lines does
+   nothing until there is one line left, and one line still affords about 5 nodes at the most
+   aggressive encoding. An earlier draft of this list said even a single line does not fit in JSON.
+   That was true of the chart's format and false of a lean one, which fits one node at 0.49x, and
+   the correction is dated 2026-09-08.
 3. **Raise or replace the cap.** `check_file_sizes.py` says in its own comment that exceeding a
    limit here "is a halt and a decision, not a number to raise", which is what this entry is. The
    cost is repo weight, permanently, since git keeps every version of a committed artifact.
 4. **Commit fewer nodes per flop.** Store hero's flop root only and refuse every later flop node.
-   That is 36 MB compact for one line, still over, and it buys a bot that opens a flop and then
-   refuses inside the same street, which is a worse seam than the turn seam decision 1 accepted.
+   This is the only option that fits today without touching the cap: one node for three or five
+   lines is 0.49x and 0.82x in the aggressive encoding. It buys a bot that opens a flop and then
+   refuses inside the same street, which is a worse seam than the turn seam decision 1 accepted,
+   and it is the option a reader should weigh against option 3 rather than against the others.
 
 What is **not** on the list: grouping unsolved boards onto solved ones. Decision 2 deferred that as
 `POSTFLOP-BOARD-ABSTRACTION` and `AGENTS.md` forbids heuristic guessing for a missing chart spot.

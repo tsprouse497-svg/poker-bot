@@ -6904,6 +6904,11 @@ items:
       It mattered because the projection was the whole evidence for a `frozen-into-data` decision
       that halts on a human, and an inflated multiple sends a ruling in the wrong direction as
       surely as a deflated one.
+      One precision, from the verifying reviewer: the *contract* carried only the bare multiples and
+      published no rate at all, so the unreconciled pair sat in the ExecPlan and the decision list.
+      That is arguably a second finding folded into this one - a governing document stating a
+      multiple with no divisor anywhere near it is not a reconciliation failure but an
+      unfalsifiable claim, and it needs a different fix from rendering a figure off its inputs.
       Caught by phase 16's stage-1 independent numbers verification, 2026-09-08.
 
   - id: A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES
@@ -6925,3 +6930,29 @@ items:
       makes it worse, since a preflop chart has 249 such claims and a flop artifact has thousands -
       so it needs an entry rather than a criterion.
       Filed by phase 16's stage-1 independent contract review, 2026-09-08.
+
+  - id: A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT-FALSIFIED-IT
+    status: deferred
+    phase: contract-update
+    title: A dated falsification does not reach the sentences below it in its own file
+    reason: >-
+      Phase 16's stage-1 contract review found the pattern twice in one file within one commit.
+      The decision list was given a dated paragraph saying the turn-to-flop cost ratio runs the
+      other way, and eleven lines below it a sentence still gave the falsified compute rationale
+      ("each has to be solved to a target exploitability rather than derived"). Separately, the
+      same commit published a lean-encoding measurement showing one preflop line fits at 0.49x,
+      and forty lines below it an options list still read "even a single line does not fit in
+      JSON".
+      Both are the same shape: an author corrects the claim at the place they were looking and the
+      document keeps asserting it wherever else it appears. It is what the amendment style in
+      `AGENTS.md` is for and what an amendment cannot reach, since an amendment states what is no
+      longer true and does not sweep the file. Adding a correction is also strictly more dangerous
+      than leaving one out, because a reader who finds the dated paragraph reasonably assumes the
+      file was swept.
+      A check is conceivable and narrow: a document carrying a dated "no longer true" or
+      "corrected" paragraph is flagged when a distinctive figure from that paragraph still appears
+      elsewhere in the same file outside a passage marked historical. It sits beside
+      A-CONTRACT-STATES-MEASURED-LEVELS-WITHOUT-NAMING-THE-ARTIFACT and
+      AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE, which are the two other ways a
+      number in a governing document goes wrong without any check disagreeing.
+      Proposed by phase 16's stage-1 independent contract review, 2026-09-08.

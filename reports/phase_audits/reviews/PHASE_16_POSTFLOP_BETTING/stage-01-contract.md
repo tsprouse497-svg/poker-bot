@@ -76,7 +76,12 @@ restated, and it names its own test instead.
 
 ## Blocker
 
-- **1. Three of the four artifact-size figures do not reproduce, and they are the numbers stage 3
+Round 1 filed five blockers. The coordinator's fix is commit `92c4f39`. All five are verified fixed
+and marked `[resolved]`, with the evidence recorded under each. Round 2 files one new blocker, **6**,
+on a contradiction the fix to blocker 1 introduced inside the same `frozen-into-data` ask. It is
+unmarked, so the stage stays held.
+
+- **1. [resolved] Three of the four artifact-size figures do not reproduce, and they are the numbers stage 3
   puts to a human.** The contract, the ExecPlan and decision 6 all state: "one preflop line, one
   hero decision node, compact JSON, and only check and bet is **36 MB, or 2.4x the headroom**. As
   committed, indent and all, it is 99 MB. Ten hero nodes at three actions is 363 MB compact and
@@ -105,7 +110,27 @@ restated, and it names its own test instead.
   Fix by restating the three figures, or by stating one basis (nodes x actions) and deriving all
   four from it in one line so the next reader can check them the way this review did.
 
-- **2. "The five existing mutation canaries" is six, and the sixth is the one that would break
+  **Verified fixed at `92c4f39`.** Decision 6 now gives the four cases as pairs and all four
+  reproduce against my independent recomputation to the digit: 36 / 66 MiB at one node and two
+  actions (I get 36.3 / 65.7), 2.4x / 4.4x (2.41 / 4.37); 544 / 986 MiB at ten nodes and three
+  actions (544.3 / 986.2), 36.2x / 65.6x (36.18 / 65.56). The stated cause checks out exactly:
+  `2,054,327 / 51,068 = 40.227`, the whole committed file over its leaf-weight count, which charges
+  the per-spot `spots`, `arrival_ppb`, `arriving_reach_bp` and `audit_fields` blocks against every
+  weight. The new lean-JSON chain is internally consistent and reproduces: 7,740,095 bytes against
+  my structural estimate of 7,740,057, `0.49x` headroom (0.4906), and 2.04 / 1.02 / 0.68 nodes at
+  two / three-with-two-free / three-with-all-three weights (2.038, 1.019, 0.679). Two residues are
+  filed below as non-blockers rather than reopened here: the "43, 76 and 1,007 MiB" direct-build
+  trio, which I could not reproduce and which covers three of the four cases; and blocker 6, which
+  is the new framing colliding with option 2 of the same ask.
+
+  On the framing question the coordinator asked: **yes, I would put the new framing to a human and
+  not the old one.** The node count is the right axis because it is the one quantity no encoding
+  moves, and the old lead invited the wrong ruling — a reader told "2.4x over" answers "change the
+  format", and the fix's own measurement shows a format change defeats 2.4x while leaving the phase
+  just as stuck. Re-arguing off "15 MB buys about one hero decision node for one preflop line, in
+  any JSON" states the constraint at the altitude the ruling has to be made at.
+
+- **2. [resolved] "The five existing mutation canaries" is six, and the sixth is the one that would break
   differently.** The criterion reads: "**The five existing mutation canaries that pin exact lines
   in `postflop_fallback.py` and `composite.py` are re-pointed with their claims unchanged, never
   retired.**" `verification/mutations.yml` holds six:
@@ -128,7 +153,25 @@ restated, and it names its own test instead.
   means a seventh canary landing before stage 6 needs a `contract-update` to be covered, which is
   the trap phase 14 hit by fixing its accepted-defect list at four in two places.
 
-- **3. The contract declares `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` closed while the diff leaves the
+  **Verified fixed at `92c4f39`.** The criterion is now a predicate — "Every mutation in
+  `verification/mutations.yml` whose `find` string pins a line in `postflop_fallback.py` or
+  `composite.py` is re-pointed with its claim unchanged, never retired" — which covers all six
+  today and any seventh without a `contract-update`, and it says why it is a predicate. The
+  six-not-five count survives only as a historical note, which is the right place for it.
+
+  On the coordinator's question, whether the `pytest_engine_fidelity` point belongs in the
+  contract: **yes, and as one clause on this criterion rather than a criterion of its own.** The
+  predicate now guarantees `fail-closed-can-invest-again` is re-pointed; what it does not say is
+  why a wrong re-point of that one is the hard case to notice. Five of the six are witnessed by
+  `pytest_postflop_fallback`; that one alone is witnessed by `pytest_engine_fidelity`, so a builder
+  running this phase's own command after re-pointing sees green, and the damage surfaces only in
+  another phase's gate at stage 7 — or not at all, if the `find` string silently stops matching,
+  which is the phase 13 accident this criterion exists to prevent. Suggested clause: "one of the
+  six is witnessed by `pytest_engine_fidelity` rather than this phase's own command, so re-pointing
+  is verified by running each canary's own declared witness, not this phase's." That is one line
+  and it is the difference between an obligation and a checkable one.
+
+- **3. [resolved] The contract declares `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` closed while the diff leaves the
   falsified claim standing in a file it rewrote.** That entry's own text names its remedy: "What
   must change is the stated compute rationale in both documents" — the phase 16 decision list and
   `docs/V2_ROADMAP.md` — "and that is a contract-shaped edit phase 16 owns." The decision list is in
@@ -145,7 +188,18 @@ restated, and it names its own test instead.
   reason. `docs/V2_ROADMAP.md` is in no scope this ExecPlan declares, so the second half cannot be
   done here in any case and needs saying.
 
-- **4. "Filed here" filed nothing.** The criterion reads: "Filed here: the three stale claims that
+  **Verified fixed at `92c4f39`.** The ID is out of the `Closed:` list and now carries its own
+  bullet making closure conditional: closed "**only** once no live document still asserts the ratio
+  it falsifies", which is the correct condition and also the one that carries the out-of-scope
+  `docs/V2_ROADMAP.md` half. In the decision list the sentence is now in the past tense ("was taken
+  to be about 49 times a flop") followed by a dated falsification naming the measurement — 1/212 of
+  a flop solve for a turn root, 1/38,000 for a river root, 99.5% river nodes, 158,466 river
+  subgames — and stating that no conclusion below may rest on it. Decision 1 gains a second reason
+  that does not depend on the ratio. One live residue remains at decision-list line 82 and one at
+  `docs/V2_ROADMAP.md:215-216`; both are now governed by the closure condition rather than hidden
+  by a closure claim, so they are non-blockers below rather than a reopened blocker.
+
+- **4. [resolved] "Filed here" filed nothing.** The criterion reads: "Filed here: the three stale claims that
   `data/artifacts/**` has no size check, in `docs/V2_RULING_MITIGATIONS.md` at 103 and 259 and
   `docs/V2_ROADMAP.md` at 161, corrected in this phase's decision list and owed elsewhere." It sits
   under `### The backlog entries this phase settles` and names no ID. `git show 35dbeb2 -- backlog.yml`
@@ -156,7 +210,25 @@ restated, and it names its own test instead.
   reads again". File the entry and name its ID in the criterion (proposal in Alignment below), or
   put the two files in scope and correct them.
 
-- **5. A criterion states an obligation and then names a check that does not test it.** "**A
+  **Verified fixed at `92c4f39`.** Four entries exist in `backlog.yml`, one occurrence each, and the
+  contract names all four under "Filed here, **with IDs rather than a promise**":
+  `TWO-DOCS-STILL-SAY-DATA-ARTIFACTS-HAS-NO-SIZE-CHECK`,
+  `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES`,
+  `AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE` and
+  `A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT`. The criterion also states that the
+  three stale-claim sites are outside every scope this phase declares, which was the half of the
+  finding that had no home.
+
+  On whether the two new IDs duplicate `A-CONTRACT-STATES-MEASURED-LEVELS-WITHOUT-NAMING-THE-ARTIFACT`:
+  **I accept the split and withdraw the duplication concern.** That entry's mechanism is a level
+  stated with no artifact named, so the repair is provenance. Neither new entry has that shape.
+  `AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE` is the opposite failure — the 137
+  had intact provenance, it was simply provenance to a different question, and naming the artifact
+  harder would not have caught it. `A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT` is
+  checkable from the page it appears on with no artifact at all, which is why this review caught it
+  by arithmetic rather than by lookup. Distinct mechanisms, distinct repairs; each entry says so.
+
+- **5. [resolved] A criterion states an obligation and then names a check that does not test it.** "**A
   postflop key must not be mistaken for a preflop key by any existing reader.**
   `self_play_reference.py` recovers keys from the self-play inventory by scraping any token starting
   with `t` that holds at least three slashes, and it raises rather than returning empty. **A test
@@ -169,7 +241,128 @@ restated, and it names its own test instead.
   in the inventory, `self_play_spots()` returns no postflop key (or raises), and a test asserts
   that.
 
+  **Verified fixed at `92c4f39`.** The criterion now reads "**A postflop key must not be returned by
+  that reader**, and a test asserts the returned set contains no postflop key while the reader still
+  finds every preflop one and still raises on an empty inventory", and it names the defeated reading
+  explicitly: "A test that merely records whatever the reader does today would be satisfied by the
+  reader swallowing a postflop key, which is the defect." That is stronger than my proposed form —
+  it keeps both of the reader's existing guarantees under test, so a fix that empties the reader to
+  pass the new assertion is caught too.
+
+- **6. Decision 6's ways-out list now contradicts decision 6's own measurement, in the direction of
+  foreclosing one of the four options.** Introduced by the fix to blocker 1 and not present in
+  round 1. The new framing paragraph states, of the leanest plausible JSON: "one two-action node for
+  one line measures 7,740,095 bytes, which is 0.49x the headroom: **it fits, with room for a second
+  node**." Option 2 of the list a human rules on, unchanged, still states: "**Fewer preflop lines.**
+  Decision 3 already prunes on this axis and calls it the honest one. But **even a single line does
+  not fit in JSON**, so this alone does not close the gap."
+
+  Both sentences are about one line in JSON and they say opposite things. I verified the new one:
+  `7,740,095 / 15,774,195 = 0.4906`, and my own structural build of that encoding gives 7,740,057
+  bytes, so "it fits" is right and "even a single line does not fit in JSON" is now false as stated.
+  The old sentence was true against the chart's format, which is the only format that existed when
+  it was written; the fix introduced a second format and left the option describing the first.
+
+  This is a blocker on the same grounds as blocker 1 and not a lesser one. Decision 6 is
+  `frozen-into-data`, the loop halts on it, and this is the option list Taylor chooses from. Option
+  2 is the axis decision 3 already calls the honest one, and it is currently annotated as unable to
+  close the gap on its own — which the measurement above it contradicts. A human reading the list
+  top to bottom is being told to discount the option the phase's own breadth ruling already favours.
+  Fix by qualifying option 2 to the encoding it is true of ("even a single line does not fit in the
+  chart's format") and saying what the lean-JSON measurement does to it: fewer lines plus a leaner
+  JSON is a combination that reaches one node for one line, which is the actual frontier the other
+  three options are being weighed against.
+
 ## Non-blocker
+
+### Round 2, from the fix at `92c4f39`
+
+- **Three of the four cases get a direct-build figure and I could not reproduce any of them.**
+  Decision 6 now adds: "Building the structures directly rather than multiplying the rate gives 43,
+  76 and 1,007 MiB, so the multiplications err low." Four cases are stated as pairs above it, so one
+  — ten nodes at three actions, compact, the 544 MiB figure — has no direct-build partner and the
+  reader cannot tell which three the trio covers. I built the chart-shaped structure directly and
+  got 45 / 88 / 626 / 1,178 MiB, which agrees on direction for all three but on no value. The
+  difference is my model rather than theirs, and I can now say so rather than guess: the parallel
+  numbers-verification note in this directory carries the walk, and its 76.1 MiB / 79,812,696 bytes
+  and 1,006.59 MiB are the source of the contract's 76 and 1,007. So the trio is derived, just not
+  where it is stated. The fix is a citation, not a recomputation — name the note or the structure so
+  the figures stop being three bare integers, and give the fourth case or say why it is omitted.
+  The four rate-multiplied figures reproduce exactly and carry the argument on their own.
+- **"So the multiplications err low" quietly moves the floor and the paragraph does not say where
+  to.** If the direct build is the honest figure, the chart-format minimum is about 43 MiB and
+  2.7-2.9x rather than 36 MiB and 2.4x. Nothing downstream depends on it now that the finding is
+  argued off the node count, but 2.4x is still the number printed, and it is the one a later reader
+  will quote.
+- **One live sentence still states the falsified cost ratio inside the phase's own decision list.**
+  Line 82, in decision 1: "**The cost is not linear:** one flop spot is 49 turn spots and 48 rivers
+  below each of those, before any preflop line is counted, and **each has to be solved to a target
+  exploitability rather than derived**." Both emphasised halves are what MAINT-26 falsified — a
+  flop-rooted solve already contains and iterates its 158,466 river subgames, so those spots are
+  derived rather than separately solved. The falsification 12 lines above covers the counts table
+  and the ratio paragraph; this sentence is framed as cost and survives. It is a non-blocker only
+  because the contract's new closure condition now governs it: `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED`
+  cannot be closed while it stands, so it cannot be lost. Worth fixing here rather than at closeout,
+  since the file is in scope today and this is the sentence a later reader quotes.
+  `docs/V2_ROADMAP.md:215-216` carries the same claim and is out of scope, which
+  `TWO-DOCS-STILL-SAY-DATA-ARTIFACTS-HAS-NO-SIZE-CHECK`'s sibling problem now has no entry for —
+  see Alignment.
+- **"Twenty-two frozen tests name the query shape in their own body" does not reproduce; I get 21.**
+  Counting test functions whose own body mentions `preflop_actions`, `StrategyQuery(` or
+  `SeatAction(`: 13 in `test_strategy_contract.py`, 4 in `test_spot_vocabulary_downstream.py`, 3 in
+  `test_table_state.py`, 1 in `test_engine_fidelity.py` — 21. Twenty-two is reachable under a
+  slightly different predicate, which is the point: the number is not checkable because the
+  predicate is not stated. The contract already says "Stage 4 measures the set again rather than
+  trusting these three numbers", which is the right guard, so state the predicate or drop the count.
+  The other two figures in that sentence do reproduce: "at most 334 sit in files that reference it
+  anywhere" is exactly my count, and `test_rejects_a_bet_because_preflop_has_no_bet` is real
+  (`tests/test_strategy_contract.py:408`) and is the only frozen test asserting that `SeatAction`
+  rejects `"bet"` — every other `"bet"` in `tests/**` is a `legal_actions` tuple or a
+  `StrategyDecision`, not a history action.
+- **The 137 finding is otherwise fully repaired.** Regression expectations now state the obligation
+  as a predicate over "the frozen tests of completed phases that assert against the query shape",
+  name the one test that actually inverts, and record what the 137 was — phase 13's count of tests a
+  lane got green after an unrelated rename — with the mechanism filed as
+  `AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE`.
+- **Non-goals now names all six V1 boundaries** including large hand-history ingestion, and says so
+  ("`AGENTS.md`'s six V1 boundaries"). My round-1 non-blocker is closed.
+- **The `docs/V2_RULING_MITIGATIONS.md` line number is still 103 where the claim is on 104.**
+  Unchanged from round 1 and still a non-blocker; noted only so it is not read as fixed. Line 103 is
+  the "Meanwhile `scripts/check_file_sizes.py` covers ..." preamble; 104 carries the claim, 105 its
+  consequence.
+- **The contract is at 287 of 300 lines, and 13 lines is not enough. Tighten now, before the
+  ruling.** The coordinator asked for a judgement and this is it. Three reasons.
+
+  First, the arithmetic. Stage 3 produces two `frozen-into-data` answers, and the contract's own
+  Scope paragraph commits to what they buy: the artifact's encoding, its per-spot byte budget, and
+  how many preflop lines fit — three criteria, not one — plus decision 4's target and reproduction
+  terms. Each of the existing criteria in that section runs three to six lines. Thirteen lines does
+  not hold three criteria written to the standard of the ones already there, and the failure mode is
+  that they get written to a lower standard because that is what fits, which is the stage-1 question
+  arriving again at stage 3 with no reviewer scheduled for it.
+
+  Second, `AGENTS.md` forbids the alternative. Its Contract Amendments section says a contract that
+  reaches the cap "is a contract due for a rewrite that folds its amendments into the criteria they
+  amend; that rewrite is its own `contract-update` task and **is not done to make room
+  mid-amendment**", and "Never raise the cap to fit an amendment". So tightening after the ruling is
+  the one route explicitly closed. Right now the phase is still at stage 1, still in
+  `contract-update`, and no ruling exists yet — this is the only window where the tightening is a
+  normal edit rather than a rewrite done under pressure to fit an answer already in hand.
+
+  Third, the room is there and it costs no obligation. What has accumulated is the contract
+  narrating its own review history, which now has backlog IDs to live in. Candidates I read as
+  removable without dropping a single requirement: "not the five an earlier draft of this contract
+  asserted" in the canary criterion; the "A test that merely records whatever the reader does today
+  ..." sentence in the self-play criterion; the four-line "An earlier draft asserted 137, which is
+  phase 13's count ..." passage in Regression expectations; and the phase 08/09 narration in the
+  canary-coverage criterion. Every one of those is now recorded either in
+  `AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE`, in this note, or in the phase's own
+  git history, and each leaves the criterion's predicate untouched. That is on the order of ten to
+  twelve lines, which turns 13 of headroom into 23-25 and makes the stage-3 amendment writable at
+  the standard the rest of the contract holds. Filed against
+  `CONTRACT-LINE-CAP-BLOCKS-ITS-OWN-AMENDMENT` in Alignment.
+
+### Round 1, carried
 
 - **Determinism cannot be checked by anything, and both branches of its escape clause are satisfied
   by writing one field.** "**Determinism is proved by re-solving and diffing, not by checksumming a
@@ -183,11 +376,11 @@ restated, and it names its own test instead.
   per-action divergence count as data fields, and gate that both fields are present and either
   equal or accompanied by a divergence figure. MAINT-26 already produces exactly those fields
   (`root_strategy_sha256` per run), so this costs the phase nothing.
-- **Non-goals cover five of `AGENTS.md`'s six V1 boundaries.** PokerNow automation, browser and
-  platform observation, runtime solver calls and the UI package are in the first bullet; heuristic
-  guessing for a missing chart spot is in the second. "No large hand-history ingestion" appears
-  nowhere in the section, and this is a phase that consumes a corpus to rank preflop lines, so it
-  is the one boundary a reader might wonder about.
+- ~~**Non-goals cover five of `AGENTS.md`'s six V1 boundaries.**~~ **Fixed at `92c4f39`**; all six
+  are now named. Original finding: PokerNow automation, browser and platform observation, runtime
+  solver calls and the UI package were in the first bullet, heuristic guessing for a missing chart
+  spot in the second, and "No large hand-history ingestion" appeared nowhere — in a phase that
+  consumes a corpus to rank preflop lines.
 - **The ExecPlan says "Three of the five judgment calls are ruled"; the contract says "Three of six".**
   Six decisions exist once decision 6 is filed. The ExecPlan number predates the filing it describes
   two sentences later.
@@ -263,8 +456,14 @@ restated, and it names its own test instead.
   touched. Phase 16 is the second phase to pay this and the first for which the payment is a
   contract criterion. Existing entry; no new ID needed.
 - `CONTRACT-LINE-CAP-BLOCKS-ITS-OWN-AMENDMENT` and
-  `PHASE-CONTRACT-LINE-CAP-FORCES-REWRITES-OVER-AMENDMENTS` — the 262-of-300 position above is
-  these two entries arriving before the amendment rather than after it. Existing entries.
+  `PHASE-CONTRACT-LINE-CAP-FORCES-REWRITES-OVER-AMENDMENTS` — the line-cap position above is these
+  two entries arriving before the amendment rather than after it. Round 1 measured 262 of 300; the
+  fix at `92c4f39` took it to 287, so headroom fell from 38 lines to 13 while the stage-3 amendment
+  it has to hold did not shrink. The lane-level recommendation is in Non-blocker round 2; what
+  belongs to these entries rather than to phase 16 is the underlying shape, which these two rounds
+  demonstrate cleanly: fixing review findings honestly *grows* a contract, because each fix records
+  what was wrong as well as what is required, so the contracts that have been corrected most are the
+  first to run out of room to be corrected again. Existing entries; this is a data point for them.
 - `REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL` — the inventory criterion cannot be made
   falsifiable without deciding what the grouping key should be, which is this entry and not this
   phase. Existing entry.
@@ -274,24 +473,49 @@ restated, and it names its own test instead.
   instance yet, because the arithmetic was checkable from the contract's own stated inputs and no
   check exists that would have done it. Existing entry; this phase is another data point on it, not
   a fix.
-- **New ID must be filed** — propose `TWO-DOCS-STILL-SAY-DATA-ARTIFACTS-HAS-NO-SIZE-CHECK`. Owner
-  `contract-update` or `maintenance`. Content: `docs/V2_RULING_MITIGATIONS.md:104-105` and `:259`
-  and `docs/V2_ROADMAP.md:161` state that `data/artifacts/**` is covered by no size check; it has
-  been capped at 20 MB in `DIRECTORY_BYTE_LIMITS` since `2430894`, 2026-08-18. Neither file is in
-  phase 16's scope. This is the ID Blocker 4's criterion should name.
-- **New ID must be filed** — propose `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES`.
-  Content: this phase commits per-spot exploitability, iteration count and strategy digest that the
-  gate cannot recompute by design, and its determinism criterion has an escape clause satisfied by
-  either outcome. The general shape sits beside
-  `AN-UNCHECKED-BINARY-IS-DESCRIBED-BY-A-CARD-NOTHING-READS` and
-  `EQUITY-MATRIX-SHIPS-WITH-NO-COMMAND-THAT-READS-IT`, both of which are the same argument about
-  committed data whose only witness is its own producer. Phase 16 cannot close it — it is the phase
-  that makes it worse — so it needs an entry rather than a criterion.
+- ~~**New ID must be filed**~~ `TWO-DOCS-STILL-SAY-DATA-ARTIFACTS-HAS-NO-SIZE-CHECK` — **filed at
+  `92c4f39`** and named in the contract. Proposed content was: `docs/V2_RULING_MITIGATIONS.md:104-105`
+  and `:259` and `docs/V2_ROADMAP.md:161` state that `data/artifacts/**` is covered by no size check;
+  it has been capped at 20 MB in `DIRECTORY_BYTE_LIMITS` since `2430894`, 2026-08-18, and neither
+  file is in phase 16's scope. Verified: one entry, one occurrence.
+- ~~**New ID must be filed**~~ `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES` — **filed at
+  `92c4f39`** and named in the contract as an entry this phase "makes worse rather than closes",
+  which is the right framing. Verified: one entry, one occurrence. The determinism criterion itself
+  is unchanged and stays a non-blocker above.
+- `AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE` and
+  `A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT` — filed at `92c4f39` from the
+  parallel numbers review, both verified present. I raised whether either duplicates
+  `A-CONTRACT-STATES-MEASURED-LEVELS-WITHOUT-NAMING-THE-ARTIFACT` and, having read all three,
+  **withdraw the concern**; the reasoning is under blocker 4. The 137 and the 99-MB figure are the
+  two instances, and both were caught by a reader doing arithmetic rather than by anything in the
+  repo, which is what makes them worth entries.
+- **New ID must be filed** — propose `A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT-FALSIFIED-IT`.
+  Owner `maintenance`. Content: `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` was falsified in the phase 16
+  decision list on 2026-09-08, and eleven lines below the dated falsification the same file still
+  says "The cost is not linear: one flop spot is 49 turn spots ... each has to be solved to a target
+  exploitability rather than derived", while `docs/V2_ROADMAP.md:215-216` states the ratio outright
+  with no falsification anywhere near it. The general shape is that a dated correction attaches to
+  the paragraph a reviewer was looking at rather than to the claim, so the claim survives wherever
+  else it was restated — and this repo restates claims across documents by habit, which
+  `THE-SAME-MEASUREMENT-IS-STATED-IN-TWO-COMMITTED-DOCUMENTS-AND-NOTHING-COMPARES-THEM` already
+  records from the other direction. What is owed is a grep-shaped closure check: an ID whose fix is
+  "correct the claim" cannot be closed while the claim's own text still matches anywhere in the
+  tracked tree. Phase 16's contract now imposes exactly that condition on itself by hand, for one
+  ID; nothing generalises it, and nothing would have caught it here if this review had stopped at
+  the paragraph the fix touched.
 
 ## Method
 
-Read-only throughout. Commands used: `git diff`, `git log`, `git show`, `git worktree list`,
-`grep`, `sed -n`, `cat`, `wc`, `ls`, `find`, and `uv run python` for four read-only computations
-(the flop isomorphism enumeration, the `action_weights` byte measurement, the converged-row scan
-over `latest_postflop_solve_cost.txt`, and the artifact-tree byte total). No tracked file was
-modified. `scripts/run_verify.py` and `scripts/check_gate_bite.py` were not run.
+Read-only throughout, both rounds. Commands used: `git diff`, `git log`, `git show`,
+`git worktree list`, `grep`, `sed -n`, `cat`, `wc`, `ls`, `find`, and `uv run python` for eight
+read-only computations — round 1: the flop isomorphism enumeration (22,100 boards, 1,755 classes,
+455 rainbow, 1,286,792 hero-combo classes), the `action_weights` byte measurement, the converged-row
+scan over `latest_postflop_solve_cost.txt`, and the artifact-tree byte total; round 2: the 40.227
+whole-file-over-weights rate, a direct structural build of the chart-shaped payload at both node
+counts and both indent settings, the lean parallel-array encoding, and a per-test-function scan of
+`tests/**` for query-shape references. No tracked file was modified in either round.
+`scripts/run_verify.py` and `scripts/check_gate_bite.py` were not run.
+
+Round 2 reviewed `92c4f39` against `git show 92c4f39` and
+`git diff 2942e8d..HEAD -- <the three documents> backlog.yml`. Marks are mine and cover only what I
+re-derived in this worktree; blocker 6 is unmarked and holds the stage.

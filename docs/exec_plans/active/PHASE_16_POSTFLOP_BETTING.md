@@ -80,7 +80,8 @@ Against that, the exact size of a flop artifact in the format the preflop chart 
 buys, for **one** preflop line, on the order of **one hero decision node** - and that holds in any
 JSON encoding, which is why no format change answers it. In the leanest plausible JSON, action
 names hoisted to one array, hero's classes as a parallel array in canonical order, three-decimal
-floats and one free weight per class, one two-action node for one line measures 7,740,095 bytes,
+floats and one free weight per class, one two-action node for one line measures 7,740,095 bytes -
+two independent builds agreed to within 38 bytes, both at 0.4907x -
 which is 0.49x the headroom: it fits, with room for a second node. That same encoding buys 2.04
 nodes at two actions, 1.02 at three storing two free weights, and 0.68 storing all three. A flop is
 not one decision - hero acts, villain answers, hero faces a bet or a raise - and decision 3 asks
@@ -91,7 +92,8 @@ The chart's own format is worse, and the figures are given as pairs that recompu
 above rather than from any other rate. One line, one node, only check and bet: 36 MiB compact, 66
 MiB as committed, 2.4x and 4.4x. Ten hero nodes at three actions: 544 MiB compact, 986 MiB as
 committed, 36.2x and 65.6x. Building the structures directly rather than multiplying the rate gives
-43, 76 and 1,007 MiB, so the multiplications err low. Compression is not available:
+43, 76 and 1,007 MiB, so the multiplications err low; those three are the independent numbers
+verification's builds, recorded in its note beside this stage's. Compression is not available:
 `import_preflop_artifacts` globs `*.json` and reads text.
 
 An earlier draft of this paragraph led with the 2.4x, gave 99 MB and 1,481 MB for the two

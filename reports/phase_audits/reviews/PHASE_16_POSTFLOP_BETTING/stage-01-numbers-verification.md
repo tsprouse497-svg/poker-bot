@@ -47,7 +47,11 @@ the step from those measurements to the projection, and in one number imported f
 
 ## Blocker
 
-- **`98x` is wrong; the figure is about `67x`.** `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md:141`,
+All six were addressed at `92c4f39`. I re-derived every replacement figure before marking, from the
+same scratchpad scripts and not from the commit message. All six are marked `[resolved]`, each with
+the number I checked it against.
+
+- **[resolved]** **`98x` is wrong; the figure is about `67x`.** `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md:141`,
   and the same figure at `docs/exec_plans/active/PHASE_16_POSTFLOP_BETTING.md:81` and
   `reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md:236`. Ten hero nodes at
   three actions, as committed, is 1,286,792 x 3 x 10 = 38,603,760 weights. At the published 26.789
@@ -56,13 +60,22 @@ the step from those measurements to the projection, and in one number imported f
   `1,481 MB` and `98x` are inflated by about 1.47x. This matters beyond tidiness: the packet
   promises a reader a number they can recompute from a committed file, and this one does not
   recompute from the rate the same paragraph publishes.
-- **The `99 MB` one-node-as-committed figure is wrong; it is 66 to 76 MiB.**
+
+  Resolved. The contract criterion no longer carries a multiple at all, and the ExecPlan and
+  decision list now read "986 MiB as committed ... 65.6x". Against my walk: **986.24 MiB, 65.56x**
+  by the published 26.789 rate, and **1,006.59 MiB, 66.91x** built directly, which the documents
+  also now state as 1,007. Reproduces.
+- **[resolved]** **The `99 MB` one-node-as-committed figure is wrong; it is 66 to 76 MiB.**
   `docs/exec_plans/active/PHASE_16_POSTFLOP_BETTING.md:80` and
   `reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md:234`, both reading "As
   committed, indent and all, it is 99 MB". At 26.789 bytes per weight over 2,573,584 weights it is
   68,943,742 bytes, **65.7 MiB, 4.4x** the headroom; built directly it is 79,812,696 bytes,
   **76.1 MiB, 5.1x**. Not 98.7 MiB and not 6.6x.
-- **The `363 MB compact` row is a two-action figure sitting in a three-action sentence.**
+
+  Resolved. Both documents now read "36 MiB compact, 66 MiB as committed, 2.4x and 4.4x". Mine:
+  68,943,742 bytes = **65.75 MiB, 4.37x**, so 66 and 4.4x are the correct roundings, and the 76 is
+  stated alongside as the direct build. Reproduces.
+- **[resolved]** **The `363 MB compact` row is a two-action figure sitting in a three-action sentence.**
   `docs/exec_plans/active/PHASE_16_POSTFLOP_BETTING.md:81` and
   `reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md:236` read "Ten hero nodes
   at three actions is 363 MB compact and 1,481 MB as committed, 24x and 98x". 363 MiB is exactly
@@ -70,7 +83,11 @@ the step from those measurements to the projection, and in one number imported f
   the compact figure is 570,717,988 bytes, **544 MiB, 36.2x**, not 24x. Note this error runs the
   other way from the two above: the compact row is understated while the committed rows are
   overstated, so the pair cannot be repaired by scaling the paragraph.
-- **The root cause is one substitution, and it should be named in the correction rather than left
+
+  Resolved. Both documents now read "544 MiB compact ... 36.2x". Mine: 570,717,988 bytes =
+  **544.28 MiB, 36.18x**. Reproduces, and the opposite-direction point is kept in both documents,
+  which is what stops a later reader from "simplifying" the correction back into a single scaling.
+- **[resolved]** **The root cause is one substitution, and it should be named in the correction rather than left
   for the next reader to rediscover: the whole-file rate `40.227` was used where `26.789` was
   stated.** The committed chart is 2,054,327 bytes over 51,068 weights, which is 40.227 bytes per
   weight for the file as a whole. Both wrong "as committed" figures reproduce to the digit from
@@ -83,7 +100,13 @@ the step from those measurements to the projection, and in one number imported f
   report is required by the contract to print bytes used, headroom left and per-spot cost and to
   exit non-zero when a figure does not hold, so a per-weight rate that quietly includes non-weight
   bytes will not survive its own generator.
-- **The bare "137 frozen tests" is another phase's lane bookkeeping and must not stand.**
+
+  Resolved. Named in both the ExecPlan and the decision list, with the per-spot argument intact and
+  the 40.227 identified as the whole file over its weight count. The contract's criterion also now
+  carries the forward guard: "No figure here is a per-weight rate that includes non-weight bytes;
+  the generator exits non-zero on one that does not reconcile against the bytes on disk." That is
+  more than I asked for and it is the half that keeps working after this stage.
+- **[resolved]** **The bare "137 frozen tests" is another phase's lane bookkeeping and must not stand.**
   `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md:258` asserts "The 137 frozen tests across the
   completed phases that assert the query shape are migrated in this task".
   `git log -S"137 frozen tests" --all` returns exactly two commits: `1ebbbb5` "Build the phase 13
@@ -98,7 +121,18 @@ the step from those measurements to the projection, and in one number imported f
   blocker rather than a non-blocker because the sentence is a regression expectation: a stage 4
   test author reading it goes looking for 137 migrations, finds one, and has no way to tell whether
   the other 136 are missing or were never real.
-- **The framing is a blocker, and this one is my call rather than the coordinator's read of me, so
+
+  Resolved, and resolved better than I specified. The regression expectation now states the bracket
+  rather than any single figure, names `test_rejects_a_bet_because_preflop_has_no_bet` in
+  `tests/test_strategy_contract.py`, states the 0 for a defaulted field, records where the 137 came
+  from, and tells stage 4 to measure the set again rather than trust the three numbers. Two things
+  I checked rather than assumed. The test name is unique in the tree: one definition at
+  `tests/test_strategy_contract.py:408` and no other reference, so citing it by name resolves, and
+  by name rather than by line is the right call for the reason given, since the line moves whenever
+  the file above it changes and the name does not. And the instruction to re-measure is the part
+  that matters most, because my own three figures are a snapshot of the freeze lock at `35dbeb2`
+  and this phase's stage 4 will add to `tests/**` before it migrates anything.
+- **[resolved]** **The framing is a blocker, and this one is my call rather than the coordinator's read of me, so
   I will state the reasoning.** The claim "the committed flop artifact does not fit the existing
   cap, by a wide margin, in the repo's existing JSON format" is true, and I could not break it. But
   it is argued from its most defeatable number, and a human ruling written off the current framing
@@ -122,6 +156,42 @@ the step from those measurements to the projection, and in one number imported f
   several lines, so no JSON encoding fits.** That is unanswerable by a format change, it is
   stronger than what is written, and it makes the ruling about coverage and storage location rather
   than about serialization. Argued that way, the halt is clearly right. Argued as 2.4x, it is not.
+
+  Resolved, and I was asked to check whether my argument was represented at full strength rather
+  than softened. It is. All three documents now lead with the node count, and each of the four
+  parts that make the argument unanswerable is present: that it holds in **any** JSON encoding and
+  so no format change answers it; the lean encoding's measured 7,740,095 bytes at **0.49x**, stated
+  plainly as fitting with room for a second node rather than buried, which is the fact that defeats
+  the old lead and is the harder thing to publish; the **2.04 / 1.02 / 0.68** node counts; and both
+  halves of the "several nodes across several lines" premise, the flop not being one decision and
+  decision 3 asking for lines plural. The 2.4x is demoted to a secondary observation about the
+  chart's own format, which is the right place for it, and the superseded draft is recorded with
+  the reason it was wrong rather than quietly overwritten. Nothing was weakened. One phrase is
+  stronger than I would have written and I think correctly so: "which is why no format change
+  answers it" states the load-bearing consequence in the same sentence as the claim, where a
+  reviewer cannot read the claim without it.
+
+  **This blocker is resolved but it has an open consequence elsewhere, and the `[resolved]` above
+  should not be read as clearing it.** Publishing my lean-encoding figure made a sentence further
+  down decision 6 false. Option 2 of the ways-out list, at
+  `reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md:289-290`, still reads
+  "even a single line does not fit in JSON, so this alone does not close the gap", which is
+  contradicted by the 0.49x forty lines above it. The sibling review at
+  `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-01-contract.md` filed that as its
+  blocker 6 while I was verifying this commit, and I agree with it: the sentence was true of the
+  chart's format, the fix introduced a second format, and the option list was left describing the
+  first. It is not a reopening of my blocker, which was about what the argument leads with and is
+  genuinely fixed, but the stage should stay held until that one is closed, and a reader of this
+  note alone would not know it exists.
+
+  Two figures worth reconciling while both notes are open. That reviewer's independent build of the
+  same lean encoding gives **7,740,057** bytes against my **7,740,095**, a difference of 38 bytes
+  and 0.0005 percent, both 0.4907x the headroom. The agreement is close enough to treat the
+  conclusion as robust and the gap is a reminder of what the number is: "the leanest plausible JSON"
+  is an encoding *choice*, not a canonical quantity, so two careful people will land a few dozen
+  bytes apart on key spelling or float formatting. Whichever figure the documents keep, they should
+  keep one and say whose build produced it. I have no preference between them and would not spend a
+  stage on 38 bytes.
 
 ## Non-blocker
 
@@ -151,7 +221,24 @@ does not "fix" them, or they are conservative in the safe direction.
   transferred rate understates a real flop artifact by roughly 18 percent, and the asserted 2.4x is
   a floor rather than an estimate. This does not need fixing, but it should not be replaced by the
   higher figure without saying which method produced it, or the next reviewer will find two numbers
-  for one claim.
+  for one claim. Carried correctly at `92c4f39`: both documents now give 43, 76 and 1,007 MiB
+  beside the multiplied pairs and say "the multiplications err low", which names the method for
+  each of the two numbers rather than leaving a reader to guess which is which.
+- **New at `92c4f39`, and a non-blocker because it weakens only the filing and not the finding:
+  `A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT` attributes the unreconciled pair to
+  the contract, and the contract is the one document where it was not checkable.** The entry opens
+  "Phase 16's first contract draft published 26.789 bytes per action weight and, two clauses later,
+  projections that only reproduce from 40.227". The 26.789 and the projections sat together in
+  `docs/exec_plans/active/PHASE_16_POSTFLOP_BETTING.md` and
+  `reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md`; the contract at `:141`
+  carried only the bare multiples, `2.4x` and `98x`, and published no rate at all. That distinction
+  cuts both ways rather than just being a slip. In the two documents that published both, the
+  arithmetic was checkable from the page and nothing checked it, which is the entry's thesis
+  exactly. In the contract, the multiple had no divisor anywhere near it, so a reader could not have
+  checked it at any effort, which is arguably the worse failure and is a second finding the entry
+  currently folds into the first. Worth one sentence when the entry is next touched: a governing
+  document that states a multiple without the rate it came from is not a reconciliation failure but
+  an unfalsifiable claim.
 - The headroom figure is already independently corroborated inside the committed tree.
   `data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json:64` reads
   `"headroom_bytes": 15774195`, produced by `scripts/extract_gtopen_preflop.py:290` against the
@@ -164,6 +251,20 @@ does not "fix" them, or they are conservative in the safe direction.
 ## Alignment
 
 Long-term drift the stage cannot fix, each with an ID.
+
+Both proposed IDs were filed at `92c4f39` with my reasoning and my ID strings, and I was asked
+whether either is really a duplicate of `A-CONTRACT-STATES-MEASURED-LEVELS-WITHOUT-NAMING-THE-ARTIFACT`,
+since the contract reviewer judged that existing entry sufficient. **Neither is, and the two
+distinctions are different from each other.** The existing entry is about a number that *cannot* be
+re-derived, because the build it was measured on is neither committed nor preserved, so its fix is
+provenance. `AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE` is the opposite failure:
+the provenance is intact, `git log -S` finds it in two commits, and the number is correctly
+attributable to a document that was never talking about this phase. Adding provenance would not
+have helped, because the provenance is what is wrong. `A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT`
+is a third thing again: the number was re-derivable from its own paragraph and nothing re-derived
+it, so the fix is neither provenance nor attribution but rendering the figure from its inputs.
+Three failure modes, three fixes, three entries. Folding them into one would produce an entry whose
+remedy is "be careful with numbers", which resolves by assertion.
 
 - **A figure copied out of another phase's completed ExecPlan passed every mechanical check this
   repo has.** Propose a new entry, **`AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE`**,
@@ -234,6 +335,48 @@ Long-term drift the stage cannot fix, each with an ID.
   `A-STALE-TREE-CARRIES-ITS-OWN-COPY-OF-THE-RULES`, which is the existing entry for a rule stated in
   more than one place, and it should be picked up by whichever task acts on decision 6, since that
   task is the one most likely to move the constant.
+
+## The question put back to me: should the contract name the headroom figure
+
+Asked at `92c4f39`: the decision record now carries 20 MB and 15,774,195 as a dated measurement,
+but the contract's criterion deliberately does not repeat the headroom and instead requires the
+phase's own report to recompute bytes used and headroom left and to exit non-zero when a figure does
+not reconcile. Is leaving it out right, or does the contract lose something falsifiable?
+
+**Leaving it out is right, and the rule underneath it is worth stating so the next contract does not
+have to re-decide: name the constant, never the derivative.** The cap is a constant. It is
+`20 * 1024 * 1024` at `scripts/check_file_sizes.py:29`, it has not moved since `2430894` on
+2026-08-18, and a criterion asserting it is falsifiable forever, because the only thing that could
+falsify it is somebody raising the cap, which is precisely the act the contract's Forbidden
+shortcuts already prohibit. The headroom is a derivative: it is the cap minus the current tree, and
+the current tree is the thing this phase exists to change. A criterion asserting 15,774,195 would be
+false at this phase's own closeout, by construction and by design, because the phase succeeds
+exactly by putting bytes into that tree. That is the failure mode
+`COMPLETED-CONTRACT-ASSERTS-THE-CURRENT-TREE` is filed against, and writing the number in would be
+signing up for it deliberately in a document capped at 300 lines where amendments only add.
+
+Nothing falsifiable is lost, and I would go further: what replaced it is strictly stronger. A number
+in a contract is inert. It sits there and no command reads it, which is the whole of
+`AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE` filed one section above. What the
+criterion now requires is a generator that recomputes and **exits non-zero when a figure does not
+reconcile**, which is a check that can fail, on every gate run, against the bytes actually on disk.
+`AGENTS.md` makes the same distinction about criteria that merely restate the gate: they cannot
+fail, so they prove nothing. A stated headroom would have been that, and the recomputation is its
+opposite. There is also already a second, independent witness in the tree, which is why I raised the
+corroboration as a non-blocker rather than as a gap:
+`data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json:64` carries
+`"headroom_bytes": 15774195`, and the contract's own criterion notes that
+`test_the_committed_export_sits_under_the_limit_with_stated_headroom` reds the moment any flop
+artifact lands. So the number is pinned by a test and by a committed card, in the two places that
+can actually go red, and the contract does not need to hold a third copy that cannot.
+
+One caution rather than a change. The forward guard says no figure is "a per-weight rate that
+includes non-weight bytes", and the same criterion asks for a **per-spot** cost. Those pull in
+opposite directions and both are correct: a per-weight rate must exclude per-spot metadata, while a
+per-spot cost must include it, since metadata is exactly what a spot costs. Whoever implements the
+generator should not read the guard as forbidding a per-spot figure that divides total bytes by spot
+count, because that division is right for that figure and wrong only for the other one. That is a
+note for the implementer, not a defect in the criterion, and it does not hold the stage.
 
 ## What I did not verify
 
