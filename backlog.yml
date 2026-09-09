@@ -6793,3 +6793,52 @@ items:
       whose file set contains a test that reads `verification/mutations.yml` and asserts against
       the tree - and it belongs beside REPORT-VALIDATORS-CAN-HOLD-GUARDS-THAT-CANNOT-FAIL, which
       is the same argument about a validator that cannot go red.
+
+  - id: A-COMMITTED-LANE-POINTER-CLONES-ITSELF-INTO-EVERY-WORKTREE
+    status: deferred
+    phase: contract-update
+    title: A running lane pointer on main appears as a live lane in every worktree branched from it
+    reason: >-
+      `verification/loop_runs/14.yml` is committed to `main` reading `loop: running`, and every
+      worktree in the fleet branches from `main`, so all of them carry a copy. `loop_fleet.lanes()`
+      keys on `(phase_id, worktree)` and counts any pointer whose `loop` is `running` or `halted`,
+      so one phase reports as ten lanes. Measured 2026-09-08 with eleven worktrees present:
+      `--status` printed phase 14 eight times, and `review_queue.py` printed "167 item(s) waiting
+      on you" where the real count is one ask and a handful of blockers, because each copy of the
+      pointer re-reads the same stage-11 review note and every evidence bullet in it is counted
+      again. Phases 11, 12 and 13 have committed pointers too and are invisible only because they
+      read `loop: completed`.
+      The board is the instrument a session is told to read before doing anything, and at eight
+      duplicates plus 167 items it is unreadable, which is the actual cost. A session that skims it
+      cannot see which lane is real.
+      Three shapes of fix and they are not equivalent, which is why this needs a ruling rather than
+      a patch. The pointer could be untracked, which loses the record of where a phase ran. It could
+      be keyed to its branch so a copy on a foreign branch is ignored, which is the smallest change
+      and leaves the file honest. Or `lanes()` could require the pointer's `phase_id` to match the
+      worktree's own branch slug, which fixes the count without touching what is committed. The
+      second and third are close and differ on whether a lane pointer is a fact about a branch or a
+      fact about a checkout.
+      Not phase 16's to fix. Found while reading the board to start phase 16, and filed rather than
+      worked around, because the next session reads the same board.
+      Adjacent and separate: `REVIEW-QUEUE-COUNTS-EVIDENCE-BULLETS-AS-BLOCKERS` is why each copy
+      contributes many items rather than one, and fixing either alone leaves the board wrong.
+
+  - id: REVIEW-QUEUE-COUNTS-EVIDENCE-BULLETS-AS-BLOCKERS
+    status: deferred
+    phase: contract-update
+    title: The pause board reads a review note's evidence bullets as separate human asks
+    reason: >-
+      `review_queue.py` derives its blockers from bullets under a stage review's `## Blocker`
+      heading. Phase 14's stage-11 note argues one blocker at length and lays out its evidence as
+      bullets underneath, so the queue reports each line of evidence as its own blocker with its own
+      "answer in / blocks" pair. Measured 2026-09-08: lines reading
+      "`git ls-remote` puts `origin/phase/14-chart-cutover` at `5867621`..." and
+      "53 of the 87 have the better ace played under 5 percent..." are both printed as blockers a
+      human must answer. Neither is an ask; both are support for one.
+      The queue is right to be derived and right to read the real file. What it cannot currently do
+      is tell a claim from its evidence, and a note that argues carefully is penalised hardest,
+      which is backwards. `MAINT-29` was opened as "the review machinery reads shape, not content"
+      and its lane still holds only its activation commit, so the diagnosis exists and the work does
+      not.
+      Compounded by A-COMMITTED-LANE-POINTER-CLONES-ITSELF-INTO-EVERY-WORKTREE, which multiplies
+      whatever this produces by the number of worktrees.
