@@ -48,9 +48,20 @@ street's aggressor, and all-in is never an offered size although the tree still 
 bet to a stack-off at 85% of the stack behind - which on later streets it does, and on the flop it
 does not. The seventh blocker has the arithmetic.
 
+**Does the all-in snap change the verdict? No, and it needs no new field on a cell.** The
+replication in blocker 7 finds zero threshold-snaps on the flop under either menu in either pot
+type, so a committed flop cell's action set is what its menu says. What it does need is one line of
+provenance rather than a per-node flag: the 3-bet pot's deepest flop line sits 3.625 chips, 3.9% of
+stack, under the threshold, so `max_raises`, the raise multiplier, the starting pot and the
+effective stack decide whether the flop's deepest node is a sized raise or a stack-off. Pin those
+four on the committed config, record them on the cell beside the exploitability and the iteration
+count the contract already mandates, and re-run the reachability walk if any of them moves. That
+rides decision 7's existing default - prove it on the run that is committed, not on a proxy -
+rather than adding a condition of its own.
+
 So: worth committing, conditionally, and the condition is one solve. Rule the menu so the finer
-tree lands in the single-raised pot, publish the missing jam and the missing turn and river lead on
-every cell, and **solve
+tree lands in the single-raised pot, publish the missing turn and river lead and the snap threshold
+on every cell, and **solve
 one cell to several times 240 iterations and diff the action frequencies against the 240-iteration
 version.** If the frequencies have moved materially the phase is committing noise with a good
 exploitability number on it, and no amount of board coverage repairs that. That diff is the
@@ -183,16 +194,53 @@ dated 2026-09-09, is new and open.
   sized raise to a stack-off, and no field in the artifact would record which one a cell was solved
   under. That alone is worth a line in decision 11.
 
-  On later streets it fires, and it discriminates between decision 11's menus in a way nobody has
-  said. After a 3-bet-pot flop bet-to-12, raise-to-30, call: pot 76, stack behind 62.5, threshold
-  53.125. The configured turn 75% is 57, which snaps to **all-in**. The pinned menu's turn 33% is
-  25.08 and does not. So in that line the **reduced menu's only turn action is a stack-off** while
-  the pinned menu still offers a real turn bet. This is not "the reduced menu has fewer sizes"; it
-  is the reduced menu replacing the turn with a jam wherever the flop built a pot. My poker reading
-  of the consequence, flagged as reasoning rather than measurement: a flop solved above that tree
-  will **raise the flop less**, because raising commits hero to a turn jam rather than to a turn bet
-  he can size. That is a second, independent reason the settling experiment must be the
-  single-raised-pot pinned-against-reduced diff and not an argument.
+  **Amended 2026-09-09 after I replicated the builder rather than hand-computing one line.** I wrote
+  the paragraph that stood here from a single hand-worked example plus poker reasoning, and the
+  coordinator challenged both. The example is right; the direction I drew from it is wrong. Both
+  halves are settled by a faithful re-implementation of `legal_actions` and the four transitions,
+  enumerating every reachable betting state under each menu with amounts only, since bet sizes do
+  not depend on the cards.
+
+  The example reproduces exactly, and the challenge to it does not. The reachable state
+  `bet12.00 raise30.00 call30.00` on the flop leads to a turn with pot 76, stack behind **62.50**,
+  and a configured 75% turn bet of 57.00 at 91.2% of stack, which threshold-snaps. The competing
+  figure of 70.5 comes from reading `put[me]` as the amount put in on this street. It is
+  cumulative and initialised to `starting_pot / 2` for each player: `put: [half, half]` at line 386
+  with `half = starting_pot / 2.0`, then `put[me] += to - street_bet[me]` at lines 623 and 635. That
+  is why `pot = put[0] + put[1]` returns 16 at the root, which is the 76 both of us used. After each
+  player puts 30 in on the flop, `put` is `[38, 38]`, so `stack_me = 92.5 - (38 - 8) = 62.5`.
+
+  **My direction claim is withdrawn: the pinned menu snaps more often than the reduced one, never
+  less.** Distinct reachable states at which a size is converted, and the two conversion routes kept
+  apart, because only the first is silent - the second is a size simply exceeding the stack, which is
+  ordinary poker:
+
+  | line and menu | threshold-snaps, flop / turn / river | over-stack all-ins |
+  |---|---|---|
+  | single-raised, pinned | 0 / 0 / 24 | 96 |
+  | single-raised, reduced | 0 / 0 / 0 | 54 |
+  | 3-bet, pinned | 0 / 6 / 9 | 99 |
+  | 3-bet, reduced | 0 / 6 / 6 | 36 |
+
+  So "the reduced menu replaces the turn with a jam wherever the flop built a pot" is false, and the
+  poker conclusion I drew from it - that hero raises the flop less above the reduced tree - does not
+  follow and is withdrawn. The likeliest reason it runs the other way is uninteresting: the pinned
+  menu has strictly more lines, so more reachable states and more chances to cross the threshold.
+  Which is also the caveat on the table above. **A count of snap states is a measure of tree breadth
+  and not of strategic content**, so the 24-against-0 in the single-raised pot should not be read as
+  a direction either, in my favour or against.
+
+  What survives, and it is the part that bears on a ruling: **zero threshold-snaps occur on the flop,
+  under either menu, in either pot type.** So this mechanism cannot change a committed flop cell's
+  own action set as the configs stand, and it reaches the committed flop strategy only through
+  continuation values - the same channel as the missing probe and the turn and river sizes. Its
+  magnitude is unmeasured and the single-raised-pot pinned-against-reduced diff would carry it along
+  with everything else, which is an argument for that experiment rather than a second one.
+
+  The walk's own limits, stated so it is not quoted past them: it reproduces the amount arithmetic
+  and the state transitions, dedupes by state, ignores chance nodes because amounts do not depend on
+  cards, and counts reachable states rather than probability mass. It settles which conversions exist
+  and where; it says nothing about how often a solved strategy visits them.
 
   What must change: the contract criterion describing `allin_threshold` as "a percent of pot on the
   postflop route" should read a percent of the effective stack behind, and its guard should be
@@ -266,7 +314,7 @@ that matters.
 
 - `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` (exists, deferred, phase 14). Its own text reaches the conclusion decision 12 declines: the residue "costs a factor of two in memory and buys nothing". It also holds the smoothing half that the second blocker above says must land before the floor. The entry is filed against phase 14, which is completed, so on current status this conditioning step has no owner and phase 16 consumes an unsmoothed export.
 
-- `NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT` (new, amended 2026-09-09 by the seventh blocker: all-in is never an offered *size*, but the builder snaps a configured bet to a stack-off at 85% of the stack behind, which the single-raised flop never reaches and later streets do). Every measured menu tops out at 75% of pot, and 75% three times in a 100bb single-raised pot leaves 57.3 of a 97.5 stack behind. Real solutions at SPR 17.7 use overbets on polarising turn and river cards, and the flop's polar branch exists partly to set them up. This is not a discriminator between decision 11's four options, since all four share it, which is exactly why it needs its own entry: it is the abstraction error none of the options can fix and none of them discloses.
+- `NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT` (**withdrawn 2026-09-09; do not file it**). I wrote this from the bet-bet-bet geometry: three 75% bets in a 100bb single-raised pot do leave 57.3 of a 97.5 stack behind, and the conclusion I drew from it is still wrong, because raises reach the stack even when bets do not. Replicating the builder finds all-in reachable everywhere - 96 distinct states in the single-raised pinned tree, 54 reduced, 99 and 36 in the 3-bet pot - by a configured size exceeding the stack, which is ordinary poker and needs no entry. What is left is the narrower `allin_threshold` finding, which the seventh blocker carries and the contract has already taken. Filing this as written would put a false claim in the backlog permanently, which is the failure `A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT-FALSIFIED-IT` records. Real solutions at SPR 17.7 use overbets on polarising turn and river cards, and the flop's polar branch exists partly to set them up. This is not a discriminator between decision 11's four options, since all four share it, which is exactly why it needs its own entry: it is the abstraction error none of the options can fix and none of them discloses.
 
 - `NOTHING-MEASURES-POSTFLOP-ACTION-COVERAGE-AGAINST-REAL-BET-SIZES` (new). Board coverage will be reported at 1,755 of 1,755 while action coverage against any real distribution of bet sizes is unmeasured and unmeasurable in this repo today: self-play never bets postflop, and the corpus comparison is preflop-only by design. The refusal inventory ranks preflop gaps; there is no postflop equivalent.
 

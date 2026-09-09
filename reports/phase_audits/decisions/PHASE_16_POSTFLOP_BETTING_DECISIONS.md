@@ -90,7 +90,9 @@ so it puts two sizes where one nearly suffices; and flooring to fit is a **build
 Rainbow is unmeasured in all four. Whatever is ruled also freezes **no out-of-position probe on the
 turn or river**, which pushes hero's flop betting up. Jams are **not** absent, contrary to two
 earlier drafts: any bet reaching 85% of the stack behind is snapped to a stack-off regardless of
-`add_allin`, and the deepest 3-bet flop line sits 4% of stack under that line. **No default**, it
+`add_allin`. On the flop that never fires under either menu, so a committed flop cell's actions are
+what its menu says; the deepest 3-bet flop line sits 3.9% of stack under the line, so four config
+values decide it and are pinned on the cell. **No default**, it
 collides with decision 3 already ruled, and **rule it with 12** - the settling experiment needs a
 floor.
 
@@ -848,17 +850,39 @@ behind; 3-bet reaches 75.00, **81.1%** of the 92.5 behind against a 78.625 thres
 multiplier or the 3-bet size flips a sized raise into a stack-off, and no field on a committed cell
 would record which it was solved under.
 
-**On later streets it does fire, and it does not discriminate between decision 11's menus the way an
-earlier draft of this item claimed.** That draft gave a worked turn example with the stack behind at
-62.5 and the reduced menu's 75% turn bet snapping while the pinned menu's 33% did not. The stack
-behind in that line is **70.5**, not 62.5 - the draft subtracted the whole `put` instead of
-`put - starting_pot/2` - so the threshold is 59.925 and a 57.00 turn bet does not snap. Walking the
-reachable lines under both menus, in the 3-bet pot the snap fires at the same single node under
-**both** menus, and in the single-raised pot it fires once under the **pinned** menu and not at all
-under the reduced one, which is the opposite direction. So the poker conclusion that draft drew -
-that hero raises the flop less because the reduced tree replaces his turn with a jam - does not
-follow from the pots measured. That walk assumes symmetric contributions and one raise pattern, so
-read it as refuting the specific claim rather than as a census of the tree.
+**On later streets it does fire, and no direction can be read off how often.** Two drafts of this
+paragraph got this wrong in opposite ways and the record of both is kept, because the second was
+mine and it corrected something that was right.
+
+The worked line is `bet 12.00, raise 30.00, call` on the flop, giving a turn with pot 76 and a
+stack behind of **62.50**, where a 75% turn bet of 57.00 is 91.2% of stack and snaps. A draft of
+mine put that stack behind at 70.5 and concluded the bet does not snap. **62.50 is correct.** `put`
+in the builder is cumulative and initialised to `starting_pot / 2` per player - `put: [half, half]`
+at `tree.rs:386`, then `put[me] += to - street_bet[me]` at 623 and 635 - so after each player has
+30 in, `put` is `[38, 38]`, `pot = put[0] + put[1]` is the 76 both drafts agreed on, and
+`stack_me = 92.5 - (38 - 8) = 62.5`. My draft read `put[me]` as the street contribution, which is
+also why its own pot and its own stack figure could not both be right.
+
+**And the direction claim is withdrawn from both sides.** Counting distinct reachable
+threshold-snap states, flop/turn/river: single-raised pinned 0/0/24 against reduced 0/0/0; 3-bet
+pinned 0/6/9 against reduced 0/6/6. So the pinned menu snaps more often, never less, which is the
+opposite of the first draft's claim - and it is not evidence for anything, because **a count of snap
+states measures tree breadth rather than strategic content.** The pinned menu has strictly more
+lines and therefore more chances to cross the threshold. Neither menu's snap count says which
+distorts hero's play.
+
+**What survives and bears on a ruling: zero threshold-snaps on the flop, under either menu, in
+either pot type.** A committed flop cell's action set is what its menu says. The mechanism reaches
+the committed flop strategy only through continuation values - the same channel as the missing probe
+and the turn and river sizes.
+
+**What it needs is provenance rather than a new field on a cell.** The 3-bet pot's deepest flop line
+sits 3.625 chips, 3.9% of stack, under the threshold, and which side of it that node falls on is
+decided by `max_raises`, the raise multiplier, the starting pot and the effective stack. Pin those
+four on the committed config, record them on the cell beside the exploitability and iteration count
+the contract already requires, and re-run the reachability walk if any of them moves. That rides
+decision 7's default - prove it on the run that is committed, not on a proxy - rather than adding a
+condition of its own.
 
 **`donk: ""` does not mean the out-of-position player never bets the flop**, and an earlier draft of
 this item said it did, then went further and said the out-of-position flop root has one legal
