@@ -20,19 +20,28 @@ exactly one option that was false by its own table, and no ruling on it produced
 the contract says its answer supplies. Decision 4's default was silent on the outcome 23 of the 30
 measured solve rows actually had.
 
-**The headline, round 2: the list is now eleven items, every class is still right, and the work has
-moved into the defaults.** All eleven declare a valid class and I tested each of the four new ones
-against the `docs/LOOP.md` definition rather than its own gloss; all four are correctly
-`frozen-into-data`. Six new findings, of which the largest is not about the record at all: decision
-11's default pins a solver menu that has never been solved on a single-raised pot, and whose
-single-raised-pot tree measures 1.8x the arena ceiling on all eight committed build rows. A fifth
-frozen choice, the range floor, is what closes that gap and is itself on no list.
+**The headline, round 2: the list grew to eleven items, every class was still right, and the work
+had moved into the defaults.** Six new findings, of which the largest was not about the record at
+all: decision 11's default pinned a solver menu that has never been solved on a single-raised pot,
+and whose single-raised-pot tree measures 1.8x the arena ceiling on all eight committed build rows.
+A fifth frozen choice, the range floor, is what closes that gap and was itself on no list.
+
+**The headline, round 3: twelve items, every class right, and the remaining defects are all in how
+decision 11's evidence is labelled.** The two new items are correctly `frozen-into-data` and both
+are defaultless with the reason recorded, which for decision 11 is the right call and for decision
+12 is the one place I would change the form. Four new findings: a converged-row count that
+contradicts a line printed in the report it came from, and three evidence labels in decision 11's
+new option set - option 2's unmeasured half undisclosed, option 3's fully-measured status
+under-credited, and option 4's tree build described as a solve. None of the four disturbs decision
+11's conclusion, which I re-derived independently and which is the most consequential thing found
+in this phase.
 
 ## Blocker
 
-Thirteen findings over two rounds. Round 1 filed 1 through 7; **all seven are verified fixed at
-`f2d34c3` and marked `[resolved]`**, each with what I re-derived recorded under it. Round 2 reviewed
-that commit and files 8 through 13. **Those six hold the stage.**
+Seventeen findings over three rounds. Round 1 filed 1 through 7, all verified fixed at `f2d34c3`.
+Round 2 filed 8 through 13, all verified fixed at `408b2c3`. **Thirteen are marked `[resolved]`;
+round 3's four, 14 through 17, hold the stage.** Each mark carries what I re-derived under it, and
+nothing is marked on the strength of a commit message.
 
 Nested bullets are absent at every depth in this section on purpose, per
 `REVIEW-QUEUE-COUNTS-EVIDENCE-BULLETS-AS-BLOCKERS`; supporting detail is prose, tables, or indented
@@ -311,7 +320,7 @@ its tree is 1.8x the solver's arena ceiling.
 
 ### Round 2, new at `f2d34c3`. These six hold the stage.
 
-- **8. Decision 11's default names a menu that was never measured on the line type decision 3's
+- [resolved] **8. Decision 11's default names a menu that was never measured on the line type decision 3's
   ruling points at, and on the committed evidence that menu does not fit the solver's arena.** This
   is the most consequential thing in this round and it is a poker and feasibility finding rather
   than a bookkeeping one. Every one of the 55 rows in `latest_postflop_solve_cost.txt` was parsed
@@ -342,7 +351,18 @@ its tree is 1.8x the solver's arena ceiling.
   single-raised pots, so the 0.3% evidence itself spans both menus. The fix is to name the config
   hash the default means, say which line types it has been solved on, and state the arena
   consequence for the ones it has not.
-- **9. The range floor is a fifth frozen-into-data choice, it is the only measured way the pinned
+  **Verified fixed at `408b2c3`, and the repair goes past what I asked for.** Decision 11 no longer
+  defaults. It states that "the menu MAINT-26 measured" is not one object, that the pinned menu in a
+  single-raised pot was never attempted rather than slow, that an arena over a box's RAM fails
+  rather than slows, and - the part I had not asked for, which turns a detail into a ruling - that
+  this collides with decision 3, already ruled, because a single-raised pot is the ordinary way to
+  see a flop. Four choices are given, each with the evidence it rests on, and the struck default is
+  recorded with the reason it was wrong: "that reasoning was sound and its premise was false". The
+  closing note that a rainbow single-raised-pot cell at the chosen menu is the one solve that would
+  make this phase's arithmetic real rather than scaled is the right thing to hand a human, and it
+  ties this item to decision 4's rainbow gap without collapsing them. Three defects in the new
+  option set are blockers 14 through 16 below; none reopens this finding, which is closed.
+- [resolved] **9. The range floor is a fifth frozen-into-data choice, it is the only measured way the pinned
   menu fits a single-raised pot, and it is on no list.** Decision 11 now cites it as "the cheap way
   to fit a wider menu rather than dropping a size", which is true and is not what it does here. The
   numbers, from the two rows that differ only in their ranges:
@@ -362,7 +382,21 @@ its tree is 1.8x the solver's arena ceiling.
   committed as the answer for a spot whose real ranges are wider. It owes its own item with its own
   default, and 0.01 should be in that default as a number rather than inherited from a MAINT-26
   label.
-- **10. Decision 8's default produces keys that a contract criterion forbids, and one clause fixes
+  **Verified fixed at `408b2c3`.** Decision 12 exists, declares `frozen-into-data`, and carries
+  every number I checked it against: 21,663 to 10,881 MB with `action_nodes` identical at 2,347,996,
+  3,726 to 2,385 MB on the 3-bet line, 1,131 to 360 out of position and 679 to 559 in position, and
+  the 68% figure named as a truncation of the defending range. The poker sentence is the one that
+  matters and it is stated plainly: hero's committed strategy would be solved against an opponent
+  who has folded two thirds of what he would really hold, and whether that moves hero's flop
+  strategy is unmeasured. The class-level rule is kept as a constraint rather than offered as a
+  choice, which is right. The item also catches something I did not: `docs/GTOPEN_SOLVER_NOTES.md`
+  at 117 argues the 2.0x is "close to free" because "two thirds of the grid sits below a 1% weight,
+  far under the resolution of a 0.3%-of-pot target", and that compares a range weight to an
+  exploitability target with no conversion between them. I read the line and the quotation is exact.
+  Citing `A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS` rather than re-deriving the error is the
+  right move. Two residues are non-blockers below: the truncation figures are single-raised-pot only
+  and the 3-bet line truncates the other seat, and I would give this item a fail-closed default.
+- [resolved] **10. Decision 8's default produces keys that a contract criterion forbids, and one clause fixes
   it.** The preflop key is built at `src/poker_training_bot/solver_artifacts/spot_key.py:323` as
   `f"t{table_size}/d{stack_depth_bb}/{hero_position}/"` plus the line, giving
   `t6/d100/CO/BTN:raise@2.5`. `src/poker_training_bot/data_pipeline/self_play_reference.py:57`
@@ -377,7 +411,14 @@ its tree is 1.8x the solver's arena ceiling.
   discriminator is part of the grammar this item rules. Worth noting the shape: this is the first
   defect in the new items that comes from a default being *specific enough to check*, which is an
   argument for the defaults rather than against them.
-- **11. Decision 8's default does not say whether the price substitution is committed or computed,
+  **Verified fixed at `408b2c3`.** The default now reads "carry the preflop spot key verbatim, sizes
+  included, **inside a postflop key that does not begin with `t`**", the reader's actual predicate
+  is spelled out beneath it, and the omission is recorded rather than quietly patched. The contract
+  criterion carries the matching clause: "Decision 8's default is what makes this satisfiable: a
+  postflop key carries the preflop key verbatim but does not begin with `t`." That is the better
+  half of the fix, because it means a later ruling that changes the prefix cannot leave the criterion
+  stranded without somebody noticing the sentence that names it.
+- [resolved] **11. Decision 8's default does not say whether the price substitution is committed or computed,
   and that is the whole of its class.** The default: "record the price substitution on the postflop
   spot the way `ChartHit.price_substitutions` records it preflop". `price_substitutions` is a field
   on the lookup result in `src/poker_training_bot/solver_artifacts/lookup.py`, declared at 121 and
@@ -388,7 +429,12 @@ its tree is 1.8x the solver's arena ceiling.
   what a human is being asked to rule: a substitution recorded at query time can be changed by an
   edit, and one written into every committed cell cannot. As written, "take the default" does not
   say which was ruled. One clause.
-- **12. The node count decision 6's frontier is stated in is not the count the ruled defaults
+  **Verified fixed at `408b2c3`.** Decision 8 now says the substitution is "recorded on the
+  committed spot, not computed at query time", says why the ambiguity mattered in a frozen item, and
+  gives the substantive reason rather than only picking a side: the substitution is a fact about
+  which ranges the spot was solved against, settled when the solve is committed rather than when a
+  hand is played. That reason is better than mine, and it is the reason a human can check.
+- [resolved] **12. The node count decision 6's frontier is stated in is not the count the ruled defaults
   produce, and the phrase that put it there is mine.** Decision 6 now reads "the contract's own
   count of a flop - hero acts, villain answers, hero faces a bet or a raise, so three nodes -
   actually sits", and 3x2 and 2x3 are the frontier's highlighted cases. I wrote that phrase in round
@@ -406,7 +452,15 @@ its tree is 1.8x the solver's arena ceiling.
   sentence in the Scope paragraph, and to say that a complete flop for one seat is about five units
   at the ruled menu. That also makes the three new key items and decision 11 visibly load-bearing on
   decision 6, which they are and which nothing currently says.
-- **13. Decision 4's new default makes a contract criterion unsatisfiable, and the criterion is one
+  **Verified fixed at `408b2c3`, and my finding is recorded as mine.** Decision 6 now says an
+  earlier draft called three "the contract's own count of a flop", that it was a reviewer's hedged
+  phrase quoted back as a flat assertion, that it is an under-count at about five nodes under the
+  pinned menu, and that six units therefore buys one preflop line at full flop depth rather than the
+  two 3x2 suggests. The closing sentence, that the frontier is arithmetically right and reads
+  roomier than the ruled defaults allow, is exactly the residue that needed saying. One editing
+  residue is blocker 17 below: the phrase survives in the sentence immediately above its own
+  correction.
+- [resolved] **13. Decision 4's new default makes a contract criterion unsatisfiable, and the criterion is one
   the contract calls vacuous by construction.** The criterion: "**An uncovered preflop line refuses
   with a code that names the line**, and an uncovered board cannot occur, because decision 2 keeps
   all 1,755 classes. A test asserts the board-miss code is unreachable and labels it vacuous
@@ -425,6 +479,86 @@ its tree is 1.8x the solver's arena ceiling.
   a cell, because "refuse the spot" and "refuse 26% of the artifact" are not the same ruling and
   only the first is what the default sounds like. This is the mirror of blocker 10: a good new
   default colliding with an existing criterion, found only by reading them together.
+  **Verified fixed at `408b2c3`.** The criterion no longer asserts that an uncovered board cannot
+  occur. It now says whether one can follows from decision 4, that the board-miss code is therefore
+  live, and that it is "labelled vacuous only if decision 4 makes it so". That closes the
+  stage-5-freeze-then-stage-6-failure path, and it does it by making the criterion conditional on the
+  ruling rather than by weakening what it requires, which is the right of the two repairs. The
+  preflop-line half of the criterion is untouched and still names the line, which it should.
+
+### Round 3, new at `408b2c3`. These four hold the stage.
+
+- **14. The converged-row count in decision 11 is eight and six; it is seven and five, and the
+  report says so on its own summary line.** The item reads "of the eight rows that reached 0.3% of
+  pot, six are `starting_pot: 16.0`". I re-derived it from the file rather than from the summary, by
+  parsing all 55 `Row data:` lines, taking the 30 whose `group` is `solve`, and subtracting the 23
+  the report's own exclusion list names:
+
+      solve rows                    30
+      excluded, all "hit-iteration-cap"   23
+      reached target                 7   -> five at starting_pot 16.0, two at 5.5
+
+  The seven are `matrix-01`, `matrix-02` and `matrix-05` at pot 16.0, `matrix-03` and `matrix-04` at
+  pot 5.5, and the two determinism repeats at pot 16.0. Line 525 of the same report states it
+  outright: "Aggregate over the 7 of 30 rows that reached their target; 23 excluded as cap-bound or
+  failed." The likely cause is the row whose `group` is `determinism` rather than `solve`: it is at
+  pot 16.0, and it is the comparison *between* the two repeats already counted, so counting it makes
+  eight and six from seven and five.
+  This is a blocker rather than a tidiness note for the same reason blocker 1 of the stage-1 review
+  was: the split between the two menus is the entire evidence a human is handed to rule a defaultless
+  `frozen-into-data` item, and this figure contradicts a line printed in the file it was derived
+  from. The conclusion is untouched and is if anything slightly stronger at five and two than at six
+  and two. My own note said "five converged cells" from the matrix rows and "seven" from the
+  report's line, and both are right; neither is eight.
+- **15. Option 2's evidence is one-sided in exactly the way the struck default's was, and option 3
+  is the only option whose halves are both measured.** The four options rest on which configuration
+  converged where, so I tabulated that rather than reading the labels:
+
+  | configuration | 3-bet pot, pot 16.0 | single-raised pot, pot 5.5 |
+  |---|---|---|
+  | pinned menu `config.ip@2827d093808a` | 5 converged rows | never solved, tree 1.8x the arena ceiling |
+  | reduced menu `config.ip@2315abe88f71` | **no row of any kind** | 2 converged rows |
+
+  Option 1 is the pinned menu everywhere and the item discloses its gap. Option 2 is "the reduced
+  menu everywhere", and no 3-bet row in the record uses the reduced config at all - not a solve, not
+  a build. So option 2 has an unmeasured half of exactly the shape option 1's disclosed gap has, and
+  the item does not say so; it says only that the reduced rows are marked not cost-comparable. A
+  human comparing 1 against 2 is comparing a disclosed gap with an undisclosed one.
+  The same table shows option 3 in a different light than the item gives it. "A menu per line type,
+  pinned for 3-bet pots and reduced for single-raised" is precisely the pair of configurations that
+  actually converged, so it is the only option with no unmeasured half. The item says "each half
+  rests on evidence" and then gives it a cost no other option is given - an unrecorded seam between
+  two abstraction levels - which is a real cost and is the only sentence in the list that reads as an
+  argument against. Whether that is the right ruling is Taylor's; whether the reader can see that
+  option 3 is the fully-evidenced one is this item's job and right now they cannot.
+  Decision 12 inherits the same gap in one line: its options are "no floor and accept decision 11
+  option 1 or 2, or a floor at a level a human sets". Option 3 also needs no floor, since the pinned
+  menu fits a 3-bet pot unfloored at 3,726 MB and the reduced menu fits a single-raised pot at 6,103
+  MB, so the no-floor branch covers three of decision 11's four options and names two.
+- **16. Option 4's feasibility is a build measurement stated as a solve, which is the thing this
+  contract has a rule about.** The option reads "Floor the ranges so the pinned menu fits a
+  single-raised pot. The one measured route to having both." What is measured is that the tree
+  *builds* inside the arena: `rung-lineA-pinnedmenu-rangefloor0.01` has `group: build`, and there is
+  no solve row anywhere in the record at the pinned menu with a floored range, so nothing has been
+  solved to any target on that configuration. Two things follow that the option should carry. The
+  margin is 10,881 MB against a 12,026 MB ceiling, 90.5%, and the solve rows in the same report post
+  peak resident memory from 3,951 to 10,865 MB separately from the arena, so "fits" is established
+  for the tree and not for the run. And the contract's own criterion says it in general terms: "**A
+  route recorded UNRUN is not assumed to work.**" Option 4 is the option a reader gravitates to
+  because it is the only one that promises both halves, so it is the one whose evidence label has to
+  be exact. Call it a build measurement, give the margin, and say no solve has been attempted on it.
+- **17. The phrase decision 6 strikes survives in the sentence immediately above its own
+  correction.** Third instance in this file of the pattern
+  `A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT-FALSIFIED-IT` records, and a two-word fix. The
+  text now reads, in order: "the example set skipped the middle of the frontier, where 3x2 and 2x3
+  both land at 0.979x and where **the contract's own count of a flop** - hero acts, villain answers,
+  hero faces a bet or a raise - actually sits. An earlier draft called three 'the contract's own
+  count of a flop'. That was a reviewer's hedged phrase quoted back as a flat assertion, and it is an
+  under-count." So the current draft uses the phrase and then says an earlier draft used it. A reader
+  going top to bottom meets the claim as live before meeting the correction, which is the exact
+  failure mode of the entry above, and the sentence is also now self-contradictory about which draft
+  said what. Replace the phrase in the first sentence with what the contract actually does - it
+  illustrates a flop rather than counting one - and the paragraph reads correctly in one pass.
 
 ## Non-blocker
 
@@ -568,6 +702,54 @@ kind. The other four are new and all four are right.
   worth naming instead is that the two lines also differ in stack-to-pot ratio, 17.7 against 5.8,
   which is part of why the tree is bigger.
 
+### Round 3, from the fix at `408b2c3`
+
+**The question put to me: has removing the steering twice left the absence of defaults doing the
+steering instead? My answer is no for two of the three and yes for one, and the one is decision 12.**
+Taking them separately, because "three defaultless items" is not one phenomenon.
+
+Decision 6's is right and I said so at blocker 5. Six levers whose costs land in different places,
+with an explicit statement that a pick is not an answer and a pick plus a product is, is a question
+a human has to answer cold. Decision 11's is right and is the clearest case in the list: the item
+had a default, its premise turned out false, and there is now no conservative choice to fall back
+to, because each candidate menu is unmeasured on half the coverage decision 3 ruled. A default there
+would be inventing a poker judgment the evidence does not support, and the item says exactly that
+about its own struck default, which is the record stage 3 wants.
+
+Decision 12 is different in a way that matters. There is a fail-closed option, it is the status quo,
+and it requires no action to be safe: **no floor.** The repo's convention is to fail closed, decision
+4's own new default invokes that convention by name, and no floor is the choice that commits nothing
+and forecloses nothing except decision 11's option 4. So I would default decision 12 to no floor and
+make the floored route the human's opt-in, with the truncation stated beside it as the item already
+does. Offering no default when a fail-closed one exists is where an absence starts doing work: a
+reader can reasonably take "none, deliberately" as "the coordinator has no view", when the repo's own
+convention supplies one and the item's own evidence points at it. This is a recommendation on the
+item's form and not a defect in its content, which is why it is here and not above.
+
+One general note on the form, since two of the three are now written as "Default: **none,
+deliberately.**" and one is not. That phrasing is better than omitting the line, because it
+distinguishes a deliberate absence from a forgotten one and `check_decisions` cannot tell them apart
+- it never reads the default at all. Decision 6 has no `Default:` line of any kind. Give it the same
+sentence, so all three read as choices rather than as one choice and two omissions.
+
+- **Decision 12's truncation figures are single-raised-pot only, and the 3-bet line truncates the
+  other seat.** The item gives 1,131 to 360 out of position and 679 to 559 in position, which are the
+  `lineA` numbers. On `lineB` the floor at the same 0.01 takes the in-position range from 475 combos
+  to 253 and the out-of-position range from 239 to 198, so the heavier cut lands on the in-position
+  seat and the "68% truncation of the defending range" framing does not carry across. That matters
+  because decision 11's option 1 is 3-bet pots only, so a human weighing option 1 together with a
+  floor is reading the wrong line's figures. Both pairs, labelled by line, is four numbers.
+- **The blocker-12 correction introduced one very long line.** The sentence beginning "The frontier
+  below is arithmetically right" runs on into "And 'the only option that fits' is false by this
+  table:" on a single source line. Nothing checks line length in this directory - `check_file_sizes`
+  caps `reports/phase_audits/*.md` at 500 lines and that glob does not reach the `decisions/`
+  subdirectory at all - so this is readability only, and it sits in the paragraph blocker 17 asks to
+  be re-cut anyway.
+- **The item counts in the handoff are right this time, and I checked them rather than accepting
+  them.** Twelve items, eleven `frozen-into-data`, one `runtime-reversible`, eight unanswered frozen:
+  decisions 4, 6, 7, 8, 9, 10, 11 and 12. Recorded because the previous round's count was off by one
+  and because eight is what stage 3 will print.
+
 ## Alignment
 
 Long-term drift this stage cannot fix. Each carries an ID.
@@ -700,6 +882,41 @@ one entry in `backlog.yml`. Two more from this round.
   from a review of the same document. Cross-cite
   `A-CONTRACT-STATES-MEASURED-LEVELS-WITHOUT-NAMING-THE-ARTIFACT`.
 
+### Round 3
+
+- `A-REVIEW-FINDING-IS-QUOTED-INTO-THE-RECORD-AS-IF-MEASURED` - **filed at `408b2c3`, verified
+  present once, and the diagnosis is right.** I was asked to correct it if it was wrong and I would
+  not change a word of the mechanism: a reviewer writes to argue and hedges accordingly, a
+  coordinator writing a fix wants a citable sentence, the hedge is the first thing to go, and the
+  reviewer then reviews its own words with the qualification removed, "which is the one case where
+  an independent reviewer is least independent". That last clause is the part I had not seen and it
+  is the sharpest thing in the entry. Two additions when it is next touched, neither changing the
+  diagnosis. First, both instances were caught only because the reviewer re-read a paragraph it had
+  already argued about, so the practical mitigation is narrow and worth naming: a fix that quotes a
+  review goes back to that review, and the reviewer's own sentences are the first thing it re-reads.
+  Second, blocker 14 of this round is **not** an instance of this entry and should not be added to
+  it - a count that fails to reconcile against a line printed in the same file is
+  `A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT`, and folding the two together would
+  produce an entry whose remedy is "be careful", which resolves by assertion.
+- `A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT` - blocker 14 is the second instance
+  in this phase and the first where the contradicted figure is printed by a generated report rather
+  than typed four lines away. That is a strengthening of the entry rather than a repetition of it:
+  the eight and the six do not reconcile against "7 of 30 rows that reached their target" on line 525
+  of the very file they were parsed from, and the entry's proposed remedy - render the figure from
+  its inputs rather than typing it beside them - would have caught it, because a generator that
+  counted converged rows would have counted seven. Worth recording that both instances were
+  arithmetic a reader could do from the page, and that both were found by a reviewer doing it.
+  Existing entry.
+- `OPTION-SHEETS-SHOULD-SAY-WHICH-OPTIONS-WERE-MEASURED` - blockers 15 and 16 are this entry's exact
+  ask, arriving in a second phase and in the same document twice in one round. The entry wants every
+  option marked measured, bounded by argument, or unexamined. Decision 11 has four options of which
+  one is measured on both halves (option 3), two are measured on one half each (options 1 and 2, and
+  only option 1's gap is disclosed), and one is measured as a build rather than a solve (option 4)
+  while being called "the one measured route". A decision list with three defaultless items is
+  exactly where this entry earns its keep, because with no default the evidence labels are the whole
+  of what a human is reading. Existing entry; this is the strongest instance it has and it should
+  cite this round.
+
 ## Method
 
 Read-only throughout. Commands used: `git log`, `git diff`, `git show`, `git branch`, `grep`,
@@ -737,5 +954,26 @@ blocker 12, which is a count off the menu rather than a measurement and is state
 Still not verified in round 2: whether rainbow reaches 0.3% at a higher iteration count, which is
 what blocker 13 turns on and which no evidence in the repo settles; and the four new items' poker
 merits beyond the feasibility arithmetic, since only decision 11 has an evidence base in the tree.
-No tracked file was modified in either round. `scripts/run_verify.py` and
-`scripts/check_gate_bite.py` were not run.
+
+### Round 3, against `408b2c3`
+
+Reviewed as `git show 408b2c3` over the decision list, the contract and `backlog.yml`. Every figure
+in decisions 11 and 12 was re-derived rather than checked against my own round-2 note, which is what
+found blocker 14. New read-only work: the converged set rebuilt from the 30 `group: solve` rows minus
+the 23 names in the report's own exclusion list, cross-checked against its "7 of 30" summary line and
+against the `group: determinism` row that explains the off-by-one; the converged-configuration
+cross-tab of pot type against `config.ip` hash behind blocker 15, which is what showed that no 3-bet
+row uses the reduced config at all; the `group` field of `rung-lineA-pinnedmenu-rangefloor0.01`
+behind blocker 16, together with the solve rows' peak-resident range; the `lineB` floored and
+unfloored hand counts for the asymmetric-truncation note; `docs/GTOPEN_SOLVER_NOTES.md:117` read
+directly to confirm decision 12's quotation is exact; `check_file_sizes.py`'s globs to confirm the
+`decisions/` subdirectory is uncapped; and the driver's parser run against the amended list for the
+twelve-eleven-eight counts.
+
+Still not verified in round 3: whether the reduced menu would converge on a 3-bet pot or the pinned
+menu on a floored single-raised pot, which are the two holes blockers 15 and 16 are about and which
+only a solve settles; and whether a 68% range truncation moves hero's flop strategy, which decision
+12 states as unmeasured and which I have no way to measure here.
+
+No tracked file was modified in any round. `scripts/run_verify.py` and `scripts/check_gate_bite.py`
+were not run.

@@ -313,8 +313,10 @@ below supplies them: the **encoding**, the **per-spot byte budget** including th
 fields, and the **number of preflop lines**. A pick from the list is not an answer on its own; a
 pick plus a product from the budget above is.
 
-The six levers, stated without a recommendation because the cost of each falls in a different
-place:
+Default: **none, deliberately.** Not an omission and not a coordinator declining to think: the
+three levers trade reviewability, coverage and repo weight against each other, and there is no
+fail-closed option among them, because every one of them still commits data. The six levers,
+stated without a recommendation because the cost of each falls in a different place:
 
 First, what encoding is worth, measured, so no option below rests on a format argument. Hero
 strategy only, storing only the free weights, over all 1,755 flops, and read as **how many hero
@@ -342,7 +344,8 @@ An earlier draft of this entry gave 5x1, 1x3 and 1x5 as its examples and called 
 option that fits today without touching the cap". Both were wrong and the stage-2 review held the
 stage over them. The example set skipped the middle of the frontier, where 3x2 and 2x3 both land at
 0.979x and where the contract's own count of a flop - hero acts, villain answers, hero faces a bet
-or a raise - actually sits. An earlier draft called three "the contract's own count of a flop".
+or a raise - actually sits. An earlier draft called that count three, quoting a reviewer's reading
+of the contract as though the contract stated it.
 That was a reviewer's hedged phrase quoted back as a flat assertion, and it is an under-count:
 under decision 11's pinned menu with `max_raises: 2` hero has about five flop decision nodes, so
 about six units buys **one** preflop line at full flop depth, not the two that 3x2 suggests. The
@@ -543,10 +546,12 @@ the target". The menu is also decision 6's silent input, since every row of that
 at two or three actions and the step is worth 1.5x.
 
 **"The menu MAINT-26 measured" is not one object, and an earlier draft of this item said it was.**
-The stage-2 review parsed all 55 committed rows and I re-derived it: of the eight rows that reached
-0.3% of pot, six are `starting_pot: 16.0` - a 3-bet pot, at the pinned menu
-`Check | Bet 33% | Bet 75%` with `max_raises: 2` - and the only two at `starting_pot: 5.5`, a
-single-raised pot, carry `reduced-tree-not-cost-comparable` in their own row labels. **The pinned
+The stage-2 review parsed all 55 committed rows and I re-derived it: of the **7 of 30** `group:
+solve` rows that reached 0.3% of pot, **five** are `starting_pot: 16.0` - a 3-bet pot, at the pinned
+menu `Check | Bet 33% | Bet 75%` with `max_raises: 2` - and the only two at `starting_pot: 5.5`, a
+single-raised pot, carry `reduced-tree-not-cost-comparable` in their own row labels. An earlier
+draft of this paragraph said eight and six, which counted the one `group: determinism` row, itself
+the comparison between two repeats already counted; the report's own aggregate line says 7 of 30. **The pinned
 menu has never been solved to target in a single-raised pot.** It was not slow; it was never
 attempted, because that tree measures 21,282 to 21,715 MB of arena on all eight build rows against
 the measuring script's 12,026 MB ceiling, and an arena over a box's RAM fails rather than slows.
@@ -561,15 +566,26 @@ The choice, therefore:
 1. **The pinned menu, 3-bet pots only.** Fully measured, and it abandons the commonest way to see
    a flop. Decision 3's head would have to be re-read as "the head of the 3-bet lines".
 2. **The reduced menu everywhere.** The only menu with a converged single-raised-pot solve, so the
-   coverage decision 3 wants is reachable. Its rows are marked not cost-comparable, so decision 6's
-   budget and every hour figure in this phase would have to be re-derived on it, and a narrower
-   betting tree is a coarser strategy in the spots that matter most.
-3. **A menu per line type**, pinned for 3-bet pots and reduced for single-raised. Each half rests on
-   evidence, and the artifact then carries two abstraction levels with a seam between them that
-   nothing in the repo would record.
-4. **Floor the ranges so the pinned menu fits a single-raised pot.** The one measured route to
-   having both, and it is a poker choice of its own rather than a tuning knob, which is why it is
-   decision 12 and not a clause here.
+   coverage decision 3 wants is reachable. **It has the mirror image of option 1's gap and an
+   earlier draft of this list did not disclose it**: no 3-bet row in the record uses the reduced
+   config at all, not a solve and not a build, so this option is unmeasured on exactly the half
+   option 1 is measured on. Its rows are also marked not cost-comparable, so decision 6's budget
+   and every hour figure would be re-derived on it, and a narrower betting tree is a coarser
+   strategy in the spots that matter most.
+3. **A menu per line type**, pinned for 3-bet pots and reduced for single-raised. **This is the only
+   option with no unmeasured half**, because it is precisely the pair that converged: the record's
+   solve rows are pinned at pot 16.0 and reduced at pot 5.5 and nothing else. Its cost is real and
+   it is not an evidence gap - the artifact carries two abstraction levels with a seam between them
+   that nothing in the repo would record, so a cell's strategy is coarser or finer depending on the
+   preflop line and no field says which.
+4. **Floor the ranges so the pinned menu fits a single-raised pot.** **This is a build, not a
+   solve.** `rung-lineA-pinnedmenu-rangefloor0.01` is a `group: build` row; no solve row anywhere
+   uses the pinned menu with a floored range, so nothing here says the solve converges or what it
+   costs. This contract's own criterion applies to it - a route recorded UNRUN is not assumed to
+   work. The margin is also thin where it is measured: 10,881 MB of arena against the script's
+   12,026 MB ceiling is 90.5% of it, and solve rows post peak resident memory of 3,951 to 10,865 MB
+   as a separate axis above the arena. It is the option a reader gravitates to, which is why its
+   label has to be exact. The poker cost is decision 12's.
 
 Default: **none, deliberately.** An earlier draft defaulted to "the menu MAINT-26 measured" on the
 grounds that every affordability figure rests on it; that reasoning was sound and its premise was
@@ -611,9 +627,15 @@ anywhere in either range collapses the suit-isomorphism group to the identity an
 entire saving on every board that is not rainbow, which is what
 `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` records.
 
-Default: **none, deliberately.** The honest options are no floor and accept decision 11 option 1 or
-2, or a floor at a level a human sets with the truncation it implies stated beside it. An
-implementer picking 0.01 because the notes used it would be freezing a 68% range truncation into
-every committed cell on the strength of a cross-unit argument.
+Default: **no floor.** Unlike decision 11 and decision 6 there is a fail-closed option here and it
+is the status quo: solving the ranges as the export gives them requires no action to be safe, and
+this repo fails closed everywhere else - decision 4's own default invokes that convention by name.
+So the floored route is the opt-in, and a floor is a level a human sets with the truncation it
+implies stated beside it. An implementer picking 0.01 because the notes used it would be freezing a
+68% range truncation into every committed cell on the strength of a cross-unit argument.
+
+No floor covers decision 11 options 1, 2 and 3, all three of which are affordable unfloored on the
+half of the coverage each is measured on. It does not cover option 4, which exists only because of
+a floor and is a build rather than a solve.
 
 Answer:
