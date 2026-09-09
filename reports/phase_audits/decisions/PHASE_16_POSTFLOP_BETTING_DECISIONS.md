@@ -35,11 +35,21 @@ on a default. The full argument for each is in its own section below; this is th
 ruling needs more than its three lines. **Read 13 first**: it asks whether the other eight belong
 in one phase, and if they do not, some of them are not yours to rule yet.
 
+**One measurement is worth taking before any of this is ruled, and it is one solve.** A
+0.3%-of-pot target gets *which* hands bet right; what a reader takes off a flop chart is **how
+often**, and mixed frequencies settle well after exploitability does. Nothing here has solved a
+cell deep and diffed the frequencies - both determinism runs stopped at 240 iterations - so this
+phase would commit a frequency table nobody has checked is one. Take one cell to several times 240
+iterations and diff the frequencies. If they have moved, the rulings below are being made about
+noise with a good accuracy number on it. Decision 7 carries the detail.
+
 **4. Exploitability target, and a cell that never reaches it.** Target 0.3% of the starting pot,
 and commit a cap-bound cell with its achieved percent as a floor, or refuse it. The scale is what
 makes this consequential: **23 of 30 measured rows missed the target** and rainbow never reached it
-at all, so refusing leaves about **455 of 1,755 flop classes with no cell** and makes the
-board-miss refusal code live. Default: 0.3%, and refuse.
+at all. Rainbow is 455 of 1,755 classes but **39.8% of actual flops**, because rainbow classes
+carry 19.3 boards each against monotone's 4.0 - so refusing risks a trainer that refuses **two
+flops in five**, and the plainest ones. The converged evidence covers 5.18% of flops. Default:
+0.3%, and refuse.
 
 **6. How the committed artifact is encoded, given that it does not fit.** A budget, not a menu: the
 **15.04 MiB of headroom** left under the 20 MiB cap affords about six node-line units at one byte per
@@ -92,6 +102,11 @@ a split is a second contract, gate, packet and human gate, so you are asked twic
 Decisions 1, 2 and 3 were ruled on 2026-08-19 and are not reopened; five of their premises are
 annotated below as no longer true, none re-ruled. Decision 5 is `runtime-reversible` and proceeds
 on its default.
+
+One consequence of decision 1 that no ruling below changes and a reader should have: because a flop
+bet's value at this depth is largely the leverage it creates later, and this artifact's turn
+refuses, **no winrate or EV figure may ever be reported over it**. The training use survives - a
+refusal voids the hand rather than playing on - but the number does not exist.
 
 ## What changed, and why this file exists
 
@@ -204,6 +219,14 @@ Every flop, against a small head of common preflop lines: prune hard on the axis
 The turn waits on `POSTFLOP-BOARD-ABSTRACTION` from decision 2, which is what makes 85,995 turn spots into a tractable number, and it is deferred with it.
 
 The accepted cost is the one above. A bot that bets a flop and then checks or folds every turn is a bot with a visible seam, and phase 15's drill is where that either matters or does not.
+
+**Annotated 2026-09-09 by the stage-2 poker review: the seam is worse than "a visible seam", and it
+bars a claim.** At the single-raised pot's SPR of 17.7 a flop bet's value is largely the leverage it
+creates on later streets, so a betting frequency solved above a full turn and river tree is not the
+right frequency for an agent whose turn refuses. The training use survives, because a refusal voids
+the hand rather than checking it down, so the bot never plays out the strategy it did not solve for.
+What does not survive is measurement: **no winrate or EV figure may ever be reported over this
+artifact**, because the hands it would be computed from are the ones that ended at the refusal.
 
 **Annotated 2026-09-08, not re-ruled** (`A-RULED-DECISION-CAN-NAME-A-SOURCE-THE-REPO-WILL-NOT-HAVE`).
 Twice above, this item validates its accepted cost against phase 15 - "whether that matters is
@@ -365,6 +388,14 @@ plays.
 
 Three things that default does not cover, stated because a packet that quoted 0.3% as settled
 accuracy would be claiming more than the measurement supports:
+
+**The exposure is 39.8% of flops, not 25.9%.** Rainbow is 455 of 1,755 classes, which is 25.9% of
+classes and where an earlier draft of this file stopped - but rainbow classes carry 19.3 boards
+each against monotone's 4.0, so rainbow is **8,788 of 22,100 boards, 39.76% of flops**, brute-forced
+here rather than argued. Refusing a cap-bound cell while rainbow has never reached target risks a
+flop trainer that refuses **two flops in five**, and the plainest ones. The same conversion cuts
+the other way on the evidence: the converged rows are six monotone and one two-tone, so the
+evidence base covers **5.18% of flops**, on the texture that generalises worst.
 
 1. **It is not known whether the strategy has converged.** Exploitability was targeted; frequencies
    on indifferent hands settle later, and nothing was solved deep and diffed against a shallower
@@ -601,6 +632,18 @@ accuracy target and the observed maximum divergence are recorded in place of the
 the gate can tell those branches apart, because the gate must pass with no GTOpen and no network,
 so whichever is written is what the repo believes.
 
+**The measurement this phase most needs is not reproducibility, and the stage-2 poker review named
+it.** A 0.3%-of-pot solve does not get *which* hands bet wrong. What a reader takes off a flop chart
+is **how often**, and mixed frequencies settle well after exploitability does. Nothing in this repo
+has solved a cell deep and diffed the frequencies; both determinism runs stopped at 240 iterations.
+For a training artifact the frequencies **are** the product, so as things stand this phase would
+commit a frequency table nobody has checked is one.
+
+**The check is one solve and it is the cheapest open measurement in the phase: take one cell to
+several times 240 iterations and diff the action frequencies against the 240-iteration version.**
+If they have moved materially, this commits noise carrying a good exploitability number, and no
+amount of board coverage repairs that. It belongs before a ruling rather than after.
+
 Default: **prove it on the run that is committed, not on a proxy** - solve the committed
 configuration twice in separate processes against a restarted server, diff the strategies rather
 than compare checksums, and record the digest. If it is not byte-identical, the tolerance is a
@@ -694,10 +737,18 @@ default they are recoverable from the key and putting them in it is redundant. T
 recoverable the moment the phase covers a depth other than 100bb or a table that is not flat -
 which the preflop key already handles with its `d100` segment and its flat-table refusals.
 
+**A flop cell is far more stack-sensitive than a preflop cell, which the stage-2 poker review
+measured and this item understated.** The geometric three-street size moves 103.9%, 115.8% and
+130.9% of pot at 77.5, 97.5 and 127.5bb effective. So the same board and the same ranges at a
+slightly different depth is a materially different strategy, where a preflop cell at a nearby depth
+is nearly the same one.
+
 Default: **leave them out of the key and carry them in the spot's payload, validated against the
 preflop line they come from**, so a spot whose pot does not follow from its line is refused at
 import rather than played. The `d` segment inherited from decision 8's verbatim preflop key is
-what carries depth.
+what carries depth. And the validation **refuses a near-miss rather than rounding it** - the
+opposite of the preflop chart's nearest-price substitution, because the sensitivity above is what
+makes rounding safe preflop and unsafe here.
 
 Answer:
 
@@ -734,6 +785,14 @@ two omissions push hero's flop betting frequency in **opposite** directions, no 
 bet more freely in position and no jam capping what either can threaten, which is why the net sign
 has to be measured rather than argued and why neither belongs in a ruling as an unstated side
 effect.
+
+**And `donk: ""` has a consequence for the artifact, not only for the solve: a cell whose only legal
+action is check is not a strategy.** With no donk the out-of-position flop root has exactly one
+legal action, so committing that node produces 1,755 cells per preflop line reading `check 1.00` -
+indistinguishable, to any reader or any check, from a solved decision to check every flop. Either
+that node is omitted with the reason recorded, or the artifact is half filled with cells that
+assert nothing. Adding a donk subtree is not the cheap way out: by the arena figures it lands near
+or over the 12,026 MB ceiling.
 
 **"The menu MAINT-26 measured" is not one object, and an earlier draft of this item said it was.**
 The stage-2 review parsed all 55 committed rows and I re-derived it: of the **7 of 30** `group:
@@ -860,20 +919,28 @@ anywhere in either range collapses the suit-isomorphism group to the identity an
 entire saving on every board that is not rainbow, which is what
 `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` records.
 
-**But flooring an unsmoothed export has a cost this item never named, and it is a poker cost.** The
-floor does not only delete residue; it cuts a rank-ordered block out of the defender's pair ladder,
-and differently in each pot type. Measured here over every committed range:
+**Flooring an unsmoothed export does carry a poker cost, and it is one hand class rather than a
+ladder.** An earlier draft of this paragraph, written on 2026-09-09, said the floor cuts a
+rank-ordered block out of the defender's pair ladder in both pot types. **That was half wrong and
+the poker review caught it.**
 
-- The **3-bet-pot** out-of-position ranges (`568ae7b39c57`, `b6fe98063c86`) keep every pair after a
-  0.01 floor **except 44**.
-- The **single-raised-pot** out-of-position ranges (`1f1afe475a98`, `717f36499fb4`) keep only
-  `55 44 33 22`, deleting `TT 99 88 77 66` - the better pairs, while the worse ones survive.
+The single-raised-pot pattern is **normal poker**, not a defect. `config.range_oop@717f36499fb4`
+reads `TT 0.0002, 99 0.0011, 88 0.0016, 77 0.0041, 66 0.0043`, then `55 0.5712, 44 0.8244,
+33 0.9474, 22 0.8064`. That is a single monotone threshold, not an inversion: every pair 66 and
+better is essentially absent from the big blind's **flat-calling** range because it 3-bets instead,
+and 55 and below flat. Two blocks, one boundary. The same thing happens at the top of the
+3-bet-calling range, where `AA KK QQ JJ` are absent because they 4-bet. Calling that "not poker"
+would invite smoothing `TT 99 88 77 66` back into a range they correctly sit outside, where they
+are already counted in the 3-bet range - an error injected by a repair.
 
-Neither is poker. Both are the preflop solve's own indifference frozen into the postflop input, and
-they are the same pair-ladder inversion phase 14 accepted and published a cost for, now arriving
-where it changes what hero is solved against. `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP`
-is the entry that owns it, and the floor is what makes it visible rather than what causes it -
-unfloored, those pairs are present at a weight that does nothing.
+The real artifact is **one class, 44**, and it is stranger than a ladder. In the 3-bet defending
+range `config.range_oop@568ae7b39c57` it reads **0.0007** while `55` reads 0.9776, `33` reads
+0.1620 and `22` reads 0.9994. No strength ordering produces that. And the same class survives on
+the in-position side at **0.0194**, two hundredths above the floor. So a 0.01 floor deletes 44 from
+one side of the 3-bet pot and keeps it on the other, leaving hero solved in a pot where he can hold
+44 and his opponent provably cannot.
+`EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` owns it, and the floor makes it visible rather
+than causing it - unfloored, 44 is present at a weight that does nothing.
 
 Default: **floor, class-level, at 0.01** - reversed on 2026-09-09 from "no floor" after the
 stage-2 poker review measured the mass. The earlier default was chosen because this repo fails
@@ -881,9 +948,10 @@ closed and no floor requires no action to be safe; that reasoning was right in f
 the 68% figure being a quantity of range, which it is not. Class-level remains a constraint rather
 than a choice, because one suit-specific weight collapses the isomorphism group.
 
-The condition on that default: the pair ladders above are stated as a known defect of the input,
-not repaired by this phase, and the report publishes which pairs each committed range holds so a
-reader can see what hero was solved against.
+The condition on that default: the 44 asymmetry above is stated as a known defect of the input, not
+repaired by this phase, and the report publishes each committed range's pair weights on both sides
+so a reader can see what hero was solved against - and can see that the pairs missing from a
+flat-calling range are missing because they 3-bet, which is the reading a repair would destroy.
 
 Answer:
 
