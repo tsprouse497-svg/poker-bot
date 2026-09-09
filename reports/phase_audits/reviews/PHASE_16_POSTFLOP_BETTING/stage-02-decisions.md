@@ -26,7 +26,15 @@ all: decision 11's default pinned a solver menu that has never been solved on a 
 and whose single-raised-pot tree measures 1.8x the arena ceiling on all eight committed build rows.
 A fifth frozen choice, the range floor, is what closes that gap and was itself on no list.
 
-**The headline, round 9, and it answers both questions.** The index is safe to rule from in eight of
+**The headline, closing.** All thirty-seven findings are resolved and nothing here holds stage 2. The
+stage's question was whether every reversibility class is right, and all thirteen are - the twelve
+`frozen-into-data` and the one `runtime-reversible`. That was true in round 1 of six items and is
+still true of thirteen; everything else this note found was in the defaults, the evidence labels, the
+premises of items nobody re-read, and the document's shape. Two findings came from being asked rather
+than from a diff, and they are the two worth carrying forward: nothing in the loop ever re-reads an
+answered decision, and no poker review had touched this phase.
+
+**The headline, round 9, and it answered both closing questions.** The index is safe to rule from in eight of
 its nine entries, and I could not find a fact in any of those eight items that a reader would need
 and not be given - which was not true two rounds ago. The ninth is decision 13, and yes, it is
 loaded: five arguments for a split, one against, and the one against is undercut by a measurement
@@ -110,11 +118,11 @@ in this phase.
 
 ## Blocker
 
-Thirty-seven findings over nine rounds. Round 7 read the preamble and filed 28 through 30, fixed at
-`b2f1053`. Round 8 checked the new index and filed 31 through 33, plus 34 and 35, the two findings
-held back because neither was a defect in the stage's work; all five fixed or acted on at `14d3405`.
-Round 9 re-checks the index, reads decision 13 - the item I asked for and did not write - and files
-36 and 37. **Thirty-five are marked `[resolved]`; 36 and 37 hold the stage.**
+**Thirty-seven findings over nine rounds, all thirty-seven marked `[resolved]`. Nothing in this note
+holds the stage.** Round 8 filed 34 and 35, the two findings held back because neither was a defect
+in the stage's work. Round 9 read decision 13 - the item I asked for and did not write - and filed
+36 and 37, both fixed at `1ad8868`. Every mark carries what I re-derived under it, and nothing is
+marked on the strength of a commit message.
 
 Round 1 filed 1 through 7, fixed at `f2d34c3`. Round 2 filed 8
 through 13, fixed at `408b2c3`. Round 3 filed 14 through 17, of which three were fixed at `39e6074`
@@ -1135,9 +1143,9 @@ with it, they are the whole ruling.
   stage has already filed twice. Marked resolved on the action having been taken, which is what the
   finding asked for; what the note finds is stage 3's to weigh.
 
-### Round 9, new. Two on decision 13, which is the one item I asked for and did not write.
+### Round 9, filed. Both fixed at `1ad8868`.
 
-- **36. Decision 13 is loaded toward splitting, and its single counter-argument is undercut by a
+- [resolved] **36. Decision 13 is loaded toward splitting, and its single counter-argument is undercut by a
   measurement in this same file.** You asked, so here it is with the count. Five things in the item
   argue for a split: phase 14's precedent and its "split it" answer; the repo's format-before-data
   rule with the observation that its precedent is a phase boundary; that ruling both halves at once
@@ -1171,7 +1179,7 @@ with it, they are the whole ruling.
   same amendment, so up to five rulings share sixteen lines, and phase 14's trigger was exactly this
   arithmetic five lines over. That is the strongest pro-split argument available and it is measured,
   and it is not in the item either.
-- **37. The index entry for 13 is the least balanced of the nine, and it is the one the header sends
+- [resolved] **37. The index entry for 13 is the least balanced of the nine, and it is the one the header sends
   a reader to first.** "Default: **none** - and phase 14 asked this same question and answered
   'split it'." That is the only answer-shaped fact in the entry, and the counter-argument the item
   carries does not appear in the index at all. Compare the other two defaultless entries: 6 says
@@ -1186,6 +1194,48 @@ with it, they are the whole ruling.
   the format-and-campaign split in one clause, phase 14's precedent with the fact that the phase it
   created is still unstarted, and the coupling in one clause - and, if blocker 36 is taken, that the
   coupling is narrower than it looks because all four of decision 11's levers share the flop menu.
+  **Both verified fixed at `1ad8868`, and the stage is clear.** Decision 13 now states that the
+  argument against splitting is weaker than its earlier draft claimed and gives the measurement -
+  both configs `bet: "33 75"`, `donk: ""`, `raise: "2.5x"` on the flop, differing only at turn and
+  river, so decision 9 does not wait on decision 11 among the levers on the table. Both omitted
+  costs are in, phase 17's `future` status checked independently by the coordinator, and the
+  sixteen-line arithmetic is stated as cutting against the coordinator's own framing. The item closes
+  by recording who raised it, that an earlier draft ran five arguments to one, and that the reviewer
+  declined to answer its own question - which is the right thing to have in the record, because a
+  reader at stage 3 should know an item's provenance before weighing it.
+  The index entry is now for-and-against in the same three lines, with explicit `For:` and `Against:`
+  labels, two arguments each, ending "No default". One observation and not a finding: the framing
+  clause before the labels - that the repo's rule is format before data with a phase boundary as its
+  precedent - is a pro-split fact sitting outside the `For:` list. It is also the reason the question
+  exists, so it belongs where it is; recorded only so a later reader does not find it and take it for
+  an unbalanced residue.
+  **Both non-blockers are taken and one is better than what I proposed.** Entry 9 reads "**Rulable
+  without 11**" with the shared-flop-sizes reason, which states the de-coupling as work removed
+  rather than a caveat added. The units are resolved once, where the byte figures live, rather than
+  patched in eight places: the cap is `20 * 1024 * 1024` = 20,971,520 bytes so "20 MB" means 20 MiB
+  throughout, headroom is 15,774,195 bytes = 15.04 MiB = 15.77 MB, and every ratio is computed from
+  bytes and unaffected. I re-derived all three. The index entry for 6 reads MiB.
+  One thing I checked and deliberately left alone: entry 11's arena figures are labelled MB -
+  21,282 to 21,715 against a 12,026 ceiling. Those are the solver's own `arena_mb` and
+  `arena_ceiling_mb` fields quoted verbatim and compared like for like, so the comparison holds in
+  whatever unit the producer meant. Recorded so a later reader does not "correct" a right number.
+
+### Final state of this note
+
+**Thirty-seven findings over nine rounds, all resolved. Nothing in this note holds stage 2.** The
+non-blockers and alignment items below are the stage's to carry rather than to clear, including the
+one ID this note asks to be filed, `A-LOOP-POLICY-REASON-OUTLIVES-THE-PHASE-IT-DESCRIBES`, and the
+additions asked of five existing entries.
+
+Two things are true of stage 3 that this note cannot close and that belong in front of the human
+rather than in a review. The decision list holds thirteen items, twelve `frozen-into-data`, of which
+nine are unanswered and one of those nine decides what the other eight are. And the poker in
+decisions 9, 11 and 12 is being read by a separate reviewer whose note I have not seen and should
+not: that note, not this one, is the input on whether the poker is right.
+
+Verified about the document as a whole at the end: thirteen items parse, every one declares a valid
+class, nine read as unanswered frozen, and the index's count of nine matches. The classes were the
+stage's question, and all thirteen are right.
 
 ## Non-blocker
 
