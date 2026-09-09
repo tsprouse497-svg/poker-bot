@@ -29,19 +29,26 @@ weight. My own note was committed unmodified.
 One thing that came back **sharper than I wrote it came back half wrong**, and it is a new blocker
 below rather than an accepted item. The rest of this section answers the two questions put to me.
 
+**Third pass, 2026-09-09. I was wrong about `donk`, and the wrong claim is now committed.** The
+retraction is the last blocker below, and the verdict that follows survives it with its third
+clause replaced. My first pass hedged this correctly by giving two readings; my second pass dropped
+the hedge and asserted the wrong one, which is the exact failure this brief warned me about.
+
 **Would a strong player say these cells are playing poker?** On the defaults as they now stand:
-the value judgements yes, the frequencies unproven, and one artifact would be spotted in a minute.
-Which hands bet, which continue and which fold will look right; a 0.3%-of-pot solve does not get
-that wrong. But what a strong player reads off a flop chart is not *which* hands bet, it is *how
-often*, and mixed frequencies settle well after exploitability does. Nothing here has solved a cell
-deep and diffed the frequencies against a shallower one, both determinism runs stopped at 240
-iterations, and that is decision 4's own first open item. For a training artifact the frequencies
-**are** the product, so this phase is about to commit a frequency table that nobody has checked is
-one. And the artifact a strong player spots immediately is the out-of-position player checking 100%
-of the time on all 1,755 flops, because `donk: ""` leaves him no other legal action.
+the value judgements yes, the frequencies unproven. Which hands bet, which continue and which fold
+will look right; a 0.3%-of-pot solve does not get that wrong. But what a strong player reads off a
+flop chart is not *which* hands bet, it is *how often*, and mixed frequencies settle well after
+exploitability does. Nothing here has solved a cell deep and diffed the frequencies against a
+shallower one, both determinism runs stopped at 240 iterations, and that is decision 4's own first
+open item. For a training artifact the frequencies **are** the product, so this phase is about to
+commit a frequency table that nobody has checked is one. Beyond that, the two things a strong
+player would query are narrower than I first said, and both reach the flop only through
+continuation values: no player can ever jam, and the out-of-position player cannot lead a turn or
+river into the previous street's aggressor.
 
 So: worth committing, conditionally, and the condition is one solve. Rule the menu so the finer
-tree lands in the single-raised pot, publish the missing donk and jam on every cell, and **solve
+tree lands in the single-raised pot, publish the missing jam and the missing turn and river lead on
+every cell, and **solve
 one cell to several times 240 iterations and diff the action frequencies against the 240-iteration
 version.** If the frequencies have moved materially the phase is committing noise with a good
 exploitability number on it, and no amount of board coverage repairs that. That diff is the
@@ -140,6 +147,25 @@ dated 2026-09-09, is new and open.
   3-bet pot where he can hold 44 and his opponent provably cannot. That is worth publishing; a
   rank-ordered block of better pairs being cut is not, because it did not happen.
 
+- **New, 2026-09-09, and this one is mine to retract: `donk: ""` does not remove the out-of-position player's FLOP bet, and the `check 1.00` paragraph now in decision 11 is wrong and must come out.** I read GTOpen's tree builder rather than continuing to infer it. `crates/solver/src/tree.rs:485-489` reads `let donking = st.to_act == OOP && st.street > self.root_street && st.last_aggressor == Some(IP); let size_list = if donking { &sizing.donk } else { &sizing.bet };` and `root_street = (board.len() - 3)` at line 304, so on a flop-rooted solve `st.street > root_street` is **false at the flop** and the out-of-position player uses `sizing.bet`, which is `"33 75"` in every measured config. The build validator says the same in its own words at line 346: `let donk_used = player == "OOP" && street > root_street as usize`. And `last_aggressor` starts `None` at the root (line 390) and is carried unchanged through a check (line 615), so even the turn stab after a flop check-check uses the `bet` list.
+
+  So the out-of-position player bets 33 and 75 on the flop in both pot types, no committed cell is a
+  forced single action, no bytes are wasted on `check 1.00`, and nothing should be omitted. The
+  paragraph now in decision 11 would tell an implementer to delete or refuse 1,755 cells per line
+  of genuine solved strategy, which is a worse outcome than the error it was meant to fix. It must
+  be struck, not softened.
+
+  What survives, precisely. `add_allin: false` stands in full: no jam branch exists anywhere, and
+  line 504's `if self.config.add_allin && (...)` is the only place one is added. The donk half
+  survives only in its narrow form: the missing action is the out-of-position player **leading the
+  turn or the river when the in-position player was the previous street's aggressor** - the probe
+  into a called flop bet. That is a real and frequent line and it does bias hero's flop bet upward,
+  because his flop bet is never answered by a turn lead. But it is a continuation-value effect on a
+  flop-only artifact, the same channel as decision 11's turn and river size restriction, and not a
+  missing flop node. My fifth blocker should be read with its wide reading deleted; its conclusion
+  that the sign of the net flop-aggression effect must be measured rather than argued is unchanged,
+  because the jam and the missing probe still pull opposite ways.
+
 ## Non-blocker
 
 - **Decision 9's default is poker-right and it is not a close call.** Facing 33% and facing 75% on the same board are different strategic problems by every measure that governs the decision. Required equity to call is `b/(1+2b)`: 19.9% against 33%, 30.0% against 75% - a 51% relative jump in the continue threshold. Minimum defence frequency is `1/(1+b)`: 75.2% against 33%, 57.1% against 75% - an 18-point swing in how much of hero's range continues, larger than any other single input in the spot. And the bettor's maximum bluff share is `b/(1+b)`: 24.8% at 33% against 42.9% at 75%, so the *bettor's* range composition at the two sizes differs by design and the "same ranges" premise in the question is false in practice. Composition follows: against a small bet the correct defence is call-heavy and raise-heavy and reaches down to bottom pairs and gutshots; against a large bet it is polarised into strong calls and folds. A merged cell would be an average of a 75%-defence and a 57%-defence, which means the bot **overfolds against small bets and overcalls against large ones** - the two errors an opponent farms by simply choosing his size, and findable in one session by a human. Merging is not "slightly coarse" here, it is a size-selection leak handed to the opponent.
@@ -167,7 +193,37 @@ while working on 9, 11 and 12 and did not write because they were out of brief.
 
 - **Decision 10's default is right in mechanism and the item understates how stack-fragile a postflop cell is.** Pot and effective stack are recoverable from the preflop line at a flat 100bb table, so payload plus validation is the correct call. What the item does not say is that a flop cell is far more sensitive to effective stack than a preflop cell is. Computed from the single-raised pot's own pot of 5.5, the geometric three-street bet size moves 103.9% of pot at 77.5bb effective, 115.8% at 97.5, and 130.9% at 127.5; SPR moves 14.1 to 17.7 to 23.2. A preflop chart at 100bb is roughly usable at 85bb or 120bb. A flop strategy at SPR 14 is a different strategy from one at SPR 23 - different bet-size mix, different check-raise frequency, different commitment threshold. So the flat-table refusal that decision 10 inherits has to be strict rather than tolerant, and the validation must refuse a near-miss rather than round it, which is the opposite of the preflop chart's nearest-price substitution.
 
-- **A cell whose only legal action is check is not a strategy and should not be committed as one.** With `donk: ""` the out-of-position player's flop root has a single legal action, so committing it produces 1,755 cells per line that read "check 1.00". Those cost bytes in decision 6's budget, teach nothing, and misrepresent the tree: a reader cannot tell a solved 100% check from a forced one. The out-of-position seat's real flop decisions are its responses to a bet, and those are worth committing. Either the root is omitted with the reason recorded, or the phase enables a donk size and re-prices - and by the arena law in my first pass, adding an out-of-position lead subtree to the floored single-raised tree would land near or over the 12,026 MB ceiling, so omission with disclosure is the likely answer rather than the lazy one.
+- **RETRACTED 2026-09-09, see the retraction blocker.** This item said a cell whose only legal action is check should not be committed, on the premise that `donk: ""` leaves the out-of-position player no flop bet. The premise is false: the donk list is not consulted on the root street, so the out-of-position player bets 33 and 75 on the flop. There is no forced-check cell and nothing to omit. Left in place rather than deleted because it is quoted in `af0cdce`.
+
+**Poker pass on decisions 2, 6, 8 and 13, 2026-09-09.** These four had none. Decision 8 is the one
+that matters.
+
+- **Decision 8 is a poker question wearing a format question's clothes, and its default is right while the thing it exposes is not ruled.** Carrying the preflop key verbatim is correct: it names exactly the ranges a spot was solved from and invents no compression. But there are **two** price substitutions here and the item addresses only one. The committed one - recording that a spot was solved at the `@2.5` ranges - is honest provenance and the default handles it. The **query-time** one is where the poker error enters: a hand actually opened to 2.25bb looks up an `@2.5` key, and nothing bounds what that costs. Computed from the corpus's own median open against the key's price:
+
+  | | pot | effective | SPR | geometric 3-street size | BB's price to call |
+  |---|---|---|---|---|---|
+  | `@2.5`, the key | 5.50 | 97.50 | 17.73 | 115.8% of pot | 27.3% |
+  | `@2.25`, what was played | 5.00 | 97.75 | 19.55 | 121.1% of pot | 25.0% |
+
+  Two channels, both systematic and both in one direction across every corpus hand, which matters
+  more than either magnitude because neither averages out. The **range** channel is the larger:
+  2.25bb is a cheaper price, so the true defending range is wider and weaker than the `@2.5` range
+  the cell was solved against, and hero's committed strategy therefore c-bets and bluffs too little
+  for the spot he is actually in. The **geometry** channel is smaller and opposite in character: the
+  real pot is 9.1% smaller and SPR 10.3% higher, so the cell is solved at a lower SPR than the hand
+  sits at and reads as too willing to commit. Neither is visible to decision 10's validation, which
+  checks the payload against the **line** rather than against the query - so a spot can be served
+  for a pot it was not solved at and the validation passes, because the artifact is being checked
+  against itself. The poker conclusion: the preflop chart's nearest-price tolerance does not
+  transfer. Preflop, 0.25bb barely moves a range. Postflop the same 0.25bb moves the pot, the SPR
+  and both ranges at once, so the query-time substitution should refuse, or at minimum surface its
+  SPR delta as a strategy substitution rather than a price one.
+
+- **Decision 6 is treating a poker question as arithmetic: which nodes to spend the budget on.** The frontier is stated as products of nodes and lines with no view on which nodes. There is one. A student's leaks are not in the flop root - c-bet frequency is the single most widely published number in poker - they are in what to do **facing** a bet and facing a raise. So the poker ranking of the roughly six node-line units is: hero facing 33% and facing 75% first, hero facing a raise second, hero's root last. Option 4, "store hero's flop root only and refuse every later flop node", therefore spends the entire budget on the cheapest decision to learn elsewhere and refuses the two that carry the training value. That is a stronger objection to option 4 than the seam argument the item gives it, and it also says a 2x3 or 3x2 point on the frontier is not equivalent to 6x1 in usefulness even though it is in bytes.
+
+- **Decision 2's ruling is poker-correct and its test does not cover the failure that would be poker-visible.** Suit isomorphism is exact, so the collapse costs nothing, and refusing rank abstraction is right. But the contract's test proves the **board** maps into exactly one class and that a rank-texture neighbour maps elsewhere. The error that survives that test is a hand permuted inconsistently with its board: on a two-tone flop, whether hero's two cards share the board's flush suit is most of the strategy, and a mis-mapped suit permutation would serve a no-draw strategy to a flush draw. It would be legal, plausible, and invisible to every exploitability number, because the cell is a correct cell for a different hand. The cheap check is poker-shaped rather than combinatorial: on a two-tone board, hero's flush-draw combos must not receive a strategy identical to the same ranks without the draw.
+
+- **Decision 13's split has one poker argument nobody made.** Format before data means the key ships without cells, so the bot refuses everything in between, which costs no poker. What it buys is that the frequency-convergence diff the verdict above asks for belongs in the data half and would otherwise gate the key format on a measurement that has nothing to do with it. Splitting therefore lets the one measurement this phase actually needs happen where it belongs rather than blocking the part that is ready.
 
 ## Alignment
 
@@ -188,5 +244,11 @@ while working on 9, 11 and 12 and did not write because they were out of brief.
 - `A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE` (new, 2026-09-09). The committed flop frequencies are correct for an agent that can barrel and this agent refuses the turn, so they are not the correct frequencies for the game it plays. Decision 1 accepted a seam; this is the narrower statement that the artifact's own numbers assume a continuation that does not exist, plus the reporting consequence that no winrate or EV figure may be computed over a bot whose turn voids the hand.
 
 - `POSTFLOP-CELLS-ARE-STACK-FRAGILE-WHERE-THE-PREFLOP-CHART-IS-NOT` (new, 2026-09-09). The geometric three-street size in the single-raised pot moves from 103.9% to 130.9% of pot across 77.5bb to 127.5bb effective. Decision 10's payload validation therefore has to refuse an off-depth spot rather than tolerate it, which is a stricter rule than the preflop chart's nearest-price substitution applies, and the difference should be stated where both live.
+
+- `A-SOLVER-CONFIG-FIELD-IS-READ-FROM-ITS-NAME-AND-NOT-FROM-THE-BUILDER` (new, 2026-09-09). I asserted that `donk: ""` removed the out-of-position flop bet, from the field's name and the standard meaning of the word, and the builder does not consult that list on the root street at all. The repo already has the sibling: `allin_threshold` reads as a fraction preflop and a percent of pot postflop, and the contract carries a guard for it. GTOpen is a local clone and its tree builder is 900 lines; any claim about which actions a committed config admits should be read out of `crates/solver/src/tree.rs` rather than out of the config's field names. This entry exists so the next reader of a menu body checks the builder first.
+
+- `THE-QUERY-TIME-PRICE-SUBSTITUTION-IS-NOT-BOUNDED-POSTFLOP` (new, 2026-09-09). Decision 8's default correctly commits the substitution as provenance, and the substitution that happens at lookup is a different object with no bound on it: a 2.25bb open served an `@2.5` cell moves the pot 9.1%, the SPR 10.3%, the geometric size 5.3 points and both ranges, and decision 10's validation cannot see it because it compares the payload to the line rather than to the query. The preflop chart's tolerance for the same 0.25bb is defensible and does not transfer.
+
+- `AN-ISOMORPHISM-TEST-ON-BOARDS-DOES-NOT-COVER-HERO-HANDS` (new, 2026-09-09). The contract's suit-isomorphism test proves every board maps into exactly one class and that rank neighbours stay distinct. A hand permuted inconsistently with its board passes it and produces a legal, plausible strategy for the wrong hand - a flush draw played as a no-draw on a two-tone flop. Exploitability cannot catch it. The poker-shaped check is one line and belongs beside the board test.
 
 - `POSTFLOP-SOLVE-IS-RAKE-FREE-AND-THE-GAME-IS-NOT` (new). Every measured row is `rake_pct: 0.0, rake_cap: 0.0`, consistent with the rake-free preflop export, so the convention is coherent and the ranges match the solve. The consequence for a training bot is the postflop mirror of `OPENING-RANGES-READ-NARROWER-THAN-A-RAKED-REFERENCE`: a rake-free flop solution continues and bets marginally wider than correct play in the raked game a student actually sits in, and the effect concentrates on exactly the thin continue decisions a flop chart is consulted for. Direction stated, magnitude unmeasured; this is poker reasoning, not a repo number.

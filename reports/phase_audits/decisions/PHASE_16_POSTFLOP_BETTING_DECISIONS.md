@@ -55,7 +55,9 @@ flops in five**, and the plainest ones. The converged evidence covers 5.18% of f
 **15.04 MiB of headroom** left under the 20 MiB cap affords about six node-line units at one byte per
 weight, and the affordable products are 6x1, 3x2, 2x3, 1x6 and everything under them. But a
 complete flop is about **five** hero decision nodes under the ruled menu, so six units is **one**
-preflop line at full flop depth, not the two 3x2 suggests. Six levers, none fail-closed.
+preflop line at full flop depth, not the two 3x2 suggests. And **which** nodes is a poker question:
+a student's leaks are in facing a bet and facing a raise, not at the flop root, so root-only spends
+the budget on the most published number in poker. Six levers, none fail-closed.
 **No default** - an answer must fix the encoding, the per-spot byte budget including provenance, and
 the number of preflop lines, and the six units are quoted at an encoding the answer itself chooses.
 
@@ -63,9 +65,12 @@ the number of preflop lines, and the six units are quoted at an encoding the ans
 measured on one spot; a 1,755-flop run reaches a route recorded unrun.
 Default: prove it on the committed configuration, and a human sets the tolerance if it is not.
 
-**8. How the preflop line compresses into the postflop key.** Verbatim, or a coarser class; and
-whether the price substitution is baked in. Default: verbatim, sizes included, inside a key that
-does not begin with `t`, with the substitution recorded on the committed spot.
+**8. How the preflop line compresses into the postflop key.** Verbatim, or a coarser class. There
+are **two** price substitutions: recording that a spot was solved at `@2.5` is honest, but a hand
+actually opened to 2.25bb querying that cell meets a defender who is really wider and weaker, so
+hero c-bets too little, and an SPR 10.3% higher than the cell assumes. Nothing validates that,
+because decision 10 checks the payload against the line rather than the query. Default: verbatim,
+sizes included, inside a key that does not begin with `t`, substitution recorded on the spot.
 
 **9. Whether flop bet sizes appear in the key.** Name the size, or name only the action class.
 Facing 33% needs 19.9% equity and facing 75% needs 30.0%; defence frequency goes 75.2% to 57.1%,
@@ -82,9 +87,10 @@ against a 12,026 MB ceiling, which fails rather than slows); reduced is measured
 pots only; one-per-pot-type is the only option measured on both, **but the poker says it is
 backwards** - a single geometric size is 66% of pot in a 3-bet pot and 116% in a single-raised one,
 so it puts two sizes where one nearly suffices; and flooring to fit is a **build, not a solve**.
-Rainbow is unmeasured in all four. Whatever is ruled also freezes **no donk bet and no all-in**,
-which push flop aggression in opposite directions. **No default**, it collides with decision 3
-already ruled, and **rule it with 12** - the settling experiment needs a floor.
+Rainbow is unmeasured in all four. Whatever is ruled also freezes **no all-in anywhere** and **no
+out-of-position probe on the turn or river**, which push flop aggression in opposite directions.
+**No default**, it collides with decision 3 already ruled, and **rule it with 12** - the settling
+experiment needs a floor.
 
 **12. Whether the solve floors its input ranges, and at what weight.** A floor at 0.01 halves the
 memory needed and deletes 68.9% of the defender's combos - but **0.199% of its weight**: the
@@ -246,6 +252,14 @@ Any canonical subset smaller than all 1,755 flops guarantees the bot meets board
 So this is a boundary question, not an implementation detail. Either the rule holds and the bot refuses on an unsolved texture, or the rule is amended for board texture specifically, which is a `contract-update` to `AGENTS.md` in its own right.
 
 Default: **solve all 1,755 flops and keep the boundary.** With a flop-only solution the runout fan-out is gone, so the full canonical set is the thing that removes the question rather than answers it, and the bot never faces a flop it has no cell for. If 1,755 per line proves unaffordable once solve time is measured, the fallback is fewer preflop lines, then a flop subset plus refusal, and never a subset plus abstraction.
+
+**Annotated 2026-09-09 by the stage-2 poker review: the ruling is poker-correct and its test has a
+poker-shaped hole.** The contract requires a test proving every *board* maps into exactly one
+canonical class. A hand permuted inconsistently with its board passes that test and is invisible to
+exploitability, while serving a no-draw strategy to a flush draw on a two-tone flop - suit
+isomorphism is exact only if hero's cards are permuted by the same map as the board. The check is
+one line: a flush-draw combo must not receive a strategy identical to the same ranks without the
+draw.
 
 **Annotated 2026-09-08, not re-ruled.** Three claims in this item were true when written and are
 not now, and the ruling survives all three.
@@ -487,6 +501,13 @@ stopped by it. `SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE` mean
 artifact also reds `test_the_committed_export_sits_under_the_limit_with_stated_headroom` until the
 export's source card is regenerated.
 
+**Which nodes to spend the budget on is a poker question, not an arithmetic one**, and the
+stage-2 poker review put it more sharply than the seam argument does. A student's leaks are not at
+the flop root: c-bet frequency is the most published number in poker and the easiest thing to learn
+elsewhere. The leaks are in **facing a bet** and **facing a raise**. So lever 4, root only, spends
+the whole budget on the cheapest decision to learn anywhere else, and 3x2 is not equivalent to 6x1
+in usefulness even where it is equivalent in bytes.
+
 **What an answer must fix**, because the contract needs three things from it and no single option
 below supplies them: the **encoding**, the **per-spot byte budget** including the provenance
 fields, and the **number of preflop lines**. A pick from the list is not an answer on its own; a
@@ -673,6 +694,28 @@ nearest one the artifacts declare and records the substitution. If the postflop 
 preflop raise size, it inherits that normalisation, and the ranges a spot was solved against are
 then the ranges at the *substituted* price rather than the one the hand was actually played at.
 
+**There are two price substitutions and an earlier draft of this item addressed only one.** The
+committed one is honest provenance: a spot recorded as solved at `@2.5` ranges says what it is. The
+**query-time** one is not bounded by anything. A hand actually opened to 2.25bb looks up an `@2.5`
+cell, and the two differ in more than a label:
+
+| | pot | effective | SPR | geometric size | big blind's price |
+|---|---|---|---|---|---|
+| `@2.5`, what the cell holds | 5.50 | 97.50 | 17.73 | 115.8% | 27.3% |
+| `@2.25`, what was played | 5.00 | 97.75 | 19.55 | 121.1% | 25.0% |
+
+Two channels, and because the corpus's median open is *below* 2.5 both run the same way on every
+hand, so neither averages out. The **range** channel is the larger: 2.25bb is a cheaper price, so
+the real defender is wider and weaker than the range the cell was solved against, and hero
+therefore c-bets and bluffs **too little**. The **geometry** channel is smaller and opposite in
+character: the real SPR is 10.3% higher than the cell assumes, so the cell reads as too willing to
+commit.
+
+Neither is visible to decision 10's validation, which checks the payload against the **line** the
+spot names rather than against the query being asked - so the artifact is checked against itself.
+And the preflop chart's nearest-price tolerance does not transfer: preflop, 0.25bb barely moves a
+range, while postflop the same 0.25bb moves the pot, the SPR and both ranges at once.
+
 Default: **carry the preflop spot key verbatim, sizes included, inside a postflop key that does not
 begin with `t`**, so a postflop spot names exactly the preflop spot whose ranges it was solved from,
 no compression is invented, and no existing reader mistakes one for the other. The prefix is not
@@ -778,21 +821,34 @@ the same flop, solved above a coarser tree, is a different flop strategy. That i
 option 2 and of option 3's cheaper half, and it is not a cost decision 6 can price.
 
 **Whatever is ruled here also freezes two things nobody raised until the stage-2 poker review,
-because every measured config carries them.** `donk: ""` on all three streets means the
-out-of-position player never leads - he checks or he does nothing - so hero's flop strategy is
-solved against an opponent with no lead. And `add_allin: false` means neither player can jam. The
-two omissions push hero's flop betting frequency in **opposite** directions, no donk letting hero
-bet more freely in position and no jam capping what either can threaten, which is why the net sign
-has to be measured rather than argued and why neither belongs in a ruling as an unstated side
-effect.
+because every measured config carries them.** They are stated carefully, because the first version
+of this paragraph got one of them wrong in a way that would have destroyed real data.
 
-**And `donk: ""` has a consequence for the artifact, not only for the solve: a cell whose only legal
-action is check is not a strategy.** With no donk the out-of-position flop root has exactly one
-legal action, so committing that node produces 1,755 cells per preflop line reading `check 1.00` -
-indistinguishable, to any reader or any check, from a solved decision to check every flop. Either
-that node is omitted with the reason recorded, or the artifact is half filled with cells that
-assert nothing. Adding a donk subtree is not the cheap way out: by the arena figures it lands near
-or over the 12,026 MB ceiling.
+**`add_allin: false` stands in full.** No jam branch exists anywhere in the tree, so neither player
+can threaten a stack, and hero's flop strategy is solved in a game where that threat does not
+exist.
+
+**`donk: ""` does not mean the out-of-position player never bets the flop**, and an earlier draft of
+this item said it did, then went further and said the out-of-position flop root has one legal
+action, so 1,755 cells per line would read `check 1.00` and should be omitted. **That was wrong and
+following it would have discarded 1,755 cells per line of genuine solved strategy.** GTOpen's tree
+builder sets `root_street = (board.len() - 3)` and gates the donk list on
+`st.to_act == OOP && st.street > self.root_street && st.last_aggressor == Some(IP)`, so on a
+flop-rooted solve `street > root_street` is false at the flop and the out-of-position player uses
+the `bet` list, `"33 75"`, exactly as in position. The build validator says the same in its own
+words: `donk_used = player == "OOP" && street > root_street`. Verified in
+`crates/solver/src/tree.rs` rather than inferred from the field's name, which is the same trap
+`SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE` already records for a neighbouring field.
+
+**What the empty donk list does remove is narrower and still real:** the out-of-position player
+leading the **turn or river** when the other player was the previous street's aggressor - the probe
+into a called flop bet. That is a frequent line, its absence biases hero's flop betting upward, and
+it reaches a flop-only artifact through continuation values, the same channel as the turn and river
+size restriction rather than a missing flop node.
+
+So the two still pull in opposite directions - the missing probe pushing hero's flop betting up, the
+missing jam capping what either can threaten - and the net sign has to be measured rather than
+argued.
 
 **"The menu MAINT-26 measured" is not one object, and an earlier draft of this item said it was.**
 The stage-2 review parsed all 55 committed rows and I re-derived it: of the **7 of 30** `group:
@@ -998,6 +1054,10 @@ of this item said "phase 17 exists because of that answer" and stopped at the ch
 the process cost is real: a split is a second contract under the 300-line cap, a second decision
 list, a second gate, a second audit packet and a second human gate, so Taylor is asked twice and the
 second ask waits on the first phase closing.
+
+**One argument for splitting that nobody made**, from the stage-2 poker review: a split puts the
+frequency-convergence diff in the data half, where it belongs, instead of gating the key format on
+a measurement that has nothing to do with it. As one phase, the format rulings wait on a solve.
 
 **One measured fact cuts the other way and is stated here rather than left out.** The contract is at
 284 of 300 lines and its Scope commits it to amending three criteria after stage 3. If this stays
