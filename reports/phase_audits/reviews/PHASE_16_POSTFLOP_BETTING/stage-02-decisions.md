@@ -26,7 +26,21 @@ all: decision 11's default pinned a solver menu that has never been solved on a 
 and whose single-raised-pot tree measures 1.8x the arena ceiling on all eight committed build rows.
 A fifth frozen choice, the range floor, is what closes that gap and was itself on no list.
 
-**The headline, round 8, and it answers the last question first because it is the one I was holding.**
+**The headline, round 9, and it answers both questions.** The index is safe to rule from in eight of
+its nine entries, and I could not find a fact in any of those eight items that a reader would need
+and not be given - which was not true two rounds ago. The ninth is decision 13, and yes, it is
+loaded: five arguments for a split, one against, and the one against is undercut by a measurement
+fifty lines above it in the same file, because all four of decision 11's levers carry the same flop
+menu, so decision 9 does not in fact wait on decision 11. What the item needs is not a stronger
+version of that argument but the costs of splitting, and two are measurable and absent - phase 17,
+the phase the cited precedent created, is `future` and has never been started; and a split is a
+second contract, decision list, gate, packet and human gate. One measured fact cuts the other way
+and is also absent, so I name it against my own framing: the contract is at 284 of 300 lines and
+owes amendments from up to five rulings if this stays one phase, which is the arithmetic that forced
+phase 14 to ask.
+
+**The headline, round 8, and it answered the previous question first because it was the one I was
+holding.**
 Nothing asks whether phase 16 is one phase, and phase 14 carried exactly that item, `frozen-into-data`,
 ruled "split it" by Taylor on 2026-08-31 under less pressure than this - five contract lines against
 a cap, where phase 16 has twice its open frozen count and no mechanism that would notice, because a
@@ -96,11 +110,11 @@ in this phase.
 
 ## Blocker
 
-Thirty-five findings over eight rounds. Round 6 filed 23 through 27, amended at `3d3282a`. Round 7
-read the preamble and filed 28, 29 and 30, all fixed at `b2f1053`. Round 8 checks the new index
-against the items and files 31, 32 and 33, and files 34 and 35, which are the two findings I had been
-holding because neither is a defect in this stage's work. **Thirty are marked `[resolved]`; 31
-through 35 hold the stage.**
+Thirty-seven findings over nine rounds. Round 7 read the preamble and filed 28 through 30, fixed at
+`b2f1053`. Round 8 checked the new index and filed 31 through 33, plus 34 and 35, the two findings
+held back because neither was a defect in the stage's work; all five fixed or acted on at `14d3405`.
+Round 9 re-checks the index, reads decision 13 - the item I asked for and did not write - and files
+36 and 37. **Thirty-five are marked `[resolved]`; 36 and 37 hold the stage.**
 
 Round 1 filed 1 through 7, fixed at `f2d34c3`. Round 2 filed 8
 through 13, fixed at `408b2c3`. Round 3 filed 14 through 17, of which three were fixed at `39e6074`
@@ -1021,7 +1035,7 @@ definitions subtly.
   classes are now quoted from `docs/LOOP.md` with "or fixture" and "can change it" intact, the stop
   attributed to stage 3, and the entry cited.
 
-### Round 8, new. Four losses in the index, and the finding I was holding.
+### Round 8, filed. All five fixed at `14d3405`.
 
 Checked against the items rather than against the description of them, as asked. Four entries lose
 a fact that changes what a ruling would be. They are blockers on the coordinator's own standard -
@@ -1030,7 +1044,7 @@ sentences: **"no ruling needs more than its three lines"** is a promise, and it 
 reader not to open the item. Every omission below is only a defect because that sentence is there;
 with it, they are the whole ruling.
 
-- **31. Decision 6's entry states the budget against the wrong base, and drops the one fact that
+- [resolved] **31. Decision 6's entry states the budget against the wrong base, and drops the one fact that
   says what the budget buys.** Four parts, in the order they would mislead.
   The base is wrong. "20 MB affords about six node-line units" - the 20 MB is the cap, and the tree
   already holds 5,197,325 bytes, so what affords six units is the **headroom**, 15,774,195 bytes.
@@ -1053,7 +1067,7 @@ with it, they are the whole ruling.
   for, and it is the difference between reading the product list as coverage and reading it as the
   constraint it is. Without it the index's own numbers invite the ruling the item spent three rounds
   making unavailable.
-- **32. Decision 11's compression is a dismissal, and it is the one you asked about.** "Each is
+- [resolved] **32. Decision 11's compression is a dismissal, and it is the one you asked about.** "Each is
   unmeasured on some axis and rainbow on all of them" is true, and it flattens the distinction two
   rounds existed to create. The item says in bold that option 3 "is the only option measured on both
   line types"; the index says every option is unmeasured on some axis, which makes four unequal
@@ -1066,7 +1080,7 @@ with it, they are the whole ruling.
   The honest compression is one line and no longer: options 1 and 2 are each measured on one line
   type only, option 3 on both, option 4 is a build and not a solve, and rainbow is unmeasured in all
   four. That keeps your sentence's true half and returns the three labels the earlier rounds bought.
-- **33. Decision 4's entry omits the scale that makes its own default consequential.** "Commit a
+- [resolved] **33. Decision 4's entry omits the scale that makes its own default consequential.** "Commit a
   cap-bound cell with its achieved percent as a floor, or refuse it. Default: 0.3%, and refuse."
   What a reader is not told is how many cells miss: 23 of the 30 measured solve rows never reached
   0.3% and every one reads `hit-iteration-cap`, and rainbow - 455 of the 1,755 classes - has never
@@ -1075,7 +1089,7 @@ with it, they are the whole ruling.
   which is what the contract was amended for at blocker 13 and what decision 2's annotation now
   carries. One clause: 23 of 30 measured rows missed, rainbow never reached target, so refusing
   leaves 455 classes uncovered until a rainbow solve does.
-- **34. The finding I have been holding, and it has direct precedent: nothing asks whether this is
+- [resolved] **34. The finding I have been holding, and it has direct precedent: nothing asks whether this is
   one phase.** You invited it, so here it is plainly. Phase 16 now rules, in a single stage-3
   sitting, three items that define a key grammar (8, 9, 10) and five that define a data-generation
   campaign (4, 6, 7, 11, 12). This repo's own ordering rule, quoted in decision 3, is "format before
@@ -1096,7 +1110,7 @@ with it, they are the whole ruling.
   decision 11 chooses. That argument is exactly why the question deserves asking rather than
   assuming: the coupling runs one way, from 11 into 9, and a phase that ruled 11 first could hand a
   format phase a fixed menu. What is missing is the item, and phase 14 shows what it looks like.
-- **35. Three of the eight open items are poker judgments, and no poker review has read this phase.**
+- [resolved] **35. Three of the eight open items are poker judgments, and no poker review has read this phase.**
   This directory holds a contract review, an independent numbers verification, and this decisions
   review. None of the three is a poker review, and I have been explicit throughout about what I did
   not check - decision 5 was verified as arithmetic and mechanism, and decisions 9, 11 and 12 were
@@ -1114,6 +1128,64 @@ with it, they are the whole ruling.
   reviewer has seen them. The fix is one action rather than a document edit - a read-only poker
   reviewer over decisions 9, 11 and 12 before stage 3, not after stage 7 - and `AGENTS.md` says
   spawning one is always permitted and their absence is never a reason for anything.
+  **Verified acted on at `14d3405`.** A poker reviewer is running on decisions 9, 11 and 12 with a
+  read-only brief, writing to `stage-02-decisions-poker.md`, with the carried-forward lesson quoted
+  at it. I have not read that note and it is not mine to verify - it is the independent review this
+  finding asked for, and a reviewer verifying another reviewer's brief is the non-independence this
+  stage has already filed twice. Marked resolved on the action having been taken, which is what the
+  finding asked for; what the note finds is stage 3's to weigh.
+
+### Round 9, new. Two on decision 13, which is the one item I asked for and did not write.
+
+- **36. Decision 13 is loaded toward splitting, and its single counter-argument is undercut by a
+  measurement in this same file.** You asked, so here it is with the count. Five things in the item
+  argue for a split: phase 14's precedent and its "split it" answer; the repo's format-before-data
+  rule with the observation that its precedent is a phase boundary; that ruling both halves at once
+  means a format mistake surfaces after the artifact is committed against it; that phase 14 was
+  forced to ask by a mechanical trigger this phase lacks while carrying twice its frozen count; and
+  the class reasoning, which frames not splitting as what allows an artifact to be committed against
+  an unbuilt format. One thing argues against: the 9-to-11 coupling. And it is closed in its own
+  sentence - "it bounds a split rather than forbidding one".
+  Worse for the balance, that one argument is weaker than the item knows, on this file's own
+  evidence. Decision 13 says "the sizes it would name are chosen by decision 11". All four of
+  decision 11's levers carry the **same flop menu**: the config appendix gives
+  `config.ip@2827d093808a` and `config.ip@2315abe88f71` as `bet: "33 75"`, `donk: ""`,
+  `raise: "2.5x"` on the flop, identical on both seats, differing only at turn and river, and levers
+  1 through 4 are combinations of those two configs plus a floor. So among the options actually on
+  the table, decision 9's answer does not depend on decision 11's - the flop size vocabulary is 33
+  and 75 either way. The coupling bites only if a lever widens the *flop* menu and none does. So the
+  item's only counterweight is largely defeated by blocker 19's finding, which sits in decision 11
+  fifty lines above it.
+  Two costs of splitting are absent and both are checkable, which is what the item needs rather than
+  a stronger version of the argument it has. **The precedent's own outcome:** phase 17, the phase
+  phase 14's split created, is `status: future` in `phase_status.yml` and has never been started, so
+  what the cited precedent has produced to date is that the deferred half has not happened. The item
+  says "phase 17 exists because of that answer" and stops there, which is the cheerful reading of the
+  same fact. **And the process cost:** a split is a second contract under the 300-line cap, a second
+  decision list, a second gate, a second audit packet and a second human gate, so Taylor is asked
+  twice and the second ask waits on the first phase closing.
+  One measured fact belongs in the item and cuts the other way, so I am naming it against my own
+  framing: the contract is at **284 lines of a 300-line cap**, sixteen lines of headroom, and its own
+  Scope paragraph commits it to amending three criteria after stage 3 - the encoding, the per-spot
+  byte budget and the line count. If this stays one phase, the menu and the floor rulings land in the
+  same amendment, so up to five rulings share sixteen lines, and phase 14's trigger was exactly this
+  arithmetic five lines over. That is the strongest pro-split argument available and it is measured,
+  and it is not in the item either.
+- **37. The index entry for 13 is the least balanced of the nine, and it is the one the header sends
+  a reader to first.** "Default: **none** - and phase 14 asked this same question and answered
+  'split it'." That is the only answer-shaped fact in the entry, and the counter-argument the item
+  carries does not appear in the index at all. Compare the other two defaultless entries: 6 says
+  "none" and then names the three things an answer must fix and that the six units depend on a choice
+  the answer makes; 11 says "none" and then gives all four levers their differing evidence and the
+  collision with decision 3. Both put the tension in front of the reader. Entry 13 gives a precedent
+  and its verdict.
+  This matters more than the same defect would in any other entry, for the reason the header itself
+  states: "**Read 13 first**: it asks whether the other eight belong in one phase, and if they do
+  not, some of them are not yours to rule yet." A reader is sent there first, told the answer changes
+  what the other eight are, and handed one precedent that split. The honest entry is the same length:
+  the format-and-campaign split in one clause, phase 14's precedent with the fact that the phase it
+  created is still unstarted, and the coupling in one clause - and, if blocker 36 is taken, that the
+  coupling is narrower than it looks because all four of decision 11's levers share the flop menu.
 
 ## Non-blocker
 
@@ -1445,6 +1517,42 @@ sentence, so all three read as choices rather than as one choice and two omissio
   wants recording somewhere that is not a phase audit packet, which is a snapshot of what one phase
   believed.
 
+### Round 9, from the index re-check
+
+**The question put to me: is the index now safe to rule from? Eight of the nine entries are. The
+ninth is entry 13, and that is blocker 37.** Checked entry by entry against the items again, not
+against the previous round's note.
+
+- **The four entries I held the stage over are fixed and I re-derived each.** Entry 6 now says "the
+  **15.0 MB of headroom** left under the 20 MB cap", which is the right base; "and everything under
+  them" is restored, so 2x2 at 0.653x and 1x3 at 0.489x are visible; the encoding is named as one
+  byte per weight with the note that the six units are quoted at an encoding the answer itself
+  chooses; and the five-node sentence is in bold with the "one preflop line, not the two 3x2
+  suggests" consequence attached. Entry 11 gives each lever its own evidence, states the arena wall
+  as failing rather than slowing, marks one-per-pot-type as the only option measured on both, marks
+  flooring as a build and not a solve, and says rainbow is unmeasured in all four - the compression
+  I offered, used, and it is fair. Entry 4 carries the scale. Entries 11 and 12 cross-link with the
+  reason.
+- **One de-coupling the index could state and does not, and it removes work rather than adding it.**
+  Entry 9's default is "name the size", and a reader who has just read entry 11 will reasonably
+  wonder whether naming sizes before choosing a menu is safe. It is: all four of decision 11's
+  levers carry `bet: "33 75"` on the flop, so the flop size vocabulary is the same under every
+  option on the table. Half a line in entry 9 - the sizes are 33 and 75 under all four of 11's
+  levers - tells a reader they can rule 9 without waiting for 11. This is the mirror of the 11-and-12
+  cross-link: there, two entries that look separable are not; here, two that look coupled are.
+- **The headroom is labelled MB where the file elsewhere labels it MiB, and so is the cap.**
+  15,774,195 bytes is 15.04 MiB or 15.77 MB; the cap is `20 * 1024 * 1024`, which is 20 MiB or
+  20.97 MB. The index says "15.0 MB of headroom left under the 20 MB cap", which is consistent under
+  the MiB reading and mislabelled under either. It survives because the subtraction works out near
+  enough in both units. Low severity, and worth fixing in a document that already carries
+  `A-QUANTISATION-BUDGET-IS-COMPARED-ACROSS-UNITS` for a units confusion of its own: say MiB, or
+  give the bytes.
+- **The verdict, stated plainly because it was asked plainly.** With entry 13 balanced, this index is
+  safe to rule from. Eight entries carry their question, their options, their default or its
+  deliberate absence, and the one measurement that would change the answer, and I could not find a
+  fact in any of those eight items that a reader would need and not be given. That was not true two
+  rounds ago, and it is the difference between an index and a table of contents.
+
 ## Alignment
 
 Long-term drift this stage cannot fix. Each carries an ID.
@@ -1766,6 +1874,19 @@ one entry in `backlog.yml`. Two more from this round.
   is worth one sentence there, because it is the reason the phase's packet obligation to state its
   qualifications is load-bearing rather than ceremonial.
 
+### Round 9
+
+- `OPTION-SHEETS-SHOULD-SAY-WHICH-OPTIONS-WERE-MEASURED` - one last instance, and it is the entry's
+  own thesis reaching a structural item rather than a technical one. Decision 13 states five
+  arguments for a split and one against, and none of the six is labelled measured, argued or
+  unexamined. Two of the six are measurable and neither is measured in the item: phase 17's status,
+  which is `future` and is what the cited precedent has produced so far, and the contract's 284 of
+  300 lines, which is the trigger phase 14 actually had. So the entry's rule - mark each option
+  measured, bounded by argument, or unexamined - would have caught the imbalance mechanically, on an
+  item where the imbalance is the whole defect. Worth adding, because every prior instance in this
+  phase concerned a technical option set and this one shows the rule reaches a structural question
+  too. Existing entry.
+
 ## Method
 
 Read-only throughout. Commands used: `git log`, `git diff`, `git show`, `git branch`, `grep`,
@@ -1925,6 +2046,22 @@ Not verified in round 8, and it is the honest limit on blocker 35: I have not re
 decisions 9, 11 or 12 myself and am not the reviewer for it. Everything I have said about those
 three items concerns their evidence, their classes and their labels. Someone with a poker brief
 should read them, and this note is not that.
+
+### Round 9, against `14d3405`
+
+The nine index entries were re-checked against their items one at a time, and decision 13 was read
+in full with its arguments counted on each side, which is what blockers 36 and 37 rest on. The
+config appendix was re-read to confirm that all four of decision 11's levers share the flop menu,
+which is what undercuts decision 13's counter-argument and what entry 9 could use as a de-coupling.
+
+New read-only checks: `phase_status.yml` for phase 17, which is `status: future` and unstarted;
+`wc -l` on the contract, 284 lines, against `check_file_sizes.py`'s 300-line cap for
+`docs/phase_contracts/*.md`; and the headroom and cap in bytes against their MB and MiB labels.
+
+Not verified in round 9: the poker note now being written, which is not mine to check and which is
+the one input to stage 3 this review does not cover. And I have not judged whether phase 16 should
+be split - only that the item asking is currently loaded, in the direction of the answer I am the
+one who raised.
 
 No tracked file was modified in any round. `scripts/run_verify.py` and `scripts/check_gate_bite.py`
 were not run.

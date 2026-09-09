@@ -42,7 +42,7 @@ at all, so refusing leaves about **455 of 1,755 flop classes with no cell** and 
 board-miss refusal code live. Default: 0.3%, and refuse.
 
 **6. How the committed artifact is encoded, given that it does not fit.** A budget, not a menu: the
-**15.0 MB of headroom** left under the 20 MB cap affords about six node-line units at one byte per
+**15.04 MiB of headroom** left under the 20 MiB cap affords about six node-line units at one byte per
 weight, and the affordable products are 6x1, 3x2, 2x3, 1x6 and everything under them. But a
 complete flop is about **five** hero decision nodes under the ruled menu, so six units is **one**
 preflop line at full flop depth, not the two 3x2 suggests. Six levers, none fail-closed.
@@ -58,7 +58,9 @@ whether the price substitution is baked in. Default: verbatim, sizes included, i
 does not begin with `t`, with the substitution recorded on the committed spot.
 
 **9. Whether flop bet sizes appear in the key.** Name the size, or name only the action class.
-Default: name the size. Produces: whether a menu change later re-derives every cell.
+Default: name the size. Produces: whether a menu change later re-derives every cell. **Rulable
+without 11**: all four of that item's levers carry the same flop sizes, 33 and 75, so only a lever
+widening the *flop* menu would couple them and none does.
 
 **10. Whether pot and effective stack appear in the key.** In the key, or in the payload validated
 against the line. Default: payload, validated.
@@ -79,9 +81,10 @@ permitted, and this default forecloses it, so ruling 11-lever-4 and 12-no-floor 
 nothing.
 
 **13. Whether this is one phase.** Items 8, 9 and 10 define a key format; 4, 6, 7, 11 and 12 define
-a data campaign. This repo's rule is format before data and its own precedent for that is a phase
-boundary, not a stage one. Default: **none** - and phase 14 asked this same question and answered
-"split it".
+a data campaign, and this repo's rule is format before data with a phase boundary as its precedent.
+For: phase 14 asked this and answered "split it"; and one phase means up to five rulings share the
+contract's sixteen remaining lines. Against: the phase 17 that split created is still unstarted, and
+a split is a second contract, gate, packet and human gate, so you are asked twice. **No default.**
 
 Decisions 1, 2 and 3 were ruled on 2026-08-19 and are not reopened; five of their premises are
 annotated below as no longer true, none re-ruled. Decision 5 is `runtime-reversible` and proceeds
@@ -401,6 +404,11 @@ The measurement, every input recomputed here rather than quoted:
 
 - `data/artifacts` is capped at 20 MB in `DIRECTORY_BYTE_LIMITS` in `scripts/check_file_sizes.py`,
   since `2430894` on 2026-08-18. The tree holds 5,197,325 bytes, so headroom is 15,774,195.
+  **Units, once, because this file already carries a cross-unit finding.** The cap is
+  `20 * 1024 * 1024` = 20,971,520 bytes, so "20 MB" throughout this file and in the script's own
+  comment means 20 MiB; headroom is 15,774,195 bytes = 15.04 MiB = 15.77 MB. Every ratio below is
+  computed from the byte figures, so it is unaffected either way, and the MiB reading is the one
+  that makes the labels consistent.
 - 1,755 canonical flops. 1,176 hero combos per flop. Collapsing each flop's own suit symmetry -
   exact, free, and the only collapse decision 2 permits - leaves **1,286,792 hero-combo classes
   summed over all 1,755 flops**, a mean of 733 per flop against the preflop chart's 169 per spot.
@@ -845,17 +853,37 @@ What forced the question in phase 14 was mechanical - five contract lines over a
 decision list has no cap, so nothing forced it here, and this phase has twice phase 14's open
 frozen count.
 
-The real argument against splitting, and it is not weak: decision 9 asks whether the key names the
-bet size, and the sizes it would name are chosen by decision 11. So the format half is not fully
-independent of the data half. **That coupling runs one way** - the key needs to know the menu, the
-menu does not need to know the key - which is why this is worth asking rather than assuming, and it
-bounds a split rather than forbidding one: a format phase would have to rule 11 with 9, or 9 would
-have to name a size vocabulary wide enough to survive a later menu choice.
+**The argument against splitting is weaker than an earlier draft of this item claimed, and the
+measurement is fifty lines above.** That draft said decision 9's key would name sizes decision 11
+chooses, so the format half is not independent of the data half. But all four of decision 11's
+levers carry the **same flop menu**: the appendix gives both configs as `bet: "33 75"`, `donk: ""`,
+`raise: "2.5x"` on the flop, identical on both seats, differing only at turn and river, and the four
+levers are combinations of those two plus a floor. So among the options actually on the table,
+decision 9 does not wait on decision 11. The coupling bites only if some lever widens the *flop*
+menu, and none does.
+
+**The real costs of splitting, which that draft omitted, and one of them is the precedent's own
+outcome.** Phase 17 is `status: future` in `phase_status.yml` and has never been started, so what
+phase 14's split has produced to date is that the deferred half has not happened. An earlier draft
+of this item said "phase 17 exists because of that answer" and stopped at the cheerful reading. And
+the process cost is real: a split is a second contract under the 300-line cap, a second decision
+list, a second gate, a second audit packet and a second human gate, so Taylor is asked twice and the
+second ask waits on the first phase closing.
+
+**One measured fact cuts the other way and is stated here rather than left out.** The contract is at
+284 of 300 lines and its Scope commits it to amending three criteria after stage 3. If this stays
+one phase, the menu and floor rulings land in that same amendment, so up to five rulings share
+sixteen lines - which is the arithmetic that forced phase 14 to ask this question, five lines over
+its own cap.
 
 Default: **none.** Both answers are defensible and the choice is about how much is committed before
 anything is checked, which is a judgement about risk appetite rather than about poker or arithmetic.
 It is `frozen-into-data` on phase 14's own reasoning: not because a split writes anything to disk,
 but because not splitting is what allows an artifact to be committed against a format nobody has
 built against yet, and that artifact is the thing later phases are measured on.
+
+This item was raised by the stage-2 reviewer, and an earlier draft of it was written by the
+coordinator with five arguments for splitting and one against, closed in its own sentence. The
+reviewer flagged that itself and declined to answer the question it had raised.
 
 Answer:
