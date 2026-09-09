@@ -7156,3 +7156,33 @@ items:
       them. Phase 16's entry already carries one dated correction - "No longer gated on a human
       input" - so the pattern of amending it exists and stopped being applied.
       Filed by phase 16's stage-2 independent decisions review, 2026-09-08.
+
+  - id: A-SOLVER-CONFIG-FIELD-IS-READ-FROM-ITS-NAME-AND-NOT-FROM-THE-BUILDER
+    status: deferred
+    phase: contract-update
+    title: A solver config field is reasoned about from its name instead of from the code that consumes it
+    reason: >-
+      Phase 16's stage-2 poker review concluded from `donk: ""` in every measured config that the
+      out-of-position player never bets a flop, and that committing that node would produce 1,755
+      cells per preflop line reading "check 1.00" which should therefore be omitted. The
+      coordinator committed it. Both were wrong, and following the instruction would have discarded
+      1,755 cells per line of genuine solved strategy - worse than the defect it named.
+      GTOpen's tree builder sets `root_street = (board.len() - 3)` and gates the donk list on
+      `st.to_act == OOP && st.street > self.root_street && st.last_aggressor == Some(IP)`, so on a
+      flop-rooted solve the flop is street `root_street` and the branch cannot fire; the
+      out-of-position player uses the `bet` list. The build validator states it independently:
+      `donk_used = player == "OOP" && street > root_street`. What the empty list actually removes is
+      the out-of-position probe on the turn or river into a called flop bet.
+      This is the second field on the same surface to be misread from its name.
+      SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE is the first: `allin_threshold` is a percent on
+      the postflop route and a fraction preflop, and the committed 0.67 silently became 0.67%,
+      replacing every configured bet with a jam. Both cost a round to catch and both were reachable
+      by reading the consumer.
+      The rule the two suggest: a claim about what a solver config field does is sourced from the
+      code that consumes it, cited by file and line, or it is stated as an inference and not used
+      as a premise. The reviewer's own first pass hedged this correctly with two readings and its
+      second pass dropped the hedge, which is why this sits beside
+      A-REVIEW-FINDING-IS-QUOTED-INTO-THE-RECORD-AS-IF-MEASURED rather than inside it - there the
+      hedge was lost in transcription, here the reviewer lost its own.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09, which retracted the finding
+      itself after reading the builder.
