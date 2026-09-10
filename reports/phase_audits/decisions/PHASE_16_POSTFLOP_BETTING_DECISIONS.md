@@ -305,6 +305,16 @@ Default: rank the lines by how often the corpus and the drill actually reach the
 
 Answer: [Ruled by Taylor, 2026-08-19] Take the default. **A small head of common lines, grown later by adding artifacts.**
 
+**Annotated 2026-09-10 by the stage-3 review; method only, the ruling is untouched and is not
+re-ruled.** This ranking orders lines by how often the corpus reaches them, and decision 10's
+measurement shows that is the wrong quantity. A 3-bet line costs the same 45 to 85 days as a
+single-raised one and can serve only 47.1% of its arrivals against 99.0% for a single-raised line,
+because the committed chart's one 3-bet price sits below the corpus median. **Sort on servable
+arrival frequency.** The derivation is in decision 10; the entries are
+`THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN` and
+`ONE-NON-ALLIN-PRICE-PER-ROUND-MAKES-SIZING-A-CARICATURE`. This pointer exists because the ranking
+is computed at stage 6 by someone reading this item, not that one.
+
 **Annotated 2026-09-06, not re-ruled** (`A-RULED-DECISION-CAN-NAME-A-SOURCE-THE-REPO-WILL-NOT-HAVE`).
 Taylor's answer stands and the method is unchanged. One of the two sources it names will not exist:
 the drill produces no data at its own completion, only through a human using it over time, and phase
@@ -430,7 +440,86 @@ evidence base covers **5.18% of flops**, on the texture that generalises worst.
    rather than measured, filed as `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`. So is every paired,
    ace-high and disconnected board: the five converged cells cover two rank patterns.
 
-Answer:
+**Ruled by Taylor, 2026-09-10, in three parts with three different provenances**, separated here
+because the stage-3 review found an earlier draft of this item's `Answer:` bracket presenting all
+three as his:
+
+1. **The target, 0.3% of the starting pot** - confirmed by Taylor ("i think for 4, going with .3 is
+   pretty reasonable here") against the 0.1% to 0.5% band study work normally uses. That band is
+   poker knowledge, not a measurement taken here.
+2. **The iteration cap, 1,200** - chosen by the coordinator under an explicit delegation: "i'm fine
+   with you just making the final call here on good volume to start on". A delegated number, not a
+   human ruling and not a default the coordinator helped itself to.
+3. **What happens to a cap-bound cell** - a coordinator recommendation that Taylor accepted ("i'll
+   go with your rec on 4"): commit it if its achieved error is under 1% of pot, refuse it above.
+
+**Why 1,200.** Recomputed from the cost notes rather than quoted: the **five** distinct converged
+cells - seven rows, of which `matrix-02` and both determinism runs share one config - reached 0.3%
+of pot at 220 to 260 iterations, and the recorded convergence curve for a three-bet cell reads
+11.84% of pot at 20 iterations, 3.55% at 40, 0.87% at 100, 0.33% at 220 and 0.295% at 240. The late
+local decay exponent is 1.0 to 1.3, so halving the error from 0.3% costs roughly 1.9x the iterations
+and a tenfold improvement roughly 5.9x to 10x. 1,200 is about 5x the observed count, which leaves
+room for a rainbow board needing several times a monotone one, and a cap in the tens of thousands
+would buy a fraction of a tenth of a percent for an order of magnitude of compute.
+
+**What the campaign costs, corrected 2026-09-10 by the stage-3 review.** An earlier draft of this
+paragraph said "on the order of 10 days per preflop line" and never priced the ruled cap at all.
+Both are fixed here; every figure is the coordinator's multiplication, stated as rough, and is
+exactly the multiplication the cost notes decline to make.
+
+- Per iteration, floored single-raised tree: 2,347,996 action nodes x 919 hands x 1.7 to 2.0 ns =
+  **3.67 to 4.32 seconds**, so about 16 minutes per flop at 240 iterations. Both of those survive.
+- At 240 iterations over 1,755 flops: **17.9 to 21.0 days per preflop line**, not 10.
+- That rate is **monotone only**. Re-normalised, every rainbow row in the record reads 7.34 to 8.71
+  ns and the converged two-tone cell reads 4.28. Applying the cost notes' own 2x pooled deflation
+  gives **36 to 42 days**; weighting the notes' texture factors and iteration counts over the 455
+  rainbow / 1,014 two-tone / 286 monotone classes gives **about 56 to 66 days** at a fixed rainbow
+  iteration count. That band's width is the wrong uncertainty and the stage-3 review said so: the
+  dominant unknown is how many iterations a rainbow board needs, and letting it range over this
+  item's own 305 to 760 extrapolation widens the honest band to **about 45 to 85 days**. The 56 to 66
+  figure assumed 500 without declaring it.
+- **The cap's own worst case, which the record owed and did not state:** if every cell ran to 1,200
+  iterations, 1,755 flops is **89 to 105 days per preflop line** at the monotone rate, before either
+  deflation.
+
+**How those two figures coexist**, since an earlier draft asserted both that the cap does not bind
+and that the campaign is bounded by it. A cell that converges never sees the cap: it stops at 220 to
+260. The cap prices the **tail** - cells that do not converge - and the record's one rainbow row,
+6.23% of pot at 30 iterations, extrapolates to target at roughly 305 to 760 iterations, so the tail
+is expected to be small rather than measured to be. So the honest reading is that the campaign cost
+sits near the texture-weighted 56 to 66 days with a tail bounded above by 89 to 105, and what forces
+a smaller flop set or fewer preflop lines is the campaign rather than this cap.
+
+**All of the above is CPU-engine arithmetic on an Apple M4, 10 cores, 34.4 GB RAM.** Re-derive the
+seconds per iteration on the ruled menu and on the machine actually used before anyone plans a run
+against these figures; nothing in the record uses the `66 125` turn and river sizes, and the machine
+note below decision 11 records that solving moves off this hardware.
+
+Answer: [Target confirmed by Taylor 2026-09-10; cap delegated by him to the coordinator; cap-bound
+rule a coordinator recommendation he accepted - see the three-part split above] **Target 0.3% of the
+starting pot with a 1,200-iteration cap; record the achieved percent and the iteration count on every
+committed spot; commit a cap-bound cell whose achieved error is under 1% of pot and refuse one above
+it.** This is a third option the item did not offer: neither commit-every-floor nor
+refuse-every-floor, but a floor with a stated worst case.
+
+**1% is not a study-quality figure and this file must not imply it is.** It is twice the upper edge
+of the 0.1% to 0.5% band stated above, chosen as an outer bound on how wrong a played cell may be
+rather than as a target anyone would aim at. An earlier draft called it "the outer edge of the band
+study work uses", which contradicted the band this same item states.
+
+**What this accepts.** A cell at 0.9% is three times the target and it plays, so the committed set
+is not uniform in accuracy and every report and packet states the distribution: how many committed
+cells sit between 0.3% and 1%, and where. **No packet may state an accuracy for the committed solve
+as a whole** - the contract forbids exactly that at
+`docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md:255`, and an earlier draft of this answer
+asserted a "headline accuracy of 0.3%" in direct breach of it. 0.3% is what was aimed at, the
+per-cell recorded percent is what was reached, and 1% is the worst a played cell may carry.
+
+**One thing this ruling wants that nothing in the phase yet builds.** Telling a "never solved" refusal
+apart from a "solved and over 1%" refusal is impossible at query time, because neither cell is in the
+artifact: both are the same miss. Distinguishing them needs a committed list of attempted-and-rejected
+boards with their achieved percents, which no contract criterion requires. Either a criterion is
+added at stage 4 or the inventory pools the two causes and says so; filed rather than asserted.
 
 ## 5. Whether the pot-odds river call ships alongside
 
@@ -632,8 +721,173 @@ What is **not** on the list: grouping unsolved boards onto solved ones. Decision
 `POSTFLOP-BOARD-ABSTRACTION` and `AGENTS.md` forbids heuristic guessing for a missing chart spot.
 A size problem is not a licence to reopen it.
 
-Answer:
+**Ruled by Taylor, 2026-09-10.** An earlier draft of this block ruled **git LFS** and the stage-3
+review found that unworkable: `scripts/check_file_sizes.py:48-54` sums `rglob` per entry so the
+20 MiB `data/artifacts` cap still applies to a nested path, and an LFS blob is a ~130-byte pointer
+until a clone fetches it, which puts committed data behind a network fetch against `AGENTS.md`'s
+offline-first opening and the contract's own "gate must pass ... with no network" at line 48. On an
+unfetched clone the byte-budget criterion would pass vacuously against a pointer. That draft is
+withdrawn. LFS is not used and no `.gitattributes` filter is added.
 
+**What was ruled instead** - Taylor, 2026-09-10: "The real solve can live in something like object
+storage that makes sense, and we can leave the cap. Basically, just grab a couple of flops to run
+some initial testing on before going for it."
+
+1. **The cap does not move.** `DIRECTORY_BYTE_LIMITS` is untouched: `data/artifacts` stays at
+   20 MiB and keeps guarding the preflop chart. This item's premise - the artifact does not fit -
+   is answered by not putting the artifact there rather than by raising the number, and the
+   `rglob` behaviour above is why a nested exemption was never available.
+2. **The full solve output lives in object storage** (S3 or Cloudflare R2), outside git.
+3. **The repo commits an index, not the artifact**: one entry per solved spot carrying its key, its
+   content digest, its achieved percent and its iteration count, plus the provenance decision 11
+   requires and a fetch script. **Sized correctly here after the stage-3 review found an earlier
+   draft understating it by 5x to 48x.** That draft counted 1,755 *boards* and priced only
+   provenance. Entries are per **spot**, not per board: this file measures about five hero flop
+   decision nodes at line 601 and decision 9 makes facing-33 and facing-75 distinct keys, so a line
+   carries on the order of 8,775 entries. And the omitted field was the largest one, the key itself:
+   the committed preflop keys run 14 to 78 characters with a median of 45, and a postflop key adds
+   board, pot and stack segments for about 75. At roughly 130 bytes an entry with the repo's own
+   16-hex digest, or about 230 with a full sha256 plus decision 11's four pinned config fields,
+   that is **1.14 to 2.02 MB per preflop line**, so the 15,774,195 bytes free under the existing cap
+   holds an index for about **8 to 14 lines**. The same order as the coverage this phase can afford,
+   not comfortably inside it - so the index is a real constraint to design against. **The digest
+   width is not a byte decision and stage 4 must not treat it as one.** The 16-hex precedent in this
+   repo is a *determinism* digest, compared against a rerun of the same computation; this one
+   authenticates an object fetched from storage the repo does not control. Against accident 64 bits
+   is ample - about 123,000 objects gives a collision probability near 4e-10 - and against deliberate
+   substitution it is about 2^32 work, which is not a security margin. So the choice is full sha256
+   at 1.75x the index size, or a stated decision to authenticate against accident only.
+   Raised by the stage-3 review outside its brief.
+4. **The committed sample is three flops - ruled by Taylor 2026-09-10**, and recorded as an item
+   rather than handed to a builder. An earlier draft said "a couple of flops, chosen at stage 4",
+   which the stage-3 review correctly called a `frozen-into-data` choice with no item: the sample is
+   the only postflop data the gate can ever see, so it is a fixture later phases are measured
+   against.
+
+   **It cannot be two, and the reason is poker rather than arithmetic.** The phase's entire
+   converged evidence is six monotone rows and one two-tone, and
+   `POSTFLOP-EVIDENCE-IS-ALL-MONOTONE-AND-MONOTONE-GENERALISES-WORST` says monotone generalises
+   worst, so a two-monotone sample would reproduce that defect inside the one artifact the gate
+   measures. Rainbow is the expensive end and has never been solved to target, which is precisely
+   why it must be in the sample rather than only in the fetched bulk.
+
+   **Both splits are ruled here rather than at stage 4**, because stage 4 authors the tests and
+   stage 5 freezes them. Stage 4 picks the specific boards inside these splits and nothing else.
+   An earlier draft of this item said the ruling "constrains suit and leaves rank open"; that is
+   superseded by the assignment below, which rules both.
+
+   **Rank structure and suit texture are independent, so three boards carry three of each.** An
+   earlier draft of this item treated the five never-reached rank structures as competing for three
+   slots and then named two rainbow boards among the three, contradicting its own suit split in the
+   same paragraph. The stage-3 review brute-forced all 22,100 boards and the real shape is a 3x3
+   assignment with exactly one forbidden cell: paired-rainbow is 1,872 boards (8.47%),
+   paired-two-tone is 1,872 (8.47%), and **paired-monotone is impossible** - two cards of one rank
+   cannot share a suit. Trips are always rainbow (52 boards, 0.24%).
+
+   **The rank axis is chosen for defect detection, not from the solve-cost list.** A first version
+   of this assignment took its rank structures from the solver notes' never-reached list, and the
+   stage-3 poker review showed that is the wrong list for this purpose: that list records where
+   solves were expensive, and the fetched bulk covers those anyway. The sample exists so a human can
+   see a wrong strategy, the contract is explicit that no gate check can, and **a human sees a
+   defect only where he holds an expectation.** Brute-forced over all 22,100 boards, the first
+   version spent a slot on monotone-dry-low - 112 boards, 0.51% of flops, the rarest of the fifteen
+   suit-by-rank cells - and contained no unpaired high-card board at all, which is the 40.54% rank
+   family and the only one with a published number to check a strategy against.
+
+   **The ruled assignment.** The suit split is unchanged; the rank axis is dry-high, paired,
+   connected, with paired necessarily off the monotone slot:
+
+   - **rainbow, dry-high** - the family a reader can actually check, and the texture never solved to
+     target. Take `Kc7d2h`, which is the single rainbow row the whole 45 to 85 day campaign
+     estimate extrapolates from, so committing it also puts a number under the phase's own cost
+     model.
+   - **two-tone, paired** - paired and trips are 17.18% of flops and the solver notes single paired
+     out as "a structural gap rather than a suit one", so it takes a slot rather than waiting for
+     its own coverage. An earlier draft left it out on the reasoning that it wants separate
+     coverage, which runs backwards for a sample: the fetched bulk covers every paired board anyway,
+     and the sample exists so a defect is visible at all. Two-tone is 55.06% of flops, the modal
+     texture, so the modal texture carries the structural gap.
+   - **monotone, connected** - forced unpaired by the arithmetic above, and connectedness is where a
+     flop's polar branch is built. Take `9c8c7c` in the single-raised pot, which is `matrix-03`:
+     already converged, digest recorded, at the reduced menu. **Re-solving it at the ruled menu is
+     the controlled menu experiment decision 11 defers to stage 6** - same board, pot, stack and
+     ranges, only the menu moving - so half of that experiment is already paid for and the sample
+     board and the experiment are the same solve.
+
+   Two of the three boards therefore come out of measurements this phase already owes, which is a
+   property the first version did not have.
+
+   **Knowingly left out: disconnected-low, and ace-high connected.** Disconnected-low was in the
+   first version and is dropped deliberately - at monotone it is 0.51% of flops and it is the cell a
+   reader has least to say about. Ace-high boards are 21.74% of flops and ace-high *connected* a
+   small subset of that; a fourth board would be needed and the sample is three. Both named rather
+   than omitted silently, on decision 3's own principle that a refusal names a line that was
+   excluded rather than one that was forgotten.
+
+   **And the solve-cost list is only partly covered, which is a different question from the one
+   above.** The solver notes list rainbow-dry, rainbow-connected, paired, ace-high connected and
+   disconnected-low as never reached, and two of those name a suit as well as a rank pattern. This
+   sample takes rainbow-dry as a cell, so the most expensive never-reached cell is committed;
+   rainbow-connected is not, because the connected slot is monotone. Paired, which the notes list
+   unqualified, is covered here at two-tone. Stated so a reader can see which of the five failures
+   the sample touches rather than reconstructing it.
+
+   **What the sample costs.** 1.06 to 1.85 MB across the 8 to 14 lines the index affords, 7 to 12%
+   of the free bytes - a figure across all lines, not per line, and it belongs in the same budget as
+   item 3's index rather than beside it.
+
+   **One imbalance worth stating.** A third of the sample is monotone, which is 5.18% of flops and
+   where six of the seven converged rows already sit, while two-tone at 55.06% gets the same single
+   slot. That is deliberate - the sample is chosen for structural spread rather than for frequency,
+   because a frequency-weighted sample of three would be two two-tones and reproduce the blind spot
+   the sample exists to remove - but a reader comparing the sample to the flop distribution should
+   not have to work it out.
+5. **The gate runs on the sample.** The tests and the byte-budget criterion measure the three
+   committed flops and the index, so they pass offline with no GTOpen, no network and no fetched
+   object. Nothing the gate checks is a placeholder.
+6. **The encoding**, stated once and correctly, because an earlier draft named the two-action
+   encoding and priced the three-action one: the lean JSON measured in this item - action names
+   hoisted to one array, hero's classes as a parallel array in canonical order, three-decimal
+   floats - at **two free weights per class for a three-action node**. That unit is 2 x 7,740,095 =
+   15,480,190 bytes = 15.48 MB = 14.76 MiB per hero decision node per preflop line, and the
+   per-spot budget adds the 24 to 120 bytes of provenance the item prices separately at line 610.
+   Two independent builds agreed to within 38 bytes on the two-action figure, which is why this and
+   not a new format is the budget's basis.
+7. **The number of preflop lines stays an output, not a choice.** Cover as many as the campaign and
+   the index together afford, taken in decision 3's already-ruled corpus order, and record the
+   covered set explicitly so a refusal names a line that was excluded rather than one that was
+   forgotten. **Both constraints bind and an earlier draft of this item said only one did**: item 3
+   measures the index at 8 to 14 lines, and decision 4's campaign at 45 to 85 days a line puts its
+   own limit in the same range. Whichever is smaller decides, and neither can be assumed to be the
+   campaign.
+8. **A third refusal cause arrives with this ruling and the record must carry it.** Decision 4 names
+   two - never solved, and solved but over 1%. Object storage adds **in the index, under 1%, not
+   fetched on this machine**, and it is the only one of the three a query can name precisely, since
+   the index says the cell exists. On a fresh clone it is also the common case: 1,752 of 1,755
+   classes. Reports must not pool it with "never solved", which would understate coverage by the
+   whole artifact.
+
+**What this accepts, and it is a real reduction in what the phase promises.** What the repo commits
+is an index plus a sample, not the solved artifact. So this phase's committed data is no longer the
+thing the bot plays in full, and a later phase measuring "the committed chart" has to say which it
+means. The contract's criteria that speak of the committed artifact and its byte budget must be
+amended at stage 4 to say index-plus-sample, and that amendment is part of the three the Scope
+section already owes. A reader who wants the whole solve fetches it; a reader who wants to verify
+the gate does not have to.
+
+**Two smaller corrections the review made to the withdrawn draft, kept because the figures survive.**
+The lean unit is 64.6 nodes per decimal GB and 69.4 per binary GB - this file states units once by
+its own rule, and the earlier "about 65" said neither. And the illustration that put ten hero flop
+decision nodes in a line contradicted this file's own measurement of about five at line 601, which
+decision 11's ruling leaves unchanged since the flop menu is still `33 75`.
+
+Answer: [Ruled by Taylor, 2026-09-10] **The solve output lives in object storage outside git; the
+repo commits an index plus a committed sample of a couple of flops; the 20 MiB `data/artifacts` cap
+does not move; no git LFS.** Encoding is the lean JSON at 15,480,190 bytes per three-action hero
+decision node per preflop line plus 24 to 120 bytes of provenance a spot, and the covered line count
+is an output of decision 4's campaign cost rather than a number chosen here. The accepted cost is
+that this phase's committed data becomes an index plus a sample rather than the artifact the bot
+plays, which the contract must be amended to say.
 
 ## 7. Whether the committed solve is reproducible, and what is recorded if it is not
 
@@ -677,7 +931,15 @@ than compare checksums, and record the digest. If it is not byte-identical, the 
 number a human sets here rather than one an implementer picks, because it becomes the accuracy the
 artifact claims.
 
-Answer:
+Answer: [Ruled by Taylor, 2026-09-10] Take the default, **minus the pre-agreed tolerance**. Solve
+the committed configuration twice in separate processes against a restarted server, diff the
+strategies rather than compare checksums, and record the digest. If it is not byte-identical, the
+phase **halts and Taylor is asked** rather than falling back to a tolerance: a number nobody has a
+basis for would become the accuracy the artifact claims. The fallback branch in the contract is
+therefore a halt, not a value.
+
+The frequency-convergence diff this item names as the cheapest open measurement is unaffected by
+this ruling and is still owed.
 
 ## 8. How the preflop line compresses into the postflop spot key
 
@@ -809,7 +1071,129 @@ what carries depth. And the validation **refuses a near-miss rather than roundin
 opposite of the preflop chart's nearest-price substitution, because the sensitivity above is what
 makes rounding safe preflop and unsafe here.
 
-Answer:
+Answer: [Ruled by Taylor, 2026-09-10; the substitution rule below is a coordinator proposal he
+accepted in the same exchange] **Both go in the key.** Pot and effective stack are named in the
+postflop spot key rather than carried in the payload, against the default. The stack sensitivity
+this item measures is the reason: the same board and ranges at a nearby depth is a materially
+different strategy, and a key that cannot say which depth it was solved at cannot refuse a spot it
+has no cell for.
+
+**The collision with decision 8, found by the stage-3 review, and how it resolves.** Decision 8
+carries the preflop key verbatim, including the `@2.5` that the preflop lookup substitutes a 2.25bb
+open onto - and decision 3's own annotation records 2.25bb as the corpus **median** open. A 2.25bb
+open really produces pot 5.00 with 97.75 behind (decision 8's own table), against the solved cell's
+5.50 and 97.50. With an exact pot in the key and no substitution, that hand misses and refuses, so
+the artifact would refuse the head of the coverage list decision 3 already ruled.
+
+The resolution: **the key names the line the cell was solved for, not the table it is being asked
+about.** The pot and stack segments are derived from the substituted preflop line, so they are
+stable and a cell is always findable. The real table pot and stack are then compared against them at
+query time, and the query refuses when the gap is too wide rather than silently answering from a
+cell solved at a different depth.
+
+**The tolerance, ruled by Taylor 2026-09-10 and classed `frozen-into-data`.** An earlier draft of
+this paragraph set two bounds - 1bb of effective stack and 0.5bb of pot - and classed the pair
+`runtime-reversible` on the grounds that no committed cell records it. The stage-3 review broke both
+halves and Taylor took the replacement.
+
+*Why the two bounds were wrong.* Pot and effective stack are not independent: pot is
+`2 x open + 0.5`, so a 0.5bb pot bound admits opens of 2.25 to 2.75 while a 1bb stack bound admits
+1.5 to 3.5. The pot bound is four times tighter and is the only one that ever binds, which the draft
+did not notice - so a 2.2bb open, an ordinary size, would have refused. Worse, the corpus's median
+2.25bb open passed with **exactly zero margin**: 5.50 minus 5.00 is 0.50 against a "more than 0.5"
+test, so a stage-6 implementation writing `>=` instead of `>` flips the commonest flop spot in the
+corpus to refused with nothing in the gate going red.
+
+*Why `runtime-reversible` was wrong.* This file's own preamble, quoting `docs/LOOP.md:135` and
+`LOOP-NO-CLASS-FOR-A-HUMAN-OWNED-THRESHOLD`, says a behaviour default that a contract requires a
+frozen test to pin is a fixture and therefore frozen. The contract makes the generator re-derive the
+refusal counts, so a stage-4 test pins this threshold whether or not a cell records it. Classing it
+reversible is exactly the error the preamble was written to stop.
+
+*The ruling:* **a band around each substituted price, stated as a fraction of that price: accept an
+actual size
+within 20% of the price the cell was solved at, inclusive at both ends, and refuse outside.** The
+committed chart declares two prices, so the band is concrete: an open of **2.0bb to 3.0bb** against
+an `@2.5` cell, and a 3-bet of **6.0bb to 9.0bb** against an `@7.5` cell.
+
+*Why a fraction and not a chip count.* A first draft of this ruling said "2.0bb to 3.0bb against a
+cell solved at 2.5x" and stopped there, and the stage-3 review found the hole: a 3-bet pot cell
+carries a second substituted price, the chart's `@7.5`, and that sentence neither accepted nor
+refused it - its antecedent did not describe the query at all. A 3-bet to 7.0 gives pot 15.0 against
+the solved 16.0 and fell through the rule. Five of the seven converged rows are 3-bet pots, so the
+silence covered most of the measured evidence. Stating the band as a fraction of the cell's own
+price closes it for every price the chart declares now or later.
+
+*What the band is chosen for, said plainly because the previous draft implied otherwise.* **This is
+a coverage rule, not a sensitivity-derived one.** It is set to admit the opens the corpus actually
+contains and refuse the ones it does not; it is not derived from the depth sensitivity decision 10
+cites. And it admits a lot of that sensitivity: at 2.0bb the three-street geometric size is 127.26%
+of pot and at 3.0bb it is 106.81%, against the solved cell's 115.79%, so the band admits **20.45
+points of geometry** against the 26.97 points (103.94% to 130.91%) this item quotes to argue that
+depth must be refusable - **75.8% of the spread it exists to refuse**. A tighter band is not the fix,
+because every tighter band refuses ordinary opens, which is the failure this replacement exists to
+correct. The fix is saying so, which this paragraph is.
+
+*Boundaries.* The endpoints are inclusive and written down, because the previous draft's failure was
+a boundary nobody stated: 2.25bb passed a "more than 0.5bb" pot test by exactly zero margin. The
+hazard is reduced rather than removed - 2.0bb is a min-open and 3.0bb a standard 3x, so real hands
+still land exactly on the endpoints, and inclusivity is what makes that safe rather than the width
+being chosen to avoid them.
+
+*Measured 2026-09-10, after the stage-3 review pointed out the 3-bet half of this band rested on no
+number at all.* Parsed directly from the 499 raw PHH hands in
+`data/samples/public_corpus/corpus_hands.jsonl` - preflop raises only, each divided by that hand's
+big blind, first raise counted as the open and second as the 3-bet:
+
+- **Opens, n=409, median 2.25bb.** The 2.0-3.0bb band covers **405 of 409, 99.0%**. The open half of
+  this rule does what it was chosen to do.
+- **3-bets, n=87, median 9.25bb.** The 6.0-9.0bb band covers **41 of 87, 47.1%**. The band's top is
+  below the corpus median, so the rule as ruled refuses **most real 3-bet pots**.
+- **4-bets and beyond, n=19, median 25.35bb.** Outside every band and outside the chart, which
+  declares no 4-bet price. Those spots refuse for a different reason and are not this item's.
+
+**One consequence for decision 3, which nobody had drawn.** Decision 3's ruled ranking orders
+preflop lines by how often the corpus reaches them. A 3-bet line costs the same 45 to 85 days as a
+single-raised one and serves 47.1% of its arrivals against 99.0%, so the quantity that ranking
+should sort on is **servable** arrival frequency rather than arrival frequency. Five of the seven
+converged rows in the cost report are 3-bet pots, so the phase is best measured exactly where it
+will answer least. Decision 3 is ruled and is not reopened here; its ranking is computed at stage 6
+and this is the correction that computation needs.
+
+**The diagnosis is not the band's width, and widening it is not the fix.** No band centred on 7.5
+covers this corpus: ±30% reaches 55.2%, ±40% reaches 71.3%, ±50% reaches 80.5%, and ±60% - a
+3.00-12.00bb band, which would call a 3bb raise a 3-bet - still reaches only 89.7%. The cause is
+that **the committed chart's single 3-bet price of 7.5bb sits below the corpus median of 9.25bb**,
+so the cell 3-bet pots substitute onto is mis-centred and no tolerance around it can be both tight
+and covering. Answering a 12bb 3-bet pot from a 7.5bb cell is not a rounding error: SPR moves from
+5.78 to 3.52 and the strategy is a different one.
+
+**Ruled: keep the 20% band and record the gap rather than widen it.** This phase covers
+single-raised pots well and 3-bet pots poorly, it says so, and it fails closed on the ones it cannot
+answer - which is what this repo does everywhere else. Closing the gap properly means a second
+solved 3-bet price, which is coverage rather than tolerance and belongs to decision 3 and a future
+phase, filed as `THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN` in `backlog.yml`.
+
+*A second asymmetry the review found, kept because it compounds the above.* One 20% rule is not
+neutral between pot types. At a 3-bet of 6.0 the geometric three-street size is 74.56% of pot and at
+9.0 it is 59.76%, against the cell's 66.23% - 14.80 points, fewer than the open band's 20.45, but on
+a much smaller base: 22.35% of the solved size against the open's 17.66%, and the pot moves ±3.0bb
+against the open band's ±1.0bb. So the same fraction is looser where SPR is lower.
+
+*What it still does not bound.* This is a chip test and the larger channel is ranges: a 2.25bb open
+faces a wider, weaker defender than the 2.5x cell was solved against, and no tolerance on price sees
+that. `THE-QUERY-TIME-PRICE-SUBSTITUTION-IS-NOT-BOUNDED-POSTFLOP` in `backlog.yml` owns it and stays
+open.
+
+**What this accepts.** The pot and stack in the key are nominal rather than observed, so on the
+substituted hands they restate the preflop line rather than adding information, and the honest
+statement of decision 10's benefit is narrower than the default's rejection implied: the segments
+earn their place when the phase covers a second depth, not on the 100bb-only set this phase
+commits. The gain today is that a future depth cannot be silently answered by a 100bb cell.
+
+**No nearest-value substitution on the cell itself.** A depth or pot outside the tolerance refuses.
+That is deliberately the opposite of the preflop chart's nearest-price behaviour, and the
+sensitivity above is what makes rounding safe there and unsafe here.
 
 ## 11. The bet-size menu the committed solve is configured with
 
@@ -1004,7 +1388,105 @@ repo measurement and flagged as such: a single 75% turn and river size pushes he
 33% flop bet and toward checking**, worst on dry rainbow high-card boards - the texture family
 never once solved to target here.
 
-Answer:
+Answer: [Ruled by Taylor, 2026-09-10. He confirmed the count and the sizes in his own words -
+"Keep 2 per street ... We can just do 66-125 for turn and river. That's fine." - after the
+coordinator proposed them; the coordinator's own stack-off rationale for them is struck below.]
+**Two bet sizes on every street: flop `33 75`, turn and river `66 125`.** Raise stays `2.5x` and
+`donk` stays empty, so the missing turn and river probe is unchanged and still biases hero's flop
+betting upward.
+
+This is none of the four options as listed. It takes the pinned menu's *shape* - two sizes
+everywhere, so the coverage decision 3 asks for is reachable in single-raised pots - and re-chooses
+the later-street sizes, which no option did. What ruled out the pinned menu in a single-raised pot
+was 21,282 to 21,715 MB of arena against a 12,026 MB ceiling; the machine note below retires that
+ceiling, so it is not what decides this and decision 12's floor is not what makes it fit.
+Re-measure the arena against the new machine's ceiling before decision 6's index is designed.
+
+**The coordinator's stack-off rationale for these sizes is struck, and Taylor's reason replaces
+it.** That draft argued 125% "brackets 116% from above where 75% cannot reach it", where 116% is the
+three-street geometric size at the single-raised pot's SPR of 17.73. The stage-3 review showed the
+argument is about a size the ruled menu never offers on the flop. Recomputed and confirmed: through
+the ruled menu's deepest line, `75 125 125` invests 81.47 and leaves **16.03 of 97.5 behind, 16.4%
+of stack**; through the small branch, `33 125 125` leaves **44.33 behind, 45.5%**. Only 125% on all
+three streets stacks off, and the menu does not offer it on the flop. So the ruled menu does **not**
+give the ordinary pot a line that gets all-in, and this file must not claim it does.
+
+Taylor's own reason, and it is sufficient: "It's fine to not get full stacks in a single raise pot.
+That doesn't have to happen every time." Getting stacks in is one property of a bet menu, not a
+requirement, and no measurement here says a menu that reaches all-in plays better than one that does
+not.
+
+**The 200% turn overbet was raised by Taylor, considered, and not taken.** He asked what three sizes
+would buy and floated 200% of pot, then settled on two sizes at `66 125`.
+
+**One of the two reasons the coordinator put in front of that choice was wrong, and the stage-3
+poker review measured it.** The claim was that a 200% river bet is usually the stack anyway, worked
+through one line - `33` called, `200%` called, then 200% of the river pot at about 91 against
+roughly 77 behind, converting to all-in under the `allin_threshold` snap. That line is real and it
+is **one of six river branches the ruled menu can reach**. In the other five a 200% river bet is not
+the stack, and it is furthest from the stack in the checked-through branch - which is precisely the
+branch where a river overbet earns most, because neither player has built the pot and the polar
+range is at its widest. So the reason given for confining the overbet to the turn does not hold on
+the river, and it was reasoning presented as such rather than a measurement, which is how it
+survived to be ruled on. **Taylor's choice is not disturbed** - it was two sizes per street, and the
+stage-6 comparison this item files is what settles the turn size - but the record must not keep a
+justification the measurement contradicts.
+
+**The reason that does hold** is cost: a third size per street compounds across three streets, and
+the record's only adjacent datum is that cutting turn and river from two sizes to one bought 750,792
+action nodes of 2,347,996, **32.0%** - an earlier draft said 24%, which is neither the node ratio nor
+the 28.2% arena ratio. So a third size is the expensive direction. What is now unsupported is the
+narrower claim that the overbet's value sits on the turn rather than the river; on the review's
+reading it sits on both, and the river branch it was dismissed from is the one where it is worth
+most.
+
+**Filed rather than dropped**, because `NO-MENU-IN-THE-RECORD-OFFERS-AN-OVERBET` in `backlog.yml`
+already owns the gap and the ruled menu closes only half of it: 125% on turn and river is an overbet
+of the pot, so the item is falsified on its later-street half and still stands on the flop. The
+experiment that would settle whether a turn overbet is worth its cost is the same one this item
+already asks for - one board, pot, stack and both ranges held, only the menu moving - run as
+`33 75` / `66 125` / `66 125` against `33 75` / `66 200` / `66 125`. It is cheap, it belongs at stage
+6 rather than here, and nothing commits until it runs.
+
+**Nothing in the record uses 66%, 125% or 200%.** Every measured row is `33 75` or `75`, so this menu
+is unmeasured on both cost and strategy, which is a wider evidence gap than any of the four listed
+options carried. Bigger sizes do reach the all-in conversion sooner, so the tree may be smaller
+rather than larger, but that direction is reasoned rather than measured. The single-raised-pot solve
+this item already asks for is the first solve of the phase and it runs at this menu.
+
+### Machine note, recorded here because decision 11 and decision 4 both rest on it
+
+**Ruled by Taylor, 2026-09-10.** Solving moves off the machine every figure in this phase was
+measured on. The stage-3 review was right that an earlier draft buried this in a subordinate clause
+while letting it retire the ceiling every arena verdict depends on.
+
+- **What was ruled:** a rented cloud machine with an NVIDIA GPU, hourly rather than purchased
+  ("i think we'll need a virtual computer", and separately that no hardware is bought to start the
+  phase). Nothing is rented until the phase needs a solve; stages 4 through 6 need none.
+- **What is not ruled and must not be invented:** the provider, the instance type, the core count,
+  the RAM and the GPU model. Every timing, every arena figure and the 12,026 MB ceiling in
+  `latest_postflop_solve_cost.txt` are "Apple M4, 10 cores, 34.4 GB RAM" and none of them transfers.
+- **The one figure this note deliberately does not carry:** GTOpen's README puts CUDA at about ten
+  times the CPU engine, and `docs/GTOPEN_SOLVER_NOTES.md` records it as untested with no NVIDIA GPU
+  on the measuring machine. It is not used in any cost figure in this file and must not be until one
+  flop has been solved on the rented machine and timed. That solve is the first thing the machine is
+  for.
+- **What has to be re-derived on it before a run is planned:** seconds per iteration at the ruled
+  menu, the arena for the single-raised tree against the new box's own memory ceiling, and therefore
+  decision 4's campaign figures and decision 6's covered line count.
+- **The cost is money, and this is the first place the phase says so.** Rented by the hour against
+  decision 4's 17.9 to 105 days of continuous compute per preflop line means metered spend scaling
+  with a line count decision 6 deliberately leaves as an output, and even the untested CUDA speedup
+  leaves a texture-weighted line in the range of days rather than hours. **No rate is quoted here on
+  purpose**: no provider or instance type is ruled, and inventing a dollar figure would be the same
+  defect as inventing the speedup. What this note fixes is that the cost exists and is unbounded
+  until the machine is named - it was the largest unwritten accepted cost in the phase, found by the
+  stage-3 review outside its brief.
+- **One closed contract item reopens on Linux.** `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` sits on
+  the contract's Closed list because GTOpen's guard reads `/proc/meminfo`, "which does not exist on
+  Darwin". A rented cloud box is almost certainly Linux, where it does exist and the guard goes
+  live, which removes the premise the closure rests on. Re-check that item against the machine
+  before stage 6 rather than after a run dies.
 
 ## 12. Whether the solve floors its input ranges, and at what weight
 
@@ -1155,4 +1637,6 @@ This item was raised by the stage-2 reviewer, and an earlier draft of it was wri
 coordinator with five arguments for splitting and one against, closed in its own sentence. The
 reviewer flagged that itself and declined to answer the question it had raised.
 
-Answer:
+Answer: [Ruled by Taylor, 2026-09-10] **One phase. Do not split.** The format half and the data
+half are ruled together here, accepting the cost this item names: the artifact gets committed
+against a key format that nothing has been built against yet.

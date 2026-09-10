@@ -4109,6 +4109,19 @@ items:
       The per-hand-class sizing schema phase 14 built is the right shape and should be kept; it does
       not become a sizing strategy until the solved tree carries more than one non-all-in price per
       round.
+      **Measured 2026-09-10, which turns this entry's estimates into numbers.** Parsed from the 499
+      raw PHH hands in `data/samples/public_corpus/corpus_hands.jsonl`, all at 100bb with two blinds
+      and no straddles: the corpus 3-bet is a median **4.00x** (mean 4.077x) of that same hand's own
+      open, against `raise_mults: [3.0]`. In big blinds the 3-bet median is **9.25bb** across n=87,
+      so this entry's "10 to 11bb" is corrected down to 9.25 and its direction confirmed. The
+      corpus 4-bet median is 25.35bb over that 9.25, or **2.74x** on n=19 - between this entry's
+      estimated 2.2x-2.5x and the chart's 3.0x, so the 4-bet half is roughly right and slightly
+      overstated. The defect is therefore **one config field**, `raise_mults`, rather than a
+      coverage choice, which is the sharpest available statement of it.
+      Cross-reference `THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN`, which carries the
+      consequence for phase 16's query-time band; this entry carries the cause. Filed by phase 14's
+      stage-6 poker review; measured by phase 16's coordinator, 2026-09-10, and confirmed by its
+      stage-3 independent review.
 
   - id: BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT
     status: deferred
@@ -7286,7 +7299,91 @@ items:
       the bot never plays out the strategy it did not solve for. What does not survive is
       measurement: no winrate or EV figure may be reported over this artifact, because the hands it
       would be computed from are the ones that ended at the refusal.
-      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+      **Extended 2026-09-10 after decision 11 was ruled.** The turn and river menu is now `66 125`,
+      and it is frozen into every committed flop cell through the continuation values the flop
+      strategy is solved against - while the phase commits no turn data, publishes no turn strategy
+      and holds no oracle for flop frequencies. So this is the one frozen choice in the decision
+      list with **no failure mode the phase can detect**: a wrong later-street menu produces wrong
+      flop frequencies and nothing in the gate, the reports or the corpus comparison can go red on
+      it. The turn overbet comparison decision 11 files for stage 6 is the only planned measurement
+      that would see it at all, and it compares two menus rather than testing either.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09; extended by its stage-3
+      review, 2026-09-10.
+
+  - id: NO-POKER-REVIEW-HAS-SEEN-THE-RULINGS-TAKEN-AFTER-STAGE-2
+    status: deferred
+    phase: contract-update
+    title: Every ruling taken after 2026-09-09 is unreviewed as poker, and the artifact commits against them
+    reason: >-
+      Phase 16's only independent poker review is its stage-2 one, dated 2026-09-09. Every ruling
+      taken after it is unreviewed by anyone with a poker brief: decision 11's menu including the
+      withdrawn stack-off rationale and the declined 200% turn size, decision 12's floor in
+      combination with that menu, decision 10's 20% price bands, decision 6's three-board sample and
+      its texture split, and decision 4's 1%-of-pot commit bound. The stage-3 review that found this
+      says so in its own words - it can prove a paired board is never monotone and cannot say
+      whether `66 125` plays better than `66 200`.
+      The loop's own domain review arrives at stage 8, which is after the artifact is committed
+      against all of them, and the frozen ones cannot be revisited then without re-solving. This is
+      the general defect rather than phase 16's instance: the loop places its poker review after the
+      point at which its poker choices stop being reversible.
+      Proposed by phase 16's stage-3 independent review, 2026-09-10, and filed by the coordinator
+      the same day.
+
+  - id: AN-EDIT-THAT-SUPERSEDES-PROSE-OWES-A-RE-READ-AND-NOTHING-ASKS-FOR-ONE
+    status: deferred
+    phase: maintenance
+    title: The dominant defect class in phase 16 stage 3 has a known remedy that no document requires
+    reason: >-
+      Phase 16's stage 3 took eight review rounds and produced seven instances of one defect class:
+      new text inserted into an existing paragraph while the sentences around it were left standing,
+      so a record asserted both a ruling and the claim it superseded. The instances were two
+      `Answer:` slots against "stays blocking"; decision 10's ruling sentence keeping its withdrawn
+      predecessor; the ExecPlan Bootstrap's "open, and not to be invented" bullet after both items
+      were ruled; the fold-in bullet's "is its own task" lead-in against a body saying the opposite;
+      decision 6 item 4 naming two rainbow boards inside a three-texture split; and that same item's
+      spliced opener and stale "leaves rank open" sentences. **Six of the seven are invisible to any
+      parser** - only the first sat in a machine-read field.
+      The remedy is known and costs nothing: an edit that supersedes existing prose owes a re-read
+      of the containing paragraph, by whoever made the edit, before a reviewer sees it. The stage-3
+      review's judgement on where it belongs, and the coordinator agrees: **`docs/LOOP.md`, as a
+      stage obligation** in the same shape as "a stage that changed anything a human wrote owes
+      read-only review notes before `--advance` will move", with the driver printing it. Backlog is
+      where a diagnosed defect waits for an owner; this one is not waiting for anything, which is
+      why a backlog entry is the wrong permanent home for it and this entry exists only to carry it
+      until a maintenance task makes the edit. `AGENTS.md` is the fallback location.
+      **A rule that depends on being remembered is the weakest form of this, and this stage is the
+      evidence**: the rule was stated in round 7, agreed in round 8, and broken by the round-8 edit
+      that produced round 8's blocker. The reviewer's own correction to itself is the part worth
+      keeping: the *defect* is not detectable by any script, because nothing distinguishes a
+      superseded sentence from a deliberate qualification, but the *risk condition* is - a pure
+      insertion into a paragraph that already had text is computable from a diff and would have
+      flagged three of the seven outright, including the round-7 splice. Not a gate check; a prompt
+      the driver prints at the point of the edit.
+      Filed by the coordinator 2026-09-10 from phase 16's stage-3 independent review, which measured
+      the class across all eight rounds.
+
+  - id: A-REVIEW-NOTE-RECORDS-ITS-FINDINGS-BUT-NOT-ITS-ROUNDS
+    status: deferred
+    phase: contract-update
+    title: A review note records findings but not how many rounds it took to reach none
+    reason: >-
+      Sibling of STAGE-REVIEW-HAS-NO-RETRY-RECORD. Phase 16's stage 3 took seven review rounds, and
+      rounds 3 through 7 each found blockers in text written to fix the previous round's. The count
+      is evidence and belongs in this body; it is deliberately not in the id, both because
+      `AGENTS.md` says a name describes what a thing does and because the first draft of this entry
+      named six and was stale before it was filed. Nothing in
+      `validate_review` or the driver can distinguish that note from one that was clean on its first
+      pass, so the signal that a stage was hard to get right is lost exactly where it would be most
+      useful to a later reader.
+      The concrete case for the record, being what a single pass would have shipped: a campaign
+      figure wrong by 2x to 6x, a storage mechanism that defeats the offline gate, a frozen
+      threshold classed reversible, a query-time band serving 47.1% of real 3-bet pots, a sample
+      whose three boards contradicted its own suit split, and a closeout sequence that could not
+      execute.
+      What this wants is a round count and a per-round finding count in the note's own header, so
+      the retry history is data rather than something a reader reconstructs from prose.
+      Proposed by phase 16's stage-3 independent review, 2026-09-10, and filed by the coordinator
+      the same day.
 
   - id: POSTFLOP-CELLS-ARE-STACK-FRAGILE-WHERE-THE-PREFLOP-CHART-IS-NOT
     status: deferred
@@ -7297,12 +7394,19 @@ items:
       pot at 77.5, 97.5 and 127.5bb effective. The same board and the same ranges at a nearby depth
       is therefore a materially different strategy, where a preflop cell at a nearby depth is nearly
       the same one.
-      The consequence is a rule difference that should be stated where both rules live: a postflop
-      payload validation must **refuse** an off-depth spot rather than tolerate it, which is
-      stricter than the preflop chart's nearest-price substitution. The preflop tolerance is
-      defensible for the same 0.25bb and does not transfer, because postflop that 0.25bb moves the
-      pot, the SPR and both ranges at once.
-      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+      The consequence is a rule difference that should be stated where both rules live: an off-depth
+      postflop spot must be **refused** rather than tolerated, which is stricter than the preflop
+      chart's nearest-price substitution. The preflop tolerance is defensible for the same 0.25bb and
+      does not transfer, because postflop that 0.25bb moves the pot, the SPR and both ranges at once.
+      Re-pointed 2026-09-10: this entry named "decision 10's payload validation" as the place the
+      rule belongs, and decision 10's ruling removed the payload validation - pot and stack are key
+      segments now and the refusal is a query-time band on the substituted price, within 20% of the
+      price the cell was solved at. An intermediate draft of this re-pointing named a 1bb stack and
+      0.5bb pot tolerance; that pair was withdrawn the same day and no rule of that shape exists.
+      The rule difference the entry asks for still wants stating where both rules live; only the
+      mechanism's name changed.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09; re-pointed by its stage-3
+      review, 2026-09-10.
 
   - id: NOTHING-MEASURES-POSTFLOP-ACTION-COVERAGE-AGAINST-REAL-BET-SIZES
     status: deferred
@@ -7349,10 +7453,22 @@ items:
       against, and hero c-bets and bluffs too little. The geometry channel is smaller and opposite
       in character, the real SPR being higher than the cell assumes so the cell reads as too willing
       to commit.
-      Decision 10's payload validation cannot see either, because it compares the payload to the
-      **line** the spot names rather than to the query being asked - the artifact is checked against
-      itself. The preflop chart's tolerance for the same 0.25bb is defensible and does not transfer.
-      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+      Re-pointed 2026-09-10 after decision 10 was ruled: the payload validation this entry was
+      filed against no longer exists. Pot and effective stack are segments of the spot key now,
+      derived from the substituted line, and the refusal is a query-time band around each
+      substituted price - an actual size within 20% of the price the cell was solved at, so
+      2.0-3.0bb against `@2.5` and 6.0-9.0bb against `@7.5`. (Two intermediate drafts that day set a
+      1bb effective-stack and 0.5bb pot pair; it was withdrawn because pot is derived from the open,
+      so the bounds were not independent and the tighter one refused ordinary 2.2bb opens. No rule
+      of that shape exists.)
+      The band does not close this entry and narrows it only slightly. It is a coverage rule rather
+      than a sensitivity-derived one, and it admits 20.45 of the 26.97 points of geometric spread
+      this entry documents. The **range** channel, the larger of the two, is untouched: the band
+      compares chips and never ranges, so a 2.25bb open is played deliberately against a defender
+      wider and weaker than the cell was solved for.
+      The preflop chart's tolerance for the same 0.25bb is defensible and does not transfer.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09; re-pointed by its stage-3
+      review, 2026-09-10.
 
   - id: AN-ISOMORPHISM-TEST-ON-BOARDS-DOES-NOT-COVER-HERO-HANDS
     status: deferred
@@ -7386,6 +7502,104 @@ items:
       unmeasured; this is poker reasoning rather than a repo number.
       Filed by phase 16's stage-2 independent poker review, 2026-09-09.
 
+  - id: THE-PHASE-CAN-ANSWER-AT-MOST-THREE-QUARTERS-OF-CORPUS-FLOPS
+    status: deferred
+    phase: "16"
+    title: A coverage ceiling of 74.9 percent, of which multiway is structural and undocumented
+    reason: >-
+      Computed by phase 16's stage-3 independent poker review, 2026-09-10, over the 499-hand public
+      corpus, and it is the first flop-reaching measurement in the repo: **259 of 499 hands see a
+      flop**, 74.9% of those single-raised, 15.1% 3-bet, 92.3% heads-up. Against the phase's ruled
+      coverage, **194 of 259 corpus flops can be answered, 74.9%**. The losses are 20 multiway
+      (7.7%), 26 limped or 4-bet (10.0%), and 19 out-of-band 3-bets (7.3%).
+      The multiway share is the part that needs saying, because it is **structural rather than a
+      coverage choice**: the solve takes two ranges, so a three-way flop cannot be expressed at any
+      budget, on any machine, at any menu. No contract criterion, report or decision item says so,
+      and a reader comparing 1,755 committed classes against a refusal count would reasonably
+      conclude the gap is fundable. It is not.
+      The limped and 4-bet share is a chart gap, and the out-of-band 3-bet share is
+      `THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN`. This entry exists so the ceiling is one
+      number a reader can find rather than three causes in three places, and so that no report
+      claims a coverage figure without stating what it is a fraction of.
+
+  - id: THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN
+    status: deferred
+    phase: contract-update
+    title: The chart's single 7.5bb 3-bet price is mis-centred, so most real 3-bet pots refuse
+    reason: >-
+      Measured 2026-09-10 from the 499 raw PHH hands in
+      `data/samples/public_corpus/corpus_hands.jsonl`, preflop raises divided by each hand's big
+      blind: opens n=409 median 2.25bb, 3-bets n=87 median **9.25bb**, 4-bets and beyond n=19
+      median 25.35bb. The committed chart declares one 3-bet price, `@7.5`, which is **below** the
+      corpus median.
+      Phase 16's decision 10 accepts an actual size within 20% of the price its cell was solved at.
+      That covers 405 of 409 opens, 99.0%, and only 41 of 87 3-bets, 47.1%. Widening does not fix
+      it, because no band centred on 7.5 both covers and stays tight: plus or minus 30% reaches
+      55.2%, 40% reaches 71.3%, 50% reaches 80.5%, and 60% - a 3.00 to 12.00bb band that would call
+      a 3bb raise a 3-bet - still reaches 89.7%. Holding the width at 20% and sweeping the centre
+      does not rescue it either: 7.5 gives 47.1%, 8.5 gives 57.5%, 9.0 peaks at 60.9% and 10.0 falls
+      back to 56.3%, because the distribution runs 5.25 to 14.0bb and no 20% band holds it.
+      Answering a 12bb 3-bet pot from a 7.5bb cell moves SPR from 5.78 to **3.52** - an earlier draft
+      of this entry said "about 4.0", which understated the defect - and that is a different strategy
+      rather than a rounding error.
+      **The cause is one config field and it is filed elsewhere.**
+      `ONE-NON-ALLIN-PRICE-PER-ROUND-MAKES-SIZING-A-CARICATURE` records `raise_mults: [3.0]` as what
+      produces the 7.5 price, and the corpus 3-bet is a median 4.00x of its own hand's open. That
+      entry carries the cause; this one carries the consequence for the query-time band. **The
+      dependence runs one way and an earlier draft said it ran both.** Fixing `raise_mults` and
+      re-solving the chart closes the cause, but every postflop cell phase 16 commits is already
+      keyed to `@7.5` and still refuses the new prices, so this entry stays open until the postflop
+      3-bet cells are themselves re-solved. Different fix, different owner, different phase.
+      So the postflop artifact will cover single-raised pots well and 3-bet pots poorly, and this is
+      a **coverage** defect in the preflop chart rather than a tolerance defect in decision 10. The
+      fix is a second solved 3-bet price, which is decision 3's territory and a future phase's cost.
+      Note the collision with the solve evidence: five of the seven converged rows in
+      `latest_postflop_solve_cost.txt` are 3-bet pots, so the phase is best measured exactly where
+      it will answer least.
+      Measured and filed by the coordinator, 2026-09-10, after phase 16's stage-3 independent review
+      found the 3-bet half of the band asserted with no number behind it.
+
+  - id: THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT
+    status: deferred
+    phase: contract-update
+    title: Decision 6 leaves the playable artifact outside git, so a fresh clone can bet on three flops
+    reason: >-
+      Phase 16's decision 6 puts the solved flop artifact in object storage and commits an index plus
+      a three-flop sample. The gate stays honest, because the sample is real bytes a fresh offline
+      clone holds. What changes is the product: a clone that has not fetched can bet on 3 of 1,755
+      flop classes and refuses the rest, so "the bot plays postflop" is true of a provisioned
+      machine and not of the repo.
+      This is judged acceptable rather than wrong - fetching once is the same shape as cloning
+      GTOpen, and the committed index carries the digests so integrity survives the trip. But no
+      document says it, and the phase's own reports will describe coverage the repo alone does not
+      have. What this entry wants is the distinction stated wherever coverage is claimed: how many
+      classes a fresh clone can answer, and how many a provisioned one can.
+      Proposed by phase 16's stage-3 independent review, 2026-09-10, on its verification pass, and
+      filed by the coordinator the same day.
+
+  - id: COMMITTED-DATA-BEHIND-A-NETWORK-FETCH-BREAKS-AN-OFFLINE-GATE
+    status: deferred
+    phase: contract-update
+    title: A fetched-on-demand artifact makes the gate's verdict a function of how the clone was made
+    reason: >-
+      This repo's gate is required to pass with no network, and `scripts/check_file_sizes.py`
+      measures whatever bytes are on disk. Any storage mechanism that leaves a placeholder in the
+      tracked tree and fetches the real object later - git LFS is the concrete case, and any
+      smudge-filter or fetch-on-read scheme is the general one - makes both the gate's verdict and
+      every byte figure a function of how the clone was made. On an unfetched clone a byte-budget
+      check passes against a ~130-byte pointer and a report prints the pointer's size as the
+      artifact's size, so the check is vacuous exactly when it matters.
+      Phase 16 met this concretely: git LFS was ruled for the flop artifact on 2026-09-10 and
+      withdrawn the same day for this reason, replaced by object storage outside git plus a
+      committed index and a committed sample. That resolution keeps the gate honest because nothing
+      oversized enters the tracked tree at all - the committed sample is real bytes and the gate
+      measures it - but it does not state the rule, and the next phase with a large artifact will
+      face the same choice with nothing written down.
+      What this entry wants is the rule in `AGENTS.md` beside the offline-first sentence: committed
+      data means bytes present in a fresh offline clone, and a mechanism that defers the bytes is
+      not a way to commit data. Proposed by phase 16's stage-3 independent review, 2026-09-10, and
+      filed by the coordinator the same day.
+
   - id: NO-MENU-IN-THE-RECORD-OFFERS-AN-OVERBET
     status: deferred
     phase: contract-update
@@ -7403,4 +7617,13 @@ items:
       Distinguished from the withdrawn NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT,
       which claimed all-in was unreachable and was false - raises reach the stack even where bets do
       not, 96 distinct all-in states in the single-raised pinned tree.
-      Filed by phase 16's stage-2 independent poker review, 2026-09-09.
+      **Falsified on its later-street half 2026-09-10 and re-pointed to the flop.** Decision 11 was
+      ruled `33 75` on the flop and `66 125` on turn and river, so "every menu in the record caps at
+      75% of pot on every street" is no longer true of the ruled menu after the flop; 125% is an
+      overbet. The gap now stands on the **flop** alone, where the top size is still 75%, and that is
+      where this entry says the polar branch is constructed. Taylor raised a 200% turn size in the
+      same exchange, considered it and settled on 125%; decision 11 records the comparison to run -
+      `66 125` against `66 200` on the turn, one board and both ranges held - as a stage-6
+      measurement.
+      Filed by phase 16's stage-2 independent poker review, 2026-09-09; re-pointed by its stage-3
+      review, 2026-09-10.

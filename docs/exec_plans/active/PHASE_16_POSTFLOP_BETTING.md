@@ -272,14 +272,90 @@ Not yet. Stage 1.
   Never work in `~/projects/poker-bot`.
 - Next command: `uv run python scripts/loop_stage.py --phase 16`. Six lanes have pointers in this
   worktree, so `--phase 16` is required rather than optional.
-- Current state: stage 1, `task_mode: contract-update`, `base_commit` `19beb97`. The contract is
-  being written for the first time. The gate is red on two things by design between stage 1 and
-  stage 4: `pytest_postflop_betting` is declared in the contract's frontmatter and not registered
-  in `COMMANDS`, and that is the same state the phase 17 lane sits in.
-- Open, and not to be invented: decision 4, the exploitability target and whether a solve
-  reproduces, which the loop policy says is inherited from phase 10's measurements and halts if
-  they were never produced; and decision 6, the artifact encoding, filed at stage 1 from the
-  measurement above. Both are `frozen-into-data`. Neither a reviewer nor a coordinator can supply
-  either.
+- Current state: **stage 3, the human gate, and its checks pass** as of 2026-09-10 -
+  `loop_stage.py --phase 16` prints "this stage's checks pass; run --advance to move on". Do **not**
+  advance yet; the fold-in rewrite below comes first. `task_mode: contract-update`, `base_commit`
+  `19beb97`. The gate is red on two things by design between stage 1 and stage 4:
+  `pytest_postflop_betting` is declared in the contract's frontmatter and not registered in
+  `COMMANDS`, and that is the same state the phase 17 lane sits in.
+- **Everything in this worktree is uncommitted.** Three files carry the stage's work:
+  `reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md`, `backlog.yml`, and this
+  ExecPlan, plus two review notes under
+  `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/`. Commit before anything else, so the
+  fold-in rewrite has a base to diff against.
+- **Two independent reviews closed this stage and both are on disk.** `stage-03-human-gate.md`
+  (arithmetic, consistency, attribution, provenance) took eight rounds, is clean, and keeps 24
+  resolved findings as the record. `stage-03-decisions-poker.md` reviewed every ruling taken after
+  2026-09-09 and found none of them wrong as poker; its one blocker, the sample's rank axis, is
+  fixed in decision 6. **Read both before touching a ruling** - between them they carry the reasons
+  for choices the decision list states only as conclusions.
+- **A contract fold-in rewrite blocks stage 4.** The stage-3 review counted
+  thirteen amendments now owed against eleven free lines: the contract is at 289 of a 300-line cap,
+  `AGENTS.md` caps an amendment at two lines and forbids raising the cap, and it prescribes a
+  rewrite that folds existing amendments into the criteria they amend as a separate
+  `contract-update` task. `PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP` records how the alternative ends.
+  **Sequencing, corrected 2026-09-10 by the stage-3 review's third round.** A first version of this
+  plan said to close this task at stage 3 and run the rewrite as a separate task. That cannot be
+  executed: `AGENTS.md` Task Closeout steps 1 and 2 require a passing gate, and this gate cannot
+  pass - `phase_status.yml:87` has phase 16 `active`, so `run_verify.py` derives its
+  `required_gate_commands`, and neither `pytest_postflop_betting` nor
+  `generate_postflop_betting_report` is registered in `COMMANDS`. That is the red-by-design state
+  between stage 1 and stage 4, and closing out through it is not available.
+  The rewrite therefore happens **inside this task**, which is already in `contract-update` with
+  `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` in `approved_scope`. `AGENTS.md`'s "its own
+  task" rule exists to stop a rewrite being done mid-amendment to make room; this one is declared
+  ahead of any amendment, in a task already in the right mode, which is the case the rule is not
+  aimed at. Order: fold in, review, then stage 4.
+  **The rewrite owes its own read-only review before stage 4**, and the failure mode is named
+  rather than assumed: `AN-AMENDMENT-TO-A-SKELETON-CONTRACT-IS-DELETED-BY-ITS-OWN-STAGE-1` records
+  this phase's own amendment being eaten by its own contract stage and calls its survival "luck
+  rather than design". A fold-in absorbing thirteen amendments is that risk at thirteen times the
+  scale. The review question is not "is the new contract good" but **"does every amendment that
+  went in come out"**, checked against the decision list and the backlog ids.
+- **Nothing in the decision list is open.** All thirteen items are answered as of 2026-09-10, and an
+  earlier version of this bullet still listed decisions 4 and 6 as open after they had been ruled -
+  the same divergence between a summary and the record that the stage-3 review made its first
+  blocker, relocated into the file `AGENTS.md` sends the next agent to first. That bullet also said
+  decision 4's target was "inherited from phase 10's measurements", which decision 4 establishes at
+  length is false: phase 10's target is a summed best-response gap in big blinds, preflop, and
+  postflop targets a percent of the starting pot. Different engine, different tree, different unit.
+- What is open is not a decision: the contract fold-in rewrite below, and the measurements decisions
+  4, 7 and 11 each say must be re-derived on the rented machine before a run is planned.
 - What this phase must get right up front is the postflop spot key. Adding spots later is additive;
   changing what the key can express re-derives every committed cell.
+
+### What the fold-in rewrite has to absorb
+
+The thirteen amendments the stage-3 review counted, as the criteria they land on rather than as a
+list of edits. Every one has its full reasoning in the decision list or a `backlog.yml` entry, and
+the rewrite copies conclusions rather than re-arguing them:
+
+1. Accuracy: target 0.3% of pot, cap 1,200 iterations, commit a cap-bound cell under 1% of pot and
+   refuse above. **No criterion may state an accuracy for the solve as a whole** - the existing line
+   forbidding a 0.3% claim stays and now has a 1% guarantee beside it.
+2. Storage: object storage outside git, a committed index, a committed three-flop sample, the
+   20 MiB `data/artifacts` cap unmoved, no git LFS. The byte-budget criterion measures the index and
+   the sample, not the artifact.
+3. The refusal inventory has **three** causes: never solved, solved but over 1%, and in the index
+   but not fetched on this machine.
+4. The spot key carries pot and effective stack, derived from the substituted line, and the
+   query-time price band is within 20% of the cell's own price.
+5. The menu: flop `33 75`, turn and river `66 125`, raise `2.5x`, no donk.
+6. The range floor: 1%, class-level.
+7. Reproducibility: two runs of the committed configuration, strategies diffed rather than
+   checksummed; if not byte-identical the phase halts for Taylor rather than falling back to a
+   tolerance.
+8. One phase, not split.
+9. The machine: a rented NVIDIA cloud box, no provider or spec named, and every timing and arena
+   figure in the phase re-derived on it before a run is planned.
+10. `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` sits on the Closed list on a Darwin premise the rented
+    Linux box removes. Re-open or restate it.
+11. The covered line count is an output of both the campaign and the index, whichever is smaller.
+12. Coverage is bounded at 74.9% of corpus flops and 7.7% of that loss is multiway, which is
+    structural rather than fundable - see `THE-PHASE-CAN-ANSWER-AT-MOST-THREE-QUARTERS-OF-CORPUS-FLOPS`.
+13. The committed sample's own texture and rank splits, which are frozen and which stage 4 picks
+    boards inside rather than choosing.
+
+The rewrite folds the contract's **existing** amendments into the criteria they amend to make room,
+which is the part `AGENTS.md` prescribes and the part that carries the deletion risk. 289 of 300
+lines today.
