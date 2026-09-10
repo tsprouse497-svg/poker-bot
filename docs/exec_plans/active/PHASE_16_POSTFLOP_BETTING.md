@@ -36,10 +36,13 @@ generated documents, `docs/exec_plans/**`, and `reports/active/**`.
 
 Expected at later stages, each needing its own dated `scope_change_log` entry when it is opened:
 
-- Stage 4: `tests/test_postflop_betting.py`, `verification/mutations.yml`, and
-  `scripts/run_verify.py` for command registration only. `check_repo_consistency` requires the
-  test file to exist and hold at least one test the moment the command id is registered, so the
-  two land together or neither lands.
+- Stage 4: `tests/**`, `verification/mutations.yml`, and `scripts/run_verify.py` for command
+  registration only. `check_repo_consistency` requires the test file to exist and hold at least
+  one test the moment the command id is registered, so the two land together or neither lands.
+  **`tests/**` and not just the new file**, corrected 2026-09-10: the contract requires the frozen
+  tests of completed phases that assert against the query shape to be migrated in this task and
+  authored at stage 4, and says the set is swept rather than inherited as a count, so the files it
+  touches cannot be listed in advance.
 - Stage 5: `tests/**` and `verification/**` leave scope. The freeze is what stops the thing being
   tested and the test for it being written by the same mind.
 - Stage 6: the postflop key module, the artifact schema and importer, the strategy, the solve

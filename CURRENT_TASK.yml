@@ -6,7 +6,7 @@ approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
   - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/**
-  - tests/test_postflop_betting.py
+  - tests/**
   - verification/mutations.yml
   - scripts/run_verify.py
 standing_scope:
@@ -1923,3 +1923,19 @@ scope_change_log:
       tests/** and verification/** leave scope again at stage 5. That freeze is what stops the
       thing being tested and the test for it being written by the same mind, and it is why the
       tests are authored now, against the contract alone, with no implementation to read.
+
+  - date: 2026-09-10
+    reason: >-
+      Widened from tests/test_postflop_betting.py to tests/** on the same day it was opened,
+      because the narrower path cannot satisfy an obligation the contract already carries.
+      The contract's regression expectations require the frozen tests of completed phases that
+      assert against the query shape to be migrated in this task and authored at stage 4, since
+      stage 5 freezes tests/** and this phase changes the shape those tests assert against.
+      Three are known to invert - test_rejects_a_bet_because_preflop_has_no_bet in
+      tests/test_strategy_contract.py, and the two pinning DECISION_AUDIT_SCHEMA_VERSION == 3 in
+      tests/test_table_state.py and tests/test_spot_vocabulary_downstream.py - and the contract is
+      explicit that three is what two review passes found rather than a bound, so the obligation
+      is to sweep and the set cannot be enumerated in advance. A scope list naming only the files
+      already known would be the same defect as inheriting the count.
+      The ExecPlan's stage-4 line named only the new test file and missed this; it is corrected
+      in the same commit.
