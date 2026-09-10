@@ -510,8 +510,8 @@ study work uses", which contradicted the band this same item states.
 **What this accepts.** A cell at 0.9% is three times the target and it plays, so the committed set
 is not uniform in accuracy and every report and packet states the distribution: how many committed
 cells sit between 0.3% and 1%, and where. **No packet may state an accuracy for the committed solve
-as a whole** - the contract forbids exactly that at
-`docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md:255`, and an earlier draft of this answer
+as a whole** - the contract forbids exactly that in the criterion reading "No report or packet may
+state an accuracy for the solve as a whole", and an earlier draft of this answer
 asserted a "headline accuracy of 0.3%" in direct breach of it. 0.3% is what was aimed at, the
 per-cell recorded percent is what was reached, and 1% is the worst a played cell may carry.
 
@@ -725,7 +725,8 @@ A size problem is not a licence to reopen it.
 review found that unworkable: `scripts/check_file_sizes.py:48-54` sums `rglob` per entry so the
 20 MiB `data/artifacts` cap still applies to a nested path, and an LFS blob is a ~130-byte pointer
 until a clone fetches it, which puts committed data behind a network fetch against `AGENTS.md`'s
-offline-first opening and the contract's own "gate must pass ... with no network" at line 48. On an
+offline-first opening and the contract's own "The gate must pass with no GTOpen, no Rust
+toolchain, no network and no fetched solve". On an
 unfetched clone the byte-budget criterion would pass vacuously against a pointer. That draft is
 withdrawn. LFS is not used and no `.gitattributes` filter is added.
 
@@ -772,7 +773,11 @@ some initial testing on before going for it."
    why it must be in the sample rather than only in the fetched bulk.
 
    **Both splits are ruled here rather than at stage 4**, because stage 4 authors the tests and
-   stage 5 freezes them. Stage 4 picks the specific boards inside these splits and nothing else.
+   stage 5 freezes them. Stage 4 picks the specific board inside a split and nothing else, and it
+   picks **one** of the three: the assignment below names `Kc7d2h` and `9c8c7c` outright, because
+   each of those two is already owed as a measurement and the sample board and the measurement are
+   the same solve. Corrected 2026-09-10 by the stage-3 fold-in review, which found this sentence
+   and the assignment forty lines below it describing different phases.
    An earlier draft of this item said the ruling "constrains suit and leaves rank open"; that is
    superseded by the assignment below, which rules both.
 

@@ -7329,6 +7329,116 @@ items:
       Proposed by phase 16's stage-3 independent review, 2026-09-10, and filed by the coordinator
       the same day.
 
+  - id: NOTHING-CHECKS-THAT-EVERY-RULING-REACHES-A-CRITERION
+    status: deferred
+    phase: contract-update
+    title: A decision list answer can be ruled and never land in the contract, and only a hand count sees it
+    reason: >-
+      Phase 16's contract fold-in was briefed off a hand-written list of thirteen rulings to absorb.
+      Decision 9 - the flop bet size faced is named in the spot key - was ruled by Taylor on
+      2026-09-09, never reached the contract, and was not on the list of thirteen. It is in the
+      contract today only because the writer went past its brief and read the decision list itself.
+      That is the same failure the enumeration was built to prevent, one level up:
+      AN-AMENDMENT-TO-A-SKELETON-CONTRACT-IS-DELETED-BY-ITS-OWN-STAGE-1 records an amendment being
+      eaten by its own contract stage and calls its survival "luck rather than design", and here the
+      mechanism meant to replace luck relied on a human enumerating correctly and it did not.
+      A longer list is not the remedy, because the failure is the list rather than its length. The
+      remedy is a check that every `Answer:` block in a phase's decision list resolves to something
+      in that phase's contract, run at every contract stage. `scripts/` has nothing that reads a
+      decision list against a contract today; `check_contracts.py` reads the contract alone.
+      What such a check cannot do is judge whether the criterion says what the ruling said, which is
+      what the fold-in review is for. It can only prove that no ruling reached nothing at all, and
+      that is the failure that actually happened twice.
+      Found by phase 16's stage-3 contract fold-in review, 2026-09-10, and filed by the coordinator
+      the same day.
+
+  - id: A-CONTRACT-NAMES-SOME-OF-ITS-PHASE-ITEMS-AND-NOTHING-CHECKS-THE-REST
+    status: deferred
+    phase: contract-update
+    title: Nine items sit at phase 16 unnamed by its contract, and the section that omits them reads complete
+    reason: >-
+      Phase 16's contract has a section headed "The backlog entries this phase settles" that reads
+      as a complete accounting: what it closes, what it explicitly does not close, and what it
+      files. Measured 2026-09-10 against the post-fold-in contract: 21 entries carry `phase: "16"`,
+      the contract names 12 of them, and 9 appear in none of the three lists. The pre-fold-in
+      contract at `b1f5667` named 9 and left 12, so the fold-in improved this rather than caused it.
+      The nine are two different things and only one is a defect. Five are phase 14 preflop-chart
+      work assigned forward to whoever comes next -
+      CALIBRATED-REALISATION-PRICES-FOUR-BET-POTS-UNTESTED, COMMITTED-SPOTS-NEVER-FLAT-A-RAISE,
+      COMMITTED-THREE-BET-SPOTS-INHERIT-AN-EXCLUDED-NODES-RANGE,
+      GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE and
+      A-RELATION-THAT-ONLY-COMPARES-NEIGHBOURS-CANNOT-SEE-A-TWO-CELL-HOLE. Their `phase: "16"` means
+      "next owner", not "phase 16's subject", and phase 16's contract is right not to name them.
+      The other four are phase 16's own subject and its contract is silent on all four:
+      NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED,
+      A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE,
+      POSTFLOP-EVIDENCE-IS-ALL-MONOTONE-AND-MONOTONE-GENERALISES-WORST and
+      POSTFLOP-SOLVE-IS-RAKE-FREE-AND-THE-GAME-IS-NOT. Two of those are load-bearing: decision 7
+      calls the first "the cheapest open measurement in the phase" and says it is still owed, and
+      the third is the reason decision 6 gives for the sample being three flops rather than two, so
+      the contract's own ruled sample rests on an entry the contract never mentions.
+      The general shape, which is the point rather than the four. A contract names some of its
+      phase's items and nothing anywhere checks the rest, so the omission is invisible and the
+      section still reads complete. That is BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE's mechanism
+      one stage earlier: there a phase closes green with its own items deferred, here a phase opens
+      without knowing they exist. A check would have to tell "this phase's subject" from "assigned
+      forward", which BACKLOG-PHASE-FIELD-MIXES-PHASE-NUMBERS-WITH-CATEGORIES says the file cannot
+      express today, so that entry is a prerequisite rather than a sibling.
+      Found by phase 16's stage-3 contract fold-in review, 2026-09-10. Filed by the coordinator the
+      same day; the reviewer's first count of five and the coordinator's first count of twelve were
+      both re-measured to nine against the current contract before this was written.
+
+  - id: A-CONTRACT-HAS-A-FIXED-LIFETIME-AMENDMENT-BUDGET-AND-A-BIG-PHASE-SPENDS-IT-EARLY
+    status: deferred
+    phase: contract-update
+    title: Phase 16's contract is one line under the cap with eight stages still to run
+    reason: >-
+      `check_file_sizes.py` caps a phase contract at 300 lines. `AGENTS.md` caps an amendment at two
+      lines, forbids raising the cap, and offers one escape valve: a rewrite that folds existing
+      amendments into the criteria they amend. Phase 16 has now used that valve to absorb thirteen
+      rulings and sits at 299 of 300 with stages 4 through 11 ahead of it, every one of which can
+      produce an amendment.
+      The valve does not refill. It works by converting amendment lines back into criterion lines,
+      and a contract whose amendments are already folded in has nothing left to fold. So the pair of
+      rules gives a contract a fixed lifetime amendment budget, and a phase large enough to need
+      several rewrites exhausts it mid-phase rather than at the end.
+      PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP records the same wall arriving at a phase that had
+      finished. This is it arriving at a phase that has not started implementing, which is worse:
+      phase 14 could not record a correction, and phase 16 cannot record one about work it has yet
+      to do. Whoever takes this up is deciding between a higher cap with a different justification,
+      a second file a contract may spill into, or accepting that a phase this size is two phases.
+      Found by phase 16's stage-3 contract fold-in review, 2026-09-10, and filed by the coordinator
+      the same day.
+
+  - id: BACKLOG-PHASE-FIELD-MIXES-PHASE-NUMBERS-WITH-CATEGORIES
+    status: deferred
+    phase: maintenance
+    title: An item a contract calls its own can carry any phase value, so grouping by phase misses it
+    reason: >-
+      `backlog.yml`'s `phase` field holds phase numbers and free-text buckets in the same column -
+      measured 2026-09-10 across all 277 items, counting the four filed that day including this one,
+      the values in use are `contract-update` (122), `14` (54), `charts` (25), `16` (21),
+      `strategy` (14), `12` (8), `v2` (6), `11` (6), `15` (5), `simulator` (5), `13` (4), `17` (4),
+      `maintenance` (2) and `samples` (1). Nothing validates the field and `generate_backlog.py`
+      prints it straight into a column. A first version of this census excluded the four entries
+      filed alongside it and so was wrong about its own two largest buckets, which is a small
+      instance of the thing it describes.
+      The consequence is not cosmetic. Seven ids that phase 16's contract lists as its own business
+      carry a value that is not `16`: ARTIFACT-SIZE-LIMIT-VERSUS-SOLVE-COVERAGE,
+      THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN,
+      TWO-DOCS-STILL-SAY-DATA-ARTIFACTS-HAS-NO-SIZE-CHECK,
+      AN-IMPORTED-FIGURE-IS-INDISTINGUISHABLE-FROM-A-MEASURED-ONE,
+      A-DERIVED-FIGURE-IS-NOT-CHECKED-AGAINST-THE-RATE-BESIDE-IT and
+      A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES read `contract-update`, and
+      POSTFLOP-BOARD-ABSTRACTION reads `charts`. The contract's prose is the only place they are
+      tied to the phase, so any view that groups by `phase` shows the phase a shorter list than it
+      owns - which is the mechanism behind BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE rather than a separate
+      problem.
+      Resist the reflex to renumber the seven. A bucket and a phase are different facts about an
+      item and an item can want both; the defect is one column carrying two, not the values in it.
+      Found by phase 16's stage-3 contract fold-in review, 2026-09-10, and filed by the coordinator
+      the same day.
+
   - id: AN-EDIT-THAT-SUPERSEDES-PROSE-OWES-A-RE-READ-AND-NOTHING-ASKS-FOR-ONE
     status: deferred
     phase: maintenance

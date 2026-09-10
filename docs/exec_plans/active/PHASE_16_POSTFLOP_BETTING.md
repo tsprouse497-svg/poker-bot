@@ -183,7 +183,7 @@ subagents in this one worktree; the coordinator owns every commit.
     not be assumed to work.
   - **B1 - strategy.** Flop play that bets and raises, with turn and river refusing by code rather
     than folding by default, replacing `PostflopFallbackStrategy`'s
-    `CODE_FOLD_ON_THE_FLOP` path. Five mutation canaries pin exact lines in
+    `CODE_FOLD_ON_THE_FLOP` path. Six mutation canaries pin exact lines in
     `postflop_fallback.py` and `composite.py`; B1 owns re-pointing each with its claim unchanged,
     the way phase 13's L2 did, never retiring one.
   - **P1 - pot-odds river call.** Decision 5, runtime-reversible, behind an explicit flag,
@@ -193,6 +193,20 @@ subagents in this one worktree; the coordinator owns every commit.
   - **E1 - report and gate.** `pytest_postflop_betting`, the generator, its self-validation, and
     the `COMMANDS` entry.
   - **F1 - packet.** The prose the phase exists for, under a 500-line cap.
+  - **C1 - contract fold-in.** Added 2026-09-10, between stage 3 and stage 4. Rewrites
+    `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` so the thirteen rulings listed under
+    "What the fold-in rewrite has to absorb" are stated as acceptance criteria, inside the
+    300-line cap the contract sits 11 lines under. It is a lane rather than coordinator work
+    because the coordinator wrote every one of those thirteen rulings into the decision list,
+    and a rewrite that compresses existing criteria to make room is exactly the edit where the
+    author's memory of what a sentence was for substitutes for the sentence. C1 writes only the
+    contract and copies conclusions from the decision list rather than re-arguing them.
+  - **R3 - fold-in review.** Read-only, and it is not C1. One question, taken verbatim from the
+    failure that `AN-AMENDMENT-TO-A-SKELETON-CONTRACT-IS-DELETED-BY-ITS-OWN-STAGE-1` records:
+    **does every amendment that went in come out**, checked against the decision list and the
+    backlog ids rather than against the new contract's own readability. Also asked whether any
+    criterion the rewrite compressed lost a falsifiable clause, because 13 rulings into 11 free
+    lines is a compression budget and compression is where an obligation becomes a sentiment.
 - Ownership: R1 and R2 write only under `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/`
   and never touch what they review. T1 owns `tests/**` at stage 4 only. K1 owns
   `solver_artifacts/postflop_key.py`, `strategy/contract.py` and `poker_core/positions.py`. A1
@@ -211,9 +225,12 @@ subagents in this one worktree; the coordinator owns every commit.
   a per-test statement of the behaviour asserted and the canary that proves it bites. S1 returns
   measured solve time and peak memory per flop against MAINT-26's figures, and says plainly when a
   route it needed was one of the unrun ones. E1 returns the report text.
-- Status: R1 planned, dispatched once the contract is drafted. R2 planned, stage 2. Every other
-  lane planned and not dispatched, because stage 3 halts on decisions 4 and 6 and four of them
-  build against whatever those answers are.
+- Status, 2026-09-10. R1 done, stage 1, blockers resolved. R2 done, stage 2. Stage 3 ran two
+  independent reviews, `stage-03-human-gate.md` over eight rounds and `stage-03-decisions-poker.md`
+  over the poker; both are closed and both are on disk. C1 done, three passes: the fold-in, then
+  R3's two blockers, then one restored predicate. R3 done, two rounds, both blockers verified fixed
+  and no new ones. T1 is next and is no longer gated on anything. Every stage-6 lane is planned and
+  not dispatched.
 - Integration order: R1 before stage 1 advances. R2 before stage 2 advances. T1 alone at stage 4,
   then the freeze. At stage 6, K1 first and alone, because every other lane keys against the shape
   it defines; then A1; then S1 and B1, S1 first where they share the artifact's read path; then P1
@@ -234,10 +251,13 @@ subagents in this one worktree; the coordinator owns every commit.
 
 - [x] S0 Precheck. Lane opened from `main` at `19beb97`, lock held, tree clean, scope seeded with
       its `scope_change_log` entry.
-- [ ] S1 Contract. Real criteria, this plan, decision 6 filed, the four stale claims corrected,
+- [x] S1 Contract. Real criteria, this plan, decision 6 filed, the four stale claims corrected,
       R1's review with every blocker resolved.
-- [ ] S2 Decisions. Every judgment call carries a reversibility class; R2 reviews.
-- [ ] S3 Human gate. Decisions 4 and 6. Expected to halt.
+- [x] S2 Decisions. Every judgment call carries a reversibility class; R2 reviews.
+- [x] S3 Human gate. Halted as expected, then all thirteen decisions ruled. Two reviews closed
+      the stage; the contract fold-in and its own review are folded in here rather than deferred,
+      because the gate cannot pass between stage 1 and stage 4 and closing out through it to run
+      the rewrite as a separate task is not available.
 - [ ] S4 Tests. Red on assertions, frozen after. Canaries include this phase's own command.
 - [ ] S5 Freeze. `tests/**` and `verification/**` leave scope.
 - [ ] S6 Build. Every command the contract declares green.
@@ -262,7 +282,7 @@ subagents in this one worktree; the coordinator owns every commit.
 
 ## Outcome
 
-Not yet. Stage 1.
+Not yet. Stage 3 closed 2026-09-10; stage 4 next.
 
 ## Next Agent Bootstrap
 
@@ -272,17 +292,35 @@ Not yet. Stage 1.
   Never work in `~/projects/poker-bot`.
 - Next command: `uv run python scripts/loop_stage.py --phase 16`. Six lanes have pointers in this
   worktree, so `--phase 16` is required rather than optional.
-- Current state: **stage 3, the human gate, and its checks pass** as of 2026-09-10 -
-  `loop_stage.py --phase 16` prints "this stage's checks pass; run --advance to move on". Do **not**
-  advance yet; the fold-in rewrite below comes first. `task_mode: contract-update`, `base_commit`
-  `19beb97`. The gate is red on two things by design between stage 1 and stage 4:
-  `pytest_postflop_betting` is declared in the contract's frontmatter and not registered in
-  `COMMANDS`, and that is the same state the phase 17 lane sits in.
-- **Everything in this worktree is uncommitted.** Three files carry the stage's work:
-  `reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md`, `backlog.yml`, and this
-  ExecPlan, plus two review notes under
-  `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/`. Commit before anything else, so the
-  fold-in rewrite has a base to diff against.
+- Current state: **stage 3 is done and the fold-in with it. The next action is `--advance` to
+  stage 4.** `task_mode: contract-update`, `base_commit` `19beb97`. All thirteen decisions are
+  ruled, both stage-3 reviews are closed, the contract carries every ruling as a criterion, and the
+  fold-in has its own independent review closed at `stage-03-contract-foldin.md`. The gate is red
+  by design between stage 1 and stage 4: `pytest_postflop_betting` and
+  `generate_postflop_betting_report` are declared in the contract's frontmatter and registered in
+  no `COMMANDS` entry, which is the same state the phase 17 lane sits in. Stage 4 lands the tests
+  and the registration together, because `check_repo_consistency` requires the test file to exist
+  and hold at least one test the moment an id is registered.
+- Stage 3's record is committed at `b1f5667`. The fold-in and its review are committed on top of
+  it. Nothing is left uncommitted.
+- **Three reviews closed this stage, all independent, all on disk.** `stage-03-human-gate.md`
+  (arithmetic, consistency, attribution, provenance) took eight rounds and keeps 24 findings
+  resolved rather than deleted. `stage-03-decisions-poker.md` judged the poker in every ruling
+  taken after stage 2 and found none of them wrong; its one blocker, the sample's rank axis, is
+  fixed in decision 6 item 4. `stage-03-contract-foldin.md` asked one question of the rewrite -
+  does every obligation that went in come out - built a 61-predicate inventory to answer it, and
+  found two blockers, both now fixed and verified in its round 2. **Read all three before touching
+  a ruling or a criterion**; between them they carry the reasons the decision list and the
+  contract state only as conclusions.
+- **Two rulings were taken by the coordinator rather than by Taylor, and both are reversible.**
+  First, the refusal split: decision 4 says "never solved" and "solved but over 1% of pot" are the
+  same absence at query time, and the contract now reports **two** table causes rather than three,
+  which is decision 4's own second exit. Second, the count of cells the campaign solved and
+  rejected above 1% is published by the report and carried in the committed index's header - added
+  because it is the phase's headline cost result and is knowable at report time even though it is
+  not knowable at query time. The expensive alternative, a committed list of attempted-and-rejected
+  boards, changes the shape of data decision 6 ruled `frozen-into-data` and is Taylor's to answer.
+  Both are reported to Taylor as of 2026-09-10 and neither has been reversed.
 - **Two independent reviews closed this stage and both are on disk.** `stage-03-human-gate.md`
   (arithmetic, consistency, attribution, provenance) took eight rounds, is clean, and keeps 24
   resolved findings as the record. `stage-03-decisions-poker.md` reviewed every ruling taken after
@@ -290,7 +328,7 @@ Not yet. Stage 1.
   fixed in decision 6. **Read both before touching a ruling** - between them they carry the reasons
   for choices the decision list states only as conclusions.
 - **A contract fold-in rewrite blocks stage 4.** The stage-3 review counted
-  thirteen amendments now owed against eleven free lines: the contract is at 289 of a 300-line cap,
+  thirteen amendments now owed against eleven free lines: the contract was at 289 of a 300-line cap,
   `AGENTS.md` caps an amendment at two lines and forbids raising the cap, and it prescribes a
   rewrite that folds existing amendments into the criteria they amend as a separate
   `contract-update` task. `PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP` records how the alternative ends.
@@ -357,5 +395,12 @@ the rewrite copies conclusions rather than re-arguing them:
     boards inside rather than choosing.
 
 The rewrite folds the contract's **existing** amendments into the criteria they amend to make room,
-which is the part `AGENTS.md` prescribes and the part that carries the deletion risk. 289 of 300
-lines today.
+which is the part `AGENTS.md` prescribes and the part that carries the deletion risk.
+**Done 2026-09-10 and reviewed.** All thirteen landed, plus decision 9, which was ruled on
+2026-09-09, never reached the contract, and was not on this list - it is in only because C1 read
+the decision list past its brief, and that near-miss is filed as
+`NOTHING-CHECKS-THAT-EVERY-RULING-REACHES-A-CRITERION`. The contract is **299 of 300 lines with
+zero headroom**: the two obligations R3's review added cost seventeen rationale cuts between them,
+one of which took out an ordering predicate that had to be restored. The next obligation this
+phase discovers cannot be added by compressing - see
+`A-CONTRACT-HAS-A-FIXED-LIFETIME-AMENDMENT-BUDGET-AND-A-BIG-PHASE-SPENDS-IT-EARLY`.
