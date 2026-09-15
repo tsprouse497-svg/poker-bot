@@ -4,10 +4,11 @@ task_mode: implementation
 base_commit: 19beb97f21981ec6fcc18d7635127604f405b9e7
 approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
-  - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
-  - reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/**
   - tests/**
   - verification/mutations.yml
+  - verification/freeze.lock
+  - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
+  - reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/**
   - scripts/run_verify.py
   - scripts/quality_checks.py
   - scripts/run_full_quality_gate.py
@@ -1971,3 +1972,10 @@ scope_change_log:
       thing the check exists to prevent. Two tables are added beside NOT_BACKLOG_IDS,
       SUPERSEDED_BACKLOG_IDS and WITHDRAWN_BACKLOG_IDS, each entry naming where the finding
       actually lives so a reader following the old name is sent on rather than left with nothing.
+
+  - date: 2026-09-15
+    reason: >-
+      Adds verification/freeze.lock for the stage-5 freeze itself. scripts/freeze_tests.py
+      rewrites the lock, and the lock was never in this task's scope because stage 4 opened
+      tests/** and verification/mutations.yml and stopped there. It is approved for exactly one
+      commit: the next entry takes it back out again along with the tests and the canaries.
