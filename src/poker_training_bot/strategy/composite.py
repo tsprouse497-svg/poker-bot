@@ -34,6 +34,7 @@ from poker_training_bot.strategy.contract import (
     StrategyQuery,
     StrategyRefusal,
 )
+from poker_training_bot.strategy.postflop_betting import PostflopBettingStrategy
 from poker_training_bot.strategy.postflop_fallback import PostflopFallbackStrategy
 from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 
@@ -42,6 +43,18 @@ from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 # than to two vocabularies a reader has to reconcile.
 PREFLOP_COMPONENT = "preflop-chart"
 POSTFLOP_COMPONENT = "postflop-fallback"
+
+# Two components can own the streets after the flop now: the continuity fallback that checks
+# when checking is free, and the betting strategy that answers a committed flop. Which one a
+# composite holds is the caller's choice and is passed in, because `from_repo` below builds the
+# default the repo has always built and phase 16 does not move it.
+#
+# What that costs is worth stating rather than leaving to be discovered. `component_for` answers
+# which *street* a component owns and is asked without a query, so it cannot read the object; a
+# composite built on `PostflopBettingStrategy` therefore still reports its postflop component as
+# `postflop-fallback`. The code prefix on each answer is what actually says which one replied,
+# which is the attribution mechanism this module's docstring already rests on.
+PostflopComponent = PostflopFallbackStrategy | PostflopBettingStrategy
 
 
 @dataclass(frozen=True)
@@ -54,7 +67,7 @@ class CompositeStrategy:
     """
 
     preflop: PreflopChartStrategy
-    postflop: PostflopFallbackStrategy
+    postflop: PostflopComponent
     strategy_id: str = "composite-preflop-chart-postflop-fallback"
     strategy_version: int = 1
 
@@ -94,9 +107,7 @@ class CompositeStrategy:
         """
         return self._component_owning(query.street).decide(query)
 
-    def _component_owning(
-        self, street: str
-    ) -> PreflopChartStrategy | PostflopFallbackStrategy:
+    def _component_owning(self, street: str) -> PreflopChartStrategy | PostflopComponent:
         """The component object `component_for` named.
 
         Routed through `component_for` rather than repeating the street test, so the

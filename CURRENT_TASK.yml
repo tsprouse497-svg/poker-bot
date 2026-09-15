@@ -8,6 +8,9 @@ approved_scope:
   - src/poker_training_bot/solver_artifacts/postflop_artifact.py
   - src/poker_training_bot/solver_artifacts/postflop_solve_driver.py
   - src/poker_training_bot/strategy/postflop_betting.py
+  - src/poker_training_bot/strategy/postflop_committed.py
+  - src/poker_training_bot/strategy/postflop_spot_queries.py
+  - src/poker_training_bot/strategy/river_pot_odds.py
   - src/poker_training_bot/strategy/contract.py
   - src/poker_training_bot/strategy/composite.py
   - src/poker_training_bot/strategy/postflop_fallback.py
@@ -2067,3 +2070,21 @@ scope_change_log:
       scope is the diff from base_commit, the correction was in scope under its own entry, and
       left where it was it would read from here on as the builder having written the test that
       measures it.
+
+  - date: 2026-09-15
+    reason: >-
+      Three modules join strategy/postflop_betting.py, because the betting strategy does not fit
+      one file under check_file_sizes' 500-line inclusive cap. The four together are 1,174 lines
+      and the largest is 463, so this is not one module spilling by a little; it is four subjects.
+      The seams are the ones the work actually has rather than an arbitrary split.
+      postflop_committed.py is the library: which cells were fetched, which lines are covered with
+      their solved prices, which keys the index declares but this machine has not fetched, and the
+      match from a chip bet onto the ruled menu. postflop_spot_queries.py rebuilds a playable table
+      from a committed cell, which is its own problem because PostflopCell does not carry
+      table_size, stack_depth_bb or blind_structure and the rebuild has to re-read them.
+      river_pot_odds.py is decision 5's equity rule, which the ExecPlan already scoped to a
+      separate lane, P1, and which is a different subject from reading a solved cell.
+      Splitting rather than cramming is the deliberate choice here: contract.py is at 499 and
+      postflop_artifact.py at exactly 500, both filed as landmines under
+      STRATEGY-CONTRACT-IS-ONE-LINE-UNDER-ITS-CAP, and a third file at the cap would be the third
+      instance of the same defect in one stage.
