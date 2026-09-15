@@ -650,18 +650,49 @@ class TestTheInputRangesAreFlooredAtTheClassLevel:
                     assert hand[2] in ("s", "o"), (name, hand)
 
     def test_applying_the_floor_never_splits_a_class(self, artifact_module) -> None:
-        """The floor is applied as a function and checked as one: whatever it is handed, every
-        hand that was one class before it is one class after."""
+        """The class-level constraint, stated directly rather than as set equality.
+
+        Corrected 2026-09-15. This assertion read `set(after) == set(before)`, which is a property
+        only a lifting floor has, and between them these two tests required `floor_range` to raise
+        every weight to 0.01 and keep every key. Decision 12 rules the other operation: "flooring
+        means dropping every hand below a weight threshold out of the range before solving". What
+        the class-level constraint actually forbids is a suit-specific key such as `AhKh`, because
+        one of those anywhere in either range collapses the suit-isomorphism group and forfeits the
+        saving on every non-rainbow board - `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP`. Set
+        equality never checked that and a dropping floor satisfies it.
+        """
         apply_floor = owed(artifact_module, "floor_range")
         before = {"AKs": 0.0, "AKo": 0.004, "AA": 1.0, "72o": 0.0}
 
         after = apply_floor(before)
 
-        assert set(after) == set(before)
+        assert set(after) <= set(before)
+        for hand in after:
+            assert len(hand) in (2, 3), hand
+            assert hand[0] in RANKS and hand[1] in RANKS, hand
+            if len(hand) == 3:
+                assert hand[2] in ("s", "o"), hand
         assert all(weight >= RANGE_WEIGHT_FLOOR for weight in after.values())
         assert after["AA"] == pytest.approx(1.0)
 
-    def test_the_floor_lifts_a_zero_rather_than_dropping_the_hand(self, artifact_module) -> None:
+    def test_the_floor_drops_the_hand_rather_than_lifting_its_weight(self, artifact_module) -> None:
+        """Decision 12's operation, and the one the phase's cost model rests on.
+
+        Corrected 2026-09-15, from a test that required the opposite. Dropping is what takes the
+        single-raised-pot arena from 21,663 MB to 10,881 MB with the action-node count identical at
+        2,347,996: what shrinks is the number of hands, not the shape of the tree. Lifting shrinks
+        nothing, so decision 4's campaign figures and decision 6's covered line count would both be
+        derived from a saving that did not happen.
+        The poker half is the reason it is not merely a units mistake. `72o` and `32o` sit in the
+        committed out-of-position range at 0.0002 to 0.0005, which decision 12 measures as residue
+        the preflop solve left a rounding of a percent in rather than hands a defender holds.
+        Lifting them to 0.01 solves hero against a defender who holds them.
+        """
         apply_floor = owed(artifact_module, "floor_range")
 
-        assert apply_floor({"72o": 0.0})["72o"] == pytest.approx(RANGE_WEIGHT_FLOOR)
+        assert "72o" not in apply_floor({"72o": 0.0, "AA": 1.0})
+        assert "AKo" not in apply_floor({"AKo": 0.004, "AA": 1.0})
+        assert apply_floor({"AA": 1.0, "KK": RANGE_WEIGHT_FLOOR}) == {
+            "AA": pytest.approx(1.0),
+            "KK": pytest.approx(RANGE_WEIGHT_FLOOR),
+        }

@@ -4,6 +4,8 @@ task_mode: implementation
 base_commit: f4efa724469cf28fe4ad85d61749987f36bf338f
 approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
+  - tests/test_postflop_artifact.py
+  - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/postflop_key.py
   - src/poker_training_bot/solver_artifacts/postflop_artifact.py
   - src/poker_training_bot/solver_artifacts/postflop_solve_driver.py
@@ -2030,3 +2032,30 @@ scope_change_log:
       rented until the phase needs a solve; stages 4 through 6 need none", and the three-flop
       sample the gate runs against is about 16 minutes a flop at 240 iterations on the machine
       every figure in this phase was already measured on.
+
+  - date: 2026-09-15
+    reason: >-
+      Re-opens tests/test_postflop_artifact.py and verification/freeze.lock to correct two frozen
+      assertions that contradict a ruling, then closes them again in the same pair of commits.
+      Phase 14's sequence at 26c0082, d635b49 and 4e2d39e is the precedent and this follows it.
+      What is wrong. `test_the_floor_lifts_a_zero_rather_than_dropping_the_hand` and
+      `test_applying_the_floor_never_splits_a_class` between them require `floor_range` to raise
+      every weight to 0.01 and to return the same key set it was handed, so a `72o` at 0.0 comes
+      back at 0.01. Decision 12 rules the opposite operation in terms: "flooring means dropping
+      every hand below a weight threshold out of the range before solving", and its entire
+      measured case is a deletion - 878 of 1,274 combos, 99 of 162 labels, 0.199 percent of the
+      range's weight, and the single-raised-pot arena falling from 21,663 MB to 10,881 MB with the
+      action-node count identical at 2,347,996.
+      Why it cannot be left. Lifting does not shrink a range, it grows one, so the memory saving
+      the phase's whole cost model rests on does not happen; decision 4's campaign figures and
+      decision 6's covered line count are both derived from it. And the poker is wrong in the
+      direction that matters: lifting puts `32o` and `72o` into the defending range at one percent
+      each, which decision 12 identifies as residue the preflop solve left a rounding of a percent
+      in rather than hands a defender holds, and the bot would be solved against a range holding
+      them.
+      This is not a new judgment call and does not go to a human. Decision 12 is ruled, and the
+      correction is making the test say what the ruling says. The class-level property the second
+      test is named for is kept and stated directly - the floor never produces a suit-specific key
+      - rather than expressed as set equality, which is what accidentally forbade dropping.
+      Found by the stage-6 artifact lane inside its own work, which implemented the frozen test as
+      written, said plainly that it believed the test wrong, and named the decision it contradicts.

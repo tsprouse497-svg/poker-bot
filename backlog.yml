@@ -7984,7 +7984,7 @@ items:
   - id: STRATEGY-CONTRACT-IS-ONE-LINE-UNDER-ITS-CAP
     status: deferred
     phase: '16'
-    title: strategy/contract.py sits at 499 of a 500-line cap, so the next edit to it fails the gate
+    title: Two modules this phase touches sit at or one line under the 500-line cap, so the next edit to either fails the gate
     reason: >-
       `src/poker_training_bot/strategy/contract.py` is at 499 lines against the 500-line module cap
       `scripts/check_file_sizes.py` enforces as an inclusive bound. It passes today and the next
@@ -8004,6 +8004,18 @@ items:
       MAINT-09 precedent is the one to follow.
       Found and reported by the stage-6 key lane, 2026-09-15, which measured its own headroom
       rather than discovering the cap by failing it.
+      Updated the same day, because it happened twice in one stage.
+      `src/poker_training_bot/solver_artifacts/postflop_artifact.py` is now at exactly 500, the
+      inclusive bound, so it passes and has no headroom at all. It reached 495 by cutting rather
+      than cramming, and the five lines went on correcting `floor_range` from lifting to dropping -
+      a correction that had to fit in a file with nothing left. The coordinator got it to 500 by
+      moving justification out of the code docstring into the frozen test and the decision list,
+      which is defensible once and is not a technique.
+      The lane that wrote it named the seam: the index reader - `import_postflop_index`,
+      `indexed_spot_keys` and the index schema - is a clean extraction into a sibling
+      `postflop_index.py`, and it could not create that file under its own scope. Whoever takes
+      this item should do both files, and should expect the next stage-6 lane to need room in one
+      of them.
 
   - id: A-LEAK-TEST-ASSERTS-A-PROXY-AND-CONSTRAINS-LEGITIMATE-PLAY
     status: deferred

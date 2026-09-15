@@ -154,19 +154,24 @@ def check_size_is_playable(
 
 
 def floor_range(weights: Mapping[str, float]) -> dict[str, float]:
-    """Apply decision 12's class-level floor to one input range: every class keeps its identity
-    and every weight comes out at or above the floor. Note what that does to a hand the export
-    left at zero - it **lifts** it to the floor rather than dropping it, the behaviour
-    `tests/test_postflop_artifact.py` pins by name, where decision 12 measured the other operation
-    (deleting the 878 combos under 0.01 costs 0.199% of the defending range's weight). Two
-    different ranges, and a report has to say which one it published."""
+    """Decision 12's class-level floor: **drop** every class under the floor, leave the rest.
+
+    Dropping, not lifting, and the difference is the phase's cost model: deleting the 878 combos
+    under 0.01 costs 0.199% of the defending range's weight and halves the single-raised-pot arena,
+    where lifting shrinks nothing and puts `72o` and `32o` in at a full percent. Decision 12 and
+    `test_the_floor_drops_the_hand_rather_than_lifting_its_weight` carry the rest; this lifted
+    until 2026-09-15 because the frozen test said so, and the test was corrected. Class-level is a
+    constraint: one suit-specific weight collapses the isomorphism group.
+    """
     floored: dict[str, float] = {}
     for hand, weight in weights.items():
         if isinstance(weight, bool) or not isinstance(weight, int | float):
             raise PostflopArtifactError(INVALID_VALUE_CODE, f"{hand!r} weighs {weight!r}")
         if len(hand) not in (2, 3):
             raise PostflopArtifactError(INVALID_VALUE_CODE, f"{hand!r} is not a hand class")
-        floored[hand] = max(float(weight), RANGE_WEIGHT_FLOOR)
+        if float(weight) < RANGE_WEIGHT_FLOOR:
+            continue
+        floored[hand] = float(weight)
     return floored
 
 

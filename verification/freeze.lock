@@ -72,7 +72,7 @@ files:
     sha256: a11a3e8b94dcb37033e366fa55c13ae6007c8f75318f315a69b3e4e9041953b2
     test_functions: 9
   tests/test_postflop_artifact.py:
-    sha256: 0bdfffae927101de0ed87b1b656b1f220b369e3f137d0db70221637142e90cd1
+    sha256: ae13794f8594a2ace860aae57fcd0d1bc5198565602548dbed1653c6903b8f65
     test_functions: 39
   tests/test_postflop_betting.py:
     sha256: a001f67c637a829204d824bcb9f4b60754b663434adf16d6c49e43e5925ff368
