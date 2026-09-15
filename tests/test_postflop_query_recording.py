@@ -32,11 +32,14 @@ three as a bound. Run in this worktree with `grep` over `tests/*.py` for `Strate
 - **Seventeen mention the shape and need no change**, in four groups. **No test pins an exhaustive
   field list of `StrategyQuery`**: `tests/test_table_state.py:161` and `:174` name fields
   individually with `in names` / `not in names`, so a defaulted `postflop_actions` is invisible to
-  them. **Four of the six files calling `to_json_line` never assert on its bytes** -
+  them. **Three of the six files calling `to_json_line` never assert on its bytes** -
   `tests/test_full_table_preflop.py:611`, `tests/test_postflop_fallback.py:687` and
   `tests/test_simulator.py:451` feed it into a set or a tuple for de-duplication and determinism,
-  which a new field does not disturb. **`tests/test_engine_fidelity.py` reads committed audit
-  lines back but stamps `DECISION_AUDIT_SCHEMA_VERSION` rather than each line's own**, so the bump
+  which a new field does not disturb. Of the three that do assert on the bytes, two are the
+  migrated files above and the third is this phase's own `tests/test_postflop_key.py`, so the
+  sweep found no pre-existing byte assertion it left standing.
+  **`tests/test_engine_fidelity.py` reads committed audit lines back but stamps
+  `DECISION_AUDIT_SCHEMA_VERSION` rather than each line's own**, so the bump
   does not red it; its `schema_version=1` at `:218` is `NormalizedHandHistory`'s schema, a
   different number on a different record. And **`tests/test_solver_export.py:656` recomputes
   headroom from the source card** rather than hard-coding it, so regenerating the card - which the
@@ -93,11 +96,46 @@ def owed(module, name: str):
     return found
 
 
-def seat_state(seat: int, street_bet: int, committed_total: int | None = None):
-    return contract_module.SeatState(
-        seat=seat,
-        street_bet=street_bet,
-        committed_total=street_bet if committed_total is None else committed_total,
+BUTTON_SEAT, SB_SEAT, HERO_SEAT = 0, 1, 2
+LIVE_HEADS_UP = (BUTTON_SEAT, HERO_SEAT)
+LIVE_THREE_WAY = (BUTTON_SEAT, SB_SEAT, HERO_SEAT)
+"""Six seats with the button at 0, so `poker_core.order.blind_seats` puts the small blind at 1 and
+the big blind at 2, and hero is the big blind."""
+
+
+def seated(committed: dict[int, int], live: tuple[int, ...], street: dict[int, int] | None = None):
+    """`pot`, `stacks` and `seat_states` for one table, derived from what each seat put in.
+
+    Every seat is listed and the folded ones are marked, which is what `simulator/table.py` does.
+    `tests/test_postflop_betting.py::seated` carries why dropping one is a defect rather than a
+    shorthand: `len(stacks)` is read as the table size, and a dead blind lent to a live seat is
+    read as that seat's depth.
+    """
+    on_street = dict(street or {})
+    states = tuple(
+        contract_module.SeatState(
+            seat=seat,
+            street_bet=on_street.get(seat, 0),
+            committed_total=committed.get(seat, 0),
+            folded=seat not in live,
+        )
+        for seat in range(SEATS)
+    )
+    return {
+        "pot": sum(state.committed_total for state in states),
+        "stacks": tuple((state.seat, STARTING_STACK - state.committed_total) for state in states),
+        "seat_states": states,
+    }
+
+
+def opened_to(chips: int, *after):
+    """The lojack, hijack and cutoff fold, the button opens, then `after`.
+    `simulator/run.py` appends every preflop action a seat takes, folds included, so a line
+    recorded from the raise onwards is not the line the producer emits."""
+    return (
+        *(contract_module.SeatAction(seat, "fold") for seat in (3, 4, 5)),
+        contract_module.SeatAction(BUTTON_SEAT, "raise", chips),
+        *after,
     )
 
 
@@ -237,27 +275,27 @@ a purified cell sits 0.49 away from a 0.51/0.49 mixture, which is five times the
 def covered_flop(**overrides):
     """A flop query on the committed rainbow sample board, in the covered `@2.5` line.
 
-    Same convention as `tests/test_postflop_betting.py::query`: six-handed, the small blind
-    folded, its dead 0.5bb carried on the big blind's `committed_total`.
+    Same convention as `tests/test_postflop_betting.py::query`: six-handed and flat at 100bb, the
+    button opens to 2.5bb, the small blind folds and keeps its own dead 0.5bb, hero the big blind
+    calls, and every folded seat is still listed and marked.
     """
     fields = {
         "hand_id": "h1",
         "street": "flop",
-        "seat": 1,
-        "button_seat": 0,
+        "seat": HERO_SEAT,
+        "button_seat": BUTTON_SEAT,
         "hole_cards": ("As", "Qd"),
         "board": ("Kc", "7d", "2h"),
         "legal_actions": ("check", "bet"),
         "to_call": 0,
         "current_bet": 0,
         "min_raise_target": BIG_BLIND,
-        "pot": 550,
-        "stacks": ((0, 9750), (1, 9750)),
-        "seat_states": (seat_state(0, 0, 250), seat_state(1, 0, 300)),
+        **seated({BUTTON_SEAT: 250, SB_SEAT: 50, HERO_SEAT: 250}, LIVE_HEADS_UP),
         "blinds": (SMALL_BLIND, BIG_BLIND),
-        "preflop_actions": (
-            contract_module.SeatAction(0, "raise", 250),
-            contract_module.SeatAction(1, "call"),
+        "preflop_actions": opened_to(
+            250,
+            contract_module.SeatAction(SB_SEAT, "fold"),
+            contract_module.SeatAction(HERO_SEAT, "call"),
         ),
     }
     fields.update(overrides)
@@ -395,32 +433,33 @@ class TestAThreeHandedFlopRefuses:
         """The button opens to 2.5bb and both blinds call, so three seats see the flop.
 
         Nothing is dead here - every seat that put money in is still in the hand - so the pot is
-        the plain `3 x 250`, and the big blind is first to act postflop.
+        the plain `3 x 250`. **The small blind is first to act postflop**, not the big blind:
+        action starts left of the button and the blinds act before it on every street after the
+        flop, which is what `postflop_action_order` exists to say. Hero is the big blind and acts
+        second, so the small blind's check is on the record in front of it.
         """
         fields = {
             "hand_id": "h-multiway",
             "street": "flop",
-            "seat": 2,
-            "button_seat": 0,
+            "seat": HERO_SEAT,
+            "button_seat": BUTTON_SEAT,
             "hole_cards": ("As", "Qd"),
             "board": ("Kc", "7d", "2h"),
             "legal_actions": ("check", "bet"),
             "to_call": 0,
             "current_bet": 0,
             "min_raise_target": BIG_BLIND,
-            "pot": 750,
-            "stacks": ((0, 9750), (1, 9750), (2, 9750)),
-            "seat_states": (
-                seat_state(0, 0, 250),
-                seat_state(1, 0, 250),
-                seat_state(2, 0, 250),
+            **seated(
+                {BUTTON_SEAT: 250, SB_SEAT: 250, HERO_SEAT: 250},
+                LIVE_THREE_WAY,
             ),
             "blinds": (SMALL_BLIND, BIG_BLIND),
-            "preflop_actions": (
-                contract_module.SeatAction(0, "raise", 250),
-                contract_module.SeatAction(1, "call"),
-                contract_module.SeatAction(2, "call"),
+            "preflop_actions": opened_to(
+                250,
+                contract_module.SeatAction(SB_SEAT, "call"),
+                contract_module.SeatAction(HERO_SEAT, "call"),
             ),
+            "postflop_actions": (contract_module.SeatAction(SB_SEAT, "check"),),
         }
         fields.update(overrides)
         return contract_module.StrategyQuery(**fields)
@@ -449,15 +488,31 @@ class TestAThreeHandedFlopRefuses:
 # --------------------------------------------------------------------------- #
 
 
+DEEPER_BUTTON_EXTRA = 2750
+"""27.5bb, which is enough that the button covers hero and the table is visibly not flat."""
+
+DEEPER_BUTTON_STACKS = tuple(
+    (seat, stack + DEEPER_BUTTON_EXTRA if seat == BUTTON_SEAT else stack)
+    for seat, stack in seated(
+        {BUTTON_SEAT: 750, SB_SEAT: 50, HERO_SEAT: 750}, LIVE_HEADS_UP
+    )["stacks"]
+)
+FLAT_STARTING_STACKS = dict.fromkeys(range(SEATS), STARTING_STACK)
+DEEPER_BUTTON_STARTING_STACKS = {
+    **FLAT_STARTING_STACKS,
+    BUTTON_SEAT: STARTING_STACK + DEEPER_BUTTON_EXTRA,
+}
+
+
 def refused_hand(hand_id: str, outcome, stacks: dict[int, int]) -> HandResult:
     """One voided hand carrying a refusal, which is all `refusal_inventory` reads."""
     return HandResult(
         hand_id=hand_id,
         seed=SEED,
-        button_seat=0,
+        button_seat=BUTTON_SEAT,
         outcome="voided",
         refusal_code=outcome.code,
-        refusing_seat=1,
+        refusing_seat=HERO_SEAT,
         refusal_detail=outcome.detail,
         starting_stacks=stacks,
         stack_deltas=dict.fromkeys(stacks, 0),
@@ -477,27 +532,34 @@ class TestTheRefusalInventoryKeepsWorkingAtANonFlatTable:
     line detail is what makes it visible on a code somebody will actually read.
 
     The test runs the real grouper rather than restating the rule: two hands refused at the same
-    spot, one at a flat table and one where the two seats hold different chips, have to come back
-    as **one** row reached twice. The effective stack is the same in both, because that is the
-    quantity the spot is defined by; what differs is how the chips are distributed, which is not.
+    spot, one at a flat table and one where the button sat down deeper than everybody else, have
+    to come back as **one** row reached twice. The effective stack is the same in both, because
+    that is the quantity the spot is defined by; what differs is how the chips are distributed,
+    which is not.
     """
 
     def uncovered(self, **overrides):
         """A 3-bet line the committed chart does not cover, so the lookup refuses on the line."""
-        return covered_flop(
-            preflop_actions=(
-                contract_module.SeatAction(0, "raise", 250),
-                contract_module.SeatAction(1, "raise", 750),
-                contract_module.SeatAction(0, "call"),
+        fields = {
+            "preflop_actions": opened_to(
+                250,
+                contract_module.SeatAction(SB_SEAT, "fold"),
+                contract_module.SeatAction(HERO_SEAT, "raise", 750),
+                contract_module.SeatAction(BUTTON_SEAT, "call"),
             ),
-            pot=1550,
-            seat_states=(seat_state(0, 0, 750), seat_state(1, 0, 800)),
-            **overrides,
-        )
+            **seated({BUTTON_SEAT: 750, SB_SEAT: 50, HERO_SEAT: 750}, LIVE_HEADS_UP),
+        }
+        fields.update(overrides)
+        return covered_flop(**fields)
 
     def both(self, strategy):
-        flat = strategy.decide(self.uncovered(stacks=((0, 9250), (1, 9250))))
-        uneven = strategy.decide(self.uncovered(stacks=((0, 12000), (1, 9250))))
+        """The same spot twice: every seat at 100bb, then the button sat down 27.5bb deeper.
+
+        The chips behind differ; the effective stack does not, because hero still covers exactly
+        92.5bb either way and that is the quantity the spot is defined by.
+        """
+        flat = strategy.decide(self.uncovered())
+        uneven = strategy.decide(self.uncovered(stacks=DEEPER_BUTTON_STACKS))
         assert isinstance(flat, contract_module.StrategyRefusal), flat
         assert isinstance(uneven, contract_module.StrategyRefusal), uneven
         return flat, uneven
@@ -506,10 +568,10 @@ class TestTheRefusalInventoryKeepsWorkingAtANonFlatTable:
         flat, uneven = self.both(strategy)
         result = SimulationResult(
             seed=SEED,
-            seat_names=("a", "b"),
+            seat_names=tuple("abcdef"),
             hands=(
-                refused_hand("h-flat", flat, {0: 9250, 1: 9250}),
-                refused_hand("h-uneven", uneven, {0: 12000, 1: 9250}),
+                refused_hand("h-flat", flat, FLAT_STARTING_STACKS),
+                refused_hand("h-uneven", uneven, DEEPER_BUTTON_STARTING_STACKS),
             ),
             position_counts={},
         )
@@ -526,91 +588,3 @@ class TestTheRefusalInventoryKeepsWorkingAtANonFlatTable:
         for outcome in self.both(strategy):
             named = {name for name, _ in outcome.detail}
             assert named & forbidden == set(), (outcome.code, sorted(named))
-
-
-# --------------------------------------------------------------------------- #
-# A chip bet is matched to the ruled menu by pot fraction
-# --------------------------------------------------------------------------- #
-
-SINGLE_RAISED_POT_CHIPS = 550
-"""5.5bb at 50/100, the pot of the covered `@2.5` line, and the pot every figure below is in."""
-
-
-class TestAChipBetIsMatchedToTheMenuByPotFraction:
-    """Decision 14, `runtime-reversible`, proceeding on its recorded default rather than halting.
-
-    The ruled flop menu is `33 75` as a percent of pot and the table is in chips, and the
-    arithmetic does not come out even: 33% of the 550-chip pot is 181.5, which no dealer can
-    push. A strict equality match at stage 6 would refuse every faced bet at a real table and
-    kill the whole raise branch of the committed artifact with nothing going red; a loose one with
-    no stated ceiling could as easily swallow a 40% bet as a 32.7% one.
-
-    The default: **match by pot fraction with a named tolerance, and convert a committed artifact
-    size to chips by rounding to the nearest chip.** The tolerance is a module constant the test
-    imports rather than a literal written twice, so a later session moving it moves one number.
-    `reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md` item 14 carries the
-    arithmetic; the test below re-derives both bounds rather than quoting them.
-    """
-
-    def test_the_tolerance_is_published_as_a_named_constant(self, key_module) -> None:
-        assert owed(key_module, "MENU_FRACTION_TOLERANCE") == pytest.approx(0.01)
-
-    def test_the_tolerance_sits_between_the_two_bounds_the_arithmetic_forces(
-        self, key_module
-    ) -> None:
-        """Both bounds recomputed here rather than quoted.
-
-        The floor is what a real table's rounding costs: the committed fixtures bet 180 into 550,
-        which is 32.7273%, so the tolerance must exceed `|0.327273 - 0.33| = 0.002727`. The
-        ceiling is half the distance to the next menu entry, `(0.75 - 0.33) / 2 = 0.21`, past
-        which one bet lands in two buckets. The binding ceiling in practice is the 50% bet the
-        phase already requires to be refused, `|0.50 - 0.33| = 0.17`.
-
-        0.01 is 3.67 times the floor and 17 times inside the tighter ceiling.
-        """
-        tolerance = owed(key_module, "MENU_FRACTION_TOLERANCE")
-        rounding_floor = abs(180 / SINGLE_RAISED_POT_CHIPS - 0.33)
-        overlap_ceiling = (0.75 - 0.33) / 2
-        off_menu_ceiling = abs(275 / SINGLE_RAISED_POT_CHIPS - 0.33)
-
-        assert rounding_floor == pytest.approx(0.002727, abs=1e-6)
-        assert off_menu_ceiling == pytest.approx(0.17)
-        assert rounding_floor < tolerance < min(overlap_ceiling, off_menu_ceiling)
-
-    def test_the_published_flop_menu_is_the_ruled_two_sizes(self, key_module) -> None:
-        assert tuple(owed(key_module, "FLOP_BET_MENU")) == (0.33, 0.75)
-
-    def test_a_table_sized_bet_matches_the_menu_entry_it_is_a_rounding_of(
-        self, key_module
-    ) -> None:
-        match = owed(key_module, "match_menu_fraction")
-
-        assert match(180, SINGLE_RAISED_POT_CHIPS) == pytest.approx(0.33)
-        assert match(413, SINGLE_RAISED_POT_CHIPS) == pytest.approx(0.75)
-
-    def test_a_bet_off_the_menu_matches_nothing_rather_than_the_nearer_entry(
-        self, key_module
-    ) -> None:
-        match = owed(key_module, "match_menu_fraction")
-
-        assert match(275, SINGLE_RAISED_POT_CHIPS) is None
-
-    def test_a_bet_exactly_between_two_menu_entries_matches_nothing(self, key_module) -> None:
-        """297 chips is 54.0% of 550, halfway between 33% and 75%. Snapping it to the nearer
-        entry is the nearest-neighbour substitution the contract forbids by name, and at a
-        midpoint there is no nearer entry to snap to."""
-        match = owed(key_module, "match_menu_fraction")
-
-        assert match(297, SINGLE_RAISED_POT_CHIPS) is None
-
-    def test_an_artifact_size_converts_to_chips_by_rounding_to_the_nearest_chip(
-        self, key_module
-    ) -> None:
-        """181.5 is pinned because both rounding conventions agree on it, so the test states the
-        rule rather than a choice between two readings of a half. The two exact cases beside it
-        are what say the conversion is a conversion and not a table."""
-        chips = owed(key_module, "menu_size_chips")
-
-        assert chips(0.33, SINGLE_RAISED_POT_CHIPS) == 182
-        assert chips(0.33, 400) == 132
-        assert chips(0.75, 400) == 300

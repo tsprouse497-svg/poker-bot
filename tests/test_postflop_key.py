@@ -84,31 +84,53 @@ def owed(module, name: str):
     return found
 
 
-def seat_state(seat: int, street_bet: int, committed_total: int | None = None):
-    return contract_module.SeatState(
+BUTTON_SEAT, SB_SEAT, HERO_SEAT = 0, 1, 2
+STARTING_STACK = 10_000
+
+COMMITTED = {BUTTON_SEAT: 250, SB_SEAT: 50, HERO_SEAT: 250}
+"""The covered `@2.5` line six-handed: the button opens, the small blind folds and keeps its own
+dead 50, and hero - the big blind at seat 2, which is where `blind_seats` puts it - calls."""
+
+SEAT_STATES = tuple(
+    contract_module.SeatState(
         seat=seat,
-        street_bet=street_bet,
-        committed_total=street_bet if committed_total is None else committed_total,
+        street_bet=0,
+        committed_total=COMMITTED.get(seat, 0),
+        folded=seat not in (BUTTON_SEAT, HERO_SEAT),
     )
+    for seat in range(6)
+)
+"""Every seat listed and the folded ones marked, each having sat down with exactly 10,000.
+`tests/test_postflop_betting.py::seated` carries why dropping one is a defect and not a shorthand:
+`len(stacks)` is read as the table size, and a dead blind lent to a live seat is read as depth."""
+
+PREFLOP_LINE = (
+    *(contract_module.SeatAction(seat, "fold") for seat in (3, 4, 5)),
+    contract_module.SeatAction(BUTTON_SEAT, "raise", 250),
+    contract_module.SeatAction(SB_SEAT, "fold"),
+    contract_module.SeatAction(HERO_SEAT, "call"),
+)
+"""`simulator/run.py` appends every preflop action a seat takes, folds included."""
 
 
 def flop_query(**overrides):
-    """A contract-valid flop query for two seats at 100bb, before anything postflop is asked."""
+    """A contract-valid flop query in the covered `@2.5` line, six-handed and flat at 100bb."""
     fields = {
         "hand_id": "h1",
         "street": "flop",
-        "seat": 1,
-        "button_seat": 0,
+        "seat": HERO_SEAT,
+        "button_seat": BUTTON_SEAT,
         "hole_cards": ("As", "Kd"),
         "board": ("Kc", "7d", "2h"),
         "legal_actions": ("check", "bet"),
         "to_call": 0,
         "current_bet": 0,
         "min_raise_target": 100,
-        "pot": 550,
-        "stacks": ((0, 9750), (1, 9750)),
-        "seat_states": (seat_state(0, 0, 250), seat_state(1, 0, 300)),
+        "pot": sum(state.committed_total for state in SEAT_STATES),
+        "stacks": tuple((s.seat, STARTING_STACK - s.committed_total) for s in SEAT_STATES),
+        "seat_states": SEAT_STATES,
         "blinds": (50, 100),
+        "preflop_actions": PREFLOP_LINE,
     }
     fields.update(overrides)
     return contract_module.StrategyQuery(**fields)
@@ -467,7 +489,6 @@ class TestTheHandIsPermutedByTheBoardSOwnMap:
 def build_key(key_module, **overrides) -> str:
     """One call site for the producer, so a signature change is one edit rather than twenty."""
     producer = owed(key_module, "postflop_spot_key")
-    action = owed(key_module, "FlopAction")
     fields = {
         "preflop_spot_key": A_COVERED_PREFLOP_KEY,
         "board": ("Kc", "7d", "2h"),
@@ -476,7 +497,6 @@ def build_key(key_module, **overrides) -> str:
         "effective_stack_bb": 97.5,
     }
     fields.update(overrides)
-    del action
     return producer(**fields)
 
 
@@ -497,19 +517,16 @@ class TestWhatTheKeyCarries:
     def test_the_key_names_the_canonical_board_rather_than_the_board_asked_about(
         self, key_module
     ) -> None:
-        assert build_key(key_module, board=("Kc", "7d", "2h")) == build_key(
-            key_module, board=("Kh", "7s", "2c")
-        )
+        dressed = build_key(key_module, board=("Kh", "7s", "2c"))
+        assert build_key(key_module, board=("Kc", "7d", "2h")) == dressed
 
     def test_two_board_classes_are_two_keys(self, key_module) -> None:
-        assert build_key(key_module, board=("Kc", "7d", "2h")) != build_key(
-            key_module, board=("Qc", "7d", "2h")
-        )
+        neighbour = build_key(key_module, board=("Qc", "7d", "2h"))
+        assert build_key(key_module, board=("Kc", "7d", "2h")) != neighbour
 
     def test_two_preflop_lines_are_two_keys(self, key_module) -> None:
-        assert build_key(key_module) != build_key(
-            key_module, preflop_spot_key="t6/d100/BB/CO:raise@2.5"
-        )
+        elsewhere = build_key(key_module, preflop_spot_key="t6/d100/BB/CO:raise@2.5")
+        assert build_key(key_module) != elsewhere
 
     def test_the_flop_bet_size_is_named_so_a_menu_change_fails_closed(self, key_module) -> None:
         """Decision 9. Against a 33% bet a caller needs 19.9% equity and against 75% he needs
@@ -525,10 +542,9 @@ class TestWhatTheKeyCarries:
 
     def test_a_checked_flop_and_a_bet_flop_are_two_keys(self, key_module) -> None:
         action = owed(key_module, "FlopAction")
+        bet_into = build_key(key_module, flop_actions=(action("BTN", "bet", 33),))
 
-        assert build_key(key_module) != build_key(
-            key_module, flop_actions=(action("BTN", "bet", 33),)
-        )
+        assert build_key(key_module) != bet_into
 
     def test_the_pot_is_in_the_key(self, key_module) -> None:
         assert build_key(key_module, pot_bb=5.5) != build_key(key_module, pot_bb=16.0)
@@ -537,9 +553,8 @@ class TestWhatTheKeyCarries:
         """Decision 10, ruled against its own default. The geometric three-street size moves
         103.9%, 115.8% and 130.9% of pot at 77.5, 97.5 and 127.5bb effective, so a key that cannot
         say which depth it was solved at cannot refuse a spot it has no cell for."""
-        assert build_key(key_module, effective_stack_bb=97.5) != build_key(
-            key_module, effective_stack_bb=77.5
-        )
+        shallower = build_key(key_module, effective_stack_bb=77.5)
+        assert build_key(key_module, effective_stack_bb=97.5) != shallower
 
     def test_the_key_is_derived_and_the_module_publishes_no_parser(self, key_module) -> None:
         """Criterion: derived and compared, never parsed. Two derivations of "what spot is this"
@@ -653,11 +668,7 @@ class TestNoPreflopReaderClaimsAPostflopKey:
         self, monkeypatch, tmp_path, key_module
     ) -> None:
         postflop = build_key(key_module)
-        self.inventory(
-            monkeypatch,
-            tmp_path,
-            f"{A_COVERED_PREFLOP_KEY}: 12\n{postflop}: 4\n",
-        )
+        self.inventory(monkeypatch, tmp_path, f"{A_COVERED_PREFLOP_KEY}: 12\n{postflop}: 4\n")
 
         found = self_play_reference.self_play_spots()
 

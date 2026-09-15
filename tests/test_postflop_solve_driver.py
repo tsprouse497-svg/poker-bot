@@ -9,6 +9,11 @@ these are the only tests its guards will ever get. A guard nobody tested is a gu
 and two of the three below exist because the repo already found the guard missing:
 `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` and `SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE`.
 
+It also holds decision 14's chip-to-menu matching, moved here from
+`tests/test_postflop_query_recording.py` at the same cap on 2026-09-15. The menu it matches
+against is the solve configuration's own `33 75`, checked a few classes above, so the two sit
+together rather than one of them sitting beside the query shape.
+
 Reached through a fixture whose import sits in the function body; the head of
 `tests/test_postflop_key.py` says why.
 """
@@ -49,6 +54,14 @@ def owed(module, name: str):
         " implementation has been written yet"
     )
     return found
+
+
+@pytest.fixture(scope="module")
+def key_module():
+    """`solver_artifacts.postflop_key`, which publishes the menu and the matching rule."""
+    import poker_training_bot.solver_artifacts.postflop_key as module
+
+    return module
 
 
 # --------------------------------------------------------------------------- #
@@ -159,3 +172,117 @@ class TestTheSolveConfigurationIsCommittedBesideTheData:
             f"{threshold} postflop reads as {threshold}% of the remaining stack, which snaps"
             " every bet to a stack-off"
         )
+
+
+# --------------------------------------------------------------------------- #
+# A chip bet is matched to the ruled menu by pot fraction
+# --------------------------------------------------------------------------- #
+
+SINGLE_RAISED_POT_CHIPS = 550
+"""5.5bb at 50/100, the pot of the covered `@2.5` line, and the pot every figure below is in."""
+
+
+class TestAChipBetIsMatchedToTheMenuByPotFraction:
+    """Decision 14, `frozen-into-data`, ruled by Taylor 2026-09-15.
+
+    The ruled flop menu is `33 75` as a percent of pot and the table is in chips, and the
+    arithmetic does not come out even: 33% of the 550-chip pot is 181.5, which no dealer can
+    push. A strict equality match at stage 6 would refuse every faced bet at a real table and
+    kill the whole raise branch of the committed artifact with nothing going red; a loose one with
+    no stated ceiling could as easily swallow a 40% bet as a 32.7% one.
+
+    The rule: **match by pot fraction inside a named tolerance, refuse anything that matches no
+    entry rather than snapping it to the nearer one, and convert a committed artifact size to
+    chips by rounding to the nearest chip.** The tolerance is a module constant the test imports,
+    so a later re-ruling moves one number. The class was filed `runtime-reversible` and corrected:
+    a default a frozen test pins is a fixture, which halts for a human, and it did. Decision 14
+    carries the ruling, the options as put, and what the chosen width costs; the tests below
+    re-derive every bound rather than quoting it.
+    """
+
+    def test_the_tolerance_is_published_as_a_named_constant(self, key_module) -> None:
+        assert owed(key_module, "MENU_FRACTION_TOLERANCE") == pytest.approx(0.05)
+
+    def test_the_tolerance_sits_between_the_two_bounds_the_arithmetic_forces(
+        self, key_module
+    ) -> None:
+        """Both bounds recomputed here rather than quoted.
+
+        The floor is what a real table's rounding costs: the committed fixtures bet 180 into 550,
+        which is 32.7273%, so the tolerance must exceed `|0.327273 - 0.33| = 0.002727`. The
+        ceiling is half the distance to the next menu entry, `(0.75 - 0.33) / 2 = 0.21`, past
+        which one bet lands in two buckets. The binding ceiling in practice is the 50% bet the
+        phase already requires to be refused, `|0.50 - 0.33| = 0.17`.
+
+        The ruled 0.05 is 18.3 times the floor and 3.4 times inside the tighter ceiling. At 0.05
+        the two buckets reach 38% and 70% and still do not touch; 0.17 is what a later re-ruling
+        has left before a 50% bet starts matching 33%.
+        """
+        tolerance = owed(key_module, "MENU_FRACTION_TOLERANCE")
+        rounding_floor = abs(180 / SINGLE_RAISED_POT_CHIPS - 0.33)
+        overlap_ceiling = (0.75 - 0.33) / 2
+        off_menu_ceiling = abs(275 / SINGLE_RAISED_POT_CHIPS - 0.33)
+
+        assert rounding_floor == pytest.approx(0.002727, abs=1e-6)
+        assert off_menu_ceiling == pytest.approx(0.17)
+        assert rounding_floor < tolerance < min(overlap_ceiling, off_menu_ceiling)
+
+    def test_the_published_flop_menu_is_the_ruled_two_sizes(self, key_module) -> None:
+        assert tuple(owed(key_module, "FLOP_BET_MENU")) == (0.33, 0.75)
+
+    def test_a_table_sized_bet_matches_the_menu_entry_it_is_a_rounding_of(
+        self, key_module
+    ) -> None:
+        match = owed(key_module, "match_menu_fraction")
+
+        assert match(180, SINGLE_RAISED_POT_CHIPS) == pytest.approx(0.33)
+        assert match(413, SINGLE_RAISED_POT_CHIPS) == pytest.approx(0.75)
+
+    def test_a_bet_off_the_menu_matches_nothing_rather_than_the_nearer_entry(
+        self, key_module
+    ) -> None:
+        match = owed(key_module, "match_menu_fraction")
+
+        assert match(275, SINGLE_RAISED_POT_CHIPS) is None
+
+    def test_the_round_numbers_a_real_table_bets_match_rather_than_refuse(
+        self, key_module
+    ) -> None:
+        """What the ruled width was chosen for. 200 chips is 36.36% of this pot and 175 is
+        31.82%; both are numbers people actually bet and neither is a rounding of 33%. At the 0.01
+        first proposed, both refused and the raise frequency would have read near zero."""
+        match = owed(key_module, "match_menu_fraction")
+
+        assert match(200, SINGLE_RAISED_POT_CHIPS) == pytest.approx(0.33)
+        assert match(175, SINGLE_RAISED_POT_CHIPS) == pytest.approx(0.33)
+
+    def test_the_bucket_ends_where_the_tolerance_says_and_not_a_chip_later(
+        self, key_module
+    ) -> None:
+        """The sharpest whole-chip pair this pot allows. 154 chips is 28.000% of 550, the last
+        chip inside; 153 is 27.82% and the first outside. A stage 6 that widened the bucket by
+        rounding, or narrowed it, fails on one of the two."""
+        match = owed(key_module, "match_menu_fraction")
+
+        assert match(154, SINGLE_RAISED_POT_CHIPS) == pytest.approx(0.33)
+        assert match(153, SINGLE_RAISED_POT_CHIPS) is None
+
+    def test_a_bet_exactly_between_two_menu_entries_matches_nothing(self, key_module) -> None:
+        """297 chips is 54.0% of 550, halfway between 33% and 75%. Snapping it to the nearer
+        entry is the nearest-neighbour substitution the contract forbids by name, and at a
+        midpoint there is no nearer entry to snap to."""
+        match = owed(key_module, "match_menu_fraction")
+
+        assert match(297, SINGLE_RAISED_POT_CHIPS) is None
+
+    def test_an_artifact_size_converts_to_chips_by_rounding_to_the_nearest_chip(
+        self, key_module
+    ) -> None:
+        """181.5 is pinned because both rounding conventions agree on it, so the test states the
+        rule rather than a choice between two readings of a half. The two exact cases beside it
+        are what say the conversion is a conversion and not a table."""
+        chips = owed(key_module, "menu_size_chips")
+
+        assert chips(0.33, SINGLE_RAISED_POT_CHIPS) == 182
+        assert chips(0.33, 400) == 132
+        assert chips(0.75, 400) == 300

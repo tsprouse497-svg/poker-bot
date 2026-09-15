@@ -7919,3 +7919,64 @@ items:
       trade is on the record rather than rediscovered.
       Proposed by phase 16's stage-4 independent domain review, 2026-09-14, and left uncreated;
       filed the same day.
+
+  - id: NO-FIGURE-REPORTS-HOW-FAR-A-MATCHED-BET-SAT-FROM-ITS-MENU-ENTRY
+    status: deferred
+    phase: '16'
+    title: The bet-matching tolerance is ruled at five points of pot and nothing measures how much of it gets used
+    reason: >-
+      Decision 14, ruled by Taylor 2026-09-15, matches a faced bet to the flop menu by pot
+      fraction inside `MENU_FRACTION_TOLERANCE = 0.05`. On the 550-chip single-raised pot that
+      admits 154 to 209 chips into the 33% cell and 385 to 440 into the 75% one - measured here
+      rather than quoted, and the two ranges do not touch, reaching 38% and 70%.
+      The ruling was taken with its cost stated: a 28%-of-pot bet and a 38%-of-pot bet both
+      receive the strategy solved for 33%, and those are not the same spot. Decision 9 measures
+      the gradient the tolerance is spending - a caller needs 19.9% equity against 33% and 30.0%
+      against 75% - and the same gradient runs inside a single bucket, so a bet at a bucket edge
+      is answered with a strategy solved five points away from it.
+      What is missing is not the ruling but the measurement of how often it bites. The report
+      prints a bet frequency, a raise frequency and refusal counts; nothing prints the
+      distribution of `|matched fraction - menu entry|` over the bets the bot actually answered.
+      Without it a reader cannot tell a session where every matched bet was a rounding of 33%
+      from one where half of them sat at 38%, and those are different claims about how well the
+      committed artifact fitted the table. The figure is cheap - it is one number per answered
+      decision, already available where the match is made - and it is the only thing that would
+      show the size of what this tolerance cost.
+      Not fixed in phase 16 because the report's figures are fixed by frozen tests authored at
+      stage 4 and the decision was ruled after them; adding a figure is a contract criterion and
+      a new frozen test, which is a later phase's work rather than a stage-6 addition.
+      Filed 2026-09-15 by the coordinator, from the stage-4 round-2 verification review that
+      caught decision 14 misclassified.
+
+  - id: A-FIXTURE-IN-A-TEST-NEED-NOT-BE-A-TABLE-THE-SIMULATOR-COULD-PRODUCE
+    status: deferred
+    phase: '16'
+    title: A hand-built StrategyQuery is checked against its own arithmetic and never against the shape a real hand emits
+    reason: >-
+      A hand-built `StrategyQuery` is validated by `__post_init__` and by nothing else, and
+      `__post_init__` deliberately checks only what is checkable locally - chips in equal chips
+      out against the seats the fixture happens to list. Nothing compares a hand-built query
+      against the shape `simulator/run.py` actually produces, so a fixture can carry a seat count,
+      a stack distribution or a placement of dead money that no hand reaches, and every test built
+      on it passes while proving something about a table that does not exist.
+      Phase 16's stage 4 is the instance and it was caught at the last moment. Every heads-up
+      fixture in the phase listed two seats rather than six and parked the folded small blind's 50
+      chips on the big blind's `committed_total` so the pot would reconcile. Measured off the
+      fixture directly: `len(stacks)` 2 rather than 6, and starting stacks of 10,000 and 10,050
+      against a phase whose covered key is `t6/d100/BB/BTN:raise@2.5` and whose own docstrings say
+      100bb. `PreflopChartStrategy` derives table size as `len(query.stacks)` and recovers a
+      starting stack as `stack + committed_total`, so a stage 6 doing either the way the repo
+      already does it would have refused every one of the phase's positive controls - the tests
+      that say the bot bets and raises. A frozen test that fails the correct implementation is the
+      worst thing stage 5 can preserve.
+      Two rounds of independent review passed over those fixtures before the third caught it,
+      which is the argument that this is a tooling gap rather than an attention one.
+      `SEAT-STATE-MARKERS-AGREE-WITH-NOTHING` is the same defect from the producer side and
+      `SOLVED-PRICE-FIXTURE-HELPER-DUPLICATED-ACROSS-TEST-FILES` is the neighbouring entry,
+      covering duplication rather than fidelity. The fix both point at is one shared builder that
+      seats every player at the same stack and derives `stacks`, `seat_states` and the pot from the
+      recorded actions, which would make this class of fixture unwritable rather than merely
+      reviewable.
+      Not phase 16's to fix: a builder shared across the suite is a change to frozen tests of
+      completed phases, which stage 5 puts out of this phase's reach.
+      Filed 2026-09-15 by the coordinator, proposed by the stage-4 round-2 verification review.

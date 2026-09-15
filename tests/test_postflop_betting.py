@@ -23,6 +23,22 @@ from poker_training_bot.strategy import postflop_fallback as fallback_module
 
 SMALL_BLIND = 50
 BIG_BLIND = 100
+TABLE_SEATS = 6
+STARTING_STACK = 100 * BIG_BLIND
+
+BUTTON_SEAT = 0
+SB_SEAT = 1
+HERO_SEAT = 2
+LIVE_HEADS_UP = (BUTTON_SEAT, HERO_SEAT)
+"""Six seats with the button at 0, which `poker_core.order.blind_seats` reads as the small blind
+at seat 1 and the big blind at seat 2. Hero is the big blind - the seat the covered
+`t6/d100/BB/BTN:raise@2.5` cell was solved for - and the button and hero are the two still in
+once the open goes through."""
+
+HERO_CHECKS = contract_module.SeatAction(HERO_SEAT, "check")
+"""Postflop the blinds act first, so hero acts before the button on every street after the flop
+and a button bet always has hero's check in front of it. A recorded history that opens with the
+button's bet describes a street nobody could have played."""
 
 POSTFLOP_CANARIES = (
     "fallback-answers-preflop",
@@ -63,49 +79,68 @@ def owed(module, name: str):
     return found
 
 
-def seat_state(seat: int, street_bet: int, committed_total: int | None = None):
-    return contract_module.SeatState(
-        seat=seat,
-        street_bet=street_bet,
-        committed_total=street_bet if committed_total is None else committed_total,
+def seated(committed: dict[int, int], live: tuple[int, ...], street: dict[int, int] | None = None):
+    """`pot`, `stacks` and `seat_states` for one table, derived from what each seat put in.
+
+    **Every seat is listed and the folded ones are marked**, which is what `simulator/table.py`
+    does: it walks every seated player and carries `PlayerState`'s own `folded` marker. The
+    convention this replaces dropped the folded small blind and lent its dead 0.5bb to the big
+    blind: `len(stacks)` was then 2, which `PreflopChartStrategy._chart_query` reads as the table
+    size, and `_table_depth_bb` recovers a starting stack as `stack + committed_total`, making
+    hero 10,050 against a villain at 10,000 - a `t2` lookup at a ragged 100.5bb.
+    """
+    on_street = dict(street or {})
+    states = tuple(
+        contract_module.SeatState(
+            seat=seat,
+            street_bet=on_street.get(seat, 0),
+            committed_total=committed.get(seat, 0),
+            folded=seat not in live,
+        )
+        for seat in range(TABLE_SEATS)
+    )
+    return {
+        "pot": sum(state.committed_total for state in states),
+        "stacks": tuple((state.seat, STARTING_STACK - state.committed_total) for state in states),
+        "seat_states": states,
+    }
+
+
+def opened_to(chips: int, *after):
+    """The lojack, hijack and cutoff fold, the button opens, the small blind folds.
+    `simulator/run.py` appends every preflop action a seat takes, folds included, so a line
+    recorded from the raise onwards is not the line the producer emits."""
+    return (
+        *(contract_module.SeatAction(seat, "fold") for seat in (3, 4, 5)),
+        contract_module.SeatAction(BUTTON_SEAT, "raise", chips),
+        contract_module.SeatAction(SB_SEAT, "fold"),
+        *after,
     )
 
 
 def query(**overrides):
-    """A contract-valid postflop query in a single-raised pot at 100bb, two seats still in.
+    """A contract-valid flop query in the covered single-raised pot, six-handed and flat at 100bb.
 
-    The pot and the stacks follow the `@2.5` line the committed chart declares: the button opens
-    to 2.5bb and the big blind calls, so 5.5bb is in the middle and 97.5bb behind each seat.
-
-    **Where the extra 0.5bb lives, because every fixture here depends on it.** The table is
-    six-handed - the key is `t6/...` - and the small blind folded, so its 0.5bb is dead. `pot`
-    must equal the sum of every listed seat's `committed_total` and a folded seat is not listed,
-    so the dead half-blind rides on the big blind's `committed_total` while its `stack` shows only
-    what it put in: seat 1 is 300 committed against a stack of 9750.
-
-    Every fixture below takes decision 10's arithmetic, `pot = 2 x final_price + 0.5bb`: 4.5bb at
-    a 2.0bb open, 5.5bb at 2.5bb, 7.5bb at 3.5bb, 15.5bb 3-bet. Stage 4's domain review found
-    three conventions here, two of them building a query the repo's own validator rejects.
+    The `@2.5` line the committed chart declares: the button opens to 2.5bb, the small blind folds
+    and the big blind calls, so 5.5bb is in the middle - 2.5 + 2.5 + the dead 0.5, which stays on
+    the small blind's own seat - and 97.5bb is behind both live seats. Every fixture below takes
+    decision 10's arithmetic, `pot = 2 x final_price + 0.5bb`: 4.5bb at a 2.0bb open, 5.5bb at
+    2.5bb, 7.5bb at a 3.5bb open, 15.5bb in the 3-bet pot.
     """
     fields = {
         "hand_id": "h1",
         "street": "flop",
-        "seat": 1,
-        "button_seat": 0,
+        "seat": HERO_SEAT,
+        "button_seat": BUTTON_SEAT,
         "hole_cards": ("As", "Qd"),
         "board": ("Kc", "7d", "2h"),
         "legal_actions": ("check", "bet"),
         "to_call": 0,
         "current_bet": 0,
         "min_raise_target": BIG_BLIND,
-        "pot": 550,
-        "stacks": ((0, 9750), (1, 9750)),
-        "seat_states": (seat_state(0, 0, 250), seat_state(1, 0, 300)),
+        **seated({BUTTON_SEAT: 250, SB_SEAT: 50, HERO_SEAT: 250}, LIVE_HEADS_UP),
         "blinds": (SMALL_BLIND, BIG_BLIND),
-        "preflop_actions": (
-            contract_module.SeatAction(0, "raise", 250),
-            contract_module.SeatAction(1, "call"),
-        ),
+        "preflop_actions": opened_to(250, contract_module.SeatAction(HERO_SEAT, "call")),
     }
     fields.update(overrides)
     return contract_module.StrategyQuery(**fields)
@@ -114,18 +149,31 @@ def query(**overrides):
 def facing_a_bet(**overrides):
     """The same pot after the button bets 33%, so hero has a raise available."""
     fields = {
-        "seat": 1,
         "legal_actions": ("fold", "call", "raise"),
         "to_call": 180,
         "current_bet": 180,
         "min_raise_target": 360,
-        "pot": 730,
-        "stacks": ((0, 9570), (1, 9750)),
-        "seat_states": (seat_state(0, 180, 430), seat_state(1, 0, 300)),
-        "postflop_actions": (contract_module.SeatAction(0, "bet", 180),),
+        **seated(
+            {BUTTON_SEAT: 430, SB_SEAT: 50, HERO_SEAT: 250}, LIVE_HEADS_UP, {BUTTON_SEAT: 180}
+        ),
+        "postflop_actions": (HERO_CHECKS, contract_module.SeatAction(BUTTON_SEAT, "bet", 180)),
     }
     fields.update(overrides)
     return query(**fields)
+
+
+def three_bet_pot(**overrides):
+    """The 3-bet the committed chart does not cover: hero makes it 7.5bb and the button calls,
+    so 15.5bb is in the middle and 92.5bb is behind."""
+    return query(
+        preflop_actions=opened_to(
+            250,
+            contract_module.SeatAction(HERO_SEAT, "raise", 750),
+            contract_module.SeatAction(BUTTON_SEAT, "call"),
+        ),
+        **seated({BUTTON_SEAT: 750, SB_SEAT: 50, HERO_SEAT: 750}, LIVE_HEADS_UP),
+        **overrides,
+    )
 
 
 def audit(query_, outcome):
@@ -234,9 +282,7 @@ class TestTurnAndRiverRefuseByTheirOwnCodes:
         assert isinstance(outcome, contract_module.StrategyRefusal)
 
     def test_a_river_refuses_rather_than_folding(self, strategy) -> None:
-        outcome = strategy.decide(
-            query(street="river", board=("Kc", "7d", "2h", "9s", "4c"))
-        )
+        outcome = strategy.decide(query(street="river", board=("Kc", "7d", "2h", "9s", "4c")))
 
         assert isinstance(outcome, contract_module.StrategyRefusal)
 
@@ -280,18 +326,7 @@ class TestTheTwoTableCausesAndTheCodesThatNameThem:
     def test_an_uncovered_preflop_line_refuses_and_its_detail_names_the_line(
         self, strategy
     ) -> None:
-        uncovered = query(
-            preflop_actions=(
-                contract_module.SeatAction(0, "raise", 250),
-                contract_module.SeatAction(1, "raise", 750),
-                contract_module.SeatAction(0, "call"),
-            ),
-            pot=1550,
-            stacks=((0, 9250), (1, 9250)),
-            seat_states=(seat_state(0, 0, 750), seat_state(1, 0, 800)),
-        )
-
-        outcome = strategy.decide(uncovered)
+        outcome = strategy.decide(three_bet_pot())
 
         assert isinstance(outcome, contract_module.StrategyRefusal)
         assert outcome.named("preflop_spot_key"), outcome.detail
@@ -299,18 +334,7 @@ class TestTheTwoTableCausesAndTheCodesThatNameThem:
     def test_an_uncovered_board_refuses_under_its_own_code(self, strategy, betting_module) -> None:
         """The board-miss code is live rather than vacuous: all 1,755 classes are in scope, but a
         cell over 1% of pot refuses and rainbow has never been solved to target."""
-        line_code = strategy.decide(
-            query(
-                preflop_actions=(
-                    contract_module.SeatAction(0, "raise", 250),
-                    contract_module.SeatAction(1, "raise", 750),
-                    contract_module.SeatAction(0, "call"),
-                ),
-                pot=1550,
-                stacks=((0, 9250), (1, 9250)),
-                seat_states=(seat_state(0, 0, 750), seat_state(1, 0, 800)),
-            )
-        ).code
+        line_code = strategy.decide(three_bet_pot()).code
         board_miss = strategy.decide(query(board=("Jd", "6s", "3c")))
 
         assert isinstance(board_miss, contract_module.StrategyRefusal)
@@ -353,23 +377,8 @@ class TestTheLookupFailsClosedCoarsestGapFirst:
     def test_a_query_missing_both_line_and_board_names_the_line_first(self, strategy) -> None:
         """Both gaps at once. The walk has one order and the code says which it found, rather
         than whichever branch happened to run last."""
-        missing_line_only = query(
-            preflop_actions=(
-                contract_module.SeatAction(0, "raise", 250),
-                contract_module.SeatAction(1, "raise", 750),
-                contract_module.SeatAction(0, "call"),
-            ),
-            pot=1550,
-            stacks=((0, 9250), (1, 9250)),
-            seat_states=(seat_state(0, 0, 750), seat_state(1, 0, 800)),
-        )
-        both = query(
-            board=("Jd", "6s", "3c"),
-            preflop_actions=missing_line_only.preflop_actions,
-            pot=1550,
-            stacks=((0, 9250), (1, 9250)),
-            seat_states=(seat_state(0, 0, 750), seat_state(1, 0, 800)),
-        )
+        missing_line_only = three_bet_pot()
+        both = three_bet_pot(board=("Jd", "6s", "3c"))
 
         assert strategy.decide(both).code == strategy.decide(missing_line_only).code
 
@@ -379,13 +388,8 @@ class TestTheLookupFailsClosedCoarsestGapFirst:
         """A 3.5bb open is outside 20% of the `@2.5` cell. The preflop chart would substitute; this
         one refuses, and the sensitivity is why."""
         wide_open = query(
-            preflop_actions=(
-                contract_module.SeatAction(0, "raise", 350),
-                contract_module.SeatAction(1, "call"),
-            ),
-            pot=750,
-            stacks=((0, 9650), (1, 9650)),
-            seat_states=(seat_state(0, 0, 350), seat_state(1, 0, 400)),
+            preflop_actions=opened_to(350, contract_module.SeatAction(HERO_SEAT, "call")),
+            **seated({BUTTON_SEAT: 350, SB_SEAT: 50, HERO_SEAT: 350}, LIVE_HEADS_UP),
         )
 
         assert isinstance(strategy.decide(wide_open), contract_module.StrategyRefusal)
@@ -396,13 +400,8 @@ class TestTheLookupFailsClosedCoarsestGapFirst:
         """The endpoints are inclusive and real hands land exactly on them: 2.0bb is a min-open
         and 3.0bb a standard 3x. Inclusivity is what makes that safe."""
         min_open = query(
-            preflop_actions=(
-                contract_module.SeatAction(0, "raise", 200),
-                contract_module.SeatAction(1, "call"),
-            ),
-            pot=450,
-            stacks=((0, 9800), (1, 9800)),
-            seat_states=(seat_state(0, 0, 200), seat_state(1, 0, 250)),
+            preflop_actions=opened_to(200, contract_module.SeatAction(HERO_SEAT, "call")),
+            **seated({BUTTON_SEAT: 200, SB_SEAT: 50, HERO_SEAT: 200}, LIVE_HEADS_UP),
         )
 
         outcome = strategy.decide(min_open)
@@ -416,10 +415,12 @@ class TestTheLookupFailsClosedCoarsestGapFirst:
             to_call=275,
             current_bet=275,
             min_raise_target=550,
-            pot=825,
-            stacks=((0, 9475), (1, 9750)),
-            seat_states=(seat_state(0, 275, 525), seat_state(1, 0, 300)),
-            postflop_actions=(contract_module.SeatAction(0, "bet", 275),),
+            **seated(
+                {BUTTON_SEAT: 525, SB_SEAT: 50, HERO_SEAT: 250},
+                LIVE_HEADS_UP,
+                {BUTTON_SEAT: 275},
+            ),
+            postflop_actions=(HERO_CHECKS, contract_module.SeatAction(BUTTON_SEAT, "bet", 275)),
         )
 
         assert isinstance(strategy.decide(off_menu), contract_module.StrategyRefusal)
@@ -445,10 +446,12 @@ class TestTheLookupFailsClosedCoarsestGapFirst:
             to_call=297,
             current_bet=297,
             min_raise_target=594,
-            pot=847,
-            stacks=((0, 9453), (1, 9750)),
-            seat_states=(seat_state(0, 297, 547), seat_state(1, 0, 300)),
-            postflop_actions=(contract_module.SeatAction(0, "bet", 297),),
+            **seated(
+                {BUTTON_SEAT: 547, SB_SEAT: 50, HERO_SEAT: 250},
+                LIVE_HEADS_UP,
+                {BUTTON_SEAT: 297},
+            ),
+            postflop_actions=(HERO_CHECKS, contract_module.SeatAction(BUTTON_SEAT, "bet", 297)),
         )
 
         assert isinstance(strategy.decide(between), contract_module.StrategyRefusal)
@@ -486,10 +489,8 @@ class TestAFlushDrawIsNotServedTheNoDrawStrategy:
         with_draw = self.answered(strategy, ("Ah", "Qh"))
         without_draw = self.answered(strategy, ("As", "Qd"))
 
-        assert (with_draw.action, with_draw.amount) != (
-            without_draw.action,
-            without_draw.amount,
-        ) or with_draw.detail != without_draw.detail
+        moved = (with_draw.action, with_draw.amount) != (without_draw.action, without_draw.amount)
+        assert moved or with_draw.detail != without_draw.detail
 
 
 # --------------------------------------------------------------------------- #
@@ -516,13 +517,11 @@ class TestThePotOddsRiverCall:
     def river(self, **overrides):
         """A real river in a real line, the pot equal to what the seats actually put in.
 
-        Button opens to 2.5bb, big blind calls (550 with the dead small blind, as `query`
+        Button opens to 2.5bb, big blind calls (550 with the dead small blind, as `seated`
         explains); button bets the 33% menu size of 180 and the big blind calls (910); both check
-        the turn; button bets 455 on the river. Button has committed `250 + 180 + 455 = 885`, the
-        big blind `250 + 180 + 50 dead = 480`, and that is the 1,365. The previous fixture built
-        `pot=1650` against seats holding `800 + 300 = 1100`, which `StrategyQuery.__post_init__`
-        refuses outright, so every test in this class would have errored on its own fixture the
-        moment stage 6 landed and none would ever have run.
+        the turn; button bets 455 on the river. The button has committed `250 + 180 + 455 = 885`,
+        hero `250 + 180 = 430`, the folded small blind still holds its own dead 50, and that is
+        the 1,365.
         """
         fields = {
             "street": "river",
@@ -531,10 +530,12 @@ class TestThePotOddsRiverCall:
             "to_call": self.RIVER_TO_CALL,
             "current_bet": self.RIVER_TO_CALL,
             "min_raise_target": 2 * self.RIVER_TO_CALL,
-            "pot": self.RIVER_POT,
-            "stacks": ((0, 9115), (1, 9570)),
-            "seat_states": (seat_state(0, 455, 885), seat_state(1, 0, 480)),
-            "postflop_actions": (contract_module.SeatAction(0, "bet", 455),),
+            **seated(
+                {BUTTON_SEAT: 885, SB_SEAT: 50, HERO_SEAT: 430},
+                LIVE_HEADS_UP,
+                {BUTTON_SEAT: 455},
+            ),
+            "postflop_actions": (HERO_CHECKS, contract_module.SeatAction(BUTTON_SEAT, "bet", 455)),
         }
         fields.update(overrides)
         return query(**fields)
@@ -570,9 +571,7 @@ class TestThePotOddsRiverCall:
         equity = owed(betting_module, "river_equity")
         wins, ties, _ = counts(("Ah", "Ad"), self.RIVER_BOARD)
 
-        assert equity(("Ah", "Ad"), self.RIVER_BOARD) == pytest.approx(
-            (wins + ties / 2) / 990
-        )
+        assert equity(("Ah", "Ad"), self.RIVER_BOARD) == pytest.approx((wins + ties / 2) / 990)
 
     def test_the_price_is_to_call_over_the_pot_after_the_call(self, betting_module) -> None:
         price = owed(betting_module, "pot_odds_price")

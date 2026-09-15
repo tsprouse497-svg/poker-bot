@@ -228,12 +228,25 @@ subagents in this one worktree; the coordinator owns every commit.
   a per-test statement of the behaviour asserted and the canary that proves it bites. S1 returns
   measured solve time and peak memory per flop against MAINT-26's figures, and says plainly when a
   route it needed was one of the unrun ones. E1 returns the report text.
-- Status, 2026-09-10. R1 done, stage 1, blockers resolved. R2 done, stage 2. Stage 3 ran two
+- Status, 2026-09-14. R1 done, stage 1, blockers resolved. R2 done, stage 2. Stage 3 ran two
   independent reviews, `stage-03-human-gate.md` over eight rounds and `stage-03-decisions-poker.md`
   over the poker; both are closed and both are on disk. C1 done, three passes: the fold-in, then
   R3's two blockers, then one restored predicate. R3 done, two rounds, both blockers verified fixed
-  and no new ones. T1 is next and is no longer gated on anything. Every stage-6 lane is planned and
-  not dispatched.
+  and no new ones. T1 done, stage 4. Stage 4 then ran **two** independent reviews rather than one -
+  `stage-04-tests-mechanical.md` and `stage-04-tests-poker.md`, neither having written the tests
+  and neither having seen the other's note - because stage 4 is the stage whose mistakes the freeze
+  preserves. Between them they found **eight blockers**, every one re-measured by the coordinator
+  before it was acted on. T2 repaired all eight; R4 verified the repair at
+  `stage-04-repair-verification.md`. X1 filed seven findings that earlier stages had named in prose
+  and never created. Every stage-6 lane is planned and not dispatched.
+- Two lanes were added at stage 4 and neither was in the plan written at stage 1. **T2**, repair,
+  because the agent that wrote a test is not the one to judge whether the fix to it is real, and
+  eight blockers is a rewrite rather than a touch-up. **X1**, backlog, because the gate's
+  backlog-integrity check was red on twenty id-shaped tokens resolving to no item and that had to
+  be sorted by reading twenty notes rather than by pattern - X1 came back saying six of the
+  thirteen the coordinator handed it were already filed under corrected names or deliberately
+  withdrawn, which is the result a lane produces and a coordinator working from its own list does
+  not.
 - Integration order: R1 before stage 1 advances. R2 before stage 2 advances. T1 alone at stage 4,
   then the freeze. At stage 6, K1 first and alone, because every other lane keys against the shape
   it defines; then A1; then S1 and B1, S1 first where they share the artifact's read path; then P1
@@ -261,7 +274,10 @@ subagents in this one worktree; the coordinator owns every commit.
       the stage; the contract fold-in and its own review are folded in here rather than deferred,
       because the gate cannot pass between stage 1 and stage 4 and closing out through it to run
       the rewrite as a separate task is not available.
-- [ ] S4 Tests. Red on assertions, frozen after. Canaries include this phase's own command.
+- [x] S4 Tests. Six new files, three migrated, three canaries, both command ids registered. Two
+      independent reviews, eight blockers, all repaired and verified. 54 tests execute assertions,
+      22 failing on assertions and 32 passing against what already exists; no collection error, so
+      nothing is frozen having never run. Decision 14 filed and taken on its recorded default.
 - [ ] S5 Freeze. `tests/**` and `verification/**` leave scope.
 - [ ] S6 Build. Every command the contract declares green.
 - [ ] S7 Gate. Full `run_verify.py` plus `check_gate_bite`.
@@ -285,7 +301,7 @@ subagents in this one worktree; the coordinator owns every commit.
 
 ## Outcome
 
-Not yet. Stage 3 closed 2026-09-10; stage 4 next.
+Not yet. Stage 4 closed 2026-09-14; stage 5, the freeze, next.
 
 ## Next Agent Bootstrap
 
@@ -295,18 +311,36 @@ Not yet. Stage 3 closed 2026-09-10; stage 4 next.
   Never work in `~/projects/poker-bot`.
 - Next command: `uv run python scripts/loop_stage.py --phase 16`. Six lanes have pointers in this
   worktree, so `--phase 16` is required rather than optional.
-- Current state: **stage 3 is done and the fold-in with it. The next action is `--advance` to
-  stage 4.** `task_mode: contract-update`, `base_commit` `19beb97`. All thirteen decisions are
-  ruled, both stage-3 reviews are closed, the contract carries every ruling as a criterion, and the
-  fold-in has its own independent review closed at `stage-03-contract-foldin.md`. The gate is red
-  by design between stage 1 and stage 4: `pytest_postflop_betting` and
-  `generate_postflop_betting_report` are declared in the contract's frontmatter and registered in
-  no `COMMANDS` entry, which is the same state the phase 17 lane sits in. Stage 4 lands the tests
-  and the registration together, because `check_repo_consistency` requires the test file to exist
-  and hold at least one test the moment an id is registered.
-- Stage 3's record is committed at `b1f5667`. The fold-in and its review are committed on top of
-  it. Nothing is left uncommitted.
-- **Three reviews closed this stage, all independent, all on disk.** `stage-03-human-gate.md`
+- Current state: **stage 4 is done. The next action is `--advance` to stage 5, the freeze.**
+  `task_mode: implementation`, `base_commit` `19beb97`. The tests, the three canaries and both
+  command registrations are committed; three independent reviews are on disk; every blocker is
+  repaired and verified. Nothing is left uncommitted.
+- **What stage 5 does and why it is not a formality.** `tests/**` and `verification/**` leave
+  `approved_scope`, and `check_scope.py` then enforces that an implementer may read a test and
+  never write one. Everything wrong in a test at that moment is preserved exactly, which is why
+  stage 4 here bought two reviews and a verified repair rather than one pass.
+- **The red the next agent will see, and which parts of it are correct.** Outside this phase's own
+  six files the suite has six failures and all six are by design. Five are the migrated tests of
+  completed phases asserting the new query shape - `SeatAction` accepting `bet`, and the decision
+  audit schema at 4 rather than 3 - which stage 6 makes true. The sixth is
+  `test_every_mutation_applies_exactly_once_to_its_file`: the three canaries quote lines stage 6
+  has not written yet, which the contract requires and which stage 6 cannot do instead, because a
+  builder diff under `verification/**` halts the loop. Stage 6 writes each line in the exact form
+  the mutation quotes.
+- **Stage 6 owes six names the frozen tests now require** and none of them existed when the lane
+  plan was written: `committed_class_weights(query)` in the betting strategy, and
+  `MENU_FRACTION_TOLERANCE`, `FLOP_BET_MENU`, `match_menu_fraction` and `menu_size_chips` in
+  `solver_artifacts.postflop_key`. The last four are decision 14's, below.
+- **Decision 14 was taken by the loop on a recorded default, not by Taylor**, and is the second
+  `runtime-reversible` item in the list beside decision 5. The ruled menu is in pot fractions and
+  the table is in chips: 33% of the 550-chip `@2.5` pot is 181.5, which no dealer pushes. A strict
+  equality match kills every faced-bet node at a real table and reads the raise frequency as 0 with
+  no code saying why; a match with no ceiling merges 33% and 50%, which decision 9 measured as
+  costing a caller the difference between needing 19.9% equity and needing 30.0%. The default is to
+  match by pot fraction inside `MENU_FRACTION_TOLERANCE = 0.01`, refuse anything matching no entry
+  rather than snap it to the nearer one, and round an artifact size to the nearest chip. **Reported
+  to Taylor 2026-09-14 and not reversed.**
+- **Three reviews closed stage 3, all independent, all on disk.** `stage-03-human-gate.md`
   (arithmetic, consistency, attribution, provenance) took eight rounds and keeps 24 findings
   resolved rather than deleted. `stage-03-decisions-poker.md` judged the poker in every ruling
   taken after stage 2 and found none of them wrong; its one blocker, the sample's rank axis, is
@@ -324,13 +358,9 @@ Not yet. Stage 3 closed 2026-09-10; stage 4 next.
   not knowable at query time. The expensive alternative, a committed list of attempted-and-rejected
   boards, changes the shape of data decision 6 ruled `frozen-into-data` and is Taylor's to answer.
   Both are reported to Taylor as of 2026-09-10 and neither has been reversed.
-- **Two independent reviews closed this stage and both are on disk.** `stage-03-human-gate.md`
-  (arithmetic, consistency, attribution, provenance) took eight rounds, is clean, and keeps 24
-  resolved findings as the record. `stage-03-decisions-poker.md` reviewed every ruling taken after
-  2026-09-09 and found none of them wrong as poker; its one blocker, the sample's rank axis, is
-  fixed in decision 6. **Read both before touching a ruling** - between them they carry the reasons
-  for choices the decision list states only as conclusions.
-- **A contract fold-in rewrite blocks stage 4.** The stage-3 review counted
+- **A contract fold-in rewrite blocked stage 4 and is done**, committed at `58ed463` with its
+  own independent review closed at `stage-03-contract-foldin.md`. Kept here because the sequencing
+  argument is the part a later phase needs. The stage-3 review counted
   thirteen amendments now owed against eleven free lines: the contract was at 289 of a 300-line cap,
   `AGENTS.md` caps an amendment at two lines and forbids raising the cap, and it prescribes a
   rewrite that folds existing amendments into the criteria they amend as a separate

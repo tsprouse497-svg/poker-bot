@@ -65,9 +65,10 @@ def refusal_codes():
     import poker_training_bot.strategy.postflop_betting as module
 
     found = getattr(module, "REFUSAL_CODES", None)
-    assert found is not None, (
-        "strategy.postflop_betting must publish REFUSAL_CODES; the report's vacuity labels are"
-        " checked against it rather than against the report's own list"
+    assert found, (
+        "strategy.postflop_betting must publish a non-empty REFUSAL_CODES; the report's vacuity"
+        " labels are checked against it rather than against the report's own list, and an empty"
+        " vocabulary would make every check that reads it pass over nothing"
     )
     return tuple(found)
 
@@ -180,7 +181,15 @@ def vacuity_labels_match_the_counts(report: str, codes) -> bool:
 
     Both directions, because a report that labelled nothing and one that labelled everything both
     pass a naive search for the word. The codes come from the strategy's own closed vocabulary
-    rather than from the report, so a code left out of the breakdown fails here."""
+    rather than from the report, so a code left out of the breakdown fails here.
+
+    **An empty code list is refused here rather than by the fixture that fills it.** Over no codes
+    every clause below is vacuously satisfied - `sorted({}) == sorted(())`, then an empty loop - so
+    this returned `True` for any report at all, and what closed it was
+    `test_the_refusal_vocabulary_is_a_closed_list` in another file. That is the shape this whole
+    block exists to correct, one level down: a guard covered by a sibling is not a guard."""
+    if not codes:
+        return False
     rows = code_rows(report, codes)
     if sorted(rows) != sorted(codes):
         return False
@@ -239,9 +248,7 @@ class TestTheCoverageFigures:
     def test_the_report_names_which_constraint_bound_the_line_count(self, report) -> None:
         """How many lines are covered is an output rather than a choice: as many as the campaign
         cost and the index each afford, whichever is smaller, and the report names which."""
-        assert says(report, "bound by") and (
-            says(report, "campaign") or says(report, "index")
-        )
+        assert says(report, "bound by") and (says(report, "campaign") or says(report, "index"))
 
     def test_the_report_says_the_keys_are_post_substitution(self, report) -> None:
         """Every corpus-derived key reads `@2.5` against a corpus median open of 2.25bb. A reader
@@ -333,9 +340,8 @@ class TestTheAccuracyFigures:
         """A solve at the committed iteration count is not proven to have converged.
         Exploitability was targeted; frequencies on indifferent hands settle later and nothing
         here has diffed a deep solve against a shallow one."""
-        assert says(report, "not proven to have converged") or says(
-            report, "convergence", "unproven"
-        )
+        unproven = says(report, "convergence", "unproven")
+        assert says(report, "not proven to have converged") or unproven
 
     def test_the_count_of_cells_rejected_above_one_percent_is_printed(self, report) -> None:
         assert says(report, "rejected above 1")
@@ -654,28 +660,19 @@ class TestThisFileSOwnPredicatesCanFail:
     CODES = ("postflop:no-cell-for-this-spot", "postflop:in-the-index-but-not-fetched")
 
     def test_a_code_that_fired_zero_times_and_is_not_labelled_is_rejected(self) -> None:
-        report = (
-            f"  {self.CODES[0]}   12\n"
-            f"  {self.CODES[1]}   0\n"
-        )
+        report = f"  {self.CODES[0]}   12\n  {self.CODES[1]}   0\n"
 
         assert vacuity_labels_match_the_counts(report, self.CODES) is False
 
     def test_a_code_that_fired_and_is_labelled_vacuous_is_rejected(self) -> None:
         """The other direction, which is how a report passes a naive search by labelling
         everything."""
-        report = (
-            f"  {self.CODES[0]}   12   vacuous\n"
-            f"  {self.CODES[1]}   0    vacuous\n"
-        )
+        report = f"  {self.CODES[0]}   12   vacuous\n  {self.CODES[1]}   0    vacuous\n"
 
         assert vacuity_labels_match_the_counts(report, self.CODES) is False
 
     def test_labels_that_match_the_counts_are_accepted(self) -> None:
-        report = (
-            f"  {self.CODES[0]}   12\n"
-            f"  {self.CODES[1]}   0    vacuous\n"
-        )
+        report = f"  {self.CODES[0]}   12\n  {self.CODES[1]}   0    vacuous\n"
 
         assert vacuity_labels_match_the_counts(report, self.CODES) is True
 
@@ -685,6 +682,12 @@ class TestThisFileSOwnPredicatesCanFail:
         report = f"  {self.CODES[0]}   12\n"
 
         assert vacuity_labels_match_the_counts(report, self.CODES) is False
+
+    def test_an_empty_code_vocabulary_is_rejected_rather_than_passed_vacuously(self) -> None:
+        """The negative control on the predicate's own emptiness: without the guard it returns
+        `True` for a report with no refusal breakdown in it at all."""
+        assert vacuity_labels_match_the_counts(f"  {self.CODES[0]}   12\n", ()) is False
+        assert vacuity_labels_match_the_counts("", ()) is False
 
     def test_a_digit_inside_a_code_name_is_not_read_as_its_count(self) -> None:
         """`row_count` takes the last whitespace-delimited integer, so a code carrying a number
