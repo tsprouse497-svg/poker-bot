@@ -1,11 +1,9 @@
 task_id: PHASE_16_POSTFLOP_BETTING
 active_phase: '16'
 task_mode: implementation
-base_commit: f4efa724469cf28fe4ad85d61749987f36bf338f
+base_commit: 25328f8b7ce16cc93e1d424666abffcd22f23a44
 approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
-  - tests/test_postflop_artifact.py
-  - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/postflop_key.py
   - src/poker_training_bot/solver_artifacts/postflop_artifact.py
   - src/poker_training_bot/solver_artifacts/postflop_solve_driver.py
@@ -2059,3 +2057,13 @@ scope_change_log:
       - rather than expressed as set equality, which is what accidentally forbade dropping.
       Found by the stage-6 artifact lane inside its own work, which implemented the frozen test as
       written, said plainly that it believed the test wrong, and named the decision it contradicts.
+
+  - date: 2026-09-15
+    reason: >-
+      Puts the freeze narrowing back on. tests/test_postflop_artifact.py and
+      verification/freeze.lock leave approved_scope again, one commit after they entered it, and
+      scripts/freeze_tests.py has re-locked 50 files and 1,189 test functions at 25328f8.
+      base_commit moves to the re-freeze, on the same argument that moved it to the first one:
+      scope is the diff from base_commit, the correction was in scope under its own entry, and
+      left where it was it would read from here on as the builder having written the test that
+      measures it.
