@@ -4,6 +4,11 @@ task_mode: implementation
 base_commit: 25328f8b7ce16cc93e1d424666abffcd22f23a44
 approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
+  - tests/test_postflop_key.py
+  - tests/test_postflop_betting.py
+  - tests/test_postflop_query_recording.py
+  - tests/test_postflop_artifact.py
+  - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/postflop_key.py
   - src/poker_training_bot/solver_artifacts/postflop_artifact.py
   - src/poker_training_bot/solver_artifacts/postflop_solve_driver.py
@@ -2088,3 +2093,23 @@ scope_change_log:
       postflop_artifact.py at exactly 500, both filed as landmines under
       STRATEGY-CONTRACT-IS-ONE-LINE-UNDER-ITS-CAP, and a third file at the cap would be the third
       instance of the same defect in one stage.
+
+  - date: 2026-09-15
+    reason: >-
+      Re-opens four frozen test files and the lock, for decision 8's amendment, and closes them
+      again when the re-freeze lands. Same shape as the floor correction earlier today and the same
+      precedent: phase 14 at 26c0082, d635b49 and 4e2d39e.
+      What is being fixed. The postflop key was built on a preflop *spot key*, which names a
+      decision hero is about to make, so it could only ever name the seat whose last preflop
+      decision was facing a bet - the caller. The bot could not continuation-bet at all, which is
+      about half of all flops and the spot this phase exists for. Decision 8's amendment carries
+      the measurement and Taylor's 2026-09-15 ruling to fix it now rather than after a solve.
+      The contract needs no amendment, which is worth stating because it is the reason this is not
+      a contract-update task. Its criterion already says the key carries "the preflop line verbatim
+      with its sizes"; a completed line is exactly that, and it was decision 8's default that
+      substituted a spot-key object for a line. The contract is also at 299 of a 300-line cap, so
+      an amendment would not have fitted and would have forced the rewrite AGENTS.md prescribes -
+      another reason to check whether a contract is actually wrong before amending it.
+      The frozen tests pin the old prefix and must move with it. They are corrected against the
+      amended ruling rather than against the implementation, and re-frozen in the same pair of
+      commits.

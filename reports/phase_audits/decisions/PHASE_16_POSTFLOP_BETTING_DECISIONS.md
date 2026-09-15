@@ -1014,6 +1014,38 @@ served an `@2.5` cell meets a defender who is really wider and weaker, so hero c
 too little, and decision 10's validation cannot see it. Verbatim keys make that visible rather than
 fixing it, which is the honest reading of what was ruled.
 
+### Amendment, 2026-09-15: a preflop *spot key* cannot name the raiser's flop
+
+**What was not true.** The default above says "carry the preflop spot key verbatim" and the ruling
+took it. A preflop spot key names a decision hero is **about to make**; every flop is reached with
+the preflop betting closed. So the only seat a postflop key could name was the one whose last
+preflop decision was facing a bet - the caller. Measured against `spot_key.py` directly: hero `BB`
+facing a 2.5bb button open keys as `t6/d100/BB/BTN:raise@2.5`, while hero `BTN` after that call is
+refused with "BTN already acted and faces no later raise, so the betting round is closed", and hero
+`BTN` with an empty line keys as `rfi` and derives a 2.5bb limped pot rather than the 5.5 the line
+makes.
+
+**What that cost.** The bot could never continuation-bet. That is roughly half of all flops and the
+single spot this phase most obviously exists for - and this item's own argument assumes it
+throughout, reasoning at length about hero c-betting too little at a substituted price. No frozen
+test caught it: the one requiring a committed spot to produce a bet is satisfied by the caller's
+donk bet.
+
+**What replaces it.** The postflop key carries the **completed preflop line**, verbatim and with its
+sizes, rendered in the preflop key's grammar - not a preflop spot key object, which carries a
+validator requiring a pending decision. The contract was already written this way and needs no
+amendment: its criterion says "the key carries the board, the preflop line verbatim with its
+sizes". Everything the original ruling asked for survives - verbatim, sizes included, no invented
+compression, the non-`t` prefix, and the substitution recorded on the committed spot. What changes
+is the object the prefix is built from.
+
+Answer: [Ruled by Taylor, 2026-09-15] **Fix it now.** Taken at stage 6, before any cell is solved or
+committed, on the ground this item states itself: changing what the key can express re-derives every
+committed cell, so the cost is a rework now against a full re-solve later.
+
+Found by the stage-6 betting lane, which measured it while building against the key rather than
+inferring it from the prose.
+
 ## 9. Whether flop bet sizes appear in the postflop spot key
 
 Reversibility: frozen-into-data
