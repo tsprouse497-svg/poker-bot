@@ -312,9 +312,29 @@ class TestTheOnePermittedCollapse:
             assert canonical(representative) == representative, board
 
     def test_the_class_sizes_are_the_three_orbit_sizes_and_nothing_else(self, canonical) -> None:
-        """Rainbow boards have a 24-element orbit, two-tone 12, monotone 4. A canonicaliser that
-        over-collapses - merging two genuinely different textures - shows up here as a class of
-        the wrong size long before any strategy is wrong."""
+        """A canonicaliser that over-collapses - merging two genuinely different textures - shows
+        up here as a class of the wrong size long before any strategy is wrong.
+
+        **Orbit size is not a property of the texture**, which is what an earlier draft of this
+        docstring said. It is 24 over the stabiliser: suits the board does not use permute freely,
+        and so do suits holding identical ranks. Brute-forced over all 22,100 boards under all 24
+        suit permutations, the six (texture, rank pattern) families are
+
+            rainbow unpaired   286 classes x 24 =  6,864 boards
+            rainbow paired     156 classes x 12 =  1,872 boards
+            rainbow trips       13 classes x  4 =     52 boards
+            two-tone unpaired  858 classes x 12 = 10,296 boards
+            two-tone paired    156 classes x 12 =  1,872 boards
+            monotone unpaired  286 classes x  4 =  1,144 boards
+
+        so 169 of the 455 rainbow classes are not orbit-24, and 13 of the 299 orbit-4 classes are
+        rainbow trips rather than monotone. `ORBIT_HISTOGRAM` was right; only the sentence that
+        explained it was wrong, and it was about to be frozen as this repo's reference.
+
+        The poker cost of believing the old sentence is the rainbow cost scaling the contract asks
+        for: rainbow covers 8,788 boards over 455 classes, 19.314 a class, so scaling 455 classes
+        at 24 boards each gives 10,920 and overstates rainbow by 24.3%.
+        """
         sizes = Counter(canonical(board) for board in itertools.combinations(ALL_CARDS, 3))
 
         assert Counter(sizes.values()) == ORBIT_HISTOGRAM

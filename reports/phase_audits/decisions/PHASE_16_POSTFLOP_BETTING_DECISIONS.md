@@ -1645,3 +1645,67 @@ reviewer flagged that itself and declined to answer the question it had raised.
 Answer: [Ruled by Taylor, 2026-09-10] **One phase. Do not split.** The format half and the data
 half are ruled together here, accepting the cost this item names: the artifact gets committed
 against a key format that nothing has been built against yet.
+
+## 14. How a chip bet at the table is matched to the ruled pot-fraction menu
+
+Reversibility: runtime-reversible
+
+Filed 2026-09-14 by stage 4's two independent reviews, after the nine items the index above counts
+were ruled. It is the list's second `runtime-reversible` item, beside 5, and under `AGENTS.md` it
+proceeds on the default recorded here and is reported afterwards rather than halting for a human.
+
+**What is unpinned.** Decision 11's flop menu is `33 75` as a percent of pot. The table is in
+chips, and the arithmetic does not come out even: the `@2.5` single-raised pot at 50/100 blinds is
+550 chips, and 33% of 550 is 181.5, which no dealer can push. The stage-4 fixtures already use two
+readings without saying so - the facing-a-bet fixture bets 180, which is 32.7273%, and the
+off-menu fixture bets 275, which is 50.0% and is required to refuse. Nothing between them was
+pinned, so stage 6 could have taken either of two opposite rules and nothing would have gone red.
+
+**What each of those rules costs.** A strict equality match means every faced-bet node refuses at
+a real table, because no real table produces 181.5 chips - so the whole raise branch of the
+committed artifact is dead on arrival, and the report's raise frequency reads 0 with no code
+saying why. A match with no stated ceiling is the mirror: a tolerance wide enough to be safe can
+swallow a 40% bet into the 33% cell, which is the nearest-neighbour substitution this contract
+forbids by name and which decision 9 measured the cost of - a caller needs 19.9% equity against
+33% and 30.0% against 75%, and merging them overfolds to small bets and overcalls large ones.
+
+**Default, taken here.**
+
+1. A faced bet is matched to the menu **by pot fraction, not by chips**. `bet_chips / pot_chips`
+   is compared against each menu entry and the match holds only inside a tolerance.
+2. The tolerance is a **named module-level constant**, `MENU_FRACTION_TOLERANCE` in
+   `solver_artifacts.postflop_key`, which the frozen test imports rather than repeating a literal,
+   so a later session that re-rules this moves one number in one place.
+3. Its value is **0.01**, one percentage point of pot.
+4. A committed artifact size converts to chips by **rounding to the nearest chip**.
+5. A bet matching no entry inside the tolerance **refuses**; it is never snapped to the nearer one.
+
+**The arithmetic the tolerance is picked from, both bounds measured rather than asserted.**
+
+- *Floor.* It has to admit what a real table actually bets. The committed fixture bets 180 into
+  550, which is 32.7273%, so the tolerance must exceed `|0.327273 - 0.33| = 0.002727`.
+- *Ceiling, structural.* Two menu entries must not share a bet. Half the distance between them is
+  `(0.75 - 0.33) / 2 = 0.21`; above that a single bet lands in two buckets at once.
+- *Ceiling, binding.* The phase separately requires a 50% bet to refuse, so the tolerance must
+  stay below `|0.50 - 0.33| = 0.17`. That is the one that actually binds.
+- **0.01 is 3.67 times the floor and 17 times inside the binding ceiling.** In chips on the 550
+  pot it admits 176 to 187 into the 33% bucket and 407 to 418 into the 75% one, and 181.5 rounds
+  to 182, inside the first.
+
+A bet exactly halfway between the two entries - 54.0% of pot, 297 chips on this pot - falls in
+neither bucket and refuses. That case is pinned by its own frozen test, because it is the one a
+nearest-neighbour rule answers silently and a fail-closed rule refuses.
+
+**Why this is `runtime-reversible` rather than `frozen-into-data`.** Nothing here is written into
+the committed artifact. The artifact records sizes as pot fractions either way; this is the rule
+that reads a live query, and a later phase can change the tolerance, or replace the rule with a
+menu of chip sizes per pot, without re-deriving a single committed cell. `docs/LOOP.md`'s own
+wording for the class - "the choice only changes behavior at query time, so a later edit **can**
+change it" - describes it exactly. The frozen test pins the default so that a later change is a
+deliberate edit rather than a drift, which is what the class asks for and not what makes it the
+other one.
+
+Answer: **not ruled by a human. The loop proceeded on the recorded default above**, as
+`AGENTS.md` requires for a `runtime-reversible` item, and this entry is the report of what it
+chose. Taylor may reverse any of the five points at any later phase at the cost of one constant
+and one frozen test.

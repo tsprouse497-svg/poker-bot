@@ -1412,15 +1412,30 @@ mutations:
   - id: postflop-weight-bounds-not-enforced
     description: >-
       The postflop importer computes each committed class weight's bounds and then
-      ignores them, so a cell holding a weight of 1.7 imports cleanly and is handed to
-      the table as a frequency. This is the contract's first named stage-4 canary - a
-      wrong committed weight must fail the command rather than be rendered - and it is
-      the one that targets this phase's own new command.
+      ignores them, so a cell holding a weight of 1.5 beside one of -0.5 imports cleanly
+      and is handed to the table as a frequency. This is the contract's first named
+      stage-4 canary - a wrong committed weight must fail the command rather than be
+      rendered - and it is the one that targets this phase's own new command.
       It is not vacuous, and the witness is named for a reason.
-      `tests/test_postflop_artifact.py::TestTheImporterRefusesRatherThanRenders` writes a
-      cell with `class_weights[0][0] = 1.7` and requires `PostflopArtifactError`, with a
-      positive control beside it importing the good committed sample, so an importer that
-      refused everything would fail that control rather than pass this canary.
+      `tests/test_postflop_artifact.py::TestTheImporterRefusesRatherThanRenders` replaces
+      the cell's first class row with `[1.5, -0.5, 0.0, ...]`, keeping the row's length,
+      and requires `PostflopArtifactError`, with a positive control beside it importing
+      the good committed sample, so an importer that refused everything would fail that
+      control rather than pass this canary.
+      **That row sums to exactly 1.0, which is what makes this line the only thing in the
+      importer that can refuse it.** Stage 4's own independent review caught the earlier
+      witness, which set one entry of a summing row to 1.7 and so broke the bound and the
+      sum together: with this line disabled the sibling sum-to-one check - which the
+      contract separately forces the importer to hold, and
+      `test_a_class_whose_weights_do_not_sum_to_one_is_refused` pins - still refused the
+      cell, the canary survived the command it names, and nothing would have said so
+      until `check_gate_bite` at stage 7, after stage 5 had frozen both `tests/**` and
+      `verification/**`. The repair is that the witness now replaces the whole row rather
+      than one entry of it, so the sum it is replaced with is chosen rather than whatever
+      the arithmetic leaves behind. `1.5 + (-0.5) + 0.0` is 1.0 in binary floating point
+      with no residue, so an exact sum comparison accepts the row as readily as a
+      toleranced one. One entry sits above the upper bound and one below the lower, so
+      either half of the disabled comparison witnesses the defect on its own.
       What the defect does at the table is the part worth stating: a weight outside 0 to 1
       is not a strategy, and a lookup that renders one hands a student a frequency no
       dealer can deal - silently, because every count, every digest and every byte figure
@@ -1444,10 +1459,14 @@ mutations:
       arrive first, and the simulator voids that hand and carries on. Refused at import it
       is one red against a file nobody has played yet, naming the cell.
       Witnessed by `pytest_postflop_betting`, which holds
-      `test_a_committed_size_that_cannot_be_played_is_refused_at_import`: it inflates the
-      cell's size to ten times the effective stack and requires a refusal. The same
-      class's positive control stops that being satisfied by an importer that refuses
-      everything.
+      `test_a_committed_size_that_cannot_be_played_is_refused_at_import`: it inflates one
+      entry of the cell's size menu to ten times the effective stack and requires a
+      refusal. The same class's positive control stops that being satisfied by an importer
+      that refuses everything.
+      The menu keeps its length, for the reason the weight-bounds entry above sets out at
+      more length. Decision 6's encoding keeps class weights parallel to the action list,
+      so a one-element size menu would probably trip an arity check as well, and a canary
+      refused by a check other than the one it disables survives the command it names.
     file: src/poker_training_bot/solver_artifacts/postflop_artifact.py
     find: "if size_chips > hero_street_bet + hero_stack:"
     replace: "if False and size_chips > hero_street_bet + hero_stack:"

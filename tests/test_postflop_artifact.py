@@ -79,16 +79,6 @@ def artifact_module():
     return module
 
 
-@pytest.fixture(scope="module")
-def driver_module():
-    """`solver_artifacts.postflop_solve_driver`: the thing that drives GTOpen and writes the
-    artifact. It never runs in the gate - the gate has no solver - but its guards are code and
-    a guard nobody tested is a guard nobody has."""
-    import poker_training_bot.solver_artifacts.postflop_solve_driver as module
-
-    return module
-
-
 def owed(module, name: str):
     found = getattr(module, name, None)
     assert found is not None, (
@@ -295,6 +285,23 @@ def sample_cell(sample_dir: Path) -> tuple[Path, dict]:
     return files[0], json.loads(files[0].read_text(encoding="utf-8"))
 
 
+def a_different_dressing(board: tuple[str, ...]) -> tuple[str, ...]:
+    """A different board in the same isomorphism class: relabel the suits.
+
+    A suit permutation never leaves the class and never duplicates a card, so all this needs is
+    one that moves the board, which exists for every board. Derived from the cell's own board
+    because which texture `sample_cell` returns depends on a glob order stage 6 fixes; the first
+    moving permutation is taken, so it is one answer on every run and every committed texture.
+    """
+    original = tuple(sorted(board))
+    for permutation in itertools.permutations(SUITS):
+        mapping = dict(zip(SUITS, permutation, strict=True))
+        moved = tuple(card[0] + mapping[card[1]] for card in board)
+        if tuple(sorted(moved)) != original:
+            return moved
+    raise AssertionError(f"no suit permutation moves {board}, which no three-card board manages")
+
+
 class TestTheImporterRefusesRatherThanRenders:
     """Criterion: the key is re-derived at import and at lookup, with a mismatch against the
     stored id refused; a committed size that cannot be played is refused at import rather than at
@@ -332,12 +339,21 @@ class TestTheImporterRefusesRatherThanRenders:
         self, artifact_module, tmp_path
     ) -> None:
         """The collapse is the only one permitted, so a cell keyed on a non-representative board
-        is a second cell for a class that already has one."""
+        is a second cell for a class that already has one.
+
+        The wrong dressing is a different dress of the **same** class. An earlier draft rewrote
+        every card to spades, which changes the texture, so the importer refused on the stored-key
+        mismatch the test above proves - and on a monotone cell it could refuse a correct
+        implementation. Inside the class the stored `spot_key` still re-derives equal, so the
+        non-representative-board check is the only thing here that can refuse.
+        """
         importer = owed(artifact_module, "import_postflop_cell")
         error = owed(artifact_module, "PostflopArtifactError")
         _, payload = sample_cell(SAMPLE_DIR)
-        board = payload["board"]
-        payload["board"] = [board[0][0] + "s", board[1][0] + "s", board[2][0] + "s"]
+        moved = a_different_dressing(tuple(payload["board"]))
+        assert sorted(moved) != sorted(payload["board"])
+        assert len(set(moved)) == 3, moved
+        payload["board"] = list(moved)
 
         with pytest.raises(error):
             importer(self.written(tmp_path, payload))
@@ -346,12 +362,23 @@ class TestTheImporterRefusesRatherThanRenders:
         self, artifact_module, tmp_path
     ) -> None:
         """Canary `postflop-weight-bounds-not-enforced` aims at exactly this line. A committed
-        weight of 1.7 is not a strategy, and a library that renders it hands the bot a frequency
-        no dealer can deal."""
+        weight outside 0 to 1 is not a strategy, and a library that renders one hands the bot a
+        frequency no dealer can deal.
+
+        **The witness row sums to exactly 1.0, which is the whole point.** An earlier draft set
+        one entry of a summing row to 1.7, breaking bound and sum together, so with this check
+        disabled the sum check below still refused the cell and the canary survived the command it
+        names - invisible until stage 7, after stage 5 froze file and mutation alike. `1.5 - 0.5`
+        is 1.0 with no floating-point residue, unlike `1.7 - 0.7`.
+        """
         importer = owed(artifact_module, "import_postflop_cell")
         error = owed(artifact_module, "PostflopArtifactError")
         _, payload = sample_cell(SAMPLE_DIR)
-        payload["class_weights"][0][0] = 1.7
+        row = payload["class_weights"][0]
+        assert len(row) >= 2, "a class with one action cannot hold a mixture to break"
+        out_of_bounds = [1.5, -0.5, *([0.0] * (len(row) - 2))]
+        assert sum(out_of_bounds) == 1.0
+        payload["class_weights"][0] = out_of_bounds
 
         with pytest.raises(error):
             importer(self.written(tmp_path, payload))
@@ -359,10 +386,16 @@ class TestTheImporterRefusesRatherThanRenders:
     def test_a_class_whose_weights_do_not_sum_to_one_is_refused(
         self, artifact_module, tmp_path
     ) -> None:
+        """The mirror of the test above, isolating the other check: every entry is inside 0 to 1
+        and the row sums to its own length. An earlier draft used a row of `0.5`, which sums to
+        exactly 1.0 whenever the cell holds two actions and is then refused by nothing at all.
+        """
         importer = owed(artifact_module, "import_postflop_cell")
         error = owed(artifact_module, "PostflopArtifactError")
         _, payload = sample_cell(SAMPLE_DIR)
-        payload["class_weights"][0] = [0.5] * len(payload["class_weights"][0])
+        row = payload["class_weights"][0]
+        assert len(row) >= 2, "a class with one action cannot hold a mixture to break"
+        payload["class_weights"][0] = [1.0] * len(row)
 
         with pytest.raises(error):
             importer(self.written(tmp_path, payload))
@@ -372,11 +405,18 @@ class TestTheImporterRefusesRatherThanRenders:
     ) -> None:
         """Criterion, and the second required canary. A size above what the acting seat can put in
         is a legality failure `DecisionAuditRecord` would raise on at the table, in the middle of a
-        hand, once. Refused at import it is one red on a file nobody has played yet."""
+        hand, once. Refused at import it is one red on a file nobody has played yet.
+
+        The menu keeps its length: decision 6 keeps class weights parallel to the action list, so
+        a one-element menu would likely trip an arity check too, and a canary refused by a check
+        other than the one it disables survives the command it names.
+        """
         importer = owed(artifact_module, "import_postflop_cell")
         error = owed(artifact_module, "PostflopArtifactError")
         _, payload = sample_cell(SAMPLE_DIR)
-        payload["bet_sizes_bb"] = [payload["effective_stack_bb"] * 10]
+        sizes = list(payload["bet_sizes_bb"])
+        sizes[0] = payload["effective_stack_bb"] * 10
+        payload["bet_sizes_bb"] = sizes
 
         with pytest.raises(error):
             importer(self.written(tmp_path, payload))
@@ -458,20 +498,19 @@ class TestTheCommittedSample:
 
     def test_each_board_sits_in_the_texture_and_rank_cell_it_was_chosen_for(self) -> None:
         """Checked rather than taken. The stage-3 review found an earlier draft naming two rainbow
-        boards among three while its own suit split said otherwise."""
-        assert texture(SAMPLE_BOARDS["rainbow-dry-high"]) == "rainbow"
-        assert rank_structure(SAMPLE_BOARDS["rainbow-dry-high"]) == "unpaired-spread"
+        boards among three while its own suit split said otherwise.
 
-        assert texture(SAMPLE_BOARDS["two-tone-paired"]) == "two-tone"
-        assert rank_structure(SAMPLE_BOARDS["two-tone-paired"]) == "paired"
-
-        assert texture(SAMPLE_BOARDS["monotone-connected"]) == "monotone"
-        assert rank_structure(SAMPLE_BOARDS["monotone-connected"]) == "connected"
-
-    def test_the_three_textures_are_three_and_the_three_rank_patterns_are_three(self) -> None:
-        """The sample is chosen for structural spread rather than for frequency: a
-        frequency-weighted sample of three would be two two-tones and reproduce the blind spot the
-        sample exists to remove."""
+        The spread half is folded in here: a frequency-weighted three would be two two-tones and
+        reproduce the blind spot the sample exists to remove. Both halves read the same literal
+        table, so as two tests they were two names over one assertion.
+        """
+        for name, wanted in (
+            ("rainbow-dry-high", ("rainbow", "unpaired-spread")),
+            ("two-tone-paired", ("two-tone", "paired")),
+            ("monotone-connected", ("monotone", "connected")),
+        ):
+            board = SAMPLE_BOARDS[name]
+            assert (texture(board), rank_structure(board)) == wanted, name
         assert len({texture(board) for board in SAMPLE_BOARDS.values()}) == 3
         assert len({rank_structure(board) for board in SAMPLE_BOARDS.values()}) == 3
 
@@ -508,12 +547,12 @@ class TestWhereTheArtifactLands:
     `import_preflop_artifacts` globs `*.json` directly under it and would read a postflop file as
     a preflop chart."""
 
-    def test_no_postflop_file_sits_directly_under_the_preflop_directory(self) -> None:
-        assert POSTFLOP_DIR.resolve() not in PREFLOP_DIR.resolve().parents
-        assert not str(POSTFLOP_DIR.resolve()).startswith(str(PREFLOP_DIR.resolve()) + "/")
-
     def test_the_preflop_library_still_imports_and_holds_only_preflop_charts(self) -> None:
-        """The pin the contract asks for: the preflop library ignores the postflop tree."""
+        """The pin the contract asks for: the preflop library ignores the postflop tree.
+
+        A sibling asserting `POSTFLOP_DIR` is not under `PREFLOP_DIR` was dropped: both are
+        module constants built two lines apart, so it was true whatever any implementation did.
+        """
         charts = import_preflop_artifacts(PREFLOP_DIR)
 
         assert charts
@@ -575,56 +614,8 @@ class TestTheByteBudget:
 
 
 # --------------------------------------------------------------------------- #
-# The solve configuration and the input ranges
+# The input ranges
 # --------------------------------------------------------------------------- #
-
-
-class TestTheSolveConfigurationIsCommittedBesideTheData:
-    """Criterion: two bet sizes on every street - flop `33 75`, turn and river `66 125`,
-    `raise: "2.5x"`, `donk` empty - identically on both seats."""
-
-    @pytest.fixture(scope="class")
-    def config(self):
-        return load(SOLVE_CONFIG_PATH)
-
-    def test_both_seats_carry_the_same_menu(self, config) -> None:
-        seats = config.get("seats")
-
-        assert seats and len(seats) == 2, "a two-range solve, configured identically on both sides"
-        first, second = (seats[name] for name in sorted(seats))
-        assert first == second
-
-    def test_the_flop_menu_is_thirty_three_and_seventy_five(self, config) -> None:
-        for seat in config["seats"].values():
-            assert seat["flop"]["bet"] == ["33", "75"], seat
-
-    def test_the_turn_and_river_menu_is_sixty_six_and_one_twenty_five(self, config) -> None:
-        for seat in config["seats"].values():
-            assert seat["turn"]["bet"] == ["66", "125"], seat
-            assert seat["river"]["bet"] == ["66", "125"], seat
-
-    def test_the_raise_is_two_and_a_half_x_on_every_street(self, config) -> None:
-        for seat in config["seats"].values():
-            for street in ("flop", "turn", "river"):
-                assert seat[street]["raise"] == "2.5x", (street, seat)
-
-    def test_no_street_offers_a_donk(self, config) -> None:
-        for seat in config["seats"].values():
-            for street in ("flop", "turn", "river"):
-                assert seat[street].get("donk", []) == [], (street, seat)
-
-    def test_the_allin_threshold_is_a_percent_of_the_remaining_stack(self, config) -> None:
-        """`SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE`. `tree.rs` snaps any bet reaching
-        `allin_threshold * max_to` to a stack-off outside the `add_allin` guard, so `add_allin:
-        false` still holds jams by conversion. Posted as a percent postflop where preflop takes a
-        fraction, and a value below 1.0 is asking for 0.67% rather than 67%."""
-        threshold = config.get("allin_threshold")
-
-        assert isinstance(threshold, int | float) and not isinstance(threshold, bool)
-        assert threshold >= 1.0, (
-            f"{threshold} postflop reads as {threshold}% of the remaining stack, which snaps"
-            " every bet to a stack-off"
-        )
 
 
 class TestTheInputRangesAreFlooredAtTheClassLevel:

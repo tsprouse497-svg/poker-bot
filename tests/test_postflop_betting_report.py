@@ -58,6 +58,21 @@ def generator():
 
 
 @pytest.fixture(scope="module")
+def refusal_codes():
+    """The strategy's own closed refusal vocabulary, taken from the module that produces the
+    codes rather than scraped out of the report, so a code the generator quietly left out of its
+    breakdown is a red here rather than an absence nothing looks for."""
+    import poker_training_bot.strategy.postflop_betting as module
+
+    found = getattr(module, "REFUSAL_CODES", None)
+    assert found is not None, (
+        "strategy.postflop_betting must publish REFUSAL_CODES; the report's vacuity labels are"
+        " checked against it rather than against the report's own list"
+    )
+    return tuple(found)
+
+
+@pytest.fixture(scope="module")
 def report() -> str:
     assert REPORT.is_file(), (
         f"{REPORT.relative_to(REPO_ROOT)} is missing, so `{COMMAND_ID}` has not run"
@@ -77,6 +92,105 @@ def owed(module, name: str):
 def says(report: str, *phrases: str) -> bool:
     lowered = report.lower()
     return all(phrase.lower() in lowered for phrase in phrases)
+
+
+# --------------------------------------------------------------------------- #
+# Three properties this file decides itself, beside the generator's own validator
+# --------------------------------------------------------------------------- #
+#
+# Stage 4's mechanical review held the stage over these three. Each test was a bare
+# `assert owed(generator, "<name>")(report) is True`, and each of those names occurs exactly once
+# in the whole repo - at its own call site here - so the entire claim was "the code under test
+# says the code under test is fine", and `def <name>(report): return True` passed all three, on
+# three of the criteria a reader is least able to check by eye. The fix keeps the validator
+# requirement and adds the property, decided here, against the report text, so a generator whose
+# validator lies reds on the second assertion. Each predicate has a negative control in
+# `TestThisFileSOwnPredicatesCanFail`: a predicate that cannot return False is the same defect.
+
+EXPLOITABILITY_FIGURE = re.compile(r"exploitability[^\n]*?\d+(?:\.\d+)?\s*%", re.IGNORECASE)
+TEXTURE = re.compile(r"\b(rainbow|two-tone|monotone)\b", re.IGNORECASE)
+STANDALONE_INTEGER = re.compile(r"(?<!\S)(\d+)(?!\S)")
+
+
+def exploitability_figure_lines(report: str) -> list[str]:
+    """Every line that prints an exploitability figure, whole report, no block to point at."""
+    return [line for line in report.splitlines() if EXPLOITABILITY_FIGURE.search(line)]
+
+
+def every_exploitability_figure_names_the_menu(report: str) -> bool:
+    """Criterion: the published exploitability is a bound only against an opponent confined to
+    the same bet menu, and the report says so **wherever it prints the figure**. Line by line,
+    because one footnote at the bottom of the page is not "wherever": the marker is the word
+    `menu` on the line, and a line printing the number without it reads as an unconditional
+    accuracy, which is the claim the contract bans."""
+    lines = exploitability_figure_lines(report)
+    return bool(lines) and all("menu" in line.lower() for line in lines)
+
+
+def cost_rows(report: str) -> list[str]:
+    """Every line that puts a number beside a board texture.
+
+    Deliberately the whole report rather than a block the generator hands over. A generator that
+    chose its own rows could publish an unlabelled figure by leaving it out of the list, which is
+    the same unfalsifiable shape as returning True.
+    """
+    return [line for line in report.splitlines() if TEXTURE.search(line) and re.search(r"\d", line)]
+
+
+def every_cost_row_declares_measured_or_scaled(report: str) -> bool:
+    """Criterion: the cost model separates measured from scaled, and no scaled figure is reported
+    as measured. Rainbow, 455 of the 1,755 classes, was never solved to target, so **every**
+    rainbow figure is scaled from an orbit factor: a rainbow row carries `scaled` and must not
+    carry `measured`. Every other texture row declares which of the two it is."""
+    rows = cost_rows(report)
+    if not rows:
+        return False
+    for line in rows:
+        lowered = line.lower()
+        if "rainbow" in lowered:
+            if "scaled" not in lowered or "measured" in lowered:
+                return False
+        elif "measured" not in lowered and "scaled" not in lowered:
+            return False
+    return True
+
+
+def code_rows(report: str, codes) -> dict[str, list[str]]:
+    """The breakdown row for each refusal code: the line naming it that carries a bare count.
+
+    The count has to be a whitespace-delimited token, which is what stops a digit inside a code
+    name being read as a count.
+    """
+    rows: dict[str, list[str]] = {}
+    for line in report.splitlines():
+        if not STANDALONE_INTEGER.search(line):
+            continue
+        for code in codes:
+            if code in line:
+                rows.setdefault(code, []).append(line)
+    return rows
+
+
+def row_count(line: str) -> int:
+    return int(STANDALONE_INTEGER.findall(line)[-1])
+
+
+def vacuity_labels_match_the_counts(report: str, codes) -> bool:
+    """Criterion: the refusal counts are broken out by code, with any vacuous one labelled.
+
+    Both directions, because a report that labelled nothing and one that labelled everything both
+    pass a naive search for the word. The codes come from the strategy's own closed vocabulary
+    rather than from the report, so a code left out of the breakdown fails here."""
+    rows = code_rows(report, codes)
+    if sorted(rows) != sorted(codes):
+        return False
+    for found in rows.values():
+        if len(found) != 1:
+            return False
+        line = found[0]
+        if ("vacuous" in line.lower()) != (row_count(line) == 0):
+            return False
+    return True
 
 
 # --------------------------------------------------------------------------- #
@@ -197,10 +311,23 @@ class TestTheAccuracyFigures:
     ) -> None:
         """The published exploitability is a bound only against an opponent confined to the same
         bet menu. Checked line by line rather than once for the whole document, because a single
-        footnote at the bottom is not "wherever it prints the figure"."""
+        footnote at the bottom is not "wherever it prints the figure".
+
+        Two assertions, not one. The generator owes the validator - the contract requires it to
+        exit non-zero on this - and the property is decided here as well, so a generator whose
+        validator returns True over an unqualified report reds on the second line.
+        """
         qualified = owed(generator, "exploitability_lines_are_qualified")
 
         assert qualified(report) is True
+        assert exploitability_figure_lines(report), (
+            "no line of the report prints an exploitability figure at all, so the qualification"
+            " has nothing to qualify and the validator above passed vacuously"
+        )
+        unqualified = [
+            line for line in exploitability_figure_lines(report) if "menu" not in line.lower()
+        ]
+        assert unqualified == [], unqualified
 
     def test_convergence_is_not_reported_as_settled(self, report) -> None:
         """A solve at the committed iteration count is not proven to have converged.
@@ -265,10 +392,30 @@ class TestTheMenuAndTheCostModel:
     def test_every_scaled_cost_figure_is_labelled_scaled(self, generator, report) -> None:
         """Rainbow, 455 of the 1,755 classes, was never solved to target, so every rainbow figure
         is scaled from an exact orbit factor. Do not report a scaled figure as measured.
-        `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL` stays open."""
+        `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL` stays open.
+
+        The rows are found here, over the whole report, rather than taken from the generator: a
+        generator that picked its own rows could publish an unlabelled figure by leaving it out
+        of the list it hands over.
+        """
         labelled = owed(generator, "cost_rows_declare_measured_or_scaled")
 
         assert labelled(report) is True
+        rows = cost_rows(report)
+        assert rows, "no line of the report puts a figure beside a texture, so there is no cost"
+        undeclared = [
+            line
+            for line in rows
+            if "measured" not in line.lower() and "scaled" not in line.lower()
+        ]
+        assert undeclared == [], undeclared
+        rainbow_as_measured = [
+            line
+            for line in rows
+            if "rainbow" in line.lower()
+            and ("measured" in line.lower() or "scaled" not in line.lower())
+        ]
+        assert rainbow_as_measured == [], rainbow_as_measured
 
     def test_the_rainbow_class_count_is_printed_and_is_the_deck_s(self, report) -> None:
         assert "455" in report
@@ -303,13 +450,30 @@ class TestTheBehaviourFigures:
         never looked."""
         assert says(report, "never solved") and says(report, "rejected")
 
-    def test_a_vacuous_refusal_code_is_labelled_as_one(self, generator, report) -> None:
+    def test_a_vacuous_refusal_code_is_labelled_as_one(
+        self, generator, report, refusal_codes
+    ) -> None:
         """Conditional: the board-miss code is live on the ruled design, so the label appears only
         where a code really did fire zero times. A report that labelled nothing and a report that
-        labelled everything both pass a naive text check."""
+        labelled everything both pass a naive text check.
+
+        The codes come from `strategy.postflop_betting.REFUSAL_CODES`, so the breakdown has to
+        carry every code the strategy can return. A code with no row is the cheapest way to make
+        a vacuity check pass, and it is the one this catches.
+        """
         labelled = owed(generator, "vacuous_codes_are_labelled")
 
         assert labelled(report) is True
+        rows = code_rows(report, refusal_codes)
+        missing = sorted(set(refusal_codes) - set(rows))
+        assert missing == [], missing
+        wrong = {
+            code: found[0]
+            for code, found in rows.items()
+            if len(found) != 1
+            or ("vacuous" in found[0].lower()) != (row_count(found[0]) == 0)
+        }
+        assert wrong == {}, wrong
 
     def test_the_pot_odds_firing_rate_is_printed(self, report) -> None:
         assert says(report, "pot-odds") and says(report, "fired")
@@ -433,3 +597,100 @@ class TestTheGeneratorRefusesAWrongFigure:
 
         with pytest.raises(refusal):
             check(printed=5, in_index=6)
+
+
+# --------------------------------------------------------------------------- #
+# The negative controls for this file's own three predicates
+# --------------------------------------------------------------------------- #
+
+
+class TestThisFileSOwnPredicatesCanFail:
+    """A predicate that cannot return False is the defect one level down from a validator that
+    cannot return False, and swapping one for the other would have fixed nothing.
+
+    Every case here is a report string built in the test, so none of them waits on stage 6.
+    These run and assert today, which is also what makes them the control on the three tests
+    above still being red for the right reason rather than for a broken regex.
+    """
+
+    QUALIFIED = "  Kc7d2h @2.5  exploitability 0.42% of pot, a bound against the same bet menu"
+    UNQUALIFIED = "  Kc7d2h @2.5  exploitability 0.42% of pot"
+
+    def test_an_exploitability_line_with_no_menu_clause_is_rejected(self) -> None:
+        assert every_exploitability_figure_names_the_menu(self.UNQUALIFIED + "\n") is False
+
+    def test_an_exploitability_line_carrying_the_clause_is_accepted(self) -> None:
+        assert every_exploitability_figure_names_the_menu(self.QUALIFIED + "\n") is True
+
+    def test_one_qualified_line_does_not_carry_an_unqualified_one(self) -> None:
+        """The failure a whole-document search makes invisible: a footnote that qualifies the
+        figure once while a per-cell table prints it bare underneath."""
+        both = f"{self.QUALIFIED}\n{self.UNQUALIFIED}\n"
+
+        assert every_exploitability_figure_names_the_menu(both) is False
+
+    def test_a_report_printing_no_figure_at_all_is_rejected_rather_than_passed(self) -> None:
+        """Vacuously true is the other way a line-by-line rule goes quiet."""
+        assert every_exploitability_figure_names_the_menu("nothing to see here\n") is False
+
+    def test_a_rainbow_cost_row_with_no_scaled_label_is_rejected(self) -> None:
+        assert every_cost_row_declares_measured_or_scaled("  rainbow   455   38.2 h\n") is False
+
+    def test_a_rainbow_cost_row_claiming_measured_is_rejected(self) -> None:
+        """The forbidden shortcut in one line: rainbow was never solved to target, so a rainbow
+        figure reported as measured is a claim nothing took."""
+        row = "  rainbow   455   38.2 h   measured\n"
+
+        assert every_cost_row_declares_measured_or_scaled(row) is False
+
+    def test_cost_rows_declaring_their_provenance_are_accepted(self) -> None:
+        good = "  rainbow    455   38.2 h  scaled\n  monotone   286   6.1 h  measured\n"
+
+        assert every_cost_row_declares_measured_or_scaled(good) is True
+
+    def test_a_texture_row_declaring_neither_is_rejected(self) -> None:
+        assert every_cost_row_declares_measured_or_scaled("  monotone  286  6.1 h\n") is False
+
+    CODES = ("postflop:no-cell-for-this-spot", "postflop:in-the-index-but-not-fetched")
+
+    def test_a_code_that_fired_zero_times_and_is_not_labelled_is_rejected(self) -> None:
+        report = (
+            f"  {self.CODES[0]}   12\n"
+            f"  {self.CODES[1]}   0\n"
+        )
+
+        assert vacuity_labels_match_the_counts(report, self.CODES) is False
+
+    def test_a_code_that_fired_and_is_labelled_vacuous_is_rejected(self) -> None:
+        """The other direction, which is how a report passes a naive search by labelling
+        everything."""
+        report = (
+            f"  {self.CODES[0]}   12   vacuous\n"
+            f"  {self.CODES[1]}   0    vacuous\n"
+        )
+
+        assert vacuity_labels_match_the_counts(report, self.CODES) is False
+
+    def test_labels_that_match_the_counts_are_accepted(self) -> None:
+        report = (
+            f"  {self.CODES[0]}   12\n"
+            f"  {self.CODES[1]}   0    vacuous\n"
+        )
+
+        assert vacuity_labels_match_the_counts(report, self.CODES) is True
+
+    def test_a_code_left_out_of_the_breakdown_is_rejected(self) -> None:
+        """The cheapest way to pass a vacuity check is to print no row for the code that fired
+        zero times."""
+        report = f"  {self.CODES[0]}   12\n"
+
+        assert vacuity_labels_match_the_counts(report, self.CODES) is False
+
+    def test_a_digit_inside_a_code_name_is_not_read_as_its_count(self) -> None:
+        """`row_count` takes the last whitespace-delimited integer, so a code carrying a number
+        in its own name does not turn a vacuous row into a fired one."""
+        codes = ("postflop:cell-over-1-percent-of-pot",)
+        report = f"  {codes[0]}   0   vacuous\n"
+
+        assert row_count(f"  {codes[0]}   0   vacuous") == 0
+        assert vacuity_labels_match_the_counts(report, codes) is True
