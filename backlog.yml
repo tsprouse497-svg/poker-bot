@@ -7737,3 +7737,185 @@ items:
       measurement.
       Filed by phase 16's stage-2 independent poker review, 2026-09-09; re-pointed by its stage-3
       review, 2026-09-10.
+
+  - id: A-SAMPLE-CHOSEN-FOR-SOLVE-EVIDENCE-GAPS-IS-NOT-A-SAMPLE-CHOSEN-FOR-DEFECT-DETECTION
+    status: deferred
+    phase: contract-update
+    title: A committed sample picked off a never-reached list is picked by cost, not by where a human holds an expectation
+    reason: >-
+      Whenever this repo commits a small sample of a large generated set, two different selection
+      rules are available and they pick different members. A sample picked to cover the cells the
+      solve evidence never reached is picked by *cost*, because what a solve fails to reach is
+      whatever was most expensive. A sample whose stated job is defect detection has to be picked
+      for where a human holds an expectation strong enough to see a wrong answer, which is usually
+      the commonest case rather than the rarest. Nothing in the repo states which rule applies, and
+      the two are easy to conflate because both produce a defensible-looking spread.
+      Phase 16's instance, and it is only the instance. Decision 6 item 4 originally ruled the rank
+      axis `paired / connected / monotone-dry-low` off the solver notes' never-reached list, which
+      spent one of three slots on monotone dry-low - 112 of 22,100 boards, 0.51% of flops, the
+      rarest of the fifteen suit-by-rank cells - while the contract states at line 38 that nothing
+      in the phase gates on whether the strategy is good poker, so the sample's whole detection
+      power is a human reading three flop charts. **That instance was resolved on 2026-09-10**: the
+      coordinator took the stage-3 poker review's swap and the rank axis is now
+      `dry-high / paired / connected`. This entry therefore carries only the general rule, which is
+      what the stage-3 review said was beyond the phase, and it is filed because the rule is written
+      down nowhere and the next committed sample will face the same fork with no guidance.
+      That the general rule is still live is measured rather than argued: phase 16's stage-4 domain
+      review found the swapped sample still misses the modal cell, which is
+      THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY.
+      Proposed conditionally by phase 16's stage-3 independent poker review, 2026-09-10 - "propose
+      it only if the blocker's swap is refused". The swap was accepted, so the condition did not
+      fire and the id was left uncreated while three documents went on citing it; filed 2026-09-14
+      as the general rule alone, with the phase-16 instance recorded as resolved above.
+
+  - id: THE-RANGE-FLOOR-IS-COSTED-AS-MEMORY-AND-IT-IS-ALSO-A-CONVERGENCE-LEVER
+    status: deferred
+    phase: "16"
+    title: The 0.01 range floor is priced everywhere as a 2x memory saving and it also buys 1.97x the iterations
+    reason: >-
+      `docs/GTOPEN_SOLVER_NOTES.md`, decision 12 and EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP
+      all price the 0.01 floor the same way: a factor of about two in memory, paid for in range
+      fidelity. That framing makes the floor a cost question and nothing else, so the record reads
+      as though flooring trades accuracy for a smaller arena.
+      Measured by phase 16's stage-3 independent poker review, 2026-09-10: the action-node count is
+      **identical at 2,347,996** with and without the floor, and only the hand count moves,
+      **1,810 to 919**. Per-iteration work in a CFR solve scales with hands at a fixed node count,
+      so at fixed wall clock the floor buys **1.97x the iterations**, which on the record's own
+      decay exponent takes a cell from about **0.30% of pot to about 0.13% to 0.15%**. The floor is
+      therefore a convergence lever as well as a memory one, and on the exploitability axis it buys
+      rather than costs.
+      Why this matters more than the arithmetic. The phase's largest unproven claim is that the
+      committed postflop frequencies have converged - that is
+      NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED - and the phase has
+      already ruled a lever that is a partial answer to it while every document describing that
+      lever says only what it costs. A reader deciding whether to keep, raise or drop the floor is
+      reading a one-sided account of it.
+      Drift rather than a defect: the figures exist in the notes and are used for the wrong
+      conclusion. What this wants is the iteration half stated wherever the memory half is stated.
+      Proposed by phase 16's stage-3 independent poker review, 2026-09-10, and left uncreated;
+      filed 2026-09-14.
+
+  - id: A-COMMITTED-AUDIT-FILE-IS-NEVER-CHECKED-AGAINST-ITS-OWN-SCHEMA-VERSION
+    status: deferred
+    phase: contract-update
+    title: The constructor refuses an old schema version and the one reader of committed audit lines discards it
+    reason: >-
+      `DecisionAuditRecord` refuses a record built at an old `DECISION_AUDIT_SCHEMA_VERSION`, and
+      that refusal is pinned at `tests/test_postflop_key.py:210` and
+      `tests/test_table_state.py:625`. Both pin it **at construction**. The one place the repo reads
+      committed audit lines back is `tests/test_engine_fidelity.py:565`, and it rebuilds each query
+      from the committed `.jsonl` while stamping the constant's current value rather than the line's
+      own `schema_version`. So a committed file written at an older version is, literally, read as
+      the new shape there, and every schema bump leaves the stale committed `.jsonl` files under
+      `reports/active/` readable as the new one until somebody regenerates them.
+      This is DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS one level up: that entry records
+      a single version spanning two incompatible readings of `street_bet`, and this records that
+      nothing anywhere would notice, because the version field is written and never read back.
+      Phase 16 makes it worse rather than causes it - the phase bumps the version again to carry
+      `postflop_actions` - and the fix is not phase 16's: it is a check that a committed audit line
+      is validated against the version it declares, which lives beside the gate rather than inside
+      this phase's scope.
+      Proposed by phase 16's stage-4 independent mechanical review of the authored tests, 2026-09-14,
+      from its N10 coverage walk, and left uncreated; filed the same day.
+
+  - id: A-PACKET-FIGURE-BAN-IS-ONLY-CHECKED-IN-THE-REPORT
+    status: deferred
+    phase: contract-update
+    title: Contract bans written "no report or packet may" are checked in the report and unchecked in the packet
+    reason: >-
+      Several of phase 16's acceptance criteria are written as bans over two surfaces at once - the
+      contract at line 99 reads "No report **or packet** may state an accuracy for the solve as a
+      whole" - and every mechanical check the phase authors reads only the report. The regex at
+      `tests/test_postflop_betting_report.py:183` is the check for that ban and it is pointed at the
+      generated report text; nothing reads the audit packet for the same claim.
+      The packet is the half the ban exists for. A generated report is machine-written from figures
+      the code already holds, so the banned sentence is unlikely to appear there by accident. The
+      packet is prose a human writes at stage 9 against a checklist, which is exactly the surface on
+      which a whole-solve accuracy claim gets made - a summary sentence rounding several cells into
+      one number is the natural thing to write and the thing the ban forbids.
+      So the shape of the defect is that the enforced half and the risky half are different halves,
+      and a green gate reads as the ban being held when only the easy side was tested. It is not
+      specific to this contract: any criterion written over report *and* packet inherits it, because
+      the packet has no mechanical reader at all.
+      Proposed by phase 16's stage-4 independent mechanical review of the authored tests, 2026-09-14,
+      from its N10 coverage walk, and left uncreated; filed the same day.
+
+  - id: THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY
+    status: deferred
+    phase: "16"
+    title: The three committed flops hold 34.28 percent of boards and the largest cell in the deck has no representative
+    reason: >-
+      Counted over all 22,100 three-card boards with the tests' own `texture` and `rank_structure`
+      functions, phase 16's stage-4 domain review, 2026-09-14. The three cells the committed sample
+      occupies hold **34.28% of flops**: rainbow unpaired-spread 24.76%, two-tone paired 8.47%,
+      monotone connected 1.05%. The largest cell in the deck, **two-tone unpaired-spread at 37.14%
+      of all flops, has no representative at all**, and the rarest non-trips cell takes a third of
+      the sample. No board in the sample contains an ace, and **21.74% of flops do** - the family
+      where the preflop raiser's range advantage and c-bet frequency are largest and therefore where
+      a wrong committed strategy is most visible to a reader.
+      This is not the complaint that the sample is not a random draw. The tests say the spread is
+      deliberate, and a frequency-weighted three would be two two-tones. The drift is that the 3x3
+      diagonal is what forces the two-tone slot to be paired, and the diagonal is the contract's -
+      decision 6 item 4 names two of the three boards and freezes both splits - so stage 4 had one
+      cell to choose in and chose inside it correctly. The consequence stands anyway: any test that
+      reads as a claim about flop play reads it off **40 of 22,100 boards**.
+      Distinct from POSTFLOP-EVIDENCE-IS-ALL-MONOTONE-AND-MONOTONE-GENERALISES-WORST, which is about
+      the converged solve evidence rather than the committed sample, and from
+      A-TEXTURE-FAMILYS-CLASS-COUNT-IS-NOT-ITS-BOARD-SHARE, which is about the conversion between
+      class counts and board shares. This is the sample's own coverage measured in board share.
+      Not fixable where it was found: the splits are contract-frozen and stage 5 freezes `tests/**`,
+      so the sample cannot move without a contract amendment and a re-solve.
+      Proposed by phase 16's stage-4 independent domain review, 2026-09-14, and left uncreated;
+      filed the same day.
+
+  - id: NO-FIGURE-SPLITS-THE-FLOP-BET-FREQUENCY-INTO-VALUE-AND-BLUFF
+    status: deferred
+    phase: "16"
+    title: The two halves of the flop-only seam have opposite signs and the report prints one number over both
+    reason: >-
+      The report as specified prints a flop bet frequency and a flop raise frequency and splits
+      neither into value hands and bluffs. Those two halves lose in different currencies and the one
+      number hides it: a bluff's loss is chips, a value hand's loss is the streets that never come.
+      The arithmetic behind that, measured by phase 16's stage-4 domain review, 2026-09-14. A 33%
+      c-bet in the `@2.5` single-raised pot risks 1.815bb to win 5.5bb, so as a pure bluff it needs
+      `1.815 / (5.5 + 1.815) = 24.81%` immediate folds to break even; the minimum defence frequency
+      against a 33% bet is **75.2%** (decision 9's own figure, and `1 - 0.2481 = 0.7519` recomputes
+      it). So against an opponent defending correctly the bluffing half of the c-bet is break-even
+      *before* the barrel and strictly losing against anyone who defends more, and everything above
+      break-even is the turn bet the flop-only bot never makes. The value half loses differently:
+      33% is the first leg of a three-street plan and taken alone it collects 1.815bb where the plan
+      collects up to 97.5bb.
+      A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE owns the general statement
+      that the seam exists. What is not owned anywhere is that the phase will ship no figure sizing
+      it, which matters because the contract already bars the winrate that would expose it and the
+      simulator voids the hand at a refusal, so the bot never plays out the abandoned turn. The one
+      number that would tell a reader the size of the donation is the one number that is not
+      computed.
+      Proposed by phase 16's stage-4 independent domain review, 2026-09-14, and left uncreated;
+      filed the same day.
+
+  - id: ONE-FLOP-RAISE-SIZE-AND-NO-SIZE-BETWEEN-33-AND-75
+    status: deferred
+    phase: contract-update
+    title: The flop menu offers a single raise size and nothing between a third of pot and three quarters
+    reason: >-
+      What the committed artifact can express on a flop: check, bet 33% of pot, bet 75% of pot,
+      raise to 2.5x the facing bet, and a stack-off reached by the `allin_threshold` snap, which
+      decision 11 measured as never firing on the flop under either menu. What it cannot express, in
+      ordinary poker terms: any stab below 33%, half pot, two thirds, pot, and every flop overbet.
+      Facing a 33% bet the only raise available is to 0.825 of the original pot, a **62% pot-sized
+      raise**; facing 75% it is a **107% pot-sized raise**. There is no small check-raise, no large
+      one, no jam, and at `max_raises: 2` no second raise.
+      The size of the gap at the top, recomputed by phase 16's stage-4 domain review rather than
+      quoted: to get 97.5bb in over three streets from a 5.5bb pot the final pot is
+      `5.5 + 2 x 97.5 = 200.5`, the per-street multiplier is `(200.5 / 5.5) ^ (1/3) = 3.316`, so the
+      geometric size is `(3.316 - 1) / 2 = 115.8%` of pot. The largest flop bet the menu offers is
+      75%, which is **64.8% of that**. A value hand in the ordinary single-raised pot cannot start
+      the line it wants to start.
+      NO-MENU-IN-THE-RECORD-OFFERS-AN-OVERBET owns the overbet half of this gap and this entry owns
+      the rest of it: the single raise size, and the empty interval between 33% and 75%.
+      This is not a re-ruling. Taylor ruled the `33 75` flop menu on 2026-09-10 for his own reason
+      and the entry does not reopen it; it states what a later phase buys by adding a size, so the
+      trade is on the record rather than rediscovered.
+      Proposed by phase 16's stage-4 independent domain review, 2026-09-14, and left uncreated;
+      filed the same day.

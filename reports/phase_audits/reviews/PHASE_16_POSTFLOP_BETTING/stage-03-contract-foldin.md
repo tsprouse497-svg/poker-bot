@@ -470,9 +470,9 @@ is actually about is that a contract names *some* of its deferred items and noth
 
 - [filed] **A fold-in brief that enumerates amendments cannot catch the amendment nobody enumerated, which is the same failure one level up.** Filed as `NOTHING-CHECKS-THAT-EVERY-RULING-REACHES-A-CRITERION`; I read the entry and its claims check out, including that `check_contracts.py` reads the contract alone and nothing in `scripts/` reads a decision list against one. Decision 9 was ruled by Taylor on 2026-09-09, never reached the
   old contract, and is not among the thirteen the ExecPlan told C1 to absorb. It is in the new
-  contract only because the writer went past its brief. That is `AN-AMENDMENT-TO-A-SKELETON-
-  CONTRACT-IS-DELETED-BY-ITS-OWN-STAGE-1`'s "luck rather than design" reappearing in the mechanism
-  built to prevent it. The durable fix is not a longer list but a check that every `Answer:` block
+  contract only because the writer went past its brief. That is
+  `AN-AMENDMENT-TO-A-SKELETON-CONTRACT-IS-DELETED-BY-ITS-OWN-STAGE-1`'s "luck rather than design"
+  reappearing in the mechanism built to prevent it. The durable fix is not a longer list but a check that every `Answer:` block
   in a phase's decision list resolves to a criterion, run at every contract stage rather than
   recounted by hand. Nothing in `scripts/` does this today.
 

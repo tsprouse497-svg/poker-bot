@@ -1193,9 +1193,9 @@ Alignment.
   `POSTFLOP-CELLS-ARE-STACK-FRAGILE-WHERE-THE-PREFLOP-CHART-IS-NOT` - both entries describe
   "decision 10's payload validation", and decision 10's ruling removed the payload validation. Both
   reason texts are now stale in the same clause, and the first is the entry decision 8's answer
-  points a reader at (line 836). Same family as `A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT-
-  FALSIFIED-IT`, and the phase cannot close either while its diagnosis names a mechanism that no
-  longer exists.
+  points a reader at (line 836). Same family as
+  `A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT-FALSIFIED-IT`, and the phase cannot close
+  either while its diagnosis names a mechanism that no longer exists.
 
 - `NO-MENU-IN-THE-RECORD-OFFERS-AN-OVERBET` - the entry says "Every menu in the record caps at 75%
   of pot on every street" and that all four options share the gap. The ruled menu overbets at 125%

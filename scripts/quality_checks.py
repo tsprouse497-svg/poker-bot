@@ -43,6 +43,7 @@ NON_PHASE_LABELS: frozenset[str] = frozenset(
         "charts",
         "contract-update",
         "engine",
+        "maintenance",
         "sample-comparison",
         "samples",
         "simulator",

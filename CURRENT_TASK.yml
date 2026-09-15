@@ -9,6 +9,8 @@ approved_scope:
   - tests/**
   - verification/mutations.yml
   - scripts/run_verify.py
+  - scripts/quality_checks.py
+  - scripts/run_full_quality_gate.py
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -1939,3 +1941,33 @@ scope_change_log:
       already known would be the same defect as inheriting the count.
       The ExecPlan's stage-4 line named only the new test file and missed this; it is corrected
       in the same commit.
+
+  - date: 2026-09-14
+    reason: >-
+      Adds scripts/quality_checks.py, for one line. The backlog-integrity check has been failing
+      on two items that carry `phase: maintenance`, which NON_PHASE_LABELS does not declare, and
+      that failure takes run_full_quality_gate and the two tests over it red with it. The red
+      pre-dates this stage - both items were filed at stage 3 on 2026-09-10 - and it is not
+      phase 16's to have caused, but it is in front of this lane and the gate cannot go green
+      around it.
+      The edit is to add "maintenance" to NON_PHASE_LABELS beside "contract-update", which is
+      already there and is a task mode in exactly the same sense. AGENTS.md declares four task
+      modes and maintenance is one of them; the constant simply never learned it, which
+      VOCABULARY-MEASURES-AT-ITS-LINE-CAP already records as a one-line edit rather than a
+      question. It is not the broader taxonomy ruling that
+      CONTRACT-UPDATE-IS-THE-LABEL-OF-LAST-RESORT asks for, and it does not re-tag any existing
+      item; nothing here decides whether tooling and process deserve labels of their own.
+      Extended the same day to scripts/run_full_quality_gate.py, for the other half of the same
+      red. Nine id-shaped tokens in committed review notes resolve to no backlog item, and the
+      lane that worked through them found only three kinds and none of them a missing filing.
+      Three are prose about what a backlog id looks like rather than citations of one, which is
+      what NOT_BACKLOG_IDS already exists for. Five are names a finding was proposed under and
+      then corrected; each finding is filed, under the live name, and the note that found it
+      keeps the name it used because a review note is a snapshot and is not rewritten afterwards.
+      One is a claim measured false and withdrawn by name, which the entry that replaced it cites
+      deliberately so nobody files it again.
+      The check could express none of that, so the only ways to green it were to edit a closed
+      record or to file a second item for a finding that already has one - and the second is the
+      thing the check exists to prevent. Two tables are added beside NOT_BACKLOG_IDS,
+      SUPERSEDED_BACKLOG_IDS and WITHDRAWN_BACKLOG_IDS, each entry naming where the finding
+      actually lives so a reader following the old name is sent on rather than left with nothing.
