@@ -1,12 +1,9 @@
 task_id: PHASE_16_POSTFLOP_BETTING
 active_phase: '16'
 task_mode: implementation
-base_commit: 19beb97f21981ec6fcc18d7635127604f405b9e7
+base_commit: f4efa724469cf28fe4ad85d61749987f36bf338f
 approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
-  - tests/**
-  - verification/mutations.yml
-  - verification/freeze.lock
   - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/**
   - scripts/run_verify.py
@@ -1979,3 +1976,24 @@ scope_change_log:
       rewrites the lock, and the lock was never in this task's scope because stage 4 opened
       tests/** and verification/mutations.yml and stopped there. It is approved for exactly one
       commit: the next entry takes it back out again along with the tests and the canaries.
+
+  - date: 2026-09-15
+    reason: >-
+      Stage 5, the narrowing. tests/**, verification/mutations.yml and verification/freeze.lock
+      all leave approved_scope, and scripts/freeze_tests.py has locked 50 files and 1,189 test
+      functions at f4efa72. From here an implementer may read a test and may not write one,
+      and check_scope.py is what enforces it. That is the whole point of the stage: the thing
+      being tested and the test for it stop being written by the same mind. It matters more in
+      this phase than usual, because stage 4 shipped ten blockers past two rounds of independent
+      review and the third round found two of them - one of which, every heads-up fixture seating
+      two players at a six-handed table, would have made every positive control in the phase red
+      against a correct implementation.
+      base_commit moves to the freeze commit, on phase 14's argument at its own stage 5: scope is
+      the diff from base_commit, every test change behind it was in scope under its own entry, and
+      left where it was they would read from here on as the builder having written the tests that
+      measure it.
+      What stays open: scripts/run_verify.py, scripts/quality_checks.py and
+      scripts/run_full_quality_gate.py, none of which is a test; the contract, read-only in
+      implementation mode anyway; the decision list; and this phase's review directory. Stage 6
+      opens the implementation paths, and data/artifacts/postflop/** is opened separately and
+      never on a lane's own judgment.
