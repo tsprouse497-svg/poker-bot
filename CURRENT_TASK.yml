@@ -4,6 +4,16 @@ task_mode: implementation
 base_commit: f4efa724469cf28fe4ad85d61749987f36bf338f
 approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
+  - src/poker_training_bot/solver_artifacts/postflop_key.py
+  - src/poker_training_bot/solver_artifacts/postflop_artifact.py
+  - src/poker_training_bot/solver_artifacts/postflop_solve_driver.py
+  - src/poker_training_bot/strategy/postflop_betting.py
+  - src/poker_training_bot/strategy/contract.py
+  - src/poker_training_bot/strategy/composite.py
+  - src/poker_training_bot/strategy/postflop_fallback.py
+  - src/poker_training_bot/poker_core/positions.py
+  - src/poker_training_bot/simulator/run.py
+  - scripts/generate_postflop_betting_report.py
   - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/**
   - scripts/run_verify.py
@@ -1997,3 +2007,26 @@ scope_change_log:
       implementation mode anyway; the decision list; and this phase's review directory. Stage 6
       opens the implementation paths, and data/artifacts/postflop/** is opened separately and
       never on a lane's own judgment.
+
+  - date: 2026-09-15
+    reason: >-
+      Stage 6, the build. Ten implementation paths open, and the list is derived from what the
+      frozen tests import rather than from the lane plan: four modules that do not exist yet
+      (solver_artifacts.postflop_key, solver_artifacts.postflop_artifact,
+      solver_artifacts.postflop_solve_driver, strategy.postflop_betting), five that do and that the
+      phase changes (strategy.contract for the postflop history and `bet`, strategy.composite and
+      strategy.postflop_fallback for the seam the new strategy replaces, poker_core.positions for
+      postflop_action_order, simulator.run for recording postflop history), and the report
+      generator the second command id names.
+      Deliberately NOT opened, and each for its own reason. data/artifacts/postflop/** is the
+      committed data this phase exists to write and is the one path no lane opens on its own
+      judgment; it gets its own entry when a solve has actually produced something.
+      data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json is opened with the
+      artifact and not before it, because its headroom_bytes counts the whole artifact tree and
+      regenerating it before there is a tree to count is regenerating it twice. tests/**,
+      verification/** and the freeze lock stay shut: they left at stage 5 and the whole point of
+      that stage is that they do not come back.
+      No rental is needed here. The machine note ruled 2026-09-10 says in terms that "nothing is
+      rented until the phase needs a solve; stages 4 through 6 need none", and the three-flop
+      sample the gate runs against is about 16 minutes a flop at 240 iterations on the machine
+      every figure in this phase was already measured on.
