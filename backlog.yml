@@ -7980,3 +7980,52 @@ items:
       Not phase 16's to fix: a builder shared across the suite is a change to frozen tests of
       completed phases, which stage 5 puts out of this phase's reach.
       Filed 2026-09-15 by the coordinator, proposed by the stage-4 round-2 verification review.
+
+  - id: STRATEGY-CONTRACT-IS-ONE-LINE-UNDER-ITS-CAP
+    status: deferred
+    phase: '16'
+    title: strategy/contract.py sits at 499 of a 500-line cap, so the next edit to it fails the gate
+    reason: >-
+      `src/poker_training_bot/strategy/contract.py` is at 499 lines against the 500-line module cap
+      `scripts/check_file_sizes.py` enforces as an inclusive bound. It passes today and the next
+      line anybody adds to it fails the gate, in whatever task they were actually doing. It was at
+      498 before phase 16's stage 6; the lane that added `postflop_actions` to `StrategyQuery` paid
+      for the field by tightening prose it was already editing, merging two constant groups and
+      collapsing one four-clause boolean, and deleted no claim. That is not repeatable a second
+      time.
+      This is the `VOCABULARY-MEASURES-AT-ITS-LINE-CAP` shape again and the same disposition
+      applies: the split is available rather than awkward. The file holds two subjects that
+      nothing but history keeps together - `StrategyQuery` with its two action histories and its
+      validation walk, and `DecisionAuditRecord` with `records_to_jsonl` and the schema version.
+      They have different readers.
+      Not done in the task that caused it, because a new module under `strategy/` is outside the
+      ten implementation paths stage 6 opened, and a structural split of the module every strategy
+      in the repo imports is not a thing to slip into a build stage measured by frozen tests. The
+      MAINT-09 precedent is the one to follow.
+      Found and reported by the stage-6 key lane, 2026-09-15, which measured its own headroom
+      rather than discovering the cap by failing it.
+
+  - id: A-LEAK-TEST-ASSERTS-A-PROXY-AND-CONSTRAINS-LEGITIMATE-PLAY
+    status: deferred
+    phase: '16'
+    title: The postflop history leak test asserts that no named seat has folded, which is not what a leak is
+    reason: >-
+      `tests/test_postflop_query_recording.py:239`,
+      `test_the_postflop_history_does_not_leak_across_streets`, is named for the property that a
+      turn query must not carry the flop's actions. What it asserts is different: that every seat
+      named in a non-flop query's `postflop_actions` is a seat that has not folded.
+      That is a proxy, and it constrains legitimate behaviour. A seat that checks the turn and then
+      folds to a bet on the same turn belongs in that street's history and is folded, so the
+      assertion fails on a correct recorder. It passes today only because no profile in its own
+      fixture bets after the flop - `BetsTheFlopOnce` bets the flop alone, `Calls` never bets, and
+      the reference profile is check-fold - so no seat in the fixture ever faces a postflop bet it
+      could fold to. A different seed, or any later profile that bets a turn, reds it with no leak
+      present.
+      The direct statement of the property is available and is what a rewrite should say: a query's
+      `postflop_actions` name only seats that acted on *this* street. That is checkable against the
+      street the query carries, without reference to who has folded.
+      Not fixable in phase 16: the test was frozen at stage 5 and `tests/**` left `approved_scope`,
+      which is the whole point of that stage. Filing it is the only move available, and the entry
+      exists so that the day it goes red nobody reads it as a leak.
+      Found by the stage-6 key lane, 2026-09-15, reading a test it had just made pass and saying so
+      rather than banking the green.

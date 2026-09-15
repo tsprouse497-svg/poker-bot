@@ -41,7 +41,7 @@ stack dynamics, and the report says so wherever it prints a figure.
 from __future__ import annotations
 
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from random import Random
 
 from poker_training_bot.hand_history.schema import (
@@ -110,7 +110,9 @@ STACKS_RESET_EVERY_HAND = True
 REFUSAL_VOIDS_THE_HAND = True
 
 _POSTFLOP_STREETS = (StreetName.FLOP, StreetName.TURN, StreetName.RIVER)
-_HISTORY_ACTIONS = frozenset({"fold", "check", "call", "raise"})
+# `bet` joined the set when the query gained a postflop history: preflop everyone faces the big
+# blind so nobody can bet, and after the flop it is the commonest action there is.
+_HISTORY_ACTIONS = frozenset({"fold", "check", "call", "bet", "raise"})
 
 
 def _hand_random(hand_seed: int) -> Random:
@@ -178,6 +180,10 @@ def _play(
         board = board + street_board
         state = street_state(config, stacks, committed, folded, all_in)
         actions: list[HistoryAction] = []
+        # Within-street history, emptied here rather than carried, because a turn query holding
+        # the flop's actions is a different claim about the spot and the key built from it would
+        # name a line nobody played.
+        street_history: list[SeatAction] = []
         if street is StreetName.PREFLOP:
             state = post_blind(state, sb_seat, small_blind)
             state = post_blind(state, bb_seat, big_blind)
@@ -194,6 +200,12 @@ def _play(
             query = build_query(
                 config, dealt, hand_id, button_seat, street, turn, seat, board, tuple(history)
             )
+            if street_history:
+                # `build_query` fills the preflop history, which is the only one the table
+                # module has ever had to know about. The street's own record is attached here,
+                # where it is kept, so a postflop lookup can tell a checked flop from one hero
+                # has already been bet into rather than reading every flop as check-check.
+                query = replace(query, postflop_actions=tuple(street_history))
             outcome = config.profiles[seat].strategy.decide(query)
             if isinstance(outcome, StrategyRefusal):
                 if REFUSAL_VOIDS_THE_HAND:
@@ -224,10 +236,14 @@ def _play(
             turn = turn.apply(Action(seat, ActionKind(outcome.action), outcome.amount))
             added = turn.round.player(seat).street_bet - before
             actions.append(history_action(outcome, seat, added))
-            if street is StreetName.PREFLOP and outcome.action in _HISTORY_ACTIONS:
-                # `outcome.amount` is the raise-to target for a raise and None for
-                # every other action, which is exactly what a recorded action carries.
-                history.append(SeatAction(seat, outcome.action, outcome.amount))
+            if outcome.action in _HISTORY_ACTIONS:
+                # `outcome.amount` is the level a bet or a raise put the street at and None
+                # for every other action, which is exactly what a recorded action carries.
+                recorded = SeatAction(seat, outcome.action, outcome.amount)
+                if street is StreetName.PREFLOP:
+                    history.append(recorded)
+                else:
+                    street_history.append(recorded)
 
         streets.append(HistoryStreet(name=street, board=street_board, actions=tuple(actions)))
         committed, folded, all_in = snapshot(turn.round)
