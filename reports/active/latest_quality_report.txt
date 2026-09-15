@@ -14,9 +14,27 @@ PASS  fact drift
       covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.
       does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.
 
-PASS  backlog integrity
+FAIL  backlog integrity
       covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.
       does not: A citation is recognised by the shape of a backlog id, so a finding described in prose without one is invisible to it. And it cannot tell whether an item is still worth doing, or whether one marked done was actually finished.
+      ! backlog BACKLOG-PHASE-FIELD-MIXES-PHASE-NUMBERS-WITH-CATEGORIES is filed against phase 'maintenance', which is neither a phase in phase_status.yml nor a declared non-phase label
+      ! backlog AN-EDIT-THAT-SUPERSEDES-PROSE-OWES-A-RE-READ-AND-NOTHING-ASKS-FOR-ONE is filed against phase 'maintenance', which is neither a phase in phase_status.yml nor a declared non-phase label
+      ! docs/BACKLOG.md cites backlog id 'NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-02-decisions-poker.md cites backlog id 'NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-contract-foldin.md cites backlog id 'A-PHASE-CONTRACT-NAMES-NONE-OF-ITS-OWN-DEFERRED-ITEMS', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-contract-foldin.md cites backlog id 'ALL-CAPS', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-contract-foldin.md cites backlog id 'ALL-CAPS-DASH', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-contract-foldin.md cites backlog id 'AN-AMENDMENT-TO-A-SKELETON', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-contract-foldin.md cites backlog id 'CONTRACT-IS-DELETED-BY-ITS-OWN-STAGE-1', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-contract-foldin.md cites backlog id 'NAMES-NONE-OF-ITS-OWN', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-decisions-poker.md cites backlog id 'A-SAMPLE-CHOSEN-FOR-SOLVE-EVIDENCE-GAPS-IS-NOT-A-SAMPLE-CHOSEN-FOR-DEFECT-DETECTION', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-decisions-poker.md cites backlog id 'A-TWO-RANGE-SOLVE-CANNOT-ANSWER-A-MULTIWAY-FLOP-AND-NOTHING-COUNTS-THEM', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-decisions-poker.md cites backlog id 'NO-FIGURE-STATES-THE-SHARE-OF-CORPUS-FLOPS-THE-ARTIFACT-CAN-ANSWER', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-decisions-poker.md cites backlog id 'THE-RANGE-FLOOR-IS-COSTED-AS-MEMORY-AND-IT-IS-ALSO-A-CONVERGENCE-LEVER', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-human-gate.md cites backlog id 'A-FALSIFIED-FIGURE-SURVIVES-IN-THE-DOCUMENT-THAT', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-human-gate.md cites backlog id 'A-REVIEW-NOTES-ROUND-COUNT-IS-NOT-RECORDED', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-human-gate.md cites backlog id 'A-STAGE-THAT-TOOK-SIX-REVIEW-ROUNDS-LOOKS-LIKE-ONE-THAT-TOOK-ONE', which no item declares. A finding filed under an id nobody created has recorded nothing
+      ! reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-human-gate.md cites backlog id 'FALSIFIED-IT', which no item declares. A finding filed under an id nobody created has recorded nothing
 
 PASS  phase record agreement
       covers:   For every completed phase: the status, the ExecPlan's directory, the audit packet, and the phase-NN-complete tag all agree.

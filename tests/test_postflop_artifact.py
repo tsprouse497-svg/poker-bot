@@ -1,0 +1,676 @@
+"""Phase 16, stage 4: what the committed solve owes, and what gets committed.
+
+Authored before any implementation exists, from
+`docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` alone. Modules stage 6 has not written are
+reached through fixtures whose import sits in the function body; see the note at the head of
+`tests/test_postflop_key.py` for why, and `LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS` for what it
+costs when that is tidied away.
+
+**What the repo commits is an index plus a three-flop sample, not the artifact the bot plays.**
+Decision 6 ruled that the solve output lives in object storage outside git, so every byte figure
+here measures the index and the sample. Nothing in this file fetches anything: the gate must pass
+with no GTOpen, no Rust toolchain, no network and no fetched solve object.
+
+**The third sample board is this stage's one choice and it is `8h8d3h`.** Decision 6 item 4 freezes
+the texture and rank splits and names `Kc7d2h` (rainbow, dry-high) and `9c8c7c` (monotone,
+connected) outright, leaving stage 4 the two-tone paired cell and nothing else. `8h8d3h` is
+two-tone - two hearts and one diamond - and paired. Paired-monotone is impossible, which
+`test_the_ruled_three_by_three_assignment_has_exactly_one_forbidden_cell` recomputes rather than
+quotes.
+
+**No figure here is a per-weight rate that includes non-weight bytes.** That is the error the
+stage-1 numbers review held this phase over: a rate computed as whole-file bytes over weight count
+charges per-spot blocks against every weight. Where this file checks a published rate it checks it
+against the bytes on disk.
+"""
+
+from __future__ import annotations
+
+import itertools
+import json
+import re
+from pathlib import Path
+
+import pytest
+
+from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
+from scripts.repo_paths import REPO_ROOT
+
+ARTIFACT_ROOT = REPO_ROOT / "data" / "artifacts"
+PREFLOP_DIR = ARTIFACT_ROOT / "preflop"
+POSTFLOP_DIR = ARTIFACT_ROOT / "postflop"
+INDEX_PATH = POSTFLOP_DIR / "index.json"
+SAMPLE_DIR = POSTFLOP_DIR / "sample"
+SOLVE_CONFIG_PATH = POSTFLOP_DIR / "solve_config.json"
+
+ARTIFACT_BYTE_CAP = 20 * 1024 * 1024
+"""`DIRECTORY_BYTE_LIMITS` in `scripts/check_file_sizes.py`, restated so a red here says which
+budget moved. The contract forbids raising it and forbids slipping under it with git LFS, whose
+pointer would pass the byte budget vacuously on an unfetched clone."""
+
+EXPLOITABILITY_TARGET_PCT = 0.3
+EXPLOITABILITY_CEILING_PCT = 1.0
+ITERATION_CAP = 1200
+
+RANGE_WEIGHT_FLOOR = 0.01
+
+SAMPLE_BOARDS = {
+    "rainbow-dry-high": ("Kc", "7d", "2h"),
+    "two-tone-paired": ("8h", "8d", "3h"),
+    "monotone-connected": ("9c", "8c", "7c"),
+}
+"""Two ruled by decision 6 item 4, one picked here inside the split it left open."""
+
+RANKS = "23456789TJQKA"
+SUITS = "cdhs"
+ALL_CARDS = tuple(rank + suit for rank in RANKS for suit in SUITS)
+
+HEX16 = re.compile(r"\A[0-9a-f]{16}\Z")
+HEX64 = re.compile(r"\A[0-9a-f]{64}\Z")
+
+PLACEHOLDERS = {"", "TBD", "tbd", "TODO", "todo", "none", "None", "n/a", "N/A", "0" * 16}
+
+
+@pytest.fixture(scope="module")
+def artifact_module():
+    """`solver_artifacts.postflop_artifact`: the schema, the strict importer and the library."""
+    import poker_training_bot.solver_artifacts.postflop_artifact as module
+
+    return module
+
+
+@pytest.fixture(scope="module")
+def driver_module():
+    """`solver_artifacts.postflop_solve_driver`: the thing that drives GTOpen and writes the
+    artifact. It never runs in the gate - the gate has no solver - but its guards are code and
+    a guard nobody tested is a guard nobody has."""
+    import poker_training_bot.solver_artifacts.postflop_solve_driver as module
+
+    return module
+
+
+def owed(module, name: str):
+    found = getattr(module, name, None)
+    assert found is not None, (
+        f"{module.__name__} must publish {name}; phase 16's contract requires it and no"
+        " implementation has been written yet"
+    )
+    return found
+
+
+def load(path: Path):
+    assert path.is_file(), (
+        f"{path.relative_to(REPO_ROOT)} is missing, so the committed solve owes everything this"
+        " file checks and has delivered none of it"
+    )
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def index():
+    return load(INDEX_PATH)
+
+
+@pytest.fixture(scope="module")
+def entries(index):
+    found = index.get("entries")
+    assert found, "the committed index must list one entry per solved spot"
+    return found
+
+
+def texture(board) -> str:
+    suits = {card[1] for card in board}
+    return {1: "monotone", 2: "two-tone", 3: "rainbow"}[len(suits)]
+
+
+def rank_structure(board) -> str:
+    ranks = [card[0] for card in board]
+    if len(set(ranks)) == 1:
+        return "trips"
+    if len(set(ranks)) == 2:
+        return "paired"
+    order = sorted(RANKS.index(rank) for rank in ranks)
+    if order[2] - order[0] <= 4:
+        return "connected"
+    return "unpaired-spread"
+
+
+# --------------------------------------------------------------------------- #
+# The index
+# --------------------------------------------------------------------------- #
+
+
+class TestEveryIndexEntryCarriesItsEvidence:
+    """Criterion: every entry records the achieved exploitability as a percent of the starting
+    pot, the iteration count, the strategy digest and the digest of the stored object, and a test
+    fails on absence or a placeholder."""
+
+    REQUIRED = (
+        "spot_key",
+        "achieved_exploitability_pct_of_pot",
+        "iterations",
+        "strategy_digest",
+        "object_digest",
+    )
+
+    def test_every_entry_carries_all_four_figures_plus_its_key(self, entries) -> None:
+        for entry in entries:
+            missing = [name for name in self.REQUIRED if name not in entry]
+            assert missing == [], (entry.get("spot_key"), missing)
+
+    def test_no_figure_is_absent_or_a_placeholder(self, entries) -> None:
+        """An entry whose digest reads TBD is an entry that authenticates nothing, and it passes
+        a presence check."""
+        for entry in entries:
+            for name in self.REQUIRED:
+                value = entry[name]
+                assert value is not None, (entry.get("spot_key"), name)
+                if isinstance(value, str):
+                    assert value.strip() not in PLACEHOLDERS, (entry.get("spot_key"), name)
+
+    def test_the_exploitability_is_a_percent_of_pot_and_not_a_big_blind_figure(
+        self, entries
+    ) -> None:
+        """Phase 10's 0.01bb is preflop and in the wrong unit, and a big-blind criterion will not
+        reproduce the measured 220-to-260 iteration counts. The field name says percent of pot and
+        the values have to be readable as one."""
+        for entry in entries:
+            value = entry["achieved_exploitability_pct_of_pot"]
+            assert isinstance(value, int | float) and not isinstance(value, bool)
+            assert 0.0 <= value <= EXPLOITABILITY_CEILING_PCT, entry["spot_key"]
+
+    def test_no_committed_cell_sits_above_one_percent_of_pot(self, entries) -> None:
+        """1% is the worst a played cell may carry. A cap-bound cell above it is refused, not
+        committed."""
+        over = [
+            entry["spot_key"]
+            for entry in entries
+            if entry["achieved_exploitability_pct_of_pot"] > EXPLOITABILITY_CEILING_PCT
+        ]
+
+        assert over == []
+
+    def test_no_committed_cell_ran_past_the_iteration_cap(self, entries) -> None:
+        for entry in entries:
+            assert 0 < entry["iterations"] <= ITERATION_CAP, entry["spot_key"]
+
+    def test_the_digest_width_is_declared_rather_than_assumed(self, index, entries) -> None:
+        """Not a byte decision. The repo's 16-hex precedent is a determinism digest compared
+        against a rerun; this one authenticates an object fetched from storage the repo does not
+        control. 64 bits is ample against accident and about 2^32 work against substitution, which
+        is not a security margin - so either take the full sha256 or say in the file that it
+        authenticates against accident only."""
+        widths = {len(entry["object_digest"]) for entry in entries}
+        assert len(widths) == 1, f"one digest width, got {sorted(widths)}"
+        width = widths.pop()
+
+        if width == 16:
+            assert index.get("digest_authenticates") == "accident-only", (
+                "a 16-hex digest is about 2^32 work to forge, so the index has to say in terms"
+                " that it authenticates against accident only"
+            )
+        else:
+            assert width == 64, (
+                f"a digest is either the repo's 16-hex precedent or a sha256, got {width}"
+            )
+
+    def test_every_digest_is_lower_case_hex_of_its_declared_width(self, entries) -> None:
+        for entry in entries:
+            for name in ("strategy_digest", "object_digest"):
+                value = entry[name]
+                assert HEX16.match(value) or HEX64.match(value), (entry["spot_key"], name, value)
+
+    def test_the_target_and_the_cap_are_published_by_the_module_not_by_this_test(
+        self, artifact_module
+    ) -> None:
+        assert owed(artifact_module, "EXPLOITABILITY_TARGET_PCT_OF_POT") == pytest.approx(
+            EXPLOITABILITY_TARGET_PCT
+        )
+        assert owed(artifact_module, "EXPLOITABILITY_CEILING_PCT_OF_POT") == pytest.approx(
+            EXPLOITABILITY_CEILING_PCT
+        )
+        assert owed(artifact_module, "SOLVE_ITERATION_CAP") == ITERATION_CAP
+
+
+class TestTheIndexHeader:
+    """Criterion: the covered set of preflop lines is committed explicitly, so a refusal names a
+    line that was excluded rather than one that was forgotten; and the count of cells the campaign
+    solved and rejected above 1% of pot is carried in the committed index's header."""
+
+    def test_the_covered_preflop_lines_are_listed_explicitly(self, index) -> None:
+        covered = index.get("covered_preflop_lines")
+
+        assert covered, (
+            "the covered set is committed rather than inferred from which keys happen to be"
+            " present; a refusal has to name a line that was excluded, not one that was forgotten"
+        )
+        assert len(set(covered)) == len(covered)
+
+    def test_every_entry_s_line_is_one_of_the_declared_covered_lines(self, index, entries) -> None:
+        covered = set(index["covered_preflop_lines"])
+        stray = sorted(
+            {
+                entry["preflop_spot_key"]
+                for entry in entries
+                if entry.get("preflop_spot_key") not in covered
+            }
+        )
+
+        assert stray == []
+
+    def test_the_header_says_which_constraint_bound_the_line_count(self, index) -> None:
+        """How many lines are covered is an output rather than a choice: as many as the campaign
+        cost and the index each afford, whichever is smaller. Both bind, and an earlier draft of
+        decision 6 item 7 said only one did."""
+        bound = index.get("line_count_bound_by")
+
+        assert bound in {"campaign-cost", "index-bytes"}, (
+            "the index has to name which of the two constraints decided the covered line count"
+        )
+
+    def test_the_header_carries_the_count_of_cells_rejected_above_one_percent(self, index) -> None:
+        """The phase's headline cost result. Knowable at report time and not at query time, which
+        is why it is a header figure rather than a third refusal cause."""
+        rejected = index.get("cells_solved_and_rejected_above_one_percent")
+
+        assert isinstance(rejected, int) and not isinstance(rejected, bool)
+        assert rejected >= 0
+
+    def test_the_header_declares_the_object_storage_the_index_points_at(self, index) -> None:
+        """No git LFS, and the bytes live outside git. A reader has to be able to tell an index
+        entry from a committed sample cell without opening both."""
+        assert index.get("object_storage"), (
+            "the index points at objects the repo does not hold, and it has to say where"
+        )
+
+
+# --------------------------------------------------------------------------- #
+# The strict importer
+# --------------------------------------------------------------------------- #
+
+
+def sample_cell(sample_dir: Path) -> tuple[Path, dict]:
+    files = sorted(sample_dir.glob("*.json"))
+    assert files, f"{sample_dir.relative_to(REPO_ROOT)} holds no committed sample flop"
+    return files[0], json.loads(files[0].read_text(encoding="utf-8"))
+
+
+class TestTheImporterRefusesRatherThanRenders:
+    """Criterion: the key is re-derived at import and at lookup, with a mismatch against the
+    stored id refused; a committed size that cannot be played is refused at import rather than at
+    the table; and a cell over 1% of pot is refused.
+
+    Each test writes a deliberately wrong file and requires the importer to refuse it. A test that
+    only imported the good file would pass against an importer that validates nothing.
+    """
+
+    def written(self, tmp_path: Path, payload) -> Path:
+        path = tmp_path / "cell.json"
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        return path
+
+    def test_the_good_committed_sample_imports(self, artifact_module) -> None:
+        """The positive control. Four refusal tests below read "it raised", which an importer that
+        refuses everything satisfies."""
+        importer = owed(artifact_module, "import_postflop_cell")
+        path, _ = sample_cell(SAMPLE_DIR)
+
+        assert importer(path) is not None
+
+    def test_a_stored_id_that_disagrees_with_the_re_derived_key_is_refused(
+        self, artifact_module, tmp_path
+    ) -> None:
+        importer = owed(artifact_module, "import_postflop_cell")
+        error = owed(artifact_module, "PostflopArtifactError")
+        _, payload = sample_cell(SAMPLE_DIR)
+        payload["spot_key"] = payload["spot_key"] + "x"
+
+        with pytest.raises(error):
+            importer(self.written(tmp_path, payload))
+
+    def test_a_cell_whose_board_is_not_its_canonical_representative_is_refused(
+        self, artifact_module, tmp_path
+    ) -> None:
+        """The collapse is the only one permitted, so a cell keyed on a non-representative board
+        is a second cell for a class that already has one."""
+        importer = owed(artifact_module, "import_postflop_cell")
+        error = owed(artifact_module, "PostflopArtifactError")
+        _, payload = sample_cell(SAMPLE_DIR)
+        board = payload["board"]
+        payload["board"] = [board[0][0] + "s", board[1][0] + "s", board[2][0] + "s"]
+
+        with pytest.raises(error):
+            importer(self.written(tmp_path, payload))
+
+    def test_a_weight_outside_zero_to_one_is_refused_rather_than_rendered(
+        self, artifact_module, tmp_path
+    ) -> None:
+        """Canary `postflop-weight-bounds-not-enforced` aims at exactly this line. A committed
+        weight of 1.7 is not a strategy, and a library that renders it hands the bot a frequency
+        no dealer can deal."""
+        importer = owed(artifact_module, "import_postflop_cell")
+        error = owed(artifact_module, "PostflopArtifactError")
+        _, payload = sample_cell(SAMPLE_DIR)
+        payload["class_weights"][0][0] = 1.7
+
+        with pytest.raises(error):
+            importer(self.written(tmp_path, payload))
+
+    def test_a_class_whose_weights_do_not_sum_to_one_is_refused(
+        self, artifact_module, tmp_path
+    ) -> None:
+        importer = owed(artifact_module, "import_postflop_cell")
+        error = owed(artifact_module, "PostflopArtifactError")
+        _, payload = sample_cell(SAMPLE_DIR)
+        payload["class_weights"][0] = [0.5] * len(payload["class_weights"][0])
+
+        with pytest.raises(error):
+            importer(self.written(tmp_path, payload))
+
+    def test_a_committed_size_that_cannot_be_played_is_refused_at_import(
+        self, artifact_module, tmp_path
+    ) -> None:
+        """Criterion, and the second required canary. A size above what the acting seat can put in
+        is a legality failure `DecisionAuditRecord` would raise on at the table, in the middle of a
+        hand, once. Refused at import it is one red on a file nobody has played yet."""
+        importer = owed(artifact_module, "import_postflop_cell")
+        error = owed(artifact_module, "PostflopArtifactError")
+        _, payload = sample_cell(SAMPLE_DIR)
+        payload["bet_sizes_bb"] = [payload["effective_stack_bb"] * 10]
+
+        with pytest.raises(error):
+            importer(self.written(tmp_path, payload))
+
+    def test_a_cell_over_one_percent_of_pot_is_refused_at_import(
+        self, artifact_module, tmp_path
+    ) -> None:
+        importer = owed(artifact_module, "import_postflop_cell")
+        error = owed(artifact_module, "PostflopArtifactError")
+        _, payload = sample_cell(SAMPLE_DIR)
+        payload["achieved_exploitability_pct_of_pot"] = 1.4
+
+        with pytest.raises(error):
+            importer(self.written(tmp_path, payload))
+
+    def test_a_cell_past_the_iteration_cap_is_refused_at_import(
+        self, artifact_module, tmp_path
+    ) -> None:
+        importer = owed(artifact_module, "import_postflop_cell")
+        error = owed(artifact_module, "PostflopArtifactError")
+        _, payload = sample_cell(SAMPLE_DIR)
+        payload["iterations"] = ITERATION_CAP + 1
+
+        with pytest.raises(error):
+            importer(self.written(tmp_path, payload))
+
+    def test_a_pot_that_does_not_follow_from_the_substituted_line_is_refused(
+        self, artifact_module, tmp_path
+    ) -> None:
+        """Pot and stack are derived from the substituted preflop line, not from the table being
+        asked about, and the substitution is recorded on the committed spot. A cell whose pot does
+        not follow from its own line is refused rather than played."""
+        importer = owed(artifact_module, "import_postflop_cell")
+        error = owed(artifact_module, "PostflopArtifactError")
+        _, payload = sample_cell(SAMPLE_DIR)
+        payload["pot_bb"] = payload["pot_bb"] + 3.0
+
+        with pytest.raises(error):
+            importer(self.written(tmp_path, payload))
+
+    def test_every_committed_cell_records_its_own_price_substitution(self) -> None:
+        """Decision 8: the substitution is a fact about which ranges the spot was solved against,
+        settled when the solve is committed rather than when a hand is played.
+
+        Counted first, because an empty sample directory satisfies a per-file loop perfectly.
+        """
+        paths = sorted(SAMPLE_DIR.glob("*.json"))
+
+        assert len(paths) == 3, [path.name for path in paths]
+        for path in paths:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            assert "price_substitutions" in payload, path.name
+
+
+# --------------------------------------------------------------------------- #
+# The committed sample
+# --------------------------------------------------------------------------- #
+
+
+class TestTheCommittedSample:
+    """Criterion: the committed sample is three flops and its texture and rank splits are frozen.
+
+    `Kc7d2h` and `9c8c7c` are named by decision 6 item 4. `8h8d3h` is stage 4's one pick, inside
+    the two-tone paired cell that item leaves and nothing else.
+    """
+
+    def test_the_sample_holds_exactly_three_flops(self) -> None:
+        files = sorted(SAMPLE_DIR.glob("*.json"))
+
+        assert len(files) == 3, [path.name for path in files]
+
+    def test_the_three_boards_are_the_ruled_three(self) -> None:
+        committed = {
+            tuple(json.loads(path.read_text(encoding="utf-8"))["board"])
+            for path in sorted(SAMPLE_DIR.glob("*.json"))
+        }
+
+        assert committed == set(SAMPLE_BOARDS.values())
+
+    def test_each_board_sits_in_the_texture_and_rank_cell_it_was_chosen_for(self) -> None:
+        """Checked rather than taken. The stage-3 review found an earlier draft naming two rainbow
+        boards among three while its own suit split said otherwise."""
+        assert texture(SAMPLE_BOARDS["rainbow-dry-high"]) == "rainbow"
+        assert rank_structure(SAMPLE_BOARDS["rainbow-dry-high"]) == "unpaired-spread"
+
+        assert texture(SAMPLE_BOARDS["two-tone-paired"]) == "two-tone"
+        assert rank_structure(SAMPLE_BOARDS["two-tone-paired"]) == "paired"
+
+        assert texture(SAMPLE_BOARDS["monotone-connected"]) == "monotone"
+        assert rank_structure(SAMPLE_BOARDS["monotone-connected"]) == "connected"
+
+    def test_the_three_textures_are_three_and_the_three_rank_patterns_are_three(self) -> None:
+        """The sample is chosen for structural spread rather than for frequency: a
+        frequency-weighted sample of three would be two two-tones and reproduce the blind spot the
+        sample exists to remove."""
+        assert len({texture(board) for board in SAMPLE_BOARDS.values()}) == 3
+        assert len({rank_structure(board) for board in SAMPLE_BOARDS.values()}) == 3
+
+    def test_the_ruled_three_by_three_assignment_has_exactly_one_forbidden_cell(self) -> None:
+        """Brute-forced over all 22,100 boards rather than quoted: paired-monotone is impossible,
+        because two cards of one rank cannot share a suit. That is the arithmetic that forces the
+        monotone slot to be unpaired and leaves stage 4 the two-tone paired cell."""
+        cells = {
+            (texture(board), rank_structure(board))
+            for board in itertools.combinations(ALL_CARDS, 3)
+        }
+
+        assert ("monotone", "paired") not in cells
+        assert ("monotone", "trips") not in cells
+        assert ("two-tone", "paired") in cells
+        assert ("rainbow", "paired") in cells
+
+    def test_the_sample_is_not_all_monotone(self) -> None:
+        """It cannot be two, and the reason is poker: the phase's entire converged evidence is six
+        monotone rows and one two-tone, and monotone generalises worst.
+        `POSTFLOP-EVIDENCE-IS-ALL-MONOTONE-AND-MONOTONE-GENERALISES-WORST`."""
+        textures = [texture(board) for board in SAMPLE_BOARDS.values()]
+
+        assert textures.count("monotone") == 1
+
+
+# --------------------------------------------------------------------------- #
+# Where it lands, and what it costs
+# --------------------------------------------------------------------------- #
+
+
+class TestWhereTheArtifactLands:
+    """Criterion: the artifact does not land in `data/artifacts/preflop/`, because
+    `import_preflop_artifacts` globs `*.json` directly under it and would read a postflop file as
+    a preflop chart."""
+
+    def test_no_postflop_file_sits_directly_under_the_preflop_directory(self) -> None:
+        assert POSTFLOP_DIR.resolve() not in PREFLOP_DIR.resolve().parents
+        assert not str(POSTFLOP_DIR.resolve()).startswith(str(PREFLOP_DIR.resolve()) + "/")
+
+    def test_the_preflop_library_still_imports_and_holds_only_preflop_charts(self) -> None:
+        """The pin the contract asks for: the preflop library ignores the postflop tree."""
+        charts = import_preflop_artifacts(PREFLOP_DIR)
+
+        assert charts
+        for chart in charts:
+            for spot in chart.spots:
+                assert spot.spot_id.startswith("t"), spot.spot_id
+
+    def test_the_postflop_tree_exists_under_its_own_directory(self) -> None:
+        assert POSTFLOP_DIR.is_dir()
+        assert INDEX_PATH.is_file()
+        assert SAMPLE_DIR.is_dir()
+
+
+class TestTheByteBudget:
+    """Criterion: the committed index and the three-flop sample stay inside the 20 MiB
+    `data/artifacts` cap, and the report prints the bytes used, the headroom left and the
+    per-spot cost. The budget covers the index and the sample, not the object storage."""
+
+    def measured(self) -> int:
+        return sum(path.stat().st_size for path in ARTIFACT_ROOT.rglob("*") if path.is_file())
+
+    def test_the_whole_artifact_tree_is_inside_the_cap(self) -> None:
+        assert self.measured() <= ARTIFACT_BYTE_CAP
+
+    def test_the_postflop_tree_holds_no_git_lfs_pointer(self) -> None:
+        """A pointer passes the byte budget vacuously on an unfetched clone, which is the
+        shortcut the contract forbids by name.
+
+        The count is asserted first because this test is itself the vacuity risk: an empty tree
+        satisfies "no file is a pointer" perfectly.
+        """
+        files = [path for path in POSTFLOP_DIR.rglob("*") if path.is_file()]
+
+        assert files, "the postflop tree holds no files, so this check proves nothing"
+        for path in files:
+            assert b"git-lfs" not in path.read_bytes()[:64], path.name
+
+    def test_the_index_declares_the_bytes_it_believes_it_costs_and_they_reconcile(
+        self, index
+    ) -> None:
+        """No figure is a per-weight rate that includes non-weight bytes. The declared cost is
+        checked against the bytes on disk rather than against another declared rate."""
+        declared = index.get("committed_bytes")
+        assert isinstance(declared, int) and not isinstance(declared, bool)
+
+        on_disk = sum(
+            path.stat().st_size for path in POSTFLOP_DIR.rglob("*") if path.is_file()
+        )
+
+        assert declared == on_disk, (
+            f"the index says it costs {declared} bytes and the postflop tree holds {on_disk}"
+        )
+
+    def test_the_headroom_the_index_states_is_the_cap_less_the_whole_tree(self, index) -> None:
+        declared = index.get("headroom_bytes")
+        assert isinstance(declared, int) and not isinstance(declared, bool)
+
+        assert declared == ARTIFACT_BYTE_CAP - self.measured()
+
+
+# --------------------------------------------------------------------------- #
+# The solve configuration and the input ranges
+# --------------------------------------------------------------------------- #
+
+
+class TestTheSolveConfigurationIsCommittedBesideTheData:
+    """Criterion: two bet sizes on every street - flop `33 75`, turn and river `66 125`,
+    `raise: "2.5x"`, `donk` empty - identically on both seats."""
+
+    @pytest.fixture(scope="class")
+    def config(self):
+        return load(SOLVE_CONFIG_PATH)
+
+    def test_both_seats_carry_the_same_menu(self, config) -> None:
+        seats = config.get("seats")
+
+        assert seats and len(seats) == 2, "a two-range solve, configured identically on both sides"
+        first, second = (seats[name] for name in sorted(seats))
+        assert first == second
+
+    def test_the_flop_menu_is_thirty_three_and_seventy_five(self, config) -> None:
+        for seat in config["seats"].values():
+            assert seat["flop"]["bet"] == ["33", "75"], seat
+
+    def test_the_turn_and_river_menu_is_sixty_six_and_one_twenty_five(self, config) -> None:
+        for seat in config["seats"].values():
+            assert seat["turn"]["bet"] == ["66", "125"], seat
+            assert seat["river"]["bet"] == ["66", "125"], seat
+
+    def test_the_raise_is_two_and_a_half_x_on_every_street(self, config) -> None:
+        for seat in config["seats"].values():
+            for street in ("flop", "turn", "river"):
+                assert seat[street]["raise"] == "2.5x", (street, seat)
+
+    def test_no_street_offers_a_donk(self, config) -> None:
+        for seat in config["seats"].values():
+            for street in ("flop", "turn", "river"):
+                assert seat[street].get("donk", []) == [], (street, seat)
+
+    def test_the_allin_threshold_is_a_percent_of_the_remaining_stack(self, config) -> None:
+        """`SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE`. `tree.rs` snaps any bet reaching
+        `allin_threshold * max_to` to a stack-off outside the `add_allin` guard, so `add_allin:
+        false` still holds jams by conversion. Posted as a percent postflop where preflop takes a
+        fraction, and a value below 1.0 is asking for 0.67% rather than 67%."""
+        threshold = config.get("allin_threshold")
+
+        assert isinstance(threshold, int | float) and not isinstance(threshold, bool)
+        assert threshold >= 1.0, (
+            f"{threshold} postflop reads as {threshold}% of the remaining stack, which snaps"
+            " every bet to a stack-off"
+        )
+
+
+class TestTheInputRangesAreFlooredAtTheClassLevel:
+    """Criterion: the input ranges are floored at a weight of 0.01, and the floor is class-level.
+
+    One suit-specific weight in either range collapses the isomorphism group and forfeits the suit
+    saving on every non-rainbow board - which is the whole of the only collapse this phase takes.
+    """
+
+    @pytest.fixture(scope="class")
+    def config(self):
+        return load(SOLVE_CONFIG_PATH)
+
+    def test_the_floor_is_published_and_is_one_percent(self, artifact_module) -> None:
+        assert owed(artifact_module, "RANGE_WEIGHT_FLOOR") == pytest.approx(RANGE_WEIGHT_FLOOR)
+
+    def test_no_committed_range_weight_sits_below_the_floor(self, config) -> None:
+        for name, weights in config["ranges"].items():
+            for hand, weight in weights.items():
+                assert weight >= RANGE_WEIGHT_FLOOR, (name, hand, weight)
+
+    def test_every_committed_range_is_keyed_by_class_rather_than_by_suit_combo(
+        self, config
+    ) -> None:
+        """A class key is `AKs`, `AKo` or `AA`, two or three characters. A suit-specific key such
+        as `AhKh` is the thing that breaks the isomorphism group."""
+        for name, weights in config["ranges"].items():
+            for hand in weights:
+                assert len(hand) in (2, 3), (name, hand)
+                assert hand[0] in RANKS and hand[1] in RANKS, (name, hand)
+                if len(hand) == 3:
+                    assert hand[2] in ("s", "o"), (name, hand)
+
+    def test_applying_the_floor_never_splits_a_class(self, artifact_module) -> None:
+        """The floor is applied as a function and checked as one: whatever it is handed, every
+        hand that was one class before it is one class after."""
+        apply_floor = owed(artifact_module, "floor_range")
+        before = {"AKs": 0.0, "AKo": 0.004, "AA": 1.0, "72o": 0.0}
+
+        after = apply_floor(before)
+
+        assert set(after) == set(before)
+        assert all(weight >= RANGE_WEIGHT_FLOOR for weight in after.values())
+        assert after["AA"] == pytest.approx(1.0)
+
+    def test_the_floor_lifts_a_zero_rather_than_dropping_the_hand(self, artifact_module) -> None:
+        apply_floor = owed(artifact_module, "floor_range")
+
+        assert apply_floor({"72o": 0.0})["72o"] == pytest.approx(RANGE_WEIGHT_FLOOR)

@@ -293,18 +293,27 @@ class TestDecisionAuditRecord:
         assert make_record().to_json_line() == make_record().to_json_line()
 
     def test_to_json_line_pins_key_ordering(self) -> None:
+        """Migrated at phase 16 stage 4, and it is one of the two the contract's own list of
+        three did not name. Two things moved under it at once: the payload gained
+        `postflop_actions`, which sorts between `min_raise_target` and `pot`, and the schema
+        version went to 4 because the payload shape changed. Either alone reds it.
+
+        The claim is unchanged. These bytes are what a committed audit line is, and a test that
+        pinned only the keys present would not notice a new one appearing in the middle.
+        """
         expected = (
             '{"outcome":{"action":"call","amount":null,"code":"x","kind":"decision"},'
             '"query":{"blinds":[5,10],"board":["2c","7h","Ts"],"button_seat":0,'
             '"current_bet":20,"hand_id":"h1","hole_cards":["As","Kd"],'
-            '"legal_actions":["fold","call","raise"],"min_raise_target":40,"pot":60,'
+            '"legal_actions":["fold","call","raise"],"min_raise_target":40,'
+            '"postflop_actions":[],"pot":60,'
             '"preflop_actions":[],"seat":1,'
             '"seat_states":{'
             '"0":{"all_in":false,"committed_total":40,"folded":false,"street_bet":20},'
             '"1":{"all_in":false,"committed_total":20,"folded":false,"street_bet":0}},'
             '"stacks":{"0":980,"1":940},"street":"flop",'
             '"to_call":20},'
-            '"schema_version":3,"strategy_id":"reference-check-fold",'
+            '"schema_version":4,"strategy_id":"reference-check-fold",'
             '"strategy_version":1}'
         )
         assert make_record().to_json_line() == expected
@@ -405,8 +414,25 @@ class TestPreflopActionHistory:
         with pytest.raises(ValueError, match="unknown history action"):
             SeatAction(0, "shove")
 
-    def test_rejects_a_bet_because_preflop_has_no_bet(self) -> None:
-        with pytest.raises(ValueError, match="unknown history action"):
+    def test_accepts_a_bet_now_that_a_flop_history_exists(self) -> None:
+        """Migrated at phase 16 stage 4. This asserted the opposite - that `SeatAction` refused
+        `"bet"` because preflop has no bet - and `_PREFLOP_HISTORY_ACTIONS` was what refused it.
+        Phase 16 gives the query a postflop history, where a bet is the commonest entry there is,
+        and `SeatAction` is the one record both histories are made of.
+
+        The claim that survives is the one underneath: the action vocabulary is closed and a size
+        is required exactly where the price lives. `test_rejects_an_unknown_action` above keeps
+        the closed half and the test below keeps the size half.
+        """
+        entry = SeatAction(0, "bet", 40)
+
+        assert entry.action == "bet"
+        assert entry.amount == 40
+
+    def test_rejects_a_bet_without_the_amount_it_bet(self) -> None:
+        """A sizeless bet is the v1 shape of the defect a sizeless raise was: read as matching
+        any price, it lets a lookup answer a 75% bet out of a 33% cell."""
+        with pytest.raises(ValueError):
             SeatAction(0, "bet")
 
     def test_rejects_a_negative_seat(self) -> None:
