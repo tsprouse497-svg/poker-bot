@@ -1,14 +1,9 @@
 task_id: PHASE_16_POSTFLOP_BETTING
 active_phase: '16'
 task_mode: implementation
-base_commit: 25328f8b7ce16cc93e1d424666abffcd22f23a44
+base_commit: 8403443c85532ff5f90ec4d11d5f6cffefc91583
 approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
-  - tests/test_postflop_key.py
-  - tests/test_postflop_betting.py
-  - tests/test_postflop_query_recording.py
-  - tests/test_postflop_artifact.py
-  - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/postflop_key.py
   - src/poker_training_bot/solver_artifacts/postflop_artifact.py
   - src/poker_training_bot/solver_artifacts/postflop_solve_driver.py
@@ -2113,3 +2108,11 @@ scope_change_log:
       The frozen tests pin the old prefix and must move with it. They are corrected against the
       amended ruling rather than against the implementation, and re-frozen in the same pair of
       commits.
+
+  - date: 2026-09-15
+    reason: >-
+      Puts the freeze narrowing back on after decision 8's amendment. The four test files and the
+      lock leave approved_scope again and scripts/freeze_tests.py has re-locked 50 files and 1,196
+      test functions at 8403443 - seven more than before, which is the new class requiring the
+      preflop raiser to have a flop spot at all. base_commit moves to the re-freeze on the same
+      argument as the two before it.
