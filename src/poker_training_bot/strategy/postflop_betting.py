@@ -22,6 +22,11 @@ a faced bet matched to the menu only inside decision 14's tolerance.
 **No refusal detail names a seat or a chip count.** `refusal_inventory` groups on the code plus
 the whole detail tuple, so a per-seat figure shatters the work list into one row per hand.
 `REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL`.
+
+**Every refusal names the table size and hero's hand**, on top of whatever the gap itself is,
+from `refusal_detail.asked_by` rather than from a copy kept here - the preflop chart refuses into
+the same inventory and a reader of that file should not have to learn two ways of reading a row.
+`refusal_detail` carries why neither field fragments the work list.
 """
 
 from __future__ import annotations
@@ -58,6 +63,7 @@ from poker_training_bot.strategy.postflop_spot_queries import (
     committed_spot_queries,
 )
 from poker_training_bot.strategy.preflop_price import size_bb
+from poker_training_bot.strategy.refusal_detail import asked_by
 from poker_training_bot.strategy.river_pot_odds import (
     holding_counts,
     pot_odds_price,
@@ -192,9 +198,9 @@ class PostflopBettingStrategy:
         second preflop strategy reachable by mistake. Turn and river then carry their own codes.
         """
         if query.street == "preflop":
-            return StrategyRefusal(REFUSE_NOT_POSTFLOP)
+            return StrategyRefusal(REFUSE_NOT_POSTFLOP, asked_by(query))
         if query.street == "turn":
-            return StrategyRefusal(REFUSE_NO_TURN_SOLUTION)
+            return StrategyRefusal(REFUSE_NO_TURN_SOLUTION, asked_by(query))
         if query.street == "river":
             return self._river(query)
         return self._flop(query)
@@ -207,7 +213,7 @@ class PostflopBettingStrategy:
             and river_equity(query.hole_cards, query.board) > pot_odds_price(query)
         ):
             return StrategyDecision("call", None, CODE_POT_ODDS_CALL)
-        return StrategyRefusal(REFUSE_NO_RIVER_SOLUTION)
+        return StrategyRefusal(REFUSE_NO_RIVER_SOLUTION, asked_by(query))
 
     def _flop(self, query: StrategyQuery) -> StrategyDecision | StrategyRefusal:
         live = [state for state in query.seat_states if not state.folded]
@@ -215,7 +221,8 @@ class PostflopBettingStrategy:
             # Structural rather than fundable: a two-range solve cannot express a three-handed
             # flop at any budget, machine or menu, so this is not a gap a later campaign closes.
             return StrategyRefusal(
-                REFUSE_MORE_THAN_TWO_LIVE_PLAYERS, (("live_players", str(len(live))),)
+                REFUSE_MORE_THAN_TWO_LIVE_PLAYERS,
+                asked_by(query) + (("live_players", str(len(live))),),
             )
         found = self._resolve(query)
         if isinstance(found, StrategyRefusal):
@@ -226,34 +233,35 @@ class PostflopBettingStrategy:
 
     def _resolve(self, query: StrategyQuery) -> PostflopCell | StrategyRefusal:
         """Walk from the table down to one committed cell, refusing at the first gap."""
+        about = asked_by(query)
         board = "".join(canonical_board(query.board))
         depth_bb = self._effective_depth_bb(query)
         if depth_bb is None:
-            return StrategyRefusal(REFUSE_RAGGED_DEPTH)
+            return StrategyRefusal(REFUSE_RAGGED_DEPTH, about)
         actual = self._preflop_line(query)
         if actual is None:
-            return StrategyRefusal(REFUSE_UNREPRESENTABLE_PRICE)
+            return StrategyRefusal(REFUSE_UNREPRESENTABLE_PRICE, about)
         seats = tuple(seat for seat, _ in query.stacks)
         hero_position = position_for_seat(seats, query.button_seat, query.seat)
         table_size = len(seats)
         try:
             asked = self._completed_line(query, table_size, depth_bb, hero_position, actual)
         except ValueError:
-            return StrategyRefusal(REFUSE_LINE_NOT_EXPRESSIBLE)
-        named = (("preflop_line", asked.rendered), ("board", board))
+            return StrategyRefusal(REFUSE_LINE_NOT_EXPRESSIBLE, about)
+        named = about + (("preflop_line", asked.rendered), ("board", board))
         line = self._covered_line(query, table_size, depth_bb, hero_position, actual)
         if line is None:
             return StrategyRefusal(REFUSE_NO_CELL_FOR_THIS_LINE, named)
         flop_line, miss = flop_action_line(query, self.library.raise_fractions)
         if flop_line is None:
-            return StrategyRefusal(REFUSE_FLOP_SIZE_OFF_THE_MENU, miss)
+            return StrategyRefusal(REFUSE_FLOP_SIZE_OFF_THE_MENU, about + miss)
         spot = postflop_spot_key(
             line.preflop_line, query.board, flop_line, line.pot_bb, line.effective_stack_bb
         )
         cell = self.library.cell_for(spot)
         if cell is not None:
             return cell
-        detail = (("board", board), ("spot_key", spot))
+        detail = about + (("board", board), ("spot_key", spot))
         if spot in self.library.listed:
             return StrategyRefusal(REFUSE_IN_THE_INDEX_BUT_NOT_FETCHED, detail)
         if canonical_board(query.board) not in line.boards:
@@ -403,20 +411,26 @@ class PostflopBettingStrategy:
         does not, and a hand permuted inconsistently is served the other's strategy while every
         board-level check still passes.
         """
+        about = asked_by(query)
         hand = "".join(canonical_hole_cards(query.board, query.hole_cards))
         row = cell.weights_for(hand)
         if row is None:
+            # `cell_row`, not `hand_class`: this is the 1,176-combo canonical label naming the
+            # exact strategy row the cell is missing, and the inventory's `classes` column
+            # speaks the 169-class vocabulary `asked_by` puts there. Decision 16b.
             return StrategyRefusal(
                 REFUSE_HAND_CLASS_NOT_IN_THE_CELL,
-                (("spot_key", cell.spot_key), ("hand_class", hand)),
+                about + (("spot_key", cell.spot_key), ("cell_row", hand)),
             )
         weights = tuple(zip(cell.actions, row, strict=True))
         seed = f"{query.hand_id}|{query.seat}|{cell.spot_key}|{hand}"
         action = collapse(weights, seed)
         if action is None:
-            return StrategyRefusal(REFUSE_NO_POSITIVE_WEIGHT, (("spot_key", cell.spot_key),))
+            return StrategyRefusal(
+                REFUSE_NO_POSITIVE_WEIGHT, about + (("spot_key", cell.spot_key),)
+            )
         if action not in query.legal_actions:
-            return StrategyRefusal(REFUSE_ACTION_NOT_LEGAL_HERE, (("action", action),))
+            return StrategyRefusal(REFUSE_ACTION_NOT_LEGAL_HERE, about + (("action", action),))
         # The vector travels on the answer, so a reader can see that two hands were played out
         # of two different strategies rather than out of one that happened to draw differently:
         # a pure cell and a mixed cell that drew alike are one action and two pieces of evidence.
@@ -429,7 +443,7 @@ class PostflopBettingStrategy:
             return StrategyDecision(action, None, code, detail)
         amount, refusal = self._amount(query, cell, action)
         if amount is None:
-            return StrategyRefusal(refusal or REFUSE_SIZE_BELOW_MINIMUM, detail[:1])
+            return StrategyRefusal(refusal or REFUSE_SIZE_BELOW_MINIMUM, about + detail[:1])
         return StrategyDecision(action, amount, code, detail)
 
     @staticmethod

@@ -5,6 +5,10 @@ base_commit: 95122e34b691f8293968adc3f30b3138020dfc68
 approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
   - tests/test_postflop_key.py
+  - tests/test_postflop_fallback_components.py
+  - tests/test_simulator.py
+  - tests/test_postflop_query_recording.py
+  - tests/test_postflop_solve_driver.py
   - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/postflop_key.py
   - src/poker_training_bot/solver_artifacts/postflop_isomorphism.py
@@ -12,6 +16,7 @@ approved_scope:
   - src/poker_training_bot/solver_artifacts/postflop_artifact.py
   - src/poker_training_bot/solver_artifacts/postflop_solve_driver.py
   - src/poker_training_bot/strategy/postflop_betting.py
+  - src/poker_training_bot/strategy/refusal_detail.py
   - src/poker_training_bot/strategy/postflop_committed.py
   - src/poker_training_bot/strategy/postflop_spot_queries.py
   - src/poker_training_bot/strategy/river_pot_odds.py
@@ -21,6 +26,7 @@ approved_scope:
   - src/poker_training_bot/poker_core/positions.py
   - src/poker_training_bot/simulator/run.py
   - scripts/generate_postflop_betting_report.py
+  - scripts/generate_postflop_fallback_report.py
   - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
   - reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/**
   - scripts/run_verify.py
@@ -2241,3 +2247,81 @@ scope_change_log:
       three are 37 to 75 each, so one cheap cell proves the harvest, the writer and the importer
       agree before the expensive three are spent on a path that might not produce a cell the strict
       importer accepts.
+
+  - date: 2026-09-16
+    reason: >-
+      The fifth freeze re-open, ruled by Taylor 2026-09-16 and filed as decision 16b. Re-opens
+      tests/test_postflop_fallback_components.py, tests/test_simulator.py,
+      tests/test_postflop_query_recording.py and tests/test_postflop_solve_driver.py alongside
+      tests/test_postflop_key.py and the lock, and closes them all again on one re-freeze.
+      Wider than the four before it, each of which was one named correction, and the width is the
+      finding. It is TEN red behaviour tests rather than the seven the ExecPlan bootstrap names:
+      three more in TestThePreflopRaiserHasAFlopSpotAtAll fail on the action-order check rather
+      than on missing data and were being counted among the data reds. Their helper passes an empty
+      flop line for both heroes, and postflop the blinds act first, so the preflop raiser's own
+      decision is reached only after BB has checked - which postflop_key.py:340-343 states outright.
+      Eleven corrections, not ten: test_component_for_routes_preflop_to_the_chart_and_the_rest_to_
+      the_fallback is GREEN and asserts a label that is false, which is worse than any of the reds.
+      It moves with decision 16a, as does CHART_PROFILE in test_simulator.py, the second and last
+      place in the repo holding the composite's old strategy_id.
+      Plus four ADDED cases in test_postflop_solve_driver.py, which is an addition rather than a
+      correction and was put to Taylor as one. Nothing in the repo calls run_solve, so none of the
+      four fail-closed guards committed at abc6603 is covered. Measured by the coordinator: restore
+      the .get(key, default) defaults and the file still reports 15 passed and 6 errors, so the
+      guards are invisible to the gate and a mutation canary has no test to point at.
+      One of the seven is NOT in this re-open, because it is not a test correction. The refusal
+      detail that no longer carries hand_class is a code defect - no ruling licenses it, the one
+      contract line on the subject points the other way, and the backlog entry that line cites
+      lifts hand_class out of the inventory grouping key, which was the only argument for dropping
+      it. Repaired in src/, in a lane that writes no tests.
+      The lane that applies the test corrections writes no src/, and the lane that repairs src/
+      writes no tests. Neither reviews the other; the consolidated stage-6 review is a third agent
+      that wrote none of it.
+
+  - date: 2026-09-16
+    reason: >-
+      Runs `ruff format` over tests/test_postflop_key.py, inside the fifth re-open and recorded
+      separately because it is a mechanical edit rather than one of the eleven corrections decision
+      16b authorises, and it touches two lines no correction names.
+      Why it was needed. The file sits at exactly 700 against a 700-line cap compared `> limit`, so
+      it had zero headroom, and the two corrections it owes cost two lines. The line-neutral form
+      does not exist: the collapsed call is 101 characters against a 100-character limit and the
+      bet_into variant is 104, so each site needs its own binding. A module-level constant was tried
+      and still lands at 701. The alternatives were compressing prose to fit, which AGENTS.md
+      forbids in the same breath as raising a cap, or leaving two frozen tests red.
+      Why the formatter is not compression. It is the repo's own deterministic tool, its whole diff
+      on this file is two over-wrapped test signatures collapsed onto single lines, and it changes
+      no assertion, docstring, test name, fixture or behaviour. 700 to 696. The file was already
+      failing `ruff format --check` before it was touched - 39 of the 50 test files are - so this
+      moves it into compliance rather than out of a convention the repo holds. Verified by the
+      coordinator after the run: `ruff check` clean, no canary in verification/mutations.yml names
+      this file or any line in it, and the only two reds are still the two the corrections fix.
+      The gate never runs `ruff format`, only `ruff check`, so nothing about this was enforced and
+      nothing about it is enforced now. That is its own finding and is filed as
+      THE-REPO-S-FORMATTER-IS-NOT-IN-THE-GATE-AND-THIRTY-NINE-TEST-FILES-DIVERGE.
+
+  - date: 2026-09-16
+    reason: >-
+      Two paths decision 16a turns out to need, both reported by the lane that hit the boundary
+      rather than worked around it.
+      scripts/generate_postflop_fallback_report.py is a completed phase's gate command. Fixing
+      component_for and strategy_id corrects the report's COLUMN and leaves its PROSE false: the
+      generator's own literal text still reads "Preflop is the chart, flop through river is the
+      fallback, and no query reaches both" and "Refusal codes, all of them from the chart and none
+      from the fallback". Regenerated today that is a correct heading over a wrong sentence, which
+      is worse than the uniformly wrong version because it reads as checked. Phase 16 caused this by
+      rewiring from_repo, so phase 16 fixes it; that is the maint-30 ruling applied to its own
+      phase rather than a later one.
+      src/poker_training_bot/strategy/refusal_detail.py is the fourth extraction this stage and the
+      fourth a lane reported rather than slipped in. postflop_betting.py went 469 to 513 against a
+      500 cap carrying decision 16b's repair. Ruled: extract, not compress, as three times before.
+      The seam is the lane's own and is better than the alternatives it offered: "what a refusal
+      says about who asked" is one concept this repo currently answers in two places feeding one
+      inventory - _asked_by here and _miss_detail in preflop_chart.py - and the lookup-walk seam it
+      offered as the bigger cut is a larger move for a worse reason.
+      preflop_chart.py is deliberately NOT opened, though it carries the same defect in four places
+      and is the reason the seam is shared rather than local. It is a completed phase's module, the
+      defect predates phase 16, no test run reaches those branches, and widening into it mid-stage
+      to fix something this phase did not cause is how a stage stops being reviewable. Filed as
+      A-REFUSAL-WITH-NO-DETAIL-AT-ALL-SURVIVES-IN-THE-PREFLOP-CHART instead, with the extraction
+      built so that fixing it later is an import rather than a second seam.

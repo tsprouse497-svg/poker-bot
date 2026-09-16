@@ -328,9 +328,7 @@ class TestTheOnePermittedCollapse:
 
         assert len(classes) == CANONICAL_FLOPS
 
-    def test_the_representative_is_a_member_of_its_own_class_and_is_stable(
-        self, canonical
-    ) -> None:
+    def test_the_representative_is_a_member_of_its_own_class_and_is_stable(self, canonical) -> None:
         """Idempotence. A map that returns a label rather than a board is not a representative,
         and a representative that re-canonicalises to something else is not canonical."""
         for board in itertools.combinations(ALL_CARDS, 3):
@@ -417,9 +415,7 @@ class TestHeroSHandIsAClassRatherThanARendering:
             moved = tuple(sorted(apply_suit_map(board, mapping)))
             assert moved == tuple(sorted(canonical(board))), board
 
-    def test_one_hand_on_one_board_is_one_class_however_it_was_dealt(
-        self, canonical_hand
-    ) -> None:
+    def test_one_hand_on_one_board_is_one_class_however_it_was_dealt(self, canonical_hand) -> None:
         """Relabel board and hand together and the class must not move, which is what makes the
         answer a name for a class rather than a rendering of one dressing."""
         for board in itertools.combinations(ALL_CARDS, 3):
@@ -541,8 +537,9 @@ class TestWhatTheKeyCarries:
         30.0%; a key that merged them would overfold to small bets and overcall large ones, and
         an opponent farms that by choosing his size."""
         action = owed(key_module, "FlopAction")
-        small = build_key(key_module, flop_actions=(action("BTN", "bet", 33),))
-        large = build_key(key_module, flop_actions=(action("BTN", "bet", 75),))
+        check = (action("BB", "check"),)  # contract: the blinds act first once the flop is out
+        small = build_key(key_module, flop_actions=(*check, action("BTN", "bet", 33)))
+        large = build_key(key_module, flop_actions=(*check, action("BTN", "bet", 75)))
 
         assert small != large
         assert "33" in small
@@ -550,7 +547,8 @@ class TestWhatTheKeyCarries:
 
     def test_a_checked_flop_and_a_bet_flop_are_two_keys(self, key_module) -> None:
         action = owed(key_module, "FlopAction")
-        bet_into = build_key(key_module, flop_actions=(action("BTN", "bet", 33),))
+        check = (action("BB", "check"),)  # contract: the blinds act first once the flop is out
+        bet_into = build_key(key_module, flop_actions=(*check, action("BTN", "bet", 33)))
 
         assert build_key(key_module) != bet_into
 

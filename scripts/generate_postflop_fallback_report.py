@@ -851,7 +851,8 @@ def composite_lines(points: list[SamplePoint]) -> list[str]:
         "",
         *wrapped(
             "One strategy object plays the whole hand: preflop from the committed charts, flop"
-            " through river from the fallback. Every recorded action in a hand is a decision"
+            " through river from the postflop component, which since phase 16 is the betting"
+            " strategy rather than the fallback. Every recorded action in a hand is a decision"
             " point. A point can only be asked when the hand history records that seat's hole"
             " cards, which it does only for seats that reached showdown, so points belonging to"
             " a seat that folded earlier are skipped rather than guessed at."
@@ -883,7 +884,7 @@ def composite_lines(points: list[SamplePoint]) -> list[str]:
     lines += [
         *wrapped(
             "Broken out by which component answered. Preflop is the chart, flop through river is"
-            " the fallback, and no query reaches both."
+            " the postflop component named in the heading below, and no query reaches both."
         ),
         "",
         f"{'':<32}{'preflop':>22}{'postflop':>22}",
@@ -900,15 +901,17 @@ def composite_lines(points: list[SamplePoint]) -> list[str]:
     for point in points:
         if point.record is not None and not isinstance(point.record.outcome, StrategyDecision):
             codes[point.record.outcome.code] += 1
-    lines += ["", "Refusal codes, all of them from the chart and none from the fallback:", ""]
+    lines += ["", "Refusal codes. The prefix on each names the component that refused:", ""]
     for code, count in sorted(codes.items()):
         lines.append(f"  {code:<52}{count:>6}")
     lines += [
         "",
         *wrapped(
             "Read the per-hand listing above as the shape of a hand played by this bot: the chart"
-            " speaks preflop or declines to, every postflop street checks through, and the hand"
-            " is settled at showdown. Nothing bets and nothing raises after the flop."
+            " speaks preflop or declines to, and each postflop street is either answered out of a"
+            " committed solved cell or refused under a code naming the gap. A refusal is not an"
+            " action - the composite hands it back untouched and the hand is voided rather than"
+            " checked down, which is why a refused hand reaches no showdown."
         ),
     ]
     return lines

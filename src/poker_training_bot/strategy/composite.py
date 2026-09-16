@@ -1,16 +1,17 @@
 """One strategy object that plays a whole hand, by routing and nothing else.
 
-Preflop belongs to the committed charts and flop through river belongs to the
-continuity fallback. Both halves already exist; what was missing was a single place
-that says which one owns a street, so that Phase 07 hands a hand to one object
-instead of reassembling the routing at every call site and getting it subtly
-different in each.
+Preflop belongs to the committed charts and flop through river belongs to the postflop
+component - since phase 16 the betting strategy that answers a committed flop, and
+before it the continuity fallback that checked when checking was free. Both halves
+already exist; what was missing was a single place that says which one owns a street,
+so that Phase 07 hands a hand to one object instead of reassembling the routing at
+every call site and getting it subtly different in each.
 
 The design constraint is that this module adds no poker. Its outcome for any query is
 the outcome its component would have returned, as the same object, which is why
 `decide` returns what it received without touching the amount and without rewriting
 the code. That is not tidiness: the code prefix is the whole attribution mechanism, so
-an audit line reading `preflop-chart:` or `postflop-fallback:` is evidence about which
+an audit line reading `preflop-chart:` or `postflop-betting:` is evidence about which
 component answered, and a composite that restamped codes would destroy exactly the
 evidence the audit exists to carry.
 
@@ -42,24 +43,33 @@ from poker_training_bot.strategy.preflop_chart import PreflopChartStrategy
 # label in a report and a code prefix in an audit line refer to the same thing rather
 # than to two vocabularies a reader has to reconcile.
 PREFLOP_COMPONENT = "preflop-chart"
-POSTFLOP_COMPONENT = "postflop-fallback"
+POSTFLOP_COMPONENT = "postflop-betting"
 
-# Two components can own the streets after the flop now: the continuity fallback that checks
-# when checking is free, and the betting strategy that answers a committed flop. Which one a
-# composite holds is the caller's choice and is passed in, because `from_repo` below builds the
-# default the repo has always built and phase 16 does not move it.
+# Two components can own the streets after the flop: the continuity fallback that checks when
+# checking is free, and the betting strategy that answers a committed flop out of solved data.
+# Which one a composite holds is the caller's choice and is passed in; `from_repo` below builds
+# the betting strategy, which is what `POSTFLOP_COMPONENT` above is named after.
 #
-# What that costs is worth stating rather than leaving to be discovered. `component_for` answers
-# which *street* a component owns and is asked without a query, so it cannot read the object; a
-# composite built on `PostflopBettingStrategy` therefore still reports its postflop component as
-# `postflop-fallback`. The code prefix on each answer is what actually says which one replied,
-# which is the attribution mechanism this module's docstring already rests on.
+# `component_for` is a constant per street rather than a read of `self.postflop`, so the constant
+# has to follow `from_repo` by hand - and it did not, between the rewiring on 2026-09-15 and
+# decision 16a on 2026-09-16. An earlier version of this comment argued the drift was harmless
+# because the code prefix on each answer says which component replied. It is not harmless. The
+# postflop report generator is a gate command whose summary table headings come from
+# `component_for` and carry no code prefix, so the stale label filed three `postflop-betting:`
+# refusals under a column headed `postflop-fallback`, directly beneath a sentence saying none of
+# them came from the fallback. A reader deciding whether the bot's flop play is worth studying
+# reads the heading, not the prefixes further down. The name follows the behaviour.
+#
+# A composite deliberately built on `PostflopFallbackStrategy` is now mislabelled in the other
+# direction by the same mechanism. Nothing in `src` builds one, and reading `self.postflop`
+# instead would fix both, but `component_for`'s body is a mutation canary's exact find string,
+# so the shape stays as ruled and the alternative is a finding rather than a change.
 PostflopComponent = PostflopFallbackStrategy | PostflopBettingStrategy
 
 
 @dataclass(frozen=True)
 class CompositeStrategy:
-    """The chart preflop, the fallback afterwards, and no third opinion.
+    """The chart preflop, the postflop component afterwards, and no third opinion.
 
     Frozen and field-equal like both components, so two composites built from the same
     repo compare equal and answer identically. Nothing is cached here and no state
@@ -68,7 +78,7 @@ class CompositeStrategy:
 
     preflop: PreflopChartStrategy
     postflop: PostflopComponent
-    strategy_id: str = "composite-preflop-chart-postflop-fallback"
+    strategy_id: str = "composite-preflop-chart-postflop-betting"
     strategy_version: int = 1
 
     @classmethod
@@ -108,8 +118,11 @@ class CompositeStrategy:
         Everything that is not preflop is postflop, rather than a membership test
         against the three postflop street names. `StrategyQuery` already rejects a
         street it does not know, so an unknown value cannot arrive here; if one somehow
-        did, routing it to the fallback yields an explicit refusal, while a listing
-        would fall through to whatever the last branch happened to be.
+        did, routing it to the postflop component yields an explicit refusal, while a
+        listing would fall through to whatever the last branch happened to be.
+
+        The string it returns is the postflop component's own `strategy_id` and code
+        prefix, kept in step by hand and by the comment above `PostflopComponent`.
         """
         return PREFLOP_COMPONENT if street == "preflop" else POSTFLOP_COMPONENT
 

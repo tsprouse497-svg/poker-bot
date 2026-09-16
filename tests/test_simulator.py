@@ -65,7 +65,22 @@ TERMINAL_OUTCOMES = frozenset({"showdown", "uncontested", "refused"})
 # naming a facing-an-open key, which the ruled census counts at 25 without listing them.
 FIRST_IN_SUFFIX = "/rfi"
 FIRST_IN_POSITIONS = frozenset({"LJ", "HJ", "CO", "BTN", "SB"})
-CHART_PROFILE = "composite-preflop-chart-postflop-fallback"  # the composite's own strategy_id
+# Decision 16a, Taylor 2026-09-16: the name follows the behaviour. Verbatim from `composite.py`.
+CHART_PROFILE = "composite-preflop-chart-postflop-betting"  # the composite's own strategy_id
+
+MISSING_CELL_CODES = frozenset(
+    {
+        "preflop-chart:lookup:spot-not-covered",
+        "postflop-betting:no-cell-for-this-preflop-line",
+        "postflop-betting:no-cell-for-this-board",
+    }
+)
+"""The codes naming a cell somebody could fill, against a table the bot declines to play.
+Listed rather than suffix-matched: the two families share no suffix, and a loose match would
+swallow `more-than-two-live-players`, a declined table and the distinction itself. The third
+is unreachable today and here deliberately - with no committed sample every flop refuses at
+the coarser line step, and once the sample commits a hand on the covered line and an unsampled
+board refuses under it instead."""
 
 # Measured over `contested_config()` at `SEED`: 372 decisions, every hand collecting a pot.
 CONTESTED_DECISIONS = 372
@@ -202,6 +217,21 @@ class TestEveryHandReachesATerminalState:
         did not arrive: no refused hand names a first-in key. Refusals themselves are not
         asserted away - a four-bet is past the committed raise depth and six chart seats
         reach one - so their count is left to the run rather than pinned here.
+
+        **The showdown half is gone and is not coming back, and this paragraph is the only
+        thing that will stop somebody restoring it once the solve lands.** Decision 1, Taylor
+        2026-08-19: flop only, and "a refusal voids the hand rather than checking it down, so
+        the bot never plays out the strategy it did not solve for". Every turn decision returns
+        `no-committed-turn-solution`, so a showdown needs both seats all-in by the end of the
+        flop; the contract rules that out - "no line this menu offers gets all-in in a
+        single-raised pot" - and the chart offers no preflop jam at 2.5, 7.5 or 22.5bb. So
+        `showdown` is **0 permanently**, not 0 until data arrives: 0 with four committed cells
+        and 0 with all 1,755 flops, until a turn solution exists. The arithmetic, so nobody
+        re-derives it under pressure: the sampled boards `Kh7d2c`, `8c8d3c` and `9c8c7c` have
+        suit orbits of 24, 12 and 4, so 40 of 22,100 flops, 0.181%; this run reaches 10 flops,
+        landing on a sampled board 0.018 times a session, and that one still would not show
+        down. What replaces the assertion is the claim the test is named for: hands reach a
+        flop rather than dying on the open.
         """
         outcomes = Counter(hand.outcome for hand in self_play.hands)
         died_first_in = [
@@ -210,9 +240,11 @@ class TestEveryHandReachesATerminalState:
             if dict(hand.refusal_detail).get("spot_key", "").endswith(FIRST_IN_SUFFIX)
         ]
 
+        reached_a_flop = [hand.hand_id for hand in self_play.hands if len(hand.streets) > 1]
+
         assert died_first_in == [], died_first_in
         assert sum(outcomes.values()) == RUN_HANDS, outcomes
-        assert outcomes["showdown"] > 0, outcomes
+        assert reached_a_flop, outcomes
         assert outcomes["uncontested"] > 0, outcomes
 
     def test_both_played_outcomes_occur_where_hands_are_played(self, contested) -> None:
@@ -261,9 +293,12 @@ class TestEveryHandReachesATerminalState:
 
     def test_the_refusal_is_the_missing_cell_not_a_declined_table(self, limped) -> None:
         """Which code the deterministic driver exercises, stated rather than assumed.
-        `spot-not-covered` names a cell somebody could fill; table-shape codes are rejected at
+        Each of these names a cell somebody could fill; table-shape codes are rejected at
         setup. The limped key is asserted present, because the limp is meant to be the driver
-        and the cutover leaves other families - a four-bet, a multiway spot - refused too."""
+        and the cutover leaves other families - a four-bet, a multiway spot - refused too.
+
+        The set moved rather than the claim. Contract: "an uncovered preflop line refuses with
+        a code that names the line". Measured here: 30 preflop, 6 postflop."""
         refused = [hand for hand in limped.hands if hand.outcome == "refused"]
         first_actions = [
             dict(hand.refusal_detail).get("spot_key", "").split("/")[-1].split(",")[0]
@@ -274,7 +309,7 @@ class TestEveryHandReachesATerminalState:
         assert refused
         assert limps, "the limper produced no limped spot, so the driver is not the limp"
         for hand in refused:
-            assert hand.refusal_code.endswith("spot-not-covered"), hand.refusal_code
+            assert hand.refusal_code in MISSING_CELL_CODES, hand.refusal_code
 
 
 class TestChipConservation:

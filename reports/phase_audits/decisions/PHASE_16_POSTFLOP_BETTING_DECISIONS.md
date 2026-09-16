@@ -1811,7 +1811,7 @@ condition on its verdict that the phase is worth committing at all, and it is fi
 `NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED`, owned by phase 16 and
 still open. Committing the sample without it would close a phase on its own reviewer's one
 condition unmet, which is the shape
-`A-CLOSING-PHASE-LEAVES-ITS-OWN-BACKLOG-ITEMS-DEFERRED-AND-NOTHING-SEES-IT` describes.
+`BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE` describes.
 
 **The cost, re-derived here rather than carried from the ExecPlan's bootstrap, which understated
 it.** The bootstrap says "about 16 minutes a flop". That figure is the **monotone** rate and the
@@ -1841,3 +1841,158 @@ does not exist: exploitability is already measured and is already the wrong quan
 **What is not decided here.** Whether a frequency divergence, if one appears, halts the phase or is
 recorded and accepted. Nothing is committed against that yet; the diff is measured first and the
 question asked with a number in hand rather than in advance of one.
+
+## 16. The composite still calls itself the fallback, and what the fifth freeze re-open covers
+
+**Ruled by Taylor, 2026-09-16.** Two rulings, taken together because the first needs the second.
+
+### 16a. The name follows the behaviour. `runtime-reversible`
+
+`CompositeStrategy.from_repo` was rewired to `PostflopBettingStrategy` at `dbffd03`. `component_for`,
+`POSTFLOP_COMPONENT` and `strategy_id` were not, so the bot that bets a flop reports itself as the
+one that folds every flop. Measured: the postflop component object is `PostflopBettingStrategy`,
+`component_for('flop')` returns `postflop-fallback`, and `strategy_id` is
+`composite-preflop-chart-postflop-fallback`.
+
+`composite.py:52-56` argues the mismatch is acceptable because "the code prefix on each answer is
+what actually says which one replied". That reasoning does not survive its consumers.
+`generate_postflop_fallback_report.py` is a gate command and a completed phase's required report,
+and it labels every row with `component_for`. Regenerated on today's code it prints, in this order:
+
+```
+Broken out by which component answered. Preflop is the chart, flop through river is the
+fallback, and no query reaches both.
+                                               preflop              postflop
+                                         preflop-chart     postflop-fallback
+...
+Refusal codes, all of them from the chart and none from the fallback:
+  postflop-betting:no-cell-for-this-preflop-line           2
+  postflop-betting:no-committed-river-solution             2
+  postflop-betting:no-committed-turn-solution              2
+```
+
+A sentence saying none of these came from the fallback, with three of them underneath it, under a
+column headed with the fallback's name. The committed copy on disk is dated 2026-09-15 14:52, before
+the rewiring, so nothing is wrong in the repo *today*; it becomes wrong the moment closeout
+regenerates it, inside a phase that is already marked completed. That is the shape maint-30 was
+opened for on phase 14's opening ranges, and the ruling is the same one: the report tells the truth
+or the report changes.
+
+**Ruled: the name and the id both move.** The string lives in exactly two places -
+`composite.py:71` and `tests/test_simulator.py:68` - which is why this is ruled now rather than
+filed. It is the last moment it is a two-line change.
+
+The poker reason it is not cosmetic: a reader of that report is deciding whether the bot's flop play
+is worth studying. "postflop-fallback" names a component whose whole behaviour is to fold the flop.
+A reader who believes the column has no reason to look at the flop rows at all.
+
+### 16b. The fifth freeze re-open, and why it is wider than the four before it
+
+The four previous re-opens were each one named correction. This one is **eleven corrections across
+four files plus four added cases**, and the width is the finding rather than a convenience.
+
+**It is ten red behaviour tests, not the seven the bootstrap names.** Three more sit in
+`test_postflop_query_recording.py::TestThePreflopRaiserHasAFlopSpotAtAll`, failing on
+`ValueError: this line ends at BB's turn rather than BTN's` - the action-order check, not missing
+data. They were being counted among the data reds. The irony is exact: the class decision 8's own
+amendment added, to prove the preflop raiser has a flop spot at all, is the class the new
+action-order check refuses, because its helper passes an empty flop line for both heroes and the
+raiser's spot is reached only after BB checks. The code is right and says so in
+`postflop_key.py:340-343`.
+
+**One of the seven is not a test correction at all.** `test_a_refusal_names_the_spot_the_chart
+could_not_answer` asserts a refusal carries `hand_class`; the detail now carries board and preflop
+line and no hand class. No ruling anywhere licenses that. The one contract line on the subject
+(line 196-197) points the other way, and the backlog entry it cites lifts `hand_class` **out** of
+the inventory grouping key, so it cannot fragment the inventory - which was the only argument for
+dropping it. Measured: 10 of 11 postflop inventory rows now read `classes: ()`, and three refusal
+codes carry no detail whatsoever. **That is a code defect and is repaired in the code.** The
+vocabulary it must use - the 169 preflop-style labels the inventory column already speaks, not the
+1,176-combo postflop label - is `runtime-reversible` and proceeds on that recorded default.
+
+**One test is green and asserting something false**, which is worse than any of the reds:
+`test_component_for_routes_preflop_to_the_chart_and_the_rest_to_the_fallback` passes while
+asserting the label 16a corrects. It is in the re-open.
+
+**The four added cases.** Nothing in this repo calls `run_solve`, so none of the four fail-closed
+guards repaired today is covered by anything. Measured rather than argued: restore the
+`.get(key, default)` defaults and `pytest tests/test_postflop_solve_driver.py` still reports 15
+passed and 6 errors, unchanged. A mutation canary cannot help, because a canary is only as good as
+the test it points at and there is no test to point at. Four cases against a dict-returning
+transport, no server and no network, are the cheapest real proof and the only one; the solve run
+itself is a positive control showing the guards do not refuse a healthy server, and is recorded in
+the packet as that and nothing more.
+
+**What this costs at the table if it is skipped**, which is the reason it was ruled rather than
+filed: a `/api/status` that omits `exploit_pct` used to read as 0.0% of pot - better than the 0.3%
+target - so a cell that was never solved committed as converged, and the bot would play it as
+studied strategy. The guard against that is now the only thing standing between a silent server and
+a committed cell, on a machine where GTOpen's own memory guard cannot fire at all.
+
+## 17. The big blind's calling range is a known defect, and every flop cell is solved against it
+
+**Ruled by Taylor, 2026-09-16.** `frozen-into-data` for the sample; the measurement it adds is
+`runtime-reversible`.
+
+**Ruling.** The sample is solved against the committed range, and the phase additionally re-solves
+one cheap cell against a widened big-blind calling range and diffs the flop strategy, so the cost of
+the defect is a number rather than an acknowledgement.
+
+**What was found, measured by the coordinator at the exact export node this phase reads.** The big
+blind facing a 2.5bb button open, from `gtopen_six_max_100bb_rakefree.gtx.gz`:
+
+| action | weighted combos | share of all hands |
+| --- | --- | --- |
+| fold | 840.0 | 63.3% |
+| call | 279.6 | **21.1%** |
+| 3-bet | 206.4 | 15.6% |
+
+Total defence **36.7%**. Only the call branch becomes the postflop out-of-position range, so the
+solve's OOP input is 21.1% of hands, 49 classes after the 1% class-level floor.
+
+**This is already a recorded defect of the committed chart, not a new discovery.** The derived chart
+report's own accepted-defects list says it outright:
+
+> defect · the big blind over-folds against every opener · it defends 25.70 to 48.39 percent where
+> rake-free solves are roughly 40 through 65, and its flat barely moves with who opened
+
+36.7% sits inside that band and below the reference floor. The measurement above is the same defect
+read at the one node phase 16 consumes, which nothing had done.
+
+**Why this is the phase's central poker risk rather than an inherited annoyance.** The four committed
+cells are hero's flop strategy *against this range*. A range that folds too much preflop does not
+merely arrive smaller; it arrives **stronger**, because the hands it dropped are the weak half -
+suited gappers, weak broadways, the small suited aces that are not wheel aces. A solver facing a
+range that is too strong produces a specific and predictable distortion, and it is not a rounding
+error:
+
+- the button continuation-bets **less** often and smaller, because a stronger caller folds less to a
+  c-bet;
+- the big blind check-raises **more**, because its range supports it;
+- both errors point the same way, and a student drilling against the committed cells learns to
+  c-bet too little against a field that in fact defends too wide.
+
+That is the opposite of the leak most players have, so the training value is not merely reduced, it
+is inverted at the decision the phase exists to teach.
+
+**Why the sample still runs.** The defect is the preflop chart's and phase 16 cannot fix it; the
+conditioning work is already filed as `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP`, which phase
+16 owns and which decision 12's floor already depends on. Halting the sample would leave the
+harvest, the writer and the strict importer unproven while changing nothing about the range. The
+sample proves the pipeline; it does not certify the poker, and the report must not let a reader
+confuse the two.
+
+**Why the extra measurement was ruled rather than filed.** Nothing in this repo knows how far a flop
+strategy moves when the calling range widens. The claim "the committed cells are distorted" is
+currently an argument from first principles, and this phase has twice found that an argument from
+first principles was worth less than one measurement. The cost is one solve on the cheapest board -
+the monotone cell converged at 318 iterations in 450 seconds, so about eight minutes - and the output
+is a per-action frequency diff against a cell already in hand. If the flop strategy barely moves, the
+inherited defect is a preflop problem and the committed cells are worth studying. If it moves a lot,
+the phase has the number that says the sample is a pipeline proof and nothing more, and the next
+phase has its brief.
+
+**What is not decided here.** What counts as "widened", beyond that it is the same node read with the
+fold branch's near-miss hands returned to the call branch, and that the widening is a measurement
+input rather than a committed range. Nothing derived from the widened range is committed under
+`data/artifacts/postflop/**`; only the diff is reported.

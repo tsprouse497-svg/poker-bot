@@ -622,9 +622,11 @@ class TestThePreflopRaiserHasAFlopSpotAtAll:
         return owed(key_module, "completed_preflop_line")(6, 100, hero, built)
 
     def key(self, key_module, hero: str) -> str:
+        # Contract: "the blinds act first once the flop is out", so a c-bet keys `f:BB:check`.
         line = self.line(key_module, hero)
+        flop = () if hero == "BB" else (owed(key_module, "FlopAction")("BB", "check"),)
         return owed(key_module, "postflop_spot_key")(
-            line, ("Kc", "7d", "2h"), (), line.pot_bb, line.effective_stack_bb
+            line, ("Kc", "7d", "2h"), flop, line.pot_bb, line.effective_stack_bb
         )
 
     def test_the_raiser_keys_rather_than_refusing(self, key_module) -> None:

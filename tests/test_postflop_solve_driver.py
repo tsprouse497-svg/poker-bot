@@ -122,6 +122,151 @@ class TestTheSolveDriverRefusesBeforeItSolves:
 
 
 # --------------------------------------------------------------------------- #
+# What the driver does with a field the server did not send
+# --------------------------------------------------------------------------- #
+
+
+class ScriptedServer:
+    """A GTOpen that answers from a script rather than from a socket.
+
+    One list of answers per route, the last entry repeating, so a poll loop needs no padded
+    script. No server, no network and no real clock: `run_solve` takes its transport, its
+    `now` and its `sleep` as arguments precisely so a guard can be exercised in milliseconds.
+    """
+
+    def __init__(self, **routes: list[dict]) -> None:
+        self.script = {f"/api/{name}": list(answers) for name, answers in routes.items()}
+        self.calls: list[str] = []
+
+    def __call__(self, path: str, body: dict | None = None) -> dict:
+        self.calls.append(path)
+        answers = self.script.get(path, [{}])
+        return answers.pop(0) if len(answers) > 1 else answers[0]
+
+
+HEALTHY_STATUS = {"state": "complete", "exploit_pct": 0.24, "iteration": 240}
+"""What a server that finished answers: not running, under the 0.3%-of-pot target, inside the
+1,200-iteration cap. Every case below removes or spoils exactly one field of this, so the case
+is that one change and nothing else."""
+
+
+def a_plan(driver_module):
+    """One flop `plan_refusals` passes, so a case reaches the transport rather than the
+    pre-flight. The board and the line are the committed sample's own."""
+    return owed(driver_module, "SolvePlan")(
+        label="Kh7d2c single-raised",
+        board="Kh7d2c",
+        preflop_line="t6/d100/BB/BTN:raise@2.5,BB:call",
+        range_oop="AA:1",
+        range_ip="AA:1",
+        starting_pot=5.5,
+        effective_stack=97.5,
+    )
+
+
+def run_against(driver_module, server):
+    """`run_solve` against a scripted server, with the clock and the sleep stubbed out."""
+    return owed(driver_module, "run_solve")(
+        a_plan(driver_module), server, sleep=lambda _: None, now=lambda: 0.0
+    )
+
+
+class TestTheDriverRefusesAFieldTheServerDidNotSend:
+    """Decision 16b, ruled by Taylor 2026-09-16, as an addition rather than a correction.
+
+    Nothing in this repo calls `run_solve`, so none of the four fail-closed reads committed at
+    `abc6603` is covered by anything. Measured before the ruling: restore all four
+    `.get(key, default)` defaults and this file still reports what it reports now.
+
+    Each of those defaults passed the guard it fed. An absent `arena_mb` planned a zero-byte
+    tree, so the memory ceiling - the whole reason the tree is built before it is solved -
+    cleared trivially. An absent `exploit_pct` read as 0.0% of pot, better than the target, so a
+    cell that was never solved classified as converged and committed, and the bot would play it
+    as studied strategy. An absent `iteration` read as zero, under the cap. An absent `state`
+    ended the poll on its first look, which makes a mid-solve reading the final one.
+
+    A mutation canary cannot stand in for these, because a canary is only as good as the test it
+    points at and there was no test to point at. Each case asserts that the refusal names **both**
+    the route and the field: one saying only that something was missing sends nobody anywhere.
+    """
+
+    def test_a_healthy_server_solves_rather_than_refusing(self, driver_module) -> None:
+        """The positive control, and it is load-bearing: all four cases below would also pass
+        against a driver that refused every answer it was ever handed."""
+        server = ScriptedServer(status=[HEALTHY_STATUS], spot=[{"arena_mb": 1.0}], solve=[{}])
+
+        outcome = run_against(driver_module, server)
+
+        assert outcome.exploit_pct_of_pot == pytest.approx(0.24)
+        assert outcome.iterations == 240
+        assert server.calls[:3] == ["/api/status", "/api/spot", "/api/solve"]
+
+    def test_a_spot_answered_without_arena_mb_is_refused(self, driver_module) -> None:
+        """The arena is the only number the memory ceiling ever sees. Defaulted to 0.0 it
+        planned a zero-byte tree, which clears any ceiling."""
+        server = ScriptedServer(status=[HEALTHY_STATUS], spot=[{}], solve=[{}])
+
+        with pytest.raises(owed(driver_module, "SolveDriverError")) as raised:
+            run_against(driver_module, server)
+
+        assert "/api/spot" in str(raised.value) and "arena_mb" in str(raised.value)
+
+    def test_a_status_answered_without_state_is_refused(self, driver_module) -> None:
+        """Read twice: once before `/api/spot` to refuse a server already mid-solve, and once a
+        poll to decide whether the solve is still running. Absent, both readings invert."""
+        server = ScriptedServer(
+            status=[{"exploit_pct": 0.24, "iteration": 240}], spot=[{"arena_mb": 1.0}], solve=[{}]
+        )
+
+        with pytest.raises(owed(driver_module, "SolveDriverError")) as raised:
+            run_against(driver_module, server)
+
+        assert "/api/status" in str(raised.value) and "state" in str(raised.value)
+
+    def test_a_status_answered_without_exploit_pct_is_refused(self, driver_module) -> None:
+        """The one that reaches committed data. 0.0% of pot is better than the 0.3% target, so
+        the cell classifies as converged and is committed as solved poker."""
+        server = ScriptedServer(
+            status=[{"state": "complete", "iteration": 240}], spot=[{"arena_mb": 1.0}], solve=[{}]
+        )
+
+        with pytest.raises(owed(driver_module, "SolveDriverError")) as raised:
+            run_against(driver_module, server)
+
+        assert "/api/status" in str(raised.value) and "exploit_pct" in str(raised.value)
+
+    def test_a_status_answered_without_iteration_is_refused(self, driver_module) -> None:
+        """Defaulted to zero it sits under the 1,200 cap, so a capped solve reports as one that
+        converged early and the index's iteration count becomes fiction."""
+        server = ScriptedServer(
+            status=[{"state": "complete", "exploit_pct": 0.24}], spot=[{"arena_mb": 1.0}],
+            solve=[{}],
+        )
+
+        with pytest.raises(owed(driver_module, "SolveDriverError")) as raised:
+            run_against(driver_module, server)
+
+        assert "/api/status" in str(raised.value) and "iteration" in str(raised.value)
+
+    def test_an_exploit_pct_that_is_not_a_number_is_refused_rather_than_parsed(
+        self, driver_module
+    ) -> None:
+        """The fifth case, and it is a different guard from the four: presence is not enough.
+        A string that would parse is refused too, because the comparison against the target -
+        not the parse - is what this field feeds."""
+        server = ScriptedServer(
+            status=[{**HEALTHY_STATUS, "exploit_pct": "0.24"}], spot=[{"arena_mb": 1.0}],
+            solve=[{}],
+        )
+
+        with pytest.raises(owed(driver_module, "SolveDriverError")) as raised:
+            run_against(driver_module, server)
+
+        assert "/api/status" in str(raised.value) and "exploit_pct" in str(raised.value)
+        assert "not a number" in str(raised.value)
+
+
+# --------------------------------------------------------------------------- #
 # The configuration the driver was pointed at, committed beside the data
 # --------------------------------------------------------------------------- #
 
