@@ -1,5 +1,70 @@
 schema_version: 1
 items:
+  - id: THE-CITATION-CHECK-CANNOT-BE-WARNED-ABOUT-IN-THE-TREE-IT-CHECKS
+    status: deferred
+    phase: contract-update
+    title: Backlog integrity reads any hyphenated capitalised token as a citation, and the warning about it trips it
+    reason: >-
+      quality_checks.py recognises a backlog citation by the SHAPE of a backlog id, so any hyphenated
+      all-caps token anywhere in docs or reports is read as a citation and reddens the gate if no item
+      declares it. Its own self-description admits the converse - a finding described in prose without
+      an id is invisible to it - but not this direction.
+      It cost three gate reds in one session on 2026-09-16. A hand range written as two capitalised
+      ranks joined by a hyphen. The name of a poker action written in capitals for emphasis inside a
+      backlog entry. And then, once, inside the sentence written into the ExecPlan to warn the next
+      session about the first two - the warning could not name its own example without becoming an
+      instance of it. A 2026-09-04 scope entry records the same trap against a quoted literal in a
+      decision record, so this is at least the second session to lose time to it.
+      There is no escape syntax. A prose token cannot be marked as not-a-citation, so the only
+      available defence is to avoid capitalising anything hyphenated anywhere in the documentation
+      tree - which is a rule nobody can follow reliably and which no check enforces until after the
+      fact. The check is right to exist: an id that resolves to nothing has recorded nothing, and that
+      is a real failure worth catching.
+      Two fixes are obvious and either would do. Require citations to be marked, in backticks or
+      brackets, and read only marked tokens - which is a one-time sweep of existing citations. Or keep
+      the shape rule and add an escape, so a token can be written as prose deliberately. The second is
+      cheaper and the first is better, because the shape rule is what makes an unmarked id look like a
+      citation to a human reader too. Filed 2026-09-16 by the coordinator, after tripping it three
+      times.
+
+  - id: RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET
+    status: deferred
+    phase: contract-update
+    title: The committed chart gives the blinds a 7.5bb 3-bet, and that one field is what breaks the postflop input
+    reason: >-
+      Ruled by Taylor 2026-09-16 as phase 16's decision 19, and it is the task that unblocks phase 16,
+      which is halted at stage 6 waiting for it.
+      The committed export's ruled config sets raise_mults [3.0] globally, so the big blind's only
+      3-bet against a 2.5bb open is 7.5bb where a realistic one is 13.5. The consequence is not a
+      preflop cosmetic: the big blind's CALL branch is the entire out-of-position input to every
+      postflop solve, and at 7.5bb it holds no set and no overpair - every pocket pair AA through 55
+      reads exactly 1.0000 on the 3-bet branch and only 44 and 33 flat. Phase 16 solved a real cell
+      against it and hero's c-bet came out at 99.94% of range with no combo checking more than 20%.
+      The fix is one field, measured rather than proposed. raise_mults_by_seat with 5.4 on the two
+      blind seats puts the 3-bet at 13.5bb: pocket pairs in the call branch go 12.0 of 78 weighted
+      combos to 39.9 against a committed reference's 43.4, sets on 9c8c7c go 0.00 combos to 7.40
+      against 8.34, the signed 3-bet bias on pairs goes +0.4025 to +0.0451, and the 3-bet frequency
+      lands at 12.91% against the reference's 12.89%. Established against a baseline solve that
+      reproduced the committed export at 0 basis points of strategy and reach divergence, converging
+      at iteration 1900 to the source card's own achieved_gap_bb digit for digit, and isolated by a
+      control run applying the same multiplier to the button only, which reproduces the 40.5bb 4-bet
+      side effect and shows no gain at all.
+      Two things the adopting task must rule on rather than inherit. raise_mults_by_seat is per SEAT
+      and not per raise DEPTH, so one multiplier sets a seat's 3-bet, its 5-bet and everything
+      between; there is no setting giving the big blind a 13.5bb 3-bet, the button a sane 4-bet and
+      both an undistorted opening range at once, and the measured run carries a 40.5bb 4-bet it
+      should not have. And the button opens 37.36% in that run against the committed 39.27%, which
+      flatters the result slightly in the direction that makes flatting better.
+      What this does NOT fix, and must not be reported as fixing: the big blind still over-folds,
+      total defence moving only 36.65% to 37.33% against a rake-free reference band of roughly 40 to
+      65. And the SPR blindness in
+      THE-PREFLOP-CHART-CANNOT-PRICE-A-FLAT-AGAINST-A-THREE-BET-AND-ITS-CALL-BRANCH-IS-NOISE survives
+      structurally - 33 still 3-bets 79% while 44 and 22 flat, and 9 genuinely mixed classes against
+      the reference's 40.
+      Scope: re-solving re-derives the export, its source card, the derived chart, the committed
+      charts and every downstream report, across phases 10 and 14. It is contract-update then
+      implementation and it is why phase 16 halted rather than widening into it.
+
   - id: THE-UNPLAYABLE-SIZE-CANARY-CANNOT-BITE-ON-A-BET-IT-ONLY-BITES-ON-A-RAISE
     status: deferred
     phase: 16

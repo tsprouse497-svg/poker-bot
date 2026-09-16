@@ -322,80 +322,98 @@ Not yet. Stage 4 closed 2026-09-14; stage 5, the freeze, next.
 
 ## Next Agent Bootstrap
 
-**This section is the single source for what is true now.** Rewritten 2026-09-16.
+**This section is the single source for what is true now. Rewritten 2026-09-16 (second rewrite
+that day), replacing one that was accurate when written and wrong by the end of the session.**
 
 - Worktree `~/projects/poker-bot-worktrees/phase-16`, branch `phase/16-postflop-that-can-bet`.
   Never work in `~/projects/poker-bot`, which holds `main`.
-- Next command: `uv run python scripts/loop_stage.py --phase 16`. Six lanes have pointers in this
-  worktree, so `--phase 16` is required.
-- **Stage 6, the build, still open.** `task_mode: implementation`, `base_commit` `95122e3`,
-  `stage_base` `01f6ee4`, HEAD `dbffd03`. Suite: **1,363 passing, 38 failed, 22 errors.**
-- `tests/**` and `verification/**` are frozen and out of `approved_scope`. They were re-opened
-  four times, each for one named correction with a dated `scope_change_log` entry and a re-freeze.
-  Do not edit a frozen test without that ceremony, and never to make your own change pass.
+- Next command: `uv run python scripts/loop_stage.py --phase 16`. Six lanes have pointers here.
+- **The lane is HALTED at stage 6 and the halt is on the pointer.** `verification/loop_runs/16.yml`
+  carries `loop: halted` with the reason. It resumes with `--resume`, not `--start`, and only once
+  the blocker below is gone. `task_mode: implementation`, HEAD `01adf9b`.
+- Suite: **28 failed, 1379 passed, 4 skipped, 22 errors.** Every single red is a data red and
+  honest - there is no committed sample, on purpose. `run_full_quality_gate.py` exits 0.
 
-### What is done
+### The blocker, which is the only thing standing between this phase and its gate
 
-Stages 0-5 are closed. Stage 4 took **ten blockers** across three independent reviews and every
-one is resolved; `stage-04-tests.md` is the record. Stage 6 has built the spot key, the artifact
-reader, the solve driver's guards, the betting strategy, and the report generator, and repaired
-four of its own six review blockers.
+**Taylor's decision 19: the committed preflop chart is re-solved before phase 16 commits any cell.**
 
-Three rulings landed mid-stage and each re-derives something:
-- **Decision 8 amended.** The key carries the completed preflop line, not a preflop spot key. Until
-  that, the bot could not continuation-bet at all - the spot could not be named. Every committed
-  key moved, which is why it had to happen before a solve.
-- **Decision 6 item 4 amended.** A fourth sample file is allowed, still three flops, and the boards
-  are committed as canonical representatives.
-- **Decision 14 ruled.** A faced bet matches the menu within five points of pot, inclusive.
+The chart's big-blind calling range is the entire out-of-position input to every flop solve, and it
+holds no set and no overpair. Every pocket pair from aces down to fives reads *exactly* 1.0000 on the 3-bet branch;
+only 44 and 33 flat. Hero's solved c-bet on `9c8c7c` came out at **99.94% of range with no combo
+checking more than 20%** - the solver correctly exploiting a broken input, not a bug in our code.
 
-### What is open, in the order to take it
+The cause is GTOpen's, in source: `crates/solver/src/preflop/mod.rs:1131-1139` prices realization as
+`class_r(h, posw)` - hand class and a static positional weight, nothing else. The SPR-aware
+`seat_mult` at `:328` is marked KEPT FOR ANALYSIS ONLY and is deliberately off the solve path.
 
-1. **W4 and W5**, whose lane stalled and which touched neither file. **W4**: the report's
-   `servable` column is incremented on the line after `arrivals`, under one condition, so the two
-   are equal by construction while the report says "the two orders are not the same order" -
-   compute it or delete it. **W5**: `postflop_solve_driver.py` reads `arena_mb` and `exploit_pct`
-   with a default of `0.0`, so a server that did not answer plans a zero-byte solve past the memory
-   ceiling and reads as perfectly converged. Fail closed.
-2. **Seven frozen tests of completed phases, red as the honest consequence of stage 6.** Each needs
-   a correction authorised by a ruling, and **not** by whoever wrote the change that reddened it.
-   - `test_postflop_key.py`, two in `TestWhatTheKeyCarries`: they build a flop line with `BTN`
-     acting before `BB`, which the new action-order check correctly refuses. The fix is one
-     argument each - `(BB:check, BTN:bet@33)`.
-   - `test_postflop_fallback_components.py`, two in `TestComposite`: they assert the composite
-     answers postflop with the fallback. It no longer does.
-   - `test_simulator.py`, three: they assert a hand reaches showdown. With the betting strategy
-     wired and no committed cell, a session gives 25 uncontested, 11 refused, **0 showdowns**.
-   The stage-4 migration sweep looked for tests asserting the **query shape** and found three. These
-   seven assert **behaviour**, which no sweep looked for. That gap is worth filing.
-3. **The consolidated stage-6 review note** at
+**The fix is one config field and it is measured.** `raise_mults_by_seat = [[],[],[],[],[5.4],[5.4]]`
+gives the blinds a 13.5bb 3-bet instead of 7.5bb: sets on `9c8c7c` go 0.00 to **7.40 combos** against
+a committed reference's 8.34, and the pair bias +0.4025 to **+0.0451**. Reproduced against a baseline
+that returned **0 bp** divergence from the committed export, and isolated by a control run that
+reproduces the 40.5bb 4-bet side effect alone and shows no gain.
+
+**It is not this task's to do.** `data/artifacts/preflop/**` is phases 10 and 14's committed data
+and re-solving it re-derives the export, the source card, the derived chart, the committed charts and
+every downstream report. It needs its own task in `contract-update` then implementation. Decision 19
+carries the full reasoning, the control, and the per-seat-versus-per-depth wart the adopting task
+must rule on rather than inherit.
+
+### What is done, and it is most of the phase
+
+Stages 0-5 closed. Stage 6 built and repaired everything except the data:
+
+- The spot key, the artifact schema and its strict importer, the solve driver, `postflop_transport.py`,
+  the betting strategy, the report generator, `postflop_harvest.py`, `scripts/solve_postflop_sample.py`.
+- **The pipeline is proven end to end on a real solve.** `9c8c7c` converged in 7.7 minutes at 320
+  iterations to 0.2954% of pot, harvested to 160 classes, wrote a cell that re-imports clean and
+  re-harvests byte-identical. The cell was discarded for its input, not its machinery. It is kept
+  outside the repo at the session scratchpad as `postflop-unconditioned-range-2026-09-16`.
+- Four fail-open reads in the solve driver closed and now covered by six added cases whose bite is
+  proven: with the old defaults, a missing `arena_mb`, `exploit_pct`, `iteration` or `state` each
+  returned `converged-to-target`.
+- The report's fabricated `servable` column, the composite's name (it ran the betting strategy while
+  calling itself the fallback through a completed phase's gate report), and the refusal details that
+  had stopped naming the hand.
+- Eleven frozen tests corrected across five files under the fifth re-open, plus a sixth re-open for
+  the schema. Decision 18 welded each committed action to its own size - half the ruled bet menu was
+  unreachable, 29 of 160 classes wanting the 75% bet and getting 33%.
+
+### What is open once the chart lands
+
+1. Re-derive the ranges, re-solve the four cells plus decision 18b's fourth-board index-only cell,
+   and commit. Decision 15 also owes the deep convergence check: one cell re-solved to the 1,200 cap
+   with its frequencies diffed against its 240-iteration run.
+2. The consolidated stage-6 review note at
    `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-06-build.md`, which the driver
-   requires and which does not exist. The two component notes are on disk.
-4. **The solve.** `data/artifacts/postflop/**` is the one path no lane opens on its own judgment
-   and it is deliberately not in `approved_scope`. Four cells on three flops: caller first to act
-   betting, caller facing a bet raising, a two-tone board separating a flush draw from the same
-   ranks without one, and a raiser c-betting. About 16 minutes a flop at 240 iterations on this
-   machine; **no rental is needed for the sample** - the machine note rules that stages 4 through 6
-   need none.
-5. Stages 7-11: gate, `check_gate_bite`, two reviews, packet, closeout, advance.
+   requires and which still does not exist. **Nobody who wrote any of this may write it.**
+3. Regenerate the solver export source card. Its `headroom_bytes` counts the whole artifact tree and
+   reds **six** tests once any flop artifact lands, not the one the contract budgets for by name.
+4. Stages 7-11.
 
 ### Things that will bite you
 
-- **Three mutation canaries name lines verbatim** and `verification/**` is frozen:
-  `if not 0.0 <= weight <= 1.0:` and `if size_chips > hero_street_bet + hero_stack:` in
-  `postflop_artifact.py`, `printed_spot_count = len(cells)` in the report generator. Both artifact
-  canaries' witnesses are red for want of data, so `check_gate_bite` cannot prove they bite until
-  the sample lands.
-- **The 500-line module cap has forced two extractions in this stage** and three files sit at 495
-  to 500. `test_postflop_key.py` is at exactly 700. Budget early; do not compress prose to fit.
-- **A unit trap.** The key renders a bet size as a percent (`@33`); `FLOP_BET_MENU` and
-  `match_menu_fraction` are fractions (`0.33`). Both are pinned by frozen tests.
-- **`REASON_CODES` in `postflop_artifact.py` is dead** - nothing in `src`, `scripts` or `tests`
-  reads it, so a code added there is checked by nothing.
-- **Taylor's 2026-09-16 direction**, filed as
-  `THE-BOT-MUST-EVENTUALLY-PLAY-AN-UNCOVERED-SPOT-RATHER-THAN-REFUSE-IT`: the bot will eventually
-  play uncovered spots on heuristics with similar spots merged. That needs two boundary amendments
-  in `contract-update` mode and is **not** this phase's. Phase 16 refuses.
+- **Four files sit at exactly their cap** with zero headroom: `postflop_artifact.py`,
+  `postflop_betting.py` at 500, `test_postflop_artifact.py`, `test_simulator.py` and
+  `test_postflop_query_recording.py` at 700. The next line added to any of them reds
+  `check_file_sizes`. Extraction is ruled and has happened four times this stage; never compress prose.
+- **`ruff format` is not in the gate** and 39 of 50 test files fail it. A file "at its cap" may have
+  headroom the formatter would surface - that is how `test_postflop_key.py` got its two corrections.
+- **Backlog integrity reads any hyphenated all-caps token in prose as a backlog citation.** It cost
+  three gate reds in one session: a hand range written as a pair of capitalised ranks, and twice the
+  name of a poker action written in capitals - once inside the sentence warning about it. There is no
+  escape syntax, so the only defence is to write such things in lower case or in words. Any warning
+  about this that names an example is itself a gate failure, which is why this one does not.
+- **`postflop_betting.py` has no mutation canary at all** - the module that decides whether the bot
+  bets. And `postflop-unplayable-size-imports` cannot bite on a `bet`: the on-menu and unplayable
+  checks are jointly unsatisfiable there. `check_gate_bite` will find the second at stage 7.
+- **A unit trap.** The key renders a bet as a percent (`@33`); `FLOP_BET_MENU` and
+  `match_menu_fraction` are fractions (`0.33`); `CellAction` now carries `size_bb` as well. Three
+  units, all pinned by frozen tests. `postflop_committed.py:237` is the seam.
+- **Re-measure every finding before acting on it**, including every figure in this section. Two of
+  this session's largest moves came from re-measuring something a previous session had written down
+  correctly at the time: the "about 16 minutes a flop" was the monotone rate only, and decision 11's
+  arena at 90.5% of the ceiling is 45% at the menu actually ruled.
 
 ### What the fold-in rewrite has to absorb
 

@@ -2072,3 +2072,69 @@ and pays back about 33% more iterations, so the saving per solve is far smaller 
 suggests, and **every campaign estimate in this phase built on 240 iterations is low.** The 45-to-85
 day band in decision 11 is not corrected here, because correcting it needs a rainbow measurement
 this phase has not taken; it is flagged as low rather than restated.
+
+## 19. The preflop chart is re-solved, and phase 16 halts until it is
+
+**Ruled by Taylor, 2026-09-16.** `frozen-into-data`, and the data is a completed phase's.
+
+**Ruling.** The committed preflop chart is re-solved with a realistic blind 3-bet size. Phase 16
+does not solve its cells against a range the repo's own chart does not produce, and does not commit
+a sample until that chart exists.
+
+**The measurement this rests on.** `raise_mults_by_seat = [[], [], [], [], [5.4], [5.4]]` on the
+ruled config - one field, leaving every other seat on the global `[3.0]` - puts the big blind's
+3-bet at 13.5bb against a 2.5bb open instead of 7.5bb:
+
+| | committed 7.5bb | re-solved 13.5bb | committed reference |
+| --- | --- | --- | --- |
+| fold / call / 3-bet | 63.35 / 21.09 / 15.57 | 62.67 / **24.41** / **12.91** | 60.57 / 26.54 / 12.89 |
+| pure classes | 153/169 | 144/169 | - |
+| genuinely mixed | 3/169 | 9/169 | 40/169 |
+| 3-bet bias, pairs | +0.4025 | **+0.0451** | 0 |
+| pocket pairs in the call branch | 12.0 of 78 | **39.9 of 78** | 43.4 of 78 |
+| **sets on `9c8c7c`** | **0.00 combos** | **7.40 combos** | 8.34 combos |
+
+The experiment is trustworthy because the baseline was reproduced first: a fresh solve of the
+committed config returned **0 basis points** of strategy and reach divergence against the committed
+export, converging at iteration 1900 to a gap of 0.00015590818199695747 - the source card's recorded
+`achieved_gap_bb`, digit for digit.
+
+It was also controlled. The same field pushes the button's 4-bet from 22.5bb to 40.5bb, which points
+the same way as the effect being measured. A third run applying the 5.4x to the **button only**
+reproduces the 40.5bb 4-bet while leaving the 3-bet at 7.5bb, and shows **no gain at all**: 0.00
+sets, pair bias +0.3816. The 13.5bb 3-bet is what moves the pairs.
+
+**Why the cells are not solved against the new range with the chart left alone.** That was the
+cheaper option and it was put to Taylor as such. It produces a bot whose preflop play 3-bets 7.5bb
+while its own flop cells are solved assuming the opponent 3-bet 13.5bb, so a student drills correct
+flop play against a preflop opponent this bot is not. The inconsistency would live inside one
+artifact tree and be invisible at the table, which is the kind that survives.
+
+**What is not fixed by this and must not be read as fixed.** The big blind still over-folds:
+total defence moves 36.65% to 37.33% against a rake-free reference band of roughly 40 to 65. That is
+a separate and larger defect of the chart, already on the derived chart report's accepted-defects
+list, and one point is not a repair. And the SPR blindness is structural and survives - 33 still
+3-bets 79% while 44 and 22 flat, and 9 genuinely mixed classes against the reference's 40. A bigger
+3-bet costs more chips; it does not teach the model what an SPR is.
+
+**A wart the adopting task must rule on rather than inherit.** `raise_mults_by_seat` is per *seat*,
+not per raise depth, so one multiplier sets a seat's 3-bet, its 5-bet and everything between. There
+is no setting that gives the big blind a 13.5bb 3-bet, the button a sane 4-bet, and both an
+undistorted opening range at once. The run above carries a 40.5bb 4-bet it should not have, and the
+button opens 37.36% against the committed 39.27%, which flatters the result slightly in the
+direction that makes flatting better. The effect is far too large to be explained by two points of
+opening range, but it is not zero and the adopting task re-derives it rather than quoting this
+table.
+
+**Why phase 16 halts rather than doing it.** `data/artifacts/preflop/**` is a completed phase's
+committed data and is not in this task's `approved_scope`. Re-solving it re-derives the export, the
+source card, the derived chart, the committed charts and every downstream report - phases 10 and 14
+- and widening a stage-6 implementation task into that is exactly the move the scope model exists to
+stop. It is its own task, in `contract-update` then implementation, and phase 16 resumes when it has
+a range worth solving against.
+
+**What phase 16 keeps.** Everything except the data. The spot key, the artifact schema and its
+strict importer, the solve driver with its four guards, the harvest, the writer, the runner, the
+betting strategy, the report, and eleven corrected frozen tests. The pipeline was proven end to end
+on a real solve that converged in 7.7 minutes to 0.2954% of pot; the cell it produced was discarded
+because of its input, not its machinery.
