@@ -1,5 +1,37 @@
 schema_version: 1
 items:
+  - id: THE-PREFLOP-CHART-CANNOT-PRICE-A-FLAT-AGAINST-A-THREE-BET-AND-ITS-CALL-BRANCH-IS-NOISE
+    status: deferred
+    phase: contract-update
+    title: GTOpen prices realization by class and seat only, so which branch a hand takes is unmodelled
+    reason: >-
+      Measured at the big blind's node facing a 2.5bb button open in the committed export: 153 of 169
+      classes are pure at max weight 0.9995 or above, and 3 are genuinely mixed below 0.95. The
+      committed GTO Wizard reference for the same spot has 40 genuinely mixed. Against that reference
+      the total DEFENCE weight differs by more than half on only 8 of 169 classes, while among the 80
+      classes both defend above 90 percent the share of that defence which is a three-bet differs by
+      more than half on 37, mean absolute difference 0.4523, signed mean +0.2196 toward three-betting
+      and +0.4025 on pocket pairs. So the chart knows which hands to play and does not know which
+      branch to put them on.
+      The cause is in GTOpen's source rather than in its convergence.
+      crates/solver/src/preflop/mod.rs:1131-1139 computes a hand's realization as
+      fit.class_r(h, posw) - the hand class and a static positional weight, and nothing else. The
+      richer seat_mult, which takes SPR, initiative and range equity, is marked KEPT FOR ANALYSIS
+      ONLY at :328 and is not called on the solve path, deliberately: the comment records that
+      feeding those correlates back let the solver buy the aggressor premium and validation showed
+      100 percent open rates. So flatting a small pair into a 5.5bb pot at SPR 17.7 and three-betting
+      it into a 15bb pot at SPR 6.2 are priced as realizing equity at the same rate, the whole reason
+      a small pair flats is invisible, and every pair prefers the three-bet. More iterations cannot
+      move it.
+      MAINT-34 improves this a great deal without closing it: a realistic blind three-bet size takes
+      the pair bias from +0.4025 to +0.0451 and the genuinely mixed count from 3 to 9. Nine against
+      a reference's forty is still far too pure, and threes still three-bet while fours and deuces
+      flat. Closing it needs a realization model that can tell a single-raised pot from a three-bet
+      pot, which is a change to GTOpen rather than to its configuration.
+      This matters far beyond a chart's readability. The call branch is the entire out-of-position
+      input to every postflop solve, so a committed flop strategy is solved against the half of the
+      chart that carries the least information. Filed 2026-09-16.
+
   - id: RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET
     status: deferred
     phase: contract-update
