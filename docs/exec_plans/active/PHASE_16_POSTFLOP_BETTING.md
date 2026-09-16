@@ -305,95 +305,80 @@ Not yet. Stage 4 closed 2026-09-14; stage 5, the freeze, next.
 
 ## Next Agent Bootstrap
 
-**This section is the single source for what is true now.**
+**This section is the single source for what is true now.** Rewritten 2026-09-16.
 
 - Worktree `~/projects/poker-bot-worktrees/phase-16`, branch `phase/16-postflop-that-can-bet`.
-  Never work in `~/projects/poker-bot`.
+  Never work in `~/projects/poker-bot`, which holds `main`.
 - Next command: `uv run python scripts/loop_stage.py --phase 16`. Six lanes have pointers in this
-  worktree, so `--phase 16` is required rather than optional.
-- Current state: **stage 4 is done. The next action is `--advance` to stage 5, the freeze.**
-  `task_mode: implementation`, `base_commit` `19beb97`. The tests, the three canaries and both
-  command registrations are committed; three independent reviews are on disk; every blocker is
-  repaired and verified. Nothing is left uncommitted.
-- **What stage 5 does and why it is not a formality.** `tests/**` and `verification/**` leave
-  `approved_scope`, and `check_scope.py` then enforces that an implementer may read a test and
-  never write one. Everything wrong in a test at that moment is preserved exactly, which is why
-  stage 4 here bought two reviews and a verified repair rather than one pass.
-- **The red the next agent will see, and which parts of it are correct.** Outside this phase's own
-  six files the suite has six failures and all six are by design. Five are the migrated tests of
-  completed phases asserting the new query shape - `SeatAction` accepting `bet`, and the decision
-  audit schema at 4 rather than 3 - which stage 6 makes true. The sixth is
-  `test_every_mutation_applies_exactly_once_to_its_file`: the three canaries quote lines stage 6
-  has not written yet, which the contract requires and which stage 6 cannot do instead, because a
-  builder diff under `verification/**` halts the loop. Stage 6 writes each line in the exact form
-  the mutation quotes.
-- **Stage 6 owes six names the frozen tests now require** and none of them existed when the lane
-  plan was written: `committed_class_weights(query)` in the betting strategy, and
-  `MENU_FRACTION_TOLERANCE`, `FLOP_BET_MENU`, `match_menu_fraction` and `menu_size_chips` in
-  `solver_artifacts.postflop_key`. The last four are decision 14's, below.
-- **Decision 14 was taken by the loop on a recorded default, not by Taylor**, and is the second
-  `runtime-reversible` item in the list beside decision 5. The ruled menu is in pot fractions and
-  the table is in chips: 33% of the 550-chip `@2.5` pot is 181.5, which no dealer pushes. A strict
-  equality match kills every faced-bet node at a real table and reads the raise frequency as 0 with
-  no code saying why; a match with no ceiling merges 33% and 50%, which decision 9 measured as
-  costing a caller the difference between needing 19.9% equity and needing 30.0%. The default is to
-  match by pot fraction inside `MENU_FRACTION_TOLERANCE = 0.01`, refuse anything matching no entry
-  rather than snap it to the nearer one, and round an artifact size to the nearest chip. **Reported
-  to Taylor 2026-09-14 and not reversed.**
-- **Three reviews closed stage 3, all independent, all on disk.** `stage-03-human-gate.md`
-  (arithmetic, consistency, attribution, provenance) took eight rounds and keeps 24 findings
-  resolved rather than deleted. `stage-03-decisions-poker.md` judged the poker in every ruling
-  taken after stage 2 and found none of them wrong; its one blocker, the sample's rank axis, is
-  fixed in decision 6 item 4. `stage-03-contract-foldin.md` asked one question of the rewrite -
-  does every obligation that went in come out - built a 61-predicate inventory to answer it, and
-  found two blockers, both now fixed and verified in its round 2. **Read all three before touching
-  a ruling or a criterion**; between them they carry the reasons the decision list and the
-  contract state only as conclusions.
-- **Two rulings were taken by the coordinator rather than by Taylor, and both are reversible.**
-  First, the refusal split: decision 4 says "never solved" and "solved but over 1% of pot" are the
-  same absence at query time, and the contract now reports **two** table causes rather than three,
-  which is decision 4's own second exit. Second, the count of cells the campaign solved and
-  rejected above 1% is published by the report and carried in the committed index's header - added
-  because it is the phase's headline cost result and is knowable at report time even though it is
-  not knowable at query time. The expensive alternative, a committed list of attempted-and-rejected
-  boards, changes the shape of data decision 6 ruled `frozen-into-data` and is Taylor's to answer.
-  Both are reported to Taylor as of 2026-09-10 and neither has been reversed.
-- **A contract fold-in rewrite blocked stage 4 and is done**, committed at `58ed463` with its
-  own independent review closed at `stage-03-contract-foldin.md`. Kept here because the sequencing
-  argument is the part a later phase needs. The stage-3 review counted
-  thirteen amendments now owed against eleven free lines: the contract was at 289 of a 300-line cap,
-  `AGENTS.md` caps an amendment at two lines and forbids raising the cap, and it prescribes a
-  rewrite that folds existing amendments into the criteria they amend as a separate
-  `contract-update` task. `PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP` records how the alternative ends.
-  **Sequencing, corrected 2026-09-10 by the stage-3 review's third round.** A first version of this
-  plan said to close this task at stage 3 and run the rewrite as a separate task. That cannot be
-  executed: `AGENTS.md` Task Closeout steps 1 and 2 require a passing gate, and this gate cannot
-  pass - `phase_status.yml:87` has phase 16 `active`, so `run_verify.py` derives its
-  `required_gate_commands`, and neither `pytest_postflop_betting` nor
-  `generate_postflop_betting_report` is registered in `COMMANDS`. That is the red-by-design state
-  between stage 1 and stage 4, and closing out through it is not available.
-  The rewrite therefore happens **inside this task**, which is already in `contract-update` with
-  `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` in `approved_scope`. `AGENTS.md`'s "its own
-  task" rule exists to stop a rewrite being done mid-amendment to make room; this one is declared
-  ahead of any amendment, in a task already in the right mode, which is the case the rule is not
-  aimed at. Order: fold in, review, then stage 4.
-  **The rewrite owes its own read-only review before stage 4**, and the failure mode is named
-  rather than assumed: `AN-AMENDMENT-TO-A-SKELETON-CONTRACT-IS-DELETED-BY-ITS-OWN-STAGE-1` records
-  this phase's own amendment being eaten by its own contract stage and calls its survival "luck
-  rather than design". A fold-in absorbing thirteen amendments is that risk at thirteen times the
-  scale. The review question is not "is the new contract good" but **"does every amendment that
-  went in come out"**, checked against the decision list and the backlog ids.
-- **Nothing in the decision list is open.** All thirteen items are answered as of 2026-09-10, and an
-  earlier version of this bullet still listed decisions 4 and 6 as open after they had been ruled -
-  the same divergence between a summary and the record that the stage-3 review made its first
-  blocker, relocated into the file `AGENTS.md` sends the next agent to first. That bullet also said
-  decision 4's target was "inherited from phase 10's measurements", which decision 4 establishes at
-  length is false: phase 10's target is a summed best-response gap in big blinds, preflop, and
-  postflop targets a percent of the starting pot. Different engine, different tree, different unit.
-- What is open is not a decision: the contract fold-in rewrite below, and the measurements decisions
-  4, 7 and 11 each say must be re-derived on the rented machine before a run is planned.
-- What this phase must get right up front is the postflop spot key. Adding spots later is additive;
-  changing what the key can express re-derives every committed cell.
+  worktree, so `--phase 16` is required.
+- **Stage 6, the build, still open.** `task_mode: implementation`, `base_commit` `95122e3`,
+  `stage_base` `01f6ee4`, HEAD `dbffd03`. Suite: **1,363 passing, 38 failed, 22 errors.**
+- `tests/**` and `verification/**` are frozen and out of `approved_scope`. They were re-opened
+  four times, each for one named correction with a dated `scope_change_log` entry and a re-freeze.
+  Do not edit a frozen test without that ceremony, and never to make your own change pass.
+
+### What is done
+
+Stages 0-5 are closed. Stage 4 took **ten blockers** across three independent reviews and every
+one is resolved; `stage-04-tests.md` is the record. Stage 6 has built the spot key, the artifact
+reader, the solve driver's guards, the betting strategy, and the report generator, and repaired
+four of its own six review blockers.
+
+Three rulings landed mid-stage and each re-derives something:
+- **Decision 8 amended.** The key carries the completed preflop line, not a preflop spot key. Until
+  that, the bot could not continuation-bet at all - the spot could not be named. Every committed
+  key moved, which is why it had to happen before a solve.
+- **Decision 6 item 4 amended.** A fourth sample file is allowed, still three flops, and the boards
+  are committed as canonical representatives.
+- **Decision 14 ruled.** A faced bet matches the menu within five points of pot, inclusive.
+
+### What is open, in the order to take it
+
+1. **W4 and W5**, whose lane stalled and which touched neither file. **W4**: the report's
+   `servable` column is incremented on the line after `arrivals`, under one condition, so the two
+   are equal by construction while the report says "the two orders are not the same order" -
+   compute it or delete it. **W5**: `postflop_solve_driver.py` reads `arena_mb` and `exploit_pct`
+   with a default of `0.0`, so a server that did not answer plans a zero-byte solve past the memory
+   ceiling and reads as perfectly converged. Fail closed.
+2. **Seven frozen tests of completed phases, red as the honest consequence of stage 6.** Each needs
+   a correction authorised by a ruling, and **not** by whoever wrote the change that reddened it.
+   - `test_postflop_key.py`, two in `TestWhatTheKeyCarries`: they build a flop line with `BTN`
+     acting before `BB`, which the new action-order check correctly refuses. The fix is one
+     argument each - `(BB:check, BTN:bet@33)`.
+   - `test_postflop_fallback_components.py`, two in `TestComposite`: they assert the composite
+     answers postflop with the fallback. It no longer does.
+   - `test_simulator.py`, three: they assert a hand reaches showdown. With the betting strategy
+     wired and no committed cell, a session gives 25 uncontested, 11 refused, **0 showdowns**.
+   The stage-4 migration sweep looked for tests asserting the **query shape** and found three. These
+   seven assert **behaviour**, which no sweep looked for. That gap is worth filing.
+3. **The consolidated stage-6 review note** at
+   `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-06-build.md`, which the driver
+   requires and which does not exist. The two component notes are on disk.
+4. **The solve.** `data/artifacts/postflop/**` is the one path no lane opens on its own judgment
+   and it is deliberately not in `approved_scope`. Four cells on three flops: caller first to act
+   betting, caller facing a bet raising, a two-tone board separating a flush draw from the same
+   ranks without one, and a raiser c-betting. About 16 minutes a flop at 240 iterations on this
+   machine; **no rental is needed for the sample** - the machine note rules that stages 4 through 6
+   need none.
+5. Stages 7-11: gate, `check_gate_bite`, two reviews, packet, closeout, advance.
+
+### Things that will bite you
+
+- **Three mutation canaries name lines verbatim** and `verification/**` is frozen:
+  `if not 0.0 <= weight <= 1.0:` and `if size_chips > hero_street_bet + hero_stack:` in
+  `postflop_artifact.py`, `printed_spot_count = len(cells)` in the report generator. Both artifact
+  canaries' witnesses are red for want of data, so `check_gate_bite` cannot prove they bite until
+  the sample lands.
+- **The 500-line module cap has forced two extractions in this stage** and three files sit at 495
+  to 500. `test_postflop_key.py` is at exactly 700. Budget early; do not compress prose to fit.
+- **A unit trap.** The key renders a bet size as a percent (`@33`); `FLOP_BET_MENU` and
+  `match_menu_fraction` are fractions (`0.33`). Both are pinned by frozen tests.
+- **`REASON_CODES` in `postflop_artifact.py` is dead** - nothing in `src`, `scripts` or `tests`
+  reads it, so a code added there is checked by nothing.
+- **Taylor's 2026-09-16 direction**, filed as
+  `THE-BOT-MUST-EVENTUALLY-PLAY-AN-UNCOVERED-SPOT-RATHER-THAN-REFUSE-IT`: the bot will eventually
+  play uncovered spots on heuristics with similar spots merged. That needs two boundary amendments
+  in `contract-update` mode and is **not** this phase's. Phase 16 refuses.
 
 ### What the fold-in rewrite has to absorb
 
