@@ -55,11 +55,12 @@ ITERATION_CAP = 1200
 RANGE_WEIGHT_FLOOR = 0.01
 
 SAMPLE_BOARDS = {
-    "rainbow-dry-high": ("Kc", "7d", "2h"),
-    "two-tone-paired": ("8h", "8d", "3h"),
+    "rainbow-dry-high": ("Kh", "7d", "2c"),
+    "two-tone-paired": ("8c", "8d", "3c"),
     "monotone-connected": ("9c", "8c", "7c"),
 }
-"""Two ruled by decision 6 item 4, one picked here inside the split it left open."""
+"""Two ruled by decision 6 item 4, one picked here inside the split it left open, all three in the
+canonical dressing - Taylor 2026-09-15, whose amendment to item 4 carries why."""
 
 RANKS = "23456789TJQKA"
 SUITS = "cdhs"
@@ -483,18 +484,17 @@ class TestTheCommittedSample:
     the two-tone paired cell that item leaves and nothing else.
     """
 
-    def test_the_sample_holds_exactly_three_flops(self) -> None:
-        files = sorted(SAMPLE_DIR.glob("*.json"))
-
-        assert len(files) == 3, [path.name for path in files]
-
     def test_the_three_boards_are_the_ruled_three(self) -> None:
+        """Three flops, counted as boards rather than as files - Taylor allowed a fourth file
+        2026-09-15, on a board already here, so item 4's splits are untouched. Absorbs the
+        separate file-count test, which this assertion already implies."""
+        files = sorted(SAMPLE_DIR.glob("*.json"))
         committed = {
-            tuple(json.loads(path.read_text(encoding="utf-8"))["board"])
-            for path in sorted(SAMPLE_DIR.glob("*.json"))
+            tuple(json.loads(path.read_text(encoding="utf-8"))["board"]) for path in files
         }
 
         assert committed == set(SAMPLE_BOARDS.values())
+        assert len(files) >= 3, [path.name for path in files]
 
     def test_each_board_sits_in_the_texture_and_rank_cell_it_was_chosen_for(self) -> None:
         """Checked rather than taken. The stage-3 review found an earlier draft naming two rainbow

@@ -781,6 +781,27 @@ some initial testing on before going for it."
    An earlier draft of this item said the ruling "constrains suit and leaves rank open"; that is
    superseded by the assignment below, which rules both.
 
+   **Amendment, 2026-09-15, two rulings by Taylor.** Both were forced by the decision 8 amendment,
+   which gave the preflop raiser a flop spot and so added a fourth situation the sample has to
+   carry.
+
+   *A fourth file is allowed.* One file is one cell - `test_the_three_boards_are_the_ruled_three`
+   reads one `board` per file - so three files are three situations, and the frozen tests now need
+   four: a caller first to act producing a bet, a caller facing a bet producing a raise, a two-tone
+   board separating a flush draw from the same ranks without one, and a cell where hero was the
+   preflop raiser, which is the c-bet. **Still three flops.** The fourth file is a fourth situation
+   on a board already in the sample, not a fourth board, so both splits above stand untouched and
+   `test_the_sample_holds_exactly_three_flops` becomes a count of boards rather than of files.
+
+   *The boards are committed as canonical representatives.* `Kc7d2h` canonicalises to `Kh7d2c` and
+   `8h8d3h` to `8c8d3c`; only `9c8c7c` is its own. A cell's hand classes are written in
+   representative space, so a board written in a different dressing makes one file describe the
+   same flop two ways, and pairing a class with it hands hero a card that is already on the board -
+   `StrategyQuery` refuses it as a duplicate. Taylor's ruling: **the ruling named the flops, not
+   the suit letters.** The same three flops are committed, in the representative dressing, and
+   `THE-RULED-SAMPLE-BOARDS-ARE-NOT-THEIR-OWN-REPRESENTATIVES` is answered by taking its first
+   disposition.
+
    **Rank structure and suit texture are independent, so three boards carry three of each.** An
    earlier draft of this item treated the five never-reached rank structures as competing for three
    slots and then named two rainbow boards among the three, contradicting its own suit split in the
