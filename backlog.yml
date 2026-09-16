@@ -8086,3 +8086,30 @@ items:
       line, with the two-tone board carrying the flush-draw pair - and it may not.
       Filed 2026-09-15 rather than solved, because the answer decides what gets solved and
       committed, and a phase that writes new committed data stops for a human.
+
+  - id: THE-SOLVE-DRIVER-GUARD-TESTS-PIN-A-TYPE-RATHER-THAN-A-BEHAVIOUR
+    status: deferred
+    phase: '16'
+    title: Three frozen solve-driver tests are satisfied by typing a value, not by the guard working
+    reason: >-
+      Found by the stage-6 solve-driver lane inside its own work, 2026-09-15, reading tests it had
+      just made pass. None is wrong enough to block and all three are weaker than their own
+      docstrings claim.
+      `tests/test_postflop_solve_driver.py:77-83`, `test_the_driver_publishes_a_memory_ceiling`,
+      says in its docstring that the driver's own ceiling is "what this pins" and then asserts only
+      that the value is a positive int. The Machine note exists precisely to stop an Apple M4
+      figure travelling to a rented Linux box, and this test passes with 12,026 MB hardcoded into
+      the rented box's driver. What would bite is an assertion that the ceiling tracks the
+      machine's reported RAM, or that the module publishes what its ceiling was derived from. The
+      lane's implementation does compute it from `SC_PHYS_PAGES * SC_PAGE_SIZE` and publishes
+      `MEMORY_CEILING_IS_MEASURED`, which the coordinator verified reproduces 12,025,908,428 bytes
+      on this machine - but that is the lane's discipline, not the test's demand.
+      `:113-121` requires `REPORTS_ROUTE_STATUS` to be one of two words. Nothing requires
+      `"exercised"` to be backed by a recorded cost, so the honest half of the criterion - that the
+      batch route is UNRUN and must not be assumed - is carried by a string anybody can retype.
+      `:129-174` pins the committed solve configuration in a repo shape, `bet: ["33","75"]`, while
+      GTOpen's wire body takes `"33 75"`. Nothing ties the committed document to the body actually
+      posted, so a configuration could be committed that differs from what was solved and no test
+      sees it. That is a sibling of `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES` and it
+      matters most on the one run nobody can repeat cheaply.
+      Not fixable in phase 16: all three were frozen at stage 5 and `tests/**` left approved_scope.
