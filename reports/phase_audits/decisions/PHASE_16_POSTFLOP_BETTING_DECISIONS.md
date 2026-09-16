@@ -1996,3 +1996,79 @@ phase has its brief.
 fold branch's near-miss hands returned to the call branch, and that the widening is a measurement
 input rather than a committed range. Nothing derived from the widened range is committed under
 `data/artifacts/postflop/**`; only the diff is reported.
+
+## 18. Two frozen tests the sample cannot satisfy at once, and the index that has nothing to list
+
+**Ruled by the coordinator, 2026-09-16, both `runtime-reversible`.** Neither changes committed data;
+both decide what the sample must contain before it is solved. Measured by the stage-6 sample lane
+and re-verified here.
+
+### 18a. The fourth-file amendment reached one test of two
+
+`tests/test_postflop_artifact.py:469` asserts `len(paths) == 3` over the sample directory.
+`tests/test_postflop_artifact.py:497` asserts `len(files) >= 3`. Taylor's 2026-09-15 amendment to
+decision 6 item 4 - a fourth file is allowed, on a board already present, so item 4's texture and
+rank splits are untouched - landed in the second and not the first.
+
+The sample therefore reds a test either way. Three files cannot hold the four spots the frozen
+tests require: a caller first to act producing a bet, a caller facing a bet producing a raise, a
+two-tone board separating a flush draw from the same ranks without one, and a cell where hero was
+the preflop raiser. Four files red line 469.
+
+**Ruled: line 469 becomes `>= 3`, authorised by the 2026-09-15 amendment itself rather than by
+anything a lane wrote.** The assertion's own subject is that every committed cell records its
+substitution, and the count is a guard against an empty directory satisfying a per-file loop
+vacuously, which `>= 3` still provides.
+
+This is `NOTHING-CHECKS-THAT-EVERY-RULING-REACHES-A-CRITERION` happening again, sixteen days after
+it was filed, to the ruling immediately after the one that prompted it. The amendment was applied
+where it was noticed rather than everywhere it was true, and nothing looked.
+
+### 18b. "In the index but not fetched" needs a spot that is in the index and not fetched
+
+`test_a_spot_the_index_holds_but_this_machine_has_not_fetched_says_so` needs
+`an_indexed_but_unfetched_query` to name a spot the index lists and the sample does not hold. Its
+docstring assumes the full campaign - "on a fresh clone this is the common case, 1,752 of 1,755
+classes". The campaign has not run. The sample solves three boards and commits all three, the index
+may list only spots actually solved and stored, with four real figures and no placeholder, so the
+index and the sample are the same set and the query has nothing to name. The lane reported that it
+has no honest answer rather than inventing one, which is the correct outcome and the reason this is
+ruled rather than patched.
+
+**Ruled: solve one cell on a fourth board, record it in the index with its own four measured
+figures, store its object outside the repo, and do not write it into `sample/`.**
+
+This is not a workaround, it is decision 6's design stated at sample scale. Decision 6 rules the
+artifact as object storage outside git plus a committed index plus a committed three-flop sample,
+which means the index is deliberately larger than the sample. The refusal inventory has three
+causes and this is the third; a sample where index and sample coincide exercises two of the three
+and leaves the one that will be overwhelmingly the most common on a real clone untested.
+
+The fourth board is chosen for cost rather than poker - it is outside the frozen texture and rank
+splits, which govern the sample and not the index - so it is a monotone board, about eight minutes.
+It is the cheapest honest answer available and the only one that does not either commit boards the
+sample rules forbid or write digests of nothing.
+
+### Amendment to decision 11, arising from the same measurements
+
+Decision 11 reported the ruled menu's arena as 10,881 MB against a 12,026 MB ceiling - **90.5%**,
+which it called thin and reasoned about accordingly. Re-measured on the live tree at the menu that
+was actually ruled: **5,442 MB, 45% of the driver's ceiling.**
+
+The cause is that the record's figures were taken on a different menu. Three builds on one board
+with one range pair: the ruled menu (flop `33 75`, turn and river `66 125`, no donk) gives
+1,514,261 action nodes and 5,442 MB; adding donk sizes gives 2,288,902 and 8,674 MB; `33 75` on all
+three streets with no donk gives 2,347,996 and 8,847 MB, which is the record's node count exactly.
+So the record's "pinned menu" was `33 75` everywhere, not the menu decision 11 ruled. Scaling the
+third build by the record's 919/747 hand counts reconciles to 10,886 against its 10,881, which is
+the check that this is the same arena model and not a different one.
+
+**The memory headroom is therefore twice what the phase has been reasoning with**, and
+`SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` is correspondingly less urgent than decision 11 treated it.
+
+**Iterations went the other way and partly cancel it.** The monotone cell took **320** iterations to
+reach 0.2954% of pot, against the record's 220-260 bracket. The ruled menu buys a 35% smaller tree
+and pays back about 33% more iterations, so the saving per solve is far smaller than the node count
+suggests, and **every campaign estimate in this phase built on 240 iterations is low.** The 45-to-85
+day band in decision 11 is not corrected here, because correcting it needs a rainbow measurement
+this phase has not taken; it is flagged as low rather than restated.

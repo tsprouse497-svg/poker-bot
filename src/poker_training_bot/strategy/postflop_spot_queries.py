@@ -268,7 +268,10 @@ def committed_spot_queries(directory: Path | str = SAMPLE_DIR) -> tuple[Strategy
             built.append(
                 _query_for(
                     table, cell.board, history, street_bet, level, last_raise,
-                    (hand[:2], hand[2:]), f"committed|{cell.spot_key}|{hand}", cell.actions,
+                    (hand[:2], hand[2:]), f"committed|{cell.spot_key}|{hand}",
+                    # De-duplicated: decision 11's menu holds two entries called `bet` and
+                    # `legal_actions` is a set of names, where a repeat would read as two.
+                    tuple(dict.fromkeys(entry.name for entry in cell.actions)),
                 )
             )
     return tuple(built)

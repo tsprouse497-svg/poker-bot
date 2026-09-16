@@ -29,7 +29,9 @@ pot fraction at all, and decision 14 ruled the bet menu only.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from typing import Any
 
 from poker_training_bot.solver_artifacts.postflop_key import (
     FLOP_BET_MENU,
@@ -40,6 +42,59 @@ from poker_training_bot.solver_artifacts.postflop_key import (
 SIZED_ACTIONS = frozenset({"bet", "raise"})
 """The two actions that carry a size. `THE-SIZED-ACTION-SET-IS-DEFINED-FOUR-TIMES` owns the
 copies; this module is where the size itself is priced, so it holds one of them."""
+
+
+@dataclass(frozen=True)
+class CellAction:
+    """One entry on a committed cell's action menu, welded to the size it is played at.
+
+    **A name is not an identity, and until 2026-09-16 the schema assumed it was.** Decision 11's
+    flop menu is `33 75`, so a cell offers two actions both called `bet` - 1.815bb and 4.125bb
+    into a 5.5bb pot - and they were stored as one positional list of names beside a parallel
+    array of sizes. Every lookup by name took the first: over every committed spot the bot bet
+    33% of pot on all ten of its bets, while 29 of that cell's 160 hand classes weighted the 75%
+    bet above 0.8 and one weighted it 0.969. Half the ruled menu was unreachable and no field on
+    the cell could express the difference.
+
+    Three units meet on this record and no two are the same number, so each has its own field.
+    `size_bb` is the level hero's street contribution goes **to**, the solver's own unit and the
+    one `check_size_is_playable` compares. `fraction` is that size as a share of the pot the cell
+    decides into, filled in by `price_menu` at import; it is what travels to a table, because the
+    nominal pot a key names and the real pot in front of hero differ by decision 10's band. The
+    **percent** a spot key renders - `@33` - is neither, and lives on `FlopAction`.
+    """
+
+    name: str
+    size_bb: float | None = None
+    fraction: float | None = None
+
+    @property
+    def sized(self) -> bool:
+        """Whether this entry carries a size at all, which is a fact about its name."""
+        return self.name in SIZED_ACTIONS
+
+    @property
+    def label(self) -> str:
+        """This entry as an audit line names it, so two bets on one menu read as two actions.
+
+        The size is written in the cell's own big blinds rather than converted, because a decision
+        record is evidence about the cell and a second conversion here is a second place to drift.
+        """
+        return self.name if self.size_bb is None else f"{self.name}({self.size_bb:g}bb)"
+
+    @property
+    def menu_entry(self) -> float | None:
+        """Which ruled menu entry a table would read this size back as, or `None` when unsized.
+
+        Taken against a pot of one, because `fraction` is already the ratio
+        `match_menu_fraction` compares. An entry that matches nothing answers with its own
+        fraction rather than with `None`, so it stays distinct from every other such entry: a
+        **raise** is on no menu at all, decision 14 having ruled the bet menu only, and
+        `FLOP_BET_MENU` is the flop's, which the turn and river's `66 125` is not.
+        """
+        if self.fraction is None or self.name != "bet":
+            return self.fraction
+        return match_menu_fraction(self.fraction, 1.0) or self.fraction
 
 
 def pot_before_hero_bb(pot_bb: float, flop_actions: Sequence[FlopAction]) -> float:
@@ -65,34 +120,47 @@ def pot_before_hero_bb(pot_bb: float, flop_actions: Sequence[FlopAction]) -> flo
     return pot
 
 
-def committed_bet_fractions(
-    actions: Sequence[str],
-    sizes: Sequence[float],
+def price_menu(
+    entries: Sequence[Mapping[str, Any]],
     hero_street_bet_bb: float,
     pot_before_bb: float,
-) -> tuple[float, ...]:
-    """Each committed sized action as a fraction of the pot the cell decides into.
+) -> tuple[CellAction, ...]:
+    """One committed action menu as records, each sized entry priced against the cell's own pot.
+
+    Takes the shape-checked entries the importer's own reader produces - `path`, `action` and
+    `size` - rather than two sequences to be lined up, because lining two sequences up by
+    position is the defect `CellAction` exists to remove and doing it here would reintroduce it
+    one layer down.
 
     Raises `ValueError` naming the offence, which the importer turns into its own refusal code so
-    the file and the cause travel together. Three of them: a pot nothing can be a fraction of, a
-    size that adds nothing over what hero already has out, and a bet that is on no menu entry."""
+    the file and the cause travel together. Four of them: a pot nothing can be a fraction of, an
+    action whose size does not follow from what it is, a size that adds nothing over what hero
+    already has out, and a bet that is on no menu entry. A fifth - two entries a table could not
+    tell apart - belongs to the importer, which holds the refusal codes.
+    """
     if pot_before_bb <= 0:
         raise ValueError(f"the cell decides into a pot of {pot_before_bb}bb, which prices nothing")
-    priced: list[float] = []
-    sized = [name for name in actions if name in SIZED_ACTIONS]
-    for name, size in zip(sized, sizes, strict=True):
-        added = float(size) - float(hero_street_bet_bb)
+    priced: list[CellAction] = []
+    for entry in entries:
+        action = CellAction(str(entry["action"]), entry["size"])
+        if action.sized != (action.size_bb is not None):
+            carries = "carries no size of its own" if action.sized else "carries a size"
+            raise ValueError(f"{entry['path']} is a {action.name!r} and {carries}")
+        if action.size_bb is None:
+            priced.append(action)
+            continue
+        added = float(action.size_bb) - float(hero_street_bet_bb)
         if added <= 0:
             raise ValueError(
-                f"a committed {name} of {size}bb adds nothing over the"
+                f"a committed {action.name} of {action.size_bb}bb adds nothing over the"
                 f" {hero_street_bet_bb}bb hero already has out on this street"
             )
-        if name == "bet" and match_menu_fraction(added, pot_before_bb) is None:
+        if action.name == "bet" and match_menu_fraction(added, pot_before_bb) is None:
             raise ValueError(
                 f"a committed bet of {added}bb into a {pot_before_bb}bb pot is"
                 f" {100 * added / pot_before_bb:.1f}% of it, which is no entry on the"
                 f" {list(FLOP_BET_MENU)} menu the solve was configured with, so the bot would"
                 " make a bet its own matcher refuses"
             )
-        priced.append(added / pot_before_bb)
+        priced.append(CellAction(action.name, action.size_bb, added / pot_before_bb))
     return tuple(priced)

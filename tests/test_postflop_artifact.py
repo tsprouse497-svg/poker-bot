@@ -415,9 +415,10 @@ class TestTheImporterRefusesRatherThanRenders:
         importer = owed(artifact_module, "import_postflop_cell")
         error = owed(artifact_module, "PostflopArtifactError")
         _, payload = sample_cell(SAMPLE_DIR)
-        sizes = list(payload["bet_sizes_bb"])
-        sizes[0] = payload["effective_stack_bb"] * 10
-        payload["bet_sizes_bb"] = sizes
+        # Each action has carried its own size since the 2026-09-16 schema repair replaced the
+        # parallel `bet_sizes_bb` array. Unchanged: the first sized entry, inflated past the stack.
+        sized = [entry for entry in payload["actions"] if "size_bb" in entry]
+        sized[0]["size_bb"] = payload["effective_stack_bb"] * 10
 
         with pytest.raises(error):
             importer(self.written(tmp_path, payload))
@@ -466,7 +467,8 @@ class TestTheImporterRefusesRatherThanRenders:
         """
         paths = sorted(SAMPLE_DIR.glob("*.json"))
 
-        assert len(paths) == 3, [path.name for path in paths]
+        # `>= 3` on Taylor's 2026-09-15 amendment to decision 6 item 4; decision 18a. Not `== 3`.
+        assert len(paths) >= 3, [path.name for path in paths]
         for path in paths:
             payload = json.loads(path.read_text(encoding="utf-8"))
             assert "price_substitutions" in payload, path.name

@@ -19,9 +19,9 @@ and `completed_preflop_line` the single derivation, so a 2.5bb button open calle
 cell records is the **completed** preflop street, hero's own closing action included, which is
 what lets a cell name the preflop raiser's flop at all. Decision 8's 2026-09-15 amendment.
 
-**A committed size is a fraction of the cell's own pot**, priced here once into `bet_fractions`
-and converted back at the table by `menu_size_chips`. `postflop_sizing` holds that arithmetic and
-the argument for it, which is that big blinds against a nominal pot are not a size at all.
+**A committed action carries its own size**, priced here once into its `fraction` and converted
+back at the table by `menu_size_chips`. `postflop_sizing` holds `CellAction`, that arithmetic, and
+the argument for both: two bets on one menu are two actions, and a name is not an identity.
 
 What this module does **not** do: it re-derives no digest, which
 `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES` owns, and it names no table-side refusal
@@ -46,8 +46,10 @@ from poker_training_bot.solver_artifacts.postflop_key import (
     price_within_band,
 )
 from poker_training_bot.solver_artifacts.postflop_sizing import (
-    committed_bet_fractions,
+    SIZED_ACTIONS,
+    CellAction,
     pot_before_hero_bb,
+    price_menu,
 )
 from poker_training_bot.solver_artifacts.schema import WEIGHT_SUM_TOLERANCE, PreflopAction
 from poker_training_bot.solver_artifacts.solve_conditions import parse_blind_structure
@@ -97,6 +99,7 @@ EXPLOITABILITY_ABOVE_CEILING = "postflop:exploitability-above-ceiling"
 ITERATIONS_ABOVE_CAP = "postflop:iterations-above-cap"
 UNPLAYABLE_SIZE = "postflop:unplayable-size"
 OFF_MENU_SIZE = "postflop:size-off-the-configured-menu"
+DUPLICATE_MENU_ENTRY = "postflop:two-actions-one-menu-entry"
 WEIGHT_OUT_OF_BOUNDS = "postflop:weight-out-of-bounds"
 WEIGHT_SUM = "postflop:weight-sum"
 PRICE_OUTSIDE_BAND = "postflop:price-outside-band"
@@ -105,23 +108,22 @@ REASON_CODES: tuple[str, ...] = (
     UNREADABLE_FILE, INVALID_JSON, UNSUPPORTED_SCHEMA_VERSION, INVALID_VALUE_CODE,
     PREFLOP_LINE_MISMATCH, POT_DOES_NOT_FOLLOW_FROM_THE_LINE, BOARD_DRESSING_MISMATCH,
     SPOT_KEY_MISMATCH, EXPLOITABILITY_ABOVE_CEILING, ITERATIONS_ABOVE_CAP, UNPLAYABLE_SIZE,
-    OFF_MENU_SIZE,     WEIGHT_OUT_OF_BOUNDS, WEIGHT_SUM, PRICE_OUTSIDE_BAND,
+    OFF_MENU_SIZE, DUPLICATE_MENU_ENTRY, WEIGHT_OUT_OF_BOUNDS, WEIGHT_SUM, PRICE_OUTSIDE_BAND,
 )
 
 _CELL_KEYS = set(
     "cell_schema_version spot_key board suit_map preflop_line table_size stack_depth_bb"
     " hero_position blind_structure preflop_actions price_substitutions pot_bb"
-    " effective_stack_bb flop_actions hero_street_bet_bb actions bet_sizes_bb hand_classes"
+    " effective_stack_bb flop_actions hero_street_bet_bb actions hand_classes"
     " class_weights achieved_exploitability_pct_of_pot iterations".split()
 )
 _INDEX_KEYS = set(
     "index_schema_version object_storage covered_preflop_lines line_count_bound_by"
     " cells_solved_and_rejected_above_one_percent committed_bytes headroom_bytes entries".split()
 )
-_ACTION_KEYS = {"position", "action"}
+_ACTION_KEYS = frozenset({"position", "action"})
 _SUBSTITUTION_KEYS = {"position", "actual_bb", "solved_bb"}
 _SUIT_KEYS = {"c", "d", "h", "s"}
-_SIZED_ACTIONS = frozenset({"bet", "raise"})
 
 
 class PostflopArtifactError(ValueError):
@@ -198,10 +200,8 @@ class PostflopCell:
     effective_stack_bb: float
     flop_actions: tuple[FlopAction, ...]
     hero_street_bet_bb: float
-    actions: tuple[str, ...]
-    bet_sizes_bb: tuple[float, ...]
+    actions: tuple[CellAction, ...]
     pot_before_hero_bb: float
-    bet_fractions: tuple[float, ...]
     hand_classes: tuple[str, ...]
     class_weights: tuple[tuple[float, ...], ...]
     achieved_exploitability_pct_of_pot: float
@@ -221,18 +221,24 @@ class PostflopCell:
         return None
 
 
-def _entries(raw: list[Any], origin: str, label: str, size_key: str) -> list[dict[str, Any]]:
-    """One recorded action list, shape-checked before anything poker-specific reads it."""
+def _entries(
+    raw: list[Any], origin: str, label: str, size_key: str, keys: frozenset[str] = _ACTION_KEYS
+) -> list[dict[str, Any]]:
+    """One recorded action list, shape-checked before anything poker-specific reads it.
+
+    `keys` is what an entry must carry. A street history names the seat that acted; hero's own
+    menu does not, because every entry on it is hero's, so it declares `{"action"}` and answers
+    an empty position rather than a fabricated one."""
     parsed: list[dict[str, Any]] = []
     for index, item in enumerate(raw):
         path = f"cell.{label}[{index}]"
         payload = _require_object(item, origin, path)
         _require_unique_keys(payload, origin, path, INVALID_VALUE)
-        _require_keys(payload, origin, path, set(_ACTION_KEYS), {size_key})
+        _require_keys(payload, origin, path, set(keys), {size_key})
         size = None if size_key not in payload else _number(payload, origin, size_key, path)
+        seat = "" if "position" not in keys else _require_str(payload, origin, path, "position")
         parsed.append({
-            "path": path, "size": size,
-            "position": _require_str(payload, origin, path, "position"),
+            "path": path, "size": size, "position": seat,
             "action": _require_str(payload, origin, path, "action"),
         })
     return parsed
@@ -284,10 +290,9 @@ def _check_price_substitutions(
 
 
 def _check_strategy_block(
-    payload: Mapping[str, Any], origin: str, representative: tuple[str, ...]
-) -> tuple[tuple[str, ...], tuple[str, ...], tuple[tuple[float, ...], ...]]:
+    payload: Mapping[str, Any], origin: str, representative: tuple[str, ...], action_count: int
+) -> tuple[tuple[str, ...], tuple[tuple[float, ...], ...]]:
     """Hero's classes and their weights, which is the part a wrong number reaches a student by."""
-    actions = tuple(str(item) for item in _require_list(payload, origin, "cell", "actions"))
     raw_classes = _require_list(payload, origin, "cell", "hand_classes")
     raw_rows = _require_list(payload, origin, "cell", "class_weights")
     if not raw_rows or len(raw_classes) != len(raw_rows):
@@ -309,8 +314,8 @@ def _check_strategy_block(
     rows: list[tuple[float, ...]] = []
     for index, raw_row in enumerate(raw_rows):
         path = f"cell.class_weights[{index}]"
-        if not isinstance(raw_row, list) or len(raw_row) != len(actions):
-            raise _bad(origin, f"{path} must hold one weight per action, {len(actions)} of them")
+        if not isinstance(raw_row, list) or len(raw_row) != action_count:
+            raise _bad(origin, f"{path} must hold one weight per action, {action_count} of them")
         total = 0.0
         for weight in raw_row:
             if isinstance(weight, bool) or not isinstance(weight, int | float):
@@ -325,7 +330,7 @@ def _check_strategy_block(
         if abs(total - 1.0) > WEIGHT_SUM_TOLERANCE:
             raise _refuse(WEIGHT_SUM, origin, f"{path} sums to {total!r} rather than to one")
         rows.append(tuple(float(weight) for weight in raw_row))
-    return actions, tuple(classes), tuple(rows)
+    return tuple(classes), tuple(rows)
 
 
 def _build_cell(raw: Any, origin: str) -> PostflopCell:
@@ -401,33 +406,33 @@ def _build_cell(raw: Any, origin: str) -> PostflopCell:
     hero_street_bet = _number(payload, origin, "hero_street_bet_bb")
     if not 0.0 <= hero_street_bet <= effective_stack_bb:
         raise _bad(origin, f"cell.hero_street_bet_bb is {hero_street_bet} of {effective_stack_bb}")
-    actions, hand_classes, rows = _check_strategy_block(payload, origin, representative)
-    sizes: list[float] = []
-    for index, item in enumerate(_require_list(payload, origin, "cell", "bet_sizes_bb")):
-        if isinstance(item, bool) or not isinstance(item, int | float):
-            raise _bad(origin, f"cell.bet_sizes_bb[{index}] must be a number, got {item!r}")
-        sizes.append(float(item))
-    sized = sum(1 for action in actions if action in _SIZED_ACTIONS)
-    if len(sizes) != sized:
-        raise _bad(origin, f"{sized} sized actions against {len(sizes)} sizes leaves one unpriced")
+    raw_menu = _require_list(payload, origin, "cell", "actions")
+    menu = _entries(raw_menu, origin, "actions", "size_bb", frozenset({"action"}))
     behind = effective_stack_bb - hero_street_bet
-    for size in sizes:
-        check_size_is_playable(size, hero_street_bet, behind, cell=origin)
-    # A committed size is a raise-to in big blinds against a *nominal* pot, and what travels to a
-    # table is what fraction of the cell's own pot it was. Priced here once, so a cell off its own
-    # configured menu is refused here rather than bet at a table and then refused by the matcher.
+    for entry in menu:
+        if (entry["size"] is None) == (entry["action"] in SIZED_ACTIONS):
+            raise _bad(origin, f"{entry['path']} is a {entry['action']!r} and its size does not"
+                               " follow: a bet or a raise carries one and nothing else may")
+        if entry["size"] is not None:
+            check_size_is_playable(entry["size"], hero_street_bet, behind, cell=origin)
     pot_before = pot_before_hero_bb(pot_bb, flop_actions)
     try:
-        fractions = committed_bet_fractions(actions, sizes, hero_street_bet, pot_before)
+        actions = price_menu(menu, hero_street_bet, pot_before)
     except ValueError as error:
         raise _refuse(OFF_MENU_SIZE, origin, str(error)) from error
+    reads = [action.menu_entry for action in actions if action.sized]
+    if len(set(reads)) != len(reads):
+        raise _refuse(
+            DUPLICATE_MENU_ENTRY, origin,
+            f"cell.actions offers {len(reads)} sized actions that a table reads back as"
+            f" {len(set(reads))}: two a matcher cannot tell apart are one action written twice")
+    hand_classes, rows = _check_strategy_block(payload, origin, representative, len(actions))
     return PostflopCell(
         spot_key=derived_key, board=board, suit_map=tuple(sorted(derived_map.items())),
         preflop_line=line, hero_position=hero_position, preflop_actions=preflop_actions,
         price_substitutions=substitutions, pot_bb=pot_bb, effective_stack_bb=effective_stack_bb,
         flop_actions=flop_actions, hero_street_bet_bb=hero_street_bet, actions=actions,
-        bet_sizes_bb=tuple(sizes), pot_before_hero_bb=pot_before,
-        bet_fractions=fractions, hand_classes=hand_classes, class_weights=rows,
+        pot_before_hero_bb=pot_before, hand_classes=hand_classes, class_weights=rows,
         achieved_exploitability_pct_of_pot=achieved, iterations=iterations,
     )
 

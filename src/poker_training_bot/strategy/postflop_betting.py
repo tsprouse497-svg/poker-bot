@@ -45,6 +45,7 @@ from poker_training_bot.solver_artifacts.postflop_key import (
     postflop_spot_key,
     price_within_band,
 )
+from poker_training_bot.solver_artifacts.postflop_sizing import CellAction
 from poker_training_bot.solver_artifacts.schema import PreflopAction
 from poker_training_bot.strategy.contract import (
     StrategyDecision,
@@ -52,7 +53,6 @@ from poker_training_bot.strategy.contract import (
     StrategyRefusal,
 )
 from poker_training_bot.strategy.postflop_committed import (
-    SIZED_ACTIONS,
     CoveredLine,
     PostflopLibrary,
     flop_action_line,
@@ -143,8 +143,13 @@ def _roll(seed: str) -> float:
     return int.from_bytes(sha256(seed.encode("utf-8")).digest()[:8], "big") / 2**64
 
 
-def collapse(weights: tuple[tuple[str, float], ...], seed: str = "") -> str | None:
-    """Draw one action from a mixed cell, in proportion to its weights.
+def collapse(
+    weights: tuple[tuple[CellAction, float], ...], seed: str = ""
+) -> CellAction | None:
+    """Draw one menu entry from a mixed cell, in proportion to its weights.
+
+    **An entry rather than a name**, because decision 11's flop menu holds two entries called
+    `bet` and a name would hand the caller back the ambiguity the record exists to remove.
 
     **Not the highest weight.** A solver mixes where it has driven a hand to indifference, so an
     argmax makes every indifferent class pure: a class solved to bet 0.51 and check 0.49 bets
@@ -392,6 +397,11 @@ class PostflopBettingStrategy:
 
         Read-only and additive, on `PreflopChartStrategy.weights_for`'s reasoning: "did this agree
         with the solve" asks about the distribution, not about the one action a draw produced.
+
+        **Two menu entries called `bet` are summed here**, because a `StrategyDecision` carries
+        the name, so an unpooled 33% weight would be compared against an observed frequency that
+        counts both bets - two different quantities. Which entry was drawn is not lost: it travels
+        on the decision's own `class_weights` detail, entry by entry with its size.
         """
         found = self._resolve(query) if query.street == "flop" else None
         if not isinstance(found, PostflopCell):
@@ -399,7 +409,10 @@ class PostflopBettingStrategy:
         row = found.weights_for("".join(canonical_hole_cards(query.board, query.hole_cards)))
         if row is None:
             return ()
-        return tuple(zip(found.actions, row, strict=True))
+        pooled: dict[str, float] = {}
+        for action, weight in zip(found.actions, row, strict=True):
+            pooled[action.name] = pooled.get(action.name, 0.0) + weight
+        return tuple(pooled.items())
 
     def _answer(
         self, query: StrategyQuery, cell: PostflopCell
@@ -424,33 +437,38 @@ class PostflopBettingStrategy:
             )
         weights = tuple(zip(cell.actions, row, strict=True))
         seed = f"{query.hand_id}|{query.seat}|{cell.spot_key}|{hand}"
-        action = collapse(weights, seed)
-        if action is None:
+        drawn = collapse(weights, seed)
+        if drawn is None:
             return StrategyRefusal(
                 REFUSE_NO_POSITIVE_WEIGHT, about + (("spot_key", cell.spot_key),)
             )
-        if action not in query.legal_actions:
-            return StrategyRefusal(REFUSE_ACTION_NOT_LEGAL_HERE, about + (("action", action),))
+        if drawn.name not in query.legal_actions:
+            return StrategyRefusal(REFUSE_ACTION_NOT_LEGAL_HERE, about + (("action", drawn.name),))
         # The vector travels on the answer, so a reader can see that two hands were played out
         # of two different strategies rather than out of one that happened to draw differently:
         # a pure cell and a mixed cell that drew alike are one action and two pieces of evidence.
+        # Entry by entry with its size, so the two bets of decision 11's menu are two rows here.
         detail = (
             ("spot_key", cell.spot_key),
-            ("class_weights", ",".join(f"{name}={weight:g}" for name, weight in weights)),
+            ("class_weights", ",".join(f"{item.label}={weight:g}" for item, weight in weights)),
         )
-        code = f"{CODE_PREFIX}:weighted-draw:{action}"
-        if action not in SIZED_ACTIONS:
-            return StrategyDecision(action, None, code, detail)
-        amount, refusal = self._amount(query, cell, action)
+        code = f"{CODE_PREFIX}:weighted-draw:{drawn.name}"
+        if not drawn.sized:
+            return StrategyDecision(drawn.name, None, code, detail)
+        amount, refusal = self._amount(query, drawn)
         if amount is None:
             return StrategyRefusal(refusal or REFUSE_SIZE_BELOW_MINIMUM, about + detail[:1])
-        return StrategyDecision(action, amount, code, detail)
+        return StrategyDecision(drawn.name, amount, code, detail)
 
     @staticmethod
-    def _amount(
-        query: StrategyQuery, cell: PostflopCell, action: str
-    ) -> tuple[int | None, str | None]:
+    def _amount(query: StrategyQuery, drawn: CellAction) -> tuple[int | None, str | None]:
         """Chips to put the level at, or the code saying why there are none.
+
+        **The size comes off the entry that was drawn**, which is the whole of the 2026-09-16
+        schema repair. This looked the fraction up by name - `sized.index(action)` over the cell's
+        action list - and decision 11's menu offers two entries both called `bet`, so the answer
+        was index 0 every time: 33% of pot on all ten committed bets, while 29 of that cell's 160
+        classes weighted the 75% bet above 0.8.
 
         **The size is a fraction of the pot, converted against the pot in front of hero**, not a
         chip count copied out of the cell. The cell's big blinds are a *nominal* size against the
@@ -460,7 +478,7 @@ class PostflopBettingStrategy:
         **real** pot fraction inside 0.05, so the bot made a bet its own lookup went on to refuse,
         on 46 of the corpus's 174 heads-up single-raised flops - and the refusal code blamed the
         other seat's sizing. `menu_size_chips` is decision 14's own conversion and the one the
-        importer priced `bet_fractions` with, so the two ends of the trip cannot drift.
+        importer priced each entry's `fraction` with, so the two ends of the trip cannot drift.
 
         `query.pot` is the pot as it stands, which is what `flop_action_line` measures every other
         seat's fraction against. Capping at all-in is not a guess - you cannot bet more than you
@@ -468,11 +486,10 @@ class PostflopBettingStrategy:
         read off `seat_states`, the same ceiling `DecisionAuditRecord` proves the answer against.
         `A-COMMITTED-SIZE-IS-CLAMPED-TO-ALL-IN-RATHER-THAN-REFUSED` owns the cap itself.
         """
-        sized = [name for name in cell.actions if name in SIZED_ACTIONS]
-        fraction = cell.bet_fractions[sized.index(action)]
         hero = next(state for state in query.seat_states if state.seat == query.seat)
         all_in = hero.street_bet + dict(query.stacks)[query.seat]
-        amount = min(hero.street_bet + menu_size_chips(fraction, query.pot), all_in)
+        size = menu_size_chips(drawn.fraction or 0.0, query.pot)
+        amount = min(hero.street_bet + size, all_in)
         if amount < query.min_raise_target and amount != all_in:
             return None, REFUSE_SIZE_BELOW_MINIMUM
         return amount, None

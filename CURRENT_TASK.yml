@@ -9,6 +9,8 @@ approved_scope:
   - tests/test_simulator.py
   - tests/test_postflop_query_recording.py
   - tests/test_postflop_solve_driver.py
+  - tests/test_postflop_artifact.py
+  - tests/test_postflop_betting.py
   - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/postflop_key.py
   - src/poker_training_bot/solver_artifacts/postflop_isomorphism.py
@@ -2325,3 +2327,24 @@ scope_change_log:
       to fix something this phase did not cause is how a stage stops being reviewable. Filed as
       A-REFUSAL-WITH-NO-DETAIL-AT-ALL-SURVIVES-IN-THE-PREFLOP-CHART instead, with the extraction
       built so that fixing it later is an import rather than a second seam.
+
+  - date: 2026-09-16
+    reason: >-
+      The sixth freeze re-open, for decision 18's schema correction, ruled by Taylor 2026-09-16.
+      Opens tests/test_postflop_artifact.py and tests/test_postflop_betting.py, which pin the
+      committed cell's shape and the amount the bot bets.
+      The defect, measured on the first solved cell rather than argued: a cell's `actions` field is
+      a positional list and a two-size menu puts two entries in it both named "bet", so
+      PostflopBettingStrategy._amount does `sized.index(action)` and takes the first every time.
+      Over every committed spot the bot returned 182 chips on all 10 bets - 33% of the 550 pot -
+      while 29 of the cell's 160 hand classes weight the 75% bet above 0.8 and one weights it 0.969.
+      Half of decision 11's ruled flop menu is unreachable, and PostflopCell as it stands cannot
+      express the difference.
+      Ruled as a schema repair rather than a lookup patch, because matching on the fraction would
+      leave the cell storing two actions under one name and the next reader hitting the same trap
+      from the other side. The contract does NOT specify this field - it requires the KEY to name
+      every bet size, which it already does - so this is implementation and stays in implementation
+      mode. The contract is at 299 of 300 lines and is deliberately not touched.
+      The re-open is bounded to what the new shape reddens. The lane reports every frozen test it
+      changes with the shape change that forced it, and the coordinator reviews each against the
+      defect rather than against the lane's convenience.

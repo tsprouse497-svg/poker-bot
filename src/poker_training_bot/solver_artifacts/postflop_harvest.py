@@ -56,6 +56,7 @@ from poker_training_bot.solver_artifacts.postflop_key import (
     PreflopLine,
     postflop_spot_key,
 )
+from poker_training_bot.solver_artifacts.postflop_sizing import CellAction
 from poker_training_bot.solver_artifacts.schema import PreflopAction
 from poker_training_bot.solver_artifacts.solve_conditions import BlindStructure
 
@@ -111,8 +112,7 @@ class HarvestedNode:
     because a run that reports zero and a run that never looked read the same otherwise.
     """
 
-    actions: tuple[str, ...]
-    sizes_bb: tuple[float, ...]
+    actions: tuple[CellAction, ...]
     hand_classes: tuple[str, ...]
     class_weights: tuple[tuple[float, ...], ...]
     flop_actions: tuple[FlopAction, ...]
@@ -146,27 +146,31 @@ def combo_cards(combo: str) -> tuple[str, str]:
     return cards
 
 
-def node_actions(node: Mapping[str, Any]) -> tuple[tuple[str, ...], tuple[float, ...]]:
-    """The node's action menu as `(names, sizes)`, sizes being raise-to levels in big blinds.
+def node_actions(node: Mapping[str, Any]) -> tuple[CellAction, ...]:
+    """The node's action menu, each entry carrying its own raise-to level in big blinds.
+
+    **A record per entry rather than names beside a parallel array of sizes.** Decision 11's flop
+    menu puts two entries called `bet` on hero's node, and a list of names cannot say which is
+    which; the 2026-09-16 schema repair carries the measurement.
 
     `amount` on a `Bet` or a `Raise` is the level the acting seat's street contribution goes
     **to**, not what it adds - read off `action_views` in `crates/solver/src/query.rs` and
     confirmed on the wire, where a 33% bet into 5.5 shows `put` moving to 4.565 against a 2.75
-    baseline. That is the same unit `check_size_is_playable` compares and the same one a
-    committed `bet_sizes_bb` carries, so nothing is converted between here and the importer.
+    baseline. That is the same unit `check_size_is_playable` compares and the same one a committed
+    entry's `size_bb` carries, so nothing is converted between here and the importer.
     """
-    names: list[str] = []
-    sizes: list[float] = []
+    built: list[CellAction] = []
     for index, entry in enumerate(_field(node, "actions", "/api/node")):
         kind = str(_field(entry, "kind", f"/api/node actions[{index}]"))
         if kind not in ACTION_KINDS:
             raise HarvestError(f"/api/node offered action kind {kind!r}, which is not playable")
-        names.append(kind)
+        size = None
         if kind in SIZED_ACTIONS:
-            sizes.append(float(_field(entry, "amount", f"/api/node actions[{index}]")))
-    if not names:
+            size = float(_field(entry, "amount", f"/api/node actions[{index}]"))
+        built.append(CellAction(kind, size))
+    if not built:
         raise HarvestError("/api/node answered a node with no actions, so hero decides nothing")
-    return tuple(names), tuple(sizes)
+    return tuple(built)
 
 
 def size_pct(added_bb: float, pot_bb: float) -> float:
@@ -339,7 +343,7 @@ def harvest_node(
     if str(_field(node, "node_type", "/api/node")) != "action":
         raise HarvestError(f"/api/node answered a {node['node_type']!r} node, where nobody acts")
     actor = int(_field(node, "player", "/api/node"))
-    actions, sizes = node_actions(node)
+    actions = node_actions(node)
     players = _field(node, "players", "/api/node")
     hands = _field(players[actor], "hands", "/api/node players")
     classes, rows, divergence, unreached = collapse_hero_strategy(
@@ -348,7 +352,6 @@ def harvest_node(
     line, street_bet = flop_line(node, seat_of_player, starting_pot_bb)
     return HarvestedNode(
         actions=actions,
-        sizes_bb=sizes,
         hand_classes=classes,
         class_weights=rows,
         flop_actions=line,
@@ -392,6 +395,18 @@ def _action_entries(entries: Sequence[PreflopAction]) -> list[dict[str, Any]]:
     return built
 
 
+def _menu_entries(entries: Sequence[CellAction]) -> list[dict[str, Any]]:
+    """Hero's own menu as JSON: one object an entry, its size beside its name rather than in a
+    parallel array the importer would have to line up by position again."""
+    built: list[dict[str, Any]] = []
+    for entry in entries:
+        item: dict[str, Any] = {"action": entry.name}
+        if entry.size_bb is not None:
+            item["size_bb"] = float(entry.size_bb)
+        built.append(item)
+    return built
+
+
 def _flop_entries(entries: Sequence[FlopAction]) -> list[dict[str, Any]]:
     built: list[dict[str, Any]] = []
     for entry in entries:
@@ -422,10 +437,11 @@ def cell_document(
     """
     representative = canonical_board(board)
     behind = preflop_line.effective_stack_bb - harvested.hero_street_bet_bb
-    for size in harvested.sizes_bb:
-        check_size_is_playable(
-            size, harvested.hero_street_bet_bb, behind, cell=preflop_line.rendered
-        )
+    for action in harvested.actions:
+        if action.size_bb is not None:
+            check_size_is_playable(
+                action.size_bb, harvested.hero_street_bet_bb, behind, cell=preflop_line.rendered
+            )
     key = postflop_spot_key(
         preflop_line,
         representative,
@@ -456,8 +472,7 @@ def cell_document(
         "effective_stack_bb": preflop_line.effective_stack_bb,
         "flop_actions": _flop_entries(harvested.flop_actions),
         "hero_street_bet_bb": harvested.hero_street_bet_bb,
-        "actions": list(harvested.actions),
-        "bet_sizes_bb": list(harvested.sizes_bb),
+        "actions": _menu_entries(harvested.actions),
         "hand_classes": list(harvested.hand_classes),
         "class_weights": [list(row) for row in harvested.class_weights],
         "achieved_exploitability_pct_of_pot": float(achieved_exploitability_pct_of_pot),

@@ -1,5 +1,162 @@
 schema_version: 1
 items:
+  - id: THE-UNPLAYABLE-SIZE-CANARY-CANNOT-BITE-ON-A-BET-IT-ONLY-BITES-ON-A-RAISE
+    status: deferred
+    phase: 16
+    title: Two import checks are jointly unsatisfiable for a bet, so one of them is unreachable on every cell this phase commits
+    reason: >-
+      The mutation canary postflop-unplayable-size-imports disables check_size_is_playable and
+      expects the import to accept a cell it should refuse. Measured by phase 16's schema lane, in
+      memory, on the witness's own cell: with the check disabled, a BET inflated past the stack is
+      still refused - by the off-menu check instead - so the canary SURVIVES; the same mutation on a
+      RAISE imports, so it bites there.
+      It is not an accident of the witness's chosen number. On a single-raised flop cell the two
+      checks are jointly unsatisfiable for a bet: any on-menu size is at most 0.75 x 5.5bb = 4.125bb
+      against a 97.5bb stack, and any size above the stack is roughly 17 times the pot and therefore
+      off-menu. There is no bet size that is both on the ruled menu and unplayable, so the
+      unplayable check is unreachable for a bet on every cell this phase will ever commit.
+      Pre-existing rather than introduced by the schema repair - the old bet_sizes_bb field had the
+      same property - and the lane restated the witness faithfully as "the first sized entry" rather
+      than retargeting it at a raise, because retargeting is a behaviour change to a frozen witness
+      and belongs to whoever opens verification/** next. check_gate_bite at stage 7 will find this
+      independently, which is the check working.
+      The general shape is worth more than the instance: a canary proves a line is load-bearing only
+      if some input reaches that line and nothing else catches it first. Two overlapping guards can
+      each look proven while one of them is dead. Filed 2026-09-16.
+
+  - id: A-COMMITTED-CELL-CARRIES-NO-STREET-SO-THE-IMPORTER-CHECKS-EVERY-BET-AGAINST-THE-FLOP-MENU
+    status: deferred
+    phase: contract-update
+    title: The menu check hardcodes the flop sizes and a turn or river cell would be refused as off-menu
+    reason: >-
+      The strict importer prices every committed bet against FLOP_BET_MENU = (0.33, 0.75). Decision
+      11 rules two sizes on every street - flop 33 75, turn and river 66 125 - so a turn cell at 66%
+      would be refused as off-menu by the phase's own importer. Nothing on a PostflopCell names its
+      street, so there is nothing to branch on.
+      Harmless today and only today: decision 1 commits the flop alone, and turn and river refuse by
+      their own codes. It becomes a wall the moment a later phase commits a turn cell, and it will
+      look like a data problem rather than a schema one, because the refusal names the size.
+      This is the same class as the defect decision 18 repaired - a field that carries less identity
+      than the thing it describes - one level up: the cell knows its size but not which menu that
+      size belongs to. Sits beside A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE.
+      Found by phase 16's schema lane, 2026-09-16, outside its brief.
+
+  - id: DECISION-12-S-DO-NOT-SMOOTH-ARGUMENT-DESCRIBES-A-RANGE-THAT-WAS-SUPERSEDED
+    status: deferred
+    phase: 16
+    title: The evidence for not smoothing the range is a range the repo replaced three weeks later
+    reason: >-
+      Decision 12 rules the input ranges floored and not smoothed, and its central poker argument is
+      that the single-raised out-of-position pattern is normal rather than broken - "a single
+      monotone threshold, not an inversion: every pair 66 and better is essentially absent ... and 55
+      and below flat. Two blocks, one boundary" - and that smoothing would therefore be "an error
+      injected by a repair".
+      That argument is measured on config.range_oop@717f36499fb4 from the MAINT-26 cost report, dated
+      2026-08-23. The committed export is dated 2026-09-08 and 8 of 169 classes differ between them
+      by more than half, including the two the argument turns on: 55 goes 0.5712 to 0.0000 and 22
+      goes 0.8064 to 0.0000. At the node phase 16 actually reads there are two boundaries with a
+      reversal - 44 and 33 flat while 55 and 22 do not - which is not "two blocks, one boundary" and
+      is an inversion by the decision's own definition.
+      The conclusion may still be right; phase 16's range lane reached the same answer by a different
+      route, that the export's weights carry no information to smooth because every pair AA to 55
+      reads exactly 1.0000. But a ruling whose stated evidence no longer describes its subject is
+      worse than an open question, because the next reader checks whether it was decided rather than
+      whether it is true. Distinct from
+      THE-COST-MODEL-S-RANGES-ARE-RECORDED-ONLY-AS-DIGESTS-OF-DATA-THAT-IS-NOT-HERE, which is that
+      the superseding range was never committed at all; this is that a decision was left pointing at
+      the superseded one. Found by phase 16's stage-6 range lane, 2026-09-16, outside its brief.
+
+  - id: THE-PREFLOP-CHART-CANNOT-PRICE-A-FLAT-AGAINST-A-THREE-BET-AND-ITS-CALL-BRANCH-IS-NOISE
+    status: deferred
+    phase: contract-update
+    title: GTOpen prices realization by class and seat only, so which branch a hand takes is unmodelled
+    reason: >-
+      Measured at the big blind's node facing a 2.5bb button open in the committed export: 153 of 169
+      classes are pure at max weight 0.9995 or above, and 3 are genuinely mixed below 0.95. The
+      committed GTOWizard reference for the same spot has 40 genuinely mixed. Against that reference
+      the total DEFENCE weight differs by more than half on only 8 of 169 classes, while among the 80
+      classes both defend above 90 percent the share of that defence which is a 3-bet differs by more than half on 37, mean
+      absolute difference 0.4523, signed mean +0.2196 toward 3-betting and +0.4025 on pocket pairs.
+      So the chart knows which hands to play and does not know which branch to put them on.
+      The cause is in GTOpen's source rather than in its convergence.
+      crates/solver/src/preflop/mod.rs:1131-1139 computes a hand's realization as
+      fit.class_r(h, posw) - the hand class and a static positional weight, and nothing else. The
+      richer seat_mult, which takes SPR, initiative and range equity, is marked KEPT FOR ANALYSIS
+      ONLY at :328 and is not called on the solve path, deliberately: the comment records that
+      feeding those correlates back let the solver buy the aggressor premium and validation showed
+      100 percent open rates. So flatting 77 into a 5.5bb pot at SPR 17.7 and 3-betting 77 into a
+      15bb pot at SPR 6.2 are priced as realizing equity at the same rate, the whole reason a small
+      pair flats is invisible, and every pair prefers the 3-bet. More iterations cannot move it.
+      A contributing lever is unused rather than absent: raise_mults is [3.0] so the big blind's only
+      3-bet is 7.5bb where the reference uses 13.5bb, and GTOpen supports raise_mults_by_seat, which
+      the ruled config leaves unset. A cheap 3-bet makes flatting worse still.
+      This matters far beyond a chart's readability. The call branch is the entire out-of-position
+      input to every postflop solve, so phase 16's committed flop strategy is solved against the half
+      of the chart that carries the least information. Filed 2026-09-16 by phase 16's range lane,
+      which was asked to condition this range and correctly reported that it cannot be done from the
+      export's own numbers.
+
+  - id: THE-PHASE-S-CENTRAL-MODULE-HAS-NO-MUTATION-CANARY
+    status: deferred
+    phase: contract-update
+    title: postflop_betting.py decides whether the bot bets and nothing proves the gate would notice if it stopped
+    reason: >-
+      verification/mutations.yml covers composite.py, postflop_fallback.py and preflop_chart.py. It
+      does not name src/poker_training_bot/strategy/postflop_betting.py at all - the module that
+      decides whether the bot bets, which size it bets, and which of eleven refusal codes it returns.
+      That is the module phase 16 exists to add.
+      So nothing proves the gate would go red if the lookup's coarsest-gap-first ordering were
+      inverted, if a refusal became a check, or if the weighted draw were replaced by an argmax. A
+      green gate over this module is currently the same kind of evidence as a green gate with no
+      check_gate_bite at all, which is the standing objection this repo already applies everywhere
+      else.
+      Phase 16 cannot close it: verification/** is frozen from stage 5 and the phase's own canaries
+      were authored at stage 4, before the module's shape was known. Filing it rather than reaching
+      into the freeze is the correct move and also the reason the gap survived - the stage that could
+      have written these canaries did not yet know what to point them at, and the stage that knows
+      cannot write them. That ordering problem is general and worth a ruling of its own.
+      Found by phase 16's stage-6 source repair lane, 2026-09-16, while running a canary check it was
+      asked to do for a different reason.
+
+  - id: THE-COST-MODEL-S-RANGES-ARE-RECORDED-ONLY-AS-DIGESTS-OF-DATA-THAT-IS-NOT-HERE
+    status: deferred
+    phase: contract-update
+    title: Decision 11's cost figures were measured on ranges no node of the committed export reproduces
+    reason: >-
+      The postflop cost report's appendix records its inputs as config.range_oop@717f36499fb4 and
+      range_ip@23642f5e22e7. Phase 16's sample lane brute-forced all 33,969 nodes of the committed
+      preflop export against every action and neither digest reproduces. range_ip is close - 14 of 169
+      classes differ, K5o at 0.502 against 0.0, A2o at 0.4727 against 0.0003 - and range_oop is not:
+      ATs 0.1687 against 0.001, K9s 0.7163 against 0.0685, 22 0.8064 against 0.0.
+      Those two strings are the only record of the ranges every timing, arena and iteration figure in
+      decision 11 was measured on. A digest of data that is not in the repo names it without
+      preserving it, so the measurements cannot be reproduced, cannot be corrected, and cannot be
+      checked against the ranges the phase actually solves with. The lane derived its own inputs from
+      the committed export instead, which is why the phase's figures are re-derivable at all.
+      This is the same argument as A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES, applied to
+      an input rather than an output, and it is the sharper case: a committed cell at least has its
+      producer's word, while these ranges have a hash and nothing to hash. The rule this wants is that
+      a measurement report commits the inputs it was measured on, or states in the report that it
+      cannot be reproduced. Found 2026-09-16.
+
+  - id: GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT
+    status: deferred
+    phase: contract-update
+    title: The solver prints five threads on a ten-core machine, which may be why timings transfer badly
+    reason: >-
+      gto-server prints "solver threads: 5" at startup on an Apple M4 with 10 cores. Nothing in
+      docs/GTOPEN_SOLVER_NOTES.md, the cost report or decision 11 mentions thread count, so every
+      timing figure this phase rests on was taken at an unrecorded and possibly default parallelism.
+      It is a candidate explanation for a discrepancy the notes already record and do not resolve:
+      the same config reading 1.11 ns per node-hand on a fresh server and 1.79 late in a long
+      session, and figures that transfer poorly between runs. It is also directly relevant to the
+      rented-box plan, where core count is the thing being bought - a campaign estimate built on
+      five threads and run on a box provisioned for its core count would be wrong in whichever
+      direction the default resolves.
+      Cheap to settle: record the thread count beside every timing, and measure one cell at five
+      threads against one at ten before any campaign is priced. Found by phase 16's sample lane,
+      2026-09-16, from a line of server startup output nobody had written down.
+
   - id: A-REFUSAL-WITH-NO-DETAIL-AT-ALL-SURVIVES-IN-THE-PREFLOP-CHART
     status: deferred
     phase: contract-update
