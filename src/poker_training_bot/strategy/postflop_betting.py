@@ -36,6 +36,7 @@ from poker_training_bot.solver_artifacts.postflop_key import (
     canonical_board,
     canonical_hole_cards,
     completed_preflop_line,
+    menu_size_chips,
     postflop_spot_key,
     price_within_band,
 )
@@ -437,18 +438,27 @@ class PostflopBettingStrategy:
     ) -> tuple[int | None, str | None]:
         """Chips to put the level at, or the code saying why there are none.
 
-        The cell prices its sized actions in big blinds, one per sized action in its own order, so
-        the size is the solve's own number rather than one recomputed from the pot here. Capping at
-        all-in is not a guess - you cannot bet more than you hold - and hero's ceiling is hero's
-        **own** street contribution plus the stack behind it, read off `seat_states`, the same
-        ceiling `DecisionAuditRecord` proves the answer against.
+        **The size is a fraction of the pot, converted against the pot in front of hero**, not a
+        chip count copied out of the cell. The cell's big blinds are a *nominal* size against the
+        nominal pot its key names, and decision 10's band deliberately admits a real pot 20%
+        either side of that, so a 1.815bb c-bet played as a flat 182 chips is 33.1% of a 5.5bb pot
+        and 40.4% of the 4.5bb pot a 2.0bb open leaves. Decision 14 then matches a faced bet by
+        **real** pot fraction inside 0.05, so the bot made a bet its own lookup went on to refuse,
+        on 46 of the corpus's 174 heads-up single-raised flops - and the refusal code blamed the
+        other seat's sizing. `menu_size_chips` is decision 14's own conversion and the one the
+        importer priced `bet_fractions` with, so the two ends of the trip cannot drift.
+
+        `query.pot` is the pot as it stands, which is what `flop_action_line` measures every other
+        seat's fraction against. Capping at all-in is not a guess - you cannot bet more than you
+        hold - and hero's ceiling is hero's **own** street contribution plus the stack behind it,
+        read off `seat_states`, the same ceiling `DecisionAuditRecord` proves the answer against.
+        `A-COMMITTED-SIZE-IS-CLAMPED-TO-ALL-IN-RATHER-THAN-REFUSED` owns the cap itself.
         """
-        _, big_blind = query.blinds
         sized = [name for name in cell.actions if name in SIZED_ACTIONS]
-        size = cell.bet_sizes_bb[sized.index(action)]
+        fraction = cell.bet_fractions[sized.index(action)]
         hero = next(state for state in query.seat_states if state.seat == query.seat)
         all_in = hero.street_bet + dict(query.stacks)[query.seat]
-        amount = min(round(size * big_blind), all_in)
+        amount = min(hero.street_bet + menu_size_chips(fraction, query.pot), all_in)
         if amount < query.min_raise_target and amount != all_in:
             return None, REFUSE_SIZE_BELOW_MINIMUM
         return amount, None

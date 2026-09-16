@@ -73,14 +73,29 @@ class CompositeStrategy:
 
     @classmethod
     def from_repo(cls) -> CompositeStrategy:
-        """Build from committed data, which is the chart library's job and not this one.
+        """Build from committed data, which is each library's job and not this one.
 
-        The only I/O in the whole module happens inside `PreflopChartStrategy.from_repo`.
-        The fallback reads nothing at all, because a deck enumeration needs no artifact.
+        **Postflop is the betting strategy, and wiring it here is the whole point of phase 16.**
+        Until 2026-09-15 this line returned `PostflopFallbackStrategy()` while
+        `PostflopBettingStrategy` was imported for a type annotation and constructed nowhere in
+        `src` at all, so the bot this repo builds folded every flop - the exact behaviour the
+        phase exists to replace - and the phase's frozen tests passed over it, because every one
+        of them builds the betting strategy directly and none asked what `from_repo` returns.
+
+        On a clone holding no committed flop artifact the betting strategy's library is empty and
+        it refuses by code, where the fallback folded the flop without asking. That is the trade
+        taken deliberately: a refusal is not an action, the composite hands it back untouched and
+        the simulator voids the hand, which is the seam decision 1 accepted arriving one street
+        earlier than the turn. A refusal names the gap; a fold hides it behind a decision nobody
+        solved.
+
+        The I/O belongs to both libraries. `PostflopBettingStrategy.from_repo` reads the
+        committed sample and index when they are on this machine and returns an empty library
+        when they are not, because a clone that has fetched nothing genuinely holds nothing.
         """
         return cls(
             preflop=PreflopChartStrategy.from_repo(),
-            postflop=PostflopFallbackStrategy(),
+            postflop=PostflopBettingStrategy.from_repo(),
         )
 
     def component_for(self, street: str) -> str:

@@ -300,6 +300,12 @@ def apply_suit_map(cards, suit_map) -> tuple[str, ...]:
     return tuple(card[0] + suit_map[card[1]] for card in cards)
 
 
+# The 24 relabellings of four suits, built here rather than imported off the module under test.
+SUIT_RELABELLINGS: tuple[dict[str, str], ...] = tuple(
+    dict(zip(SUITS, order, strict=True)) for order in itertools.permutations(SUITS)
+)
+
+
 class TestTheOnePermittedCollapse:
     """Criterion: the board in the key is the canonical representative of its suit-isomorphism
     class, computed rather than tabulated.
@@ -378,18 +384,13 @@ class TestTheOnePermittedCollapse:
         assert canonical(("Kc", "7c", "2h")) != canonical(("Kc", "7d", "2h"))
 
 
-class TestTheHandIsPermutedByTheBoardSOwnMap:
-    """The half the contract's board tests cannot see, and the stage-3 review's note to stage 4.
+class TestHeroSHandIsAClassRatherThanARendering:
+    """The half the contract's board tests cannot see.
+    `AN-ISOMORPHISM-TEST-ON-BOARDS-DOES-NOT-COVER-HERO-HANDS`.
 
-    Suit isomorphism is exact only if hero's two cards are permuted by the **same** map as the
-    board. A hand permuted inconsistently passes every board-level check - the classes are still
-    distinct, every board still maps into exactly one, the rank-texture neighbour still maps
-    elsewhere - and returns a real strategy for a real hand. No exploitability figure and no shape
-    check can see it. `AN-ISOMORPHISM-TEST-ON-BOARDS-DOES-NOT-COVER-HERO-HANDS`.
-
-    Asserting the joint permutation is strictly stronger than the flush-draw check and no more
-    expensive, which is what the review asked stage 4 to do rather than stopping at the contract's
-    wording. The flush-draw check stays below as the poker statement of why it matters.
+    **Corrected 2026-09-15** from the implementation's own formula, which a formula cannot
+    check, to two properties of the class: invariance under relabelling board and hand together,
+    and least of its own orbit. `stage-06-build-mechanical.md` carries the measurements.
     """
 
     @pytest.fixture(scope="class")
@@ -404,50 +405,49 @@ class TestTheHandIsPermutedByTheBoardSOwnMap:
     def canonical_hand(self, key_module):
         return owed(key_module, "canonical_hole_cards")
 
-    def test_the_published_map_is_a_permutation_of_the_four_suits(self, suit_map) -> None:
+    def test_the_published_map_is_a_permutation_carrying_the_board_to_its_representative(
+        self, canonical, suit_map
+    ) -> None:
+        """A map that is not a permutation, or that disagrees with the representative, leaves the
+        board's own dressing check nothing to compare against."""
         for board in itertools.combinations(ALL_CARDS, 3):
             mapping = suit_map(board)
             assert sorted(mapping) == sorted(SUITS), board
             assert sorted(mapping.values()) == sorted(SUITS), board
+            moved = tuple(sorted(apply_suit_map(board, mapping)))
+            assert moved == tuple(sorted(canonical(board))), board
 
-    def test_the_published_map_is_what_carries_the_board_to_its_representative(
-        self, canonical, suit_map
+    def test_one_hand_on_one_board_is_one_class_however_it_was_dealt(
+        self, canonical_hand
     ) -> None:
-        """If the map and the representative disagree, there is no single permutation at all and
-        the hand has nothing consistent to be permuted by."""
+        """Relabel board and hand together and the class must not move, which is what makes the
+        answer a name for a class rather than a rendering of one dressing."""
         for board in itertools.combinations(ALL_CARDS, 3):
-            moved = apply_suit_map(board, suit_map(board))
-            assert tuple(sorted(moved)) == tuple(sorted(canonical(board))), board
+            hole = tuple(card for card in ALL_CARDS if card not in board)[:2]
+            expected = canonical_hand(board, hole)
+            for m in SUIT_RELABELLINGS:
+                moved = canonical_hand(apply_suit_map(board, m), apply_suit_map(hole, m))
 
-    def test_hero_s_cards_move_under_that_same_map_and_no_other(
-        self, suit_map, canonical_hand
+                assert moved == expected, (board, hole, m)
+
+    def test_every_hero_combo_on_a_two_tone_board_is_the_least_of_its_own_orbit(
+        self, canonical, canonical_hand
     ) -> None:
-        """The joint property, over every board and a hero holding for each. One permutation is
-        applied to board and hand together, or the collapse is not exact."""
-        for board in itertools.combinations(ALL_CARDS, 3):
-            spare = [card for card in ALL_CARDS if card not in board][:2]
-            hole = (spare[0], spare[1])
-            expected = tuple(sorted(apply_suit_map(hole, suit_map(board))))
-
-            assert tuple(sorted(canonical_hand(board, hole))) == expected, (board, hole)
-
-    def test_every_hero_combo_on_a_two_tone_board_moves_under_the_board_s_map(
-        self, suit_map, canonical_hand
-    ) -> None:
-        """Exhaustive over all 1,176 hero combos on the modal texture, where the defect lives:
-        two-tone is 55.06% of flops and whether hero shares the board's flush suit is most of the
-        strategy there."""
+        """All 1,176 combos on the modal texture, against an orbit built off `canonical_board`
+        rather than the function under test. 721 classes is what the byte model is sized for."""
         board = ("8h", "8d", "3h")
-        mapping = suit_map(board)
-        rest = [card for card in ALL_CARDS if card not in board]
-        assert len(rest) == 49
-
-        combos = list(itertools.combinations(rest, 2))
+        rep = tuple(sorted(canonical(board)))
+        maps = [m for m in SUIT_RELABELLINGS if tuple(sorted(apply_suit_map(board, m))) == rep]
+        combos = list(itertools.combinations([c for c in ALL_CARDS if c not in board], 2))
         assert len(combos) == 1176
 
+        labels = set()
         for hole in combos:
-            expected = tuple(sorted(apply_suit_map(hole, mapping)))
-            assert tuple(sorted(canonical_hand(board, hole))) == expected, hole
+            orbit = {tuple(sorted(apply_suit_map(hole, m))) for m in maps}
+            assert canonical_hand(board, hole) == min(orbit), (hole, sorted(orbit))
+            labels.add(min(orbit))
+
+        assert len(labels) == 721
 
     def test_a_flush_draw_and_the_same_ranks_without_one_are_two_hero_classes(
         self, canonical_hand

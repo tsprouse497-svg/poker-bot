@@ -51,6 +51,11 @@ NOT_BACKLOG_IDS: dict[str, str] = {
     "ALL-CAPS-DASH": "the same sentence, quoting the id convention itself",
     "NAMES-NONE-OF-ITS-OWN": "the middle of a longer id, quoted in prose as"
     " 'its id says ...' in the same note",
+    "A-K-7-5-2": "a poker hand, not an id: the ace-high heart flush a stage-6 domain"
+    " review names when pricing the pot-odds river call. BACKLOG-CITATION-SHAPE-MATCHES"
+    "-POKER-NOTATION is the open entry for the detector reading poker notation as a"
+    " citation, and it says in terms that it cannot quote its own offenders without"
+    " becoming one",
 }
 
 # Ids that were real and are not the live name of their finding. A citation of one is a

@@ -17,6 +17,12 @@ validated by the opposite rule: the street must be closed rather than open. Deci
 amendment of 2026-09-15 is the authority; `spot_key`'s validator is right for its own question
 and is not loosened to serve this one.
 
+**A key can only name a node a dealer reaches.** `validate_flop_action_line` walks the flop
+round against `postflop_action_order` before a key is built, so a line whose seats act out of
+turn, act after folding, act after the betting closed, or stop at somebody else's decision has
+no key at all. Without it the raiser's continuation bet keys as `f:none` at import and as
+`f:BB:check` at a table, and every c-bet refuses while `committed_spot_queries` answers itself.
+
 **The key does not begin with `t`.** `data_pipeline/self_play_reference.py` recovers preflop
 keys by taking any whitespace token starting with `t` that holds three slashes, and a postflop
 key carries a line in that grammar verbatim inside it. Beginning with `f` stops that reader
@@ -32,26 +38,41 @@ decision 10: the geometric three-street size moves 103.9%, 115.8% and 130.9% of 
 lacks.
 
 **The pot and the stack in the key are nominal, not observed:** they come from the
-*substituted* preflop line rather than the table being asked about, which keeps a cell findable
-when a hand opened to 2.25bb looks up an `@2.5` cell. `PRICE_BAND_FRACTION` carries the rest,
-and `THE-QUERY-TIME-PRICE-SUBSTITUTION-IS-NOT-BOUNDED-POSTFLOP` what it still cannot see.
+*substituted* preflop line, which keeps a cell findable when a hand opened to 2.25bb looks up an
+`@2.5` cell. `PRICE_BAND_FRACTION` carries the rest, and
+`THE-QUERY-TIME-PRICE-SUBSTITUTION-IS-NOT-BOUNDED-POSTFLOP` what it still cannot see.
 
-**The one collapse is over suits, and it is exact only if hero moves with the board.** A board
-becomes the smallest member of its suit-isomorphism class and the permutation that carried it
-there is published, so hero's two cards move by *that* map and no other; permuted
-inconsistently a hand passes every board-level check and still returns a real strategy for a
-real hand. Nothing else is collapsed: `K72r` and `Q72r` are two boards, because decision 2
-defers rank abstraction rather than taking it.
+**The one collapse is over suits, and it lives in `postflop_isomorphism`.** A board becomes the
+smallest member of its suit-isomorphism class and hero's hand becomes the smallest image of
+itself over every relabelling that reaches that representative. Re-exported here, because the
+key producer is where a caller looks for it, and implemented there, because minimising over the
+board's stabiliser rather than mapping by one permutation is the whole of the correctness
+argument and it owes its own file. Nothing else is collapsed: `K72r` and `Q72r` are two boards,
+because decision 2 defers rank abstraction rather than taking it.
 """
 
 from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from functools import cache
-from itertools import permutations
 
-from poker_training_bot.poker_core.positions import POSITION_LABELS, preflop_action_order
+from poker_training_bot.poker_core.positions import (
+    POSITION_LABELS,
+    postflop_action_order,
+    preflop_action_order,
+)
+
+# Re-exported rather than restated. `postflop_isomorphism` owns the one collapse decision 2
+# permits; this module is where every caller looks for it, because the key is what the collapse
+# is for. `__all__` below is what makes the re-export deliberate rather than an unused import.
+from poker_training_bot.solver_artifacts.postflop_isomorphism import (
+    CANONICAL_FLOP_CLASSES,
+    FLOP_CARDS,
+    board_suit_map,
+    board_suit_maps,
+    canonical_board,
+    canonical_hole_cards,
+)
 
 # The three underscored names are borrowed rather than restated: everything a preflop line must
 # satisfy *whatever* question is asked of it - a table size the repo seats, a positive depth,
@@ -66,27 +87,12 @@ from poker_training_bot.solver_artifacts.spot_key import (
     render_size_bb,
 )
 
-_RANKS = "23456789TJQKA"
-_SUITS = "cdhs"
-_DECK = frozenset(rank + suit for rank in _RANKS for suit in _SUITS)
-
-FLOP_CARDS = 3
-
-CANONICAL_FLOP_CLASSES = 1755
-"""How many suit-isomorphism classes the 22,100 three-card boards fall into.
-
-Not tabulated and not read: it is what `canonical_board` produces over the whole deck, counted.
-Recomputed from the 52 cards by `tests/test_postflop_key.py::TestTheOnePermittedCollapse`,
-which also checks the class sizes against the three orbit sizes, so a canonicaliser that
-over-collapsed would show up as a class of the wrong size long before any strategy was wrong."""
-
-# The 24 relabellings of four suits. Suit isomorphism is the whole of the permitted collapse,
-# so the group is written out once and minimised over, rather than a texture being classified
-# by hand into rainbow, two-tone and monotone - a classification is a second rule that can
-# disagree with the first.
-_SUIT_PERMUTATIONS: tuple[dict[str, str], ...] = tuple(
-    dict(zip(_SUITS, order, strict=True)) for order in permutations(_SUITS)
-)
+# The re-exports, named so they are a published surface rather than an unused import. Everything
+# else this module defines is public by being defined here.
+__all__ = [
+    "CANONICAL_FLOP_CLASSES", "FLOP_CARDS", "board_suit_map", "board_suit_maps",
+    "canonical_board", "canonical_hole_cards",
+]
 
 # Decision 11's flop menu as a fraction of pot, which is the unit it was solved in.
 FLOP_BET_MENU: tuple[float, ...] = (0.33, 0.75)
@@ -94,34 +100,30 @@ FLOP_BET_MENU: tuple[float, ...] = (0.33, 0.75)
 MENU_FRACTION_TOLERANCE = 0.05
 """How far, in pot fraction, a faced bet may sit from a menu entry and still be that entry.
 
-Decision 14, ruled by Taylor 2026-09-15, compared **inclusively**: a bet exactly this far away
-matches. The menu is a percent of pot and the table is in chips and the arithmetic does not
-come out even - 33% of a 550-chip pot is 181.5, which no dealer can push - so strict equality
-would refuse every faced bet at a real table and kill the committed artifact's raise branch
-with nothing going red.
+Decision 14, ruled by Taylor 2026-09-15, compared **inclusively**. The menu is a percent of pot
+and the table is in chips and the arithmetic does not come out even - 33% of a 550-chip pot is
+181.5 - so strict equality would refuse every faced bet at a real table.
 
-The width is bounded on both sides by arithmetic rather than taste: it has to exceed the
-rounding a real table imposes, `|180/550 - 0.33| = 0.002727`; stay under half the distance
-between two entries, `(0.75 - 0.33)/2 = 0.21`, or one bet lands in two buckets; and stay under
-`|0.50 - 0.33| = 0.17`, because the phase separately requires a 50% bet to refuse. 0.05 is 18.3
-times the floor and 3.4 times inside the tighter ceiling. The cost is stated rather than
-hidden: a 28%-of-pot bet and a 38%-of-pot bet both get the strategy solved for 33%."""
+Bounded on both sides by arithmetic rather than taste: above the rounding a real table imposes,
+`|180/550 - 0.33| = 0.002727`; under half the distance between two entries,
+`(0.75 - 0.33)/2 = 0.21`; and under `|0.50 - 0.33| = 0.17`, because a 50% bet must refuse. The
+cost is stated rather than hidden: a 28%-of-pot bet and a 38%-of-pot bet both get the strategy
+solved for 33%. The fraction is always of the **real** pot the bet went into, never a nominal
+one, on both sides of the conversion - `match_menu_fraction` and `menu_size_chips`."""
 
 PRICE_BAND_FRACTION = 0.20
 """How far a real preflop price may sit from the price a cell was solved at.
 
-Decision 10, ruled by Taylor 2026-09-10, stated as a fraction of the cell's own price and
-inclusive at both ends: an open of 2.0bb to 3.0bb against an `@2.5` cell, a 3-bet of 6.0bb to
-9.0bb against an `@7.5` one. A fraction rather than a chip width, because a fixed width that
-admitted 2.0-3.0 against `@2.5` would admit only 7.0-8.0 against `@7.5` and a 3-bet to 6.5
-would fall through the rule entirely - the first draft's defect, and five of the seven
-converged rows are 3-bet pots.
+Decision 10, ruled by Taylor 2026-09-10, a fraction of the cell's own price and inclusive at
+both ends: an open of 2.0bb to 3.0bb against an `@2.5` cell, a 3-bet of 6.0bb to 9.0bb against
+an `@7.5` one. A fraction rather than a chip width, because a fixed width admitting 2.0-3.0
+against `@2.5` would admit only 7.0-8.0 against `@7.5` and a 3-bet to 6.5 would fall through the
+rule entirely, and five of the seven converged rows are 3-bet pots.
 
 A coverage rule, not a sensitivity-derived one: 99.0% of the corpus's 409 opens land inside it
 and 47.1% of its 87 3-bets do, because the committed chart's single 3-bet price of 7.5bb sits
 below the corpus median of 9.25bb. `THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN` owns
-that gap, recorded rather than tuned away: no band centred on 7.5 covers that corpus, and
-widening one until it did would answer a 12bb 3-bet pot out of a 7.5bb cell."""
+that gap, recorded rather than tuned away."""
 
 # Every action a seat can take on a flop. Unlike preflop, a check can precede hero's
 # decision and a bet is the commonest entry there is.
@@ -133,85 +135,6 @@ _NO_FLOP_ACTION = "none"
 """What the flop segment reads when hero is first to act and nothing has happened yet. It
 cannot collide with a rendered line: every `FlopAction` renders as `POSITION:action`, so every
 non-empty flop segment holds a colon and this one does not."""
-
-
-def _validated_board(board: Sequence[str]) -> tuple[str, ...]:
-    cards = tuple(board)
-    if len(cards) != FLOP_CARDS:
-        raise ValueError(f"a flop is exactly {FLOP_CARDS} cards, got {len(cards)}: {cards!r}")
-    for card in cards:
-        if card not in _DECK:
-            raise ValueError(f"board holds a card that is not in the deck: {card!r}")
-    if len(set(cards)) != FLOP_CARDS:
-        raise ValueError(f"board holds the same card twice: {cards!r}")
-    return cards
-
-
-_Image = tuple[tuple[str, ...], tuple[tuple[str, str], ...]]
-
-
-@cache
-def _smallest_image(board: tuple[str, ...]) -> _Image:
-    """The smallest relabelling of `board`, and the permutation that produced it.
-
-    Both halves come out of one minimisation on purpose: computed separately they could
-    disagree, leaving no single permutation for hero's cards to move under at all. Ties - every
-    board not using all four suits has them - break on the first permutation in
-    `_SUIT_PERMUTATIONS` order, so one class always publishes one map."""
-    best: tuple[str, ...] | None = None
-    chosen: dict[str, str] = _SUIT_PERMUTATIONS[0]
-    for mapping in _SUIT_PERMUTATIONS:
-        moved = tuple(sorted(card[0] + mapping[card[1]] for card in board))
-        if best is None or moved < best:
-            best, chosen = moved, mapping
-    assert best is not None
-    return tuple(sorted(best, key=_board_order)), tuple(chosen.items())
-
-
-def _board_order(card: str) -> tuple[int, int]:
-    """Highest rank first, then by suit - the order a flop is written and read in. The
-    minimisation above compares card text, which puts `2c7dKh` ahead of `Kh7d2c`; which of the
-    two is stored is free, because a key is compared and never taken apart, but which one a
-    person reads off a refusal inventory is not."""
-    return -_RANKS.index(card[0]), _SUITS.index(card[1])
-
-
-def canonical_board(board: Sequence[str]) -> tuple[str, ...]:
-    """The representative of `board`'s suit-isomorphism class, highest rank first. A member of
-    the class rather than a label for it, so canonicalising the representative returns it and
-    two dresses of one board - `Kc7d2h` and `Kh7s2c` - are one key. Two-tone `Kc7c2h` is not
-    collapsed onto rainbow `Kc7d2h`: one holds a flush draw and the other does not, and no
-    relabelling of four suits turns one into the other."""
-    return _smallest_image(tuple(sorted(_validated_board(board))))[0]
-
-
-def board_suit_map(board: Sequence[str]) -> dict[str, str]:
-    """The permutation of the four suits that carries `board` to its representative. Published
-    rather than kept private because hero's cards have to move under this map and no other, and
-    a fresh dictionary each call so a caller cannot reach into the cached answer."""
-    return dict(_smallest_image(tuple(sorted(_validated_board(board))))[1])
-
-
-def canonical_hole_cards(board: Sequence[str], hole_cards: Sequence[str]) -> tuple[str, ...]:
-    """Hero's two cards moved by `board`'s own map, sorted.
-
-    The half a board-level isomorphism test cannot see. On a two-tone board `AhQh` holds the
-    flush draw and `AsQd` does not, and a map applied to the board but not to the hand - or to
-    the hand inconsistently - serves one the other's strategy while every board-level check
-    passes. `AN-ISOMORPHISM-TEST-ON-BOARDS-DOES-NOT-COVER-HERO-HANDS`."""
-    cards = tuple(hole_cards)
-    if len(cards) != 2:
-        raise ValueError(f"hero holds exactly two cards, got {len(cards)}: {cards!r}")
-    table = _validated_board(board)
-    for card in cards:
-        if card not in _DECK:
-            raise ValueError(f"hole_cards holds a card that is not in the deck: {card!r}")
-        if card in table:
-            raise ValueError(f"{card!r} is on the board and cannot also be in hero's hand")
-    if cards[0] == cards[1]:
-        raise ValueError(f"hero cannot hold the same card twice: {cards!r}")
-    mapping = board_suit_map(table)
-    return tuple(sorted(card[0] + mapping[card[1]] for card in cards))
 
 
 @dataclass(frozen=True)
@@ -407,6 +330,86 @@ def _closed_preflop_round(
     return put_in, folded, level
 
 
+def validate_flop_action_line(
+    preflop_line: PreflopLine, flop_actions: Sequence[FlopAction]
+) -> None:
+    """Refuse a flop line no dealer could have produced, ending at hero's own turn.
+
+    **An unreachable node is a cell nothing ever asks for**, and the case that matters is exactly
+    the continuation bet. A real table puts the out-of-position seat's check on the record, so the
+    key it derives for the raiser's flop is `f:BB:check`; a cell written `f:none` there - the
+    natural reading of "nothing has happened yet" - refuses every c-bet under `no-cell-for-this-
+    spot` and turns the report's bet frequency into a donk-bet frequency. Nothing in the loop
+    could see it, because `committed_spot_queries` rebuilds the table **from the cell**.
+
+    The flop analogue of `_closed_preflop_round`, over `postflop_action_order` - which until now
+    had no production caller at all. Four ways a line can be unreachable: a seat that is not live,
+    a seat acting out of turn, an action that does not suit the price in front of it, and a line
+    that stops before or after hero's own decision. A bet or a raise re-opens the round for
+    everybody else and closes it on itself.
+
+    Sizes are not walked: a flop size is a percent of the pot **as it stood**, so chip levels are
+    not derivable here, and whether a seat faced a bet - which is all turn order needs - is.
+    """
+    live = set(preflop_line.live_positions)
+    order = [
+        name for name in postflop_action_order(preflop_line.table_size) if name in live
+    ]
+    if preflop_line.hero_position not in live:
+        raise ValueError(f"{preflop_line.hero_position} is not live on this flop")
+    pending = list(order)
+    faced = dict.fromkeys(order, 0)
+    level = 0
+    for index, entry in enumerate(flop_actions):
+        context = f"flop_actions entry {index} by {entry.position}"
+        if entry.position not in live:
+            raise ValueError(
+                f"{context} folded before the flop, so it cannot act on one:"
+                f" {sorted(live)} are the seats this line leaves in"
+            )
+        if not pending:
+            raise ValueError(f"{context} acts after the flop betting had already closed")
+        if pending[0] != entry.position:
+            raise ValueError(
+                f"{context} acts out of turn; it is {pending[0]}'s turn here, since postflop"
+                f" order is {order} rather than the preflop one"
+            )
+        if faced[entry.position] < level:
+            if entry.action not in ("fold", "call", "raise"):
+                raise ValueError(
+                    f"{context} {entry.action}s facing a bet, which no dealer offers; facing one"
+                    " a seat folds, calls or raises"
+                )
+        elif entry.action not in ("check", "bet"):
+            raise ValueError(
+                f"{context} {entry.action}s with nothing in front of it; first in a round a seat"
+                " checks or bets"
+            )
+        pending.pop(0)
+        if entry.action == "fold":
+            live.discard(entry.position)
+            pending = [name for name in pending if name != entry.position]
+            order = [name for name in order if name != entry.position]
+        elif entry.action in _SIZED_FLOP_ACTIONS:
+            level += 1
+            faced[entry.position] = level
+            pending = [name for name in order if name != entry.position]
+        else:
+            faced[entry.position] = level
+    if len(live) < _LIVE_SEATS_ON_A_FLOP:
+        raise ValueError("the flop line leaves one seat in, so the hand ended before hero acted")
+    if not pending:
+        raise ValueError(
+            "the flop betting closes on this line, so there is no decision left for"
+            f" {preflop_line.hero_position} to make and no spot to name"
+        )
+    if pending[0] != preflop_line.hero_position:
+        raise ValueError(
+            f"this line ends at {pending[0]}'s turn rather than"
+            f" {preflop_line.hero_position}'s, so it names somebody else's decision"
+        )
+
+
 def postflop_spot_key(
     preflop_line: PreflopLine,
     board: Sequence[str],
@@ -434,6 +437,7 @@ def postflop_spot_key(
     for entry in entries:
         if not isinstance(entry, FlopAction):
             raise ValueError(f"flop_actions entries must be FlopAction, got {entry!r}")
+    validate_flop_action_line(preflop_line, entries)
     line = ",".join(render_flop_action(entry) for entry in entries) or _NO_FLOP_ACTION
     cards = "".join(canonical_board(board))
     pot = render_size_bb(pot_bb)

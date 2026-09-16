@@ -432,7 +432,7 @@ items:
   - id: POSTFLOP-BOARD-ABSTRACTION
     status: deferred
     phase: charts
-    title: Group similar flops so the bot plays them identically
+    title: Group similar flops so the bot plays them identically - wanted, Taylor 2026-09-16
     reason: >-
       Ruled by Taylor on 2026-08-19: eventually needed, deliberately later. Suit isomorphism is
       exact and every solver exploits it; grouping by rank texture so an unsolved K72r reads off a
@@ -8113,3 +8113,395 @@ items:
       sees it. That is a sibling of `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES` and it
       matters most on the one run nobody can repeat cheaply.
       Not fixable in phase 16: all three were frozen at stage 5 and `tests/**` left approved_scope.
+
+  - id: THE-BOT-MUST-EVENTUALLY-PLAY-AN-UNCOVERED-SPOT-RATHER-THAN-REFUSE-IT
+    status: deferred
+    phase: v2
+    title: Taylor's 2026-09-16 direction - the bot plays uncovered spots on heuristics, which two standing rules currently forbid
+    reason: >-
+      Ruled as a direction by Taylor 2026-09-16, during phase 16's stage-6 review, when the
+      coordinator put the immediate question to him: with the betting strategy wired and no solved
+      data, a simulated session returns 25 hands uncontested, 11 refused and **zero showdowns**,
+      because every postflop decision refuses. His answer was that the bot "will have to play those
+      hands", with basic heuristics for the ones no cell covers and similar spots merged together,
+      and that a bigger machine solves more.
+      **The near-term answer is still refuse, and that is not a disagreement with the direction.**
+      Neither the heuristics nor the merging exist, so today's only alternative to refusing is
+      folding the flop, which is the fold-without-asking that phase 16 exists to remove. It is a bad
+      stand-in for the thing wanted rather than a step toward it: a fold is a real poker mistake
+      made silently in exactly the spots the bot knows least about, where a refusal is a gap a
+      reader can see and count.
+      **Coverage never closes, which is why this is not solved by hardware.** The solve covers all
+      1,755 canonical flops but only a short head of preflop lines, and per preflop line the turn is
+      85,995 spots and the river 4,127,760 - `POSTFLOP-BOARD-ABSTRACTION` carries those figures. A
+      bigger machine widens the head and does not reach the tail, so a bot that plays every hand
+      needs the heuristic layer whatever is rented.
+      **Two standing rules have to change deliberately, and neither should change inside a phase.**
+      `AGENTS.md`'s V1 boundaries forbid "heuristic guessing for missing preflop chart spots", and
+      phase 16's contract extends it: "Do not map an unsolved board onto a solved one by rank
+      texture." Decision 2 deferred that as `POSTFLOP-BOARD-ABSTRACTION` rather than rejecting it,
+      so the direction picks up something left open - but the edit is a boundary amendment in
+      `contract-update` mode, not something a phase does on its way past.
+      **What this is not.** It is not a ruling on phase 16, which continues to refuse, and it is not
+      a phase contract - that is its own `contract-update` task and cannot be written from
+      `implementation` mode. This entry exists so the direction is on the record rather than in a
+      conversation.
+      Open questions it will have to rule, none of them answered here: what a heuristic may read
+      (the solved neighbour, hand strength, board texture, nothing else); how a merged spot is
+      reported, since a played-from-heuristic decision and a played-from-solve decision must never
+      look the same to a reader; whether a heuristic decision may be recorded in a committed hand
+      history at all; and what the drill tells a student when the answer came from a neighbour.
+
+  - id: A-COMMITTED-SIZE-IS-CLAMPED-TO-ALL-IN-RATHER-THAN-REFUSED
+    status: deferred
+    phase: '16'
+    title: A committed bet size hero cannot afford is quietly shrunk to an all-in rather than refused
+    reason: >-
+      `PostflopBettingStrategy._amount` in `src/poker_training_bot/strategy/postflop_betting.py`
+      ends `amount = min(hero.street_bet + menu_size_chips(fraction, query.pot), all_in)`, where
+      `all_in` is hero's own street contribution plus the stack behind it read off `seat_states`.
+      A committed size that does not fit is therefore played at whatever hero holds instead of
+      being refused. It is reachable rather than theoretical, because the spot key carries the
+      *nominal* pot and stack off the substituted preflop line: a table that opened to 3.0bb
+      against an `@2.5` cell leaves hero half a big blind less behind than the cell assumes, so
+      the bot shoves at a size the solve never produced while the report counts it as an answered
+      bet. Not a blocker, and the reason is worth keeping: `DecisionAuditRecord` still proves the
+      answer legal against the same ceiling, so what goes in is a legal bet rather than an
+      impossible one. What is lost is that a size the artifact could not pay for is
+      indistinguishable in the record from one it could, which is the distinction the contract's
+      own criterion - a committed size that cannot be played is refused at import rather than at
+      the table - draws one layer up. The module's docstring already names this entry as the owner
+      of the cap, so the code points here. Filed rather than fixed because the choice between
+      refusing and clamping is a behaviour ruling: a refusal here turns a spot the report counts
+      as answered into a refusal, which is a behaviour change the phase's frozen tests do not ask
+      for. Found by phase 16's stage-6 mechanical review, 2026-09-15, which was read-only and
+      edited nothing it reviewed. Re-checked against the worktree 2026-09-16: still the live code.
+
+  - id: A-GENERATORS-RE-DERIVATION-CHECKS-ARE-NOT-LABELLED-WHEN-VACUOUS
+    status: deferred
+    phase: '16'
+    title: Four of the report generator's five re-derivation checks pass on no data, and the report does not say so
+    reason: >-
+      With no committed postflop artifact on the machine, four of the five re-derivation checks in
+      `scripts/generate_postflop_betting_report.py` prove nothing and are printed exactly as they
+      would be printed with data behind them. `check_bytes_reconcile` is skipped entirely, guarded
+      on `index is not None`; `check_rate_excludes_non_weight_bytes` compares 0.0 against 0.0,
+      because `weight_count` is 0 and the rate is short-circuited to 0.0; `check_coverage_splits_by_cause`
+      is handed `answerable=1.0` and `losses={}`, both hardcoded fallbacks for `corpus.flops` being
+      0; and `check_spot_count_matches_index` compares 0 against 0. Only the refusal-count
+      reconciliation has anything to reconcile. The contrast is inside the same report: every one
+      of the sixteen refusal codes in `reports/active/latest_postflop_betting_report.txt` is
+      labelled `vacuous` by name at zero count, so the report already knows how to say "this number
+      is empty" and says it for the refusal inventory and not for its own re-derivations. That
+      matters most at exactly the moment the phase is in now, where a reader scanning the
+      re-derivation block sees five checks pass and one of them means it. `REPORT-VALIDATORS-CAN-HOLD-GUARDS-THAT-CANNOT-FAIL`
+      is the neighbouring entry and is a different claim: that one is about a guard whose
+      comparison cannot fail by construction, this one about guards that would work and have
+      nothing to work on. What is owed is one word per check in the same register the refusal
+      codes already use. Found by phase 16's stage-6 mechanical review, 2026-09-15, which was
+      read-only; the generator was another lane's file in the stage that found it.
+
+  - id: SEATACTION-LOST-ITS-STREET-SPECIFIC-VOCABULARY
+    status: deferred
+    phase: '16'
+    title: SeatAction now admits every action name on both histories, so a preflop bet validates and slips the level walk
+    reason: >-
+      `src/poker_training_bot/strategy/contract.py` widened `SeatAction` to accept
+      `_ACTION_NAMES = ("fold", "check", "call", "bet", "raise")` for both `preflop_actions` and
+      `postflop_actions` at once, when phase 16 gave `StrategyQuery` a flop history. The class's
+      own docstring records that `bet` was refused while preflop was the only street carrying a
+      history. So the street restriction was dropped rather than moved to the street that needed
+      it, and `preflop_actions` now accepts a `bet`, which no preflop seat can take. It is not
+      cosmetic, because the level-monotonicity walk further down the same file inspects only
+      `entry.action == "raise"`. A preflop `SeatAction(seat, "bet", 50)` at or below the big blind
+      is accepted, where the identical amount recorded as a `raise` is refused with a named error -
+      and the comment three lines above that walk is the argument for refusing rather than
+      clamping, that a clamp "launders an impossible history into a plausible one and then answers
+      it". The laundering is now available through the action name instead of through the amount.
+      `postflop_actions` gets no level walk at all: the shape loop covers both fields and the level
+      walk iterates `self.preflop_actions` only. `SEAT-STATE-MARKERS-AGREE-WITH-NOTHING` is the
+      same class of defect from the producer side. Re-checked in the worktree 2026-09-16 and both
+      halves still hold. Found by phase 16's stage-6 mechanical review, 2026-09-15, read-only.
+
+  - id: A-COMMITTED-CELLS-ACTION-NAMES-ARE-NOT-CHECKED-AT-IMPORT
+    status: deferred
+    phase: '16'
+    title: A committed cell's action list is coerced to strings and validated against nothing at import
+    reason: >-
+      `src/poker_training_bot/solver_artifacts/postflop_artifact.py` builds a cell's action list as
+      `actions = tuple(str(item) for item in _require_list(payload, origin, "cell", "actions"))`.
+      The coercion accepts any JSON value and nothing checks the result: a cell whose actions are
+      `["banana", "zzz"]` imports clean, and a repeated name is not refused either, even though
+      `postflop_betting.py` prices a size with `sized.index(action)` over that same list and so
+      would silently take the first occurrence's price for the second occurrence's action. The miss
+      is caught later at the table, by the `action not in query.legal_actions` refusal, which is
+      the direction the module's own docstring argues against - the same importer refuses an
+      unplayable *size* under a named code through `check_size_is_playable`, so the size half of a
+      cell is guarded and the action half is not. Nothing is wrong today because no cell is
+      committed; it becomes wrong with the first committed sample, and a bad action name is
+      exactly the kind of thing a hand-authored sample file produces. Filed rather than fixed
+      because it was found by a read-only review that edited nothing it reviewed. Found by phase
+      16's stage-6 mechanical review, 2026-09-15; re-checked in the worktree 2026-09-16.
+
+  - id: MENU-SIZE-CHIPS-ROUNDS-HALF-TO-EVEN-NOT-TO-NEAREST
+    status: deferred
+    phase: '16'
+    title: The chip conversion rounds ties to even where the decision it implements says nearest chip
+    reason: >-
+      `menu_size_chips` in `src/poker_training_bot/solver_artifacts/postflop_key.py` returns
+      `round(fraction * _validated_pot(pot_chips))`, and Python's `round` is banker's rounding - a
+      tie goes to the even integer - where decision 14 item 4 rules "rounding to the nearest chip"
+      and the function's own docstring repeats that wording. Decision 14's worked example survives
+      only by parity: 33% of a 550-chip pot is 181.5, and `round(181.5)` is 182 because 182 is
+      even, which is also the nearest-chip answer, so the one case anybody checked agrees.
+      Neighbouring ties do not. `round(82.5)` is 82 and `round(180.5)` is 180, each a chip below
+      the nearest-chip answer. The cost in poker is one chip and nothing more, which is why this is
+      filed rather than blocking; the reason to file it is that the conversion is ruled on both
+      ends of the trip - the importer prices `bet_fractions` through it and `_amount` converts back
+      through it at the table - so the rule the docstring states and the rule the code applies
+      ought to be the same rule, and a decision item is the wrong place to leave a mismatch nobody
+      can see from the outside. Found by phase 16's stage-6 mechanical review, 2026-09-15,
+      read-only; the `round` call is still there on 2026-09-16.
+
+  - id: THE-INDEX-BODY-IS-READ-UNGUARDED-BELOW-ITS-STRICT-IMPORTER
+    status: deferred
+    phase: '16'
+    title: The postflop index is read with bare subscripts under an importer whose whole subject is named refusals
+    reason: >-
+      `indexed_spot_keys` in `src/poker_training_bot/solver_artifacts/postflop_artifact.py` is
+      `frozenset(str(entry["spot_key"]) for entry in index["entries"])` with no shape check, and
+      `scripts/generate_postflop_betting_report.py` reads `index["covered_preflop_lines"]`,
+      `index["line_count_bound_by"]`, `index["cells_solved_and_rejected_above_one_percent"]` and
+      `index["committed_bytes"]` the same way. A malformed, truncated or renamed index therefore
+      raises `KeyError` or `TypeError` out of a module whose entire subject is refusing with a
+      named code: every field of a *cell* in the same file goes through `_require_list` and comes
+      back as a named refusal naming the file it came from. The gap is structural rather than
+      careless - the strict importer covers the cell body, and the index body sits below it in the
+      same module with no equivalent. `STRATEGY-CONTRACT-IS-ONE-LINE-UNDER-ITS-CAP` names the same
+      seam from the size side and records the writing lane's own proposal: `import_postflop_index`,
+      `indexed_spot_keys` and the index schema are a clean extraction into a sibling
+      `postflop_index.py`, which the lane could not create under its own scope. That extraction is
+      where these guards belong, and doing one without the other spends the file's remaining
+      headroom twice. Found by phase 16's stage-6 mechanical review, 2026-09-15, read-only;
+      re-checked 2026-09-16.
+
+  - id: THE-SAMPLE-FILE-COUNT-IS-NOW-UNBOUNDED-WHERE-THE-RULING-ALLOWED-ONE-MORE
+    status: deferred
+    phase: '16'
+    title: A frozen test's sample-file bound was widened from exactly three to at least three, where the ruling authorised exactly one more
+    reason: >-
+      `tests/test_postflop_artifact.py` now asserts `len(files) >= 3` where it asserted
+      `len(files) == 3`, which is no upper bound at all. The 2026-09-15 amendment it implements
+      authorises exactly one more file - its words are "the fourth file is a fourth situation on a
+      board already in the sample" - and nothing now stops a fifth or a fiftieth. The other half of
+      the old assertion did survive: `test_the_three_boards_are_the_ruled_three` pins the board set
+      independently, so the sample is still three flops however many files carry them. So this is a
+      bound widened past its own ruling rather than an assertion that was lost, and the correction
+      it came in with was authorised in substance. `THREE-SAMPLE-FILES-CANNOT-HOLD-THE-SPOTS-THE-FROZEN-TESTS-NEED`
+      is the entry that argued the count up and owns whether three cells can carry four ruled
+      situations; this is the opposite end of the same argument, the count having been let go
+      entirely rather than moved to four. Not fixable inside phase 16: the test was frozen at stage
+      5 and `tests/**` left `approved_scope`, which is the point of that stage, so filing it is the
+      move available. Found by phase 16's stage-6 mechanical review, 2026-09-15, read-only.
+
+  - id: TWO-BANDS-THAT-OVERLAP-WOULD-BE-RESOLVED-BY-ITERATION-ORDER
+    status: deferred
+    phase: '16'
+    title: The covered-line walk takes the first committed line inside the price band and never checks that only one is
+    reason: >-
+      `PostflopBettingStrategy._covered_line` in
+      `src/poker_training_bot/strategy/postflop_betting.py` iterates `self.library.lines` and
+      returns the first line all of whose prices fall inside decision 10's 20% band, with no check
+      that exactly one does. Nothing is ambiguous today and the entry does not claim otherwise: the
+      committed chart carries two preflop prices, 2.5 and 7.5, and 20% either side of each gives
+      disjoint bands with a wide gap between them. A third committed price anywhere in that gap
+      would put one table inside two bands, and the walk would take whichever line the library
+      yields first, return it as a match, and answer from its cell with nothing refusing and
+      nothing in the decision record saying a second line matched. What makes it worth filing is
+      that this walk is deliberately strict everywhere else - a price outside every band falls
+      through and refuses rather than moving onto the nearest cell, and the docstring argues that
+      at length on the grounds that a quarter of a big blind moves the pot, the SPR and both
+      postflop ranges at once. First-match is the one place it guesses, and it guesses silently.
+      What would close it: collect every matching line and refuse on more than one. Found by phase
+      16's stage-6 mechanical review, 2026-09-15, read-only; re-checked 2026-09-16.
+
+  - id: THE-FLOP-RAISE-TOLERANCE-IS-BORROWED-FROM-THE-BET-MENU-RULING
+    status: deferred
+    phase: '16'
+    title: A faced flop raise is matched inside a tolerance no decision entry rules, borrowed from the bet menu's
+    reason: >-
+      `src/poker_training_bot/strategy/postflop_committed.py` matches a faced **raise** against
+      `raise_fractions` using `MENU_FRACTION_TOLERANCE`, the width decision 14 ruled for the
+      **bet** menu. The module says so itself - its docstring records that "that reading is this
+      module's own" - which is the code telling the reader that a threshold governing behaviour is
+      carried by nothing but the module applying it. `raise_fractions` is separately thin:
+      `load_library` derives it only from raise entries inside committed cells' `flop_actions`,
+      that is from cells sitting at a node *after* a raise, so a sample that commits a cell where
+      hero can raise without committing the companion cell facing that raise leaves the set empty
+      and the bot cannot name its own raise. A tolerance in behaviour that no decision entry
+      carries is the shape `LOOP-NO-CLASS-FOR-A-HUMAN-OWNED-THRESHOLD` was filed over, and the
+      shape decision 14 itself was written to fix on the bet side. What is owed is a ruling rather
+      than a patch: either decision 14 is extended to the raise menu at the same width and says so,
+      or the raise gets its own width with its own argument, and the raise menu is declared on the
+      cell rather than inferred from which nodes happen to be committed. Found by phase 16's
+      stage-6 mechanical review, 2026-09-15, read-only, and independently by the same stage's
+      domain review from the other end - it measured a bot that raised to 454 chips and then
+      refused its own raise because `raise_fractions` was empty.
+
+  - id: THE-WEIGHTED-DRAW-IS-WRITTEN-TWICE
+    status: deferred
+    phase: '16'
+    title: The mixed-cell weighted draw is a second copy of the preflop chart's, and the module line cap is the condition that made copying cheaper
+    reason: >-
+      `_roll` and `collapse` in `src/poker_training_bot/strategy/postflop_betting.py` are a
+      line-for-line copy of `_roll` and `PreflopChartStrategy.collapse` in
+      `src/poker_training_bot/strategy/preflop_chart.py`: the same sha256-seeded uniform draw in
+      [0, 1) and the same cumulative walk over the positive weights, differing only in docstring.
+      The writing module says so itself - "written again rather than imported off a strategy that
+      reads preflop artifacts; two copies of one rule is a finding for the coordinator rather than
+      a licence for them to differ" - and hands it up, which is the right move and is why this is
+      an alignment item rather than a finding against the lane. The condition to fix is the cap,
+      not the copy. `scripts/check_file_sizes.py` caps `src/**/*.py` at 500 lines as an inclusive
+      bound, and phase 16 is being written against that bound from every side. Measured in the
+      phase/16 worktree 2026-09-16: `solver_artifacts/postflop_key.py` and
+      `solver_artifacts/postflop_solve_driver.py` are both at exactly 500, `strategy/contract.py`
+      at 499, `solver_artifacts/postflop_artifact.py` at 495, and the stage has extracted two
+      further modules to make room, `solver_artifacts/postflop_isomorphism.py` at 164 lines and
+      `solver_artifacts/postflop_sizing.py` at 98. `STRATEGY-CONTRACT-IS-ONE-LINE-UNDER-ITS-CAP`
+      carries the same measurement from the stage that took it and names a third extraction that
+      has not happened. When every candidate home is at the bound, a third copy of a twelve-line
+      rule is cheaper than finding somewhere to put the first one. Read this with
+      `ONE-FLOP-LINE-WALK-IS-WRITTEN-IN-BOTH-DIRECTIONS` and
+      `THE-SIZED-ACTION-SET-IS-DEFINED-FOUR-TIMES`, which are the same stage's other two
+      duplications: one shared module answers all three and no single one of them justifies
+      creating it. Found by phase 16's stage-6 mechanical review, 2026-09-15, read-only.
+
+  - id: ONE-FLOP-LINE-WALK-IS-WRITTEN-IN-BOTH-DIRECTIONS
+    status: deferred
+    phase: '16'
+    title: The flop line is walked forward in one module and backward in another, with nothing making the two agree
+    reason: >-
+      `_flop_street` in `src/poker_training_bot/strategy/postflop_spot_queries.py` and
+      `flop_action_line` in `src/poker_training_bot/strategy/postflop_committed.py` are the same
+      walk written twice in opposite directions: carry the pot forward, take each sized action as
+      the chips added over that seat's standing bet, update the level. One builds a table's flop
+      history out of a committed cell so the report can ask about it; the other reads a table's
+      flop history back into the cell's own pricing so the strategy can look it up. The stage-6
+      review checked the conventions match on both the bet branch and the raise branch and they
+      agree today, and nothing makes them keep agreeing. A disagreement would not show up as a
+      crash: it would show up as a spot the bot can produce and then cannot look up, which is the
+      failure mode this phase has already met from three other directions. `_chips` is a second,
+      smaller copy of the same kind, defined identically in both files. What would close it is a
+      round-trip assertion over a committed cell - build the query from the cell, read the line
+      back off the query, require the same fractions - which is cheap and needs a committed cell to
+      run against. Same condition as `THE-WEIGHTED-DRAW-IS-WRITTEN-TWICE`: the 500-line module cap
+      is why a second walk was cheaper than a shared one. Found by phase 16's stage-6 mechanical
+      review, 2026-09-15, read-only.
+
+  - id: THE-SIZED-ACTION-SET-IS-DEFINED-FOUR-TIMES
+    status: deferred
+    phase: '16'
+    title: One two-element frozenset naming the sized actions is defined in five modules, one of which exists to make two of the others agree
+    reason: >-
+      `frozenset({"bet", "raise"})` is defined as `_AMOUNT_ACTIONS` in
+      `src/poker_training_bot/strategy/contract.py`, `_SIZED_FLOP_ACTIONS` in
+      `src/poker_training_bot/solver_artifacts/postflop_key.py`, `_SIZED_ACTIONS` in
+      `src/poker_training_bot/solver_artifacts/postflop_artifact.py` and `SIZED_ACTIONS` in
+      `src/poker_training_bot/strategy/postflop_committed.py`, the last of which the module says
+      exists precisely "so the table side and the cell side agree". The review counted four. It was
+      re-counted in the phase/16 worktree on 2026-09-16 and there are five: a fifth `SIZED_ACTIONS`
+      is in `solver_artifacts/postflop_sizing.py`, a module extracted during the same stage and not
+      yet committed when the count was taken. The id keeps the number the note filed it under and
+      the live number is five, which is the substance of the entry rather than a correction to it:
+      each module the 500-line cap forces out re-declares the set rather than importing it, so the
+      count tracks the extractions and will keep doing so. Nothing checks that the five agree, and
+      the one place they must - a cell's sized actions and the table's reading of them - is guarded
+      by the fourth definition existing rather than by an assertion. The poker risk today is nil,
+      since all five are the same two words; the reason to file it is that it is the cheapest
+      observable measure of what the cap is costing this phase, and it is the same condition as
+      `THE-WEIGHTED-DRAW-IS-WRITTEN-TWICE` and `ONE-FLOP-LINE-WALK-IS-WRITTEN-IN-BOTH-DIRECTIONS`,
+      which one shared module would close together. Found by phase 16's stage-6 mechanical review,
+      2026-09-15, read-only.
+
+  - id: A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED
+    status: deferred
+    phase: '16'
+    title: Voiding a hand at the turn refusal erases the called c-bets and keeps the folded ones, so the surviving record of the bot's flop betting is a record of the times it worked
+    reason: >-
+      When the postflop strategy refuses, the composite hands the refusal back untouched and
+      `src/poker_training_bot/simulator/run.py` voids the hand, returning
+      `stack_deltas={seat: 0 for seat in config.seats}` and `pot_collected=0`. In chips, at the
+      only table this repo has, the donation is therefore exactly zero: the flop bet is given back
+      along with everything else. That much was half-known - the stage-4 domain review recorded
+      that the simulator voids the hand at a refusal. The consequence it did not draw is that what
+      is left is a filter and the filter runs the wrong way. A c-bet that gets **folded** to ends
+      the hand on the flop, settles uncontested and is recorded with a real stack delta. A c-bet
+      that gets **called** reaches the turn, refuses, and the whole hand is erased. Those are
+      exactly the two outcomes that decide whether a c-bet was any good. A 33% bet risking 0.33P to
+      win P breaks even as a pure bluff at 0.33/1.33 = 24.81% folds, so against correct defence
+      24.81% of the bot's c-bets are recorded as winning the whole pot and the other 75.19% leave
+      no trace at all. The surviving record carries no counter-observation anywhere in it. The
+      contract's ban on a winrate or EV figure over this artifact is the right guard and is a
+      different one: the hand histories themselves are committed and carry `outcome=REFUSED` on the
+      voided hands, and nothing anywhere says that dropping those is not dropping a random subset,
+      so a later phase computing anything over completed hands on a covered flop inherits the bias
+      silently. The pedagogical cost is worse than the chip cost: a student floating the bot's
+      c-bet does not get to punish the missing barrel, because the hand vanishes instead, where a
+      bot that bet the flop and checked the turn down would at least teach the float.
+      `A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE` owns the seam itself and
+      `NO-FIGURE-SPLITS-THE-FLOP-BET-FREQUENCY-INTO-VALUE-AND-BLUFF` owns the missing value/bluff
+      split; neither owns the selection. `SIMULATOR-VOIDED-HAND-RECORD` (done, filed against the
+      simulator) is the record-contents half of voiding - which actions survive in a voided hand's
+      record - and is not this. Found by phase 16's stage-6 domain review,
+      2026-09-15, extending its own stage-4 predecessor rather than re-filing it.
+
+  - id: A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN
+    status: deferred
+    phase: '16'
+    title: The four ruled sample situations are not closed under the bot's own actions, so the bot refuses on the flop rather than at the turn seam the phase documents
+    reason: >-
+      The four situations the sample is ruled to carry are a caller first to act betting, a caller
+      facing a bet raising, a two-tone board separating a flush draw from the same ranks without
+      one, and a preflop raiser c-betting. Walk the flop tree those four describe on one board,
+      measured by phase 16's stage-6 domain review against a synthetic sample holding exactly them:
+      BB donks and BTN faces the donk bet - refused, `no-cell-for-this-spot`; BB checks, BTN
+      c-bets, BB raises, BTN faces the check-raise - refused; BB checks, BTN c-bets, BB calls -
+      turn, refused; BB checks, BTN checks - turn, refused. Only the fold branches complete. The
+      deepest flop line the sample can carry is check-bet-raise, and the node after that raise has
+      nobody in it. Four cells cannot hold every continuation and this entry does not ask them to;
+      the consequence is what needs writing down, because the phase documents its seam as being at
+      the turn and it is not. Every time the bot donk-bets or check-raises, the hand dies on the
+      flop against its own other seat - and the donk cell is one of the four the sample is required
+      to carry, so this is not an exotic branch. Decision 1 accepted "bets a flop, then refuses
+      every turn"; what ships is "bets a flop, then refuses the flop too, from the other chair".
+      `THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY` owns which boards are in and
+      `THREE-SAMPLE-FILES-CANNOT-HOLD-THE-SPOTS-THE-FROZEN-TESTS-NEED` owns the file count; neither
+      owns closure. Filed rather than solved because which flop lines get solved and committed is
+      decision 6 item 4's to rule, and a phase that writes new committed data stops for a human.
+
+  - id: THE-BEHAVIOUR-SECTION-ASKS-THE-STRATEGY-ONLY-ABOUT-SPOTS-IT-CHOSE
+    status: deferred
+    phase: '16'
+    title: The report's behaviour figures are taken over spots, boards and hands the artifact itself chose, so a published bet frequency would say only that the cells round-trip
+    reason: >-
+      `measure_behaviour` in `scripts/generate_postflop_betting_report.py` iterates
+      `committed_spot_queries()`, which rebuilds a table *from each committed cell* and asks about
+      the hand classes `_sample_classes` picks: first the class spreading its weight over the most
+      actions, then, for each committed action, the classes weighing that action highest. So once a
+      sample is committed, the published bet frequency is measured over spots the artifact chose,
+      on boards the artifact chose, with hands chosen to draw the action being counted. A reader
+      would take the number for a bet frequency. What it would actually say is that the cells
+      round-trip. As committed today the section is empty and honest - `spots asked: 0`, `bet
+      frequency: 0 of 0 asked`, `refusals counted: 0`, and all sixteen refusal codes labelled
+      `vacuous` - because no cell is committed, and that emptiness is the whole of what a reader
+      currently learns about the bot's flop play. The self-reference has a sharp end the same stage
+      measured: because the query carries the cell's own flop line, the loop cannot detect a
+      committed flop line no dealer could produce - it asks the impossible line and the cell
+      answers it. The fix there is a validation at import and is not the fix here. What is missing
+      here is one independently constructed query per committed situation, built from a table
+      rather than from a cell.
+      `A-SAMPLE-CHOSEN-FOR-SOLVE-EVIDENCE-GAPS-IS-NOT-A-SAMPLE-CHOSEN-FOR-DEFECT-DETECTION` owns
+      the sample-choice half. This is the report half, and it extends the stage-4 domain review's
+      N5, which found the same self-selection in the tests, into the report, where the same
+      function is now the sole source of a published figure. Found by phase 16's stage-6 domain
+      review, 2026-09-15, read-only.

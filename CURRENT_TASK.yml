@@ -4,7 +4,11 @@ task_mode: implementation
 base_commit: 95122e34b691f8293968adc3f30b3138020dfc68
 approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
+  - tests/test_postflop_key.py
+  - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/postflop_key.py
+  - src/poker_training_bot/solver_artifacts/postflop_isomorphism.py
+  - src/poker_training_bot/solver_artifacts/postflop_sizing.py
   - src/poker_training_bot/solver_artifacts/postflop_artifact.py
   - src/poker_training_bot/solver_artifacts/postflop_solve_driver.py
   - src/poker_training_bot/strategy/postflop_betting.py
@@ -2140,3 +2144,46 @@ scope_change_log:
       1,195 functions - one fewer than the last freeze, because the file-count test was absorbed
       into the board-count assertion that already implied it rather than deleted. base_commit moves
       to the re-freeze on the same argument as the three before it.
+
+  - date: 2026-09-15
+    reason: >-
+      Re-opens tests/test_postflop_key.py and the lock for the stage-6 review repair, and closes
+      them again on the re-freeze. Fourth time in this task and the same precedent each time.
+      The stage-6 reviews found five blockers between them and one finding outside both briefs that
+      is larger than any of the five: CompositeStrategy.from_repo still builds
+      PostflopFallbackStrategy, so the bot this repo hands you still folds every flop and the
+      phase's entire deliverable is unwired. 1,374 tests pass over it, because every frozen test
+      builds PostflopBettingStrategy directly and none asks what from_repo returns.
+      The test file is re-opened for one of the five. canonical_hole_cards applies the board's map
+      and stops, never minimising over the board's own stabiliser, so a hand gets a different class
+      depending on which dressing the dealer used. Measured by the coordinator over all 1,176
+      combos: 910 unstable on 8c8d3c and 1,131 on 9c8c7c, with true class counts of 721 and 344
+      against 1,176 emitted, where decision 6 budgets 1,286,792 / 1,755 = 733.2 per flop. Either
+      the bot refuses 38.7 and 70.7 percent of hands on a covered flop, or the artifact is 1.6x the
+      size the byte model was ruled on. test_postflop_key.py asserts the implementation's own
+      formula back at it, which is why the test moves with the code.
+
+  - date: 2026-09-15
+    reason: >-
+      Adds solver_artifacts/postflop_isomorphism.py, extracted from postflop_key.py by the
+      stage-6 repair lane and reported by it rather than slipped in. The stabiliser fix needs the
+      board's whole set of canonicalising maps rather than one of them, and postflop_key.py had no
+      room - it was at 496 of the 500-line cap. The seam is honest: the suit group, the board
+      representative and hero's class under it are one subject, and the spot key that renders them
+      is another.
+      The fix is verified by the coordinator rather than accepted. Over all 1,176 combos per board
+      the class counts are now 1,176 on Kh7d2c, 721 on 8c8d3c and 344 on 9c8c7c, which are the true
+      orbit counts under each board's stabiliser, with zero unstable combos anywhere. Summed over
+      all 1,755 canonical flops it gives 1,286,792 hero-combo classes, reproducing decision 6's
+      figure exactly and confirming the byte model the phase is ruled on was always describing this
+      collapse and not the one the code did.
+
+  - date: 2026-09-15
+    reason: >-
+      Adds solver_artifacts/postflop_sizing.py, the second extraction the stage-6 repair needed and
+      the second one a lane reported rather than slipped in. W3 puts the committed bet size onto a
+      pot fraction at import and back into chips against the real pot at the table, which took
+      postflop_artifact.py to 552 against a 500-line cap. The sizing arithmetic moved out and the
+      artifact module is back to 495.
+      check_size_is_playable deliberately stayed behind, because a mutation canary names its line
+      verbatim in postflop_artifact.py and verification/** is frozen.

@@ -19,6 +19,10 @@ and `completed_preflop_line` the single derivation, so a 2.5bb button open calle
 cell records is the **completed** preflop street, hero's own closing action included, which is
 what lets a cell name the preflop raiser's flop at all. Decision 8's 2026-09-15 amendment.
 
+**A committed size is a fraction of the cell's own pot**, priced here once into `bet_fractions`
+and converted back at the table by `menu_size_chips`. `postflop_sizing` holds that arithmetic and
+the argument for it, which is that big blinds against a nominal pot are not a size at all.
+
 What this module does **not** do: it re-derives no digest, which
 `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES` owns, and it names no table-side refusal
 code, since which cause a miss is reported under belongs to whoever is answering a table."""
@@ -40,6 +44,10 @@ from poker_training_bot.solver_artifacts.postflop_key import (
     completed_preflop_line,
     postflop_spot_key,
     price_within_band,
+)
+from poker_training_bot.solver_artifacts.postflop_sizing import (
+    committed_bet_fractions,
+    pot_before_hero_bb,
 )
 from poker_training_bot.solver_artifacts.schema import WEIGHT_SUM_TOLERANCE, PreflopAction
 from poker_training_bot.solver_artifacts.solve_conditions import parse_blind_structure
@@ -88,6 +96,7 @@ SPOT_KEY_MISMATCH = "postflop:spot-key-mismatch"
 EXPLOITABILITY_ABOVE_CEILING = "postflop:exploitability-above-ceiling"
 ITERATIONS_ABOVE_CAP = "postflop:iterations-above-cap"
 UNPLAYABLE_SIZE = "postflop:unplayable-size"
+OFF_MENU_SIZE = "postflop:size-off-the-configured-menu"
 WEIGHT_OUT_OF_BOUNDS = "postflop:weight-out-of-bounds"
 WEIGHT_SUM = "postflop:weight-sum"
 PRICE_OUTSIDE_BAND = "postflop:price-outside-band"
@@ -96,7 +105,7 @@ REASON_CODES: tuple[str, ...] = (
     UNREADABLE_FILE, INVALID_JSON, UNSUPPORTED_SCHEMA_VERSION, INVALID_VALUE_CODE,
     PREFLOP_LINE_MISMATCH, POT_DOES_NOT_FOLLOW_FROM_THE_LINE, BOARD_DRESSING_MISMATCH,
     SPOT_KEY_MISMATCH, EXPLOITABILITY_ABOVE_CEILING, ITERATIONS_ABOVE_CAP, UNPLAYABLE_SIZE,
-    WEIGHT_OUT_OF_BOUNDS, WEIGHT_SUM, PRICE_OUTSIDE_BAND,
+    OFF_MENU_SIZE,     WEIGHT_OUT_OF_BOUNDS, WEIGHT_SUM, PRICE_OUTSIDE_BAND,
 )
 
 _CELL_KEYS = set(
@@ -191,6 +200,8 @@ class PostflopCell:
     hero_street_bet_bb: float
     actions: tuple[str, ...]
     bet_sizes_bb: tuple[float, ...]
+    pot_before_hero_bb: float
+    bet_fractions: tuple[float, ...]
     hand_classes: tuple[str, ...]
     class_weights: tuple[tuple[float, ...], ...]
     achieved_exploitability_pct_of_pot: float
@@ -402,12 +413,21 @@ def _build_cell(raw: Any, origin: str) -> PostflopCell:
     behind = effective_stack_bb - hero_street_bet
     for size in sizes:
         check_size_is_playable(size, hero_street_bet, behind, cell=origin)
+    # A committed size is a raise-to in big blinds against a *nominal* pot, and what travels to a
+    # table is what fraction of the cell's own pot it was. Priced here once, so a cell off its own
+    # configured menu is refused here rather than bet at a table and then refused by the matcher.
+    pot_before = pot_before_hero_bb(pot_bb, flop_actions)
+    try:
+        fractions = committed_bet_fractions(actions, sizes, hero_street_bet, pot_before)
+    except ValueError as error:
+        raise _refuse(OFF_MENU_SIZE, origin, str(error)) from error
     return PostflopCell(
         spot_key=derived_key, board=board, suit_map=tuple(sorted(derived_map.items())),
         preflop_line=line, hero_position=hero_position, preflop_actions=preflop_actions,
         price_substitutions=substitutions, pot_bb=pot_bb, effective_stack_bb=effective_stack_bb,
         flop_actions=flop_actions, hero_street_bet_bb=hero_street_bet, actions=actions,
-        bet_sizes_bb=tuple(sizes), hand_classes=hand_classes, class_weights=rows,
+        bet_sizes_bb=tuple(sizes), pot_before_hero_bb=pot_before,
+        bet_fractions=fractions, hand_classes=hand_classes, class_weights=rows,
         achieved_exploitability_pct_of_pot=achieved, iterations=iterations,
     )
 
