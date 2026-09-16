@@ -32,8 +32,8 @@ HERO_SEAT = 2
 LIVE_HEADS_UP = (BUTTON_SEAT, HERO_SEAT)
 """Six seats with the button at 0, which `poker_core.order.blind_seats` reads as the small blind
 at seat 1 and the big blind at seat 2. Hero is the big blind - the seat the covered
-`t6/d100/BB/BTN:raise@2.5` cell was solved for - and the button and hero are the two still in
-once the open goes through."""
+`t6/d100/BB/BTN:raise@2.5,BB:call` cell was solved for, that line being the **completed** preflop
+street rather than a preflop spot key - and hero and the button are the two still in."""
 
 HERO_CHECKS = contract_module.SeatAction(HERO_SEAT, "check")
 """Postflop the blinds act first, so hero acts before the button on every street after the flop
@@ -329,7 +329,7 @@ class TestTheTwoTableCausesAndTheCodesThatNameThem:
         outcome = strategy.decide(three_bet_pot())
 
         assert isinstance(outcome, contract_module.StrategyRefusal)
-        assert outcome.named("preflop_spot_key"), outcome.detail
+        assert outcome.named("preflop_line"), outcome.detail
 
     def test_an_uncovered_board_refuses_under_its_own_code(self, strategy, betting_module) -> None:
         """The board-miss code is live rather than vacuous: all 1,755 classes are in scope, but a

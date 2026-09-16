@@ -240,9 +240,9 @@ class TestTheIndexHeader:
         covered = set(index["covered_preflop_lines"])
         stray = sorted(
             {
-                entry["preflop_spot_key"]
+                entry["preflop_line"]
                 for entry in entries
-                if entry.get("preflop_spot_key") not in covered
+                if entry.get("preflop_line") not in covered
             }
         )
 

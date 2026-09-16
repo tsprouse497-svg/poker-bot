@@ -9,17 +9,15 @@ state each criterion as an assertion a wrong implementation fails.
 is reached through a fixture whose `import ... as module` sits in the function body, never at module
 scope. `from pkg.sub import missing` raises `ImportError` rather than `ModuleNotFoundError`, which
 `red_for_the_right_reason` in `scripts/loop_stage.py` refuses, and either form at module scope turns
-this file into one collection error - which runs no assertion in any file and freezes a suite that
-has never executed. `LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS` is the entry; the repo has paid
-for it twice.
+this file into one collection error - which runs no assertion in any file. The entry is
+`LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS`; the repo has paid for it twice.
 
 **The board map is checked jointly, which is stronger than the contract's own wording.**
 `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-03-contract-foldin.md` round 2 says
 the flush-draw check the contract names is necessary and not sufficient: it catches an identity hand
-map on a two-tone board and misses a different non-identity map that happens to preserve draw
-status. So `TestTheOnePermittedCollapse` asserts the canonicaliser applies **one** permutation to
-board and hand together, over all 22,100 boards, and keeps the flush-draw check beside it as the
-poker statement of why that matters. `AN-ISOMORPHISM-TEST-ON-BOARDS-DOES-NOT-COVER-HERO-HANDS`.
+map on a two-tone board and misses a non-identity map that preserves draw status. So
+`TestTheOnePermittedCollapse` asserts the canonicaliser applies **one** permutation to board and
+hand together over all 22,100 boards. `AN-ISOMORPHISM-TEST-ON-BOARDS-DOES-NOT-COVER-HERO-HANDS`.
 """
 
 from __future__ import annotations
@@ -53,9 +51,9 @@ CORPUS_MEDIAN_OPEN_BB = 2.25
 CORPUS_MEDIAN_THREE_BET_BB = 9.25
 
 A_COVERED_PREFLOP_KEY = "t6/d100/BB/BTN:raise@2.5"
-"""A key the committed preflop chart actually holds, so the postflop key built on it names a
-real line rather than one invented here. Read off
-`data/artifacts/preflop/six_max_100bb_rakefree.json`."""
+"""A preflop *spot* key the committed chart holds, read off
+`data/artifacts/preflop/six_max_100bb_rakefree.json`. Used below only where a real preflop key is
+wanted: it names the big blind's decision facing the open, so it names no flop at all."""
 
 
 @pytest.fixture(scope="module")
@@ -486,11 +484,20 @@ class TestTheHandIsPermutedByTheBoardSOwnMap:
 # --------------------------------------------------------------------------- #
 
 
+def completed_line(key_module, hero: str = "BB", opener: str = "BTN"):
+    """The `@2.5` street as the producer builds it: `opener` opens, the big blind calls, and the
+    flop comes with the preflop betting closed. Built rather than written out, because the key's
+    own producer is the only place a line is rendered."""
+    action = owed(key_module, "PreflopAction")
+    built = (action(opener, "raise", 2.5), action("BB", "call"))
+    return owed(key_module, "completed_preflop_line")(6, 100, hero, built)
+
+
 def build_key(key_module, **overrides) -> str:
     """One call site for the producer, so a signature change is one edit rather than twenty."""
     producer = owed(key_module, "postflop_spot_key")
     fields = {
-        "preflop_spot_key": A_COVERED_PREFLOP_KEY,
+        "preflop_line": completed_line(key_module),
         "board": ("Kc", "7d", "2h"),
         "flop_actions": (),
         "pot_bb": 5.5,
@@ -505,9 +512,10 @@ class TestWhatTheKeyCarries:
     action so far with every bet size named, and the pot and effective stack."""
 
     def test_the_preflop_line_appears_verbatim_with_its_sizes(self, key_module) -> None:
-        """Decision 8, ruled verbatim: a postflop spot names exactly the preflop spot whose ranges
-        it was solved from, so no compression is invented."""
-        assert A_COVERED_PREFLOP_KEY in build_key(key_module)
+        """Decision 8 as amended 2026-09-15: the key carries the **completed** preflop line
+        verbatim, so no compression is invented and the raiser's seat is nameable at all."""
+        assert "BTN:raise@2.5,BB:call" in build_key(key_module)
+        assert completed_line(key_module).rendered in build_key(key_module)
 
     def test_the_key_does_not_begin_with_t(self, key_module) -> None:
         """Criterion: no existing reader may mistake a postflop key for a preflop one, and
@@ -525,7 +533,7 @@ class TestWhatTheKeyCarries:
         assert build_key(key_module, board=("Kc", "7d", "2h")) != neighbour
 
     def test_two_preflop_lines_are_two_keys(self, key_module) -> None:
-        elsewhere = build_key(key_module, preflop_spot_key="t6/d100/BB/CO:raise@2.5")
+        elsewhere = build_key(key_module, preflop_line=completed_line(key_module, opener="CO"))
         assert build_key(key_module) != elsewhere
 
     def test_the_flop_bet_size_is_named_so_a_menu_change_fails_closed(self, key_module) -> None:
@@ -550,9 +558,9 @@ class TestWhatTheKeyCarries:
         assert build_key(key_module, pot_bb=5.5) != build_key(key_module, pot_bb=16.0)
 
     def test_the_effective_stack_is_in_the_key(self, key_module) -> None:
-        """Decision 10, ruled against its own default. The geometric three-street size moves
-        103.9%, 115.8% and 130.9% of pot at 77.5, 97.5 and 127.5bb effective, so a key that cannot
-        say which depth it was solved at cannot refuse a spot it has no cell for."""
+        """Decision 10, ruled against its own default. The geometric three-street size moves 103.9%,
+        115.8% and 130.9% of pot at 77.5, 97.5 and 127.5bb effective, so a key that cannot say which
+        depth it holds cannot refuse a spot it has no cell for."""
         shallower = build_key(key_module, effective_stack_bb=77.5)
         assert build_key(key_module, effective_stack_bb=97.5) != shallower
 
@@ -579,13 +587,10 @@ class TestWhatTheKeyCarries:
 
 class TestTheTwentyPercentPriceBand:
     """Criterion: the query refuses when the actual price is outside 20% of the price its cell was
-    solved at, inclusive at both ends, and never substitutes a nearest value.
-
-    The endpoints are pinned because the previous draft of this rule failed at a boundary nobody
-    wrote down: the corpus's median 2.25bb open passed a "more than 0.5bb" pot test by exactly zero
-    margin, so a stage-6 `>=` for a `>` would have flipped the commonest flop spot in the corpus to
-    refused with nothing going red.
-    """
+    solved at, inclusive at both ends, and never substitutes a nearest value. The endpoints are
+    pinned because the previous draft failed at a boundary nobody wrote down: the corpus's median
+    2.25bb open passed a "more than 0.5bb" pot test by exactly zero margin, so a stage-6 `>=` for a
+    `>` would have flipped the commonest flop spot in the corpus to refused."""
 
     @pytest.fixture(scope="class")
     def within_band(self, key_module):
@@ -603,9 +608,9 @@ class TestTheTwentyPercentPriceBand:
         assert within_band(SOLVED_OPEN_BB, 3.01) is False
 
     def test_a_three_bet_at_both_endpoints_is_accepted(self, within_band) -> None:
-        """The half the first draft of this ruling was silent about: a 3-bet pot cell carries the
-        chart's second substituted price and the rule's antecedent did not describe it at all.
-        Five of the seven converged rows are 3-bet pots."""
+        """The half the first draft was silent about: a 3-bet pot cell carries the chart's second
+        substituted price and the rule's antecedent did not describe it. Five of seven converged
+        rows are 3-bet pots."""
         assert within_band(SOLVED_THREE_BET_BB, 6.0) is True
         assert within_band(SOLVED_THREE_BET_BB, 9.0) is True
 
@@ -613,32 +618,29 @@ class TestTheTwentyPercentPriceBand:
         assert within_band(SOLVED_THREE_BET_BB, 5.99) is False
         assert within_band(SOLVED_THREE_BET_BB, 9.01) is False
 
-    def test_the_band_scales_with_the_price_rather_than_being_a_chip_count(
-        self, within_band
-    ) -> None:
+    def test_the_band_scales_with_the_price_not_as_a_chip_count(self, within_band) -> None:
         """A fixed width that admits 2.0-3.0 against `@2.5` would admit only 7.0-8.0 against
         `@7.5`, and a 3-bet to 6.5 would fall through the rule the way it did in the first draft."""
         assert within_band(SOLVED_THREE_BET_BB, 6.5) is True
         assert within_band(SOLVED_OPEN_BB, 6.5) is False
 
     def test_the_corpus_median_open_is_inside_the_band(self, within_band) -> None:
-        """99.0% of the corpus's 409 opens land in 2.0-3.0bb, which is what the band was chosen
-        for. This pins the commonest real spot as answerable rather than refused."""
+        """99.0% of the corpus's 409 opens land in 2.0-3.0bb, which is what the band was chosen for:
+        it pins the commonest real spot as answerable rather than refused."""
         assert within_band(SOLVED_OPEN_BB, CORPUS_MEDIAN_OPEN_BB) is True
 
     def test_the_corpus_median_three_bet_is_outside_it_and_the_phase_fails_closed(
         self, within_band
     ) -> None:
-        """Ruled: keep the band and record the gap rather than widen it. The committed chart's
-        single 3-bet price of 7.5bb sits below the corpus median of 9.25bb, so 47.1% of real 3-bet
-        pots are servable and the rest refuse. `THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN`
-        owns that; this test is what stops a later session widening the band to make it go away."""
+        """Ruled: keep the band and record the gap rather than widen it. The chart's single 3-bet
+        price of 7.5bb sits below the corpus median of 9.25bb, so 47.1% of real 3-bet pots are
+        servable. `THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN` owns it; this test stops a
+        later session widening the band to make it go away."""
         assert within_band(SOLVED_THREE_BET_BB, CORPUS_MEDIAN_THREE_BET_BB) is False
 
     def test_a_price_outside_the_band_is_never_moved_to_the_nearest_one(self, key_module) -> None:
-        """Deliberately the opposite of the preflop chart's nearest-price behaviour. Preflop
-        0.25bb barely moves a range; postflop the same 0.25bb moves the pot, the SPR and both
-        ranges at once."""
+        """Deliberately the opposite of the preflop chart's nearest-price behaviour: preflop 0.25bb
+        barely moves a range, postflop it moves the pot, the SPR and both ranges at once."""
         within = owed(key_module, "price_within_band")
 
         assert within(SOLVED_OPEN_BB, 3.5) is False
@@ -652,11 +654,9 @@ class TestTheTwentyPercentPriceBand:
 
 class TestNoPreflopReaderClaimsAPostflopKey:
     """Criterion: a test asserts that `self_play_reference.py` returns no postflop key while still
-    finding every preflop one and still raising on an empty inventory.
-
-    The reader scrapes any token starting with `t` that holds at least three slashes and raises
-    rather than returning empty, because an empty result is indistinguishable from a real answer.
-    """
+    finding every preflop one and still raising on an empty inventory. The reader scrapes any token
+    starting with `t` that holds at least three slashes and raises rather than returning empty,
+    because an empty result is indistinguishable from a real answer."""
 
     def inventory(self, monkeypatch, tmp_path, text: str):
         path = tmp_path / "latest_refusal_inventory.txt"
@@ -692,8 +692,8 @@ class TestNoPreflopReaderClaimsAPostflopKey:
     def test_an_inventory_holding_only_postflop_keys_still_raises_rather_than_returning_empty(
         self, monkeypatch, tmp_path, key_module
     ) -> None:
-        """The important half. A reader that quietly returned an empty set would mark every
-        real-hand spot NEW, inverting the phase's most actionable claim under a passing gate."""
+        """The important half. A reader quietly returning an empty set would mark every real-hand
+        spot NEW, inverting the phase's most actionable claim under a passing gate."""
         self.inventory(monkeypatch, tmp_path, f"{build_key(key_module)}: 4\n")
 
         with pytest.raises(ValueError):

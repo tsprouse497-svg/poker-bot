@@ -32,13 +32,14 @@ from hashlib import sha256
 from poker_training_bot.poker_core.positions import position_for_seat
 from poker_training_bot.solver_artifacts.postflop_artifact import PostflopCell
 from poker_training_bot.solver_artifacts.postflop_key import (
+    PreflopLine,
     canonical_board,
     canonical_hole_cards,
+    completed_preflop_line,
     postflop_spot_key,
     price_within_band,
 )
 from poker_training_bot.solver_artifacts.schema import PreflopAction
-from poker_training_bot.solver_artifacts.schema import spot_key as derive_preflop_spot_key
 from poker_training_bot.strategy.contract import (
     StrategyDecision,
     StrategyQuery,
@@ -84,8 +85,7 @@ REFUSE_NO_RIVER_SOLUTION = f"{CODE_PREFIX}:no-committed-river-solution"
 REFUSE_MORE_THAN_TWO_LIVE_PLAYERS = f"{CODE_PREFIX}:more-than-two-live-players"
 REFUSE_RAGGED_DEPTH = f"{CODE_PREFIX}:effective-depth-not-a-whole-big-blind"
 REFUSE_UNREPRESENTABLE_PRICE = f"{CODE_PREFIX}:preflop-price-not-a-whole-hundredth"
-REFUSE_LINE_NOT_EXPRESSIBLE = f"{CODE_PREFIX}:preflop-line-not-expressible-as-a-spot"
-REFUSE_HERO_DID_NOT_CLOSE = f"{CODE_PREFIX}:hero-did-not-close-the-preflop-betting"
+REFUSE_LINE_NOT_EXPRESSIBLE = f"{CODE_PREFIX}:preflop-line-not-a-completed-street"
 REFUSE_NO_CELL_FOR_THIS_LINE = f"{CODE_PREFIX}:no-cell-for-this-preflop-line"
 REFUSE_FLOP_SIZE_OFF_THE_MENU = f"{CODE_PREFIX}:flop-size-off-the-committed-menu"
 REFUSE_NO_CELL_FOR_THIS_BOARD = f"{CODE_PREFIX}:no-cell-for-this-board"
@@ -106,7 +106,6 @@ REFUSAL_CODES: tuple[str, ...] = (
     REFUSE_RAGGED_DEPTH,
     REFUSE_UNREPRESENTABLE_PRICE,
     REFUSE_LINE_NOT_EXPRESSIBLE,
-    REFUSE_HERO_DID_NOT_CLOSE,
     REFUSE_NO_CELL_FOR_THIS_LINE,
     REFUSE_FLOP_SIZE_OFF_THE_MENU,
     REFUSE_NO_CELL_FOR_THIS_BOARD,
@@ -230,32 +229,25 @@ class PostflopBettingStrategy:
         depth_bb = self._effective_depth_bb(query)
         if depth_bb is None:
             return StrategyRefusal(REFUSE_RAGGED_DEPTH)
-        walked = self._preflop_line(query)
-        if walked is None:
+        actual = self._preflop_line(query)
+        if actual is None:
             return StrategyRefusal(REFUSE_UNREPRESENTABLE_PRICE)
-        actual, closer = walked
         seats = tuple(seat for seat, _ in query.stacks)
         hero_position = position_for_seat(seats, query.button_seat, query.seat)
         table_size = len(seats)
         try:
-            asked = derive_preflop_spot_key(table_size, depth_bb, closer, actual)
+            asked = self._completed_line(query, table_size, depth_bb, hero_position, actual)
         except ValueError:
             return StrategyRefusal(REFUSE_LINE_NOT_EXPRESSIBLE)
-        named = (("preflop_spot_key", asked), ("board", board))
-        if closer != hero_position:
-            # Its own code rather than a line miss, because it is not a gap a campaign closes.
-            # Pot and stack are derived from a line that ends with hero paying the level, so a
-            # cell can only ever key from the seat that closed the preflop betting: the bot
-            # answers a flop as the caller and refuses every flop it reached by raising.
-            return StrategyRefusal(REFUSE_HERO_DID_NOT_CLOSE, named)
-        line = self._covered_line(table_size, depth_bb, hero_position, actual)
+        named = (("preflop_line", asked.rendered), ("board", board))
+        line = self._covered_line(query, table_size, depth_bb, hero_position, actual)
         if line is None:
             return StrategyRefusal(REFUSE_NO_CELL_FOR_THIS_LINE, named)
         flop_line, miss = flop_action_line(query, self.library.raise_fractions)
         if flop_line is None:
             return StrategyRefusal(REFUSE_FLOP_SIZE_OFF_THE_MENU, miss)
         spot = postflop_spot_key(
-            line.preflop_spot_key, query.board, flop_line, line.pot_bb, line.effective_stack_bb
+            line.preflop_line, query.board, flop_line, line.pot_bb, line.effective_stack_bb
         )
         cell = self.library.cell_for(spot)
         if cell is not None:
@@ -293,55 +285,59 @@ class PostflopBettingStrategy:
         return depth // big_blind
 
     @staticmethod
-    def _preflop_line(
-        query: StrategyQuery,
-    ) -> tuple[tuple[PreflopAction, ...], str] | None:
-        """The preflop line **up to the action that closed the street**, and who closed it.
+    def _preflop_line(query: StrategyQuery) -> tuple[PreflopAction, ...] | None:
+        """The **completed** preflop street as committed actions, or None on a price the key
+        cannot say.
 
         Folds and the big blind's check drop out, which is `spot_key`'s own vocabulary, and a
         raise-to in chips becomes a raise-to in big blinds exactly or the line refuses.
 
-        The closing action is dropped because the committed cell keys the line at the decision
-        that ended it: `spot_key` rejects a sequence where hero has already acted and faces no
-        later raise, and `_derive_pot_and_stack` closes the line by paying the level rather than
-        recording it. A single-raised pot hero called keys as `BTN:raise@2.5`, hero's call
-        implicit and 5.5bb in the middle.
-
-        Who closed it is returned rather than assumed, because pot and stack follow from a line
-        ending with **hero** paying the level, so only the seat that closed the betting has an
-        expressible cell. A hand somebody called behind hero is a real flop with no key from
-        hero's seat, and refuses on the line naming the key the closer's seat would carry.
-
-        The closer is the last seat to act **voluntarily or by checking**, folds excluded. A
-        fold can be the last thing recorded - the big blind folding to an open the small blind
-        called - and reading it as the close would name a seat that is not even in the hand. A
-        big blind that checked its option closed a limped pot without a voluntary action, which
-        is why the close is found first and only then used to decide what to drop.
+        Nothing is dropped from the end. An earlier draft dropped whichever seat closed the
+        betting, on the reading that a cell keys the line at the decision that ended it - and
+        that reading is what left the preflop raiser with no expressible cell and the bot unable
+        to continuation-bet at all. Decision 8's 2026-09-15 amendment: the key carries the
+        completed line, hero's own closing call included, and hero's position in it is what
+        makes the raiser's flop and the caller's flop two spots rather than one.
         """
         seats = tuple(seat for seat, _ in query.stacks)
         _, big_blind = query.blinds
-        closer = position_for_seat(seats, query.button_seat, query.seat)
-        for entry in query.preflop_actions:
-            if entry.action != "fold":
-                closer = position_for_seat(seats, query.button_seat, entry.seat)
-        built: list[tuple[str, PreflopAction]] = []
+        built: list[PreflopAction] = []
         for entry in query.preflop_actions:
             if entry.action not in _VOLUNTARY:
                 continue
             position = position_for_seat(seats, query.button_seat, entry.seat)
             if entry.action != "raise":
-                built.append((position, PreflopAction(position, entry.action)))
+                built.append(PreflopAction(position, entry.action))
                 continue
             price = size_bb(entry.amount, big_blind)
             if price is None:
                 return None
-            built.append((position, PreflopAction(position, "raise", price)))
-        if built and built[-1][0] == closer:
-            built = built[:-1]
-        return tuple(action for _, action in built), closer
+            built.append(PreflopAction(position, "raise", price))
+        return tuple(built)
+
+    @staticmethod
+    def _completed_line(
+        query: StrategyQuery,
+        table_size: int,
+        depth_bb: int,
+        hero_position: str,
+        actions: tuple[PreflopAction, ...],
+    ) -> PreflopLine:
+        """The table's own line as a closed preflop street, raising when it is not one.
+
+        The blinds come off the query rather than being assumed, because what a seat posted is
+        what decides whether the street closed: a small blind that never matched the level folded
+        there, and its dead chips stay in the middle.
+        """
+        small, big = query.blinds
+        return completed_preflop_line(
+            table_size, depth_bb, hero_position, actions,
+            small_blind_bb=small / big, big_blind_bb=1.0,
+        )
 
     def _covered_line(
         self,
+        query: StrategyQuery,
         table_size: int,
         depth_bb: int,
         hero_position: str,
@@ -350,9 +346,9 @@ class PostflopBettingStrategy:
         """The committed line this table's line substitutes onto, or None.
 
         Substitution is by **price only**, inside decision 10's band, and the match is confirmed
-        by re-deriving the preflop key from this table's own seats, depth and position against the
-        covered cell's prices: if the derived key is the cell's key then table size, depth, hero's
-        seat and every action agreed, and nothing was parsed out of a string to find that out. A
+        by re-deriving the completed line from this table's own seats, depth and position against
+        the covered cell's prices: if the rendering is the cell's own then table size, depth,
+        hero's seat and every action agreed, and nothing was parsed out of a string to see it. A
         price outside the band falls through and the walk refuses rather than moving onto the
         nearest cell - deliberately the opposite of the preflop chart, because 0.25bb barely moves
         a preflop range and moves the pot, the SPR and both postflop ranges at once.
@@ -371,12 +367,12 @@ class PostflopBettingStrategy:
             ):
                 continue
             try:
-                derived = derive_preflop_spot_key(
-                    table_size, depth_bb, hero_position, line.preflop_actions
+                derived = self._completed_line(
+                    query, table_size, depth_bb, hero_position, line.preflop_actions
                 )
             except ValueError:
                 continue
-            if derived == line.preflop_spot_key:
+            if derived.rendered == line.preflop_line.rendered:
                 return line
         return None
 

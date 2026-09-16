@@ -13,9 +13,11 @@ at import each is one red against a file nobody has played yet, and nothing is c
 into range, or skipped over.
 
 **The key is derived and compared, never parsed**, and **pot and effective stack follow from the
-line rather than being stored on trust**: `postflop_key.postflop_spot_key` is the single producer,
-and the line closes with hero paying the standing level, so a 2.5bb button open at 100bb gives 5.5
-and 97.5 and an SB three-bet to 7.5 gives 16.0 - decision 10's two figures, reproduced here.
+line rather than being stored on trust**: `postflop_key.postflop_spot_key` is the single producer
+and `completed_preflop_line` the single derivation, so a 2.5bb button open called at 100bb gives
+5.5 and 97.5 and an SB three-bet to 7.5 called gives 16.0 - decision 10's two figures. The line a
+cell records is the **completed** preflop street, hero's own closing action included, which is
+what lets a cell name the preflop raiser's flop at all. Decision 8's 2026-09-15 amendment.
 
 What this module does **not** do: it re-derives no digest, which
 `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES` owns, and it names no table-side refusal
@@ -29,21 +31,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from poker_training_bot.poker_core.positions import table_positions
 from poker_training_bot.solver_artifacts.postflop_key import (
     FlopAction,
+    PreflopLine,
     board_suit_map,
     canonical_board,
     canonical_hole_cards,
+    completed_preflop_line,
     postflop_spot_key,
     price_within_band,
 )
 from poker_training_bot.solver_artifacts.schema import WEIGHT_SUM_TOLERANCE, PreflopAction
-from poker_training_bot.solver_artifacts.schema import spot_key as derive_preflop_spot_key
-from poker_training_bot.solver_artifacts.solve_conditions import (
-    BlindStructure,
-    parse_blind_structure,
-)
+from poker_training_bot.solver_artifacts.solve_conditions import parse_blind_structure
 from poker_training_bot.solver_artifacts.strict_json import (
     INVALID_VALUE,
     ArtifactImportError,
@@ -82,7 +81,7 @@ UNREADABLE_FILE = "postflop:unreadable-file"
 INVALID_JSON = "postflop:invalid-json"
 UNSUPPORTED_SCHEMA_VERSION = "postflop:unsupported-schema-version"
 INVALID_VALUE_CODE = "postflop:invalid-value"
-PREFLOP_KEY_MISMATCH = "postflop:preflop-key-mismatch"
+PREFLOP_LINE_MISMATCH = "postflop:preflop-line-mismatch"
 POT_DOES_NOT_FOLLOW_FROM_THE_LINE = "postflop:pot-does-not-follow-from-the-line"
 BOARD_DRESSING_MISMATCH = "postflop:board-dressing-mismatch"
 SPOT_KEY_MISMATCH = "postflop:spot-key-mismatch"
@@ -95,13 +94,13 @@ PRICE_OUTSIDE_BAND = "postflop:price-outside-band"
 
 REASON_CODES: tuple[str, ...] = (
     UNREADABLE_FILE, INVALID_JSON, UNSUPPORTED_SCHEMA_VERSION, INVALID_VALUE_CODE,
-    PREFLOP_KEY_MISMATCH, POT_DOES_NOT_FOLLOW_FROM_THE_LINE, BOARD_DRESSING_MISMATCH,
+    PREFLOP_LINE_MISMATCH, POT_DOES_NOT_FOLLOW_FROM_THE_LINE, BOARD_DRESSING_MISMATCH,
     SPOT_KEY_MISMATCH, EXPLOITABILITY_ABOVE_CEILING, ITERATIONS_ABOVE_CAP, UNPLAYABLE_SIZE,
     WEIGHT_OUT_OF_BOUNDS, WEIGHT_SUM, PRICE_OUTSIDE_BAND,
 )
 
 _CELL_KEYS = set(
-    "cell_schema_version spot_key board suit_map preflop_spot_key table_size stack_depth_bb"
+    "cell_schema_version spot_key board suit_map preflop_line table_size stack_depth_bb"
     " hero_position blind_structure preflop_actions price_substitutions pot_bb"
     " effective_stack_bb flop_actions hero_street_bet_bb actions bet_sizes_bb hand_classes"
     " class_weights achieved_exploitability_pct_of_pot iterations".split()
@@ -182,7 +181,7 @@ class PostflopCell:
     spot_key: str
     board: tuple[str, ...]
     suit_map: tuple[tuple[str, str], ...]
-    preflop_spot_key: str
+    preflop_line: PreflopLine
     hero_position: str
     preflop_actions: tuple[PreflopAction, ...]
     price_substitutions: tuple[tuple[str, float, float], ...]
@@ -237,30 +236,6 @@ def _parse_actions(raw: list[Any], origin: str, label: str, size_key: str, facto
         except ValueError as error:
             raise _bad(origin, f"{entry['path']}: {error}") from error
     return tuple(built)
-
-
-def _derive_pot_and_stack(
-    table_size: int, depth: int, blinds: BlindStructure, hero: str, entries: Sequence[PreflopAction]
-) -> tuple[float, float]:
-    """The pot and the effective stack this line produces, in big blinds. The line closes with
-    hero paying the standing level, because a flop exists only once the preflop betting is over
-    and the key names hero's decision rather than the finished street; both live seats therefore
-    sit at that level, so the effective stack is the depth less it."""
-    positions = table_positions(table_size)
-    bets = dict.fromkeys(positions, 0.0)
-    # Heads-up the button posts the small blind; at every larger table the small blind does.
-    for label, posted in (
-        ("BTN" if table_size == 2 else "SB", blinds.small_blind_bb), ("BB", blinds.big_blind_bb)
-    ):
-        if label in bets:
-            bets[label] = posted
-    level = blinds.big_blind_bb
-    for entry in entries:
-        if entry.action == "raise":
-            level = float(entry.size_bb or 0.0)
-        bets[entry.position] = level
-    bets[hero] = level
-    return sum(bets.values()) + blinds.ante_bb * len(positions), float(depth) - level
 
 
 def _check_price_substitutions(
@@ -358,23 +333,23 @@ def _build_cell(raw: Any, origin: str) -> PostflopCell:
         origin, "preflop_actions", "size_bb", PreflopAction,
     )
     try:
-        line_key = derive_preflop_spot_key(
-            table_size, stack_depth_bb, hero_position, preflop_actions
+        line = completed_preflop_line(
+            table_size, stack_depth_bb, hero_position, preflop_actions,
+            small_blind_bb=blinds.small_blind_bb, big_blind_bb=blinds.big_blind_bb,
+            ante_bb=blinds.ante_bb,
         )
     except ValueError as error:
-        raise _bad(origin, f"cell describes no preflop spot: {error}") from error
-    if line_key != _require_str(payload, origin, "cell", "preflop_spot_key"):
+        raise _bad(origin, f"cell describes no completed preflop line: {error}") from error
+    if line.rendered != _require_str(payload, origin, "cell", "preflop_line"):
         raise _refuse(
-            PREFLOP_KEY_MISMATCH, origin, f"cell.preflop_spot_key re-derives as {line_key!r}"
+            PREFLOP_LINE_MISMATCH, origin, f"cell.preflop_line re-derives as {line.rendered!r}"
         )
     substitutions = _check_price_substitutions(
         _require_list(payload, origin, "cell", "price_substitutions"), origin, preflop_actions
     )
     pot_bb = _number(payload, origin, "pot_bb")
     effective_stack_bb = _number(payload, origin, "effective_stack_bb")
-    derived = _derive_pot_and_stack(
-        table_size, stack_depth_bb, blinds, hero_position, preflop_actions
-    )
+    derived = (line.pot_bb, line.effective_stack_bb)
     if (pot_bb, effective_stack_bb) != derived:
         raise _refuse(
             POT_DOES_NOT_FOLLOW_FROM_THE_LINE, origin,
@@ -397,7 +372,7 @@ def _build_cell(raw: Any, origin: str) -> PostflopCell:
         origin, "flop_actions", "size_pct", FlopAction,
     )
     try:
-        derived_key = postflop_spot_key(line_key, board, flop_actions, pot_bb, effective_stack_bb)
+        derived_key = postflop_spot_key(line, board, flop_actions, pot_bb, effective_stack_bb)
     except ValueError as error:
         raise _bad(origin, f"cell describes no flop spot: {error}") from error
     if derived_key != _require_str(payload, origin, "cell", "spot_key"):
@@ -429,7 +404,7 @@ def _build_cell(raw: Any, origin: str) -> PostflopCell:
         check_size_is_playable(size, hero_street_bet, behind, cell=origin)
     return PostflopCell(
         spot_key=derived_key, board=board, suit_map=tuple(sorted(derived_map.items())),
-        preflop_spot_key=line_key, hero_position=hero_position, preflop_actions=preflop_actions,
+        preflop_line=line, hero_position=hero_position, preflop_actions=preflop_actions,
         price_substitutions=substitutions, pot_bb=pot_bb, effective_stack_bb=effective_stack_bb,
         flop_actions=flop_actions, hero_street_bet_bb=hero_street_bet, actions=actions,
         bet_sizes_bb=tuple(sizes), hand_classes=hand_classes, class_weights=rows,

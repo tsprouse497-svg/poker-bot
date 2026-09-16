@@ -40,6 +40,7 @@ from poker_training_bot.solver_artifacts.postflop_artifact import (
 from poker_training_bot.solver_artifacts.postflop_key import (
     MENU_FRACTION_TOLERANCE,
     FlopAction,
+    PreflopLine,
     canonical_board,
     match_menu_fraction,
 )
@@ -105,20 +106,29 @@ def committed_tables(directory: Path | str = SAMPLE_DIR) -> tuple[CommittedTable
 
 @dataclass(frozen=True)
 class CoveredLine:
-    """One preflop line the committed solve covers, with the prices it was solved at.
+    """One completed preflop line the committed solve covers, with the prices it was solved at.
 
-    The prices are structured rather than read back out of the key, because the key is compared
-    and never parsed: `postflop_key` publishes no reader that takes one apart and a parser here
-    would be a second answer to "what spot is this". The pot and the effective stack are the
-    line's own nominal ones, which is what keeps a cell findable when a hand that opened to
-    2.25bb looks up a cell solved at 2.5bb.
+    The line is carried as the `PreflopLine` the cell was built from rather than read back out
+    of the key, because the key is compared and never parsed: `postflop_key` publishes no reader
+    that takes one apart and a parser here would be a second answer to "what spot is this". Its
+    pot and effective stack are the line's own nominal ones, which keeps a cell findable when a
+    hand that opened to 2.25bb looks up a cell solved at 2.5bb.
     """
 
-    preflop_spot_key: str
-    preflop_actions: tuple[PreflopAction, ...]
-    pot_bb: float
-    effective_stack_bb: float
+    preflop_line: PreflopLine
     boards: frozenset[tuple[str, ...]]
+
+    @property
+    def pot_bb(self) -> float:
+        return self.preflop_line.pot_bb
+
+    @property
+    def effective_stack_bb(self) -> float:
+        return self.preflop_line.effective_stack_bb
+
+    @property
+    def preflop_actions(self) -> tuple[PreflopAction, ...]:
+        return self.preflop_line.actions
 
 
 @dataclass(frozen=True)
@@ -153,18 +163,15 @@ def load_library() -> PostflopLibrary:
     if not tables:
         return PostflopLibrary()
     cells = tuple(table.cell for table in tables)
-    grouped: dict[str, list[PostflopCell]] = {}
+    grouped: dict[PreflopLine, list[PostflopCell]] = {}
     for cell in cells:
-        grouped.setdefault(cell.preflop_spot_key, []).append(cell)
+        grouped.setdefault(cell.preflop_line, []).append(cell)
     lines = tuple(
         CoveredLine(
-            preflop_spot_key=key,
-            preflop_actions=held[0].preflop_actions,
-            pot_bb=held[0].pot_bb,
-            effective_stack_bb=held[0].effective_stack_bb,
+            preflop_line=line,
             boards=frozenset(canonical_board(cell.board) for cell in held),
         )
-        for key, held in sorted(grouped.items())
+        for line, held in sorted(grouped.items(), key=lambda pair: pair[0].rendered)
     )
     fractions = sorted(
         {

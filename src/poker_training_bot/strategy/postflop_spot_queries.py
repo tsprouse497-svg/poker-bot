@@ -20,11 +20,7 @@ from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 
-from poker_training_bot.poker_core.positions import (
-    preflop_action_order,
-    seat_positions,
-    table_positions,
-)
+from poker_training_bot.poker_core.positions import preflop_action_order, seat_positions
 from poker_training_bot.solver_artifacts.postflop_artifact import (
     INDEX_PATH,
     SAMPLE_DIR,
@@ -65,30 +61,6 @@ _DECK_ORDER: tuple[str, ...] = tuple(rank + suit for rank in "AKQJT98765432" for
 
 def _chips(value_bb: float) -> int:
     return round(value_bb * BIG_BLIND_CHIPS)
-
-
-def _preflop_contributions(table: CommittedTable) -> tuple[dict[str, float], float]:
-    """What each position put in preflop, in big blinds, and the level the street closed at.
-
-    The same walk `postflop_artifact._derive_pot_and_stack` runs, kept per position rather than
-    summed, and the totals it produces are checked against the cell below. A position that never
-    reached the closing level keeps only what it posted, which is how a folded small blind leaves
-    its dead half a big blind in the middle without being at the table on the flop.
-    """
-    positions = table_positions(table.table_size)
-    bets = dict.fromkeys(positions, 0.0)
-    small = "BTN" if table.table_size == 2 else "SB"
-    if small in bets:
-        bets[small] = table.blinds.small_blind_bb
-    if "BB" in bets:
-        bets["BB"] = table.blinds.big_blind_bb
-    level = table.blinds.big_blind_bb
-    for entry in table.cell.preflop_actions:
-        if entry.action == "raise":
-            level = float(entry.size_bb or 0.0)
-        bets[entry.position] = level
-    bets[table.cell.hero_position] = level
-    return {name: value + table.blinds.ante_bb for name, value in bets.items()}, level
 
 
 def _seating(table: CommittedTable) -> tuple[tuple[int, ...], int, dict[str, int]]:
@@ -166,14 +138,16 @@ def _query_for(
     """One contract-valid flop query for a rebuilt table, or a `ValueError` naming the gap."""
     cell = table.cell
     seats, button_seat, seat_of = _seating(table)
-    contributions, closing_level = _preflop_contributions(table)
+    line = cell.preflop_line
+    contributions = dict(line.contributions)
+    closing_level = line.closing_level_bb
     pot_bb = sum(contributions.values())
     if abs(pot_bb - cell.pot_bb) > _TOLERANCE:
         raise ValueError(f"{cell.spot_key}: rebuilt pot is {pot_bb}bb against {cell.pot_bb}bb")
     behind_bb = float(table.stack_depth_bb) - closing_level
     if abs(behind_bb - cell.effective_stack_bb) > _TOLERANCE:
         raise ValueError(f"{cell.spot_key}: rebuilt stack is {behind_bb}bb behind")
-    live = {name for name, value in contributions.items() if value >= closing_level - _TOLERANCE}
+    live = set(line.live_positions)
     if len(live) != _LIVE_SEATS:
         raise ValueError(f"{cell.spot_key}: rebuilds {len(live)} live seats, not a two-seat flop")
     starting = _chips(float(table.stack_depth_bb))
@@ -189,7 +163,7 @@ def _query_for(
                 folded=label not in live,
             )
         )
-    preflop = _preflop_history(table, seat_of, live, contributions, closing_level)
+    preflop = _preflop_history(table, seat_of)
     hero = states[hero_seat]
     if hero.street_bet != _chips(cell.hero_street_bet_bb):
         raise ValueError(f"{cell.spot_key}: rebuilt hero street bet is {hero.street_bet} chips")
@@ -219,31 +193,24 @@ def _query_for(
     )
 
 
-def _preflop_history(
-    table: CommittedTable,
-    seat_of: dict[str, int],
-    live: set[str],
-    contributions: dict[str, float],
-    closing_level: float,
-) -> tuple[SeatAction, ...]:
+def _preflop_history(table: CommittedTable, seat_of: dict[str, int]) -> tuple[SeatAction, ...]:
     """The preflop street as the simulator would have recorded it, in chips.
 
     Every seat that took a preflop action is in it, folds included, because `simulator/run.py`
     appends every one of them and a fixture recorded from the raise onwards is not the line the
     producer emits. The order is the first orbit's, with each recorded entry taken at its own
-    position and a fold standing in for every seat that is not live; anything the cell records
+    position and a fold standing in for every seat the line left out; anything the cell records
     beyond one orbit - a four-bet - follows in its own order.
 
-    Hero's own closing action is appended last, and it is the one the committed key leaves
-    implicit: a call where hero owes chips and a check where the big blind's option closed a
-    limped pot.
+    A **live** seat the line never names can only be the big blind checking its option in a
+    limped pot, which the committed grammar has no entry for, so it is recorded as the check it
+    was. Hero is no longer a special case: since decision 8's amendment the committed line is
+    the completed street and hero's own closing action is in it like anybody else's.
     """
-    entries = list(table.cell.preflop_actions)
+    entries = list(table.cell.preflop_line.actions)
+    live = set(table.cell.preflop_line.live_positions)
     recorded: list[SeatAction] = []
-    hero = table.cell.hero_position
     for label in preflop_action_order(table.table_size):
-        if label == hero:
-            continue
         if entries and entries[0].position == label:
             entry = entries.pop(0)
             recorded.append(
@@ -253,14 +220,14 @@ def _preflop_history(
             )
         elif label not in live:
             recorded.append(SeatAction(seat_of[label], "fold"))
+        elif all(entry.position != label for entry in table.cell.preflop_line.actions):
+            recorded.append(SeatAction(seat_of[label], "check"))
     for entry in entries:
         recorded.append(
             SeatAction(seat_of[entry.position], "raise", _chips(float(entry.size_bb or 0.0)))
             if entry.action == "raise"
             else SeatAction(seat_of[entry.position], "call")
         )
-    owed = _chips(closing_level) - _chips(contributions[hero] - table.blinds.ante_bb)
-    recorded.append(SeatAction(seat_of[hero], "call" if owed > 0 else "check"))
     return tuple(recorded)
 
 
@@ -342,7 +309,7 @@ def an_indexed_but_unfetched_query(index_path: Path | str = INDEX_PATH) -> Strat
     fetched = frozenset(item.cell.board for item in tables)
     for board in _unfetched_board(fetched):
         key = postflop_spot_key(
-            cell.preflop_spot_key, board, (), cell.pot_bb, cell.effective_stack_bb
+            cell.preflop_line, board, (), cell.pot_bb, cell.effective_stack_bb
         )
         if key not in listed:
             continue

@@ -418,15 +418,15 @@ class TestAThreeHandedFlopRefuses:
     Before this, the only thing in the phase touching it was a check that the report contains the
     words "multiway" and "structural".
 
-    **Why it needs a test rather than an argument.** Under the committed line set a three-way pot
-    misses only because its pot is arithmetically different. `t6/d100/SB/BTN:raise@2.5` is the
-    same preflop key whether the big blind folds (6.0bb heads-up) or calls (7.5bb, three-handed),
-    because the preflop key ends at hero's own decision and the players who act after hero are not
-    in it. There is no player-count segment and no pot-type segment. At one open size and a flat
-    100bb that arithmetic happens to separate them; a second committed open price, a straddle or a
-    non-flat table breaks it, and a two-range cell would then answer a three-handed flop with a
-    heads-up strategy and no refusal at all. This test is what makes the separation a requirement
-    instead of a coincidence.
+    **Why it needs a test rather than an argument.** As drafted at stage 4 the key could not say
+    how many seats saw the flop: `t6/d100/SB/BTN:raise@2.5` was one preflop key whether the big
+    blind folded (6.0bb heads-up) or called (7.5bb, three-handed), because a preflop spot key ends
+    at hero's own decision and the seats acting after hero are not in it, and only the pot
+    arithmetic separated them. Decision 8's 2026-09-15 amendment carries the **completed** line
+    instead, so `BTN:raise@2.5,BB:call` and `BTN:raise@2.5,SB:call,BB:call` are two lines and the
+    seat count is named rather than inferred. The refusal is still required and still tested here:
+    a live-seat count is a structural property of the cell, not of the pot it happens to produce,
+    and this is what keeps the separation a requirement rather than a coincidence.
     """
 
     def three_handed(self, **overrides):
@@ -588,3 +588,111 @@ class TestTheRefusalInventoryKeepsWorkingAtANonFlatTable:
         for outcome in self.both(strategy):
             named = {name for name, _ in outcome.detail}
             assert named & forbidden == set(), (outcome.code, sorted(named))
+
+
+# --------------------------------------------------------------------------- #
+# The preflop raiser's flop, which the key could not name until 2026-09-15
+# --------------------------------------------------------------------------- #
+
+
+class TestThePreflopRaiserHasAFlopSpotAtAll:
+    """Decision 8's amendment, and the one thing no stage-4 test asked for.
+
+    **What was broken.** The key was built on a preflop *spot* key, which names a decision hero is
+    about to make. Every flop is reached with the preflop betting closed, so the only seat such a
+    key could name was the caller, and `spot_key` refused the raiser outright with "BTN already
+    acted and faces no later raise". The bot could therefore never continuation-bet - about half of
+    all flops, and the single spot the phase exists for. Nothing went red: the frozen test
+    requiring a committed spot to produce a bet is satisfied by the caller's donk bet.
+
+    **What is asserted here.** That the raiser's flop keys at all, that both seats derive the same
+    5.5bb pot and 97.5bb behind off one completed line, and that the two keys differ - so a
+    raiser's cell and a caller's cell on one board and line never collide."""
+
+    OPEN_BB = 2.5
+    POT_BB = 5.5
+    """`2 x 2.5 + the folded small blind's dead 0.5`, decision 10's own arithmetic."""
+    BEHIND_BB = 97.5
+    """100bb less the 2.5 both live seats put in. The old key derived 2.5 and 99.0, because with
+    no completed line the raiser's own open was not in it."""
+
+    def line(self, key_module, hero: str):
+        action = owed(key_module, "PreflopAction")
+        built = (action("BTN", "raise", self.OPEN_BB), action("BB", "call"))
+        return owed(key_module, "completed_preflop_line")(6, 100, hero, built)
+
+    def key(self, key_module, hero: str) -> str:
+        line = self.line(key_module, hero)
+        return owed(key_module, "postflop_spot_key")(
+            line, ("Kc", "7d", "2h"), (), line.pot_bb, line.effective_stack_bb
+        )
+
+    def test_the_raiser_keys_rather_than_refusing(self, key_module) -> None:
+        assert self.key(key_module, "BTN")
+
+    def test_the_raiser_s_pot_and_stack_come_off_the_whole_line(self, key_module) -> None:
+        line = self.line(key_module, "BTN")
+
+        assert (line.pot_bb, line.effective_stack_bb) == (self.POT_BB, self.BEHIND_BB)
+
+    def test_the_caller_derives_the_same_pot_and_stack(self, key_module) -> None:
+        """One street, one pot: the seats differ in what they decide, not in what is in the
+        middle. A raiser and a caller deriving different pots would be two cells for one spot."""
+        line = self.line(key_module, "BB")
+
+        assert (line.pot_bb, line.effective_stack_bb) == (self.POT_BB, self.BEHIND_BB)
+
+    def test_the_two_seats_are_two_keys(self, key_module) -> None:
+        """The collision this closes. Same board, same line, two ranges: the raiser is deciding
+        whether to continuation-bet and the caller whether to donk or check."""
+        assert self.key(key_module, "BTN") != self.key(key_module, "BB")
+
+    def test_neither_key_begins_with_t_so_the_preflop_reader_ignores_both(self, key_module) -> None:
+        """The completed line inside a postflop key renders in the preflop key's grammar, so the
+        non-`t` prefix does exactly the work decision 8 gave it on both seats now."""
+        for hero in ("BTN", "BB"):
+            assert not self.key(key_module, hero).startswith("t")
+
+    def test_a_street_that_is_not_closed_is_refused_rather_than_keyed(self, key_module) -> None:
+        """The other half, and why the preflop validator was not simply loosened: an open the big
+        blind has not answered is not a flop, and a line saying it is would put a cell behind a
+        spot nobody reached."""
+        action = owed(key_module, "PreflopAction")
+
+        with pytest.raises(ValueError):
+            owed(key_module, "completed_preflop_line")(
+                6, 100, "BB", (action("BTN", "raise", self.OPEN_BB),)
+            )
+
+    def test_a_committed_spot_hero_opened_produces_a_bet(self, betting_module, strategy) -> None:
+        """The committed-data half, and the test whose absence let the defect ship.
+
+        The amendment says so in terms: "No frozen test caught it: the one requiring a committed
+        spot to produce a bet is satisfied by the caller's donk bet." A donk bet and a
+        continuation bet are different spots out of different ranges, and only the second is the
+        one this phase exists for, so the raiser's seat is named here rather than counted in with
+        the rest. The raiser's cells are found off the committed line's own fields and their keys
+        are **compared**, never taken apart, which is the rule `postflop_key` states.
+        """
+        opened = {
+            cell.spot_key
+            for cell in strategy.library.cells
+            if any(
+                entry.position == cell.preflop_line.hero_position and entry.action == "raise"
+                for entry in cell.preflop_line.actions
+            )
+        }
+        bets = [
+            outcome
+            for spot in owed(betting_module, "committed_spot_queries")()
+            for outcome in [strategy.decide(spot)]
+            if isinstance(outcome, contract_module.StrategyDecision)
+            and outcome.action == "bet"
+            and dict(outcome.detail).get("spot_key") in opened
+        ]
+
+        assert bets, (
+            "no committed spot where hero is the preflop raiser produces a bet, so the bot still"
+            " cannot continuation-bet and the sample holds only the caller's seat"
+        )
+        assert all(outcome.amount and outcome.amount > 0 for outcome in bets)

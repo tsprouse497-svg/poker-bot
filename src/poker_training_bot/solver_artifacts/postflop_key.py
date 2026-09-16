@@ -1,48 +1,47 @@
 """The postflop spot vocabulary: what a flop spot key says, and the one collapse it makes.
 
-A sibling of `spot_key`, not an extension of it. The preflop key answers "which preflop
-spot is this"; this one answers "which flop spot is this", and it carries the preflop key
-whole rather than re-deriving or compressing it. Two vocabularies that shared a producer
-would be one vocabulary with a branch in it, and a change to either half would move both.
+A sibling of `spot_key`, not an extension of it. The preflop key answers "which preflop spot
+is this"; this one answers "which flop spot is this", and carries the whole preflop line rather
+than compressing it. What is borrowed is the *pattern*: a key is **derived here and nowhere
+else, and compared rather than parsed**. This module publishes no reader that takes a key apart
+and a test asserts that by name, because a parser would be a second answer to "what spot is
+this" and two answers drift invisibly.
 
-What is borrowed from the preflop side is the *pattern*, which is the part that matters: a
-key is **derived here and nowhere else, and compared rather than parsed**. This module
-publishes no reader that takes a key apart, and a test in `tests/test_postflop_key.py`
-asserts that by name. A parser would be a second answer to "what spot is this", and two
-answers drift invisibly.
+**A preflop spot *key* cannot name the raiser's flop, which is why `PreflopLine` exists.** A
+preflop spot key names a decision hero is *about to make*, and every flop is reached with the
+preflop betting closed, so the only seat such a key can name is the caller - the one whose last
+preflop decision was facing a bet. Built on one, this vocabulary could never express a
+continuation bet, about half of all flops. What a postflop key carries is therefore the
+**completed** preflop line, verbatim and with its sizes, in the preflop key's own grammar but
+validated by the opposite rule: the street must be closed rather than open. Decision 8's
+amendment of 2026-09-15 is the authority; `spot_key`'s validator is right for its own question
+and is not loosened to serve this one.
 
 **The key does not begin with `t`.** `data_pipeline/self_play_reference.py` recovers preflop
-keys from a rendered report by taking any whitespace token that starts with `t` and holds at
-least three slashes, and a postflop key carries a preflop key verbatim inside it. Beginning
-with `f` is what stops that reader claiming a flop spot as a preflop one. Decision 8.
+keys by taking any whitespace token starting with `t` that holds three slashes, and a postflop
+key carries a line in that grammar verbatim inside it. Beginning with `f` stops that reader
+claiming a flop spot as a preflop one, and the whole key is one whitespace-free token so the
+segment inside it is never a token of its own. Decision 8.
 
-**What the key names, and what it deliberately does not.** It names the canonical board, the
-preflop line verbatim with its prices, every flop action so far with its bet size, the pot and
-the effective stack. Naming the bet size is decision 9: a caller needs 19.9% equity against a
-33% bet and 30.0% against a 75% one, so a key that merged them would overfold to small bets
-and overcall large ones, and a later menu change makes the lookup fail closed instead of
-silently answering a 50% bet out of a 33% cell. Naming the pot and stack is decision 10: the
-geometric three-street size moves 103.9%, 115.8% and 130.9% of pot at 77.5, 97.5 and 127.5bb
-effective, so a key that cannot say which depth it was solved at cannot refuse a depth it
-holds no cell for.
+**What the key names.** The canonical board, the preflop line verbatim with its prices, every
+flop action so far with its bet size, the pot and the effective stack. Naming the bet size is
+decision 9: a caller needs 19.9% equity against a 33% bet and 30.0% against a 75% one, so a
+merged key would overfold to small bets and overcall large ones. Naming the pot and stack is
+decision 10: the geometric three-street size moves 103.9%, 115.8% and 130.9% of pot at 77.5,
+97.5 and 127.5bb effective, so a key that cannot say which depth it holds cannot refuse one it
+lacks.
 
-**The pot and the stack in the key are nominal, not observed.** They are derived from the
-*substituted* preflop line - the line the cell was solved for - rather than from the table
-being asked about, which is what keeps a cell findable when a hand opened to 2.25bb looks up
-an `@2.5` cell. The real table is then compared against the nominal price by
-`price_within_band` and refused outside it, never moved onto the nearest one.
-`THE-QUERY-TIME-PRICE-SUBSTITUTION-IS-NOT-BOUNDED-POSTFLOP` records what that comparison still
-does not see: it is a test on price, and the larger channel is that a cheaper open faces a
-wider, weaker defender than the cell was solved against.
+**The pot and the stack in the key are nominal, not observed:** they come from the
+*substituted* preflop line rather than the table being asked about, which keeps a cell findable
+when a hand opened to 2.25bb looks up an `@2.5` cell. `PRICE_BAND_FRACTION` carries the rest,
+and `THE-QUERY-TIME-PRICE-SUBSTITUTION-IS-NOT-BOUNDED-POSTFLOP` what it still cannot see.
 
 **The one collapse is over suits, and it is exact only if hero moves with the board.** A board
-is replaced by the smallest member of its suit-isomorphism class, and the permutation that
-carried it there is published, so hero's two cards can be moved by *that* map and no other. A
-hand permuted inconsistently passes every board-level check and still returns a real strategy
-for a real hand, which no exploitability figure and no shape check can see;
-`AN-ISOMORPHISM-TEST-ON-BOARDS-DOES-NOT-COVER-HERO-HANDS` records it. Nothing else is
-collapsed: `K72r` and `Q72r` are two boards, not one, because decision 2 defers rank
-abstraction rather than taking it.
+becomes the smallest member of its suit-isomorphism class and the permutation that carried it
+there is published, so hero's two cards move by *that* map and no other; permuted
+inconsistently a hand passes every board-level check and still returns a real strategy for a
+real hand. Nothing else is collapsed: `K72r` and `Q72r` are two boards, because decision 2
+defers rank abstraction rather than taking it.
 """
 
 from __future__ import annotations
@@ -52,8 +51,20 @@ from dataclasses import dataclass
 from functools import cache
 from itertools import permutations
 
-from poker_training_bot.poker_core.positions import POSITION_LABELS
-from poker_training_bot.solver_artifacts.spot_key import render_size_bb
+from poker_training_bot.poker_core.positions import POSITION_LABELS, preflop_action_order
+
+# The three underscored names are borrowed rather than restated: everything a preflop line must
+# satisfy *whatever* question is asked of it - a table size the repo seats, a positive depth,
+# raises that increase and that the depth can pay - is `spot_key`'s rule already, and a second
+# copy would be a second rule that can drift. What differs here is only that the street is closed.
+from poker_training_bot.solver_artifacts.spot_key import (
+    PreflopAction,
+    _validate_sizes,
+    _validate_stack_depth,
+    _validate_table_size,
+    render_entry,
+    render_size_bb,
+)
 
 _RANKS = "23456789TJQKA"
 _SUITS = "cdhs"
@@ -64,12 +75,10 @@ FLOP_CARDS = 3
 CANONICAL_FLOP_CLASSES = 1755
 """How many suit-isomorphism classes the 22,100 three-card boards fall into.
 
-Not a tabulated figure and not a constant this module reads: it is what
-`canonical_board` produces over the whole deck, counted. Recomputed from the 52 cards by
-`tests/test_postflop_key.py::TestTheOnePermittedCollapse`, which also checks the class sizes
-against the three orbit sizes, so a canonicaliser that over-collapsed would show up as a class
-of the wrong size long before any strategy was wrong.
-"""
+Not tabulated and not read: it is what `canonical_board` produces over the whole deck, counted.
+Recomputed from the 52 cards by `tests/test_postflop_key.py::TestTheOnePermittedCollapse`,
+which also checks the class sizes against the three orbit sizes, so a canonicaliser that
+over-collapsed would show up as a class of the wrong size long before any strategy was wrong."""
 
 # The 24 relabellings of four suits. Suit isomorphism is the whole of the permitted collapse,
 # so the group is written out once and minimised over, rather than a texture being classified
@@ -85,20 +94,18 @@ FLOP_BET_MENU: tuple[float, ...] = (0.33, 0.75)
 MENU_FRACTION_TOLERANCE = 0.05
 """How far, in pot fraction, a faced bet may sit from a menu entry and still be that entry.
 
-Decision 14, ruled by Taylor 2026-09-15, and compared **inclusively**: a bet exactly this far
-away matches. The menu is a percent of pot and the table is in chips, and the arithmetic does
-not come out even - 33% of a 550-chip pot is 181.5, which no dealer can push - so a strict
-equality match would refuse every faced bet at a real table and kill the raise branch of the
-committed artifact with nothing going red.
+Decision 14, ruled by Taylor 2026-09-15, compared **inclusively**: a bet exactly this far away
+matches. The menu is a percent of pot and the table is in chips and the arithmetic does not
+come out even - 33% of a 550-chip pot is 181.5, which no dealer can push - so strict equality
+would refuse every faced bet at a real table and kill the committed artifact's raise branch
+with nothing going red.
 
-The width is bounded on both sides by arithmetic rather than taste. It has to exceed the
-rounding a real table imposes, `|180/550 - 0.33| = 0.002727`; it has to stay under half the
-distance between two entries, `(0.75 - 0.33)/2 = 0.21`, or one bet lands in two buckets; and
-it has to stay under `|0.50 - 0.33| = 0.17`, because the phase separately requires a 50% bet
-to refuse. 0.05 is 18.3 times the floor and 3.4 times inside the tighter ceiling. What it
-costs is stated rather than hidden: a 28%-of-pot bet and a 38%-of-pot bet both get the
-strategy solved for 33%, and those are not the same spot.
-"""
+The width is bounded on both sides by arithmetic rather than taste: it has to exceed the
+rounding a real table imposes, `|180/550 - 0.33| = 0.002727`; stay under half the distance
+between two entries, `(0.75 - 0.33)/2 = 0.21`, or one bet lands in two buckets; and stay under
+`|0.50 - 0.33| = 0.17`, because the phase separately requires a 50% bet to refuse. 0.05 is 18.3
+times the floor and 3.4 times inside the tighter ceiling. The cost is stated rather than
+hidden: a 28%-of-pot bet and a 38%-of-pot bet both get the strategy solved for 33%."""
 
 PRICE_BAND_FRACTION = 0.20
 """How far a real preflop price may sit from the price a cell was solved at.
@@ -107,16 +114,14 @@ Decision 10, ruled by Taylor 2026-09-10, stated as a fraction of the cell's own 
 inclusive at both ends: an open of 2.0bb to 3.0bb against an `@2.5` cell, a 3-bet of 6.0bb to
 9.0bb against an `@7.5` one. A fraction rather than a chip width, because a fixed width that
 admitted 2.0-3.0 against `@2.5` would admit only 7.0-8.0 against `@7.5` and a 3-bet to 6.5
-would fall through the rule entirely - which is what the first draft of this ruling did, and
-five of the seven converged rows are 3-bet pots.
+would fall through the rule entirely - the first draft's defect, and five of the seven
+converged rows are 3-bet pots.
 
-This is a coverage rule, not a sensitivity-derived one: 99.0% of the corpus's 409 opens land
-inside it, and 47.1% of its 87 3-bets do, because the committed chart's single 3-bet price of
-7.5bb sits below the corpus median of 9.25bb.
-`THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN` owns that gap; it is recorded rather
-than tuned away, because no band centred on 7.5 covers that corpus, and widening one until it
-did would answer a 12bb 3-bet pot out of a 7.5bb cell.
-"""
+A coverage rule, not a sensitivity-derived one: 99.0% of the corpus's 409 opens land inside it
+and 47.1% of its 87 3-bets do, because the committed chart's single 3-bet price of 7.5bb sits
+below the corpus median of 9.25bb. `THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN` owns
+that gap, recorded rather than tuned away: no band centred on 7.5 covers that corpus, and
+widening one until it did would answer a 12bb 3-bet pot out of a 7.5bb cell."""
 
 # Every action a seat can take on a flop. Unlike preflop, a check can precede hero's
 # decision and a bet is the commonest entry there is.
@@ -125,11 +130,9 @@ _SIZED_FLOP_ACTIONS = frozenset({"bet", "raise"})
 
 
 _NO_FLOP_ACTION = "none"
-"""What the flop segment reads when hero is first to act and nothing has happened yet.
-
-It cannot collide with a rendered line: every `FlopAction` renders as `POSITION:action`, so
-every non-empty flop segment holds a colon and this one does not.
-"""
+"""What the flop segment reads when hero is first to act and nothing has happened yet. It
+cannot collide with a rendered line: every `FlopAction` renders as `POSITION:action`, so every
+non-empty flop segment holds a colon and this one does not."""
 
 
 def _validated_board(board: Sequence[str]) -> tuple[str, ...]:
@@ -151,12 +154,10 @@ _Image = tuple[tuple[str, ...], tuple[tuple[str, str], ...]]
 def _smallest_image(board: tuple[str, ...]) -> _Image:
     """The smallest relabelling of `board`, and the permutation that produced it.
 
-    Both halves come out of one minimisation on purpose. If the representative and the map
-    were computed separately they could disagree, and then there is no single permutation for
-    hero's cards to move under at all. Ties - a board whose stabiliser is larger than the
-    identity, which every board that does not use all four suits has - are broken by taking
-    the first permutation in `_SUIT_PERMUTATIONS` order, so one class always publishes one map.
-    """
+    Both halves come out of one minimisation on purpose: computed separately they could
+    disagree, leaving no single permutation for hero's cards to move under at all. Ties - every
+    board not using all four suits has them - break on the first permutation in
+    `_SUIT_PERMUTATIONS` order, so one class always publishes one map."""
     best: tuple[str, ...] | None = None
     chosen: dict[str, str] = _SUIT_PERMUTATIONS[0]
     for mapping in _SUIT_PERMUTATIONS:
@@ -168,43 +169,36 @@ def _smallest_image(board: tuple[str, ...]) -> _Image:
 
 
 def _board_order(card: str) -> tuple[int, int]:
-    """Highest rank first, then by suit - the order a flop is written and read in.
-
-    The minimisation above compares card text, which puts `2c7dKh` ahead of `Kh7d2c`. Which
-    of the two is stored is free, because a key is compared and never taken apart; which one
-    a person reads off a refusal inventory is not.
-    """
+    """Highest rank first, then by suit - the order a flop is written and read in. The
+    minimisation above compares card text, which puts `2c7dKh` ahead of `Kh7d2c`; which of the
+    two is stored is free, because a key is compared and never taken apart, but which one a
+    person reads off a refusal inventory is not."""
     return -_RANKS.index(card[0]), _SUITS.index(card[1])
 
 
 def canonical_board(board: Sequence[str]) -> tuple[str, ...]:
-    """The representative of `board`'s suit-isomorphism class, highest rank first.
-
-    A member of the class rather than a label for it, so canonicalising the representative
-    returns the representative, and two dresses of one board - `Kc7d2h` and `Kh7s2c` - are one
-    key. Two-tone `Kc7c2h` is not collapsed onto rainbow `Kc7d2h`: one holds a flush draw and
-    the other does not, and no relabelling of four suits turns one into the other.
-    """
+    """The representative of `board`'s suit-isomorphism class, highest rank first. A member of
+    the class rather than a label for it, so canonicalising the representative returns it and
+    two dresses of one board - `Kc7d2h` and `Kh7s2c` - are one key. Two-tone `Kc7c2h` is not
+    collapsed onto rainbow `Kc7d2h`: one holds a flush draw and the other does not, and no
+    relabelling of four suits turns one into the other."""
     return _smallest_image(tuple(sorted(_validated_board(board))))[0]
 
 
 def board_suit_map(board: Sequence[str]) -> dict[str, str]:
-    """The permutation of the four suits that carries `board` to its representative.
-
-    Published rather than kept private because hero's cards have to move under this map and no
-    other. A fresh dictionary each call, so a caller cannot reach into the cached answer.
-    """
+    """The permutation of the four suits that carries `board` to its representative. Published
+    rather than kept private because hero's cards have to move under this map and no other, and
+    a fresh dictionary each call so a caller cannot reach into the cached answer."""
     return dict(_smallest_image(tuple(sorted(_validated_board(board))))[1])
 
 
 def canonical_hole_cards(board: Sequence[str], hole_cards: Sequence[str]) -> tuple[str, ...]:
     """Hero's two cards moved by `board`'s own map, sorted.
 
-    This is the half a board-level isomorphism test cannot see. On a two-tone board `AhQh`
-    holds the flush draw and `AsQd` does not, and a map applied to the board but not to the
-    hand - or applied to the hand inconsistently - serves one of them the other's strategy
-    while every board-level check still passes.
-    """
+    The half a board-level isomorphism test cannot see. On a two-tone board `AhQh` holds the
+    flush draw and `AsQd` does not, and a map applied to the board but not to the hand - or to
+    the hand inconsistently - serves one the other's strategy while every board-level check
+    passes. `AN-ISOMORPHISM-TEST-ON-BOARDS-DOES-NOT-COVER-HERO-HANDS`."""
     cards = tuple(hole_cards)
     if len(cards) != 2:
         raise ValueError(f"hero holds exactly two cards, got {len(cards)}: {cards!r}")
@@ -224,12 +218,11 @@ def canonical_hole_cards(board: Sequence[str], hole_cards: Sequence[str]) -> tup
 class FlopAction:
     """One completed flop action, in the unit the solve was configured in.
 
-    `size_pct` is a percent of the pot, which is what decision 11's menu is written in and
-    what the committed cells are indexed by; chips belong to the table and are matched onto
-    this menu by `match_menu_fraction`. A bet or a raise must carry one, because a sizeless
-    aggressive action is the defect decision 9 names: two cells facing different prices merge
-    into one and the lookup answers a 75% bet out of a 33% cell.
-    """
+    `size_pct` is a percent of the pot - decision 11's menu unit, and what the committed cells
+    are indexed by; chips belong to the table and reach this menu through
+    `match_menu_fraction`. A bet or a raise must carry one, because a sizeless aggressive
+    action is decision 9's defect: two cells facing different prices merge into one and the
+    lookup answers a 75% bet out of a 33% cell."""
 
     position: str
     action: str
@@ -266,8 +259,156 @@ def render_flop_action(entry: FlopAction) -> str:
     return f"{entry.position}:{entry.action}@{render_size_bb(entry.size_pct)}"
 
 
+@dataclass(frozen=True)
+class PreflopLine:
+    """The preflop betting as it stood when the flop was dealt, and what it left behind.
+
+    Not a preflop spot key and deliberately not interchangeable with one: `spot_key` refuses a
+    sequence where hero has already acted and faces no later raise, which is every line the
+    raiser reaches a flop by. This records the closed street instead - who is still in, what
+    each put in, the level they all reached.
+
+    `rendered` is that line in the preflop key's grammar, which is what decision 8 means by
+    verbatim with its sizes. Hero's position is in it because one completed line is two spots:
+    the raiser decides whether to continuation-bet and the caller whether to donk, out of two
+    different ranges.
+    """
+
+    table_size: int
+    stack_depth_bb: int
+    hero_position: str
+    actions: tuple[PreflopAction, ...]
+    live_positions: tuple[str, ...]
+    contributions: tuple[tuple[str, float], ...]
+    closing_level_bb: float
+    pot_bb: float
+    effective_stack_bb: float
+    rendered: str
+
+
+_LIVE_SEATS_ON_A_FLOP = 2
+_HEADS_UP = 2
+
+
+def completed_preflop_line(
+    table_size: int,
+    stack_depth_bb: int,
+    hero_position: str,
+    action_sequence: Sequence[PreflopAction],
+    small_blind_bb: float = 0.5,
+    big_blind_bb: float = 1.0,
+    ante_bb: float = 0.0,
+) -> PreflopLine:
+    """Validate a preflop line that a flop actually followed, and say what it left in the middle.
+
+    The ring is walked the way `spot_key` walks it - a cursor over the action order, every live
+    seat it passes without a recorded action having folded there, hero never among them - and
+    then one further lap **closes** the street: a live seat that has not matched the standing
+    level never acted, so it folded, and hero in that position means the betting was still open
+    and no flop had been dealt. That lap is the whole difference from the preflop validator,
+    which asserts the opposite. Pot and effective stack fall out of the same walk: every live
+    seat sits at the closing level, so what is behind is the depth less it, and a seat that
+    folded leaves what it had already put in."""
+    positions = _validate_table_size(table_size)
+    _validate_stack_depth(stack_depth_bb)
+    entries = tuple(action_sequence)
+    for entry in entries:
+        if not isinstance(entry, PreflopAction):
+            raise ValueError(f"action_sequence entries must be PreflopAction, got {entry!r}")
+    for name in (hero_position, *(entry.position for entry in entries)):
+        if name not in positions:
+            raise ValueError(
+                f"{name!r} is not a {table_size}-handed position; expected {list(positions)}"
+            )
+    _validate_sizes(entries, stack_depth_bb)
+    put_in, folded, level = _closed_preflop_round(
+        hero_position, entries, positions, small_blind_bb, big_blind_bb
+    )
+    live = tuple(name for name in positions if name not in folded)
+    if len(live) < _LIVE_SEATS_ON_A_FLOP:
+        raise ValueError(
+            f"{len(live)} seat(s) reach the flop on this line, so no flop was dealt here and"
+            " there is no postflop spot to name"
+        )
+    totals = {name: value + ante_bb for name, value in put_in.items()}
+    return PreflopLine(
+        table_size=table_size,
+        stack_depth_bb=stack_depth_bb,
+        hero_position=hero_position,
+        actions=entries,
+        live_positions=live,
+        contributions=tuple(sorted(totals.items())),
+        closing_level_bb=level,
+        pot_bb=sum(totals.values()),
+        effective_stack_bb=float(stack_depth_bb) - level,
+        rendered=f"t{table_size}/d{stack_depth_bb}/{hero_position}/"
+        + ",".join(render_entry(entry) for entry in entries),
+    )
+
+
+def _closed_preflop_round(
+    hero_position: str,
+    entries: Sequence[PreflopAction],
+    positions: Sequence[str],
+    small_blind_bb: float,
+    big_blind_bb: float,
+) -> tuple[dict[str, float], set[str], float]:
+    """Run the round to its close: what each seat put in, who is out, and the closing level."""
+    order = preflop_action_order(len(positions))
+    size = len(order)
+    folded: set[str] = set()
+    put_in = dict.fromkeys(positions, 0.0)
+    # Heads-up the button posts the small blind; at every larger table the small blind does.
+    small = "BTN" if len(positions) == _HEADS_UP else "SB"
+    for label, posted in ((small, small_blind_bb), ("BB", big_blind_bb)):
+        if label in put_in:
+            put_in[label] = posted
+    level = big_blind_bb
+    cursor = 0
+
+    def passing(standing: str, context: str) -> None:
+        if standing == hero_position:
+            raise ValueError(
+                f"{hero_position} would have to fold before {context}, so it is not in the hand"
+                " on the flop this line leads to"
+            )
+        folded.add(standing)
+
+    for index, entry in enumerate(entries):
+        context = f"action_sequence entry {index} by {entry.position}"
+        if entry.position in folded:
+            raise ValueError(
+                f"{context} acts after the action already passed it, so it had folded:"
+                " absence means folded once the orbit has gone by"
+            )
+        for _ in range(size + 1):
+            standing = order[cursor % size]
+            cursor += 1
+            if standing == entry.position:
+                break
+            if standing not in folded:
+                passing(standing, context)
+        else:
+            raise ValueError(f"the preflop order never reaches {context}")
+        if entry.action == "raise":
+            level = float(entry.size_bb or 0.0)
+        put_in[entry.position] = level
+
+    for _ in range(size):
+        standing = order[cursor % size]
+        cursor += 1
+        if standing in folded or put_in[standing] >= level:
+            continue
+        passing(
+            standing,
+            f"the flop, still owing {render_size_bb(level - put_in[standing])}bb of the"
+            f" {render_size_bb(level)}bb the street closed at",
+        )
+    return put_in, folded, level
+
+
 def postflop_spot_key(
-    preflop_spot_key: str,
+    preflop_line: PreflopLine,
     board: Sequence[str],
     flop_actions: Sequence[FlopAction],
     pot_bb: float,
@@ -275,19 +416,19 @@ def postflop_spot_key(
 ) -> str:
     """Derive the canonical postflop spot key.
 
-    `f/b:<board>/<preflop key>/f:<flop line>/p:<pot>/e:<stack>`, where the board is the
-    canonical representative of its class, the preflop key is carried verbatim with its
+    `f/b:<board>/<preflop line>/f:<flop line>/p:<pot>/e:<stack>`, where the board is the
+    canonical representative of its class, the preflop line is carried verbatim with its
     prices, and the flop line is comma-separated in action order or `none` when hero is first
-    to act. Pot and effective stack are the nominal ones the cell was solved for, in big
-    blinds, so a 100bb cell can never quietly answer a spot at another depth.
-
-    The whole key is one whitespace-free token beginning with `f`, which is what keeps the
-    preflop key inside it invisible to `self_play_reference.py`.
+    to act. Pot and effective stack are the nominal ones the cell was solved for, in big blinds,
+    so a 100bb cell can never quietly answer a spot at another depth. The whole key is one
+    whitespace-free token beginning with `f`, which keeps the preflop segment inside it
+    invisible to `self_play_reference.py`.
     """
-    if not isinstance(preflop_spot_key, str) or not preflop_spot_key.startswith("t"):
+    if not isinstance(preflop_line, PreflopLine):
         raise ValueError(
-            "preflop_spot_key must be a preflop spot key, which begins with `t`,"
-            f" got {preflop_spot_key!r}"
+            "preflop_line must be a PreflopLine from `completed_preflop_line`; a preflop spot"
+            " key names a decision hero is about to make and cannot name a flop at all,"
+            f" got {preflop_line!r}"
         )
     entries = tuple(flop_actions)
     for entry in entries:
@@ -297,19 +438,17 @@ def postflop_spot_key(
     cards = "".join(canonical_board(board))
     pot = render_size_bb(pot_bb)
     stack = render_size_bb(effective_stack_bb)
-    return f"f/b:{cards}/{preflop_spot_key}/f:{line}/p:{pot}/e:{stack}"
+    return f"f/b:{cards}/{preflop_line.rendered}/f:{line}/p:{pot}/e:{stack}"
 
 
 def price_within_band(solved_bb: float, actual_bb: float) -> bool:
     """Whether a real preflop price is close enough to the one a cell was solved at.
 
-    Inclusive at both ends, because the endpoints are prices real hands actually land on - 2.0
-    is a min-open and 3.0 a standard 3x - and because the previous draft of this rule failed
-    at a boundary nobody had written down. A price outside the band refuses; it is never moved
-    onto the nearest one, which is deliberately the opposite of the preflop chart's behaviour.
-    Preflop 0.25bb barely moves a range; postflop the same 0.25bb moves the pot, the SPR and
-    both ranges at once.
-    """
+    Inclusive at both ends, because the endpoints are prices real hands land on - 2.0 is a
+    min-open and 3.0 a standard 3x - and because the previous draft failed at a boundary nobody
+    had written down. A price outside refuses and is never moved onto the nearest, deliberately
+    the opposite of the preflop chart: preflop 0.25bb barely moves a range, postflop the same
+    0.25bb moves the pot, the SPR and both ranges at once."""
     for value, field in ((solved_bb, "solved_bb"), (actual_bb, "actual_bb")):
         if isinstance(value, bool) or not isinstance(value, int | float):
             raise ValueError(f"{field} must be a number, got {value!r}")
@@ -329,13 +468,12 @@ def _validated_pot(pot_chips: int) -> int:
 def match_menu_fraction(bet_chips: int, pot_chips: int) -> float | None:
     """Which menu entry a chip bet is, or None when it is none of them.
 
-    Decision 14. The comparison is by pot fraction rather than by chips, so it holds at any
-    blind level, and `None` is the answer for anything outside every bucket rather than the
-    nearer entry - snapping is the nearest-neighbour substitution the contract forbids by
-    name, and at a bet exactly halfway between two entries there is no nearer entry anyway.
-
-    The first matching entry wins, and no bet can match two: at the ruled tolerance the
-    buckets reach 38% and 70% of pot and do not touch.
+    Decision 14. The comparison is by pot fraction rather than chips, so it holds at any blind
+    level, and `None` is the answer for anything outside every bucket rather than the nearer
+    entry - snapping is the nearest-neighbour substitution the contract forbids by name, and a
+    bet exactly halfway between two entries has no nearer entry anyway. The first matching entry
+    wins and no bet can match two: at the ruled tolerance the buckets reach 38% and 70% of pot
+    and do not touch.
     """
     if isinstance(bet_chips, bool) or not isinstance(bet_chips, int | float):
         raise ValueError(f"bet_chips must be a number, got {bet_chips!r}")
@@ -349,9 +487,8 @@ def match_menu_fraction(bet_chips: int, pot_chips: int) -> float | None:
 def menu_size_chips(fraction: float, pot_chips: int) -> int:
     """A committed artifact size as chips, rounded to the nearest chip.
 
-    The other direction of decision 14's rule, and the reason it needs stating: 33% of a
-    550-chip pot is 181.5 and the table can only push whole chips.
-    """
+    The other direction of decision 14's rule, and why it needs stating: 33% of a 550-chip pot
+    is 181.5 and the table can only push whole chips."""
     if isinstance(fraction, bool) or not isinstance(fraction, int | float):
         raise ValueError(f"fraction must be a number, got {fraction!r}")
     if not fraction > 0:
