@@ -1,5 +1,38 @@
 schema_version: 1
 items:
+  - id: A-BLIND-CANNOT-FOUR-BET-A-BLIND-WITHOUT-JAMMING-AND-THE-MULTIPLIER-GEOMETRY-SAYS-WHY
+    status: deferred
+    phase: contract-update
+    title: 49 committed spots offer a 100bb shove as their only four-bet, because one multiplier cannot size both raises
+    reason: >-
+      Accepted by Taylor 2026-09-16 as MAINT-34's decision 4, on the measurement below, and filed
+      rather than fixed because the fix measured worse than the defect.
+      GTOpen applies raise_mults at every re-raise level and varies it only by seat. MAINT-34 gives
+      the blinds 5.4 so their three-bet is a realistic 13.5bb against a 2.5bb open. The same 5.4 then
+      applies when a blind four-bets over the other blind's 13.5, giving 72.9bb, and
+      crates/solver/src/preflop/mod.rs:2219 clamps any raise at or above allin_threshold times stack
+      to the stack. At 0.67 and 100bb that is a jam. So 49 of 254 three-bet-facing committed spots
+      offer no sized four-bet at all, split small blind 34 and big blind 15, carrying 1.4364 percent
+      of committed arrival. Blind versus blind is a common confrontation and the bot is taught its
+      only raise there is 100bb over 13.5.
+      It is structural for a single multiplier. A 13.5 three-bet requires m = 5.4; a sized four-bet
+      requires 13.5m below 67, so m below 4.96. Both cannot hold.
+      The two-size blind menu [3.0, 5.4] removes it completely - zero jam-only spots - and was
+      measured rather than argued about. It doubles the tree to 62,107 nodes and the artifact to 44.3
+      percent of its cap, and it does not reach the declared accuracy target: 20,000 iterations
+      ending at 0.00018780 where the single size met 0.00016 at 3,800. And the solver declines the
+      second size, putting 0.00 combos on the 7.5 three-bet at the headline spot and a mean of 0.04
+      points against 8.25 across all fifteen committed blind three-bet spots. The size is not being
+      used as poker; it is a way to get 40.5 onto the four-bet menu underneath the clamp.
+      Raising allin_threshold is the other obvious lever and is worse. Letting 72.9 through leaves
+      the caller an SPR of 0.19, so it is a jam wearing a sized-raise label that would pass every
+      check in the repo, and the threshold applies to every seat at every depth.
+      What would actually close this is a per-DEPTH size menu in GTOpen rather than a per-seat one,
+      or a realization model with a size-dependent term so the solver has a reason to prefer one
+      three-bet size over another - see
+      THE-PREFLOP-CHART-CANNOT-PRICE-A-FLAT-AGAINST-A-THREE-BET-AND-ITS-CALL-BRANCH-IS-NOISE. Both
+      are changes to the solver rather than to its configuration.
+
   - id: A-SOLVE-THAT-MISSES-ITS-DECLARED-TARGET-SHIPS-WITH-NOTHING-OBJECTING
     status: deferred
     phase: contract-update

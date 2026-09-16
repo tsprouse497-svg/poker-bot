@@ -27,11 +27,11 @@ from typing import Any
 
 from poker_training_bot.poker_core.positions import table_positions
 from poker_training_bot.solver_artifacts.chart_provenance import (
-    ARTIFACT_NOTES,
     EXPORT_REFERENCE,
     GENERATED_AT,
-    SIZING_NOTES,
     SOURCE_NAME,
+    artifact_notes,
+    sizing_notes,
 )
 from poker_training_bot.solver_artifacts.chart_selection import (
     COMMITTED_RAISE_DEPTH,
@@ -74,11 +74,11 @@ from poker_training_bot.solver_artifacts.schema import (
 # line-cap split, not a second module a caller has to know about, and a name that exists in
 # both places is the way the two would come to disagree.
 __all__ = [
-    "ARTIFACT_NOTES",
     "COMMITTED_RAISE_DEPTH",
     "MULTIWAY_EXPOSURE_THRESHOLD_PCT",
     "DerivedChart",
     "NodeCensus",
+    "artifact_notes",
     "below_multiway_exposure_threshold",
     "census",
     "cold_call_index",
@@ -479,7 +479,7 @@ def derive_chart(export: SolverExport) -> DerivedChart:
             weights_sha256=weights_checksum(weights),
             spot_count=len(spots),
             hand_class_count=len({name for _, cells in weights for name, _ in cells}),
-            notes=ARTIFACT_NOTES,
+            notes=artifact_notes(export, counted),
         ),
         arrival_ppb=tuple(arrival_ppb.items()),
     )
@@ -490,7 +490,7 @@ def derive_chart(export: SolverExport) -> DerivedChart:
             "kind": "solver-export",
             "reference": EXPORT_REFERENCE,
         },
-        "notes": SIZING_NOTES,
+        "notes": sizing_notes(export, prices),
         "raise_to_bb": prices,
     }
     return DerivedChart(

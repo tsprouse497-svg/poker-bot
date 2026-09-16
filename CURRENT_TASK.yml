@@ -24,6 +24,8 @@ approved_scope:
 - src/poker_training_bot/solver_artifacts/schema.py
 - src/poker_training_bot/solver_artifacts/gtopen_export.py
 - src/poker_training_bot/solver_artifacts/lookup.py
+- tests/**
+- verification/freeze.lock
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -1757,3 +1759,24 @@ scope_change_log:
     which is retired and which test_chart_census.py:239-245 asserts must not come back. The distinction
     is real: a floor refuses a node hero reaches rarely, this refuses a node hero cannot be at holding
     anything.'
+- date: '2026-09-16'
+  reason: 'Opens tests/** and verification/freeze.lock, and ONLY now that the export is settled. Taylor
+    ruled route C ships on 2026-09-16 after the two-size alternative was measured and lost, so the numbers
+    the tests will be corrected against exist and are converged. Opening them earlier - which the 2026-09-16
+    activation entry declined to do - would have invited correcting an assertion to a figure from an unconverged
+    probe, and there was very nearly such a figure: the first re-solve stopped at its iteration cap at
+    2.1 times the declared accuracy target, and every range statistic taken from it disagreed with the
+    converged run.
+
+    The blast radius is large and is the reason this is one opening rather than several: 79 tests are
+    red across roughly 19 files, and the pins are of two kinds. Mechanical ones that must be corrected
+    - test_solver_export.py:64-79 and test_solver_expectations.py:57-72 each keep a hand copy of RULED_CONFIG,
+    so the config change makes their fixtures unbuildable and the tests error rather than fail. And value
+    pins that are correct statements about the superseded chart - the 2.5/7.5/22.5 ladder, 249 committed
+    spots, the 5/25/219 split, 33,969 nodes, 98.5949 percent coverage, and the arrival figures.
+
+    The rule for the lane is the one this repo has paid for repeatedly: a frozen test is corrected against
+    a MEASURED value, never against a value that would make the suite green. Every change is reported
+    with what forced it and is reviewed against the re-solve rather than against the lane''s convenience.
+    test_chart_census.py:234 asserting len(DERIVATION_EXCLUSION_CODES) == 3 moves because decision 2 added
+    a fourth code; that one is authorised by the decision and not by the lane.'

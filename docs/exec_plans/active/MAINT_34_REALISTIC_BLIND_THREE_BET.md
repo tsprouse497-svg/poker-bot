@@ -48,8 +48,13 @@ field" has three readings and two of them are traps.
   its 20 MiB cap. The cap is a halt, not a budget.
 - **Route C, `raise_mults_by_seat` with 5.4 on the two blind seats and everyone else on the global
   3.0. RULED.** Blind three-bets become 13.5, in-position three-bets stay 7.5, and the four-bet
-  survives as a sized raise at 40.5 - under the 67 clamp, verified. The ladder becomes
-  2.5 / 13.5 / 40.5 / jam against today's 2.5 / 7.5 / 22.5 / jam, which is the same shape.
+  survives as a sized raise at 40.5 - under the 67 clamp.
+  **Corrected 2026-09-16.** That verification covered the button four-betting over a blind and was
+  generalised to a case it did not cover. A **blind** four-betting over the other blind's 13.5 gets
+  the 5.4 again, 72.9, which clamps to a jam - so 49 of 254 three-bet-facing committed spots offer
+  no sized four-bet. Caught by the solve lane, measured, and accepted by Taylor as decision 4 after
+  the two-size alternative measured worse. See
+  `A-BLIND-CANNOT-FOUR-BET-A-BLIND-WITHOUT-JAMMING-AND-THE-MULTIPLIER-GEOMETRY-SAYS-WHY`.
 
 **Route C carries an obligation that is not optional.** `config_errors` iterates `RULED_CONFIG.items()`
 and checks each posted value, so a field that is **not** in `RULED_CONFIG` is invisible to the card
