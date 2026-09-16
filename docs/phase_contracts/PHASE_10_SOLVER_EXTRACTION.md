@@ -33,7 +33,8 @@ range-intersection step the GTO Wizard export required, so it is answered before
 converter is written rather than debugged afterwards.
 
 The solve config is ruled rather than chosen here: six-handed, 100bb, 2.5bb opens, and
-rake-free for the export that gets committed. Those are rulings 1 through 4 in
+rake-free for the export that gets committed.
+**Amended 2026-09-16 by MAINT-34:** the config gains `raise_mults_by_seat` and the blinds three-bet 13.5bb rather than 7.5, so every solve figure below - wall clock, iterations, achieved gap, determinism, saved-solve size and checksum, node reconciliation, byte budget and the human's grid attestation - describes the superseded solve. `RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET`. Those are rulings 1 through 4 in
 `docs/V2_ROADMAP.md`, with ruling 3 narrowed at this phase's human gate: limps leave the
 committed solve entirely. The narrowing was made on a measurement - limps are 87 percent
 of the tree and buy 21 of 3,048 corpus decision points, in branches the solution itself
