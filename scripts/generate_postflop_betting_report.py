@@ -186,6 +186,31 @@ def check_coverage_splits_by_cause(*, answerable: float, losses: Mapping[str, fl
     return True
 
 
+def check_servable_never_exceeds_arrivals(
+    *, arrivals: Mapping[str, int], servable: Mapping[str, int], answerable: int
+) -> bool:
+    """A line's servable count is a subset of its arrivals, and the subsets sum to answerable.
+
+    The defect this refuses shipped: `servable` was counted beside `arrivals` and before the two
+    gates that decide the question, so the column equalled arrivals for every input and the prose
+    claiming the two orders differ could not have been true of anything.
+    """
+    for line, count in servable.items():
+        reached = int(arrivals.get(line, 0))
+        if int(count) > reached:
+            raise ReportFigureError(
+                f"{line} is servable {count} times out of {reached} arrivals; a line cannot be"
+                " answered more often than it is reached"
+            )
+    summed = sum(int(value) for value in servable.values())
+    if summed != int(answerable):
+        raise ReportFigureError(
+            f"the servable column sums to {summed} and {answerable} flops are answerable; the"
+            " column is not counting the answers it says it counts"
+        )
+    return True
+
+
 def check_refusal_counts_reconcile(*, total: int, by_code: Mapping[str, int]) -> bool:
     """Every refusal is broken out under exactly one code, or the breakdown is not one."""
     summed = sum(int(value) for value in by_code.values())
@@ -554,7 +579,10 @@ class CorpusMeasurement:
     causes: Counter[str] = field(default_factory=Counter)
     answerable: int = 0
     arrivals: Counter[str] = field(default_factory=Counter)
+    """Corpus arrivals on each substituted preflop line, answerable or not."""
     servable: Counter[str] = field(default_factory=Counter)
+    """The arrivals the artifact could have answered: the line is covered and the flop's
+    canonical board was fetched. Sums across every line to `answerable`."""
     opens: list[float] = field(default_factory=list)
     three_bets: list[float] = field(default_factory=list)
 
@@ -617,7 +645,6 @@ def measure_corpus(covered_lines: frozenset[str], fetched_boards: frozenset[tupl
             continue
         line = ",".join(render_entry(entry) for entry in entries)
         measured.arrivals[line] += 1
-        measured.servable[line] += 1
         if line not in covered_lines:
             measured.causes[CAUSE_LINE] += 1
             continue
@@ -625,6 +652,7 @@ def measure_corpus(covered_lines: frozenset[str], fetched_boards: frozenset[tupl
         if canonical_board(flop) not in fetched_boards:
             measured.causes[CAUSE_BOARD] += 1
             continue
+        measured.servable[line] += 1
         measured.answerable += 1
     return measured
 
@@ -847,6 +875,9 @@ def measure() -> Measured:
         answerable=(corpus.answerable / corpus.flops) if corpus.flops else 1.0,
         losses=losses,
     )
+    check_servable_never_exceeds_arrivals(
+        arrivals=corpus.arrivals, servable=corpus.servable, answerable=corpus.answerable
+    )
 
     return Measured(
         census=census,
@@ -910,6 +941,36 @@ def header_lines() -> list[str]:
     ]
 
 
+def servable_ranking(corpus: CorpusMeasurement) -> list[str]:
+    """Every arrived line, servable count first, arrivals then the key itself as tie-breaks.
+
+    One ordering for both blocks below, so the cross-check ranks what the table above ranked.
+    The tie-breaks are what stop a Counter's insertion order deciding the display when many
+    lines carry the same servable count - which is every line while nothing is servable.
+    """
+    return sorted(
+        corpus.arrivals,
+        key=lambda line: (-corpus.servable[line], -corpus.arrivals[line], line),
+    )
+
+
+def ranking_basis_lines(corpus: CorpusMeasurement) -> list[str]:
+    """What the ranking below is sorted on, said in the report rather than assumed by it."""
+    if sum(corpus.servable.values()):
+        return [
+            "The ranking below sorts on servable arrival frequency rather than on arrival",
+            "frequency. A line the artifact can only answer some of the time is worth less than",
+            "one it can answer almost always, and the two orders are not the same order.",
+        ]
+    return [
+        "The ranking below sorts on servable arrival frequency - how often the artifact could",
+        "have answered a line it was reached on - and no committed cell answers any corpus",
+        "arrival yet, so every servable count is zero and there is no servable order to read.",
+        "What is printed is the arrival order, which is the column beside it; the two orders",
+        "differ only once something is servable.",
+    ]
+
+
 def coverage_lines(measured: Measured) -> list[str]:
     corpus = measured.corpus
     lines = heading("Covered preflop lines, and the corpus rank of each")
@@ -926,17 +987,15 @@ def coverage_lines(measured: Measured) -> list[str]:
         lines.append(f"    {line}")
     lines += [
         "",
-        "The ranking below sorts on servable arrival frequency rather than on arrival frequency.",
-        "A line the artifact can only answer some of the time is worth less than one it can",
-        "answer almost always, and the two orders are not the same order.",
+        *ranking_basis_lines(corpus),
         "",
         f"  corpus hands: {corpus.hands}",
         f"  flop-reaching hands: {corpus.flops}",
         "",
         "  arrivals  servable  substituted preflop line",
     ]
-    for line, count in corpus.arrivals.most_common(12):
-        lines.append(f"  {count:8d}  {corpus.servable[line]:8d}  {line}")
+    for line in servable_ranking(corpus)[:12]:
+        lines.append(f"  {corpus.arrivals[line]:8d}  {corpus.servable[line]:8d}  {line}")
     lines += [
         "",
         "The keys above are post-substitution. Every price is moved onto the chart price whose",
@@ -968,17 +1027,24 @@ def coverage_lines(measured: Measured) -> list[str]:
 
 
 def cross_check_lines(measured: Measured) -> list[str]:
+    corpus = measured.corpus
+    basis = (
+        "The corpus order is the servable count above."
+        if sum(corpus.servable.values())
+        else "The corpus order is the arrival count above, no line being servable yet."
+    )
     lines = heading("The corpus order against the artifact's own arrival_ppb order")
     lines += [
         "",
-        "Two orders over the same lines, and nothing in the repo had compared them. The corpus",
-        "order is the servable count above; the arrival_ppb order is the committed chart's own",
-        "figure for the decision that closed each line. Where they disagree, the rank a reader",
-        "would take off one document is not the rank the other gives.",
+        "Two orders over the same lines, and nothing in the repo had compared them.",
+        basis,
+        "The arrival_ppb order is the committed chart's own figure for the decision that closed",
+        "each line. Where they disagree, the rank a reader would take off one document is not",
+        "the rank the other gives.",
         "",
         "  corpus  arrival_ppb  line",
     ]
-    ranked = [line for line, _ in measured.corpus.servable.most_common(10)]
+    ranked = servable_ranking(corpus)[:10]
     scored = []
     for line in ranked:
         key = arrival_key_for(line)

@@ -26,6 +26,10 @@ approved_scope:
   - scripts/run_verify.py
   - scripts/quality_checks.py
   - scripts/run_full_quality_gate.py
+  - data/artifacts/postflop/**
+  - src/poker_training_bot/solver_artifacts/postflop_transport.py
+  - src/poker_training_bot/solver_artifacts/postflop_harvest.py
+  - scripts/solve_postflop_sample.py
 standing_scope:
   - CURRENT_TASK.yml
   - verification/loop_state.yml
@@ -2187,3 +2191,53 @@ scope_change_log:
       artifact module is back to 495.
       check_size_is_playable deliberately stayed behind, because a mutation canary names its line
       verbatim in postflop_artifact.py and verification/** is frozen.
+
+  - date: 2026-09-16
+    reason: >-
+      Taylor's ruling, 2026-09-16, filed as decision 15. Adds data/artifacts/postflop/** so the
+      sample solve can be committed. It was deliberately out of scope until now because it is the
+      one path that holds poker data nobody can re-derive from the repo: an artifact cell is the
+      solver's answer, and a wrong one is wrong quietly and forever. The loop policy stops a phase
+      that writes new committed data for exactly this reason and it stopped this one.
+      What was ruled is the sample plus the deep check: four cells at the 240-iteration working
+      point, then the monotone cell re-solved to the 1,200 cap with its action frequencies diffed
+      against its own 240-iteration run. The diff is committed beside the sample and answers
+      NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED, which phase 16 owns,
+      which is still open, and which the stage-2 independent poker review made the single condition
+      on its verdict that this phase is worth committing at all.
+      The cost was re-derived before the ruling rather than quoted. The bootstrap's "about 16
+      minutes a flop" is the monotone rate and the sample is one board of each texture, so three
+      boards is 1.9 to 2.2 hours and the fourth cell takes it to about 2.2 to 2.8. The deep check
+      adds 73 to 86 minutes on the cheapest board. About four hours, not 48 minutes.
+      The solve runs only after the fail-open defaults in postflop_solve_driver.py are closed. That
+      driver's memory ceiling is the only guard there is on this machine - GTOpen's own reads
+      /proc/meminfo, which Darwin does not have, and falls through to a flat 48,000 MB it cannot
+      reach before the machine thrashes - and a /api/spot answer missing arena_mb currently plans a
+      zero-byte tree straight through it.
+
+  - date: 2026-09-16
+    reason: >-
+      Three paths the solve needs and that nothing in the repo provides. Found by the coordinator
+      while sizing the run Taylor authorised in decision 15, and reported rather than assumed: the
+      driver can drive a solve, the artifact module can *import* a committed sample, and nothing
+      anywhere WRITES one. grep over src/ and scripts/ finds no writer for SAMPLE_DIR or
+      INDEX_PATH, and /api/node - the route that reads a solved strategy back out - is named in
+      EXERCISED_ROUTES and called by nothing. So "run the solve" is a build task and then a solve,
+      which is not what the bootstrap's item 4 reads like.
+      postflop_transport.py is the extraction W5's fail-closed repair forced: postflop_solve_driver.py
+      went 500 to 527 against a 500-line cap with zero headroom, and the ruling was to extract rather
+      than compress, as this stage has twice already. The seam is what a server answer is and how to
+      read one, against what a solve is and how to drive one.
+      postflop_harvest.py reads hero's strategy back per node and collapses 1,176 hero combos to the
+      board's own orbit classes - 1,176 on Kh7d2c, 721 on 8c8d3c, 344 on 9c8c7c, the counts
+      postflop_isomorphism.py already produces - because a PostflopCell carries hand_classes and
+      class_weights and neither exists until something builds them. postflop_artifact.py has 5 lines
+      of headroom and cannot hold it.
+      scripts/solve_postflop_sample.py is the runner. It is a script rather than a gate command:
+      AGENTS.md forbids runtime solver calls and phase 10's contract requires the gate to pass on a
+      machine with no GTOpen, no Rust toolchain and no network, so this can never join run_verify.py
+      and must not be registered in COMMANDS.
+      The cheapest cell runs first and alone. The monotone board is 15 to 17 minutes and the other
+      three are 37 to 75 each, so one cheap cell proves the harvest, the writer and the importer
+      agree before the expensive three are spent on a path that might not produce a cell the strict
+      importer accepts.

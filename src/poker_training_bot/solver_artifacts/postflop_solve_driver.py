@@ -25,15 +25,15 @@ record, kept here so nobody infers them from a field name:
   of RAM, a unit, an ordering - never a number standing in for a measurement nobody took.
 
 `scripts/measure_postflop_solve_cost.py` took the record; this is the campaign driver, and they
-share the fraction and the unit guard deliberately."""
+share the fraction and the unit guard deliberately. What the wire is - the transport, the routes'
+base URL, and the closed readers that refuse a field the server did not send - is in
+`postflop_transport`; this module holds what a solve is and how to drive one."""
 
 from __future__ import annotations
 
 import json
 import os
 import time
-import urllib.error
-import urllib.request
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
@@ -43,11 +43,13 @@ from poker_training_bot.solver_artifacts.postflop_artifact import (
     RANGE_WEIGHT_FLOOR,
     SOLVE_ITERATION_CAP,
 )
-
-
-class SolveDriverError(RuntimeError):
-    """A refusal. Every one of these fires before the solve, or stops it part-way."""
-
+from poker_training_bot.solver_artifacts.postflop_transport import (
+    SolveDriverError,
+    Transport,
+    answered,
+    arena_bytes,
+    numeric,
+)
 
 # --- The machine, and the memory ceiling this driver publishes for it
 
@@ -120,13 +122,6 @@ def gtopen_memory_guard() -> dict[str, object]:
             "SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS was filed on that fallback."
         ),
     }
-
-
-def arena_bytes(arena_mb: float) -> int:
-    """`/api/spot`'s `arena_mb` in bytes, taking the larger reading of the unit: nothing in
-    GTOpen's routes says whether that field is 10^6 or 2^20 bytes, and 2^20 makes a planned solve
-    look bigger, so the ambiguity errs toward refusing rather than starting a run that dies."""
-    return int(arena_mb * 1024 * 1024)
 
 
 def check_memory_ceiling(planned_bytes: int) -> None:
@@ -324,8 +319,6 @@ def plan_refusals(plan: SolvePlan) -> list[str]:
 
 # --- The routes, and which of them this driver uses
 
-BASE_URL = "http://127.0.0.1:3737"
-
 EXERCISED_ROUTES = ("/api/spot", "/api/solve", "/api/status", "/api/node")
 """Driven end to end on 2026-08-23 and 2026-08-24, and the only routes this driver calls."""
 
@@ -341,36 +334,6 @@ high-water mark measured about 1.6x slower per iteration than a freshly restarte
 config. One flop per invocation is what makes a restart between solves possible, and moving this
 to `exercised` is a measurement rather than a switch: a run that records what the batch cost, on
 the machine that ran it."""
-
-
-Transport = Callable[[str, dict | None], dict]
-"""Method-free by design: a body means POST and no body means GET, which is the whole of GTOpen's
-convention. Handed in so nothing here opens a socket at import or in a test."""
-
-
-def http_transport(base_url: str = BASE_URL, timeout: float = 900.0) -> Transport:
-    """The real transport. Constructed by a caller that has a server, never at import."""
-
-    def call(path: str, body: dict | None = None) -> dict:
-        request = urllib.request.Request(
-            base_url + path,
-            data=None if body is None else json.dumps(body).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method="GET" if body is None else "POST",
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
-                return json.loads(response.read())
-        except urllib.error.HTTPError as error:
-            detail = error.read().decode("utf-8", "replace").strip()
-            raise SolveDriverError(f"{path} refused with HTTP {error.code}: {detail}") from error
-        except urllib.error.URLError as error:
-            raise SolveDriverError(
-                f"{path} could not reach {base_url}: {error.reason}. Start the GTOpen server "
-                "first; this driver never starts, restarts or installs one."
-            ) from error
-
-    return call
 
 
 # --- Driving one solve, and judging what came back
@@ -452,14 +415,14 @@ def run_solve(
         raise SolveDriverError(f"{plan.label} refused before solving: " + "; ".join(refusals))
 
     status = transport("/api/status", None)
-    if str(status.get("state", "")) == "running":
+    if str(answered(status, "/api/status", "state")) == "running":
         raise SolveDriverError(
             "the server is mid-solve and /api/spot would drop that session. There is one global "
             "session; wait for it or stop it deliberately."
         )
 
     built = transport("/api/spot", spot_body(plan))
-    planned = arena_bytes(float(built.get("arena_mb", 0.0)))
+    planned = arena_bytes(numeric(built, "/api/spot", "arena_mb"))
     check_memory_ceiling(planned)
 
     started = now()
@@ -475,7 +438,7 @@ def run_solve(
     )
     while True:
         status = transport("/api/status", None)
-        if str(status.get("state", "")) != "running":
+        if str(answered(status, "/api/status", "state")) != "running":
             break
         if now() - started > deadline_seconds:
             transport("/api/stop", {})
@@ -485,8 +448,8 @@ def run_solve(
             )
         sleep(poll_seconds)
 
-    exploit = float(status.get("exploit_pct", 0.0))
-    iterations = int(status.get("iteration", 0))
+    exploit = numeric(status, "/api/status", "exploit_pct")
+    iterations = int(numeric(status, "/api/status", "iteration"))
     return SolveOutcome(
         label=plan.label,
         board=plan.board,

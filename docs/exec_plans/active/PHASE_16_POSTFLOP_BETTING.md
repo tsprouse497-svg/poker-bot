@@ -247,6 +247,23 @@ subagents in this one worktree; the coordinator owns every commit.
   thirteen the coordinator handed it were already filed under corrected names or deliberately
   withdrawn, which is the result a lane produces and a coordinator working from its own list does
   not.
+- Four lanes were added on 2026-09-16, when a fresh coordinator picked the stage up. **W4**, the
+  report's fabricated `servable` column. **W5**, the solve driver's fail-open defaults. **C2**, a
+  read-only diagnosis of the seven red frozen tests, which is a lane rather than coordinator work
+  for the reason the whole phase turns on: the coordinator does not get to decide that a test its
+  own stage reddened was wrong. **V1**, the consolidated stage-6 review, which is none of the four.
+  W4 and W5 each returned a finding outside its brief and both were real. W4: the ranking was never
+  sorted on `servable` either, so the prose claiming the two orders differ was false twice over and
+  fixing the count alone would have left it false. W5: `state` is read with the same fail-open
+  `.get` as the two named, and an absent `state` ends the poll on its first look, so a solve still
+  running commits as converged - worse than either defect on the list. Neither was on the list a
+  coordinator working from the previous session's notes would have handed out, which is the
+  argument for the lane and against the checklist.
+- W5's repair took `postflop_solve_driver.py` from 500 to 527 against a 500-line cap that compares
+  `> limit`, so the module had zero headroom before it was touched. Ruled: extract, do not compress,
+  which is the third extraction in this stage and the third one a lane reported rather than slipped
+  in. The seam is what a server answer is and how to read one, against what a solve is and how to
+  drive one.
 - Integration order: R1 before stage 1 advances. R2 before stage 2 advances. T1 alone at stage 4,
   then the freeze. At stage 6, K1 first and alone, because every other lane keys against the shape
   it defines; then A1; then S1 and B1, S1 first where they share the artifact's read path; then P1

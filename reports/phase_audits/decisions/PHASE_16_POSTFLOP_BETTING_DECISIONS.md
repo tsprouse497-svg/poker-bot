@@ -1784,3 +1784,60 @@ it in fidelity at the edges of each bucket. Nothing in the phase reports how oft
 sat near a bucket edge rather than near its centre, which is the figure that would show the size of
 this cost; that is `NO-FIGURE-REPORTS-HOW-FAR-A-MATCHED-BET-SAT-FROM-ITS-MENU-ENTRY`, filed against
 this decision.
+
+## 15. Whether the sample solve also measures that the frequencies have settled
+
+**Ruled by Taylor, 2026-09-16. `frozen-into-data`**: what this decides is committed under
+`data/artifacts/postflop/**` and a later phase cannot revise it without re-solving.
+
+**Ruling.** The sample runs, and it runs with the deep check. Four cells at the 240-iteration
+working point, then one of them re-solved to the 1,200-iteration cap and its action frequencies
+diffed against its own 240-iteration strategy. The diff is committed beside the sample.
+
+**The question, which is a poker question and not a cost one.** Every convergence figure this phase
+rests on is an **exploitability** figure - 0.295% of pot at 240 iterations on the recorded
+three-bet cell. Exploitability says how much a perfect opponent wins against the strategy. It does
+not say the strategy has stopped moving. What a reader takes off a flop chart is *how often* to bet
+a hand, and the hands the solver has driven to indifference - the ones whose two actions are worth
+the same, which is most of a mixed flop range - keep trading frequency back and forth long after
+the exploitability number has flattened, because moving them costs nothing by the measure that is
+being minimised. So a cell can be 0.3%-of-pot accurate and still publish a frequency table that a
+deeper run would contradict.
+
+Nothing in this repo has ever checked. `docs/GTOPEN_SOLVER_NOTES.md:145` says so in as many words -
+both determinism runs stopped at 240 iterations, and reproducibility "says nothing about whether the
+strategy at 240 iterations has settled". The stage-2 independent poker review made this the single
+condition on its verdict that the phase is worth committing at all, and it is filed as
+`NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED`, owned by phase 16 and
+still open. Committing the sample without it would close a phase on its own reviewer's one
+condition unmet, which is the shape
+`A-CLOSING-PHASE-LEAVES-ITS-OWN-BACKLOG-ITEMS-DEFERRED-AND-NOTHING-SEES-IT` describes.
+
+**The cost, re-derived here rather than carried from the ExecPlan's bootstrap, which understated
+it.** The bootstrap says "about 16 minutes a flop". That figure is the **monotone** rate and the
+sample is deliberately one board of each texture. Per iteration the floored single-raised tree is
+2,347,996 action nodes x 919 hands, and decision 11's machine note gives the per-node-hand cost by
+texture:
+
+| board | ns/node-hand | s/iteration | 240 iterations |
+| --- | --- | --- | --- |
+| monotone `9c8c7c` | 1.7 - 2.0 | 3.67 - 4.32 | 15 - 17 min |
+| two-tone `8c8d3c` | 4.28 | 9.24 | 37 min |
+| rainbow `Kh7d2c` | 7.34 - 8.71 | 15.84 - 18.79 | 63 - 75 min |
+
+Three boards is **1.9 to 2.2 hours**, and the fourth cell is a second preflop line on one of them,
+so the sample is about **2.2 to 2.8 hours** rather than the 48 minutes three times sixteen implies.
+The deep check re-solves the monotone cell, the cheapest of the three, from 240 to the 1,200 cap:
+`1200 x 3.67-4.32 s` = **73 to 86 minutes**. Total about **3.5 to 4.2 hours**.
+
+**What the answer is worth either way.** If the frequencies have settled, the phase has the
+evidence its own reviewer asked for and the 240-iteration working point is ruled rather than
+assumed - which is what makes the 45-to-85-day campaign estimate a plan instead of a guess, since
+that estimate is 240 iterations multiplied by 1,755 flops. If they have not, the phase has found
+that out on four cells costing four hours rather than on a full campaign costing weeks, and the
+working point moves before anything is committed at scale. The cheap version of this measurement
+does not exist: exploitability is already measured and is already the wrong quantity.
+
+**What is not decided here.** Whether a frequency divergence, if one appears, halts the phase or is
+recorded and accepted. Nothing is committed against that yet; the diff is measured first and the
+question asked with a number in hand rather than in advance of one.

@@ -29,26 +29,28 @@ of the two decided it.
   covered preflop lines committed: 0
   bound by: campaign cost or index bytes, whichever is smaller - no index is committed yet
 
-The ranking below sorts on servable arrival frequency rather than on arrival frequency.
-A line the artifact can only answer some of the time is worth less than one it can
-answer almost always, and the two orders are not the same order.
+The ranking below sorts on servable arrival frequency - how often the artifact could
+have answered a line it was reached on - and no committed cell answers any corpus
+arrival yet, so every servable count is zero and there is no servable order to read.
+What is printed is the arrival order, which is the column beside it; the two orders
+differ only once something is servable.
 
   corpus hands: 499
   flop-reaching hands: 259
 
   arrivals  servable  substituted preflop line
-        50        50  BTN:raise@2.5,BB:call
-        30        30  CO:raise@2.5,BB:call
-        25        25  SB:raise@2.5,BB:call
-        21        21  SB:call
-        20        20  LJ:raise@2.5,BB:call
-        19        19  HJ:raise@2.5,BB:call
-         6         6  CO:raise@2.5,BTN:raise@7.5,CO:call
-         6         6  LJ:raise@2.5,HJ:call
-         5         5  HJ:raise@2.5,CO:raise@7.5,HJ:call
-         5         5  BTN:raise@2.5,SB:call
-         4         4  LJ:raise@2.5,BTN:call
-         3         3  HJ:raise@2.5,SB:call
+        50         0  BTN:raise@2.5,BB:call
+        30         0  CO:raise@2.5,BB:call
+        25         0  SB:raise@2.5,BB:call
+        21         0  SB:call
+        20         0  LJ:raise@2.5,BB:call
+        19         0  HJ:raise@2.5,BB:call
+         6         0  CO:raise@2.5,BTN:raise@7.5,CO:call
+         6         0  LJ:raise@2.5,HJ:call
+         5         0  BTN:raise@2.5,SB:call
+         5         0  HJ:raise@2.5,CO:raise@7.5,HJ:call
+         4         0  LJ:raise@2.5,BTN:call
+         3         0  HJ:raise@2.5,SB:call
 
 The keys above are post-substitution. Every price is moved onto the chart price whose
 band it falls in - 20% either side of it, inclusive at both ends - so a line opened to the
@@ -60,10 +62,11 @@ reading substituted keys rather than played ones.
 The corpus order against the artifact's own arrival_ppb order
 -------------------------------------------------------------
 
-Two orders over the same lines, and nothing in the repo had compared them. The corpus
-order is the servable count above; the arrival_ppb order is the committed chart's own
-figure for the decision that closed each line. Where they disagree, the rank a reader
-would take off one document is not the rank the other gives.
+Two orders over the same lines, and nothing in the repo had compared them.
+The corpus order is the arrival count above, no line being servable yet.
+The arrival_ppb order is the committed chart's own figure for the decision that closed
+each line. Where they disagree, the rank a reader would take off one document is not
+the rank the other gives.
 
   corpus  arrival_ppb  line
        1  3 <- disagrees  BTN:raise@2.5,BB:call
@@ -74,10 +77,10 @@ would take off one document is not the rank the other gives.
        6  7 <- disagrees  HJ:raise@2.5,BB:call
        7  8 <- disagrees  CO:raise@2.5,BTN:raise@7.5,CO:call
        8  1 <- disagrees  LJ:raise@2.5,HJ:call
-       9            9  HJ:raise@2.5,CO:raise@7.5,HJ:call
-      10  2 <- disagrees  BTN:raise@2.5,SB:call
+       9  2 <- disagrees  BTN:raise@2.5,SB:call
+      10  9 <- disagrees  HJ:raise@2.5,CO:raise@7.5,HJ:call
 
-  positions where the two orders disagree: 8
+  positions where the two orders disagree: 9
 
 The share of corpus flops this artifact can answer, split by cause
 ------------------------------------------------------------------
