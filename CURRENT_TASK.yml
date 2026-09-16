@@ -26,6 +26,7 @@ approved_scope:
 - src/poker_training_bot/solver_artifacts/lookup.py
 - tests/**
 - verification/freeze.lock
+- src/poker_training_bot/solver_artifacts/chart_selection.py
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -1780,3 +1781,24 @@ scope_change_log:
     with what forced it and is reviewed against the re-solve rather than against the lane''s convenience.
     test_chart_census.py:234 asserting len(DERIVATION_EXCLUSION_CODES) == 3 moves because decision 2 added
     a fourth code; that one is authorised by the decision and not by the lane.'
+- date: '2026-09-16'
+  reason: 'Adds chart_selection.py to the provenance lane so it can repair three docstrings that state
+    figures no longer true, two of which this task itself made false and one of which the coordinator
+    committed without re-checking.
+
+    The clause-four docstring says the bucket ''has 32 nodes under it at 13.5bb, all of them the button
+    cold-calling behind two other cold-callers''. Re-measured on the converged export: 160 nodes, hijack
+    64, button 48, cutoff 48. The 32 came from the first re-solve, which stopped at its iteration cap
+    at 2.1 times the declared accuracy target; the converged run is five times larger and spread over
+    three seats. That is the same defect decision 3 removed from the solve, reappearing in prose written
+    from the truncated run.
+
+    The squeeze docstring claims the big blind ''folds better than nine times in ten here''; measured
+    82.86 to 92.55 percent, mean 89.20, so it is false for the mean. And the cold-call index docstring
+    still quotes 249 committed with 219 facing a three-bet against the measured 284 and 254.
+
+    Routed to this lane rather than a new one because it is the lane that found all three and holds the
+    measurements, and because the subject is identical to its brief: a module asserting a number nothing
+    recomputes. The lane is instructed that where a docstring states a figure that will rot again on the
+    next re-solve it says so in the sentence, since the file that teaches this lesson should not be the
+    one that repeats it.'

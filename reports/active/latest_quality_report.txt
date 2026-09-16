@@ -10,14 +10,9 @@ PASS  mutation coverage
       covers:   Every registered gate command whose id begins pytest is named by at least one committed mutation, or is exempt by name with a reason, so check_gate_bite has something to prove about each one.
       does not: It reads pytest commands only, so the checkers and generators in the gate have no canary demanded of them. And it does not judge whether a mutation is a good one: one canary aimed at a command says the command can fail, not that its tests are strong. The catch-all pytest is exempt for exactly that reason, being red for every mutation whatever the mutation does.
 
-FAIL  fact drift
+PASS  fact drift
       covers:   Every registered fact is recomputed from the repo and compared against each document that quotes it, by sentence shape rather than by bare number.
       does not: It reads only the facts it has been given. A number nobody registered is a number nobody checks, and most sentences here state no registered fact.
-      ! the committed facts file disagrees with what the code computes; run scripts/generate_repo_facts.py and update the documents it names
-      ! docs/CORPUS_COMPARISON_LIMITS.md states 139 for fact 'corpus_refusals' (decision points the chart could not answer); the repo says 141
-      ! docs/CORPUS_COMPARISON_LIMITS.md states 61 for fact 'corpus_distinct_refused_spots' (distinct spot keys the chart refuses against real hands); the repo says 63
-      ! backlog.yml states 150 for fact 'corpus_human_call_disagreements' (scored human call decisions the chart disagrees with); the repo says 145
-      ! backlog.yml states 68 for fact 'corpus_human_call_disagreements_big_blind' (of those, the ones taken from the big blind); the repo says 60
 
 PASS  backlog integrity
       covers:   Every item is well formed and uniquely identified, every phase it names exists, and every backlog id cited in docs or reports resolves to an item.

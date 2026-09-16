@@ -479,7 +479,7 @@ def derive_chart(export: SolverExport) -> DerivedChart:
             weights_sha256=weights_checksum(weights),
             spot_count=len(spots),
             hand_class_count=len({name for _, cells in weights for name, _ in cells}),
-            notes=artifact_notes(export, counted),
+            notes=artifact_notes(export, by_path, counted),
         ),
         arrival_ppb=tuple(arrival_ppb.items()),
     )
@@ -490,7 +490,7 @@ def derive_chart(export: SolverExport) -> DerivedChart:
             "kind": "solver-export",
             "reference": EXPORT_REFERENCE,
         },
-        "notes": sizing_notes(export, prices),
+        "notes": sizing_notes(export, by_path, prices),
         "raise_to_bb": prices,
     }
     return DerivedChart(

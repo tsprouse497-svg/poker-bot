@@ -14,8 +14,10 @@ because a node hero can never be sitting at is not a decision he faces.
 **The middle clause is measured, not counted.** "Could three players still be in" is a fact about
 the node, and it is what an earlier cut of this rule used; the ruled reading is a fact about the
 leaves below the node, which is where the source's pairwise pricing of a multiway pot actually
-bites. The two disagree at 186 of the committed nodes: a seat count would have refused every one
-of them, because a pot three seats can still enter mostly does not end up three-handed.
+bites. The two disagree at 237 of the 284 committed nodes: a seat count would have refused every
+one of them, because a pot three seats can still enter mostly does not end up three-handed. Both
+figures move on every re-solve; the chart's own `audit_fields.notes` recomputes them per build,
+so read them there rather than from here.
 
 **The walk is bottom-up and memoised per tree.** The same subtree hangs under thousands of nodes,
 so measuring each node by walking down from it re-walks the deep end of the tree once per
@@ -71,10 +73,12 @@ his four-bet is at three and goes.
 """
 
 MULTIWAY_EXPOSURE_THRESHOLD_PCT = 10.0
-"""A tenth of the decision mass, strictly under, and the margin either side of it is thin: the
-widest admitted spot sits at 9.8642 and the narrowest refused at 10.0234, sixteen hundredths of a
-point apart. A figure that close to the line is why the measurement is walked rather than
-estimated from the seats still live."""
+"""A tenth of the decision mass, strictly under. The margin either side of it is not stable and
+is not the argument: the widest admitted spot sat at 9.8642 against a narrowest refused of
+10.0234 under the 7.5bb solve, sixteen hundredths apart, and sits at 9.6609 against 10.4362 -
+three quarters of a point - at 13.5bb. Re-measure rather than quote. What does not move is why
+the measurement is walked rather than estimated from the seats still live, which is the
+disagreement the module docstring counts."""
 
 _VOLUNTARY_KINDS = frozenset({"call", "raise", "jam"})
 _KNOWN_KINDS = frozenset({"fold"}) | _VOLUNTARY_KINDS
@@ -225,10 +229,12 @@ def cold_call_index(
     already half paying rather than money in behind an opener, and it stays inside the
     measurement. A seat that opened and now faces a three-bet is not cold either, its own raise
     being already in, so its call stays too. The second exemption carries weight rather than
-    decorating the sentence: dropping it removes a branch the chart still offers, and commits 346
-    spots - 5 first-in, 25 facing an open, 316 facing a three-bet - instead of 249 with 219
-    facing a three-bet. Recount it against the export rather than from here. The 361 this line
-    used to carry was a different counterfactual, taken before the third clause removes ten.
+    decorating the sentence: dropping it removes a branch the chart still offers, and commits 314
+    spots - 5 first-in, 25 facing an open, 284 facing a three-bet - instead of 284 with 254
+    facing a three-bet. All four are properties of the solve rather than of this rule, so recount
+    them against the export: the 346 and 316 this line carried were this same counterfactual on
+    the 7.5bb solve, and the 361 before them was a different one, taken before the third clause
+    removed its nine.
     """
     walk = _walk_of(by_path)
     if node.actor_pos == "BB" or node.actor_pos in walk.invested[node.path]:
@@ -293,8 +299,10 @@ def is_big_blind_squeeze_spot(
     Not a second exposure rule. These are the only committed shape whose chart still offers hero
     a call that puts him in a three-way pot: everywhere else the call the bot may take is either
     removed from the measurement as cold or heads-up by then. The exposure clause cannot reach
-    them because the big blind folds better than nine times in ten here, which leaves that branch
-    carrying under nine points, and a clause about a seat is what refuses them.
+    them because the big blind folds 82.86 to 92.55 percent of its range here, which leaves those
+    nine nodes carrying 2.90 to 6.13 points of multiway exposure against a threshold of ten, and
+    a clause about a seat is what refuses them. The two bands are re-measured per solve - the
+    chart's notes publish the fold band - and the clause holds while the exposure stays under.
 
     It is about the seat rather than about the call in front of it, and that is the correction it
     encodes: the cutoff answering the same open and the same flat is committed. The five
@@ -323,15 +331,22 @@ def has_an_arriving_hand_class(
     there is no range to publish, no cell to blank, and nothing for the ruling to protect.
 
     It reads hero's own arriving reach rather than the line's arrival probability, and those come
-    apart: a zero-arrival spot is one the solve almost never plays into, and two of the 249
-    committed under the 7.5bb solve were exactly that while still carrying a full 169 classes.
-    A node with no arriving class is instead one hero's own earlier action never puts him at.
+    apart: a zero-arrival spot is one the solve almost never plays into, and 181 of the 284
+    committed are exactly that while still carrying classes hero can hold. The "two of the 249"
+    this line used to carry is withdrawn rather than updated - it reproduces under neither
+    reading tried against the 7.5bb export, which gives 44 zero-arrival committed spots, or one
+    if the count is narrowed to those carrying all 169 classes, so its definition is lost. A node
+    with no arriving class is instead one hero's own earlier action never puts him at.
 
-    The clause was dead under the 7.5bb solve and has 32 nodes under it at 13.5bb, all of them
-    the button cold-calling behind two other cold-callers: a 13.5bb three-bet still to come makes
-    that call worth nothing, the solve gives it zero weight for every class, and `schema.py`
-    refuses the empty spot that follows. Taken as a signature rather than as a nuisance, a bucket
-    that grows here says a size change has emptied a line the chart used to answer.
+    The clause was dead under the 7.5bb solve and has 160 nodes under it on the converged 13.5bb
+    solve - hero is the hijack at 64, the cutoff at 48 and the button at 48, every one of them
+    facing two raises, 112 a 13.5 three-bet and 48 a 7.5. The solve gives hero's arrival there
+    zero weight for every class and `schema.py` refuses the empty spot that follows. This count
+    is the one figure in this file most likely to be wrong next time: it was 32 on the first
+    13.5bb run, which stopped at its iteration cap at twice the declared accuracy target, and 160
+    once the solve converged, so a figure taken off an unconverged export is not a measurement.
+    Taken as a signature rather than as a nuisance, a bucket that grows here says a size change
+    has emptied a line the chart used to answer.
     """
     del by_path  # A property of the node alone; the signature matches the other three clauses.
     return any(node.reach_bp)
@@ -343,10 +358,11 @@ def exclusion_code(
     """Why a node is not committed, or None when it is.
 
     The precedence is load-bearing rather than a coding order. Twenty-six nodes are big-blind
-    squeeze spots and sixteen of them are over the exposure threshold as well; filed here they
-    take the exposure code, so the squeeze bucket holds exactly the ten that would otherwise have
-    shipped and a later phase reading either bucket by name gets the set the name claims. The
-    reverse order balances at the same total with a bucket of 26 and a bucket of 332.
+    squeeze spots and seventeen of them are over the exposure threshold as well; filed here they
+    take the exposure code, so the squeeze bucket holds exactly the nine that would otherwise
+    have shipped and a later phase reading either bucket by name gets the set the name claims.
+    The reverse order balances at the same total with a bucket of 26 and a bucket of 137. Only
+    the 26 is a property of the shape; the rest are this solve's, and the census recomputes them.
 
     Clause four goes last for that same reason, and putting it first would be the loudest way to
     get this wrong: thousands of nodes deep in the four-bet family have no arriving class either,

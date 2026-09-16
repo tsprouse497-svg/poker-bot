@@ -788,13 +788,14 @@ items:
       watched by nothing, which is the other half of the problem.
 
       Recomputed 2026-09-04 against the 249-spot chart the phase committed, which is the closing
-      measurement the paragraph above deferred, and the numbers watched here are now that chart's.
+      measurement the paragraph above deferred. Every figure in this paragraph is that chart's and
+      is superseded by the 2026-09-16 paragraph below, which is the one the fact checker watches.
       Calls are still the weak spot and the weakness has moved seats. Human calls agree 36.2% on 235
       scored decisions and Pluribus calls 27.0% on 37, under headlines of 90.1% and 90.9% that are
       still mostly folds - 73.4% of the scored human decisions are folds. Split by seat the deficit
-      is two seats rather than one: the big blind holds 68 of the 150 human call disagreements and
-      the small blind 48, against 15 for the button, 10 for the cutoff, 5 for the hijack and 4 for
-      the lojack. The big blind's flats agree 45.6% on 125 decisions and 51 of its 68 disagreements
+      is two seats rather than one: the big blind carried 68 of that chart's 150 human call
+      disagreements and the small blind 48, against 15 for the button, 10 for the cutoff, 5 for the
+      hijack and 4 for the lojack. Its flats agreed 45.6% on 125 decisions and 51 of its 68
       faced an open below the solved 2.5bb, so the price gap is still most of that seat's story, and
       the gradient survives at a lower level: human calls agree 27.6% facing 2.25 or less, 44.8%
       between 2.26 and 2.50, and 55.6% above 2.50. The small blind is a different and total defect,
@@ -806,6 +807,32 @@ items:
       nothing excuses what is left, which the real-hand comparison report says in its own preamble.
       The title still names the big blind alone and now understates the entry; it is left as written
       because the id and title are cited from phase 17's contract and this lane is not renaming it.
+
+      Recomputed again 2026-09-16 against the 284-spot chart, whose blind three-bet was re-solved
+      from 7.5 big blinds to 13.5. This is the layer the fact checker watches, and the re-solve was
+      aimed at exactly the seat this entry names: at 7.5 the big blind three-bet almost its whole
+      pair ladder and flatted almost nothing, so its calling range was an artefact of the price
+      rather than a strategy. The big blind holds 60 of the 145 human call disagreements and the
+      small blind 48, against 15 for the button, 13 for the cutoff, 6 for the hijack and 3 for the
+      lojack. Human calls agree 38.0% on 234 scored decisions and Pluribus calls 21.6% on 37, under
+      headlines of 90.1% on both, still 73.4% folds. The big blind's flats agree 52.0% on 125
+      decisions, up from 45.6%, and 46 of its 60 disagreements faced an open below the solved 2.5bb.
+      The price gradient is steeper than it was: human calls agree 31.7% facing 2.25 or less, 41.4%
+      between 2.26 and 2.50, and 77.8% above 2.50.
+
+      What that does and does not license, because the number moving the way a lane hoped is exactly
+      when to say so. The entry's argument is unchanged and the repair is partial: calls are still
+      the weak spot, the big blind is still the worst seat for them, and the price gap is still most
+      of that seat's story. What shrank is the artefact that sat on top of the price gap, and it
+      shrank by 8 decisions in one seat out of 125 scored there. Agreeing with these players more is
+      not playing better - `docs/CORPUS_COMPARISON_LIMITS.md` argues that at length under "Real
+      players are not an oracle" and that argument is untouched by this. Nothing here measured
+      equity, a win rate or a solver gap. Refusals went the other way over the same re-solve, 139 to
+      141 across the sample, with the big blind refusing 19.1% of its decision points against 1.2%
+      in the lojack, so the seat gained a little agreement and no coverage. And the small blind did
+      not move at all, still 0 of 48, because this solve's first-in range still never limps and
+      never cold-calls - which now makes it the larger half of an entry whose title names only the
+      big blind.
 
       What is left to establish is narrower. Phase 08 may not change the chart it measures,
       so the work is recorded rather than done: get a rake-free solve, or a 2.25bb-open
@@ -4373,6 +4400,16 @@ items:
       halves. The substance survives it: seven sentences are watched, the three figures above are not, and
       the two options - register the rest as facts, or stop stating numbers no fact watches - are
       unchanged. Retitling is deferred because the id is cited from this entry's siblings.
+      THE PREDICTION CAME TRUE A SECOND TIME, 2026-09-16, and this time it caught all three unwatched
+      figures at once. The blind three-bet was re-solved and the document had to be repaired by hand:
+      "the human denominator is 2,434" is now 2,432, the seat span's low end is now 1.2 percent rather
+      than 1.0, and the sentence quoted above as reproducing exactly no longer does. The high end, 20.3
+      percent in the big blind, is the only one of the three that survived, and it survived by
+      coincidence rather than by anything checking it. The refusal breakdown in the same paragraph -
+      52, 52, 25 and 10 by category - is a fourth unwatched set and one of its four categories was also
+      wrong on its own terms before the re-solve, describing two squeeze refusals as hand-class misses.
+      So the count of unwatched figures in that one document is larger than this entry states, and the
+      two options it names are unchanged and still not taken.
 
   - id: STATIC-REALIZATION-UNMEASURED-IN-SINGLE-RAISED-POTS
     status: deferred
@@ -4635,7 +4672,10 @@ items:
       Recomputed, the answer is 5 survivors, 31 refused, 31 gained. A second instance in the same review
       pass: the same item's big-blind call-disagreement pair, 58 of 89 as filed, against a repo that
       computed 42 and 14 that day. Both halves were restated 2026-09-04 against the committed chart, at
-      68 of 150, which is the third value the pair has carried and the point this entry is making.
+      68 of 150, which was the third value the pair has carried and the point this entry is making.
+      It carried a fourth on 2026-09-16, 60 of 145, when the blind three-bet was re-solved - that one
+      by a real change in the chart rather than by a typo, but restated by hand in the same way and
+      only because one of the two halves happens to be a registered fact.
       This is the shape `THE-ARTIFACT-DESCRIBES-ITS-OWN-CENSUS-IN-PROSE-NOTHING-CHECKS` already names
       inside the artifact, one level up. The contract, the decision list, the ExecPlan and the generated
       report all restate the same census, menus, prices and collision counts today, each as a literal

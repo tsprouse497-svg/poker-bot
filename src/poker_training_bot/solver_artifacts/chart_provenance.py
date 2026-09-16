@@ -43,6 +43,8 @@ if TYPE_CHECKING:
     from poker_training_bot.solver_artifacts.chart_derivation import NodeCensus
     from poker_training_bot.solver_artifacts.gtopen_export import SolverExport, SolverNode
 
+    _ByPath = dict[tuple[int, ...], SolverNode]
+
 __all__ = [
     "EXPORT_REFERENCE",
     "GENERATED_AT",
@@ -94,22 +96,26 @@ def _derivation() -> ModuleType:
     return chart_derivation
 
 
-def _committed(by_path: dict[tuple[int, ...], SolverNode]) -> tuple[SolverNode, ...]:
+def _committed(by_path: _ByPath) -> tuple[SolverNode, ...]:
     """Every node the chart commits, in export order.
 
-    Takes the mapping rather than the export, and so does everything below it that can:
-    `SolverExport.by_path()` builds a fresh dict every call and `chart_selection` caches its
-    tree walk on that dict's identity, so a mapping per sentence re-walks the tree per sentence.
+    Takes the mapping rather than the export, and so does everything above and below it that
+    can, up to the two public entry points. `SolverExport.by_path()` builds a FRESH dict on every
+    call and `chart_selection` caches its tree walk on that dict's identity, so a mapping per
+    sentence re-walks the whole tree per sentence. Threading `derive_chart`'s own mapping through
+    leaves exactly one rebuild, inside `merged_cells`, which takes the export, and took the
+    notes' share of `--check` from about 9 seconds to about 3.3 here. The seconds are
+    machine-dependent; the one-rebuild count is not.
     """
     return tuple(node for node in by_path.values() if is_committed_node(by_path, node))
 
 
-def _kind_at(by_path: dict[tuple[int, ...], SolverNode], path: tuple[int, ...], index: int) -> str:
+def _kind_at(by_path: _ByPath, path: tuple[int, ...], index: int) -> str:
     """What the seat to act at `path` did when it took its action `index`."""
     return require_known_kind(by_path[path], by_path[path].actions[index])
 
 
-def _seats_live(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> int:
+def _seats_live(by_path: _ByPath, node: SolverNode) -> int:
     """How many seats have not folded on the line into a node - the reading the multiway clause
     was deliberately written *not* to use. A seat count asks who could still enter the pot, the
     clause asks where the decision mass ends up, and the note states the gap between them.
@@ -118,7 +124,7 @@ def _seats_live(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) ->
     return len(SEATS) - len(folds)
 
 
-def _faced_price(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> float:
+def _faced_price(by_path: _ByPath, node: SolverNode) -> float:
     """The largest amount anybody has raised to on the line into a node."""
     raised = [
         float(by_path[node.path[:depth]].actions[index].to)
@@ -147,9 +153,7 @@ def _combo_weighted_fold_pct(node: SolverNode) -> float:
     return folded / combos / 100.0
 
 
-def _closes_into_a_multiway_flop(
-    by_path: dict[tuple[int, ...], SolverNode], node: SolverNode
-) -> bool:
+def _closes_into_a_multiway_flop(by_path: _ByPath, node: SolverNode) -> bool:
     """Whether a call the chart publishes here ends the betting into a three-or-more-way pot.
 
     Hero's cold call is skipped, the chart republishing it as a raise. "Closes" is the whole
@@ -175,7 +179,7 @@ def _aggressive_prices(node: SolverNode) -> tuple[tuple[str, float], ...]:
     return tuple(sorted(offered))
 
 
-def _decision_shares(by_path: dict[tuple[int, ...], SolverNode]) -> tuple[float, float]:
+def _decision_shares(by_path: _ByPath) -> tuple[float, float]:
     """What share of the bot's preflop decisions the committed set carries, and what the rest
     do. Weighted by arrival - the chance the line gets played at all - not by node count, which
     is the other figure in the same sentence and a different reading of the same split.
@@ -210,7 +214,7 @@ def _listed(values: tuple[str, ...]) -> str:
     return f"{', '.join(values[:-1])} and {values[-1]}"
 
 
-def _exclusion_clauses(by_path: dict[tuple[int, ...], SolverNode], census: NodeCensus) -> str:
+def _exclusion_clauses(by_path: _ByPath, census: NodeCensus) -> str:
     """One sentence per exclusion bucket that has anything in it, in the rule's own order, so a
     bucket that empties loses its sentence and one that fills gains one. The fourth clause was
     dead at a 7.5bb three-bet and has hundreds of nodes under it at 13.5bb; under the old
@@ -256,7 +260,7 @@ def _exclusion_clauses(by_path: dict[tuple[int, ...], SolverNode], census: NodeC
     )
 
 
-def _kept_multiway_calls(by_path: dict[tuple[int, ...], SolverNode]) -> str:
+def _kept_multiway_calls(by_path: _ByPath) -> str:
     """The committed calls that do close into a multiway pot, and what they all face."""
     kept = [node for node in _committed(by_path) if _closes_into_a_multiway_flop(by_path, node)]
     if not kept:
@@ -270,7 +274,7 @@ def _kept_multiway_calls(by_path: dict[tuple[int, ...], SolverNode]) -> str:
     )
 
 
-def _merge_sentences(export: SolverExport, by_path: dict[tuple[int, ...], SolverNode]) -> str:
+def _merge_sentences(export: SolverExport, by_path: _ByPath) -> str:
     """Decision 45's own figures: the merging spots, the cells they move, and the exemptions."""
     derivation = _derivation()
     merging = [
@@ -306,7 +310,7 @@ def _merge_sentences(export: SolverExport, by_path: dict[tuple[int, ...], Solver
     )
 
 
-def _realization_sentences(export: SolverExport, by_path: dict) -> str:
+def _realization_sentences(export: SolverExport, by_path: _ByPath) -> str:
     """The bias, priced at the one spot a reader can check against a postflop solve. Looked up
     rather than named, so a selection that stops committing the big blind's defence of a
     small-blind open loses the sentence rather than describing a spot nothing answers.
@@ -339,11 +343,12 @@ def _realization_sentences(export: SolverExport, by_path: dict) -> str:
     return head + tail
 
 
-def artifact_notes(export: SolverExport, census: NodeCensus) -> str:
-    """The committed chart's `audit_fields.notes`, computed off the export it describes."""
+def artifact_notes(export: SolverExport, by_path: _ByPath, census: NodeCensus) -> str:
+    """The chart's `audit_fields.notes`, computed off the export and the caller's mapping - see
+    `_committed` for why a fresh mapping is never built here.
+    """
     committed = census.committed
     total = census.total
-    by_path = export.by_path()
     decisions, excluded_decisions = _decision_shares(by_path)
     seat_count_reading = sum(1 for node in _committed(by_path) if _seats_live(by_path, node) >= 3)
     average, connectors = MULTIWAY_EQUITY_UNDERSTATEMENT
@@ -379,7 +384,7 @@ def artifact_notes(export: SolverExport, census: NodeCensus) -> str:
     )
 
 
-def _ladder(by_path: dict[tuple[int, ...], SolverNode]) -> str:
+def _ladder(by_path: _ByPath) -> str:
     """What the chart will actually charge hero, counted off the solve's own action labels.
 
     The sentence this replaces read "every committed spot offers exactly one raise: 2.5 to open,
@@ -406,7 +411,7 @@ def _ladder(by_path: dict[tuple[int, ...], SolverNode]) -> str:
     return f"{'. '.join(lines)}."
 
 
-def _jam_only(export: SolverExport, by_path: dict) -> str:
+def _jam_only(export: SolverExport, by_path: _ByPath) -> str:
     """The committed spots whose only price is hero's whole stack, and why they exist.
 
     Its own paragraph because a summary of a ladder drops it first and it is what a student at
@@ -436,8 +441,7 @@ def _jam_only(export: SolverExport, by_path: dict) -> str:
 
 
 def _empty_entries(
-    by_path: dict[tuple[int, ...], SolverNode],
-    prices: dict[str, dict[str, list[dict[str, float]]]],
+    by_path: _ByPath, prices: dict[str, dict[str, list[dict[str, float]]]]
 ) -> str:
     """Spots that carry a price key whose class map came out empty, and how narrow they are."""
     node_spot_key = _derivation().node_spot_key
@@ -463,10 +467,9 @@ def _empty_entries(
 
 
 def sizing_notes(
-    export: SolverExport, prices: dict[str, dict[str, list[dict[str, float]]]]
+    export: SolverExport, by_path: _ByPath, prices: dict[str, dict[str, list[dict[str, float]]]]
 ) -> str:
-    """The sizing table's `notes`, computed off the export and the table it describes."""
-    by_path = export.by_path()
+    """The sizing table's `notes`, computed off the export, the caller's mapping and the table."""
     committed = _committed(by_path)
     menus = {len(_aggressive_prices(node)) for node in committed}
     per_class = {len(entries) for spot in prices.values() for entries in spot.values()}
