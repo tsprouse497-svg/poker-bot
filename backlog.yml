@@ -8041,3 +8041,48 @@ items:
       exists so that the day it goes red nobody reads it as a leak.
       Found by the stage-6 key lane, 2026-09-15, reading a test it had just made pass and saying so
       rather than banking the green.
+
+  - id: THE-RULED-SAMPLE-BOARDS-ARE-NOT-THEIR-OWN-REPRESENTATIVES
+    status: deferred
+    phase: '16'
+    title: Two of the three ruled sample flops are dressings rather than canonical representatives, and three parts of the phase disagree about it
+    reason: >-
+      Decision 6 item 4 names `Kc7d2h` and `9c8c7c` outright and stage 4 picked `8h8d3h`. Measured
+      through the phase's own canonicaliser: `Kc7d2h` canonicalises to `Kh7d2c` and `8h8d3h` to
+      `8c8d3c`; only the monotone board is its own representative.
+      Three things disagree as a result. The importer cannot check "board equals its
+      representative" without making `test_the_three_boards_are_the_ruled_three` permanently red,
+      so it checks a committed suit map instead - equivalent, but the check's reason and the test's
+      name no longer match. `committed_spot_queries` pairs representative-space hand classes with
+      `cell.board` verbatim, so a dressed board makes hero hold a card that is on the board and
+      `StrategyQuery` raises on duplicate cards. And a reader of the sample cannot tell from the
+      board alone which space its hand classes are in.
+      None of this is wrong today, because no sample exists. It becomes wrong the moment one is
+      committed in the ruled dressings, which is what the ruling says to do.
+      The dispositions are a ruling rather than a patch: commit the representatives and record that
+      the ruled boards name classes rather than dressings, or commit the dressings and make every
+      consumer map through `board_suit_map` before touching a hand class. The second is more code
+      in more places and the first changes what two frozen tests read.
+      Found by the stage-6 artifact lane and independently by the key lane, 2026-09-15, from
+      opposite ends.
+
+  - id: THREE-SAMPLE-FILES-CANNOT-HOLD-THE-SPOTS-THE-FROZEN-TESTS-NEED
+    status: deferred
+    phase: '16'
+    title: The sample is pinned at exactly three files while the frozen tests need more cells than that
+    reason: >-
+      `test_the_sample_holds_exactly_three_flops` pins `len(files) == 3` and
+      `test_the_three_boards_are_the_ruled_three` reads one `board` per file, so one file is one
+      cell and the sample is three cells on three boards.
+      The frozen tests want more spots than that. They need a caller first to act to produce a bet,
+      a caller facing a bet to produce a raise, a two-tone board to separate a flush draw from the
+      same ranks without one, and - since 2026-09-15 - a cell where hero was the preflop raiser, so
+      that `test_a_committed_spot_hero_opened_produces_a_bet` has anything to find. That last one
+      is the c-bet, added when decision 8 was amended, and it is the coverage the suite provably
+      lacked before.
+      Whether three cells can carry four requirements is a question about which line each board is
+      solved for, and it is decision 6 item 4's rather than a lane's: the sample is committed data
+      and the number of files is pinned by a frozen test. It may be satisfiable - one board per
+      line, with the two-tone board carrying the flush-draw pair - and it may not.
+      Filed 2026-09-15 rather than solved, because the answer decides what gets solved and
+      committed, and a phase that writes new committed data stops for a human.
