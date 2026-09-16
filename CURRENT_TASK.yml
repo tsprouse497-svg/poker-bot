@@ -19,6 +19,11 @@ approved_scope:
 - reports/phase_audits/MAINT_34_REALISTIC_BLIND_THREE_BET.md
 - reports/phase_audits/decisions/MAINT_34_REALISTIC_BLIND_THREE_BET_DECISIONS.md
 - reports/phase_audits/reviews/MAINT_34_REALISTIC_BLIND_THREE_BET/**
+- src/poker_training_bot/solver_artifacts/chart_selection.py
+- src/poker_training_bot/solver_artifacts/chart_derivation.py
+- src/poker_training_bot/solver_artifacts/schema.py
+- src/poker_training_bot/solver_artifacts/gtopen_export.py
+- src/poker_training_bot/solver_artifacts/lookup.py
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -1714,3 +1719,41 @@ scope_change_log:
     generator imports only an ordering function from the solver package, never the export data, so it
     does not re-derive. sources/** and expectations/** are NOT opened either - they are inputs and the
     external oracle, and the whole point of the expectations table is that it fails when our ranges drift.'
+- date: '2026-09-16'
+  reason: 'Two rulings by the coordinator, both mechanical consequences of the re-solve with one honest
+    answer each, and the four modules they need.
+
+    ZERO-REACH SPOTS. The converter refuses a committed spot carrying no hand classes, and the re-solve
+    produced 32 of them: all hero=BTN, all at two raises faced, all inside the single line where the lowjack
+    opens and two seats cold-call before the button. Under a 13.5bb blind three-bet the button''s cold-call
+    frequency behind two cold-callers collapses to zero at basis-point resolution, so no hand arrives
+    at the subtree. Under the old solve no committed node was ever unreachable, so chart_selection.py
+    never needed a clause for it.
+
+    Ruled: a node no hand reaches is not a decision the bot faces, so it is excluded by the selection
+    rule and counted in the census as its own exclusion bucket rather than admitted as an empty spot.
+    This is deliberately NOT the case test_chart_arrival_probability.py:424-442 rules on. That rule is
+    about zero ARRIVAL - a spot a hand can reach but almost never does - and it requires such a spot to
+    keep its cells, which stays true. Zero REACH is a different thing and nobody had ruled it, because
+    nothing had produced one. The 32 carry exactly 0 arrival, so coverage does not move.
+
+    THE ITERATION CAP. The re-solve hit SOLVE_ITERATION_CAP at 2,000 without reaching the declared target,
+    ending at 0.00033389 against 0.00016 - 2.1x the target, where the old solve converged at 1,900. Ruled:
+    raise the cap until the solve reaches the target the contract already declares. That is not the move
+    phase 10 forbids at :147-149. What is forbidden is widening an accuracy TARGET after seeing the numbers,
+    which buys a pass by lowering the bar; raising an iteration cap spends more compute to clear a bar
+    that has not moved. The target stays at 0.00016 and is met or the task halts.
+
+    Also recorded because nothing in the repo would have caught it: no gate command compares the card''s
+    achieved gap to its declared target. test_solver_export.py:183 makes that comparison against the captured
+    payload fixture rather than the card, so a solve that missed its target ships silently. Filed as A-SOLVE-THAT-MISSES-ITS-DECLARED-TARGET-SHIPS-WITH-NOTHING-OBJECTING.'
+- date: '2026-09-16'
+  reason: 'Adds lookup.py, reported by the solve lane rather than worked around. The zero-reach ruling
+    needs a new census exclusion code and DERIVATION_EXCLUSION_CODES is the closed vocabulary that owns
+    it; generate_derived_chart_report.py:280 raises on any census code the constant does not declare,
+    so the code cannot live anywhere else. Two lines and a comment.
+
+    The lane named it derivation:no-arriving-hand-class and deliberately away from DERIVATION_BELOW_REACH_FLOOR,
+    which is retired and which test_chart_census.py:239-245 asserts must not come back. The distinction
+    is real: a floor refuses a node hero reaches rarely, this refuses a node hero cannot be at holding
+    anything.'

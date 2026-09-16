@@ -1,5 +1,29 @@
 schema_version: 1
 items:
+  - id: A-SOLVE-THAT-MISSES-ITS-DECLARED-TARGET-SHIPS-WITH-NOTHING-OBJECTING
+    status: deferred
+    phase: contract-update
+    title: No gate command compares the source card's achieved gap to the target the same card declares
+    reason: >-
+      The committed preflop source card carries both target_gap_bb and achieved_gap_bb. Nothing in
+      the gate compares them. test_solver_export.py:183 looks like it does, but it makes that
+      comparison against gtopen_node_payloads.captured.json - a hand-captured fixture of a
+      superseded solve - rather than against the card the repo ships, so it asserts that a solve
+      somebody ran in August converged, not that the committed one did.
+      Found by MAINT-34, which hit it immediately: the re-solve at a 13.5bb blind three-bet reached
+      SOLVE_ITERATION_CAP at 2,000 iterations with an achieved gap of 0.00033389 against a declared
+      target of 0.00016 - 2.1 times the target, where the old solve converged at 1,900. The card was
+      written, the export was written, and every check in the repo was content. Only a lane reading
+      the numbers by hand caught it.
+      The same shape sits one field over. gtopen_source_card.py:27 lists the placeholder strings the
+      card check refuses and the list does not include "PENDING", while extract_gtopen_preflop.py:245
+      writes the literal "PENDING - fill from --determinism-only" when the determinism run has not
+      happened. So a half-done re-solve can ship an unproven determinism claim past the gate too.
+      Both are one comparison each. The card knows what it promised and what it achieved; a check
+      that reads its own two fields and refuses achieved > target would have caught the first, and
+      adding PENDING to the placeholder list catches the second. Phase 10's contract already treats
+      the target as binding, so this is a missing check rather than a missing rule. Filed 2026-09-16.
+
   - id: THE-PREFLOP-CHART-CANNOT-PRICE-A-FLAT-AGAINST-A-THREE-BET-AND-ITS-CALL-BRANCH-IS-NOISE
     status: deferred
     phase: contract-update

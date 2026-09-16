@@ -40,6 +40,7 @@ except ModuleNotFoundError:
 
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
+from poker_training_bot.solver_artifacts.chart_derivation import census  # noqa: E402
 from poker_training_bot.solver_artifacts.gtopen_export import (  # noqa: E402
     COMMITTED_EXPORT_PATH,
     COMMITTED_SOURCE_CARD_PATH,
@@ -233,6 +234,7 @@ def main(argv: list[str] | None = None) -> int:
             " This is a halt and a decision, not a number to raise."
         )
     status = walked["status"]
+    expressible_spots = census(export).committed
     card = {
         "config_posted": dict(RULED_CONFIG),
         "solver": {"name": "gtopen", "commit": gtopen_commit(), "engine": "cpu"},
@@ -289,12 +291,20 @@ def main(argv: list[str] | None = None) -> int:
             "limit_bytes": BYTE_LIMIT,
             "headroom_bytes": BYTE_LIMIT - total,
             "bytes_per_node": round(size / export.node_count, 2),
-            "bytes_per_expressible_spot": round(size / 36, 2),
+            # Counted off this export's own selection rule rather than typed. The literal
+            # here read 36 for as long as it existed and the chart had expressed 249 since
+            # phase 14, so the card was stating a per-spot cost 6.9 times the real one every
+            # time this script ran. Nothing caught it: `convert_preflop_export.py` restamps
+            # both keys from the derived chart, and convert is what runs last, so the wrong
+            # figure was only ever visible in the window between the two. A derived count
+            # cannot open that window again.
+            "bytes_per_expressible_spot": round(size / expressible_spots, 2),
             "bytes_per_expressible_spot_note": (
-                "the whole export divided by the 36 spots the committed chart expresses"
-                " today, so it is what keeping the entire tree costs per spot currently"
-                " usable rather than the size of a derived chart. The roadmap's 7.1 KB per"
-                " spot was measured off the GTO Wizard chart format and is not comparable"
+                f"the whole export divided by the {expressible_spots} spots the committed"
+                " chart expresses today, so it is what keeping the entire tree costs per spot"
+                " currently usable rather than the size of a derived chart. The roadmap's"
+                " 7.1 KB per spot was measured off the GTO Wizard chart format and is not"
+                " comparable"
             ),
         },
         "saved_solve": save,

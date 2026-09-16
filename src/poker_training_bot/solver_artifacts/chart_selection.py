@@ -5,10 +5,11 @@ are. The two live apart because `src/**/*.py` stops at 500 lines and the walk to
 not fit beside the conversion, so `chart_derivation` re-exports every name here and no caller has
 to know which file a rule sits in.
 
-Three clauses, conjoined, and each one a separate ruling rather than a restatement of the others.
+Four clauses, conjoined, and each one a separate ruling rather than a restatement of the others.
 At most two raises are already in the pot hero is being asked about. Under a tenth of the node's
-decision mass reaches a flop with three or more players. And hero is not the big blind answering
-an open somebody has already cold-called.
+decision mass reaches a flop with three or more players. Hero is not the big blind answering an
+open somebody has already cold-called. And at least one of the 169 hand classes actually arrives,
+because a node hero can never be sitting at is not a decision he faces.
 
 **The middle clause is measured, not counted.** "Could three players still be in" is a fact about
 the node, and it is what an earlier cut of this rule used; the ruled reading is a fact about the
@@ -37,6 +38,7 @@ from poker_training_bot.solver_artifacts.lookup import (
     DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH,
     DERIVATION_BIG_BLIND_SQUEEZE_SPOT,
     DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD,
+    DERIVATION_NO_ARRIVING_HAND_CLASS,
 )
 
 __all__ = [
@@ -47,6 +49,7 @@ __all__ = [
     "below_multiway_exposure_threshold",
     "cold_call_index",
     "exclusion_code",
+    "has_an_arriving_hand_class",
     "is_big_blind_squeeze_spot",
     "is_committed_node",
     "multiway_exposure_pct",
@@ -307,6 +310,33 @@ def is_big_blind_squeeze_spot(
     )
 
 
+def has_an_arriving_hand_class(
+    by_path: dict[tuple[int, ...], SolverNode], node: SolverNode
+) -> bool:
+    """Clause four: some hand class arrives at this node.
+
+    Not a reach floor. The 2026-08-27 ruling refused a floor and it stands: a spot hero reaches
+    rarely still ships, cells and all, because a blanked cell that was never computed is
+    indistinguishable from one that was and the layer underneath cannot tell which it met. This
+    asks a different question, and it is the only question about reach with a yes-or-no answer -
+    whether hero can be here holding anything at all. He cannot be dealt a range of nothing, so
+    there is no range to publish, no cell to blank, and nothing for the ruling to protect.
+
+    It reads hero's own arriving reach rather than the line's arrival probability, and those come
+    apart: a zero-arrival spot is one the solve almost never plays into, and two of the 249
+    committed under the 7.5bb solve were exactly that while still carrying a full 169 classes.
+    A node with no arriving class is instead one hero's own earlier action never puts him at.
+
+    The clause was dead under the 7.5bb solve and has 32 nodes under it at 13.5bb, all of them
+    the button cold-calling behind two other cold-callers: a 13.5bb three-bet still to come makes
+    that call worth nothing, the solve gives it zero weight for every class, and `schema.py`
+    refuses the empty spot that follows. Taken as a signature rather than as a nuisance, a bucket
+    that grows here says a size change has emptied a line the chart used to answer.
+    """
+    del by_path  # A property of the node alone; the signature matches the other three clauses.
+    return any(node.reach_bp)
+
+
 def exclusion_code(
     by_path: dict[tuple[int, ...], SolverNode], node: SolverNode
 ) -> str | None:
@@ -317,6 +347,12 @@ def exclusion_code(
     take the exposure code, so the squeeze bucket holds exactly the ten that would otherwise have
     shipped and a later phase reading either bucket by name gets the set the name claims. The
     reverse order balances at the same total with a bucket of 26 and a bucket of 332.
+
+    Clause four goes last for that same reason, and putting it first would be the loudest way to
+    get this wrong: thousands of nodes deep in the four-bet family have no arriving class either,
+    and filed under clause four they would empty the depth bucket, which is the one a later phase
+    reads to find the work it is taking up. Last, the bucket holds exactly the nodes that clear
+    every other clause and still have nobody at the table.
     """
     if not within_committed_raise_depth(by_path, node):
         return DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH
@@ -324,6 +360,8 @@ def exclusion_code(
         return DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD
     if is_big_blind_squeeze_spot(by_path, node):
         return DERIVATION_BIG_BLIND_SQUEEZE_SPOT
+    if not has_an_arriving_hand_class(by_path, node):
+        return DERIVATION_NO_ARRIVING_HAND_CLASS
     return None
 
 

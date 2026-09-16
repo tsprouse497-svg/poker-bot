@@ -40,6 +40,7 @@ from poker_training_bot.solver_artifacts.chart_selection import (
     below_multiway_exposure_threshold,
     cold_call_index,
     exclusion_code,
+    has_an_arriving_hand_class,
     is_big_blind_squeeze_spot,
     is_committed_node,
     multiway_exposure_pct,
@@ -83,6 +84,7 @@ __all__ = [
     "cold_call_index",
     "derive_chart",
     "exclusion_code",
+    "has_an_arriving_hand_class",
     "is_big_blind_squeeze_spot",
     "is_committed_node",
     "merged_cells",
@@ -101,11 +103,10 @@ STACK_DEPTH_BB = 100
 ORDERED_CLASSES = tuple(sorted(HAND_CLASSES, key=hand_class_grid_index))
 
 PARTS_PER_BILLION = 1_000_000_000
-"""Arrival is stored in parts per billion, not basis points. Over the committed 249 only 2
-spots are never reached at all, while 44 round to zero even at this grain and far more sit
-below one basis point, so in basis points the played-but-rare lines would be indistinguishable
-from the two the solve never reaches - which is the one distinction the field exists to
-carry."""
+"""Arrival is stored in parts per billion, not basis points. Most committed spots sit under one
+basis point, so at that grain a line the solve plays rarely and one it never plays at all read
+alike, and telling those apart is the only thing this field is for. The counts this used to
+quote were measured over a committed set two re-solves ago; recount them off the export."""
 
 SIZING_SCHEMA_VERSION = 2
 
@@ -161,10 +162,10 @@ def merges_the_cold_call(by_path: dict[tuple[int, ...], SolverNode], node: Solve
 
     The bot never cold-calls: money in behind an opener with nothing already invested buys a
     multiway pot out of position. So where hero faces an open and has nothing in BEYOND THE BLINDS,
-    the solve's call is merged into the raise - merged and not deleted, because at 15 of these 20
-    spots, across 40 of the 165 moved cells, a hand's whole weight is on calling and deleting would
-    leave a hand with no answer at all. Both counts are over the 20 merging spots alone; the same
-    walk over all 249 committed spots gives 108 spots and 748 cells, a different set entirely.
+    the solve's call is merged into the raise - merged and not deleted, because at 2 of these 20
+    spots, across 4 of the 676 moved cells, a hand's whole weight is on calling and deleting would
+    leave it with no answer at all. That was 15 spots and 40 cells at 7.5bb, so re-measure before
+    leaning on it. The same walk over every committed spot gives 53 spots and 447 cells.
 
     Half of these spots ARE the small blind: its 0.5 is posted rather than chosen, so it is cold
     and it merges. The big blind is the one exemption, not for posting more but for closing the

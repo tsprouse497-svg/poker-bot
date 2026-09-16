@@ -74,22 +74,36 @@ LIBRARY_ERROR_CODES: tuple[str, ...] = (LIBRARY_DUPLICATE_SPOT, LIBRARY_NO_ARTIF
 # `lookup:` knows a query was refused at the table, and `derivation:` that a solved node never
 # shipped as a cell at all. One code per selection clause, so each bucket is exactly the set of
 # spots that come back when that one thing is fixed: a source that can price a multiway pot, a
-# big blind that defends correctly, a phase that takes up the four-bet family. Folding two of
-# them together balances at the same total and points a later phase at the wrong fix. The fourth
-# names a node no legal spot key can spell. Closed here rather than open: a code the converter
-# invents for a node it merely failed to handle would be indistinguishable from a property of
-# the grammar.
+# big blind that defends correctly, a phase that takes up the four-bet family, a solve whose
+# ranges reach the node at all. Folding two of them together balances at the same total and
+# points a later phase at the wrong fix. The last of the five names a node no legal spot key can
+# spell, and it is the one that is not an exclusion. Closed here rather than open: a code the
+# converter invents for a node it merely failed to handle would be indistinguishable from a
+# property of the grammar.
 DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH = "derivation:beyond-committed-raise-depth"
 DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD = "derivation:multiway-exposure-above-threshold"
 DERIVATION_BIG_BLIND_SQUEEZE_SPOT = "derivation:big-blind-squeeze-spot"
+DERIVATION_NO_ARRIVING_HAND_CLASS = "derivation:no-arriving-hand-class"
 DERIVATION_NO_LEGAL_SPOT_KEY = "derivation:no-legal-spot-key"
 
+# MAINT-34 added the fourth exclusion code and it is NOT the retired `DERIVATION_BELOW_REACH_FLOOR`
+# under another name. A floor refuses a node hero reaches rarely, and this repo ruled on
+# 2026-08-27 that such a node still ships with its cells, because a committed cell that was never
+# computed looks exactly like one that was and a beginner cannot tell them apart. This code says
+# something else: not one of the 169 classes arrives here at all, so there is no range to publish
+# and no cell to blank. The two are distinguishable in the data - a zero-arrival spot still has
+# arriving reach, and one of these has none - which is why a floor could be retired while this
+# cannot be. It exists because a 13.5bb blind three-bet drives the button's cold call behind two
+# other cold calls to zero, and 32 such nodes cleared the other three clauses.
+# `RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET`.
+
 # In the order the census files a refusal under, because the precedence is what makes the
-# buckets a partition rather than three overlapping descriptions of the same node.
+# buckets a partition rather than four overlapping descriptions of the same node.
 DERIVATION_EXCLUSION_CODES: tuple[str, ...] = (
     DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH,
     DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD,
     DERIVATION_BIG_BLIND_SQUEEZE_SPOT,
+    DERIVATION_NO_ARRIVING_HAND_CLASS,
 )
 DERIVATION_INEXPRESSIBILITY_CODES: tuple[str, ...] = (DERIVATION_NO_LEGAL_SPOT_KEY,)
 
