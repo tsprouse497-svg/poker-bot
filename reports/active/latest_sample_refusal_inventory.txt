@@ -87,7 +87,7 @@ spots this committed sample actually reached.
        1  t6/d100/LJ/LJ:raise@2.5,SB:raise@13.5,LJ:raise@25.25,SB:raise@100  NEW
        1  t6/d100/SB/BTN:raise@2.5,SB:raise@10,BTN:raise@25  yes
        1  t6/d100/SB/BTN:raise@2.5,SB:raise@8.5,BTN:raise@19.3  yes
-       1  t6/d100/SB/CO:raise@2.5,SB:raise@9.5,CO:raise@22.5  NEW
+       1  t6/d100/SB/CO:raise@2.5,SB:raise@9.5,CO:raise@22.5  yes
        1  t6/d100/SB/HJ:raise@2.5,CO:raise@7.5,BTN:raise@23.33  NEW
        1  t6/d100/SB/HJ:raise@2.5,SB:raise@13.25,BB:call,HJ:raise@100  NEW
        1  t6/d100/SB/LJ:call,CO:raise@2.5               NEW

@@ -5,7 +5,8 @@ description. It owns the five-bucket census and its precedence, the closed `name
 vocabulary and its disjointness from the runtime miss codes, the refusal an unknown action kind
 raises instead of taking a code, and what an excluded node does at the table.
 
-`test_chart_derivation.py` owns the selection rule itself - the four clauses, each alone - and
+`test_chart_derivation.py` owns the selection rule itself - the five clauses, the first three
+each alone - and
 this file imports its counts, its walk and its named nodes rather than restating them. The split
 is a line-cap split and nothing more: a census is the same measurement as a selection, read from
 the other end.
@@ -152,7 +153,7 @@ def test_the_six_bucket_census_accounts_for_every_node_the_source_card_publishes
             assert bucket.isdisjoint(other)
     assert len(set().union(*buckets)) == sum(len(b) for b in buckets) == spec.EXPORTED_NODES
     assert kept == {node.path for node in spec.selected(export)}
-    # 284 nodes are not self-evidently 284 spots, and 30,609 are not 30,609 keys.
+    # 156 nodes are not self-evidently 156 spots, and 30,609 are not 30,609 keys.
     assert len({spec.key_of(walked, node) for node in export.nodes}) == spec.EXPORTED_NODES
 
     assert counted.total == card["node_counts"]["exported"] == spec.EXPORTED_NODES
@@ -409,10 +410,10 @@ def test_exposure_is_published_per_committed_spot_with_its_terminal_split(
     assert round(spec.exposure_pct(walked, walked.by_path[spec.SB_OPEN_PATH]), 4) == 0.0
 
     # Exposure is a property of the leaves, so the deepest committed family is not the most
-    # exposed: 100 of the 254 three-bet-facing spots carry any at all and 160 committed spots
+    # exposed: 90 of the 135 three-bet-facing spots carry any at all and 51 committed spots
     # carry none. A rule reading live players at the node would have had it the other way.
-    # 109 of those 160 read zero because their split evaporated, not because hero is heads-up -
-    # see `SPLIT_LEAK_PCT`, which is why the closure assertion above is left red.
+    # A spot whose split evaporated also reads zero, for a reason that is not heads-up, and that
+    # is what clause five refuses - see `SPLIT_LEAK_PCT`. The closure assertion above passes.
     assert sum(1 for node in committed if spec.exposure_pct(walked, node) == 0.0) == (
         spec.COMMITTED_AT_ZERO_EXPOSURE
     )

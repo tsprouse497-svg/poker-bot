@@ -509,12 +509,12 @@ def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> Non
     Phase 08 found that calls are where the chart and real players part company, and that the
     gap was the big blind, which was also the seat the chart refused most often. Both halves
     were asserted, since either alone reads as a smaller problem than it is. Both move under the
-    cutover and none of their numbers survives a chart answering 249 nodes where it answered 36
+    cutover and none of their numbers survives a chart answering 156 nodes where it answered 36
     keys, so the ruled mechanism replaces them - nothing here can re-measure before the artifact
     exists, and an invented figure would be a guess.
 
     **The calling gap is now every seat but the big blind, and the merge is why.** Decision 45
-    keeps the bot's flats and merges them into its raises at the 20 non-big-blind spots facing
+    keeps the bot's flats and merges them into its raises at the 11 non-big-blind spots facing
     an open, which publish raise-or-fold; the five big-blind spots keep fold, call and raise. A
     human who flat-calls an open therefore agrees in the big blind and disagrees at every other
     seat, by construction rather than by any disagreement about which hands are worth playing -

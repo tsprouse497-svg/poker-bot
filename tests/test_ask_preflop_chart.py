@@ -57,9 +57,11 @@ chart actually plays to a coin flip - 0.5029 call against 0.4971 raise - so it i
 command that picks a headline for the reader would get most obviously wrong.
 
 **Moved for MAINT-34 from the hijack's `22` at a 7.5bb three-bet**, which now folds 84 percent
-and has an obvious headline. One cell is nearer the flip - `AA` at 0.5002 against 0.4998, at
-`LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5,BB:call` - and is not used, because that
-spot's arrival is exactly zero and a headline nobody is ever dealt tests nothing."""
+and has an obvious headline. Nothing in the committed chart sits nearer the flip: every
+two-action cell was enumerated and this one is the closest, the runner-up being `QQ` at 0.4958
+against 0.5042. An earlier draft of this docstring named an `AA` cell at 0.5002 as nearer and
+skipped for zero arrival; no committed key carries that sequence, clause five having refused
+it, so there was no such cell to skip."""
 SUBSTITUTED_SPOT = "t6/d100/BB/CO:raise@2.5"
 """What a 2.3bb cutoff open is answered out of. There is no 2.3bb cell anywhere."""
 
@@ -83,9 +85,11 @@ REFUSAL_CASES: dict[str, tuple[str, ...]] = {
         "--seat", "BTN", "--facing", "BTN raise 2.5,BB raise 13.5", "--hand", "72o",
     ),
     # MAINT-34's decision 5. The cutoff has called an open, the button has called behind and a
-    # blind has three-bet to 13.5 - a line the solve gives no weight to at all, so `KQs` there
+    # blind has three-bet to 13.5 - a line the solve gives no weight to at all, so `AA` there
     # carries the uniform initialisation rather than a strategy and the chart refuses to answer
-    # it. Reachable from a terminal like every other code, which is what this table is for.
+    # it. 167 of that spot's 169 cells are in the same state; `AA` is named here because it is
+    # the hand the command line below asks for. Reachable from a terminal like every other
+    # code, which is what this table is for.
     lookup.MISS_UNTRAINED_CELL: (
         "--seat", "SB",
         "--facing", "LJ raise 2.5,HJ call,CO call,BTN call,SB call,BB raise 13.5",

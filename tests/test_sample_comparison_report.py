@@ -102,7 +102,7 @@ def test_the_sample_was_played_at_a_price_the_chart_was_not_solved_for(compariso
     2.5 is answering a more expensive question than the one it was asked.
 
     **Whose price sensitivity the band gap measures.** The chart's is not in it. Its big-blind
-    flat is 19.63, 20.98, 22.44, 21.09 and 20.30 percent against the five openers - a 2.81-point
+    flat is 17.90, 21.09, 21.82, 24.41 and 34.27 percent against the five openers - a 16.37-point
     spread, which the neighbouring range test pins as a defect in its own right - and the lookup
     keys on the solved 2.5 whatever the human actually faced, so the chart's answer is the same
     at every band. A constant cannot produce a gap. What the ten points below therefore measure is
@@ -183,13 +183,13 @@ def test_price_banded_decisions_are_no_longer_blind_defence_alone(comparison) ->
     exactly ten held one raise - the big blind against each of the five openers, at 2.5 and
     at 100 - so every banded decision the chart scored was blind defence, and every other
     seat facing a single open still had players behind it, failed the subtree clause and
-    refused. The cutover commits 25 facing-an-open spots, 20 of them outside the big blind,
+    refused. The cutover commits 16 facing-an-open spots, 11 of them outside the big blind,
     so the banded scored population spans several seats and a reader who takes the cheap and
     dear rates for blind defence is reading them off the retired chart. That is why the test
     above names its seat.
 
     Two things are asserted rather than the old equality, because the ruled census counts
-    the 25 without listing them and this file will not guess which. The big blind is a
+    the 16 without listing them and this file will not guess which. The big blind is a
     strict subset of the seats scored, which fails if the merged spots did not arrive. And
     the lojack is absent, which is not a fact about the chart at all: the lojack acts first,
     so it faces one raise only in a limped pot reopened by a raise, and no committed spot

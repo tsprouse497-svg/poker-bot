@@ -60,14 +60,14 @@ each neighbouring pair of lower kickers, twice over. 2 x (11 + 10 + ... + 0) = 1
 
 RANK_ARM_SPOT_FLOOR = 5
 """A partition scoring fewer than five spots publishes and does not assert, a strict gate over one
-or two grids being a coin flip. Over the committed 284 none falls below it - the smallest, `raises
+or two grids being a coin flip. Over the committed 156 none falls below it - the smallest, `raises
 faced 0`, scores exactly five - so it is a rule kept against a set that moves."""
 
 SPOTS_FOLDING_EVERY_HAND = 4
 """Committed spots whose play-not-fold grid reads zero at every arriving class: all four the
 button, all facing a three-bet, each with exactly one arriving class the solve folds. No
 over-folding can move such a grid, which is why `test_chart_counterfactual_arms.py` counts the
-spots its fixture moved rather than all 284. Thirteen at a 7.5bb blind three-bet, and eleven of
+spots its fixture moved rather than all 156. Thirteen at a 7.5bb blind three-bet, and eleven of
 those were the small blind; the clause MAINT-34's decision 2 added refuses the emptiest of them
 outright rather than committing a grid with nothing in it."""
 
@@ -111,14 +111,14 @@ RELATIONS = (
 decision 31 named is invisible to play-not-fold, both hands being played 100 percent and only the
 raise-versus-call split differing.
 
-**The fourth is read on the raise weight the bot actually plays** - at the 20 merged spots the
+**The fourth is read on the raise weight the bot actually plays** - at the 11 merged spots the
 solve's raise plus its cold call, everywhere else the solve's raise unchanged. Taylor ruled that
 on 2026-09-03, superseding the pre-merge reading this file first pinned, because a relation
-defined on an *action* has to be stated over the action the bot takes. Over those 20 spots the
-pre-merge reading finds 11 inversions and the merged one 9: three of the eleven do not exist in
-play, the merge filling each flat into the raise, and one the bot really commits was invisible
-before it - `t6/d100/CO/HJ:raise@2.5` three-bets `66` at 66.23 against `77` at 49.21. Decision 55
-carries the working, and decision 50's three named cases survive either reading."""
+defined on an *action* has to be stated over the action the bot takes. Over those 11 spots the
+pre-merge reading finds 19 inversions and the merged one 11, so eight are resolved by the merge
+and none is gained - `t6/d100/CO/HJ:raise@2.5` three-bets `66` at 21.37 against `77` at 2.17
+under both readings. Decision 55 carries the working, and the test below pins which of decision
+50's named cases survive the re-solve."""
 
 _RANKS = HIGH_TO_LOW_RANKS
 
@@ -311,7 +311,7 @@ def _weight(node: SolverNode, kinds: tuple[str, ...]) -> dict[str, float]:
 
 
 def is_merged_spot(node: SolverNode, faced: dict) -> bool:
-    """One of decision 45's twenty: hero faces an open and is not the big blind, so his cold call
+    """One of decision 45's eleven: hero faces an open and is not the big blind, so his cold call
     is folded into his raise and the published menu is raise or fold."""
     return faced[node.path] == 1 and node.actor_pos != "BB"
 
@@ -319,7 +319,7 @@ def is_merged_spot(node: SolverNode, faced: dict) -> bool:
 def raise_weight(node: SolverNode, faced: dict) -> dict[str, float]:
     """How often each arriving class **raises in the published chart**, which is where decision
     50's inversions live and where play-not-fold reads nothing, both hands being played 100
-    percent. At the twenty merged spots that is the solve's raise plus its cold call, because that
+    percent. At the eleven merged spots that is the solve's raise plus its cold call, because that
     is the action the bot takes there; everywhere else the solve's raise is already what it plays.
     Taylor ruled the merged reading on 2026-09-03: the raw raise row reports three inversions the
     bot never commits and hides one it does."""
@@ -468,8 +468,8 @@ def test_every_committed_cell_is_measured_by_all_four_relations(
 
     **The fourth relation's two counts are asserted at decision 55's figures**, because the 27
     they replace was carried through four documents without ever being re-derived and reproduces
-    under no reading anyone could construct. They come off the export by the walk in this file: 41
-    pair inversions on the merged raise weight, 25 of them invisible to play-not-fold. A zero
+    under no reading anyone could construct. They come off the export by the walk in this file: 73
+    pair inversions on the merged raise weight, 27 of them invisible to play-not-fold. A zero
     there means the relation stopped measuring or the defect left the set, and either is a halt."""
     faced, _ = tree
     counts = {relation.name: 0 for relation in RELATIONS}

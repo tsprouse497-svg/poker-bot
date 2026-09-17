@@ -1,7 +1,7 @@
 """What the committed chart does when it is *asked* something, rather than what it holds.
 
 Split from `tests/test_preflop_committed_charts.py` at the 700-line cap. That file owns the
-chart's contents - the 284 keys, the menus, the cells, the sizing table. This one owns the
+chart's contents - the 156 keys, the menus, the cells, the sizing table. This one owns the
 contract's runtime half: **an excluded node is a lookup miss, refused with a code naming the
 spot, no neighbouring cell and no price substitution consulted.** The helpers and the counts come
 from the sibling as a module, so a number lives in one file and is read in two.
@@ -111,7 +111,7 @@ def test_the_big_blind_facing_a_four_bet_is_refused_again(library: PreflopChartL
     depth clause takes it back: three raises are already in, so the spot is beyond the committed
     raise depth and the whole four-bet family goes with it - the family whose terminal the source
     has not fitted (`THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL`). Deleting this test would
-    leave a widening that reinstates 33,362 nodes unopposed."""
+    leave a widening that reinstates 30,002 nodes unopposed."""
     result = library.lookup(
         ChartQuery(6, 100, "BB", charts.solved_line(library, "BB", "CO", "BB", "CO"), "AA")
     )
@@ -165,7 +165,7 @@ def test_a_limped_pot_is_refused_because_the_solve_holds_no_limp(
     """The coverage this phase gave up and did not get back. Limps left the solve at phase 10's
     human gate - 87 percent of the tree, and hero never limps - so the export is `limp: false` and
     holds no limped node. It is the one refusal here that no selection clause caused: the spot
-    passes all three and has nothing to derive from."""
+    passes all five and has nothing to derive from."""
     result = library.lookup(ChartQuery(6, 100, "BB", (PreflopAction("SB", "call"),), "AA"))
 
     assert isinstance(result, ChartMiss)

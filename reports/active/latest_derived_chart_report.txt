@@ -2,7 +2,7 @@ The derived preflop chart, and what the cutover changed
 
 This is the phase's evidence for a reader who does not read code. The bot's preflop ranges have
 been replaced. It used to play from 86 spots taken out of a superseded reading of the solve, every
-one of its priced spots costed at a shove the config cannot produce; it now plays from 249 derived
+one of its priced spots costed at a shove the config cannot produce; it now plays from 156 derived
 under a stated rule from a GTOpen solve of the game it is actually trained for - six-handed, 100
 big blinds, rake-free. The old chart is deleted from the tree and is read out of git history here.
 
@@ -12,10 +12,10 @@ corpus verdict belongs to a later phase. What this report can do is show that th
 faithful, that the hand index survived it, what coverage was bought and sold, and what the five
 accepted defects cost - and say plainly which of its figures gate and which are published.
 
-## The four-bucket node census
+## The node census, bucket by bucket
 
-Every action node in the committed export is in exactly one of four buckets, and the
-four add up to the node count the export's own source card publishes. That total is the
+Every action node in the committed export is in exactly one of 7 buckets, and
+they add up to the node count the export's own source card publishes. That total is the
 check worth making: a converter that quietly skipped a subtree balances its own books
 perfectly, and only a figure from outside catches it.
 
@@ -29,14 +29,20 @@ perfectly, and only a figure from outside catches it.
   total  30609
   coverage  98.7380 percent
 
-Three exclusion reasons rather than one, and a reader should not read past that. Each
-names a different way back. The multiway family returns when GTOpen can price a pot with
-three or more players in it - it values one as the product of hero's equity against each
-opponent separately, which understates true three-way equity by about ten and a half
-points. The 9 big-blind squeeze spots return when the flats are repaired. Everything
-beyond the committed raise depth returns when a later phase takes up the four-bet. A
-census folding any two of them together adds to the same total and is wrong only about
-which fix brings which back, which is the one failure a total can never see.
+5 exclusion reasons rather than one, and a reader should not read past that.
+Each names a different way back. The multiway family returns when GTOpen can price a pot
+with three or more players in it - it values one as the product of hero's equity against
+each opponent separately, which understates true three-way equity by about ten and a
+half points. The 9 big-blind squeeze spots return when the flats are repaired.
+Everything beyond the committed raise depth returns when a later phase takes up the
+four-bet. The 160 nodes with no arriving hand class return if a later solve
+gives them reach; nobody is ever at them under this one, so they are not decisions the
+bot faces. And the 128 spots whose terminal split does not close return when
+the source stops making zero-reach nodes: mass flowing into one vanishes from the split,
+so the multiway filter would be admitting them on a measurement that never happened, and
+a guard that cannot see its own input fails closed. A census folding any two of these
+together adds to the same total and is wrong only about which fix brings which back,
+which is the one failure a total can never see.
 
 The inexpressible bucket is empty, which is a measurement rather than an omission: all
 30609 nodes derive a spot key the vocabulary can write and no two collide.
@@ -60,10 +66,48 @@ converter that committed something above the ruled depth:
   raises faced  1  16
   raises faced  2  135
 
-Every price on a committed key is one of the three the solve offers - 2.5 to open, 7.5
-to three-bet, 22.5 to four-bet - and a shove is not among them. Hero's own jam lives only
-at the four-bet-facing spots this phase withholds, which is why the canary further down
-runs against the export rather than against the chart.
+Every committed key offers hero exactly one price, and across the 156 there are 6 of them
+rather than the three this paragraph used to name. Hero's price is the price he
+faces times his own seat's multiplier, clamped to hero's whole 100 big blind stack when that
+product reaches the solve's all-in threshold of 67. The multipliers, read as the menu price over
+the price faced at every spot offering one sized raise:
+
+  BB 5.4x  BTN 3x  CO 3x  HJ 3x  LJ 3x  SB 5.4x
+
+Two questions can be asked of a spot and they do not have the same answer, so the ladder
+is counted under both rather than one row being taken from each. `on hero's menu` is the
+price his own menu names, read off the solve's action labels. `with a class priced` is
+the price the committed sizing table carries, which exists only where some arriving hand
+class actually takes the raise:
+
+  open        2.5              on hero's menu    5  with a class priced    5
+  three-bet   7.5              on hero's menu    6  with a class priced    6
+  three-bet   13.5             on hero's menu   10  with a class priced   10
+  four-bet    22.5             on hero's menu   28  with a class priced   28
+  four-bet    40.5             on hero's menu   73  with a class priced   66
+  four-bet    100 as a shove   on hero's menu   34  with a class priced   33
+  totals                       on hero's menu  156  with a class priced  148
+
+The two columns come apart at 8 spots and at no others. Those are the spots whose menu
+names a raise that no arriving hand class ever takes: the menu prices them, and the
+sizing table ships a key there with an empty price list under it. The three-criteria
+section below counts the same spots the same way, and a ladder that absorbed them into
+either column would contradict it.
+
+So A SHOVE IS AMONG THEM. At 34 of the 156 committed spots - 5 in the BB, 29 in the SB, every one of
+them answering the other blind's 13.5 - the only raise on hero's menu is his whole stack,
+because that price times his own seat's multiplier is 72.9 and the clamp takes it to 100.
+That is the four-bet priced out of existence rather than an extra offer
+switched on: the solve is still `add_allin: false`. Hero's own jam is therefore NOT
+confined to the four-bet-facing spots this phase withholds, so the reason this paragraph
+used to give for running the jam canary against the export rather than against the chart
+no longer holds - the canary is still pointed at the export, and that is now a choice
+nothing here justifies.
+
+Every count in this paragraph is counted at generation time off the export and the
+committed sizing table. The ladder it replaced was typed in, and this task's re-solve
+left it naming prices the chart under it no longer carried
+(HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES).
 
 ## Multiway exposure, per committed spot
 
@@ -75,9 +119,12 @@ the chart never offers it to him.
   threshold  10.0
   widest admitted  t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,LJ:call  9.1945
   narrowest refused  t6/d100/BB/CO:raise@2.5,BTN:call  10.4362
+  margin  1.2417
 
-Sixteen hundredths of a point separate the two, which is why every committed spot's own
-figure is printed rather than summarised. The split is what makes a row readable:
+The margin is subtracted from the two rows above rather than described in words. It
+belongs to this solve, it moves with every re-solve, and it is not the argument for
+where the line sits - which is why every committed spot's own figure is printed rather
+than summarised. The split is what makes a row readable:
 exposure is the share of a spot's decision mass reaching a multiway flop terminal, and
 `heads-up` is all the rest - the pot folded out before a flop, or a flop with two players
 in it. The two are the halves of one mass and a row publishing exposure alone could be
@@ -862,8 +909,11 @@ four-bet as a multiple of the three-bet being answered, and this chart's four-be
 dearer of the two at every one of these spots - the reference answers a bigger three-bet
 with a raise that is proportionally smaller. A dearer four-bet is four-bet less often by
 construction, so part of this gap is a price difference rather than a strategy
-difference, which is PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED showing up in the
-output rather than a new finding. Separating the two halves needs a rake-free reference
+difference. That is the oversizing PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED was
+filed for showing up in the output rather than a new finding, and the entry is cited for
+the oversizing only: it was written when a global multiplier put every four-bet at one
+price, and this chart four-bets at 22.5 or 40.5 or 100 as a shove - the price column above is measured
+per spot for that reason. Separating the two halves needs a rake-free reference
 at this solve's own prices, which this repo does not commit
 (NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE). It is also not evidence
 about the unfitted terminal, for the reason the bands section gives. What it is: the
@@ -1071,11 +1121,15 @@ phase exists to end. Anybody can fetch the same bytes and recount every figure h
 Both sides close. The retired chart's spots are the ones carried over plus the ones the
 new rules refuse; the derived chart's are the ones carried over plus the ones gained.
 
-Every one of the retired chart's sizing entries is priced at a shove - hero's whole stack
-- which the ruled config cannot produce, the solve being `add_allin: false`. That is the
-measured reason the two charts cannot agree on every shared decision, and it is why a
-zero disagreement count further down would be a comparison handed the same chart twice
-rather than a result.
+Every one of the retired chart's spot entries carries a shove - hero's whole stack - in
+at least one hand class. The derived chart names a sized raise at 122 of its 156 spots
+and a shove at the other 34, so the two menus differ almost
+everywhere they overlap. That is the measured reason the two charts
+cannot agree on every shared decision, and it is why a zero disagreement count further
+down would be a comparison handed the same chart twice rather than a result. The sentence
+that stood here said the ruled config CANNOT produce a shove at all because the solve is
+`add_allin: false`. It can: at those 34 spots a blind's four-bet
+over the other blind's 13.5 reaches the all-in threshold and is clamped to one.
 
 ## The three criteria with no instance in the committed set
 
@@ -1090,9 +1144,10 @@ passed. Each is kept because a later solve reactivates it:
   vacuous  the no-raise half of the sizing invariant: no committed spot offers hero zero
   raises, so the half of the rule saying such a spot carries no key and makes the
   strategy refuse has nothing to refuse here.
-  vacuous  the jam-and-named-raise collapse rule: under `add_allin: false` no committed
-  spot offers hero both a named raise and a shove, so the rule that adds their weights
-  never fires at all.
+  vacuous  the jam-and-named-raise collapse rule: every committed spot offers hero
+  exactly one price, so no spot offers both a named raise and a shove and the rule that
+  adds their weights never fires. Note that 34 committed spots DO offer a shove - it is
+  the only thing on hero's menu there, which is why this stays vacuous.
 
 Wherever one of these is reported it carries this label, because a vacuous criterion is
 not a check that passed. It is never counted as one, and a packet counting one would be
@@ -1126,21 +1181,31 @@ gap in what is asserted rather than a figure in dispute
 
 ## Hero's own jam, at the spots this phase withholds
 
-Hero's own shove is not in this chart at all, and that is a property of what the phase
-withheld rather than of the conversion. The solve is `add_allin: false`, so the only
-place hero is offered his whole stack is at the four-bet-facing spots, and those are
-exactly the family a later phase takes up.
+Hero's own shove IS in this chart, at 34 of the 156 committed spots, and the
+sentence that stood here saying it was not in the chart at all was written for a solve
+where the blinds three-bet smaller. Those 34 are a blind answering the other blind's 13.5:
+the four-bet its seat's multiplier would make is 72.9, which is above the solve's
+own all-in threshold of 67, and the clamp turns it into a shove. `add_allin: false` still
+holds - nobody switched an extra offer on - so a jam on a committed menu is not a chart
+contradicting its own config, which is what this section used to claim it would be.
 
-So the jam-inversion canary that rejected the first cutover is retained against the
-EXPORT rather than against the chart, and the weight it reads is printed here. The spot
-named is one the chart does not answer:
+The jam-inversion canary that rejected the first cutover is still read off the EXPORT
+rather than off the chart, and the weight it reads is printed here. The spot it names is
+the most-played withheld spot that OFFERS hero a shove, which is not the same as the
+most-played withheld spot: after the three-bet moved, that one is a blind facing the
+other blind's clamped shove, where hero may only fold or call. The canary read 0.00
+there under the sentence below and was a dead check described as a live one. The spot it
+names is one the chart does not answer:
 
-  t6/d100/BB/SB:raise@2.5,BB:raise@13.5,SB:raise@100  AA jams  0.00
+  t6/d100/SB/BTN:raise@2.5,SB:raise@13.5,BTN:raise@40.5  AA jams  100.00
 
-Read it as the check working: aces take the whole stack at the most-played spot of the
-withheld family, which is what a solve that read its hand index the right way up must
-say. A chart offering hero a jam at a committed spot would be a chart contradicting the
-config it was solved under.
+Read it as the check working: aces take the whole stack at the most-played withheld
+spot that offers one, which is what a solve that read its hand index the right way up
+must say. What has changed is the REASON for reading it there. It used to be that the
+chart held no jam to read; now the chart holds 34 of them and the canary could be
+pointed at one. Pointing it there is a behaviour change and is not made here, so this is
+recorded as a check that is weaker than it needs to be rather than left looking
+necessary.
 
 ## What the source cannot price, in poker terms
 
@@ -1152,9 +1217,15 @@ reader should take these as the shape of what the chart is, not as small print.
   using numbers fitted on raked games, so the rake it was trained on comes back in at
   every flop it does not play out (CALIBRATED-REALIZATION-CARRIES-ITS-TRAINING-RAKE).
 
-  The four-bet is solved a quarter oversized, at 22.5 big blinds where a standard sizing
-  is nearer 18. Every committed three-bet-facing spot prices hero's own four-bet through
-  it (PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED).
+  The four-bet is solved oversized at every price it is solved at, and there are 3 of them
+  rather than the one price this entry named when a global multiplier gave every seat the
+  same four-bet:
+    22.5 at 28 committed spots
+    40.5 at 73 committed spots
+    100 as a shove at 34 committed spots
+  The largest is hero's whole stack, where the clamp took the sized raise away. A
+  standard four-bet over a 2.5-and-7.5 ladder is nearer 18
+  (PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED).
 
   The published ranges answer a field that under-cold-calls. The export branches on every
   cold call and prices it against a continuation structure that punishes it, so villains
@@ -1215,8 +1286,9 @@ what this report does is republish the measurement so a reader can see what move
 rendered agreement rate with no label is read as a grade, so this one carries the label.
 
 The refusal rate FALLS on both populations and the scored sample grows, which is the
-cutover buying coverage: the retired chart answered 36 priced spots and this one answers
-249. That is what the rows above read, and it is stated here rather than inferred from
+cutover buying coverage: the retired chart answered 36 priced spots and this
+one answers 156. That is what the rows above read, and it is
+stated here rather than inferred from
 the ruling. The committed predicate still refuses everything from the four-bet on, every
 pot multiway more than one time in ten and the big blind's squeeze spots, and those
 refusals are the ruled cost - they are simply a smaller cost than the coverage hole they

@@ -35,6 +35,19 @@ approved_scope:
 - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
 - scripts/ask_preflop_chart.py
 - src/poker_training_bot/solver_artifacts/chart_provenance_facts.py
+- scripts/freeze_tests.py
+- src/poker_training_bot/table_state/measures.py
+- src/poker_training_bot/table_state/checks.py
+- src/poker_training_bot/strategy/preflop_sizing.py
+- src/poker_training_bot/strategy/preflop_price.py
+- src/poker_training_bot/solver_artifacts/price_normalisation.py
+- src/poker_training_bot/solver_artifacts/vocabulary_measures.py
+- src/poker_training_bot/solver_artifacts/vocabulary_corpus_report.py
+- src/poker_training_bot/solver_artifacts/gtopen_export_report.py
+- src/poker_training_bot/solver_artifacts/solve_conditions.py
+- src/poker_training_bot/data_pipeline/self_play_reference.py
+- src/poker_training_bot/data_pipeline/comparison.py
+- verification/mutations.yml
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -50,6 +63,23 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+- date: 2026-09-17
+  reason: >-
+    `verification/mutations.yml` joins approved_scope for one re-pin and nothing else. The
+    independent poker review found that `a-spot-above-the-exposure-threshold-is-committed` has gone
+    vacuous under this re-solve. It moves MULTIWAY_EXPOSURE_THRESHOLD_PCT from 10.0 to 10.05 and
+    names the single node that widening admits,
+    `t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5` at 10.0234 against a widest
+    admitted 9.8642 - a key spelling a 7.5bb blind three-bet, which this solve cannot emit. The
+    regenerated report reads widest admitted 9.1945 and narrowest refused 10.4362, so nothing at all
+    sits in the 10.0-to-10.05 gap: the mutation moves no spot and `generate_derived_chart_report`,
+    which the canary's own text calls its load-bearing entry, exits 0 under it. `check_gate_bite`
+    iterates the whole must_fail list, so the S6 gate fails on this until the delta is re-pinned at
+    the new margin and the named node rewritten. Widening scope to defang a canary would be the
+    opposite of the rule; this widens it to restore one that the data moved out from under. The
+    pytest arm still kills the mutation by reading the constant back, which the canary's own
+    description says proves only that the constant is pinned - so the vacancy is real rather than
+    covered elsewhere. Nothing else in the file is touched.
 - date: 2026-09-06
   reason: 'Taylor''s ruling, 2026-09-06, after a post-completion review of phase 14. The report tells
     a reader that the opening ranges cleared the one check in this repo that can catch a range that is
@@ -1887,3 +1917,50 @@ scope_change_log:
     twice at the same step - running the suite after finishing its edits - and a third dispatch to re-derive
     state it had already produced costs more than the extraction. Both are mechanical moves under a seam
     already ruled, no behaviour changes, and the independent review covers them like everything else.'
+- date: '2026-09-17'
+  reason: 'Opens scripts/freeze_tests.py, on a blocker from the independent review of the lock diff.
+
+    The freeze globs tests/test_*.py. That was the whole of tests/ until this task, which extracted
+    four support modules to get three files back under their line cap, so 571 lines left the lock
+    without any check noticing - chart_selection_walk.py at 251 lines among them, which holds the
+    entire independent walk that chart_selection.py is compared against. Its own docstring argues
+    that a test importing the rule it checks is one copy of a rule agreeing with another; that
+    argument was, as of this morning, protected by nothing. The suite-wide floor does not cover it
+    either, because none of those lines is a test_ function and the count never moved: 961 to 962.
+
+    The fix is the glob, not the extraction. The extractions were forced and are the honest seam;
+    what was wrong is a freeze that assumed a filename convention. tests/*.py is the rule now, and a
+    support module scores zero test functions so it is frozen for its content without being counted
+    as coverage.
+
+    Found because the lock diff was reviewed before it was written rather than after. Regenerating
+    first would have blessed the gap permanently, and nothing in the gate would ever have objected.'
+- date: '2026-09-17'
+  reason: 'Opens eleven modules on one finding from the independent reviews, and one of them is a
+    red gate.
+
+    THE GATE IS RED. table_state/measures.py:73 pins CORPUS_REFUSALS = 139 and checks.py:232 asserts
+    equality, so generate_table_state_report - a registered gate command - refuses to publish:
+    "refusals measured 194 against the 139 this phase started from". The pin is doing exactly its
+    job. Its own comment says it stays at equality rather than becoming a floor because a refusal
+    count that drifts silently is what a coverage change looks like from here, and changing the
+    chart has to be a deliberate edit to that line. Decision 7 is that change: refusing the 128
+    unmeasurable spots took corpus refusals 139 to 194. The edit is the deliberate one the pin asks
+    for, made against the measured 194 and not against whatever would go green.
+
+    THE REST ARE PROSE, and they are one defect with one cause. Decision 7 cut the committed chart
+    from the 284 it had reached to the 156 that ship, after the lanes had written their prose. Every
+    module below states a figure measured on a chart this repo does not ship, as a live fact: the
+    committed count, the family split, the node count, the refusal count, the price ladder or the
+    jam. Reported by the document lane and the poker review independently, each with the measured
+    replacement. They are opened as a set rather than one at a time because they are one sweep and
+    splitting it would leave the half nobody opened still asserting the old chart - which is exactly
+    how this defect was produced.
+
+    Two are behaviour-adjacent and are not to be treated as prose: preflop_chart.py:318 describes
+    what _raise_amount does at a named spot and is wrong about both halves of its own example, and
+    ask_preflop_chart.py:134 prints a --help example that now returns lookup:spot-not-covered when
+    a student runs it. Neither needs a code change; both need the sentence to describe the code.
+
+    preflop_chart.py is at 496 lines and vocabulary_measures.py at 500 against a 500 cap compared
+    "> limit", so edits there are line-neutral or they do not happen. No prose is compressed to fit.'

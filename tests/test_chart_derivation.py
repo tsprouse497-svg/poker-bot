@@ -1,34 +1,36 @@
 """Phase 14: which solved nodes become committed spots, and why the others do not.
 
 Authored at stage 4, before the derivation the rulings require exists, so this file is the
-specification rather than a description of what got built. It owns the selection rule: the four
-clauses each tested alone, no clause co-extensive with another, multiway exposure as a measured
-walk to the leaves, and the committed 284 with the coverage it carries. It is also where this
-phase's counts, walk and named nodes live, and every other file imports them from here.
+specification rather than a description of what got built. It owns the selection rule: five
+clauses, the first three each tested alone, no clause co-extensive with another, multiway exposure
+as a measured walk to the leaves, and the committed 156 with the coverage it carries. It is also
+where this phase's counts, walk and named nodes live, and every other file imports them from here.
 
-`test_chart_census.py` owns the four-bucket census, the closed reason vocabulary and its
+`test_chart_census.py` owns the six-bucket census, the closed reason vocabulary and its
 disjointness from the runtime miss codes, and what an excluded node does at the table;
 `test_chart_conversion.py` and `test_derived_chart.py` what a committed row holds;
 `test_chart_arrival_probability.py` the reach and arrival fields; `test_chart_cutover_evidence.py`
 the relations and the two counterfactual arms.
 
-**Four clauses select the committed set, and they stay separate because they are separate
+**Five clauses select the committed set, and they stay separate because they are separate
 rulings.** A node is committed when at most **two raises** are already in, nothing deeper
 (decision 35); when the share of its decision mass reaching a **multiway flop terminal** is below
 **ten percent**, measured over the branches the bot can take (decision 46); when it is **not**
 a big-blind squeeze spot - hero is the big blind, faces an open, and a cold caller is already in
-(decision 48); and when **some hand class arrives at it at all** (MAINT-34's decision 2). That
-selects **284** of 30,609: 5 first-in, 25 facing an open, 254 facing a three-bet, carrying
-**98.7380** percent of preflop decisions. The fourth clause was dead at a 7.5bb blind three-bet:
-13.5 drives whole cold-calling lines to zero weight, so the export carries nodes hero can never be
-at holding anything and 160 clear the other three. Placed last, so the depth bucket keeps the four-
-bet family.
+(decision 48); when **some hand class arrives at it at all** (MAINT-34's decision 2); and when
+its **terminal split closes on a hundred**, so the exposure clause measured something rather than
+nothing (MAINT-34's decision 7). That selects **156** of 30,609: 5 first-in, 16 facing an open,
+135 facing a three-bet, carrying **98.7380** percent of preflop decisions. The fourth clause was
+dead at a 7.5bb blind three-bet: 13.5 drives whole cold-calling lines to zero weight, so the export
+carries nodes hero can never be at holding anything and 160 clear the three before it. Both of the
+new clauses are placed after the depth clause, so the depth bucket keeps the four-bet family.
 
 **"The branches the bot can take" names one branch and no other.** Hero's **cold** call is
 removed and renormalised away; his call to a three-bet is not, and the big blind's defence never
-is (decision 52). The other readings of that phrase commit 283 with nothing removed and 314 with
-every hero call removed, so the wording is load-bearing rather than decorative, and this file
-measures the ruled one branch by branch instead of asserting the total it happens to produce.
+is (decision 52). Removing every hero call instead commits 178, 157 of them facing a three-bet,
+so the wording is load-bearing rather than decorative; removing nothing now selects the same 156,
+one node only changing which clause refuses it. So this file measures the ruled branch node by
+node instead of asserting a total two of the three readings reach together.
 
 **Why the third clause exists, in poker.** The nine are the only committed shape whose chart still
 offers hero a call into a multiway pot; the big blind's call stays in the measurement (decision
@@ -95,7 +97,7 @@ NON_CLOSING_NODES_AT_COMMITTED_DEPTH = 375
 """Each clause read as a predicate over all 30,609 nodes rather than behind the others, which is
 the only way "no clause is co-extensive with another" is a claim about the clauses. Seventeen of
 the 26 big-blind squeeze nodes are over the threshold too, so the census bucket holds nine and
-this count does not: the precedence is what makes the four buckets a partition."""
+this count does not: the precedence is what makes the six buckets a partition."""
 
 COMMITTED_WITH_THREE_OR_MORE_LIVE = 109
 COMMITTED_HEADS_UP_ALREADY = 47
@@ -122,11 +124,13 @@ over the committed 249 of the 7.5bb solve the largest shortfall measured here wa
 hundredths of a point. Pinned as a tolerance so that a build losing a whole branch cannot hide
 inside it.
 
-**Deliberately NOT moved for MAINT-34; the assertion reading it in `test_chart_census.py` is left
-red.** 128 of the 284 committed spots no longer close and 109 lose their split entirely, reading an
-exposure of exactly 0.0 because every branch evaporated, not because hero is heads-up. The widest
-admitted is admitted at 9.6609 and measures 11.1904 once the vanished mass leaves the denominator.
-Widening this is what it was written to prevent."""
+**Not moved for MAINT-34, and it is the reason clause five exists.** The re-solve tripped it: at
+the intermediate 284-spot cut 128 committed spots no longer closed and 109 of those lost their
+split entirely, reading an exposure of exactly 0.0 because every branch evaporated rather than
+because hero is heads-up. Widening this is what it was written to prevent, so decision 7 made it a
+clause instead: those 128 are refused, every one of the committed 156 closes inside it with the
+widest shortfall left at 0.0106 of a point, and the assertion reading it in
+`test_chart_census.py` holds."""
 
 # --- The nodes this file names, because this file is what names nodes for the phase. ---
 
@@ -255,7 +259,7 @@ def committed(export: SolverExport) -> tuple[SolverNode, ...]:
     return selected(export)
 
 
-# --- The four clauses, each alone ---
+# --- The first three clauses, each alone ---
 
 
 def test_the_raise_depth_clause_alone_keeps_607_and_names_the_four_bet_family(
@@ -304,14 +308,14 @@ def test_the_exposure_clause_alone_is_a_walk_to_the_leaves_not_a_live_player_cou
 
     Exposure is the share of a node's decision mass that reaches a flop with three or more
     players, walked from the node to its leaves. It is not "can three players still be in", which
-    is where an earlier cut had it: **237 of the 284 committed nodes still have three or more
+    is where an earlier cut had it: **109 of the 156 committed nodes still have three or more
     seats live**, and a live-player count would have refused every one of them and shipped 47
     spots. The two readings are separated by measurement here rather than argued about.
 
-    The threshold is ten percent and the margin is seventy-eight hundredths of a point, so both
-    ends are named nodes rather than statistics: the widest admitted is the small blind facing a
-    cutoff open the button flatted at **9.6609**, and the narrowest refused is the big blind on
-    the identical sequence one seat later at **10.4362**.
+    The threshold is ten percent and the margin is a point and a quarter, so both ends are named
+    nodes rather than statistics: the widest admitted is the button answering a small-blind
+    three-bet the lojack has already called, at **9.1945**, and the narrowest refused is the big
+    blind facing a cutoff open the button flatted, at **10.4362**.
     """
     module = derivation()
     refused = [node for node in export.nodes if not below_exposure_threshold(walked, node)]
@@ -349,10 +353,11 @@ def test_the_exposure_measurement_removes_heros_cold_call_and_nothing_else(
 ) -> None:
     """Decision 52's wording, which selects a different set under each of its readings.
 
-    Removing nothing commits 283; removing hero's call wherever it is cold, the big blind exempt,
-    commits 293 before the third clause takes nine of them; removing hero's call at every node he
-    acts at commits 314. This asserts which branch the ruled measurement drops, node by node,
-    rather than asserting the total it happens to produce - a total three rules can reach.
+    Removing nothing commits the same 156, one node only moving between the exposure and the
+    split buckets; the ruled reading commits 161 without the third clause, which refuses the five
+    of its nine the other four would have kept; removing hero's call at every node he acts at
+    commits 178. This asserts which branch the ruled measurement drops, node by node, rather than
+    asserting the total it happens to produce - a total two different rules now reach.
     """
     module = derivation()
     at_depth = [node for node in export.nodes if within_raise_depth(walked, node)]
@@ -400,20 +405,21 @@ def test_the_big_blind_squeeze_clause_alone_names_the_nine_the_others_admit(
     nine that would otherwise have shipped.
 
     **What names the nine is hero's own published call, not the size of his fold.** The fold does
-    not separate them: on the identical sequence `LJ:raise@2.5,HJ:call` the big blind folds 92.55
-    percent and is refused at 3.1638 exposure, while the small blind folds 94.41 and ships at
-    3.0244, the button 95.89 at 4.0511 and the cutoff 96.01 at 4.8040 - the refused spot has the
-    smallest fold and neither the highest nor the lowest exposure. What differs is whose branch
-    is. `cold_call_index` exempts the big blind, which posted and whose defence decision 52 keeps
-    inside the measurement, so at these ten the figure is hero's own call landing him in a
-    three-way pot the calibrated fit has no cell for: take that branch out and all ten fall under
-    a point. At the 20 merged spots decision 46 removes hero's cold call from the measurement and
-    decision 45 removes it from the chart, so their 3.8-to-6.2 is flops hero is not in; at the
-    five big-blind spots with no caller in, hero's call is heads-up and the figure is exactly 0.
+    not separate them: on the sequence `LJ:raise@2.5,BTN:call` the big blind folds 89.13 percent
+    and is refused at 4.9716 exposure, while the small blind on the same board folds harder at
+    92.28 and ships at 4.6476 - the refused spot has the smaller fold and the wider exposure, so
+    neither reading picks it out. What differs is whose branch it is. `cold_call_index` exempts
+    the big blind, which posted and whose defence decision 52 keeps inside the measurement, so at
+    these nine the figure is hero's own call landing him in a three-way pot the calibrated fit has
+    no cell for: take that branch out and all nine fall under two tenths of a point. At the 11
+    merged spots decision 46 removes hero's cold call from the measurement and decision 45 removes
+    it from the chart, so their 0.0005-to-4.6476 is flops hero is not in; at the five big-blind
+    spots with no caller in, hero's call is heads-up and the figure is exactly 0.
 
     So the clause is not a second exposure rule: it refuses the only committed shape whose chart
     offers a call that puts hero in a multiway pot, which the exposure clause cannot reach because
-    the fold leaves that branch at 3.74 to 8.98 points, the widest a point under the threshold."""
+    the fold leaves that branch at 2.90 to 6.13 points, the widest near four points under the
+    threshold."""
     module = derivation()
     squeezes = [node for node in export.nodes if is_big_blind_squeeze(walked, node)]
     slipping_through = [node for node in squeezes if below_exposure_threshold(walked, node)]
@@ -456,9 +462,9 @@ def test_the_big_blind_squeeze_clause_alone_names_the_nine_the_others_admit(
         assert exposure_pct(walked, node) < EXPOSURE_THRESHOLD_PCT
 
     # The five big-blind spots with no caller in stay, so the clause is about the squeeze and not
-    # about the seat: its 48 committed nodes carry 14.09 percent of preflop decisions and the
-    # five no-caller spots alone carry 11.39, so a blanket exclusion is a fourteen-point hole in
-    # the seat a beginner plays worst.
+    # about the seat: its 26 committed nodes carry 13.67 percent of preflop decisions and the
+    # five no-caller spots alone carry 11.44, so a blanket exclusion is a near-fourteen-point hole
+    # in the seat a beginner plays worst.
     kept_bb = [
         node
         for node in export.nodes

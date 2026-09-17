@@ -3,7 +3,7 @@ items:
   - id: A-BLIND-CANNOT-FOUR-BET-A-BLIND-WITHOUT-JAMMING-AND-THE-MULTIPLIER-GEOMETRY-SAYS-WHY
     status: deferred
     phase: contract-update
-    title: 49 committed spots offer a 100bb shove as their only four-bet, because one multiplier cannot size both raises
+    title: 33 committed spots offer a 100bb shove as their only four-bet, because one multiplier cannot size both raises
     reason: >-
       Accepted by Taylor 2026-09-16 as MAINT-34's decision 4, on the measurement below, and filed
       rather than fixed because the fix measured worse than the defect.
@@ -11,9 +11,16 @@ items:
       the blinds 5.4 so their three-bet is a realistic 13.5bb against a 2.5bb open. The same 5.4 then
       applies when a blind four-bets over the other blind's 13.5, giving 72.9bb, and
       crates/solver/src/preflop/mod.rs:2219 clamps any raise at or above allin_threshold times stack
-      to the stack. At 0.67 and 100bb that is a jam. So 49 of 254 three-bet-facing committed spots
-      offer no sized four-bet at all, split small blind 34 and big blind 15, carrying 1.4364 percent
-      of committed arrival. Blind versus blind is a common confrontation and the bot is taught its
+      to the stack. At 0.67 and 100bb that is a jam. So 34 of 135 three-bet-facing committed spots
+      offer no sized four-bet at all, split small blind 29 and big blind 5, carrying 1.4364 percent
+      of committed arrival. That is the count of MENUS offering nothing but a jam, which is what
+      offer means here; counting only the spots where some arriving class actually takes the jam
+      gives 33 and small blind 28, the difference being one spot whose sizing map is empty because
+      nothing arriving there raises. Those counts are the shipped chart's, re-measured 2026-09-17;
+      Taylor ruled on 49 of 254 split 34/15, measured before decision 7 cut the committed set, and
+      that record is kept in MAINT-34's decision 4. The arrival share did not move at all, decision 7
+      having removed only zero-arrival spots, but the proportion of three-bet-facing spots affected
+      rose from 19.3 to 25.2 percent. Blind versus blind is a common confrontation and the bot is taught its
       only raise there is 100bb over 13.5.
       It is structural for a single multiplier. A 13.5 three-bet requires m = 5.4; a sized four-bet
       requires 13.5m below 67, so m below 4.96. Both cannot hold.
@@ -22,7 +29,9 @@ items:
       percent of its cap, and it does not reach the declared accuracy target: 20,000 iterations
       ending at 0.00018780 where the single size met 0.00016 at 3,800. And the solver declines the
       second size, putting 0.00 combos on the 7.5 three-bet at the headline spot and a mean of 0.04
-      points against 8.25 across all fifteen committed blind three-bet spots. The size is not being
+      points against 8.25 across all fifteen committed blind three-bet spots - a count taken over the
+      two probe exports as they stood when they were compared, not over the shipped chart, which
+      commits 81 spots facing a blind three-bet at 13.5. The size is not being
       used as poker; it is a way to get 40.5 onto the four-bet menu underneath the clamp.
       Raising allin_threshold is the other obvious lever and is worse. Letting 72.9 through leaves
       the caller an SPR of 0.19, so it is a jam wearing a sized-raise label that would pass every
@@ -106,7 +115,28 @@ items:
       The fix is one field, measured rather than proposed. raise_mults_by_seat with 5.4 on the two
       blind seats puts the three-bet at 13.5bb: pocket pairs in the call branch go 12.0 of 78
       weighted combos to 39.9 against a committed reference's 43.4, sets on 9c8c7c go 0.00 combos to
-      7.40 against 8.34, and the signed three-bet bias on pairs goes +0.4025 to +0.0451. Established
+      7.40 against 8.34, and the signed three-bet bias on pairs goes +0.4025 to +0.0451.
+      THE SENTENCE ABOVE IS MEASURED AT ONE SPOT AND DOES NOT HOLD AT ALL FIVE. Found 2026-09-17 by
+      MAINT-34's independent poker review and re-derived by the coordinator from the shipped chart
+      against git 19beb97. Every figure in this entry is taken at t6/d100/BB/BTN:raise@2.5, and
+      nothing here said so. Sets on 9c8c7c in the big blind's call branch, of a possible 9, before
+      and after, with each spot's share of the 6,054,005,282 ppb of committed arrival:
+      vs LJ 6.56 to 9.00 (2.230 percent); vs HJ 1.59 to 9.00 (2.126); vs CO 0.00 to 8.99 (2.083);
+      vs BTN 0.00 to 7.40 (2.477); vs SB 0.00 to 0.00 (2.665).
+      The spot the fix does NOT reach is the most-arrived-at of the five. At t6/d100/BB/SB:raise@2.5
+      the chart raises every pair sevens and up at 1.00 and flats sixes and below at 1.00, so the
+      call branch holds no set on that board before the re-solve and none after. The shape is still
+      strictly better - the old chart raised 22 at 1.00 while flatting 44 and 33, and that inversion
+      is gone - but the spot also became purer rather than less pure, 7 mixed classes to 2, where
+      the headline BTN spot went 3 to 9. Pocket pairs in the call branch do improve there, 11.52 of
+      78 to 30.00.
+      WHAT THIS MEANS FOR PHASE 16, which is the phase halted on this entry. Four of the five
+      big-blind defence spots now carry a call branch a flop can be solved against. The fifth is the
+      heaviest one, and a flop solve run there will reproduce the same over-betting artefact this
+      entry exists to remove, because the input has not changed. Phase 16 needs to pick its flop
+      cells off this table rather than off the headline, and a c-bet frequency measured at
+      BB-versus-SB is not evidence about the fix either way. No route re-solves this; the artifact
+      ships as measured and it is the record that was wrong. Established
       against a baseline solve that reproduced the committed export at 0 basis points of divergence,
       converging at iteration 1900 to the source card's own achieved gap digit for digit, and
       isolated by a control applying the same multiplier to the button only, which reproduces the
@@ -808,16 +838,20 @@ items:
       The title still names the big blind alone and now understates the entry; it is left as written
       because the id and title are cited from phase 17's contract and this lane is not renaming it.
 
-      Recomputed again 2026-09-16 against the 284-spot chart, whose blind three-bet was re-solved
-      from 7.5 big blinds to 13.5. This is the layer the fact checker watches, and the re-solve was
-      aimed at exactly the seat this entry names: at 7.5 the big blind three-bet almost its whole
-      pair ladder and flatted almost nothing, so its calling range was an artefact of the price
-      rather than a strategy. The big blind holds 60 of the 143 human call disagreements and the
-      small blind 48, against 15 for the button, 13 for the cutoff, 6 for the hijack and 3 for the
-      lojack. Human calls agree 38.0% on 234 scored decisions and Pluribus calls 21.6% on 37, under
-      headlines of 90.1% on both, still 73.4% folds. The big blind's flats agree 52.0% on 125
+      Recomputed again 2026-09-16 against the 156-spot chart the same task ships, whose blind
+      three-bet was re-solved from 7.5 big blinds to 13.5 and which then stopped committing 128
+      spots whose multiway-exposure guard had nothing left to measure. This is the layer the fact
+      checker watches, so it is stated over the chart that ships rather than over the 284-spot
+      chart that existed between those two steps: every figure below was first taken against that
+      intermediate chart and is re-derived here against the committed one. The re-solve was aimed
+      at exactly the seat this entry names: at 7.5 the big blind three-bet almost its whole pair
+      ladder and flatted almost nothing, so its calling range was an artefact of the price rather
+      than a strategy. The big blind holds 60 of the 143 human call disagreements and the small
+      blind 46, against 15 for the button, 13 for the cutoff, 6 for the hijack and 3 for the
+      lojack. Human calls agree 38.4% on 232 scored decisions and Pluribus calls 21.6% on 37, under
+      headlines of 90.0% on both, still 73.0% folds. The big blind's flats agree 52.0% on 125
       decisions, up from 45.6%, and 46 of its 60 disagreements faced an open below the solved 2.5bb.
-      The price gradient is steeper than it was: human calls agree 31.7% facing 2.25 or less, 41.4%
+      The price gradient is steeper than it was: human calls agree 32.2% facing 2.25 or less, 41.4%
       between 2.26 and 2.50, and 77.8% above 2.50.
 
       What that does and does not license, because the number moving the way a lane hoped is exactly
@@ -827,12 +861,13 @@ items:
       shrank by 8 decisions in one seat out of 125 scored there. Agreeing with these players more is
       not playing better - `docs/CORPUS_COMPARISON_LIMITS.md` argues that at length under "Real
       players are not an oracle" and that argument is untouched by this. Nothing here measured
-      equity, a win rate or a solver gap. Refusals went the other way over the same re-solve, 139 to
-      141 across the sample, with the big blind refusing 19.1% of its decision points against 1.2%
-      in the lojack, so the seat gained a little agreement and no coverage. And the small blind did
-      not move at all, still 0 of 48, because this solve's first-in range still never limps and
-      never cold-calls - which now makes it the larger half of an entry whose title names only the
-      big blind.
+      equity, a win rate or a solver gap. Refusals went the other way over the same task and by far
+      more, 139 to 194 across the sample, with the big blind refusing 19.4% of its decision points
+      against 1.4% in the lojack, so the seat gained a little agreement and no coverage. And the
+      small blind did not move at all, still 0 - 0 of 46 now rather than 0 of 48, two of its flats
+      having become refusals - because this solve's first-in range still never limps and never
+      cold-calls, which now makes it the larger half of an entry whose title names only the big
+      blind.
 
       What is left to establish is narrower. Phase 08 may not change the chart it measures,
       so the work is recorded rather than done: get a rake-free solve, or a 2.25bb-open
@@ -4183,6 +4218,20 @@ items:
       percent. Any future preflop source needs either a realization model that prices named raises
       as exactly as it prices the jam, or a solve long enough to resolve the branch, and the repo
       needs a check that can fail on the inversion rather than only on transposition.
+      Amended 2026-09-17 by MAINT-34's independent poker review, which found this entry's premise
+      contradicted by the committed source card. The card posts `add_allin: False`, and so did the
+      card this entry was written against - the phase 14 export at `19beb97` also reads False. So
+      "the one terminal the model prices exactly" is not a terminal this solve's config adds, and
+      the "300 of an allowed 2,000 iterations" is two re-cuts out of date: the shipped card reads
+      3,800 of 5,000.
+      The observation the entry was filed on is not withdrawn, because the jam is real and is now
+      larger - the base chart quoted three prices and no shove at all, and the shipped chart quotes
+      the whole 100bb stack at 33 of its 156 committed spots. What produced it is the clamp rather
+      than `add_allin`: MAINT-34's decision 4 records that a blind re-raising over a blind's 13.5
+      reaches 72.9, and GTOpen clamps any raise at or above `allin_threshold * stack` to the stack.
+      Which of this entry's conclusions survive that correction is unexamined, and deliberately so -
+      re-deriving the inversion signature against the shipped chart is a measurement, not a sweep,
+      and it belongs to whichever phase takes the entry up rather than to a prose repair.
 
   - id: NO-GATE-MEASURE-CAN-FAIL-ON-A-BAD-RANGE
     status: deferred
@@ -5105,7 +5154,7 @@ items:
   - id: PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED
     status: deferred
     phase: "14"
-    title: The solve four-bets to 22.5 where a standard four-bet is 17 to 18
+    title: Every four-bet the solve prices is dear, and since MAINT-34 there are three of them
     reason: >-
       Filed 2026-09-01 with decision 36, which Taylor ruled fixed and which is recorded as not done because
       the ruling rested on a coordinator statement that was wrong. `raise_mults` is `[3.0]` and
@@ -5146,6 +5195,23 @@ items:
       One figure the review carried did not reproduce and the published one supersedes it: the relative
       deficit is 25.2 to 50.8 percent, re-derived per row here, and not the 35 to 47 percent the review's
       note states. The per-spot four-bet weights and reference weights all reproduce to the digit.
+      SUPERSEDED IN ITS DIAGNOSIS BY MAINT-34, 2026-09-17, AND THE TITLE UNDERSTATES IT. This entry
+      rests on raise_mults being the global [3.0], which MAINT-34 replaced with raise_mults_by_seat,
+      and on the four-bet being one price of 22.5. Measured on the shipped chart it is three: 22.5 at
+      28 committed spots, 40.5 at 66 and hero's whole stack at 33, the last being the clamp taking a
+      blind's four-bet over the other blind's 13.5
+      (A-BLIND-CANNOT-FOUR-BET-A-BLIND-WITHOUT-JAMMING-AND-THE-MULTIPLIER-GEOMETRY-SAYS-WHY).
+      A quarter oversized is now the mildest of the three. The 66 spots at 40.5 split two ways and
+      only the first has ever been compared to anything: 40 where a non-blind answers a blind's 13.5,
+      which is 3.00x against the reference's 28.5 over the same 13.5, or 2.11x, so 40.5 is 42 percent
+      over a standard price rather than 25; and 26 where a BLIND cold-four-bets an in-position 7.5,
+      hero big blind at 16 spots and small blind at 10, carrying 2.720 percent of committed arrival,
+      priced at 5.4x where the reference answering an 8bb three-bet raises to 21.5, or 2.69x. That
+      second family is priced at roughly double a standard four-bet and appears in no column of any
+      committed report. Route C was ruled on a sized four-bet SURVIVING the clamp, never on it being
+      priced like poker, and this entry is where the difference is recorded. The figures here were
+      re-derived from the committed sizings artifact and the reference's own action labels;
+      everything earlier in this entry belongs to the 7.5bb solve and is history.
 
   - id: FOUR-BET-BLUFFS-ARE-CHOSEN-WITHOUT-BLOCKERS
     status: deferred
@@ -5194,6 +5260,15 @@ items:
       once. And whether it survives a four-bet priced at a standard 17 to 18 rather than 22.5, since a
       dearer four-bet changes which hands can afford to be in it - that is the other entry's subject and
       the two should be re-measured together rather than one at a time.
+      EVERY FIGURE ABOVE IS MEASURED ON THE OLD 249 SPOT CHART, WHICH MAINT-34 REPLACED, 2026-09-17. The
+      three-bet-facing family is 135 committed spots now, not 219, and the centrepiece spot this
+      entry builds on, t6/d100/SB/SB:raise@2.5,BB:raise@7.5, is a key the shipped solve cannot emit
+      at all, the blinds now three-betting to 13.5. The qualitative finding is NOT withdrawn: nothing
+      about the re-solve addresses which hands a four-bet bluffs with, and the mechanism argued at the
+      top of this entry is unchanged. But no number here may be quoted until it is re-derived. The
+      re-measurement is also cheaper than it was, because the second of the two things named just
+      above - whether the composition survives a differently priced four-bet - is no longer
+      hypothetical: the chart now carries 22.5, 40.5 and a jam to compare rather than one price.
 
   - id: SIX-CELLS-FOLD-A-PREMIUM-AND-THE-PACKET-NAMES-NONE-OF-THEM
     status: deferred
@@ -5855,6 +5930,19 @@ items:
       and that is unchanged. No range, weight, price or artifact moved. This is a defect in what the
       chart opens, published, and the route back is the same one
       REALIZATION-MODEL-UNDERPRICES-POSITION names.
+      Re-measured 2026-09-17 against MAINT-34's chart, AND EVERY SEAT TIGHTENED. Every figure above
+      belongs to the 7.5bb solve. Opening frequencies on the shipped chart against the same
+      reference, ours then reference then gap: LJ 18.569 / 17.487 / +1.082; HJ 21.305 / 21.653 /
+      -0.348; CO 25.340 / 27.894 / -2.554; BTN 37.363 / 40.564 / -3.201; and the small blind read on
+      entry 53.839 / 48.137 / +5.702. The sign pattern is unchanged, the same three seats reading
+      narrower, but the three negative gaps roughly tripled - -0.085 to -0.348, -0.721 to -2.554,
+      -1.298 to -3.201 - and the small blind's entry gap fell from +6.16 to +5.702. The honesty above
+      calling HJ a tie and only CO and BTN material therefore no longer holds: all three are material
+      now. This is the solver behaving correctly rather than a second defect, since a bigger blind
+      three-bet makes opening less profitable and every range tightens. It is recorded because the
+      direction is still the one the rake argument cannot explain, and because the report cites this
+      entry and must not hand a reader the superseded numbers. The accepted-defect ruling is
+      unchanged and nothing here gates.
   - id: REPORT-CLAIMED-BOTH-OUTSIDE-READ-FAMILIES-PASS
     status: done
     phase: "14"
@@ -6954,3 +7042,107 @@ items:
       whose file set contains a test that reads `verification/mutations.yml` and asserts against
       the tree - and it belongs beside REPORT-VALIDATORS-CAN-HOLD-GUARDS-THAT-CANNOT-FAIL, which
       is the same argument about a validator that cannot go red.
+  - id: THE-BLIND-THREE-BET-SIZE-IS-PER-SEAT-SO-A-BLIND-USES-ITS-OUT-OF-POSITION-SIZE-IN-POSITION
+    status: deferred
+    phase: contract-update
+    title: The big blind three-bets 13.5 against a small-blind open, where the reference uses a third of that ladder
+    reason: >-
+      Found by MAINT-34's independent poker review. GTOpen's `raise_mults_by_seat` varies the
+      re-raise multiplier by seat and by nothing else, so the 5.4 MAINT-34 gave the blinds applies
+      whenever a blind re-raises, out of position or in it. Against a button open that is right and
+      is the whole point of the task: the big blind makes it 13.5 over 2.5, which matches the
+      committed reference exactly. Against a small-blind open the big blind is the one in position
+      and still makes it 13.5, where the reference opens 3.5 and three-bets to 10.5.
+      The visible consequence is at the other seat. Facing that 13.5 the small blind folds 77.41
+      percent and calls 4.31, against the reference's 64.6 and 9.4. That is not by itself a defect -
+      our small blind is calling 11 into 27 for a 40.7 percent breakeven where the reference calls
+      7 into 21 for 33.3, and folding more at a worse price is correct poker. The defect is that the
+      price is wrong for the position, and every range downstream of it inherits that.
+      What would close it is a per-relationship size rather than a per-seat one, which is a change
+      to GTOpen rather than to its configuration, the same conclusion
+      A-BLIND-CANNOT-FOUR-BET-A-BLIND-WITHOUT-JAMMING-AND-THE-MULTIPLIER-GEOMETRY-SAYS-WHY reached
+      from the four-bet side. Both are the same field being asked to carry two jobs.
+  - id: THE-IN-POSITION-THREE-BET-SPOTS-ARE-NOW-THE-WORST-RANGES-IN-THE-COMMITTED-CHART
+    status: deferred
+    phase: 17
+    title: The chart teaches two qualities of poker depending on which seat three-bet, and nothing tells a student which half to trust
+    reason: >-
+      Measured by MAINT-34's independent poker review, as combo-weighted total variation distance
+      from the committed reference - the share of hero's range playing a different action.
+      MAINT-34 moved the blind three-bet to 13.5 and left the in-position three-bet at 7.5, which
+      was correct: 7.5 is close to the reference's 8 and the blind size was the artefact. But the
+      re-solve improved the ranges facing the blind three-bet far more than it touched the others.
+      Facing a blind three-bet the opener is now 16.9 to 25.1 percent from the reference, mean 26.6
+      across nine spots, down from a mean of 36.4. Facing an in-position three-bet the opener is
+      33 to 41 percent from it, and two of the four spots measured worse than before the re-solve -
+      lojack against a button three-bet 36.9 to 40.7, hijack against a button three-bet 38.5 to 40.1.
+      The opener facing an in-position three-bet folds 49 to 57 percent and calls 31 to 39, against
+      a reference of 61 to 67 and 9 to 15.
+      The size is not the cause, since 7.5 is the reference's own. The cause is the realization
+      model, which prices a flop from 169 per-class numbers with no size-dependent term - see
+      THE-PREFLOP-CHART-CANNOT-PRICE-A-FLAT-AGAINST-A-THREE-BET-AND-ITS-CALL-BRANCH-IS-NOISE.
+      Filed as its own entry rather than folded into that one because the consequence is specific
+      and is new: the committed chart now has two tiers of quality split by a line a student cannot
+      see, and no report says which spots sit in which tier.
+  - id: THE-PAIR-ORDERING-ARTEFACT-MOVED-SEAT-RATHER-THAN-DYING
+    status: deferred
+    phase: 17
+    title: The small blind pure-three-bets deuces and pure-folds fours, and the big blind newly three-bets deuces against a lojack open
+    reason: >-
+      MAINT-34 was opened on a caricature - at a 7.5bb three-bet the big blind three-bet its whole
+      pair ladder including deuces while only fours and threes flatted - and it removed that
+      caricature at the spot it was found. Measured on the committed chart at
+      `t6/d100/BB/BTN:raise@2.5` the ladder now reads aces through tens pure raise, nines mixed at
+      0.533, eights through fours calling, which is a range. Threes still raise 0.792.
+      It did not remove the artefact from the chart. At `t6/d100/SB/BTN:raise@2.5` the small blind
+      raises deuces 1.000 and folds fours 1.000, with fives at 0.538 and threes at 0.200. At
+      `t6/d100/SB/CO:raise@2.5` deuces raise 0.941 while fives, fours and threes fold. At
+      `t6/d100/BB/LJ:raise@2.5` deuces raise 0.710 while every pair from tens to threes pure calls,
+      and that one is new: on the superseded chart deuces did not raise there at all. The committed
+      reference raises deuces 0.00 at all three.
+      The cause is the realization model, which takes a hand class and a static positional weight
+      and nothing else, so it cannot order pairs by the thing that orders them. The reason to file
+      it separately from
+      THE-PREFLOP-CHART-CANNOT-PRICE-A-FLAT-AGAINST-A-THREE-BET-AND-ITS-CALL-BRANCH-IS-NOISE is the
+      near-purity: at 9 genuinely mixed classes of 169 against a reference's 40, an ordering error
+      does not arrive as a frequency a student can discount, it arrives as a rule. A student drilled
+      here learns "three-bet threes, fold ace-deuce", and the rule is wrong.
+  - id: NOTHING-READS-TWO-GENERATED-DOCUMENTS-ABOUT-ONE-ARTIFACT-AGAINST-EACH-OTHER
+    status: deferred
+    phase: contract-update
+    title: The chart's own note and the report about it are separate hard-codings of the same sentence, and only one was re-derived
+    reason: >-
+      MAINT-34's independent poker review found the derived chart report telling a reader "Every
+      price on a committed key is one of the three the solve offers - 2.5 to open, 7.5 to
+      three-bet, 22.5 to four-bet - and a shove is not among them". Measured from the committed
+      sizings artifact the prices are 2.5 at 5 spots, 7.5 at 6, 13.5 at 10, 22.5 at 28, 40.5 at 66
+      and the whole 100bb stack at 33. So the bot shoves preflop at 33 of its 156 committed spots
+      and the report shipped in the same commit said it never does.
+      What makes this worth an entry rather than a correction is where it was not wrong. The same
+      claim is in the chart's own `audit_fields.notes` and in the sizings note, and both read
+      correctly, because MAINT-34 made those derived by the run that writes them. The report
+      generator holds a second hard-coded copy of the same sentence and nothing compares the two.
+      `chart_provenance.py` even records the superseded wording in the docstring of the function
+      that replaced it, so the lane that fixed one copy had the other quoted in front of it.
+      THE-ARTIFACT-DESCRIBES-ITS-OWN-CENSUS-IN-PROSE-NOTHING-CHECKS names the report's fifth line
+      as the same defect and it has now recurred there a third time, at "now plays from 249" above
+      a census reading 156. That entry's disposition - any number in the artifact's notes is either
+      computed by the run that writes it or it does not go in - should extend to the report
+      generator, and the cheaper interim check is a comparison of the two documents' claims about
+      the price set, which is one sentence in each.
+  - id: A-VOCABULARY-ASSERTION-WENT-VACUOUS-WHEN-THE-LADDER-MOVED
+    status: deferred
+    phase: 17
+    title: A frozen test proves the raise-depth clause with a key the solve can no longer emit at any depth
+    reason: >-
+      Found by MAINT-34's independent poker review. `tests/test_spot_vocabulary.py:508` asserts
+      `"t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5" not in keys`, and its docstring
+      justifies it as proving the raise-depth clause retires every key carrying a 22.5 and every key
+      naming one seat twice. With the big blind three-betting to 13.5, `BB:raise@7.5` is not a shape
+      this solve emits at any depth, so the assertion passes whether or not the clause it names
+      exists. It now tests the ladder rather than the clause.
+      The fix is a key the solve can emit - a big-blind three-bet at 13.5 with the four-bet at 40.5 -
+      rather than a corrected sentence, and it is a frozen-test change so it belongs to a task that
+      opens `tests/**` rather than to a prose sweep. Filed beside
+      A-NARROW-COMMAND-CAN-HOLD-A-TEST-THAT-REDDENS-FOR-EVERY-MUTATION, which is the same subject
+      from the mutation side: a witness that cannot fail is not a witness.

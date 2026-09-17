@@ -8,23 +8,34 @@ part of this that is hard - which of two prices the bot puts in front of a villa
 strategy question, not a formatting one.
 
 **Ruled by Taylor, 2026-08-26.** Decision 6's sizing table holds every price a spot offers a
-hand class, with the weight hero gives each, so a class can arrive here with two: at 21 of the
-86 committed spots hero has both a named raise and a shove, and the one committed opening
-range is one of them. The strategy chooses between them with the same deterministic seeded
-draw it already uses to collapse a mixed action cell, which is why `collapse` is handed in
-below rather than reimplemented - a second weighted walk in this file would be a second
-mechanism, and the ruling is that there is one.
+hand class, with the weight hero gives each, so a class can arrive here with two. The strategy
+chooses between them with the same deterministic seeded draw it already uses to collapse a
+mixed action cell, which is why `collapse` is handed in below rather than reimplemented - a
+second weighted walk in this file would be a second mechanism, and the ruling is that there
+is one.
 
-Rejected, and each for a reason measured rather than argued:
+**Every figure in the ruling below is the 86-spot chart it was ruled against**, kept because it
+is why this mechanism exists and not because it describes what ships. Two re-solves have moved
+all of it. Measured 2026-09-17 against the committed 156: NO committed spot offers hero two
+prices at all, so nothing here has a choice to make outside the synthetic tables the tests
+build. The prices are 2.5, 7.5, 13.5, 22.5, 40.5 and hero's whole stack, one per spot, the
+stack at 34 of them where a blind's four-bet over the other blind's 13.5 clears the solve's
+all-in threshold and is clamped. Those counts move with every re-solve and nothing recomputes
+them here.
 
-- **Failing closed on a class with two prices.** `t6/d100/SB/rfi` is the only opening range
-  the cutover commits and it offers two, so refusing here stops the bot opening a pot at all,
-  from any seat.
+Rejected in 2026-08-26 terms, each for a reason measured on that 86-spot chart rather than
+argued:
+
+- **Failing closed on a class with two prices.** 21 of its 86 spots offered hero both a named
+  raise and a shove, and `t6/d100/SB/rfi` - the only opening range it committed - was one of
+  them, so refusing here would have stopped the bot opening a pot at all, from any seat.
 - **Taking the highest-weight price.** That is the heuristic pick the `lookup-tie-picks-an-action`
-  canary forbids for actions, it has no answer at a tie, and at the small blind's open it would
+  canary forbids for actions, it has no answer at a tie, and at that small blind's open it would
   commit the bot to a 100bb shove branch the solve plays about once in ninety-seven thousand.
-- **Taking the smallest price.** Never shoves, which throws away the 15 jam-only spots and
-  teaches a 7.5 three-bet where the solve stacks off nearly nine times in ten.
+- **Taking the smallest price.** Never shoves, which threw away that chart's 15 jam-only spots
+  and taught a 7.5 three-bet at `t6/d100/BB/BTN:raise@2.5`, where a pair of fours put 88.44
+  percent of its aggressive volume on the 100bb shove. Re-derived 2026-09-17 from the chart at
+  commit 6f15724; the same rule over the committed 156 would throw away 34 jam-only spots.
 """
 
 from __future__ import annotations

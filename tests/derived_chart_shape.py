@@ -25,12 +25,10 @@ TABLE_SIZE = 6
 STACK_DEPTH_BB = 100
 
 # `first-in` is the pot folded to hero, `bb-open` the big blind facing an open, `merged` the
-# twenty other seats facing an open, `three-bet` the spots facing a three-bet. Recomputed by the
+# eleven other seats facing an open, `three-bet` the spots facing a three-bet. Recomputed by the
 # walk below rather than read off the artifact: a family read from the file under test is the
 # file agreeing with itself.
 FIRST_IN, BB_OPEN, MERGED, THREE_BET = "first-in", "bb-open", "merged", "three-bet"
-
-COMMITTED_RAISE_DEPTH = 2
 
 
 def action_sequence_of(

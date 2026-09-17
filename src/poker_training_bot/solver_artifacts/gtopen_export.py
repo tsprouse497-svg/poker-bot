@@ -337,9 +337,9 @@ class SolverExport:
     ) -> SolverExport:
         """Validate a tree and hold it, or say every way it is broken at once.
 
-        The extractor builds nodes directly rather than through a payload dict, because a
-        38,828-node tree round-tripped through lists of boxed integers is a gigabyte of
-        pointers for data that fits in 59 MB.
+        The extractor builds nodes directly rather than through a payload dict, because phase
+        10's 38,828-node tree round-tripped through lists of boxed integers is a gigabyte of
+        pointers for data that fits in 59 MB. Both figures are that tree's, not this one's.
         """
         errors = config_errors(config)
         if quantisation_scale != QUANTISATION_SCALE:
@@ -442,7 +442,7 @@ def write_solver_export(path: Path, export: SolverExport) -> None:
     """Write the export as a deterministic gzip container.
 
     Header JSON carries the config and one descriptor per node; the weights follow as raw
-    little-endian `uint16`, which is what keeps a 38,828-node tree inside a byte limit a
+    little-endian `uint16`, which is what kept phase 10's 38,828-node tree inside a limit a
     reviewer can defend. `mtime=0` is what makes two writes of the same tree byte-identical,
     and a container that stamps the clock makes every checksum a moving target.
     """

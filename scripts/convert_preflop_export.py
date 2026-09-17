@@ -14,9 +14,9 @@ report has to be able to re-derive them without shelling out to a script.
 Three files come out and one that used to is now excluded on purpose.
 
 - `six_max_100bb_rakefree.json`, the chart: the spots `chart_derivation` selects out of the
-  export's solved action nodes. Neither count is written here. Both have already moved once -
-  36 spots became 249 at the phase 14 cutover and the tree went from 33,969 nodes to 30,609
-  when MAINT-34 re-solved it - and a literal in this docstring is a number nothing recomputes.
+  export's solved action nodes. Neither count is written here. Both have already moved -
+  36 spots became 249 at the phase 14 cutover and then 156 over MAINT-34, whose re-solve also
+  took the tree from 33,969 nodes to 30,609 - and a literal here is a number nothing recomputes.
 - `sizings/six_max_100bb_rakefree.json`, every price a spot offers hero per hand class.
 - the export's own source card, whose `size` block is restamped. Deleting the retired chart
   and writing a smaller one both move the `data/artifacts` total, so the card's headroom is

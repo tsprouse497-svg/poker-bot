@@ -2,22 +2,23 @@
 
 These tests stop `data/artifacts/preflop/` drifting away from the export that produced it, and
 they are the **migration** the contract's regression expectation asks for: every claim this file
-made about the 86-spot chart is re-cut against the 284 here, before the freeze, rather than
+made about the 86-spot chart is re-cut against the 156 here, before the freeze, rather than
 repaired after it. Phases 11 and 12 each deferred that and each paid a separate repair task.
 
 **What moved.** The retired set was 86 spots taken from a superseded export under a
-history-and-liveness predicate. The committed set is **284** of the export's 30,609 action nodes -
-5 first-in, 25 facing an open, 254 facing a three-bet - selected by four clauses: at most two
+history-and-liveness predicate. The committed set is **156** of the export's 30,609 action nodes -
+5 first-in, 16 facing an open, 135 facing a three-bet - selected by five clauses: at most two
 raises already in, multiway exposure below ten percent measured over the branches the bot can
-take, no big-blind squeeze spot, and some hand class arriving. So all five opening ranges come
-back and every four-bet-facing spot goes. The price list is no longer one rung per family:
+take, no big-blind squeeze spot, some hand class arriving, and a terminal split that closes so
+that the exposure clause measured something. So all five opening ranges come back and every
+four-bet-facing spot goes. The price list is no longer one rung per family:
 MAINT-34's per-seat multiplier makes a three-bet 7.5 in position and 13.5 from a blind, the
 four-bet 22.5 or 40.5, and a jam appears where a blind cannot four-bet a blind under the clamp.
 
-**And hero stopped cold-calling.** At the 20 non-big-blind facing-an-open spots each cell's call
+**And hero stopped cold-calling.** At the 11 non-big-blind facing-an-open spots each cell's call
 weight is added to its raise weight (decision 45), so the published menu there is raise or fold.
-The big blind's five keep fold, call and raise. The 254 publish fold, call and four-bet - offered,
-which at 20 of them names an action no arriving hand takes. A helper filtering on weight reads
+The big blind's five keep fold, call and raise. The 135 publish fold, call and four-bet - offered,
+which at 18 of them names an action no arriving hand takes. A helper filtering on weight reads
 four shapes, not two families.
 
 Every claim the cutover reverses is kept as its reversal rather than deleted: the four opening
@@ -107,7 +108,7 @@ PRICES_BY_RAISES_FACED = {0: {OPEN_PRICE}, 1: {IN_POSITION_THREE_BET, BLIND_THRE
 """**No longer one price per family: MAINT-34 made the ladder branch.** `raise_mults_by_seat`
 gives the blind seats 5.4 against the global 3.0, so a three-bet is 7.5 in position and 13.5 from
 a blind, the four-bet over it 22.5 or 40.5, and a blind four-betting the other blind's 13.5 gets
-5.4 again - 72.9, past `allin_threshold`, so **the jam is quoted at 48 committed spots**."""
+5.4 again - 72.9, past `allin_threshold`, so **the jam is quoted at 33 committed spots**."""
 
 OPENERS = ("LJ", "HJ", "CO", "BTN", "SB")
 OPENING_ORDER = ("LJ", "HJ", "CO", "BTN")
@@ -140,8 +141,8 @@ def menus(library: PreflopChartLibrary) -> dict[str, tuple[str, ...]]:
     """Per spot, every action the chart names in any class's row, sorted. The published menu shape.
 
     The names, not the ones some hand takes. This filtered on `weight > 0.0` while calling its
-    result a menu, and over the 284 the two come apart at 20 spots. Taken, the 284 read as four
-    shapes - 239, 37, 4, 4 - not the two below, and the families dissolve.
+    result a menu, and over the 156 the two come apart at 18 spots. Taken, the 156 read as four
+    shapes - 122, 26, 4, 4 - not the two below, and the families dissolve.
     """
     found: dict[str, set[str]] = {}
     for spot_id, hand_classes in library.artifacts[0].action_weights:
@@ -217,7 +218,7 @@ def test_provenance_names_the_export_it_came_from() -> None:
 
 
 def test_the_committed_keys_split_into_the_three_families(library: PreflopChartLibrary) -> None:
-    """284 is not self-evidently three numbers. Counted key by key, because the artifact's own spot
+    """156 is not self-evidently three numbers. Counted key by key, because the artifact's own spot
     count cannot see a family that grew while another shrank - which is how a build on the depth
     clause alone reads: it keeps every four-bet-facing spot and still totals a number somebody
     could mistake for this one."""
@@ -324,7 +325,7 @@ def test_the_big_blinds_five_keep_the_flat_and_the_three_bet_family_keeps_it_too
 ) -> None:
     """The other side of the same ruling, and the reason it is not "the chart never calls". The big
     blind closes the action for the rest of a blind it already posted, so its flat is not a cold
-    call and stays. At the 254 the call is hero's call to a three-bet, which decision 52 says in
+    call and stays. At the 135 the call is hero's call to a three-bet, which decision 52 says in
     terms is not removed. A merge applied to either family is a chart three-betting a range it
     should be continuing with, and only asserting `call` present here catches it."""
     shapes = menus(library)
@@ -374,7 +375,7 @@ def test_a_spot_where_hero_already_acted_covers_only_heros_range(
 
 
 def test_the_committed_cells_are_the_classes_that_arrive(library: PreflopChartLibrary) -> None:
-    """The whole chart, counted. 25,273 cells at non-zero reach, and the converter drops the rest:
+    """The whole chart, counted. 14,586 cells at non-zero reach, and the converter drops the rest:
     a GTOpen payload is unconditional, so a hand hero folded upstream still carries a full strategy
     row and that row is the solver's untouched initialisation. Committing it is worse than a gap,
     because it does not read as missing (`UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY`)."""
@@ -385,7 +386,7 @@ def test_the_committed_cells_are_the_classes_that_arrive(library: PreflopChartLi
 
 def measured_aggregates(library: PreflopChartLibrary, export: SolverExport) -> Aggregates:
     """Both halves of the oracle read off the **chart** now. The 86 could not carry five opening
-    ranges, so the ascent was measured over the export; the 284 hold all five, so the whole
+    ranges, so the ascent was measured over the export; the 156 hold all five, so the whole
     comparison travels through the conversion, which is where a transposed index or a mis-assigned
     actor would be introduced. The export stays an argument because the frequencies are asserted
     against it below, and because a chart that lost a row must fail rather than shrink the set."""
@@ -480,11 +481,18 @@ class TestSourceFrequencies:
         widened only the small blind's open, whose gap is 19.9 points, would pass with the other
         nine identical to the raked source.
 
-        One row genuinely does not move and is named rather than averaged away. The hijack opens
-        21.5649 against the reference's 21.65, a gap of 0.085, so the rake-free solve and a raked
-        GTO Wizard chart agree there to under a tenth of a point. That is the one place a sign
-        test could not tell this conversion from no conversion at all, and it is asserted as the
-        only such row: a second one appearing turns this red."""
+        **Two rows land inside half a point, and which two is a snapshot rather than a criterion.**
+        The hijack opens 21.3052 against the reference's 21.65 and the big blind defends 31.7559
+        against a cutoff open where the reference reads 31.48 - gaps of 0.3448 and 0.2759, against
+        1.08 to 19.43 at the other eight. What is asserted is that the rows inside half a point
+        are exactly `ROWS_THE_RAKE_DID_NOT_MOVE` and that every other row is outside it, so a
+        third arriving or either of these leaving turns this red.
+
+        Half a point is a round number nobody ruled and membership is where two solves happen to
+        cross, so the set is measured rather than meant. The cutoff row joined because MAINT-34's
+        13.5bb blind three-bet moved the big blind's range, not because anything about the rake
+        moved (decision 6). The claim worth making is that de-raking is not a no-op, which the
+        1.08-to-19.43 spread carries on its own, and putting that here instead is a follow-up."""
         reference = load_expectations(EXPECTATIONS_PATH)
         gaps = {
             ("open", seat): abs(
@@ -518,8 +526,8 @@ class TestSizingTable:
         """The multi-size invariant, at the accessor the strategy actually calls, and both ways
         round: a class with aggressive weight carries an entry, a class without carries none.
 
-        Decision 6's headline case is **still unexercisable over the 284** and is labelled rather
-        than counted: MAINT-34 put a jam on the menu at 48 spots, but it is the only aggressive
+        Decision 6's headline case is **still unexercisable over the 156** and is labelled rather
+        than counted: MAINT-34 quotes a jam at 33 committed spots, but it is the only aggressive
         price there rather than a second one beside 40.5, so no class holds two. The `cells[2]`
         assertion is what makes that a measurement rather than a claim - a later solve that offers
         two turns it red instead of quietly passing.
@@ -539,14 +547,14 @@ class TestSizingTable:
 
     def test_every_committed_spot_offers_a_raise_so_nothing_prices_nothing(self, library) -> None:
         """The other half of the two-directional sizing invariant, vacuous the same way: a spot
-        offering no raise carries no key, and the 284 contain no such spot. Every family ends in an
-        aggressive action - the five open, the twenty-five raise or three-bet, the two hundred and
-        fifty-four four-bet or jam - so the case cannot be exercised. Asserted as an equality
+        offering no raise carries no key, and the 156 contain no such spot. Every family ends in an
+        aggressive action - the five open, the sixteen raise or three-bet, the hundred and
+        thirty-five four-bet or jam - so the case cannot be exercised. Asserted as an equality
         rather than skipped, because the equality *is* the measurement and a later solve moves it.
 
         Whether the spot carries a key, not whether some class takes a price under it. This asked
-        `sizes_bb` per class, which answers None where a class does not raise, so it counted the 168
-        spots an arriving hand raises at, not the 284 that carry a key - 8 hold an empty map.
+        `sizes_bb` per class, which answers None where a class does not raise, so it counted the 148
+        spots an arriving hand raises at, not the 156 that carry a key - 8 hold an empty map.
         """
         sizing = PreflopSizingTable.from_repo()
         rows = library.artifacts[0].action_weights
@@ -562,7 +570,7 @@ class TestSizingTable:
         weights sum to one, because a weight is that class's share of its **own** aggressive volume
         rather than of its range - the other reading of decision 6 is a pair summing to the class's
         raise frequency, which is what a converter writes when it forgets to renormalise. Over the
-        284 the two readings coincide at every cell, one price carrying the whole share, so this is
+        156 the two readings coincide at every cell, one price carrying the whole share, so this is
         a schema check here rather than a measurement; `test_chart_conversion` owns the perturbed
         export that proves a price came from the action label and not from a constant."""
         sizing = PreflopSizingTable.from_repo()
@@ -604,11 +612,11 @@ class TestSizingTable:
     def test_the_price_in_a_key_is_what_the_seats_before_hero_were_offered(self, library) -> None:
         """The keys' own prices, which are the other seats' rather than hero's. A facing-an-open key
         spells 2.5 and a three-bet-facing key spells 2.5 then the three-bet, strictly ascending,
-        and no key spells the stack: hero is never asked to answer a jam over the committed 284.
+        and no key spells the stack: hero is never asked to answer a jam over the committed 156.
 
         **Which three-bet is not free.** It is 13.5 where a blind made it and 7.5 otherwise, so
         the key's price is read back against the seat that raised rather than against a constant.
-        157 keys spell 13.5 and 97 spell 7.5."""
+        81 keys spell 13.5 and 54 spell 7.5."""
         for key in library.spot_keys():
             prices = prices_in(key)
             raisers = [

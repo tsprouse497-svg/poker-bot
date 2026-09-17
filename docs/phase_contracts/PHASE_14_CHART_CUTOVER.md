@@ -43,7 +43,7 @@ differently. Nothing gates on whether a range is good poker.
 - The standing V1 boundaries: no PokerNow automation, browser or platform observation, runtime solver calls,
   LLM-backed poker decisions, or training UI surfaces. No re-solve at a second opening price, with limps, at
   another depth or table size. **No re-solve at all.**
-  - **Amended 2026-09-16 by MAINT-34:** "No re-solve at all" and the `[2.5, 7.5, 22.5]` ladder are no longer true - the chart is re-solved at a 13.5bb blind three-bet, moving the prices, the node and coverage counts, the determinism record and the accepted big-blind over-fold. `RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET`.
+  - **Amended 2026-09-16 by MAINT-34:** "No re-solve at all" and the `[2.5, 7.5, 22.5]` ladder are no longer true - the chart is re-solved at a 13.5bb blind three-bet, moving the prices, the node, committed-spot and coverage counts, the determinism record, the iteration cap and the iteration convergence was reached at, and the accepted big-blind over-fold. Hero now shoves at committed spots, which the criteria below say it never does. `RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET`.
 - **Do not fix the multiway pricing, repair a pricing defect by changing `realization`, or commit a mispriced
   spot with the defect recorded as a caveat** (Taylor, 2026-08-31). Do not change the spot key grammar
   (`RE-KEYING-RE-SEEDS-EVERY-MIXED-CELL`). Do not rederive

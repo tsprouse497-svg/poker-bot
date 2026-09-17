@@ -12,7 +12,7 @@ that the converter reads a size off the export's own action label rather than of
 taken by perturbing a synthetic export; both directions of the sizing invariant, the
 no-raise half of which is vacuous here; the two-price schema, also vacuous here and proved
 against a synthetic; and the jam-inversion canary, which runs against the export because the
-jam family is mostly four-bet-facing and mostly withheld - 49 committed spots excepted.
+jam family is mostly four-bet-facing and mostly withheld - 34 committed spots excepted.
 
 **What siblings own.** `tests/test_chart_derivation.py` owns which nodes are committed and
 the census; this file imports its `selected` through `test_derived_chart`, which owns the
@@ -100,9 +100,9 @@ PAIR_INVERSIONS_ON_THE_JAM = 69
 **The canary's containment claim is gone and is replaced by a count, not weakened.** Before
 MAINT-34 every jam node faced three raises and none was committed. Now 96 of the 3,777 face
 two - a blind answering the other blind's 13.5bb three-bet, where 5.4 again is 72.9 and the
-clamp fires - and **49 of them are committed spots**. Decision 4 ruled that accepted after
-measuring the two-size alternative, so the chart does tell hero to jam, at 49 spots, and the
-test below pins which rather than asserting there are none. 244 jam nodes sit one action below
+clamp fires - and **34 of them are committed spots**. Decision 4 ruled that accepted after
+measuring the two-size alternative, so the chart does tell hero to jam, at 34 spots, and the
+test below pins which rather than asserting there are none. 131 jam nodes sit one action below
 a committed spot, which is where a player following this chart walks into them."""
 
 PAIRS = ("AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "33", "22")
@@ -129,7 +129,7 @@ def published_raise_bp(
 ) -> int:
     """What the chart publishes as this cell's raise weight, in basis points.
 
-    Decision 45's merge is part of the price question and not only of the row: at the twenty
+    Decision 45's merge is part of the price question and not only of the row: at the eleven
     spots where the bot may not cold-call, a class the solve only *called* now publishes a
     raise, so the sizing table owes it a price. Recomputed from the solve rather than read
     off the chart, the chart being what is on trial.
@@ -186,7 +186,7 @@ def entries_agree(
     )
 
 
-# --- The prices the committed 284 offer hero -------------------------------------------
+# --- The prices the committed 156 offer hero -------------------------------------------
 
 
 def test_the_price_ladder_is_the_one_the_solved_config_produces(
@@ -205,8 +205,12 @@ def test_the_price_ladder_is_the_one_the_solved_config_produces(
     over this artifact there is none. What MAINT-34 changed is that a *depth* now spans two or
     three prices, which is why the pin below is a set per depth rather than a single value.
 
-    `100.0` does reach the chart now, at the 49 blind-versus-blind spots decision 4 accepted, so
-    the `@100` key check is the surviving half: hero is never asked to *answer* a jam.
+    `100.0` does reach the chart now, at the blind-versus-blind spots decision 4 accepted, so
+    the `@100` key check is the surviving half: hero is never asked to *answer* a jam. The count
+    is 34 nodes, which is `COMMITTED_JAM_NODES` above and what this file pins everywhere else;
+    33 of those 34 also quote `100.0` in the sizing table, the odd one being a spot no arriving
+    class raises at, so it ships an empty price list. Decision 4's own 49 was measured before
+    decision 7 cut the committed set to 156 and is not a live figure.
     """
     open_to = float(RULED_CONFIG["open_raises"][0])
     seats = list(RULED_CONFIG["positions"])
@@ -291,7 +295,7 @@ def test_a_spot_that_offers_a_raise_carries_a_key_and_a_class_that_never_raises_
 ) -> None:
     """The direction of the invariant that bites over the committed set.
 
-    Every spot offering hero a raise carries a key for every size it offers - all 284 do -
+    Every spot offering hero a raise carries a key for every size it offers - all 156 do -
     and within a spot, a class absent from the table is a hand hero only folds or flats. The
     second half is what stops the table being a per-spot number wearing a per-class shape:
     at the small blind's open 121 of the 169 classes raise and 48 do not, and a table that
@@ -328,7 +332,7 @@ def test_a_committed_spot_that_prices_nothing_carries_no_key_at_all(
     reader cannot tell "nothing to price" from "priced nothing". The strategy then refuses
     when asked for a size rather than inventing one.
 
-    Over the committed 284 no spot offers zero raises, so the rule has nothing to fire on.
+    Over the committed 156 no spot offers zero raises, so the rule has nothing to fire on.
     The premise is asserted before the label, and the rule is retained because the multiway
     family that returns once GTOpen can price it brings fold-or-call menus back with it.
     """
@@ -349,7 +353,7 @@ def test_a_spot_offering_two_prices_is_described_by_both_of_them(derived) -> Non
 
     The schema holds a *list* per hand class so a spot offering two raise sizes is described
     by two, which is how `CHART-CANNOT-EXPRESS-TWO-RAISE-SIZES-AT-ONE-SPOT` closes. Over the
-    committed 284 the case does not arise - `add_allin: false` removed the jam from every
+    committed 156 the case does not arise - `add_allin: false` removed the jam from every
     node that also offers a named raise, and where MAINT-34's clamp puts a jam at a committed
     spot it replaces the four-bet rather than joining it - so every entry is one element and
     the two-price assertion holds for want of
@@ -377,7 +381,7 @@ SYNTHETIC_SPOTS = 6
 """Every node of the synthetic tree is committed: four seats fold with nothing multiway
 below them, the small blind opens and the big blind answers heads-up, so no node's exposure
 is above zero and none faces a third raise. The four folding seats offer no raise at all,
-which is what makes this tree - and not the committed 284 - the place the no-raise half of
+which is what makes this tree - and not the committed 156 - the place the no-raise half of
 the invariant is actually exercised."""
 
 
@@ -572,7 +576,7 @@ def test_heros_own_jam_lives_only_at_the_four_bet_facing_spots_the_phase_exclude
     watched for, but "no committed spot jams" is no longer the way to watch: a blind facing the
     other blind's 13.5bb three-bet gets the 5.4 multiplier again, reaches 72.9, and
     `allin_threshold` snaps it to the stack. 96 jam nodes now face two raises rather than three
-    and **49 of them are committed**, which decision 4 ruled accepted on measurement.
+    and **34 of them are committed**, which decision 4 ruled accepted on measurement.
 
     So the claim asserted is the one still true and still able to fail: the jam is confined to
     spots where the ladder arithmetic forces it, its count is pinned exactly, and hero is never
@@ -601,7 +605,7 @@ def test_no_committed_node_offers_a_jam_beside_a_named_raise(export, by_path) ->
     artifact's raise weight is always a single action's.
 
     **The reason it is vacuous changed under MAINT-34 and the premise is re-asserted, not
-    re-stated.** It used to hold because no committed node jammed at all. 49 now do - the
+    re-stated.** It used to hold because no committed node jammed at all. 34 now do - the
     docstring's own second case, a solve whose `allin_threshold` snaps a named raise to the
     stack inside the committed depth - and the criterion survives only because the clamp
     *replaces* the named four-bet rather than adding a jam beside it. Every committed jamming
@@ -631,11 +635,11 @@ def test_the_jam_inversion_canary_is_measured_against_the_export(export, by_path
     Decision 6 keeps this check on the ground that the defect it exists to catch - a weaker
     class committing a hundred blinds where aces do not - has to stay measured even after
     the family that can express it leaves the chart. Over this export the jam family is 3,777
-    nodes; the 244 that sit one action below a committed spot are the ones a player following
+    nodes; the 131 that sit one action below a committed spot are the ones a player following
     this chart walks into, so they are where the canary is taken.
 
     **What it finds is not clean, and the number is recorded rather than softened.** Aces
-    arrive at 119 of the 244 and jam their whole range at 49. At the rest, 80 comparisons
+    arrive at 92 of the 131 and jam their whole range at 39. At the rest, 69 comparisons
     have a lower pocket pair jamming more often than aces do, both classes arriving - queens,
     jacks and tens each jamming 100 percent where aces jam 3 is the worst of them, all three
     at one node. That is decision 50's

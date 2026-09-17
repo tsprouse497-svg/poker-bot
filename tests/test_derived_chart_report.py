@@ -1,4 +1,4 @@
-"""Phase 14: the report a non-coding reviewer reads, over the committed 284.
+"""Phase 14: the report a non-coding reviewer reads, over the committed 156.
 
 The family owns the **rendered** report: every heading the contract's evidence sentence names is
 there, the body under each makes the claim it promises, and each printed figure is re-derived from
@@ -7,7 +7,7 @@ cap, and **this one holds the module-scope interface the other three reach as an
 ruled numbers, the row patterns, the section reader, the loaders behind the fixtures and the walks
 over the committed keys. A count has one owner and is never copied.
 
-- this file: how the 284 were selected and what each committed row carries - the census, the
+- this file: how the 156 were selected and what each committed row carries - the census, the
   histogram and the prices, exposure per spot, one cell traced from export node to artifact row,
   and the arrival grain.
 - `test_derived_chart_report_ranges.py`: the four relations, the ladders, both counterfactual
@@ -73,8 +73,8 @@ BIG_BLIND_OPEN_FACING_SPOTS = 5
 MERGED_SPOTS = 11
 THREE_BET_FACING_SPOTS = 135
 MERGED_CELLS = 72
-"""Decision 45: of the 25 facing-an-open spots, 5 are the big blind and keep fold/call/raise, and
-at the other 20 the bot may not cold-call, so each cell's call weight is added to its raise. 676
+"""Decision 45: of the 16 facing-an-open spots, 5 are the big blind and keep fold/call/raise, and
+at the other 11 the bot may not cold-call, so each cell's call weight is added to its raise. 72
 cells move. The three families are 5 + 11 + 135 and they publish three different menus."""
 
 PURE_AT_99_PCT_SOLVED = 90.79
@@ -89,7 +89,7 @@ differ and this phase has already shipped one figure under two meanings. Both ru
 the pair the argument rests on: the chart barely mixes, which is why decision 45's hole was large
 rather than marginal - "the solver was near-indifferent, take the other action" was never
 available to the merge. `_PUBLISHED` is the artifact this phase writes, where the merge has turned
-165 mixed cells pure. A generator computing purity off the file it just wrote reads 93.48, so both
+36 mixed cells pure. A generator computing purity off the file it just wrote reads 91.04, so both
 are printed and each is labelled."""
 
 ARRIVAL_ROUNDING_TO_ZERO = 53
@@ -118,7 +118,7 @@ Both families this repo can read against an outside number go the wrong way at a
 and the report asserted the opposite until this date. The reference is a RAKED NL25 game and this
 is a rake-free solve, so rake-free is supposed to open and defend WIDER; a seat reading narrower is
 the one direction that argument cannot explain. Opens read narrower at HJ, CO and BTN, worst at
-BTN with 39.266 against 40.560, and the big blind's defence at BTN alone with 36.653 against
+BTN with 37.363 against 40.560, and the big blind's defence at BTN alone with 37.326 against
 39.430 - the same seat both times, and the seat where a rake-free solve should stretch furthest.
 
 **These are counts of seats and not a tolerance.** Nothing gates on the comparison (decision 6) and
@@ -129,8 +129,8 @@ the artifact and the expectations file on every run.
 
 **The small blind's opening row is deliberately excluded from the narrower count and is not
 evidence of width.** The reference both raises and limps from that seat and this chart has no limp
-branch, so its raise-only column is not the same quantity. Read entry to entry it is +6.16 rather
-than +19.89, and the report prints that row and says so."""
+branch, so its raise-only column is not the same quantity. Read entry to entry it is +5.70 rather
+than +19.43, and the report prints that row and says so."""
 
 PAIR_INVERSIONS = 87
 KICKER_INVERSIONS = 197
@@ -177,7 +177,7 @@ comparison names the reference it is read against. The chart does read **wider**
 button. That file is a **raked** game, so a rake-free solve reading wider than it is the floor
 rather than evidence the level is sound, and nothing in this repo commits a rake-free reference to
 read the level against (`REFERENCE-RANGES-HAVE-NO-CITED-SOURCE`,
-`NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE`). The flat separately spans 2.81
+`NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE`). The flat separately spans 16.37
 points across those five openers, which is the fingerprint decision 34 names, not a second defect
 wearing this band's price."""
 
@@ -231,10 +231,7 @@ faced 0`, scores exactly five, so every row is asserted."""
 # --- the report's shape --------------------------------------------------------------------- #
 
 HEADINGS = {
-    # Still "four-bucket" in the generator, which MAINT-34's fourth exclusion clause makes stale.
-    # This is a locator rather than a claim, so it tracks what `scripts/` emits: correcting the
-    # heading is a `scripts/**` edit and outside a frozen-test repair.
-    "census": "## The four-bucket node census",
+    "census": "## The node census, bucket by bucket",
     "exposure": "## Multiway exposure, per committed spot",
     "trace": "## One converted cell, traced",
     "arrival": "## The arrival grain, and the spots that round to zero",
@@ -409,19 +406,26 @@ def rate_rows(body: str) -> list[tuple[str, str, str, int, int, float]]:
 def test_the_census_and_the_spot_count_are_published_against_the_export_and_the_walk(
     report_text, artifact
 ) -> None:
-    """Four buckets summing to the export's own node count, and the spot set checked key by key.
+    """Seven buckets summing to the export's own node count, and the spot set checked key by key.
+
+    Seven, not the six this docstring said and not the four the heading said until MAINT-34:
+    committed, the five exclusion codes, and the inexpressibility code. The census prints and
+    totals all seven rows. A bucket count typed into prose beside a partition that is derived is
+    the same defect as any other hand-typed count
+    (HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES).
 
     Two failures live here and arithmetic catches neither. A census that balances can still be a
     subset dressed as a census, which is why the total is checked against a figure on the export's
     source card rather than against itself. And a converter that dropped one node while inventing
     one key gives the identical count, which is why the report publishes the invented and dropped
-    keys rather than only the totals - 249 nodes are not self-evidently 249 keys.
+    keys rather than only the totals - 156 nodes are not self-evidently 156 keys.
 
-    The vocabulary is closed and the three codes stay apart because a reader has to be able to
+    The vocabulary is closed and the five codes stay apart because a reader has to be able to
     tell which nodes come back by which route: the multiway family when GTOpen can price a
-    multiway pot, the ten big-blind squeeze spots when the flats are repaired, and the 33,362
-    beyond the committed depth when a later phase takes up the four-bet. A census folding two of
-    them together balances exactly and is refused for saying nothing.
+    multiway pot, the nine big-blind squeeze spots when the flats are repaired, the 160 with no
+    arriving class and the 128 whose split does not close when a solve stops driving those lines
+    to zero, and the 30,002 beyond the committed depth when a later phase takes up the four-bet.
+    A census folding two of them together balances exactly and is refused for saying nothing.
     """
     body = section(report_text, "census")
     committed = re.search(r"^\s*committed\s+(\d+)\s*$", body, re.MULTILINE)
@@ -470,7 +474,7 @@ def test_the_census_and_the_spot_count_are_published_against_the_export_and_the_
 def test_the_committed_set_has_the_shape_the_rulings_selected(report_text, artifact) -> None:
     """The histogram, the seats and the prices, recomputed off the artifact's own keys.
 
-    5 first-in, 25 facing an open, 254 facing a three-bet, and nothing deeper: three-bet-facing is
+    5 first-in, 16 facing an open, 135 facing a three-bet, and nothing deeper: three-bet-facing is
     the deepest the filters admit, so a fourth bucket here is a converter that committed something
     above the ruled depth. The prices are exactly the three the solve offers and `100.0` is not
     among them, which is what makes hero's own jam a property of the withheld family rather than
@@ -553,7 +557,7 @@ def test_one_cell_is_traced_from_an_export_node_to_the_row_it_became(
     Reach and arrival are both on the row because neither says what the other does. Reach is "can
     hero hold this hand here", a plain mean over the 169 classes with no floor selecting cells;
     arrival is "is this line played at all", one left-to-right product from the root in parts per
-    billion. Over the 284 arrival spans many orders of magnitude and reach does not, which is why
+    billion. Over the 156 arrival spans many orders of magnitude and reach does not, which is why
     the grain section below has to exist at all.
     """
     body = section(report_text, "trace")
@@ -584,10 +588,10 @@ def test_one_cell_is_traced_from_an_export_node_to_the_row_it_became(
 def test_the_arrival_grain_is_published_with_the_count_of_spots_rounding_to_zero(
     report_text, artifact
 ) -> None:
-    """Arrival is a probability at a scale where a sixth of the committed set rounds away.
+    """Arrival is a probability at a scale where a third of the committed set rounds away.
 
-    181 of the 284 round to zero in parts per billion and 175 are exactly zero, so a reader who
-    saw the zeroes without the grain would read 44 unreachable spots where there are two. The
+    53 of the 156 round to zero in parts per billion and 47 are exactly zero, so a reader who
+    saw the zeroes without the grain would read 53 unreachable spots where there are 47. The
     count is recomputed here off the artifact's own `arrival_ppb` rather than read back off the
     sentence that states it, and the zero case is asserted non-vacuous: if nothing rounded to
     zero, publishing the grain would be a fact about the format and a criterion that cannot fail.

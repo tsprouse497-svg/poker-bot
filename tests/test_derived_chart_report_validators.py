@@ -16,9 +16,10 @@ positive control asserts it still publishes on good input - four refusal tests r
 
 **Re-cut at stage 4 on 2026-09-02, and again for MAINT-34.** Each earlier cut described another set
 - six spots, before that 143 nodes, before that 86 - under a five-code refusal vocabulary of which
-not one code survives. Decisions 46, 48, 49, 50 and 53 replace it, plus MAINT-34's fourth refusal
-code: **284** of **30,609** nodes, **four** per-cell relations, and two arms over **ten**
-partitions, the rank arm scoring every spot and skipping comparisons whose partner cell is absent.
+not one code survives. Decisions 46, 48, 49, 50 and 53 replace it, plus MAINT-34's fourth and
+fifth refusal codes: **156** of **30,609** nodes, **four** per-cell relations, and two arms over
+**ten** partitions, the rank arm scoring every spot and skipping comparisons whose partner cell is
+absent.
 
 **Neither arm passing is evidence the ranges are sound.** Decision 42 settled that nothing here
 gates on whether a range is good poker: both are extraction checks, blind to over-folding, a
@@ -29,14 +30,13 @@ to twins, so the suit swap scores it as a correct chart.
 **The restriction to spots closed under reversal was withdrawn on 2026-09-03**
 (`RANK-ARM-RESTRICTION-RESTED-ON-A-SPLICED-FIGURE`), and the one-cell margin this file used to
 warn about was an artefact of it. `tests/test_chart_counterfactual_arms.py` carries the account;
-what matters here is that the tightest of the ten partitions is `hero=LJ` at 75 against 96, and
-that a red is a halt, never a number softened until it admits the artifact it judges.
+what matters here is that the tightest of the ten partitions is `hero=BTN` at 101 against 114,
+and that a red is a halt, never a number softened until it admits the artifact it judges.
 """
 
 from __future__ import annotations
 
 import inspect
-import json
 import re
 import subprocess
 import sys
@@ -46,15 +46,14 @@ from pathlib import Path
 import pytest
 import test_chart_derivation as derivation_tests
 import test_derived_chart_report as report_tests
+from corrupted_artifacts import corrupted_artifact
 from derived_chart_shape import a_full_grid, monotone
 
 from poker_training_bot.solver_artifacts import lookup
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES
 from poker_training_bot.solver_artifacts.importer import (
-    import_preflop_artifact,
     import_preflop_artifacts,
 )
-from poker_training_bot.solver_artifacts.schema import weights_checksum
 from scripts.repo_paths import REPO_ROOT
 
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
@@ -214,11 +213,11 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
 
 
 def test_the_artifact_spot_count_is_checked_against_the_walk_key_by_key(generator) -> None:
-    """249 nodes are not self-evidently 249 keys, and a total cannot tell the difference.
+    """156 nodes are not self-evidently 156 keys, and a total cannot tell the difference.
 
     A converter that dropped one node while inventing one key publishes the identical count, so
     the comparison runs key by key. The three count-preserving swaps below invent one key from
-    each refusal family in turn - refused for multiway exposure, one of the ten big-blind squeeze
+    each refusal family in turn - refused for multiway exposure, one of the nine big-blind squeeze
     spots, and one beyond the committed raise depth - so a converter missing any one clause fails
     here by the name of the clause it lost."""
     walked = {
@@ -521,7 +520,8 @@ def test_the_old_versus_new_disagreement_count_is_refused_when_it_cannot_be_read
     (`corpus-self-play-crossref-empties-silently` is the same failure elsewhere). A zero
     disagreement over a non-empty overlap is refused rather than argued about, and the measured
     reason it cannot be true is on the ledger: the retired chart's 36 sizing entries are every one
-    priced at a jam, where the derived chart offers 2.5, 7.5 and 22.5 and no jam at all."""
+    priced at a jam, where the derived chart offers 2.5, 7.5, 13.5, 22.5 and 40.5 and quotes the
+    jam at 33 of its 156 spots rather than at every priced one."""
     ways = {"derived continues, retired folds": 140, "retired continues, derived folds": 40}
     generator.validate_disagreement(shared_decisions=1200, disagreements=180, by_direction=ways)
 
@@ -540,7 +540,7 @@ def test_the_old_versus_new_disagreement_count_is_refused_when_it_cannot_be_read
 def test_the_three_vacuous_criteria_are_labelled_and_heros_jam_is_shown_where_it_lives(
     report_text, artifact
 ) -> None:
-    """Three criteria have no instance over the 284, and a criterion that cannot fail did not
+    """Three criteria have no instance over the 156, and a criterion that cannot fail did not
     pass. Each is kept because a later solve reactivates it: the two-price sizing schema, proved
     against a synthetic export under decision 6; the no-raise half of the sizing invariant, no
     committed spot offering zero raises; and the jam-and-named-raise collapse rule, which under
@@ -568,7 +568,9 @@ def test_the_three_vacuous_criteria_are_labelled_and_heros_jam_is_shown_where_it
         f"{key} is within the committed raise depth, so it is not one of the withheld spots"
     )
     assert key not in {spot.spot_id for spot in artifact.spots}, f"{key} is committed"
-    assert 0.0 <= weight <= 100.0, weight
+    # Strictly above zero: until MAINT-34 the walk picked a node offering hero no jam at all, so
+    # this printed 0.00 - a dead canary - and the old `0.0 <= weight` bound passed either way.
+    assert 0.0 < weight <= 100.0, weight
 
     limitations = report_tests.section(report_text, "limitations")
     for entry in (
@@ -627,64 +629,29 @@ def test_a_pin_the_retired_chart_cannot_be_read_at_fails_the_command(tmp_path, p
     assert not (tmp_path / "report.txt").exists(), "a refused report must not also be published"
 
 
-def corrupted_artifact(tmp_path: Path, how: str) -> Path:
-    """A committed artifact that loads cleanly and is wrong, which is the case that matters."""
-    paths = sorted(report_tests.ARTIFACT_DIR.glob("*.json"))
-    assert len(paths) == 1, f"expected exactly one committed preflop artifact, found {paths}"
-    payload = json.loads(paths[0].read_text(encoding="utf-8"))
-    source = payload["spots"][0]["spot_id"]
-    if how == "drop-a-spot":
-        payload["spots"] = [spot for spot in payload["spots"] if spot["spot_id"] != source]
-        # Every per-spot map loses the spot too, or the importer refuses the file for its own
-        # reason and no validator here is reached. The forms differ because the density rules do:
-        # the first two owe an entry per declared spot, `arrival_ppb` only a subset in spot order.
-        del payload["action_weights"][source]
-        del payload["arriving_reach_bp"][source]
-        payload["arrival_ppb"].pop(source, None)
-    else:
-        # The narrowest spot the exposure filter refuses, at 10.0234 percent against the ruled
-        # ten. Its cells are copied off a committed spot, so the file stays internally consistent
-        # and only a comparison against the walk can see it.
-        invented = derivation_tests.NARROWEST_REFUSED_KEY
-        assert invented not in payload["action_weights"], f"{invented} is already committed"
-        payload["spots"].append(
-            {
-                "spot_id": invented,
-                "hero_position": invented.split("/")[2],
-                "action_sequence": [
-                    {"position": entry.position, "action": entry.action}
-                    | ({} if entry.size_bb is None else {"size_bb": entry.size_bb})
-                    for entry in derivation_tests.NARROWEST_REFUSED_SEQUENCE
-                ],
-            }
-        )
-        payload["action_weights"][invented] = dict(payload["action_weights"][source])
-        payload["arriving_reach_bp"][invented] = dict(payload["arriving_reach_bp"][source])
-    payload["audit_fields"]["spot_count"] = len(payload["spots"])
-    # Restamped through the repo's own checksum, so the corruption stays a valid artifact.
-    weights = tuple(
-        (spot, tuple((text, tuple(acts.items())) for text, acts in sorted(cells.items())))
-        for spot, cells in sorted(payload["action_weights"].items())
-    )
-    payload["audit_fields"]["weights_sha256"] = weights_checksum(weights)
-    path = tmp_path / "corrupted.json"
-    path.write_text(json.dumps(payload), encoding="utf-8")
-    # If the schema rejected it the command would exit non-zero for the loader's reason.
-    import_preflop_artifact(path)
-    return path
-
-
 @pytest.mark.parametrize("how", ["drop-a-spot", "commit-a-spot-above-the-exposure-threshold"])
 def test_a_wrong_artifact_fails_the_command_rather_than_being_rendered(tmp_path, how) -> None:
     """Both artifacts below load cleanly and are wrong, and neither may be rendered. One holds a
     spot fewer than the walk selected and says so in its own audit fields, so only a comparison
-    against the export sees it. The other holds one more: the narrowest spot the exposure filter
-    refuses, which is what a converter produces with the ruled ten nudged into the gap between
-    that spot at 10.0234 and the next refused one at 10.1189 - five hundredths, the canary's own
-    figure, where the two hundredths this once said would admit nothing. Nothing but the walk
+    against the export sees it. The other holds one more: `NARROWEST_REFUSED_KEY`, the narrowest
+    spot the exposure filter refuses, at **10.4362** on the 13.5bb solve. Nothing but the walk
     notices: the cell converts, imports and answers, and it is the second of the phase's two
-    canaries, authored before what it aims at."""
+    canaries, authored before what it aims at.
+
+    **This used to add that the canary `a-spot-above-the-exposure-threshold-is-committed` nudges
+    the ruled ten into the gap admitting this same spot. That is now false and cannot be made
+    true again**: this spot is also a big-blind squeeze spot and `exclusion_code` runs exposure
+    before squeeze, so any threshold that stops refusing it here just hands it to clause three -
+    the committed set does not move. The canary is re-pinned at 11.4 against a different node.
+    This parameter needs only that the spot it appends is one the filter refuses, which
+    `NARROWEST_REFUSED_KEY` still is."""
     result = run_report(tmp_path, "--artifact", str(corrupted_artifact(tmp_path, how)))
 
     assert result.returncode != 0, result.stdout + result.stderr
     assert not (tmp_path / "report.txt").exists()
+    # The REASON, not just the exit code. A crash also exits non-zero and writes no report, so
+    # the two assertions above cannot tell a validator that refused from one that fell over
+    # downstream - which is how `the-derived-chart-report-renders-whatever-it-is-handed` came to
+    # survive its own command at MAINT-34's gate.
+    assert "Traceback" not in result.stderr, result.stderr
+    assert "refused:" in result.stderr, result.stderr

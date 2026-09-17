@@ -130,8 +130,8 @@ examples:
   ask what the button does with ace-king against a cutoff open
     --seat BTN --facing "CO raise 2.5" --hand AhKs
 
-  ask what the big blind does with queens facing a four-bet
-    --seat BB --facing "SB raise 2.5,BB raise 7.5,SB raise 22.5" --hand QQ
+  ask what the button does with ace-queen offsuit facing the big blind's three-bet
+    --seat BTN --facing "BTN raise 2.5,BB raise 13.5" --hand AQo
 
   ask what the lojack opens with when the pot is folded to it
     --seat LJ --hand 72o

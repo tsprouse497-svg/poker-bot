@@ -33,12 +33,13 @@ A cheaper price is a correct reason to continue with more hands, so part of ever
 The price abstraction did not go away with the coarse key, it became visible.
 A price the tree does not hold is still answered from a price it does, and the answer now records which price it was asked at, so a rate here is still computed partly across substituted prices - the difference is that the substitution is counted rather than invisible.
 
-**The chart answers 284 spots, and five of them are opening ranges.**
-The cutover's selection rule keeps a spot only where the source prices every terminal below it, and every seat that can open the pot survives it: the lojack, hijack, cutoff, button and small blind each have a first-in range, and behind them sit 25 spots facing a single open and 254 where a three-bet is already in.
-Of those 254, 157 sit behind a blind three-betting to 13.5 big blinds and 97 behind an in-position three-bet at 7.5, which is the shape the 2026-09-16 re-solve left; that family held 219 spots before it, every one of them at 7.5.
+**The chart answers 156 spots, and five of them are opening ranges.**
+The cutover's selection rule keeps a spot only where the source prices every terminal below it, and every seat that can open the pot survives it: the lojack, hijack, cutoff, button and small blind each have a first-in range, and behind them sit 16 spots facing a single open and 135 where a three-bet is already in.
+Of those 135, 81 sit behind a blind three-betting to 13.5 big blinds and 54 behind an in-position three-bet at 7.5, which is the shape the 2026-09-16 re-solve left; that family held 219 spots before it, every one of them at 7.5.
 What the rule does not keep is the limped pot and the big blind's multiway defence, and the four-bet family is withheld on purpose for a later phase.
-So the agreement rates below are computed over almost all of the sample - 95.4% of its decision points, the rest refused - and over slightly more of it than the rates published before the cutover, which came from a raked chart holding 36 keys, so what separates the two is the rake and the tree rather than how much of the sample each could reach.
-A bigger chart is not by itself more coverage, and that re-solve is the case in point: the spot count rose by 35 and the refusal count rose too, because what this sample asks and this chart cannot answer is mostly shapes the tree holds no branch for rather than prices it holds too few of.
+So the agreement rates below are computed over most of the sample - 93.6% of its decision points, the rest refused - and still over more of it than the rates published before the cutover, which came from a raked chart holding 36 keys, so what separates the two is the rake and the tree rather than how much of the sample each could reach.
+A bigger chart is not by itself more coverage, and that re-solve is the case in point in both directions: the spot count first rose from 249 to 284 at the new three-bet size and the refusal count rose with it, 139 to 141, and then decision 7 took the spot count down to 156 and the refusal count up again, to 194.
+So the count moved both ways over one task and coverage only ever fell, because what this sample asks and this chart cannot answer is mostly shapes the tree holds no branch for rather than prices it holds too few of - and, since decision 7, spots the chart now declines rather than answers from a guard that never ran.
 
 ## What the comparison measures
 
@@ -48,9 +49,10 @@ Phase 06's fallback never bets and never raises, so a postflop comparison would 
 **Real players are not an oracle.**
 A disagreement means this chart and this player did different things in this spot.
 These are strong professionals, but they are not solvers, and they were playing an opponent pool of one superhuman bot rather than the pool the chart was solved for.
-Agreement with Pluribus is the closer thing to a correctness signal, and there 475 scored decisions is a sample rather than a proof.
-The human denominator is 2,432.
+Agreement with Pluribus is the closer thing to a correctness signal, and there 471 scored decisions is a sample rather than a proof.
+The human denominator is 2,383.
 Both grew at the cutover, from 456 and 2,302, because the committed chart answers more of this sample than the retired one did.
+Both then shrank again at decision 7, from 475 and 2,432, because a refused decision leaves the denominator rather than joining the disagreements; they are still above what the retired chart reached.
 
 **One disagreement count moved on purpose, and it is still not evidence of better poker.**
 The blinds' three-bet was re-solved from 7.5 big blinds to 13.5 on 2026-09-16, because at the cheap size the big blind three-bet almost its entire pair ladder and flatted almost nothing, so its calling range was an artefact of the price rather than a strategy.
@@ -69,7 +71,7 @@ That is 6.4% of the sample, and most of it is what the solve does not contain ra
 That last split used to be reported as ten hand-class misses and no more; the squeeze shape was always in the bucket and was always a missing cell rather than a missing class, and it is separated here because the two need different work.
 
 **The remaining 50 are new, they are one shape, and they are a cost this repo chose rather than a hole in the solve.**
-They are a non-blind seat - the small blind at 26, the button at 17, the cutoff at 7 - facing an open with one cold caller already in.
+They are a seat other than the big blind - the small blind at 26, the button at 17, the cutoff at 7 - facing an open with one cold caller already in.
 The chart answered them until MAINT-34's decision 7, which refuses a spot whose multiway exposure could not be measured because its terminal split does not close; nine of the ten cold-called committed spots went with it.
 Decision 7 says in as many words that this would happen: zero arrival is measured under the solve's own play, a human takes lines the solver never does, so refusing these raises the refusal count without costing any coverage the solve had.
 The bot now declines there instead of answering from a guard that never checked, and 53 more decision points is what that is worth against this corpus.

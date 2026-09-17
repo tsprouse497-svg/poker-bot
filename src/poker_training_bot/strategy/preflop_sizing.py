@@ -106,9 +106,15 @@ class PreflopSizingTable:
 
         A spot **present with an empty class map** is a different fact: the menu does offer
         hero a raise, and no hand he can be holding when he arrives there ever takes it. As
-        the chart stands after the cutover that is 81 of its 249 spots, every one of them
-        facing a three-bet - hero opened or flatted, someone raised, and against that raise
-        his whole arriving range folds or calls. The solve says so, and an empty map is how
+        the chart stands after the 13.5bb blind three-bet re-solve that is 8 of its 156 spots,
+        every one facing a three-bet after hero himself cold-called - someone raised, and
+        against that raise his whole arriving range folds or calls. It read 81 of 249 before
+        that re-solve, so the count is dated rather than derived: nothing recomputes it here
+        and the next re-solve moves it again. The live figure is derived and published by
+        `generate_derived_chart_report.py`, in the row reading `sizing keys with at least one
+        class priced ... with an empty price list`; read it there rather than from this
+        sentence (HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES). The solve says so, and
+        an empty map is how
         the artifact says it, so this loader records it rather than rejecting it. The old rule
         refusing an empty map was only ever safe because the retired 86-spot chart happened to
         price something everywhere.

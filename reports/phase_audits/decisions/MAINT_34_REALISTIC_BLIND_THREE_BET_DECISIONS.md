@@ -71,6 +71,22 @@ When a blind four-bets over the other blind's 13.5 it gets the 5.4 multiplier ag
 clamps to a jam. So **49 of 254 three-bet-facing committed spots offer no sized four-bet**, split
 SB 34 / BB 15, carrying **1.4364% of committed arrival**.
 
+**Re-measured 2026-09-17, after decision 7.** The ruling stands and the arrival figure is exactly
+unchanged, because decision 7 only ever removed zero-arrival spots. The counts are not: **34 of 135**
+three-bet-facing committed spots are jam-only, split **SB 29 / BB 5**. The proportion went the wrong
+way, 19.3% to 25.2%, since the spots decision 7 refused were mostly not the jam-only ones. The
+figures above are what Taylor ruled on and are left as the record of that; these are what ships.
+
+**Corrected 2026-09-17, same day, by both independent reviews agreeing separately.** This paragraph
+first read 33 / SB 28 / BB 5, which is a different question's answer. The word this ruling turns on
+is **offer**, and a menu is what a spot offers: counted that way it is 34 and SB 29. Counting instead
+the spots where some arriving class actually *takes* the jam gives 33 and SB 28, and the one spot
+between the two readings is
+`t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@13.5,LJ:call`, whose menu is jam-only and
+whose sizing map is empty because nothing arriving there raises. Both numbers are true of different
+things and neither is wrong; what was wrong was publishing one of them under a sentence asking for
+the other, in two documents, with nothing naming the reading.
+
 This is structural for a single multiplier: a 13.5 three-bet needs `m = 5.4` and a sized four-bet
 needs `13.5m < 67`, so `m < 4.96`. Both cannot hold.
 

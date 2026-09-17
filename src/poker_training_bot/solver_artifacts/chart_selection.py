@@ -5,16 +5,18 @@ are. The two live apart because `src/**/*.py` stops at 500 lines and the walk to
 not fit beside the conversion, so `chart_derivation` re-exports every name here and no caller has
 to know which file a rule sits in.
 
-Four clauses, conjoined, and each one a separate ruling rather than a restatement of the others.
+Five clauses, conjoined, and each one a separate ruling rather than a restatement of the others.
 At most two raises are already in the pot hero is being asked about. Under a tenth of the node's
 decision mass reaches a flop with three or more players. Hero is not the big blind answering an
-open somebody has already cold-called. And at least one of the 169 hand classes actually arrives,
-because a node hero can never be sitting at is not a decision he faces.
+open somebody has already cold-called. At least one of the 169 hand classes actually arrives,
+because a node hero can never be sitting at is not a decision he faces. And the exposure
+measurement closed on its own decision mass rather than losing branches into nodes no class
+arrives at, because a guard that could not see its own input has not measured anything.
 
-**The middle clause is measured, not counted.** "Could three players still be in" is a fact about
+**Clause two is measured, not counted.** "Could three players still be in" is a fact about
 the node, and it is what an earlier cut of this rule used; the ruled reading is a fact about the
 leaves below the node, which is where the source's pairwise pricing of a multiway pot actually
-bites. The two disagree at 237 of the 284 committed nodes: a seat count would have refused every
+bites. The two disagree at 109 of the 156 committed nodes: a seat count would have refused every
 one of them, because a pot three seats can still enter mostly does not end up three-handed. Both
 figures move on every re-solve; the chart's own `audit_fields.notes` recomputes them per build,
 so read them there rather than from here.
@@ -91,10 +93,12 @@ MAINT-34's decision 7.
 MULTIWAY_EXPOSURE_THRESHOLD_PCT = 10.0
 """A tenth of the decision mass, strictly under. The margin either side of it is not stable and
 is not the argument: the widest admitted spot sat at 9.8642 against a narrowest refused of
-10.0234 under the 7.5bb solve, sixteen hundredths apart, and sits at 9.6609 against 10.4362 -
-three quarters of a point - at 13.5bb. Re-measure rather than quote. What does not move is why
-the measurement is walked rather than estimated from the seats still live, which is the
-disagreement the module docstring counts."""
+10.0234 under the 7.5bb solve, sixteen hundredths apart, and sits at 9.1945 against 10.4362 -
+a point and a quarter - at 13.5bb once decision 7 cut the committed set to the spots whose
+exposure can be measured. The 9.6609 this line carried was measured before that cut, at a spot
+the cut then refused. Re-measure rather than quote. What does not move is why the measurement is
+walked rather than estimated from the seats still live, which is the disagreement the module
+docstring counts."""
 
 _VOLUNTARY_KINDS = frozenset({"call", "raise", "jam"})
 _KNOWN_KINDS = frozenset({"fold"}) | _VOLUNTARY_KINDS
@@ -245,12 +249,13 @@ def cold_call_index(
     already half paying rather than money in behind an opener, and it stays inside the
     measurement. A seat that opened and now faces a three-bet is not cold either, its own raise
     being already in, so its call stays too. The second exemption carries weight rather than
-    decorating the sentence: dropping it removes a branch the chart still offers, and commits 314
-    spots - 5 first-in, 25 facing an open, 284 facing a three-bet - instead of 284 with 254
+    decorating the sentence: dropping it removes a branch the chart still offers, and commits 178
+    spots - 5 first-in, 16 facing an open, 157 facing a three-bet - instead of 156 with 135
     facing a three-bet. All four are properties of the solve rather than of this rule, so recount
-    them against the export: the 346 and 316 this line carried were this same counterfactual on
-    the 7.5bb solve, and the 361 before them was a different one, taken before the third clause
-    removed its nine.
+    them against the export: the 314 and 284 this line carried were this same counterfactual on
+    the 284-spot chart decision 7 superseded, the 346 and 316 before those were it on the 7.5bb
+    solve, and the 361 before them was a different one, taken before the third clause removed its
+    nine.
     """
     walk = _walk_of(by_path)
     if node.actor_pos == "BB" or node.actor_pos in walk.invested[node.path]:
@@ -347,7 +352,7 @@ def has_an_arriving_hand_class(
     there is no range to publish, no cell to blank, and nothing for the ruling to protect.
 
     It reads hero's own arriving reach rather than the line's arrival probability, and those come
-    apart: a zero-arrival spot is one the solve almost never plays into, and 181 of the 284
+    apart: a zero-arrival spot is one the solve almost never plays into, and 53 of the 156
     committed are exactly that while still carrying classes hero can hold. The "two of the 249"
     this line used to carry is withdrawn rather than updated - it reproduces under neither
     reading tried against the 7.5bb export, which gives 44 zero-arrival committed spots, or one

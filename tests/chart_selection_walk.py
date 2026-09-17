@@ -1,6 +1,6 @@
 """The walk of a solver export that `test_chart_derivation.py` states the selection rule over.
 
-**A support module, not a test module, and the split is a line cap and nothing more.** The four
+**A support module, not a test module, and the split is a line cap and nothing more.** The five
 clauses, the counts they select and every assertion about them stay in `test_chart_derivation.py`,
 which owns them; this file is the machinery those assertions are written on. MAINT-34 forced the
 split: decision 2 adds a fourth clause to a file that was already at the 700-line cap with no
@@ -154,7 +154,7 @@ def cold_call_index(walk: Walk, node: SolverNode) -> int | None:
     Cold means hero has put nothing in beyond the blinds. The big blind is never cold - it has
     posted, and decision 52 keeps its defence inside the measurement - and a seat that opened and
     now faces a three-bet is not cold either, so its call stays. Both exemptions are load-bearing:
-    dropping the second commits 314 nodes with 284 three-bet-facing spots instead of 254.
+    dropping the second commits 178 nodes with 157 three-bet-facing spots instead of 135.
     """
     if node.actor_pos == "BB" or node.actor_pos in walk.invested[node.path]:
         return None

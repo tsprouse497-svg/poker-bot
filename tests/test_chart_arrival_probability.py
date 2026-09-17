@@ -265,7 +265,7 @@ def selection():
 
 @pytest.fixture(scope="module")
 def committed(selection, export: SolverExport) -> tuple[SolverNode, ...]:
-    """The 249 nodes the phase commits, taken from the file that owns the rule that picks them."""
+    """The 156 nodes the phase commits, taken from the file that owns the rule that picks them."""
     nodes = tuple(selection.selected(export))
     assert len(nodes) == selection.COMMITTED_NODES
     return nodes

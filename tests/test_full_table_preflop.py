@@ -1,7 +1,7 @@
 """Phase 05 tests, written from the contract before any implementation existed.
 
 `TestSourceFrequencies` moved to `tests/test_preflop_committed_charts.py`; this file is hard against
-its line cap, so the prose is thin. **The cutover moved most of its seats:** over the 284 hero opens
+its line cap, so the prose is thin. **The cutover moved most of its seats:** over the 156 hero opens
 from all five first-in seats and faces an open from every seat behind one, gives up the four-bet
 family (46, 48), and prices by seat - a blind re-raises at 5.4."""
 
@@ -55,16 +55,18 @@ from full_table_queries import (  # noqa: E402
 )
 
 COMMITTED_SPOTS = 156
-"""5 first-in, 25 facing an open, 219 facing a three-bet. Tree shape rather than solve output."""
+"""5 first-in, 16 facing an open, 135 facing a three-bet. Tree shape rather than solve output."""
 
 SB_OPEN_KEY = f"t6/d{DEPTH_BB}/SB/rfi"
 FIRST_IN_SEATS = ("LJ", "HJ", "CO", "BTN", "SB")
 
 LADDER_BB, BLIND_SEATS = (2.5, 7.5, 13.5, 22.5, 40.5, 100.0), ("SB", "BB")
 OPEN_BB, GLOBAL_MULT, BLIND_MULT, ALLIN_AT = 2.5, 3.0, 5.4, 67.0
-"""Every raise price the solved tree holds; the 100bb jam went with the four-bet family."""
+"""Every raise price the solved tree holds. The 100bb jam did not go with the four-bet family:
+MAINT-34's clamp quotes it at 33 committed spots, where a blind cannot four-bet a blind."""
 DECLARED_CELLS = 14586
-"""Cells at non-zero reach over the 284 (49); zero-reach classes are dropped, so it is every one."""
+"""Cells at non-zero reach over the 156 (decision 49); zero-reach classes are dropped, so it is
+every one."""
 
 
 def solved_line(lib: PreflopChartLibrary, hero: str, *raisers: str) -> tuple[PreflopAction, ...]:
@@ -216,7 +218,7 @@ class TestCommittedArtifact:
         assert three_bet_spot(library) in library.spot_keys()
 
     def test_the_big_blind_facing_a_limp_is_no_longer_covered(self, library) -> None:
-        """`limp: false`, so it passes all three clauses and still has no node to derive from."""
+        """`limp: false`, so it passes all five clauses and still has no node to derive from."""
         assert f"t6/d{DEPTH_BB}/BB/SB:call" not in library.spot_keys()
 
 
@@ -245,7 +247,7 @@ class TestDecisions:
         assert outcome.amount == round(2.5 * BIG_BLIND)
 
     def test_the_price_is_drawn_from_the_classs_own_weights_with_the_actions_seed(self, strategy):
-        """The seeded price **draw** has no instance over the committed 284 and is labelled vacuous
+        """The seeded price **draw** has no instance over the committed 156 and is labelled vacuous
         rather than counted as a check that passed: each spot offers one named raise. The premise
         is asserted over every declared class here, so a build reintroducing a second price fails
         rather than slipping past. The big blind's raise here is 13.5 - the seat term, not a
@@ -441,7 +443,7 @@ class TestTotality:
         """Every cell of every covered spot, every price checked against the tree rather than the
         table that produced it: `offered` was read from `sizes_bb`, where `decide_spot` reads it,
         so `mispriced == []` said the implementation equalled itself. It comes off the **key** now
-        - what hero's seat multiplier makes of the level faced - reproducing all 284 menus,
+        - what hero's seat multiplier makes of the level faced - reproducing all 156 menus,
         failing a table
         that priced a three-bet spot at the open size. The forced-raise and two-price counts were
         measured over the retired 86 and nothing replaces them, so each becomes the property it

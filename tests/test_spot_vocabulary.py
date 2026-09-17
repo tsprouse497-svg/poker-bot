@@ -151,8 +151,8 @@ def test_rendering_is_injective_over_the_committed_sizes(library, sizing) -> Non
     tree shape and is pinned here. **MAINT-34 doubled the ladder and put the stack back on
     it.** A blind three-bets to 13.5 rather than 7.5, the four-bet over a blind is 40.5, and a
     blind four-betting the other blind reaches 72.9 and clamps to the stack. So the 100bb stack
-    is a committed price again, at 49 spots, where under `add_allin: false` alone it was
-    nowhere. The counter is the spots that contributed a price: 276 of the 284.
+    is a committed price again, at 33 spots, where under `add_allin: false` alone it was
+    nowhere. The counter is the spots that contributed a price: 148 of the 156.
 
     That counter read 249 when this was written, on the claim that "every committed spot
     offers hero a raise". The claim is true, and it is a claim about the spot's MENU; this
@@ -407,8 +407,8 @@ def test_every_committed_raise_entry_carries_a_size(library) -> None:
     """Asserts against today's artifact, so this red is a real assertion failure.
 
     The empty list on its own would be satisfied by a chart holding no raise entries at
-    all, so the counter says how many keys the filter really read a price out of: 244 of the
-    249, every key but the five where nobody has raised in front of hero. Those five are the
+    all, so the counter says how many keys the filter really read a price out of: 151 of the
+    156, every key but the five where nobody has raised in front of hero. Those five are the
     committed first-in spots, and they are the whole of that family because only five seats
     can ever be first in six-handed - the big blind is never folded to, it is walked.
     """
@@ -530,16 +530,16 @@ def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> N
     """The key says what hero faces; the sizing table says what hero may raise to.
 
     They are indexed the same way, so a re-keying that moved one and not the other would
-    leave every raise refusing for no committed size. After the cutover the table prices 168
+    leave every raise refusing for no committed size. After the cutover the table prices 148
     of the committed 156.
 
     This read "all 249, the no-raise half has no instance" when it was written, and that
     conflated two questions. Every committed spot's MENU does offer hero a raise - the
     first-in spots open, the facing-an-open spots three-bet, the three-bet-facing spots
-    four-bet - but `sizes_bb` answers about the hand classes that arrive, and at 81 of those
-    spots no arriving class raises. All 81 face a three-bet and all 81 are reached only
+    four-bet - but `sizes_bb` answers about the hand classes that arrive, and at 8 of those
+    spots no arriving class raises. All 8 face a three-bet and all 8 are reached only
     through hero's own cold call: hero flatted, someone re-raised behind, and the flatting
-    range hero arrives with holds nothing this solve four-bets. So the no-raise half has 81
+    range hero arrives with holds nothing this solve four-bets. So the no-raise half has 8
     instances and is measured here rather than labelled vacuous. Absence is still `sizes_bb`
     returning None rather than an empty list, because an empty list is a spot that raises for
     no price wearing the shape of a spot that cannot raise.

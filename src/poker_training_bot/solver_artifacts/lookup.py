@@ -13,8 +13,10 @@ There is exactly one abstraction in here, and it exists because a human ruled it
 Ruling 8 of `docs/V2_ROADMAP.md` says the solved tree carries one opening price and
 every other price is answered from it; Taylor extended it on 2026-08-20 to every
 raise in the sequence, because three-bets arrive at sizes the tree does not hold
-either and exact matching there would refuse 72 of the 79 three-bet decisions the
-committed chart can answer at all. So an observed price is normalised to the nearest
+either and exact matching there would refuse 167 of the 199 three-bet decisions the
+committed chart can answer at all - a figure over the committed corpus sample that
+moves with the chart and with the sample, re-measured by the spot vocabulary report
+rather than pinned here. So an observed price is normalised to the nearest
 price the loaded artifacts actually declare for that position after the same
 already-normalised prefix, and the answer carries the substitution so nothing
 downstream can mistake it for an exact one.

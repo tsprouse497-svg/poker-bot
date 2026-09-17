@@ -1,11 +1,11 @@
 """What a committed node becomes, and the census that accounts for the ones that are not.
 
-The export holds 33,969 action nodes and the chart holds 249 of them. Which 249 is
+The export holds 30,609 action nodes and the chart holds 156 of them. Which 156 is
 `chart_selection.py`'s question, and every name it answers with is re-exported here, so a
 caller reads one module and the split between the two stays a line-cap detail. This module
 owns the other half: the spot key a node derives, the cells and prices it publishes, the
 merge that turns hero's cold call into a raise, the arrival and reach it carries, and the
-four-bucket census over the whole export.
+census over the whole export - seven buckets since MAINT-34, not four.
 
 Selection lives as a predicate over the tree rather than as a list of keys somebody wrote
 down, because a list cannot be re-derived and a later phase that fixes the source would
@@ -162,10 +162,10 @@ def merges_the_cold_call(by_path: dict[tuple[int, ...], SolverNode], node: Solve
 
     The bot never cold-calls: money in behind an opener with nothing already invested buys a
     multiway pot out of position. So where hero faces an open and has nothing in BEYOND THE BLINDS,
-    the solve's call is merged into the raise - merged and not deleted, because at 2 of these 20
-    spots, across 4 of the 676 moved cells, a hand's whole weight is on calling and deleting would
+    the solve's call is merged into the raise - merged and not deleted, because at 2 of these 11
+    spots, across 4 of the 72 moved cells, a hand's whole weight is on calling and deleting would
     leave it with no answer at all. That was 15 spots and 40 cells at 7.5bb, so re-measure before
-    leaning on it. The same walk over every committed spot gives 53 spots and 447 cells.
+    leaning on it. The same walk over every committed spot gives 42 spots and 382 cells.
 
     Half of these spots ARE the small blind: its 0.5 is posted rather than chosen, so it is cold
     and it merges. The big blind is the one exemption, not for posting more but for closing the
@@ -226,7 +226,7 @@ def node_arrival_ppb(by_path: dict[tuple[int, ...], SolverNode], node: SolverNod
 
     Accumulated as a left-to-right float product and rounded once at the end. Carrying
     parts per billion as an integer and rounding after every factor instead disagrees at
-    31 of the committed 249, so it is a different answer rather than a better one, and the
+    15 of the committed 156, so it is a different answer rather than a better one, and the
     ruled reading is the one written here.
     """
     probability = 1.0
@@ -252,7 +252,7 @@ class NodeCensus:
     threshold is counted once, under the depth, that being the first thing that would have
     to change for it to ship. A reason with no nodes under it carries no entry, and the
     inexpressible bucket publishes empty over the committed export - a measurement rather
-    than an omission, all 33,969 nodes deriving a valid spot key and no two colliding.
+    than an omission, all 30,609 nodes deriving a valid spot key and no two colliding.
     """
 
     committed: int
