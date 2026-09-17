@@ -368,6 +368,10 @@ class PreflopArtifact:
     def _reach_index(self) -> dict[str, dict[str, int]]:
         return {spot_id: dict(cells) for spot_id, cells in self.arriving_reach_bp}
 
+    @cached_property
+    def _arrival_index(self) -> dict[str, int]:
+        return dict(self.arrival_ppb or ())
+
     @property
     def artifact_id(self) -> str:
         """`t{table_size}/d{stack_depth_bb}/{slug}`.
@@ -395,6 +399,18 @@ class PreflopArtifact:
         for an uncovered cell cannot tell it from a cell the chart answers.
         """
         return self._reach_index.get(spot_key_text, {}).get(hand_class_text)
+
+    def arrival_ppb_for(self, spot_key_text: str) -> int | None:
+        """How often the solve's own play reaches this spot, in parts per billion.
+
+        None when the artifact publishes no arrival map - the field is optional and a chart
+        committed before its probabilities were computed has none. So None means "not known
+        here" rather than "zero", and anything deciding on zero has to tell the two apart:
+        `lookup.is_untrained_cell` refuses on a measured zero and never on an absent map.
+        """
+        if self.arrival_ppb is None:
+            return None
+        return self._arrival_index.get(spot_key_text)
 
     def to_payload(self) -> dict[str, Any]:
         payload: dict[str, Any] = {

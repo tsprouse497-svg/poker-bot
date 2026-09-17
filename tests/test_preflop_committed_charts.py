@@ -2,21 +2,23 @@
 
 These tests stop `data/artifacts/preflop/` drifting away from the export that produced it, and
 they are the **migration** the contract's regression expectation asks for: every claim this file
-made about the 86-spot chart is re-cut against the 249 here, before the freeze, rather than
+made about the 86-spot chart is re-cut against the 284 here, before the freeze, rather than
 repaired after it. Phases 11 and 12 each deferred that and each paid a separate repair task.
 
 **What moved.** The retired set was 86 spots taken from a superseded export under a
-history-and-liveness predicate. The committed set is **249** of the export's 33,969 action nodes -
-5 first-in, 25 facing an open, 219 facing a three-bet - selected by three clauses: at most two
+history-and-liveness predicate. The committed set is **284** of the export's 30,609 action nodes -
+5 first-in, 25 facing an open, 254 facing a three-bet - selected by four clauses: at most two
 raises already in, multiway exposure below ten percent measured over the branches the bot can
-take, and no big-blind squeeze spot. So all five opening ranges come back, every four-bet-facing
-spot goes, and the price list is exactly 2.5, 7.5 and 22.5 with no jam anywhere.
+take, no big-blind squeeze spot, and some hand class arriving. So all five opening ranges come
+back and every four-bet-facing spot goes. The price list is no longer one rung per family:
+MAINT-34's per-seat multiplier makes a three-bet 7.5 in position and 13.5 from a blind, the
+four-bet 22.5 or 40.5, and a jam appears where a blind cannot four-bet a blind under the clamp.
 
 **And hero stopped cold-calling.** At the 20 non-big-blind facing-an-open spots each cell's call
 weight is added to its raise weight (decision 45), so the published menu there is raise or fold.
-The big blind's five keep fold, call and raise. The 219 publish fold, call and four-bet - offered,
-which at 81 of them is a four-bet no arriving hand takes, hero reaching those only by calling a
-raise then facing a re-raise. A helper filtering on weight reads five shapes, not four families.
+The big blind's five keep fold, call and raise. The 254 publish fold, call and four-bet - offered,
+which at 20 of them names an action no arriving hand takes. A helper filtering on weight reads
+four shapes, not two families.
 
 Every claim the cutover reverses is kept as its reversal rather than deleted: the four opening
 ranges that were refused are now answered, and the big blind's four-bet defence that was answered
@@ -46,8 +48,7 @@ from poker_training_bot.solver_artifacts.gtopen_export import (
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES
 from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
 from poker_training_bot.solver_artifacts.lookup import PreflopChartLibrary
-from poker_training_bot.solver_artifacts.schema import PreflopAction, weights_checksum
-from poker_training_bot.solver_artifacts.schema import spot_key as derive_spot_key
+from poker_training_bot.solver_artifacts.schema import weights_checksum
 from poker_training_bot.strategy.preflop_sizing import PreflopSizingTable
 from scripts.repo_paths import REPO_ROOT
 
@@ -60,12 +61,25 @@ which must not exist at all, while `six_max_100bb_rakefree.json` is the 86-spot 
 rewrites in place and reads out of git history - `RETIRED_SIZINGS` in
 `tests/test_derived_chart_report.py` is that second file and is asserted to *exist* at its pin."""
 
-DEPTH_BB = 100
+# The key grammar and the solved-line builder live in `committed_chart_vocabulary.py`, a support
+# module this file owns: MAINT-34's branched price ladder did not fit under the 700-line cap and
+# the ruling was to split rather than compress. Re-exported rather than re-reached, so
+# `test_preflop_committed_lookup.py` needs no edit and each name is defined exactly once.
+from committed_chart_vocabulary import (  # noqa: E402
+    DEPTH_BB,  # noqa: F401  - re-exported for `test_preflop_committed_lookup.py`
+    cold_callers,
+    hero_seat,
+    prices_in,
+    raises_faced,
+    rfi_key,
+    solved_key,
+    solved_line,  # noqa: F401  - re-exported for `test_preflop_committed_lookup.py`
+)
 
-COMMITTED_SPOTS = 249
+COMMITTED_SPOTS = 284
 FIRST_IN_SPOTS = 5
 FACING_AN_OPEN_SPOTS = 25
-FACING_A_THREE_BET_SPOTS = 219
+FACING_A_THREE_BET_SPOTS = 254
 """Decision 48's final set, split by how many raises hero faces. Contract, decision 49."""
 
 BB_FACING_AN_OPEN = 5
@@ -73,55 +87,40 @@ MERGED_FACING_AN_OPEN = 20
 NON_BLIND_SQUEEZE_SPOTS = 10
 """How the 25 split. Ten non-blind seats face an open with nobody in between - LJ opens and four
 seats can answer, HJ three, CO two, BTN one - ten more face an open with exactly one cold caller
-already in, and the big blind's five close the action alone. The big blind's own ten squeeze
+already in, and the big blind's five close the action alone. The big blind's own nine squeeze
 spots are the third clause's whole bucket (decision 48) and are refused."""
 
-CELLS_AT_NON_ZERO_REACH = 18_431
-"""Every cell the 249 declare. A class is declared where it arrives, so a spot at which hero has
+CELLS_AT_NON_ZERO_REACH = 25_273
+"""Every cell the 284 declare. A class is declared where it arrives, so a spot at which hero has
 not acted declares all 169 and the rest declare hero's arriving range. Decision 49."""
 
 RETIRED_SPOTS = 86
 """What this file used to describe. Kept as a number so a chart that did not move fails loudly."""
 
-OPEN_PRICE = 2.5
-THREE_BET_PRICE = 7.5
-FOUR_BET_PRICE = 22.5
-RULED_PRICES = (OPEN_PRICE, THREE_BET_PRICE, FOUR_BET_PRICE)
-"""`open_raises` is 2.5 and `raise_mults` is 3.0, so hero's price is the open times the multiplier
-once per raise faced. The fourth rung crosses `allin_threshold` and snaps to the stack, and it
-lives only at the four-bet-facing spots the depth clause refuses, so no committed spot holds it."""
+OPEN_PRICE, IN_POSITION_THREE_BET, BLIND_THREE_BET = 2.5, 7.5, 13.5
+IN_POSITION_FOUR_BET, BLIND_FOUR_BET, JAM_PRICE = 22.5, 40.5, 100.0
+BLINDS = ("SB", "BB")
+PRICES_BY_RAISES_FACED = {0: {OPEN_PRICE}, 1: {IN_POSITION_THREE_BET, BLIND_THREE_BET},
+                          2: {IN_POSITION_FOUR_BET, BLIND_FOUR_BET, JAM_PRICE}}
+"""**No longer one price per family: MAINT-34 made the ladder branch.** `raise_mults_by_seat`
+gives the blind seats 5.4 against the global 3.0, so a three-bet is 7.5 in position and 13.5 from
+a blind, the four-bet over it 22.5 or 40.5, and a blind four-betting the other blind's 13.5 gets
+5.4 again - 72.9, past `allin_threshold`, so **the jam is quoted at 48 committed spots**."""
 
 OPENERS = ("LJ", "HJ", "CO", "BTN", "SB")
 OPENING_ORDER = ("LJ", "HJ", "CO", "BTN")
 
-ROWS_THE_RAKE_DID_NOT_MOVE = {("open", "HJ")}
-"""The one of the reference's ten frequency rows the rake-free solve reproduces to within half a
-point: the hijack opens 21.5649 against 21.65. Every other row moves by 0.72 to 19.89. Named so
-the de-rake check can be stated per row instead of as a maximum, which one moving row satisfies."""
+ROWS_THE_RAKE_DID_NOT_MOVE = {("open", "HJ"), ("defence", "CO")}
+"""The two of the reference's ten frequency rows the rake-free solve reproduces to within half a
+point: the hijack opens 21.3052 against 21.65, and the big blind defends 31.7559 against a cutoff
+open where the reference has 31.48. The other eight move by 1.08 to 19.43.
+
+**This set is measured, not ruled, and MAINT-34 is the re-solve that showed it.** One row at 7.5bb
+and two at 13.5, and the *rake* did not move the cutoff row - the three-bet size did. Half a point
+is a round number nobody ruled and which rows fall under it is where two solves happen to cross,
+so this is a snapshot: the claim worth making is that de-raking is not a no-op."""
 
 
-def rfi_key(seat: str) -> str:
-    return f"t6/d{DEPTH_BB}/{seat}/rfi"
-
-
-def hero_seat(spot_key_text: str) -> str:
-    return spot_key_text.split("/")[2]
-
-
-def raises_faced(spot_key_text: str) -> int:
-    return spot_key_text.count(":raise@")
-
-
-def cold_callers(spot_key_text: str) -> int:
-    return spot_key_text.count(":call")
-
-
-def prices_in(spot_key_text: str) -> list[float]:
-    return [
-        float(part.split(":raise@")[1])
-        for part in spot_key_text.split("/", 3)[3].split(",")
-        if ":raise@" in part
-    ]
 
 
 @pytest.fixture(scope="module")
@@ -139,9 +138,8 @@ def menus(library: PreflopChartLibrary) -> dict[str, tuple[str, ...]]:
     """Per spot, every action the chart names in any class's row, sorted. The published menu shape.
 
     The names, not the ones some hand takes. This filtered on `weight > 0.0` while calling its
-    result a menu, and over the 249 the two come apart: 81 spots offer a four-bet no arriving class
-    takes, hero reaching them only by calling a raise then facing a re-raise. Taken, the 249 read
-    as five shapes - 142, 65, 26, 13, 3 - not the two below, and the four families dissolve.
+    result a menu, and over the 284 the two come apart at 20 spots. Taken, the 284 read as four
+    shapes - 239, 37, 4, 4 - not the two below, and the families dissolve.
     """
     found: dict[str, set[str]] = {}
     for spot_id, hand_classes in library.artifacts[0].action_weights:
@@ -149,36 +147,6 @@ def menus(library: PreflopChartLibrary) -> dict[str, tuple[str, ...]]:
         for _, weights in hand_classes:
             offered.update(action for action, _ in weights)
     return {spot_id: tuple(sorted(actions)) for spot_id, actions in found.items()}
-
-
-def solved_line(
-    library: PreflopChartLibrary, hero: str, *raisers: str
-) -> tuple[PreflopAction, ...]:
-    """`hero`'s line where each named seat raises at the price the chart solved there.
-
-    "There" is the spot **that seat** is acting at, not hero's. `solved_prices_bb` is addressed by
-    the spot's own hero, so hero's own raise is priced only by keys deeper than it - and for hero's
-    three-bet that key is the four-bet-facing one the depth clause withholds, which is why reading
-    it there worked on the retired chart and stopped working here. The sizing table prices each
-    committed spot directly, so each step reads the key its own raiser faces; `min` is the entry.
-
-    The line the refusal tests want is then built entirely out of committed spots even though the
-    spot it arrives at is not - `CO/rfi`, `BB/CO:raise@2.5` and `CO/CO:raise@2.5,BB:raise@7.5`
-    price 2.5, 7.5 and 22.5 - and each step asserts its own spot is committed as it goes.
-    """
-    sizing = PreflopSizingTable.from_repo()
-    declared = set(library.spot_keys())
-    sequence: list[PreflopAction] = []
-    for raiser in raisers:
-        key = derive_spot_key(6, DEPTH_BB, raiser, tuple(sequence))
-        prices = {size for name in HAND_CLASSES for size, _ in (sizing.sizes_bb(key, name) or ())}
-        assert key in declared and prices, (hero, raiser, key)
-        sequence.append(PreflopAction(raiser, "raise", min(prices)))
-    return tuple(sequence)
-
-
-def solved_key(library: PreflopChartLibrary, hero: str, *raisers: str) -> str:
-    return derive_spot_key(6, DEPTH_BB, hero, solved_line(library, hero, *raisers))
 
 
 def test_committed_artifact_imports() -> None:
@@ -247,7 +215,7 @@ def test_provenance_names_the_export_it_came_from() -> None:
 
 
 def test_the_committed_keys_split_into_the_three_families(library: PreflopChartLibrary) -> None:
-    """249 is not self-evidently three numbers. Counted key by key, because the artifact's own spot
+    """284 is not self-evidently three numbers. Counted key by key, because the artifact's own spot
     count cannot see a family that grew while another shrank - which is how a build on the depth
     clause alone reads: it keeps every four-bet-facing spot and still totals a number somebody
     could mistake for this one."""
@@ -354,7 +322,7 @@ def test_the_big_blinds_five_keep_the_flat_and_the_three_bet_family_keeps_it_too
 ) -> None:
     """The other side of the same ruling, and the reason it is not "the chart never calls". The big
     blind closes the action for the rest of a blind it already posted, so its flat is not a cold
-    call and stays. At the 219 the call is hero's call to a three-bet, which decision 52 says in
+    call and stays. At the 254 the call is hero's call to a three-bet, which decision 52 says in
     terms is not removed. A merge applied to either family is a chart three-betting a range it
     should be continuing with, and only asserting `call` present here catches it."""
     shapes = menus(library)
@@ -404,7 +372,7 @@ def test_a_spot_where_hero_already_acted_covers_only_heros_range(
 
 
 def test_the_committed_cells_are_the_classes_that_arrive(library: PreflopChartLibrary) -> None:
-    """The whole chart, counted. 18,431 cells at non-zero reach, and the converter drops the rest:
+    """The whole chart, counted. 25,273 cells at non-zero reach, and the converter drops the rest:
     a GTOpen payload is unconditional, so a hand hero folded upstream still carries a full strategy
     row and that row is the solver's untouched initialisation. Committing it is worse than a gap,
     because it does not read as missing (`UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY`)."""
@@ -415,7 +383,7 @@ def test_the_committed_cells_are_the_classes_that_arrive(library: PreflopChartLi
 
 def measured_aggregates(library: PreflopChartLibrary, export: SolverExport) -> Aggregates:
     """Both halves of the oracle read off the **chart** now. The 86 could not carry five opening
-    ranges, so the ascent was measured over the export; the 249 hold all five, so the whole
+    ranges, so the ascent was measured over the export; the 284 hold all five, so the whole
     comparison travels through the conversion, which is where a transposed index or a mis-assigned
     actor would be introduced. The export stays an argument because the frequencies are asserted
     against it below, and because a chart that lost a row must fail rather than shrink the set."""
@@ -548,9 +516,9 @@ class TestSizingTable:
         """The multi-size invariant, at the accessor the strategy actually calls, and both ways
         round: a class with aggressive weight carries an entry, a class without carries none.
 
-        Decision 6's headline case is **unexercisable over the 249** and is labelled rather than
-        counted: hero's own jam lives only at the four-bet-facing spots the depth clause withholds,
-        so every committed spot offers exactly one price and no class can hold two. The `cells[2]`
+        Decision 6's headline case is **still unexercisable over the 284** and is labelled rather
+        than counted: MAINT-34 put a jam on the menu at 48 spots, but it is the only aggressive
+        price there rather than a second one beside 40.5, so no class holds two. The `cells[2]`
         assertion is what makes that a measurement rather than a claim - a later solve that offers
         two turns it red instead of quietly passing.
         """
@@ -569,14 +537,14 @@ class TestSizingTable:
 
     def test_every_committed_spot_offers_a_raise_so_nothing_prices_nothing(self, library) -> None:
         """The other half of the two-directional sizing invariant, vacuous the same way: a spot
-        offering no raise carries no key, and the 249 contain no such spot. Every family ends in an
+        offering no raise carries no key, and the 284 contain no such spot. Every family ends in an
         aggressive action - the five open, the twenty-five raise or three-bet, the two hundred and
-        nineteen four-bet - so the case cannot be exercised. Asserted as an equality rather than
-        skipped, because the equality *is* the measurement and a later solve moves it.
+        fifty-four four-bet or jam - so the case cannot be exercised. Asserted as an equality
+        rather than skipped, because the equality *is* the measurement and a later solve moves it.
 
         Whether the spot carries a key, not whether some class takes a price under it. This asked
         `sizes_bb` per class, which answers None where a class does not raise, so it counted the 168
-        spots an arriving hand raises at, not the 249 that carry a key - 81 hold an empty map.
+        spots an arriving hand raises at, not the 284 that carry a key - 8 hold an empty map.
         """
         sizing = PreflopSizingTable.from_repo()
         rows = library.artifacts[0].action_weights
@@ -592,7 +560,7 @@ class TestSizingTable:
         weights sum to one, because a weight is that class's share of its **own** aggressive volume
         rather than of its range - the other reading of decision 6 is a pair summing to the class's
         raise frequency, which is what a converter writes when it forgets to renormalise. Over the
-        249 the two readings coincide at every cell, one price carrying the whole share, so this is
+        284 the two readings coincide at every cell, one price carrying the whole share, so this is
         a schema check here rather than a measurement; `test_chart_conversion` owns the perturbed
         export that proves a price came from the action label and not from a constant."""
         sizing = PreflopSizingTable.from_repo()
@@ -614,11 +582,12 @@ class TestSizingTable:
         assert 0 < checked < CELLS_AT_NON_ZERO_REACH
 
     def test_each_family_is_priced_at_the_one_price_its_depth_offers(self, library) -> None:
-        """Prices are exactly 2.5, 7.5 and 22.5, and which one a spot quotes is fixed by how many
-        raises hero faces rather than by anything else about the spot. Asserted per family because
-        the set alone passes on a chart quoting the four-bet price at an opening spot; the stack
-        price is asserted absent because that is the retired chart's whole sizing table - 36 spots,
-        every one of them priced at a jam the ruled config cannot produce."""
+        """Which prices a family may quote, fixed by how many raises hero faces and nothing else
+        about the spot. Asserted per family because the set alone passes on a chart quoting a
+        four-bet price at an opening spot. Under MAINT-34 a family is a set rather than a single
+        price: 7.5 or 13.5 at one raise faced, 22.5 or 40.5 or the stack at two. The stack is
+        asserted absent from the first two families rather than from the chart, which is the
+        strongest form still true once a blind cannot four-bet a blind without jamming."""
         sizing = PreflopSizingTable.from_repo()
         quoted: dict[int, set[float]] = {0: set(), 1: set(), 2: set()}
         for spot_id, hand_classes in library.artifacts[0].action_weights:
@@ -626,19 +595,32 @@ class TestSizingTable:
                 entries = sizing.sizes_bb(spot_id, hand_class_text) or ()
                 quoted[raises_faced(spot_id)].update(round(to_bb, 6) for to_bb, _ in entries)
 
-        assert quoted == {0: {OPEN_PRICE}, 1: {THREE_BET_PRICE}, 2: {FOUR_BET_PRICE}}
-        assert float(RULED_CONFIG["stack"]) not in set().union(*quoted.values())
-        assert set(RULED_PRICES) == set().union(*quoted.values())
+        assert quoted == PRICES_BY_RAISES_FACED
+        assert float(RULED_CONFIG["stack"]) == JAM_PRICE
+        assert JAM_PRICE not in quoted[0] | quoted[1], "the jam lives only over a three-bet"
 
     def test_the_price_in_a_key_is_what_the_seats_before_hero_were_offered(self, library) -> None:
         """The keys' own prices, which are the other seats' rather than hero's. A facing-an-open key
-        spells 2.5 and a three-bet-facing key spells 2.5 then 7.5, strictly ascending, and no key
-        spells the stack: hero is never asked to answer a jam over the committed 249."""
+        spells 2.5 and a three-bet-facing key spells 2.5 then the three-bet, strictly ascending,
+        and no key spells the stack: hero is never asked to answer a jam over the committed 284.
+
+        **Which three-bet is not free.** It is 13.5 where a blind made it and 7.5 otherwise, so
+        the key's price is read back against the seat that raised rather than against a constant.
+        157 keys spell 13.5 and 97 spell 7.5."""
         for key in library.spot_keys():
             prices = prices_in(key)
+            raisers = [
+                part.split(":raise@")[0]
+                for part in key.split("/", 3)[3].split(",")
+                if ":raise@" in part
+            ]
 
             assert prices == sorted(set(prices)), key
-            assert prices == list(RULED_PRICES[: raises_faced(key)]), key
+            assert len(prices) == raises_faced(key), key
+            assert prices[:1] == [OPEN_PRICE] * min(1, len(prices)), key
+            for seat, price in zip(raisers[1:], prices[1:], strict=True):
+                expected = BLIND_THREE_BET if seat in BLINDS else IN_POSITION_THREE_BET
+                assert price == expected, (key, seat, price)
 
     def test_the_small_blinds_open_prices_every_raising_class_at_the_open(self) -> None:
         """What the two-price assertion became once the jam left the tree. Aces carried one price

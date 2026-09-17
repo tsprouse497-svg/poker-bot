@@ -1,7 +1,7 @@
 """What the committed chart does when it is *asked* something, rather than what it holds.
 
 Split from `tests/test_preflop_committed_charts.py` at the 700-line cap. That file owns the
-chart's contents - the 249 keys, the menus, the cells, the sizing table. This one owns the
+chart's contents - the 284 keys, the menus, the cells, the sizing table. This one owns the
 contract's runtime half: **an excluded node is a lookup miss, refused with a code naming the
 spot, no neighbouring cell and no price substitution consulted.** The helpers and the counts come
 from the sibling as a module, so a number lives in one file and is read in two.
@@ -217,8 +217,8 @@ def test_a_hand_the_lojack_cannot_hold_facing_a_three_bet_is_refused(
                 "CO",
                 (
                     PreflopAction("CO", "raise", charts.OPEN_PRICE),
-                    PreflopAction("BTN", "raise", charts.THREE_BET_PRICE),
-                    PreflopAction("CO", "raise", charts.FOUR_BET_PRICE),
+                    PreflopAction("BTN", "raise", charts.IN_POSITION_THREE_BET),
+                    PreflopAction("CO", "raise", charts.IN_POSITION_FOUR_BET),
                     PreflopAction("BTN", "raise", 100.0),
                 ),
                 "AA",

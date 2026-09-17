@@ -230,7 +230,7 @@ def test_the_report_names_a_recomputable_number_and_states_what_the_chart_cannot
     bounded = report.section(report_text, "bounds").lower()
     for token in ("six-handed", "100", "no straddle", "no ante", "2.5", "four-bet", "multiway"):
         assert token in bounded, f"the bounds section does not state {token!r}"
-    assert "98.59" in report_text, "the report never states the coverage a trainee gets"
+    assert "98.73" in report_text, "the report never states the coverage a trainee gets"
 
     assert generator.REPORT_OUTPUT.stat().st_size <= 300 * 1024
     assert report_text.endswith("\n")

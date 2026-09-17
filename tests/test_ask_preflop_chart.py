@@ -50,15 +50,21 @@ ARTIFACT_FILE = ARTIFACT_DIR / "six_max_100bb_rakefree.json"
 # The three cells the assertions below are stated over, each named by what makes it useful.
 PURE_SPOT = "t6/d100/BTN/CO:raise@2.5"
 """The button facing a cutoff open. `AKo` is a pure raise there, so it has a headline."""
-MIXED_SPOT = "t6/d100/HJ/HJ:raise@2.5,BB:raise@7.5"
-"""The hijack opened and was three-bet by the big blind. `22` is the closest cell in the
-committed chart to a coin flip - 0.5003 call against 0.4997 raise - so it is the cell a
-command that picks a headline for the reader would get most obviously wrong."""
+MIXED_SPOT = "t6/d100/LJ/LJ:raise@2.5,BB:raise@13.5"
+MIXED_HAND, MIXED_CARDS = "QQ", "QcQd"
+"""The lojack opened and was three-bet to 13.5 by the big blind. `QQ` is the closest cell the
+chart actually plays to a coin flip - 0.5029 call against 0.4971 raise - so it is the cell a
+command that picks a headline for the reader would get most obviously wrong.
+
+**Moved for MAINT-34 from the hijack's `22` at a 7.5bb three-bet**, which now folds 84 percent
+and has an obvious headline. One cell is nearer the flip - `AA` at 0.5002 against 0.4998, at
+`LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5,BB:call` - and is not used, because that
+spot's arrival is exactly zero and a headline nobody is ever dealt tests nothing."""
 SUBSTITUTED_SPOT = "t6/d100/BB/CO:raise@2.5"
 """What a 2.3bb cutoff open is answered out of. There is no 2.3bb cell anywhere."""
 
 ANSWERED = ("--seat", "BTN", "--facing", "CO raise 2.5", "--hand", "AhKs")
-REFUSED = ("--seat", "BB", "--facing", "SB raise 2.5,BB raise 7.5,SB raise 22.5", "--hand", "QQ")
+REFUSED = ("--seat", "BB", "--facing", "SB raise 2.5,BB raise 13.5,SB raise 100", "--hand", "QQ")
 
 # One command line per refusal code. `test_the_refusal_cases_cover_every_code_lookup_declares`
 # holds this to `lookup.MISS_CODES`, so a code that becomes unreachable from a terminal - or one
@@ -74,7 +80,16 @@ REFUSAL_CASES: dict[str, tuple[str, ...]] = {
     ),
     lookup.MISS_SPOT_NOT_COVERED: REFUSED,
     lookup.MISS_HAND_CLASS_NOT_COVERED: (
-        "--seat", "BTN", "--facing", "BTN raise 2.5,BB raise 7.5", "--hand", "72o",
+        "--seat", "BTN", "--facing", "BTN raise 2.5,BB raise 13.5", "--hand", "72o",
+    ),
+    # MAINT-34's decision 5. The cutoff has called an open, the button has called behind and a
+    # blind has three-bet to 13.5 - a line the solve gives no weight to at all, so `KQs` there
+    # carries the uniform initialisation rather than a strategy and the chart refuses to answer
+    # it. Reachable from a terminal like every other code, which is what this table is for.
+    lookup.MISS_UNTRAINED_CELL: (
+        "--seat", "CO",
+        "--facing", "LJ raise 2.5,HJ call,CO call,BTN call,BB raise 13.5",
+        "--hand", "KQs",
     ),
 }
 
@@ -215,11 +230,11 @@ def test_one_action_carrying_weight_gets_a_headline(
 def test_a_mixed_class_prints_its_whole_distribution(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    weights = committed_weights(MIXED_SPOT, "22")
+    weights = committed_weights(MIXED_SPOT, MIXED_HAND)
     positive = [action for action, weight in weights.items() if weight > 0.0]
 
     code, out, _ = run(
-        capsys, "--seat", "HJ", "--facing", "HJ raise 2.5,BB raise 7.5", "--hand", "2c2d"
+        capsys, "--seat", "LJ", "--facing", "LJ raise 2.5,BB raise 13.5", "--hand", MIXED_CARDS
     )
 
     assert code == ask.EXIT_ANSWERED
@@ -236,11 +251,11 @@ def test_a_mixed_answer_names_no_action_outside_its_weight_table(
     `best_action` is None for a mix by design, and the convenience that would undo this whole
     command is a line picking one anyway - "if you must choose, call" - printed beside the
     distribution rather than instead of it. Anything of that shape names an action somewhere
-    under the table, wherever in the body it is put, so that is what is asserted. The 0.5003
-    against 0.4997 cell is the one where such a line would be most obviously wrong.
+    under the table, wherever in the body it is put, so that is what is asserted. The 0.5029
+    against 0.4971 cell is the one where such a line would be most obviously wrong.
     """
     _, out, _ = run(
-        capsys, "--seat", "HJ", "--facing", "HJ raise 2.5,BB raise 7.5", "--hand", "2c2d"
+        capsys, "--seat", "LJ", "--facing", "LJ raise 2.5,BB raise 13.5", "--hand", MIXED_CARDS
     )
 
     assert ACTION_WORDS.findall(after_the_weight_table(out)) == []
@@ -302,7 +317,7 @@ def test_a_price_substitution_is_visible(capsys: pytest.CaptureFixture[str]) -> 
 def test_a_refusal_also_carries_its_substitution(capsys: pytest.CaptureFixture[str]) -> None:
     """A price was moved and the spot still missed. Both facts are printed, not the second alone."""
     code, out, _ = run(
-        capsys, "--seat", "BTN", "--facing", "BTN raise 2.4,BB raise 7.5", "--hand", "72o"
+        capsys, "--seat", "BTN", "--facing", "BTN raise 2.4,BB raise 13.5", "--hand", "72o"
     )
 
     assert code == ask.EXIT_REFUSED

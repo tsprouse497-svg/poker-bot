@@ -27,6 +27,13 @@ approved_scope:
 - tests/**
 - verification/freeze.lock
 - src/poker_training_bot/solver_artifacts/chart_selection.py
+- src/poker_training_bot/solver_artifacts/importer.py
+- src/poker_training_bot/solver_artifacts/chart_query.py
+- src/poker_training_bot/strategy/preflop_chart.py
+- scripts/generate_derived_chart_report.py
+- src/poker_training_bot/solver_artifacts/untrained_cells.py
+- reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
+- scripts/ask_preflop_chart.py
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -1802,3 +1809,60 @@ scope_change_log:
     recomputes. The lane is instructed that where a docstring states a figure that will rot again on the
     next re-solve it says so in the sentence, since the file that teaches this lesson should not be the
     one that repeats it.'
+- date: '2026-09-16'
+  reason: 'Opens the lookup path for Taylor''s decision 5: an untrained cell refuses rather than answering.
+
+    Measured on the committed chart by the coordinator after the test lane found it: 187 cells of 25,273,
+    0.74 percent, across 17 of 284 spots, read 0.3333 / 0.3333 / 0.3334 - CFR''s uniform initialisation
+    surviving to publication because no iteration ever visited them. One spot is 167 of its 169 cells,
+    so almost its entire published range is an even three-way split presented as solved strategy. For
+    a training bot that is worse than a gap, because a gap is visible and this is a strategy-shaped object
+    that says randomise evenly with the authority of a solved cell.
+
+    The coordinator''s own first measurement of this returned zero, having filtered on a spread under
+    1e-9 when the rows differ by a rounding unit on one leg. The lane''s figure was right and is the one
+    recorded.
+
+    Also opens generate_derived_chart_report.py for decision 6''s shared comparison helper. Two independent
+    walks that agreed exactly at 114 now read 150 against 149 and 18 against 17, because the generator
+    spells the test high < low - tolerance and the test file low - high > tolerance - the same arithmetic
+    in reals, not in floating point, and one case now lands on the boundary. Two walks that agree by luck
+    are not two checks.'
+- date: '2026-09-16'
+  reason: 'The fifth cap-forced extraction of this work, and the seam is the coordinator''s. Decision
+    5''s refusal took lookup.py to 509 and gtopen_export.py to 519 against a 500-line cap compared ''>
+    limit''. Both were at or near the cap before the feature, so there is no version that fits.
+
+    untrained_cells.py holds what an untrained cell IS and how to recognise one: quantised_uniform_row,
+    which reproduces the exporter''s own initialisation row rather than guessing at it, and is_untrained_cell,
+    which is the conjunction of that row and zero arrival. It imports the quantisation constants from
+    gtopen_export and is imported by lookup, so there is no cycle and both callers return under the cap.
+
+    The seam is honest rather than convenient: ''this row was never trained'' is one subject with its
+    own measured argument, and it is currently sitting inside a module about how a lookup answers and
+    a module about how an export is written. The lane''s own docstrings are the evidence that it is a
+    subject - it rejected arriving reach and arrival-alone as detectors on measurement before settling
+    on the conjunction, and that reasoning belongs with the thing it justifies.
+
+    Not compression: no pre-existing prose is touched, which AGENTS.md forbids in the same breath as raising
+    a cap.'
+- date: '2026-09-16'
+  reason: 'Opens phase 10''s decision record for one amendment. Its decision 3 answer reads ''gap-0.01-cap-2000''
+    and test_solver_expectations.py:287 parses that line and asserts the code''s SOLVE_ITERATION_CAP equals
+    it exactly. MAINT-34''s decision 3 re-ruled the cap to 5,000 with the accuracy target untouched, so
+    the record now states a superseded cap and a live test reads it.
+
+    The original answer line is NOT rewritten. What phase 10 ruled on the evidence it had is a fact about
+    phase 10 and rewriting it would lose the record the test exists to protect. An amendment line is added
+    below it naming the re-rule and its authority, on the pattern the corpus documents use for layered
+    figures: each dated layer keeps its own numbers and only the newest is watched.
+
+    The parser takes the first bracketed answer, so the test moves to the last one - authorised by MAINT-34''s
+    decision 3 and not by the lane, and correct in general rather than for this case: a decision that
+    has been re-ruled has a newest ruling, and that is the live one.'
+- date: '2026-09-16'
+  reason: One line. PLAIN_ENGLISH in ask_preflop_chart.py has no entry for lookup:untrained-cell, the
+    refusal code decision 5 adds, so test_every_reason_code_has_a_plain_english_line fails - the test
+    whose own docstring says that failing is the intended way to find out. The code is reachable from
+    a terminal, so a student can hit it. Reported by the test lane rather than worked around, and it wrote
+    the witness anyway so the gap is only the English.

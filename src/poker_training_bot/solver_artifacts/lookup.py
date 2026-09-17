@@ -48,6 +48,7 @@ from poker_training_bot.solver_artifacts.schema import (
     render_size_bb,
 )
 from poker_training_bot.solver_artifacts.schema import spot_key as derive_spot_key
+from poker_training_bot.solver_artifacts.untrained_cells import is_untrained_cell
 
 MISS_NO_ARTIFACT_FOR_TABLE = "lookup:no-artifact-for-table-size"
 MISS_NO_ARTIFACT_FOR_DEPTH = "lookup:no-artifact-for-stack-depth"
@@ -55,6 +56,10 @@ MISS_POSITION_NOT_AT_TABLE = "lookup:position-not-at-table"
 MISS_UNREPRESENTABLE_SPOT = "lookup:unrepresentable-spot"
 MISS_SPOT_NOT_COVERED = "lookup:spot-not-covered"
 MISS_HAND_CLASS_NOT_COVERED = "lookup:hand-class-not-covered"
+MISS_UNTRAINED_CELL = "lookup:untrained-cell"
+"""Defined here rather than beside `is_untrained_cell` in `untrained_cells`, so the closed refusal
+vocabulary stays one list in one file - and so `untrained_cells` can be imported from here without
+a cycle. What decides the refusal moved; what names it did not."""
 
 MISS_CODES: tuple[str, ...] = (
     MISS_NO_ARTIFACT_FOR_TABLE,
@@ -63,6 +68,7 @@ MISS_CODES: tuple[str, ...] = (
     MISS_UNREPRESENTABLE_SPOT,
     MISS_SPOT_NOT_COVERED,
     MISS_HAND_CLASS_NOT_COVERED,
+    MISS_UNTRAINED_CELL,
 )
 
 LIBRARY_DUPLICATE_SPOT = "library:duplicate-spot"
@@ -94,7 +100,10 @@ DERIVATION_NO_LEGAL_SPOT_KEY = "derivation:no-legal-spot-key"
 # and no cell to blank. The two are distinguishable in the data - a zero-arrival spot still has
 # arriving reach, and one of these has none - which is why a floor could be retired while this
 # cannot be. It exists because a 13.5bb blind three-bet drives the button's cold call behind two
-# other cold calls to zero, and 32 such nodes cleared the other three clauses.
+# other cold calls to zero, and 160 such nodes cleared the other three clauses - hijack 64,
+# cutoff 48, button 48. The count was 32 on the first 13.5bb run, which stopped at its iteration
+# cap at twice the declared accuracy target; a figure taken off an unconverged export is not a
+# measurement, and this one will move again on the next re-solve.
 # `RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET`.
 
 # In the order the census files a refusal under, because the precedence is what makes the
@@ -419,6 +428,17 @@ class PreflopChartLibrary:
                 MISS_HAND_CLASS_NOT_COVERED,
                 f"spot {spot_key_text!r} in artifact {artifact.artifact_id!r} declares no"
                 f" weights for {query.hand_class}",
+                spot_key=spot_key_text,
+                price_substitutions=substitutions,
+            )
+        if is_untrained_cell(weights, artifact.arrival_ppb_for(spot_key_text)):
+            return ChartMiss(
+                MISS_UNTRAINED_CELL,
+                f"spot {spot_key_text!r} in artifact {artifact.artifact_id!r} publishes the"
+                f" solver's untouched initialisation for {query.hand_class} rather than a"
+                " strategy: the solve never plays this line, so nothing was learned here."
+                " Answering it would hand a beginner an even split across the menu as though"
+                " it were solved",
                 spot_key=spot_key_text,
                 price_substitutions=substitutions,
             )

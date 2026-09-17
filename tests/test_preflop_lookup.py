@@ -20,6 +20,7 @@ from poker_training_bot.solver_artifacts.lookup import (
     MISS_POSITION_NOT_AT_TABLE,
     MISS_SPOT_NOT_COVERED,
     MISS_UNREPRESENTABLE_SPOT,
+    MISS_UNTRAINED_CELL,
     ChartHit,
     ChartLibraryError,
     ChartMiss,
@@ -37,6 +38,7 @@ from poker_training_bot.solver_artifacts.schema import (
     spot_key,
     weights_checksum,
 )
+from poker_training_bot.solver_artifacts.untrained_cells import quantised_uniform_row
 
 # `BlindStructure` is reached through the module rather than imported by name, and the
 # reason is the whole of `LOOP-STAGE-4-RED-HIDES-LINT-AND-ASSERTIONS`. Stage 6 adds the
@@ -63,6 +65,18 @@ SECOND_ORBIT: tuple[PreflopAction, ...] = (
 PURE_RAISE: ActionWeights = (("raise", 1.0),)
 PURE_FOLD: ActionWeights = (("fold", 1.0),)
 MIXED: ActionWeights = (("call", 0.5), ("raise", 0.5))
+UNTRAINED: ActionWeights = tuple(
+    zip(("fold", "call", "raise"), quantised_uniform_row(3), strict=True)
+)
+"""The row regret matching starts from, built through the exporter rather than typed.
+
+Typed as `0.3333, 0.3333, 0.3334` it would be three literals a reader has to trust; built this
+way it is the same call `lookup.is_untrained_cell` compares against, so a change to the
+quantiser moves both at once instead of turning this fixture into a spot that is merely close.
+
+`MIXED` above is the other half of why the detector is not shape alone: at width two the uniform
+row *is* `0.5, 0.5`, so that perfectly ordinary coin-flip cell would refuse if arrival were not
+part of the rule. It is in `CORE_SPOTS`, which carries no arrival map, and it answers."""
 
 SpotSpec = tuple[str, tuple[PreflopAction, ...], Mapping[str, ActionWeights]]
 
@@ -77,6 +91,7 @@ def make_artifact(
     name: str = "Chart A",
     table_size: int = 6,
     stack_depth_bb: int = 100,
+    arrival: tuple[tuple[str, int], ...] | None = None,
 ) -> PreflopArtifact:
     """Build a fully validated artifact in memory.
 
@@ -123,6 +138,7 @@ def make_artifact(
         spots=tuple(definitions),
         action_weights=structure,
         arriving_reach_bp=reach,
+        arrival_ppb=arrival,
         audit_fields=ArtifactAuditFields(
             weights_sha256=weights_checksum(structure),
             spot_count=len(definitions),
@@ -236,6 +252,21 @@ def test_best_action_ignores_zero_weights() -> None:
     assert found.best_action == "raise"
 
 
+def untrained_library() -> PreflopChartLibrary:
+    """A chart whose one covered spot is a line the solve never plays, published untrained.
+
+    Both halves of decision 5's rule are present because either alone is wrong: the arrival map
+    says the line is never reached, and the row is the initialisation. `CORE_SPOTS` carries the
+    counter-case - `MIXED`, an exact `0.5, 0.5`, which is the width-two uniform row and is
+    answered because that chart publishes no arrival map.
+    """
+    spot = ("BB", CO_OPEN, {"AA": UNTRAINED, "AKs": PURE_RAISE})
+    key = spot_key(6, 100, "BB", CO_OPEN)
+    return PreflopChartLibrary.from_artifacts(
+        (make_artifact((spot,), name="Never Played", arrival=((key, 0),)),)
+    )
+
+
 MISSES: tuple[tuple[str, str, dict[str, object]], ...] = (
     ("unknown table size", MISS_NO_ARTIFACT_FOR_TABLE, {"table_size": 9}),
     ("unknown stack depth", MISS_NO_ARTIFACT_FOR_DEPTH, {"stack_depth_bb": 40}),
@@ -268,10 +299,43 @@ def test_every_miss_code(code: str, overrides: dict[str, object]) -> None:
     assert refused.detail
 
 
+def test_an_untrained_cell_refuses_and_a_trained_one_at_the_same_spot_answers() -> None:
+    """MAINT-34's decision 5. An untrained cell is not dropped and not answered: it refuses by
+    its own code, the way every other gap in this bot does.
+
+    **Both halves of the rule are exercised against each other rather than described.** `AA` here
+    is the uniform initialisation at a spot the solve never reaches and refuses. `AKs` is a
+    trained row at the *same* spot, so arrival alone would have refused it too - which is the
+    2026-08-27 ruling's whole point, a human taking a line the solver never does still wants the
+    cell that was trained. And `MIXED` in `CORE_SPOTS` is an exact `0.5, 0.5`, the width-two
+    uniform row, answered because that chart's arrival is unknown rather than zero - so shape
+    alone would have refused a coin flip.
+
+    The refusal carries the spot key, because a caller that cannot see which spot refused cannot
+    tell an untrained cell from a chart that does not cover the spot at all.
+    """
+    library = untrained_library()
+
+    refused = miss(library.lookup(query(hand_class="AA", hero_position="BB",
+                                        action_sequence=CO_OPEN)))
+    answered = hit(library.lookup(query(hand_class="AKs", hero_position="BB",
+                                        action_sequence=CO_OPEN)))
+    coin_flip = hit(core_library().lookup(vs_open("AKs")))
+
+    assert refused.code == MISS_UNTRAINED_CELL
+    assert refused.spot_key == spot_key(6, 100, "BB", CO_OPEN)
+    assert "initialisation" in refused.detail
+    assert answered.action_weights == PURE_RAISE
+    assert coin_flip.action_weights == MIXED
+
+
 def test_miss_codes_are_unique_and_namespaced() -> None:
     assert len(set(MISS_CODES)) == len(MISS_CODES)
     assert all(code.startswith("lookup:") for code in MISS_CODES)
-    assert {code for _, code, _ in MISSES} == set(MISS_CODES)
+    assert {code for _, code, _ in MISSES} | {MISS_UNTRAINED_CELL} == set(MISS_CODES), (
+        "a refusal code has no witness: every code needs a query that reaches it, and"
+        " `lookup:untrained-cell` needs its own library rather than an override of the core one"
+    )
     assert all(code.startswith("library:") for code in LIBRARY_ERROR_CODES)
 
 

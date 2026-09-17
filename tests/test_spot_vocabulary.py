@@ -145,18 +145,20 @@ def test_rendering_is_injective_over_the_committed_sizes(library, sizing) -> Non
     each spot once: a per-spot read would report the menu, and the menu is not what the
     table can put in front of hero. The two readings agree here and it is not a tautology
     that they do - every price in every committed menu carries weight for at least one class,
-    the 22.5 four-bet included, which lives only at the 219 spots facing a three-bet.
+    the four-bet rungs included, which live only at the 254 spots facing a three-bet.
 
-    The committed tree offers three prices - 2.5, 7.5 and 22.5 - which is tree shape and is
-    pinned here. The 100bb stack went with the cutover: the export is solved `add_allin:
-    false`, so hero's own jam lives only at the four-bet-facing spots the raise-depth clause
-    refuses. The counter is the spots that contributed a price: 168 of the 249.
+    The committed tree offers six prices - 2.5, 7.5, 13.5, 22.5, 40.5 and 100.0 - which is
+    tree shape and is pinned here. **MAINT-34 doubled the ladder and put the stack back on
+    it.** A blind three-bets to 13.5 rather than 7.5, the four-bet over a blind is 40.5, and a
+    blind four-betting the other blind reaches 72.9 and clamps to the stack. So the 100bb stack
+    is a committed price again, at 49 spots, where under `add_allin: false` alone it was
+    nowhere. The counter is the spots that contributed a price: 276 of the 284.
 
     That counter read 249 when this was written, on the claim that "every committed spot
     offers hero a raise". The claim is true, and it is a claim about the spot's MENU; this
-    reads it through `sizes_bb`, which answers about what an arriving HAND takes. At 81
-    committed spots the menu offers a raise that no hand class ever takes. All 81 face a
-    three-bet and all 81 are reached only through hero's own cold call, so hero arrives
+    reads it through `sizes_bb`, which answers about what an arriving HAND takes. At 8
+    committed spots the menu offers a raise that no hand class ever takes. All 8 face a
+    three-bet and all 8 are reached only through hero's own cold call, so hero arrives
     holding a calling range the solve never four-bets. `tests/test_chart_conversion.py`
     draws the same line and permits exactly what the old literal forbade. Only the literal
     was wrong: the union is still gathered over every class, so a table answering None where
@@ -173,9 +175,9 @@ def test_rendering_is_injective_over_the_committed_sizes(library, sizing) -> Non
     prices = sorted({to_bb for found in priced.values() for to_bb in found})
     rendered = [schema_module.render_size_bb(price) for price in prices]
 
-    assert prices == [2.5, 7.5, 22.5]
+    assert prices == [2.5, 7.5, 13.5, 22.5, 40.5, 100.0]
     assert len(set(rendered)) == len(prices)
-    assert sum(1 for found in priced.values() if found) == 168
+    assert sum(1 for found in priced.values() if found) == 276
 
 
 # --------------------------------------------------------------------------- #
@@ -418,7 +420,7 @@ def test_every_committed_raise_entry_carries_a_size(library) -> None:
     ]
 
     assert sizeless == []
-    assert sum(1 for spot_key_text in keys if ":raise@" in spot_key_text) == 244
+    assert sum(1 for spot_key_text in keys if ":raise@" in spot_key_text) == 279
     assert sorted(
         spot_key_text for spot_key_text in keys if ":raise@" not in spot_key_text
     ) == [f"t6/d100/{seat}/rfi" for seat in ("BTN", "CO", "HJ", "LJ", "SB")]
@@ -427,9 +429,9 @@ def test_every_committed_raise_entry_carries_a_size(library) -> None:
 def test_the_committed_spot_count_is_the_one_the_artifact_declares(library) -> None:
     """Phase 12 asserted 36 here, on the argument that re-keying is not re-solving.
 
-    Phase 14 re-selects, so the number moves to 249: 5 first-in, 25 facing an open and 219
-    facing a three-bet, what the ruled three-clause predicate keeps out of the export's
-    33,969 action nodes. That is tree shape rather than solve output, so it is pinned rather
+    Phase 14 re-selects, so the number moves to 284: 5 first-in, 25 facing an open and 254
+    facing a three-bet, what the ruled four-clause predicate keeps out of the export's
+    30,609 action nodes. That is tree shape rather than solve output, so it is pinned rather
     than floored - a floor would pass for any rule that kept more than the retired chart,
     which is exactly the confusion decision 1's two supersessions left behind. What survives
     from phase 12 is the half re-keying was really guarding: the keys the library exposes and
@@ -437,7 +439,7 @@ def test_the_committed_spot_count_is_the_one_the_artifact_declares(library) -> N
     or collided a spot cannot pass silently.
     """
     assert len(library.spot_keys()) == library.artifacts[0].audit_fields.spot_count
-    assert len(library.spot_keys()) == 249
+    assert len(library.spot_keys()) == 284
 
 
 SEATS_IN_ACTION_ORDER = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
@@ -511,7 +513,7 @@ def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> N
 
     They are indexed the same way, so a re-keying that moved one and not the other would
     leave every raise refusing for no committed size. After the cutover the table prices 168
-    of the committed 249.
+    of the committed 284.
 
     This read "all 249, the no-raise half has no instance" when it was written, and that
     conflated two questions. Every committed spot's MENU does offer hero a raise - the
@@ -534,7 +536,7 @@ def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> N
     would price the classes that only ever fold or call at `t6/d100/BB/BTN:raise@2.5`. That
     is caught by the set equality rather than by a count, so it cannot hide in a total.
 
-    The two-price schema itself is **vacuous over the committed 249** and is labelled so
+    The two-price schema itself is **vacuous over the committed 284** and is labelled so
     rather than counted as a check that passed: `add_allin: false` leaves each spot one
     named raise, so no class anywhere is offered two. The vacuity premise is asserted before
     it is relied on - a build that reintroduced a second price would fail here rather than
@@ -554,8 +556,8 @@ def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> N
 
     assert {spot for spot, classes in priced.items() if classes} == raising
     assert set(sizing.raise_to_bb) <= covered
-    assert len(raising) == 168
-    assert len(covered - raising) == 81
+    assert len(raising) == 276
+    assert len(covered - raising) == 8
     for spot in covered - raising:
         hero_seat, sequence = spot.split("/")[2], spot.split("/", 3)[3]
         assert sequence.count(":raise@") == 2, spot
@@ -578,7 +580,7 @@ def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> N
 
     assert offered, "no priced class anywhere, so the vacuity below states nothing"
     assert two_priced == [], "the two-price schema is vacuous only while this holds"
-    assert [to_bb for to_bb, _ in sizing.sizes_bb(TRACED_KEY, "AA")] == [7.5]
+    assert [to_bb for to_bb, _ in sizing.sizes_bb(TRACED_KEY, "AA")] == [13.5]
 
 
 def test_the_artifact_re_derives_from_its_source() -> None:

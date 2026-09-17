@@ -14,11 +14,11 @@ against a pin it cannot resolve and against artifacts that load cleanly and are 
 positive control asserts it still publishes on good input - four refusal tests read
 `returncode != 0`, which a script that refuses everything satisfies.
 
-**Re-cut at stage 4 on 2026-09-02, against the 249.** Every earlier cut described a superseded set
+**Re-cut at stage 4 on 2026-09-02, and again for MAINT-34.** Each earlier cut described another set
 - six spots, before that 143 nodes, before that 86 - under a five-code refusal vocabulary of which
-not one code survives. Decisions 46, 48, 49, 50 and 53 replace it: three refusal codes, **249** of
-**33,969** nodes, **four** per-cell relations, and two arms over **ten** partitions, the rank arm
-scoring every spot and skipping the comparisons whose partner cell is absent.
+not one code survives. Decisions 46, 48, 49, 50 and 53 replace it, plus MAINT-34's fourth refusal
+code: **284** of **30,609** nodes, **four** per-cell relations, and two arms over **ten**
+partitions, the rank arm scoring every spot and skipping comparisons whose partner cell is absent.
 
 **Neither arm passing is evidence the ranges are sound.** Decision 42 settled that nothing here
 gates on whether a range is good poker: both are extraction checks, blind to over-folding, a
@@ -136,28 +136,28 @@ def a_census(derivation, committed: int | None = None, excluded: Mapping[str, in
         excluded = {
             derivation_tests.EXPOSURE_CODE: derivation_tests.EXPOSURE_REFUSED_NODES,
             derivation_tests.SQUEEZE_CODE: derivation_tests.BB_SQUEEZE_REFUSED_NODES,
+            derivation_tests.NO_ARRIVING_CODE: derivation_tests.NO_ARRIVING_REFUSED_NODES,
             derivation_tests.DEPTH_CODE: derivation_tests.BEYOND_DEPTH_NODES,
         }
     return derivation.NodeCensus(committed=committed, excluded=dict(excluded), inexpressible={})
 
 
 def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, generator) -> None:
-    """Every one of the 33,969 nodes lands in exactly one bucket, or the census is a subset
+    """Every one of the 30,609 nodes lands in exactly one bucket, or the census is a subset
     dressed as a census. The vocabulary is checked first, everything below being built out of it:
     a census fed a reason the module does not carry would be refused for the wrong reason, and
-    that refusal reads exactly like this test passing. Decision 52 closes it at three codes and
-    decision 8 keeps it disjoint from the runtime miss codes, so a node the converter failed to
-    handle cannot be filed as a property of the grammar.
+    that refusal reads exactly like this test passing. Decision 52 closed it at three codes,
+    MAINT-34's decision 2 adds a fourth, and decision 8 keeps them disjoint from the miss codes.
 
-    **Three codes rather than one, because each names a different way back.** The 348 refused for
-    multiway exposure return when GTOpen can price a multiway pot; the 10 big-blind squeeze spots
-    when the flats are repaired; the 33,362 beyond the committed raise depth when a later phase
-    takes up the four-bet. A census folding any two together **balances exactly** and is wrong
-    only about which fix brings which back, the one failure a total can never see.
+    **Four codes rather than one, because each names a different way back.** The 154 over the
+    exposure threshold return when GTOpen can price a multiway pot; the 9 squeeze spots when the
+    flats are repaired; the 160 with no arriving class only if a size change puts a range there;
+    the 30,002 past the depth clause when a later phase takes up the four-bet.
     """
     assert set(lookup.DERIVATION_EXCLUSION_CODES) == {
         derivation_tests.EXPOSURE_CODE,
         derivation_tests.SQUEEZE_CODE,
+        derivation_tests.NO_ARRIVING_CODE,
         derivation_tests.DEPTH_CODE,
     }
     assert not set(lookup.DERIVATION_EXCLUSION_CODES) & set(lookup.MISS_CODES), (
@@ -183,7 +183,7 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
     with pytest.raises(generator.DerivedChartReportError):
         # The ten squeeze spots filed under exposure. They were refused by the third clause
         # precisely because the exposure clause admitted them, so this is the fold that also
-        # tells a plausible story - and it still adds to 33,969.
+        # tells a plausible story - and it still adds to 30,609.
         squeeze_folded = {
             derivation_tests.EXPOSURE_CODE: (
                 derivation_tests.EXPOSURE_REFUSED_NODES
@@ -550,7 +550,7 @@ def test_the_old_versus_new_disagreement_count_is_refused_when_it_cannot_be_read
 def test_the_three_vacuous_criteria_are_labelled_and_heros_jam_is_shown_where_it_lives(
     report_text, artifact
 ) -> None:
-    """Three criteria have no instance over the 249, and a criterion that cannot fail did not
+    """Three criteria have no instance over the 284, and a criterion that cannot fail did not
     pass. Each is kept because a later solve reactivates it: the two-price sizing schema, proved
     against a synthetic export under decision 6; the no-raise half of the sizing invariant, no
     committed spot offering zero raises; and the jam-and-named-raise collapse rule, which under

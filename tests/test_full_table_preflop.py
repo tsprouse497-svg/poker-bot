@@ -1,9 +1,9 @@
 """Phase 05 tests, written from the contract before any implementation existed.
 
 `TestSourceFrequencies` moved to `tests/test_preflop_committed_charts.py`; this file is hard against
-its line cap, so the prose is thin. **The cutover moved most of its seats:** over the 249 hero opens
-from all five first-in seats and faces an open from every seat behind one, and gives up the four-bet
-family (46, 48); `add_allin: false` leaves one price per spot, so no two-price draw survives."""
+its line cap, so the prose is thin. **The cutover moved most of its seats:** over the 284 hero opens
+from all five first-in seats and faces an open from every seat behind one, gives up the four-bet
+family (46, 48), and prices by seat - a blind re-raises at 5.4."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from collections import Counter
 
 import pytest
 
-from poker_training_bot.poker_core.positions import position_for_seat, table_positions
+from poker_training_bot.poker_core.positions import table_positions
 from poker_training_bot.solver_artifacts.gtopen_export import COMMITTED_EXPORT_PATH
 from poker_training_bot.solver_artifacts.hand_classes import hand_class
 from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
@@ -23,7 +23,6 @@ from poker_training_bot.strategy.contract import (
     DECISION_AUDIT_SCHEMA_VERSION,
     DecisionAuditRecord,
     SeatAction,
-    SeatState,
     StrategyDecision,
     StrategyQuery,
     StrategyRefusal,
@@ -41,100 +40,31 @@ DEPTH_BB = 100
 SEATS = (0, 1, 2, 3, 4, 5)
 BUTTON = 3  # seats 0..5 with button at 3 puts LJ at seat 0
 
-COMMITTED_SPOTS = 249
+# The table itself - seats, stacks, queries and seat actions - lives in `full_table_queries.py`,
+# a support module this file owns. MAINT-34's seat-priced ladder did not fit under the 700-line
+# cap here and the ruling was to split rather than compress. Re-exported so nothing else moves.
+from full_table_queries import (  # noqa: E402
+    called,
+    cards_for,
+    combos_of,
+    folded,
+    query,
+    raised,
+    seat_of,
+    stacks,
+)
+
+COMMITTED_SPOTS = 284
 """5 first-in, 25 facing an open, 219 facing a three-bet. Tree shape rather than solve output."""
 
 SB_OPEN_KEY = f"t6/d{DEPTH_BB}/SB/rfi"
 FIRST_IN_SEATS = ("LJ", "HJ", "CO", "BTN", "SB")
 
-LADDER_BB = (2.5, 7.5, 22.5)
+LADDER_BB, BLIND_SEATS = (2.5, 7.5, 13.5, 22.5, 40.5, 100.0), ("SB", "BB")
+OPEN_BB, GLOBAL_MULT, BLIND_MULT, ALLIN_AT = 2.5, 3.0, 5.4, 67.0
 """Every raise price the solved tree holds; the 100bb jam went with the four-bet family."""
-DECLARED_CELLS = 18431
-"""Cells at non-zero reach over the 249 (49); zero-reach classes are dropped, so it is every one."""
-
-
-def seat_of(position: str) -> int:
-    for seat in SEATS:
-        if position_for_seat(SEATS, BUTTON, seat) == position:
-            return seat
-    raise AssertionError(f"no seat holds {position}")
-
-
-def stacks(committed: dict[int, int] | None = None, ante: int = 0,
-           depth_bb: int = DEPTH_BB) -> tuple[tuple[int, int], ...]:
-    paid = dict(committed or {})
-    paid.setdefault(seat_of("SB"), SMALL_BLIND)
-    paid.setdefault(seat_of("BB"), BIG_BLIND)
-    full = depth_bb * BIG_BLIND
-    return tuple((seat, full - paid.get(seat, 0) - ante) for seat in SEATS)
-
-
-def query(hero_position: str, history: tuple[SeatAction, ...] = (),
-          hole_cards: tuple[str, str] = ("As", "Ks"), forced: dict[int, int] | None = None,
-          ante: int = 0, **overrides) -> StrategyQuery:
-    """A query for hero, unopened by default. `forced` is a straddle's chips, `ante` dead money."""
-    hero = seat_of(hero_position)
-    committed = {seat_of("SB"): SMALL_BLIND, seat_of("BB"): BIG_BLIND, **(forced or {})}
-    # A straddle raises the level a voluntary action is measured against, so the ladder starts
-    # there. The detector knows only the declared blinds, which is the disagreement.
-    current_bet = max(BIG_BLIND, *committed.values())
-    min_raise_target = 2 * current_bet
-    for entry in history:
-        if entry.action == "raise":
-            # The level is what the raise says it is: the query's price and the key's are one.
-            amount = entry.amount or current_bet
-            min_raise_target = amount + max(amount - current_bet, BIG_BLIND)
-            current_bet = amount
-            committed[entry.seat] = current_bet
-        elif entry.action == "call":
-            committed[entry.seat] = current_bet
-    # Capped at what hero can actually pay, per Taylor's ruling of 2026-08-20.
-    hero_stack = DEPTH_BB * BIG_BLIND - committed.get(hero, 0) - ante
-    to_call = min(max(current_bet - committed.get(hero, 0), 0), hero_stack)
-    gone = tuple(entry.seat for entry in history if entry.action == "fold")
-    fields = {
-        "hand_id": "h1", "street": "preflop", "seat": hero, "button_seat": BUTTON,
-        "hole_cards": hole_cards, "board": (), "to_call": to_call, "current_bet": current_bet,
-        "min_raise_target": min_raise_target, "blinds": (SMALL_BLIND, BIG_BLIND),
-        "legal_actions": ("fold", "call", "raise") if to_call else ("check", "raise"),
-        "pot": sum(committed.values()) + len(SEATS) * ante, "preflop_actions": history,
-        "stacks": stacks(committed, ante),
-        # An ante buys no part of the level, so it sits in `committed_total` alone.
-        "seat_states": tuple(SeatState(s, committed.get(s, 0), committed.get(s, 0) + ante,
-                                       s in gone, False) for s in SEATS),
-    }
-    fields.update(overrides)
-    return StrategyQuery(**fields)
-
-
-def cards_for(hand: str) -> tuple[str, str] | None:
-    ranks = "23456789TJQKA"
-    if len(hand) == 2 and hand[0] == hand[1] and hand[0] in ranks:
-        return (hand[0] + "s", hand[1] + "h")
-    if len(hand) != 3 or hand[2] not in "so":
-        return None
-    high, low = hand[0], hand[1]
-    if high not in ranks or low not in ranks or ranks.index(high) <= ranks.index(low):
-        return None
-    return (high + "s", low + ("s" if hand[2] == "s" else "h"))
-
-
-def combos_of(hand: str) -> int:
-    if len(hand) == 2:
-        return 6
-    return 4 if hand.endswith("s") else 12
-
-
-def raised(position: str, amount: int) -> SeatAction:
-    return SeatAction(seat_of(position), "raise", amount)
-
-
-def folded(position: str) -> SeatAction:
-    return SeatAction(seat_of(position), "fold")
-
-
-def called(position: str) -> SeatAction:
-    return SeatAction(seat_of(position), "call")
+DECLARED_CELLS = 25273
+"""Cells at non-zero reach over the 284 (49); zero-reach classes are dropped, so it is every one."""
 
 
 def solved_line(lib: PreflopChartLibrary, hero: str, *raisers: str) -> tuple[PreflopAction, ...]:
@@ -315,11 +245,12 @@ class TestDecisions:
         assert outcome.amount == round(2.5 * BIG_BLIND)
 
     def test_the_price_is_drawn_from_the_classs_own_weights_with_the_actions_seed(self, strategy):
-        """The seeded price **draw** has no instance over the committed 249 and is labelled vacuous
+        """The seeded price **draw** has no instance over the committed 284 and is labelled vacuous
         rather than counted as a check that passed: each spot offers one named raise. The premise
         is asserted over every declared class here, so a build reintroducing a second price fails
-        rather than slipping past. What still runs never needed two - the amount comes from the
-        class's own entry and reproduces across a twin over 240 ids, which killed a per-run RNG."""
+        rather than slipping past. The big blind's raise here is 13.5 - the seat term, not a
+        second price. The amount comes from the class's own entry and reproduces across a twin
+        over 240 ids, which killed a per-run RNG."""
         key = vs_open_key(strategy.library, "BB", "BTN")
         history = raised_line(strategy.library, "BB", "BTN")
         twin = PreflopChartStrategy(library=strategy.library, sizing=strategy.sizing)
@@ -329,10 +260,10 @@ class TestDecisions:
         drawn = [(decision(strategy.decide(ask)).amount, decision(twin.decide(ask)).amount)
                  for ask in asked]
 
-        assert [price for price, _ in offered] == pytest.approx([7.5])
+        assert [price for price, _ in offered] == pytest.approx([13.5])
         assert [name for name in strategy.library.hand_classes_for(key)
                 if len(sizes_bb(strategy.sizing, key, name)) > 1] == []
-        assert {mine for mine, _ in drawn if mine is not None} == {round(7.5 * BIG_BLIND)}
+        assert {mine for mine, _ in drawn if mine is not None} == {round(13.5 * BIG_BLIND)}
         assert all(mine == theirs for mine, theirs in drawn)
 
     def test_a_hopeless_hand_folds_rather_than_refusing(self, strategy) -> None:
@@ -342,7 +273,7 @@ class TestDecisions:
 
     def test_the_raise_amount_comes_from_the_sizing_table(self, strategy) -> None:
         """Every raise checked, the amount written here rather than read back off `sizes_bb`, which
-        compared the table against itself. Facing 7.5, the menu is the four-bet to 22.5 alone."""
+        compared the table against itself. Facing an in-position 7.5 the menu is 22.5 alone."""
         key, history = three_bet_faced(strategy.library)
         amounts, priced = set(), 0
         for hand, cards in HAND_CARDS.items():
@@ -510,7 +441,8 @@ class TestTotality:
         """Every cell of every covered spot, every price checked against the tree rather than the
         table that produced it: `offered` was read from `sizes_bb`, where `decide_spot` reads it,
         so `mispriced == []` said the implementation equalled itself. It comes off the **key** now
-        - the next rung above the level hero faces - reproducing all 249 menus and failing a table
+        - what hero's seat multiplier makes of the level faced - reproducing all 284 menus,
+        failing a table
         that priced a three-bet spot at the open size. The forced-raise and two-price counts were
         measured over the retired 86 and nothing replaces them, so each becomes the property it
         guarded and the cell total carries the non-vacuity."""
@@ -519,8 +451,11 @@ class TestTotality:
         for spot_key in sorted(library.spot_keys()):
             faced = [float(part.split("@")[1])
                      for part in spot_key.rsplit("/", 1)[-1].split(",") if "@" in part]
-            rungs = [rung for rung in LADDER_BB if rung > max(faced, default=0.0)]
-            offered = {max(round(rungs[0] * 100), 1)} if rungs else set()
+            mult = BLIND_MULT if spot_key.split("/")[2] in BLIND_SEATS else GLOBAL_MULT
+            rung = OPEN_BB if not faced else max(faced) * mult
+            rung = 100.0 if rung >= ALLIN_AT else rung
+            assert rung in LADDER_BB, (spot_key, rung)
+            offered = {max(round(rung * 100), 1)}
             assert library.hand_classes_for(spot_key), spot_key
             for hand in library.hand_classes_for(spot_key):
                 cells += 1

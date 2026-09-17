@@ -72,6 +72,7 @@ from poker_training_bot.solver_artifacts.lookup import (  # noqa: E402
     MISS_POSITION_NOT_AT_TABLE,
     MISS_SPOT_NOT_COVERED,
     MISS_UNREPRESENTABLE_SPOT,
+    MISS_UNTRAINED_CELL,
     ChartHit,
     ChartLibraryError,
     ChartMiss,
@@ -114,6 +115,10 @@ PLAIN_ENGLISH: dict[str, str] = {
     ),
     MISS_SPOT_NOT_COVERED: (
         "this is a real spot and no committed chart holds it; the cell has never been solved"
+    ),
+    MISS_UNTRAINED_CELL: (
+        "the chart holds this spot, but the solve never played this line, so this hand's row is"
+        " the even split the solver starts from rather than anything it worked out"
     ),
     MISS_HAND_CLASS_NOT_COVERED: (
         "the chart holds this spot but says nothing about this hand in it"

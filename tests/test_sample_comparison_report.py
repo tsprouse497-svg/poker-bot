@@ -133,6 +133,16 @@ def test_the_sample_was_played_at_a_price_the_chart_was_not_solved_for(compariso
     changed. Naming the seat keeps the population the ten-point margin was measured over.
     The two arbitrary floors it carried - fifty cheap decisions and ten dear ones - are
     replaced by a partition: every scored blind-defence call falls in exactly one band.
+
+    **MAINT-34 left the ten-point floor alone and widened what clears it, which is evidence
+    the re-solve worked.** The big blind's calling range is exactly what a 13.5bb three-bet
+    moved, and this is the one place in the suite that scores it against human callers. Over
+    the same 124 banded decisions, cheap went 40.00 to 45.88 percent and dear went 58.82 to
+    82.35, so the gap widened from 18.82 points to 36.47 and the seat's overall agreement rose
+    from 57 of 125 to 65. Nearly all of the gain is in the band the chart was solved for -
+    a 2.5bb open is a decision over 2.50bb - while the cheap band, where the chart answers
+    off-price, barely moved. The floor is not tightened to 36: it is a floor on a sample of
+    17 dear decisions, and refitting it to this run is what freezing a measurement means.
     """
     solved = solved_open_bb()
     sizes = comparison.open_sizes_bb()

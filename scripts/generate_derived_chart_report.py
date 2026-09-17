@@ -398,6 +398,32 @@ def cell_weights(artifact: PreflopArtifact) -> dict[str, dict[str, dict[str, flo
     }
 
 
+CELL_PCT_DECIMALS = 6
+"""Where a cell frequency in points is rounded before any relation compares it.
+
+**Not a tolerance, and it does not loosen one.** Every honest value here is a whole number of
+basis points, so in points it is a multiple of 0.01 and six decimal places is far finer than the
+data - the rounding can only remove representation noise, never a real difference.
+
+It exists because that noise was reaching a verdict. `play_grid` reads the chart, whose weights
+are stored to four decimal places, and `100 * (1 - 0.9916)` is `0.8399999999999963` rather than
+`0.84`; `test_chart_cutover_evidence.py` walks the export's basis points instead and gets
+`0.8400000000000034`. At `t6/d100/HJ/HJ:raise@2.5,BTN:call,BB:raise@13.5` the pair `99` and `88`
+sit at 0.84 and 1.84, a gap of **exactly** the one-point tolerance, which a strict `>` must not
+flag. Off the export the subtraction lands on 1.0 and it is not flagged; off the chart it lands
+on 1.0000000000000009 and it is. That one cell is the whole of why this report published 150 pair
+inversions where the sibling walk measured 149, and 149 is the right number.
+
+Rounding both sides to a shared precision makes the two walks agree **by construction** rather
+than by luck, which is the only sense in which they are two checks. MAINT-34's decision 6.
+"""
+
+
+def _in_points(value: float) -> float:
+    """A cell frequency in points, with representation noise removed. See `CELL_PCT_DECIMALS`."""
+    return round(100.0 * value, CELL_PCT_DECIMALS)
+
+
 def play_grid(artifact: PreflopArtifact) -> dict[str, dict[str, float]]:
     """How often each committed cell puts money in, in points.
 
@@ -407,7 +433,7 @@ def play_grid(artifact: PreflopArtifact) -> dict[str, dict[str, float]]:
     """
     return {
         spot_id: {
-            name: 100.0 * (1.0 - actions.get("fold", 0.0)) for name, actions in classes.items()
+            name: _in_points(1.0 - actions.get("fold", 0.0)) for name, actions in classes.items()
         }
         for spot_id, classes in cell_weights(artifact).items()
     }
@@ -422,7 +448,7 @@ def raise_weight_grid(artifact: PreflopArtifact) -> dict[str, dict[str, float]]:
     split differs.
     """
     return {
-        spot_id: {name: 100.0 * actions.get("raise", 0.0) for name, actions in classes.items()}
+        spot_id: {name: _in_points(actions.get("raise", 0.0)) for name, actions in classes.items()}
         for spot_id, classes in cell_weights(artifact).items()
     }
 

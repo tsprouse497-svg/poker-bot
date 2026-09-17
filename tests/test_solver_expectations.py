@@ -62,6 +62,7 @@ RULED_CONFIG = {
     "limp": False,
     "open_raises": [2.5],
     "raise_mults": [3.0],
+    "raise_mults_by_seat": [[], [], [], [], [5.4], [5.4]],
     "max_raises": 4,
     "add_allin": False,
     "allin_threshold": 0.67,
@@ -74,7 +75,10 @@ RULED_CONFIG = {
 
 **Migrated on 2026-09-01 for decision 14's re-solve**, which flipped `add_allin` from True to
 False. `one_node_export` builds a config `load_solver_export` then refused by name, so three
-tests here raised before any assertion ran. The guard below stops the copy drifting again."""
+tests here raised before any assertion ran. The guard below stops the copy drifting again.
+
+**Migrated again on 2026-09-16 for MAINT-34**, which added `raise_mults_by_seat`. The same three
+tests errored the same way, so the guard is what caught it rather than what prevented it."""
 
 
 def test_the_local_config_is_the_ruled_one() -> None:
@@ -101,13 +105,28 @@ def measured() -> Aggregates:
 
 
 def ruled_answer(decision: str) -> str:
-    """The bracketed answer the human ruled for one numbered decision."""
+    """The **live** bracketed answer for one numbered decision: the last one its section carries.
+
+    A decision can be re-ruled, and when it is, the record keeps both. MAINT-34's decision 3
+    raised phase 10's iteration cap from 2,000 to 5,000, and phase 10's original
+    `Answer: [gap-0.01-cap-2000]` is deliberately left standing underneath the amendment - what
+    phase 10 ruled on the evidence it had is a fact about phase 10, and overwriting it would
+    destroy the record this file exists to hold the code against. So the newest answer is the one
+    in force, and reading the first would pin the code to a superseded ruling forever.
+
+    **The section has to be bounded at the next heading before "last" means anything.** Splitting
+    on `## N.` leaves everything after that heading, including every later decision, so an
+    unbounded search for the last answer would return the last answer in the document - decision
+    9 would read `as-defaulted` rather than its own `20MB-total`. The first-match version was
+    accidentally safe here and only here.
+    """
     text = DECISIONS_PATH.read_text(encoding="utf-8")
     section = re.split(rf"^## {re.escape(decision)}\.", text, flags=re.M)
     assert len(section) == 2, f"decision {decision} is not in the ruled record"
-    match = re.search(r"^Answer: \[([^\]]+)\]", section[1], flags=re.M)
-    assert match, f"decision {decision} carries no bracketed answer"
-    return match.group(1)
+    body = re.split(r"^## ", section[1], flags=re.M)[0]
+    answers = re.findall(r"^Answer: \[([^\]]+)\]", body, flags=re.M)
+    assert answers, f"decision {decision} carries no bracketed answer"
+    return answers[-1]
 
 
 def one_node_export(split: tuple[int, int, int]) -> SolverExport:
@@ -272,8 +291,15 @@ def test_the_thresholds_that_remain_are_no_looser_than_what_was_ruled() -> None:
     Phase 14's decision 2 permits one re-solve of the ruled config at a *tighter* gap, to
     settle whether the lojack's 44 is unconverged or considered. Tightening is not
     widening, so the equality on the gap becomes a bound in the one direction the ruling
-    allows and the iteration cap stays exact - a re-solve that raised either would be a
-    new solve rather than the permitted one.
+    allows, and the iteration cap stays exact against whatever the record currently rules.
+
+    **The cap moved once and the exactness did not weaken.** MAINT-34's decision 3 raised it
+    from 2,000 to 5,000 because route C converges at 3,800, and amended phase 10's record to
+    say so. Raising an iteration cap spends more compute to clear a bar that has not moved; it
+    is not the thing phase 10 forbids at `:147-149`, which is widening an accuracy *target*
+    after seeing the numbers. So this still asserts equality rather than a bound - what changed
+    is that `ruled_answer` now reads the live ruling rather than the first one ever written, and
+    a cap raised without amending the record fails here exactly as before.
     """
     scale = re.search(r"basis-points-0-(\d+)", ruled_answer("8"))
     assert scale and QUANTISATION_SCALE == int(scale.group(1))

@@ -1,4 +1,4 @@
-"""Phase 14: the report a non-coding reviewer reads, over the committed 249.
+"""Phase 14: the report a non-coding reviewer reads, over the committed 284.
 
 The family owns the **rendered** report: every heading the contract's evidence sentence names is
 there, the body under each makes the claim it promises, and each printed figure is re-derived from
@@ -7,7 +7,7 @@ cap, and **this one holds the module-scope interface the other three reach as an
 ruled numbers, the row patterns, the section reader, the loaders behind the fixtures and the walks
 over the committed keys. A count has one owner and is never copied.
 
-- this file: how the 249 were selected and what each committed row carries - the census, the
+- this file: how the 284 were selected and what each committed row carries - the census, the
   histogram and the prices, exposure per spot, one cell traced from export node to artifact row,
   and the arrival grain.
 - `test_derived_chart_report_ranges.py`: the four relations, the ladders, both counterfactual
@@ -18,7 +18,7 @@ over the committed keys. A count has one owner and is never copied.
 - `test_derived_chart_report_validators.py`: the generator's refusals, the three vacuous labels,
   hero's jam at the withheld spots and the source card's limitations.
 
-**Re-cut at stage 4 on 2026-09-02, against the 249.** Every earlier cut described a different set -
+**Re-cut at stage 4 on 2026-09-02, and again for MAINT-34.** Each earlier cut described a new set -
 86 spots, then 143 nodes, then six - under three `derivation:*-four-bet-*` refusal codes that no
 longer exist. All superseded by decisions 46, 48, 49 and 53.
 
@@ -62,26 +62,28 @@ DECISIONS = (
 # constant that lane has not written yet is an AttributeError inside one test rather than a
 # collection error that silences every assertion in the file. The rest carry the ruling.
 
-PRICES = (2.5, 7.5, 22.5)
-"""Every raise price offered anywhere in the committed 249. Decision 6 as amended, and `100.0` is
-not among them - hero's own jam lives only at the four-bet-facing spots this phase withholds,
-which is why the jam canary in the sibling file runs against the export instead."""
+PRICES = (2.5, 7.5, 13.5)
+"""Every raise price a committed **key** names - what the seats before hero were offered, not what
+hero is. MAINT-34 splits the three-bet by seat, so a key spells 7.5 where an in-position seat
+re-raised and 13.5 where a blind did. `100.0` is still not among them: hero is never asked to
+answer a jam, which is the half of the old claim that survives a committed spot being able to
+offer one. The jam canary in the sibling file runs against the export for the other half."""
 
 BIG_BLIND_OPEN_FACING_SPOTS = 5
 MERGED_SPOTS = 20
-THREE_BET_FACING_SPOTS = 219
-MERGED_CELLS = 165
+THREE_BET_FACING_SPOTS = 254
+MERGED_CELLS = 676
 """Decision 45: of the 25 facing-an-open spots, 5 are the big blind and keep fold/call/raise, and
-at the other 20 the bot may not cold-call, so each cell's call weight is added to its raise. 165
-cells move. The three families are 5 + 20 + 219 and they publish three different menus."""
+at the other 20 the bot may not cold-call, so each cell's call weight is added to its raise. 676
+cells move. The three families are 5 + 20 + 254 and they publish three different menus."""
 
-PURE_AT_99_PCT_SOLVED = 93.20
-MIXED_BELOW_90_PCT_SOLVED = 3.85
-PURE_AT_99_PCT_PUBLISHED = 93.48
-MIXED_BELOW_90_PCT_PUBLISHED = 3.66
+PURE_AT_99_PCT_SOLVED = 80.63
+MIXED_BELOW_90_PCT_SOLVED = 14.29
+PURE_AT_99_PCT_PUBLISHED = 80.83
+MIXED_BELOW_90_PCT_PUBLISHED = 14.16
 """Decisions 49 and 53, and **each pair says which grid it is measured over**, because the two
 differ and this phase has already shipped one figure under two meanings. Both run over the same
-18,431 cells at non-zero reach.
+25,273 cells at non-zero reach.
 
 `_SOLVED` is the solve's own grid, before decision 45 folds the cold call into the raise, and it is
 the pair the argument rests on: the chart barely mixes, which is why decision 45's hole was large
@@ -90,18 +92,22 @@ available to the merge. `_PUBLISHED` is the artifact this phase writes, where th
 165 mixed cells pure. A generator computing purity off the file it just wrote reads 93.48, so both
 are printed and each is labelled."""
 
-ARRIVAL_ROUNDING_TO_ZERO = 44
-ARRIVAL_EXACTLY_ZERO = 2
-"""Decision 53: 44 of the 249 round to zero in parts per billion and only 2 are exactly zero, so
-the grain is published with the count rather than the zeroes read as unreachable spots."""
+ARRIVAL_ROUNDING_TO_ZERO = 181
+ARRIVAL_EXACTLY_ZERO = 175
+"""Decision 53: 181 of the 284 round to zero in parts per billion and 175 are exactly zero, so the
+grain is published with the count rather than the zeroes read as unreachable spots. At a 7.5bb
+blind three-bet these were 44 and 2 - see `SPOTS_AT_EXACTLY_ZERO` in
+`test_chart_arrival_probability.py` for why the second figure moving from 2 to 175 is the largest
+unruled movement in the re-solve rather than a count that drifted."""
 
 ROW_LADDER_COMPARISONS = 132
 """The kicker relation's comparison count over a full grid - adjacent kickers only, suited and
 offsuit taken apart. The contract's figure."""
 
-HERO_CLOSES_SPOTS = 120
+HERO_CLOSES_SPOTS = 97
 """Decision 49's correction: the spots where hero closes the action, which is where the equity
-relation is defined at all. It was published as 93 over a set that has since moved."""
+relation is defined at all. It was published as 93 over a set that has since moved, and 120 over
+the 7.5bb committed 249."""
 
 OPENERS_NARROWER_THAN_RAKED = 3
 OPENERS_NARROWER_WORST_SEAT = "BTN"
@@ -126,23 +132,32 @@ evidence of width.** The reference both raises and limps from that seat and this
 branch, so its raise-only column is not the same quantity. Read entry to entry it is +6.16 rather
 than +19.89, and the report prints that row and says so."""
 
-PAIR_INVERSIONS = 114
-KICKER_INVERSIONS = 181
-KICKER_WHEEL_ACE = 87
-KICKER_NO_STORY_WIDE = 29
-KICKER_NO_STORY_NARROW = 65
-RAISE_ACTION_INVERSIONS = 41
-RAISE_ACTION_INVERSIONS_INVISIBLE = 25
-"""Decisions 49 and 50, the raise-action pair corrected by decision 55 on 2026-09-03. The
-wheel-ace cases are correct poker and are separated out; 87 + 29 + 65 is the 181.
+PAIR_INVERSIONS = 149
+KICKER_INVERSIONS = 278
+KICKER_WHEEL_ACE = 89
+KICKER_NO_STORY_WIDE = 15
+KICKER_NO_STORY_NARROW = 174
+RAISE_ACTION_INVERSIONS = 125
+RAISE_ACTION_INVERSIONS_INVISIBLE = 48
+"""Decisions 49 and 50, the raise-action pair corrected by decision 55 on 2026-09-03 and
+re-measured whole for MAINT-34. The wheel-ace cases are correct poker and are separated out;
+89 + 15 + 174 is the 278.
 
-**Decision 50's 27 does not reproduce and is superseded.** Run as this phase defines the relation
-- adjacent pair ladder, twelve comparisons, one-point tolerance, strict, reach floor zero, every
-committed spot - the fourth relation reads **41** inversions on the merged raise weight the bot
-plays, **25** of them invisible to play-not-fold, against 43 and 28 on the solve's raw raise row.
-No scoping anyone could construct reaches 27; the nearest are 26 and 28. Both figures are
-re-derived from the export by `test_chart_cutover_evidence.py`, which reaches them here, so a
-generator that prints a hand-typed count goes red on the walk rather than on a substring."""
+Run as this phase defines the relation - adjacent pair ladder, twelve comparisons, one-point
+tolerance, strict, reach floor zero, every committed spot - the fourth relation reads **125**
+inversions on the merged raise weight the bot plays, **48** of them invisible to play-not-fold,
+against 137 and 61 on the solve's raw raise row. Both are re-derived from the export by
+`test_chart_cutover_evidence.py`, which reaches them here, so a generator that prints a
+hand-typed count goes red on the walk rather than on a substring.
+
+**`PAIR_INVERSIONS` was the figure the two walks disagreed on, and decision 6 repaired the cause
+rather than picking a side.** The report read 150 and `test_chart_cutover_evidence.py` 149, over
+an identical 2,824 comparisons. 149 is right: at `t6/d100/HJ/HJ:raise@2.5,BTN:call,BB:raise@13.5`
+the pair `99` and `88` play 0.84 and 1.84 percent, a gap of **exactly** the one-point tolerance,
+and the tolerance is strict. The report reached 1.0000000000000009 subtracting the chart's
+four-decimal weights where the walk reached 1.0 from the export's basis points. Both now round to
+six decimal places before comparing - finer than the data, which is whole basis points - so the
+noise is gone and neither can flag it."""
 
 EV_BAND = {0.65: (0.10, 0.70), 0.85: (8.76, 13.04)}
 """Decision 34's cost, in big blinds per 100 occurrences of the spot, at both ends of the
@@ -175,16 +190,16 @@ the test reads them back out of git at the pin the report names."""
 ARM_ROWS = {
     # partition: (suit solved, suit transposed, rank solved, rank permuted,
     #             spots the rank arm scored, comparisons skipped solved, skipped permuted)
-    "the committed set": (7, 167, 181, 433, 208, 19774, 20279),
-    "raises faced 0": (0, 5, 11, 61, 5, 0, 0),
-    "raises faced 1": (0, 25, 21, 112, 25, 0, 0),
-    "raises faced 2": (7, 137, 149, 260, 178, 19774, 20279),
-    "hero=LJ": (7, 32, 75, 96, 32, 3224, 3410),
-    "hero=HJ": (0, 15, 23, 59, 36, 3972, 4102),
-    "hero=CO": (0, 18, 22, 72, 32, 4777, 4876),
-    "hero=BTN": (0, 28, 14, 66, 33, 4351, 4416),
-    "hero=SB": (0, 36, 17, 65, 37, 3450, 3475),
-    "hero=BB": (0, 38, 30, 75, 38, 0, 0),
+    "the committed set": (17, 210, 278, 1340, 233, 19793, 20619),
+    "raises faced 0": (0, 5, 11, 56, 5, 0, 0),
+    "raises faced 1": (0, 25, 42, 176, 25, 0, 0),
+    "raises faced 2": (17, 180, 225, 1108, 203, 19793, 20619),
+    "hero=LJ": (5, 56, 27, 542, 64, 6804, 7182),
+    "hero=HJ": (0, 25, 24, 263, 29, 2808, 2970),
+    "hero=CO": (1, 15, 18, 99, 15, 4240, 4295),
+    "hero=BTN": (5, 28, 111, 133, 30, 2450, 2589),
+    "hero=SB": (5, 44, 60, 169, 47, 3491, 3583),
+    "hero=BB": (1, 42, 38, 134, 48, 0, 0),
 }
 """Decision 53's figures over all ten partitions, re-derived on 2026-09-03 by two independent
 walks after decision 54 withdrew the closed-spot restriction. The suit arm scores **spots**
@@ -195,17 +210,30 @@ The two skipped columns are the arm's own account of what it could not look at, 
 side because they differ - the reversal carries a present cell onto a different row. They are two
 numbers rather than one because the figure this correction replaced, "149 against 69", was built
 by taking one side from each of two different comparison rules. Both self-consistent readings pass
-on every partition; the closest is `hero=LJ` at 75 against 96. A lane that finds this red halts
-and says so; it does not move the tolerance or which comparisons count."""
+on every partition; the closest is `hero=BTN` at 111 against 133. A lane that finds this red halts
+and says so; it does not move the tolerance or which comparisons count.
+
+**These figures and `PARTITIONS` in `test_chart_cutover_evidence.py` are now equal by
+construction, which MAINT-34 had to repair.** They were not: this column read 18 over the
+committed set against the walk's 17, one spot apart at `raises faced 1` and `hero=SB`, and the
+pair ladder read 150 against 149. Neither was a different rule - both walks compare
+`low - high > TOLERANCE_PCT`. They read the same cell off different sources, the report off the
+chart's four-decimal weights and the walk off the export's basis points, and at a pair sitting on
+**exactly** the one-point tolerance the two subtractions land either side of it. Both now round to
+`CELL_PCT_DECIMALS` first, which removes representation noise and cannot remove a real difference,
+because every honest value is a whole number of basis points. Decision 6."""
 
 RANK_ARM_SPOT_FLOOR = 5
 """Below five scored spots a strict gate over one or two grids is a coin flip, so the partition
-publishes rather than asserts. Over the 249 no partition falls below it: the smallest, `raises
+publishes rather than asserts. Over the 284 no partition falls below it: the smallest, `raises
 faced 0`, scores exactly five, so every row is asserted."""
 
 # --- the report's shape --------------------------------------------------------------------- #
 
 HEADINGS = {
+    # Still "four-bucket" in the generator, which MAINT-34's fourth exclusion clause makes stale.
+    # This is a locator rather than a claim, so it tracks what `scripts/` emits: correcting the
+    # heading is a `scripts/**` edit and outside a frozen-test repair.
     "census": "## The four-bucket node census",
     "exposure": "## Multiway exposure, per committed spot",
     "trace": "## One converted cell, traced",
@@ -419,6 +447,7 @@ def test_the_census_and_the_spot_count_are_published_against_the_export_and_the_
     assert excluded == {
         derivation_tests.EXPOSURE_CODE: derivation_tests.EXPOSURE_REFUSED_NODES,
         derivation_tests.SQUEEZE_CODE: derivation_tests.BB_SQUEEZE_REFUSED_NODES,
+        derivation_tests.NO_ARRIVING_CODE: derivation_tests.NO_ARRIVING_REFUSED_NODES,
         derivation_tests.DEPTH_CODE: derivation_tests.BEYOND_DEPTH_NODES,
     }
     assert set(excluded) == set(lookup.DERIVATION_EXCLUSION_CODES)
@@ -440,7 +469,7 @@ def test_the_census_and_the_spot_count_are_published_against_the_export_and_the_
 def test_the_committed_set_has_the_shape_the_rulings_selected(report_text, artifact) -> None:
     """The histogram, the seats and the prices, recomputed off the artifact's own keys.
 
-    5 first-in, 25 facing an open, 219 facing a three-bet, and nothing deeper: three-bet-facing is
+    5 first-in, 25 facing an open, 254 facing a three-bet, and nothing deeper: three-bet-facing is
     the deepest the filters admit, so a fourth bucket here is a converter that committed something
     above the ruled depth. The prices are exactly the three the solve offers and `100.0` is not
     among them, which is what makes hero's own jam a property of the withheld family rather than
@@ -523,7 +552,7 @@ def test_one_cell_is_traced_from_an_export_node_to_the_row_it_became(
     Reach and arrival are both on the row because neither says what the other does. Reach is "can
     hero hold this hand here", a plain mean over the 169 classes with no floor selecting cells;
     arrival is "is this line played at all", one left-to-right product from the root in parts per
-    billion. Over the 249 arrival spans many orders of magnitude and reach does not, which is why
+    billion. Over the 284 arrival spans many orders of magnitude and reach does not, which is why
     the grain section below has to exist at all.
     """
     body = section(report_text, "trace")
@@ -556,7 +585,7 @@ def test_the_arrival_grain_is_published_with_the_count_of_spots_rounding_to_zero
 ) -> None:
     """Arrival is a probability at a scale where a sixth of the committed set rounds away.
 
-    44 of the 249 round to zero in parts per billion and only 2 are exactly zero, so a reader who
+    181 of the 284 round to zero in parts per billion and 175 are exactly zero, so a reader who
     saw the zeroes without the grain would read 44 unreachable spots where there are two. The
     count is recomputed here off the artifact's own `arrival_ppb` rather than read back off the
     sentence that states it, and the zero case is asserted non-vacuous: if nothing rounded to

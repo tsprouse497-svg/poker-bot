@@ -14,8 +14,8 @@ over.
 
 **The rank arm is scored over every spot in its partition**, a comparison whose partner cell is
 absent being skipped, and what it skipped is published per partition on both sides.
-`reverse_hand_ranks` is total only on a full grid and 83 of the 249 carry one, which is why 19,774
-of the solved side's 32,868 possible comparisons and 20,279 of the permuted side's are skipped. A
+`reverse_hand_ranks` is total only on a full grid and 96 of the 284 carry one, which is why 19,793
+of the solved side's 37,488 possible comparisons and 20,619 of the permuted side's are skipped. A
 partition scoring fewer than five spots publishes rather than asserts; none does, the smallest
 scoring exactly five.
 
@@ -240,9 +240,9 @@ def test_the_rank_arm_is_scored_on_every_spot_and_says_what_it_skipped(
     different row, so the two skip different comparisons.
 
     **The withdrawn restriction is measured here rather than argued about.** The claim that the
-    unrestricted arm fails - "149 against 69" over the 219 three-bet-facing spots - is not a
-    reading of anything. Under the skip rule that partition reads 149 against 260 and passes;
-    restricted to the spots closed under reversal it reads 32 against 33 and also passes. The
+    unrestricted arm fails - "149 against 69" over the three-bet-facing spots - is not a reading
+    of anything. Under the skip rule that partition reads 225 against 1,108 and passes; restricted
+    to the 66 spots closed under reversal it reads 41 against 93 and also passes. The
     failing figure took the solved side of the first and the counterfactual side of the second.
     Both readings are computed below and both must pass, so a later hand that wants the
     restriction back has to make one of them fail first.
@@ -322,8 +322,8 @@ def test_neither_arm_passing_is_evidence_the_ranges_are_sound(
     nothing here can see, both arms comparing cells against each other rather than against any
     external level.
 
-    The over-folded chart differs from the committed one at 236 of the 249 spots and at none of
-    the other 13, because those 13 fold every hand that reaches them and half of zero is zero. No
+    The over-folded chart differs from the committed one at 280 of the 284 spots and at none of
+    the other 4, because those 4 fold every hand that reaches them and half of zero is zero. No
     over-folding of a chart can move a grid that already folds everything, so the fixture is right
     and the count is what has to say so.
 
@@ -341,7 +341,7 @@ def test_neither_arm_passing_is_evidence_the_ranges_are_sound(
     )
     assert arm_verdicts(mis_assigned) == (False, False)
     assert arm_verdicts(over_folding) == (False, False)
-    assert len(folds_everything) == SPOTS_FOLDING_EVERY_HAND == 13
+    assert len(folds_everything) == SPOTS_FOLDING_EVERY_HAND == 4
     assert sum(
         1 for before, after in zip(grids, over_folding, strict=True) if before != after
     ) == len(grids) - len(folds_everything), (
