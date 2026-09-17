@@ -70,20 +70,20 @@ answer a jam, which is the half of the old claim that survives a committed spot 
 offer one. The jam canary in the sibling file runs against the export for the other half."""
 
 BIG_BLIND_OPEN_FACING_SPOTS = 5
-MERGED_SPOTS = 20
-THREE_BET_FACING_SPOTS = 254
-MERGED_CELLS = 676
+MERGED_SPOTS = 11
+THREE_BET_FACING_SPOTS = 135
+MERGED_CELLS = 72
 """Decision 45: of the 25 facing-an-open spots, 5 are the big blind and keep fold/call/raise, and
 at the other 20 the bot may not cold-call, so each cell's call weight is added to its raise. 676
-cells move. The three families are 5 + 20 + 254 and they publish three different menus."""
+cells move. The three families are 5 + 11 + 135 and they publish three different menus."""
 
-PURE_AT_99_PCT_SOLVED = 80.63
-MIXED_BELOW_90_PCT_SOLVED = 14.29
-PURE_AT_99_PCT_PUBLISHED = 80.83
-MIXED_BELOW_90_PCT_PUBLISHED = 14.16
+PURE_AT_99_PCT_SOLVED = 90.79
+MIXED_BELOW_90_PCT_SOLVED = 5.68
+PURE_AT_99_PCT_PUBLISHED = 91.04
+MIXED_BELOW_90_PCT_PUBLISHED = 5.55
 """Decisions 49 and 53, and **each pair says which grid it is measured over**, because the two
 differ and this phase has already shipped one figure under two meanings. Both run over the same
-25,273 cells at non-zero reach.
+14,586 cells at non-zero reach.
 
 `_SOLVED` is the solve's own grid, before decision 45 folds the cold call into the raise, and it is
 the pair the argument rests on: the chart barely mixes, which is why decision 45's hole was large
@@ -92,19 +92,19 @@ available to the merge. `_PUBLISHED` is the artifact this phase writes, where th
 165 mixed cells pure. A generator computing purity off the file it just wrote reads 93.48, so both
 are printed and each is labelled."""
 
-ARRIVAL_ROUNDING_TO_ZERO = 181
-ARRIVAL_EXACTLY_ZERO = 175
-"""Decision 53: 181 of the 284 round to zero in parts per billion and 175 are exactly zero, so the
-grain is published with the count rather than the zeroes read as unreachable spots. At a 7.5bb
-blind three-bet these were 44 and 2 - see `SPOTS_AT_EXACTLY_ZERO` in
-`test_chart_arrival_probability.py` for why the second figure moving from 2 to 175 is the largest
-unruled movement in the re-solve rather than a count that drifted."""
+ARRIVAL_ROUNDING_TO_ZERO = 53
+ARRIVAL_EXACTLY_ZERO = 47
+"""Decision 53: 53 of the 156 round to zero in parts per billion and 47 are exactly zero, so the
+grain is published with the count rather than the zeroes read as unreachable spots. These were
+44 and 2 at a 7.5bb blind three-bet, went to 181 and 175 at 13.5, and came back here when
+decision 7's clause five refused the 128 spots whose exposure could not be measured - every one
+of them at zero arrival."""
 
 ROW_LADDER_COMPARISONS = 132
 """The kicker relation's comparison count over a full grid - adjacent kickers only, suited and
 offsuit taken apart. The contract's figure."""
 
-HERO_CLOSES_SPOTS = 97
+HERO_CLOSES_SPOTS = 89
 """Decision 49's correction: the spots where hero closes the action, which is where the equity
 relation is defined at all. It was published as 93 over a set that has since moved, and 120 over
 the 7.5bb committed 249."""
@@ -132,21 +132,21 @@ evidence of width.** The reference both raises and limps from that seat and this
 branch, so its raise-only column is not the same quantity. Read entry to entry it is +6.16 rather
 than +19.89, and the report prints that row and says so."""
 
-PAIR_INVERSIONS = 149
-KICKER_INVERSIONS = 278
-KICKER_WHEEL_ACE = 89
+PAIR_INVERSIONS = 87
+KICKER_INVERSIONS = 197
+KICKER_WHEEL_ACE = 60
 KICKER_NO_STORY_WIDE = 15
-KICKER_NO_STORY_NARROW = 174
-RAISE_ACTION_INVERSIONS = 125
-RAISE_ACTION_INVERSIONS_INVISIBLE = 48
+KICKER_NO_STORY_NARROW = 122
+RAISE_ACTION_INVERSIONS = 73
+RAISE_ACTION_INVERSIONS_INVISIBLE = 27
 """Decisions 49 and 50, the raise-action pair corrected by decision 55 on 2026-09-03 and
 re-measured whole for MAINT-34. The wheel-ace cases are correct poker and are separated out;
-89 + 15 + 174 is the 278.
+60 + 15 + 122 is the 197.
 
 Run as this phase defines the relation - adjacent pair ladder, twelve comparisons, one-point
-tolerance, strict, reach floor zero, every committed spot - the fourth relation reads **125**
-inversions on the merged raise weight the bot plays, **48** of them invisible to play-not-fold,
-against 137 and 61 on the solve's raw raise row. Both are re-derived from the export by
+tolerance, strict, reach floor zero, every committed spot - the fourth relation reads **73**
+inversions on the merged raise weight the bot plays, **27** of them invisible to play-not-fold,
+against 81 and 35 on the solve's raw raise row. Both are re-derived from the export by
 `test_chart_cutover_evidence.py`, which reaches them here, so a generator that prints a
 hand-typed count goes red on the walk rather than on a substring.
 
@@ -190,16 +190,16 @@ the test reads them back out of git at the pin the report names."""
 ARM_ROWS = {
     # partition: (suit solved, suit transposed, rank solved, rank permuted,
     #             spots the rank arm scored, comparisons skipped solved, skipped permuted)
-    "the committed set": (17, 210, 278, 1340, 233, 19793, 20619),
+    "the committed set": (8, 110, 197, 390, 123, 10123, 10522),
     "raises faced 0": (0, 5, 11, 56, 5, 0, 0),
-    "raises faced 1": (0, 25, 42, 176, 25, 0, 0),
-    "raises faced 2": (17, 180, 225, 1108, 203, 19793, 20619),
-    "hero=LJ": (5, 56, 27, 542, 64, 6804, 7182),
-    "hero=HJ": (0, 25, 24, 263, 29, 2808, 2970),
-    "hero=CO": (1, 15, 18, 99, 15, 4240, 4295),
-    "hero=BTN": (5, 28, 111, 133, 30, 2450, 2589),
-    "hero=SB": (5, 44, 60, 169, 47, 3491, 3583),
-    "hero=BB": (1, 42, 38, 134, 48, 0, 0),
+    "raises faced 1": (0, 16, 26, 112, 16, 0, 0),
+    "raises faced 2": (8, 89, 160, 222, 102, 10123, 10522),
+    "hero=LJ": (0, 12, 3, 23, 20, 2052, 2166),
+    "hero=HJ": (0, 9, 9, 23, 13, 1144, 1210),
+    "hero=CO": (1, 10, 12, 28, 10, 1620, 1660),
+    "hero=BTN": (3, 21, 101, 114, 22, 2343, 2455),
+    "hero=SB": (4, 32, 44, 107, 32, 2964, 3031),
+    "hero=BB": (0, 26, 28, 95, 26, 0, 0),
 }
 """Decision 53's figures over all ten partitions, re-derived on 2026-09-03 by two independent
 walks after decision 54 withdrew the closed-spot restriction. The suit arm scores **spots**
@@ -210,7 +210,7 @@ The two skipped columns are the arm's own account of what it could not look at, 
 side because they differ - the reversal carries a present cell onto a different row. They are two
 numbers rather than one because the figure this correction replaced, "149 against 69", was built
 by taking one side from each of two different comparison rules. Both self-consistent readings pass
-on every partition; the closest is `hero=BTN` at 111 against 133. A lane that finds this red halts
+on every partition; the closest is `hero=BTN` at 101 against 114. A lane that finds this red halts
 and says so; it does not move the tolerance or which comparisons count.
 
 **These figures and `PARTITIONS` in `test_chart_cutover_evidence.py` are now equal by
@@ -225,7 +225,7 @@ because every honest value is a whole number of basis points. Decision 6."""
 
 RANK_ARM_SPOT_FLOOR = 5
 """Below five scored spots a strict gate over one or two grids is a coin flip, so the partition
-publishes rather than asserts. Over the 284 no partition falls below it: the smallest, `raises
+publishes rather than asserts. Over the 156 no partition falls below it: the smallest, `raises
 faced 0`, scores exactly five, so every row is asserted."""
 
 # --- the report's shape --------------------------------------------------------------------- #
@@ -448,6 +448,7 @@ def test_the_census_and_the_spot_count_are_published_against_the_export_and_the_
         derivation_tests.EXPOSURE_CODE: derivation_tests.EXPOSURE_REFUSED_NODES,
         derivation_tests.SQUEEZE_CODE: derivation_tests.BB_SQUEEZE_REFUSED_NODES,
         derivation_tests.NO_ARRIVING_CODE: derivation_tests.NO_ARRIVING_REFUSED_NODES,
+        derivation_tests.SPLIT_CODE: derivation_tests.SPLIT_REFUSED_NODES,
         derivation_tests.DEPTH_CODE: derivation_tests.BEYOND_DEPTH_NODES,
     }
     assert set(excluded) == set(lookup.DERIVATION_EXCLUSION_CODES)

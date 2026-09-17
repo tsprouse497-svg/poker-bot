@@ -41,11 +41,13 @@ from poker_training_bot.solver_artifacts.lookup import (
     DERIVATION_BIG_BLIND_SQUEEZE_SPOT,
     DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD,
     DERIVATION_NO_ARRIVING_HAND_CLASS,
+    DERIVATION_TERMINAL_SPLIT_DOES_NOT_CLOSE,
 )
 
 __all__ = [
     "COMMITTED_RAISE_DEPTH",
     "MULTIWAY_EXPOSURE_THRESHOLD_PCT",
+    "SPLIT_CLOSURE_TOLERANCE_PCT",
     "SEATS",
     "TABLE_SIZE",
     "below_multiway_exposure_threshold",
@@ -54,6 +56,7 @@ __all__ = [
     "has_an_arriving_hand_class",
     "is_big_blind_squeeze_spot",
     "is_committed_node",
+    "terminal_split_closes",
     "multiway_exposure_pct",
     "raises_faced",
     "require_known_kind",
@@ -70,6 +73,19 @@ COMMITTED_RAISE_DEPTH = 2
 Counted over the pot hero is being asked about rather than over the seats in front of him, so an
 opener who has been three-bet and is now choosing is at two and stays, while the seat answering
 his four-bet is at three and goes.
+"""
+
+SPLIT_CLOSURE_TOLERANCE_PCT = 0.05
+"""How far a terminal split may miss 100 before the exposure measurement is not one.
+
+**The same 0.05 the frozen tests have carried since phase 14**, kept rather than re-derived: it
+was set as a tolerance "so that a build losing a whole branch cannot hide inside it", it caught
+this defect doing exactly that, and inventing a second number here would leave the repo with two
+thresholds for one question. A split misses 100 because mass reached a node no hand class arrives
+at and the solve published no strategy to redistribute it by; under the 7.5bb solve the worst
+committed spot missed by 0.027 and none missed by more than this.
+
+MAINT-34's decision 7.
 """
 
 MULTIWAY_EXPOSURE_THRESHOLD_PCT = 10.0
@@ -352,6 +368,32 @@ def has_an_arriving_hand_class(
     return any(node.reach_bp)
 
 
+def terminal_split_closes(
+    by_path: dict[tuple[int, ...], SolverNode], node: SolverNode
+) -> bool:
+    """Clause five: the exposure measurement actually measured something.
+
+    `terminal_split_pct` walks a node's decision mass to the leaves and reports where it ends up -
+    hand over preflop, heads-up flop, multiway flop. Those three close on 100 when every branch
+    is accounted for. They do not when mass reaches a node with no arriving hand class, because
+    `action_frequency` reads 0.0 there and the mass leaves the walk instead of being
+    redistributed. Clause two then divides by a denominator that is missing the branches it was
+    supposed to weigh.
+
+    **What that does is not a rounding error.** On the committed 13.5bb export 128 spots that
+    cleared every other clause were admitted on a split that did not close, and 109 of them read
+    an exposure of exactly 0.0 - every branch gone, so the clause measured nothing and admitted
+    them for it. Renormalising over the mass that does close puts one of the rest over the line at
+    11.19 against a threshold of 10. A guard that cannot see its own input fails closed here, the
+    way every other gap in this bot does.
+
+    It costs no coverage: all 128 carry zero arrival under the solve's own play, so refusing them
+    loses 0 of 6,054,005,282 parts per billion. What it buys is that a spot the chart answers has
+    had its exposure measured rather than merely assigned.
+    """
+    return abs(100.0 - sum(terminal_split_pct(by_path, node))) <= SPLIT_CLOSURE_TOLERANCE_PCT
+
+
 def exclusion_code(
     by_path: dict[tuple[int, ...], SolverNode], node: SolverNode
 ) -> str | None:
@@ -364,11 +406,31 @@ def exclusion_code(
     The reverse order balances at the same total with a bucket of 26 and a bucket of 137. Only
     the 26 is a property of the shape; the rest are this solve's, and the census recomputes them.
 
-    Clause four goes last for that same reason, and putting it first would be the loudest way to
-    get this wrong: thousands of nodes deep in the four-bet family have no arriving class either,
-    and filed under clause four they would empty the depth bucket, which is the one a later phase
-    reads to find the work it is taking up. Last, the bucket holds exactly the nodes that clear
-    every other clause and still have nobody at the table.
+    Clause four goes last-but-one for that same reason, and putting it first would be the loudest
+    way to get this wrong: thousands of nodes deep in the four-bet family have no arriving class
+    either, and filed under clause four they would empty the depth bucket, which is the one a
+    later phase reads to find the work it is taking up.
+
+    **Clause five goes last, and the measurement says so rather than the taste.** Over the 607
+    nodes at committed depth the four predicates read 154 exposure, 26 squeeze, 160 no-arriving
+    and 375 non-closing, and every placement gives the same 156 committed - the order moves only
+    which bucket holds what. Two facts decide it:
+
+    - **No-arriving is a strict subset of non-closing**: all 160 of them fail to close, and none
+      of them closes. A node with no arriving class has no frequencies, so its split is empty by
+      construction. Filed before clause four, clause five empties that bucket to zero and takes
+      decision 2's whole signature with it - the one that says a size change emptied a line the
+      chart used to answer. That is decision 2's own hazard, one clause later.
+    - **An exposure refusal stays sound on a split that does not close.** 83 nodes are over the
+      threshold *and* leaky; renormalising over the mass that survives can only raise a multiway
+      share, so every one of the 83 is still over the line on the honest reading - verified, none
+      drops below it. They belong under exposure, which is a statement about the spot, rather
+      than under a code that says its number could not be trusted.
+
+    So last is the only order that leaves exposure at 154, squeeze at 9 and no-arriving at 160 -
+    every existing bucket exactly as it was - and gives clause five the 128 decision 7 names:
+    the spots that cleared every other clause and were admitted by a measurement that did not
+    happen. Placed first it would read 375 and leave exposure holding 71.
     """
     if not within_committed_raise_depth(by_path, node):
         return DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH
@@ -378,11 +440,13 @@ def exclusion_code(
         return DERIVATION_BIG_BLIND_SQUEEZE_SPOT
     if not has_an_arriving_hand_class(by_path, node):
         return DERIVATION_NO_ARRIVING_HAND_CLASS
+    if not terminal_split_closes(by_path, node):
+        return DERIVATION_TERMINAL_SPLIT_DOES_NOT_CLOSE
     return None
 
 
 def is_committed_node(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> bool:
-    """All three clauses together, read off the reason the node would be refused for.
+    """All five clauses together, read off the reason the node would be refused for.
 
     Written as the absence of a code rather than as the conjunction again, so that the chart and
     the census cannot drift apart: a spot that ships without a bucket accounting for its absence,

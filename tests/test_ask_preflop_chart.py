@@ -87,9 +87,9 @@ REFUSAL_CASES: dict[str, tuple[str, ...]] = {
     # carries the uniform initialisation rather than a strategy and the chart refuses to answer
     # it. Reachable from a terminal like every other code, which is what this table is for.
     lookup.MISS_UNTRAINED_CELL: (
-        "--seat", "CO",
-        "--facing", "LJ raise 2.5,HJ call,CO call,BTN call,BB raise 13.5",
-        "--hand", "KQs",
+        "--seat", "SB",
+        "--facing", "LJ raise 2.5,HJ call,CO call,BTN call,SB call,BB raise 13.5",
+        "--hand", "AA",
     ),
 }
 

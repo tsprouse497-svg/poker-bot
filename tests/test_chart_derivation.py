@@ -33,7 +33,7 @@ measures the ruled one branch by branch instead of asserting the total it happen
 **Why the third clause exists, in poker.** The nine are the only committed shape whose chart still
 offers hero a call into a multiway pot; the big blind's call stays in the measurement (decision
 52), and it is essentially all of their exposure. The filter misses them because hero's fold -
-92.55 percent at `LJ` opening and `HJ` calling - leaves that branch carrying 2.90 to 6.13 points,
+89.13 percent at `LJ` opening and `BTN` calling - leaves that branch carrying 2.90 to 6.13 points,
 under the ten-percent line (`MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN`).
 
 Every count is recomputed from the export by a walk written here, because a test that imports the
@@ -62,19 +62,21 @@ from poker_training_bot.solver_artifacts.schema import PreflopAction
 # and every one is re-derived below by this file's own walk of the export.
 
 EXPORTED_NODES = 30_609
-COMMITTED_NODES = 284
-RAISES_FACED_WHEN_COMMITTED = {0: 5, 1: 25, 2: 254}
+COMMITTED_NODES = 156
+RAISES_FACED_WHEN_COMMITTED = {0: 5, 1: 16, 2: 135}
 EXPOSURE_REFUSED_NODES = 154
 BB_SQUEEZE_REFUSED_NODES = 9
 NO_ARRIVING_REFUSED_NODES = 160
+SPLIT_REFUSED_NODES = 128
 BEYOND_DEPTH_NODES = 30_002
-WIDEST_ADMITTED_EXPOSURE_PCT = 9.6609
+WIDEST_ADMITTED_EXPOSURE_PCT = 9.1945
 NARROWEST_REFUSED_EXPOSURE_PCT = 10.4362
 COVERAGE_PCT = 98.7380
 EXPOSURE_CODE = "derivation:multiway-exposure-above-threshold"
 SQUEEZE_CODE = "derivation:big-blind-squeeze-spot"
 DEPTH_CODE = "derivation:beyond-committed-raise-depth"
 NO_ARRIVING_CODE = "derivation:no-arriving-hand-class"
+SPLIT_CODE = "derivation:terminal-split-does-not-close"
 
 COVERAGE_BY_RAISES_FACED = {0: 52.7327, 1: 38.0261, 2: 7.9792}
 """The three-way split of the 98.7380, decision 49. A split rather than a total, so that a build
@@ -82,33 +84,34 @@ committing the right number of the wrong nodes is caught: the five opens alone a
 of every preflop decision the bot ever faces."""
 
 NODES_AT_COMMITTED_DEPTH = 607
-"""What the raise-depth clause keeps on its own - 284 + 154 + 9 + 160 - and the domain decision 40
-measured over. The other three are read over the whole export. The total is still 607 while all
-four parts moved, a coincidence of the two trees."""
+"""What the raise-depth clause keeps on its own - 156 + 154 + 9 + 160 + 128 - and the domain
+decision 40 measured over. The other four are read over the whole export. The total is still 607
+while every part of it moved, a coincidence of the two trees."""
 
 EXPOSURE_REFUSALS_OVER_THE_WHOLE_EXPORT = 12_416
 BB_SQUEEZE_NODES_OVER_THE_WHOLE_EXPORT = 26
 NO_ARRIVING_NODES_OVER_THE_WHOLE_EXPORT = 9_079
+NON_CLOSING_NODES_AT_COMMITTED_DEPTH = 375
 """Each clause read as a predicate over all 30,609 nodes rather than behind the others, which is
 the only way "no clause is co-extensive with another" is a claim about the clauses. Seventeen of
 the 26 big-blind squeeze nodes are over the threshold too, so the census bucket holds nine and
 this count does not: the precedence is what makes the four buckets a partition."""
 
-COMMITTED_WITH_THREE_OR_MORE_LIVE = 237
+COMMITTED_WITH_THREE_OR_MORE_LIVE = 109
 COMMITTED_HEADS_UP_ALREADY = 47
 """Exposure is measured, not inferred from live players, and this is the gap between the two
-readings: 237 of the 284 still have three or more seats able to reach the flop. A live-player
+readings: 109 of the 156 still have three or more seats able to reach the flop. A live-player
 count would have refused every one of them and shipped 47 spots."""
 
-COMMITTED_WITH_A_CALLER_ALREADY_IN = 10
-COMMITTED_WITH_A_CALL_IN_THE_SEQUENCE = 229
-COMMITTED_AT_ZERO_EXPOSURE = 160
-THREE_BET_SPOTS_WITH_ANY_EXPOSURE = 100
+COMMITTED_WITH_A_CALLER_ALREADY_IN = 1
+COMMITTED_WITH_A_CALL_IN_THE_SEQUENCE = 101
+COMMITTED_AT_ZERO_EXPOSURE = 51
+THREE_BET_SPOTS_WITH_ANY_EXPOSURE = 90
 
-BB_SQUEEZE_FOLD_PCT = 92.55
-BB_SQUEEZE_CALL_PCT = 3.16
-BB_SQUEEZE_RAISE_PCT = 4.29
-"""Decision 48's measurement at `LJ` opens, `HJ` calls. The fold keeps hero's call branch small
+BB_SQUEEZE_FOLD_PCT = 89.13
+BB_SQUEEZE_CALL_PCT = 4.97
+BB_SQUEEZE_RAISE_PCT = 5.90
+"""Decision 48's measurement at `LJ` opens, `BTN` calls. The fold keeps hero's call branch small
 enough to slip the ten-percent threshold; it does not name the nine, three committed siblings on
 the same sequence folding harder. The test carries the rule that does."""
 
@@ -147,24 +150,30 @@ TRACED_SEQUENCE = (PreflopAction("BTN", "raise", 2.5),)
 MERGED_FLAT_PATH = (1, 0, 0, 0)
 MERGED_FLAT_KEY = "t6/d100/SB/LJ:raise@2.5"
 
-# A cold call in front of hero, committed anyway: the cutoff answering a lojack open the hijack
-# flatted. One of the nine, and the reason the third clause is about a seat and not about a call.
-COLD_CALLED_COMMITTED_PATH = (1, 1)
-COLD_CALLED_COMMITTED_KEY = "t6/d100/CO/LJ:raise@2.5,HJ:call"
+# A cold call in front of hero, committed anyway: the small blind answering a lojack open the
+# button flatted. The **only** one left after MAINT-34's clause five - the cutoff's version of
+# this spot, named here until decision 7, is now refused for a split that does not close - and
+# still the reason the third clause is about a seat and not about a call.
+COLD_CALLED_COMMITTED_PATH = (1, 0, 0, 1)
+COLD_CALLED_COMMITTED_KEY = "t6/d100/SB/LJ:raise@2.5,BTN:call"
 COLD_CALLED_COMMITTED_SEQUENCE = (
     PreflopAction("LJ", "raise", 2.5),
-    PreflopAction("HJ", "call"),
+    PreflopAction("BTN", "call"),
 )
 
-# The same board with the big blind as hero, and refused: decision 48's named spot.
-BB_SQUEEZE_PATH = (1, 1, 0, 0, 0)
-BB_SQUEEZE_KEY = "t6/d100/BB/LJ:raise@2.5,HJ:call"
+# The same board with the big blind as hero, and refused: decision 48's named spot. Moved with
+# `COLD_CALLED_COMMITTED` under MAINT-34's clause five, so the pair still shares one sequence and
+# differs only in who hero is - which is the whole of what the third clause turns on.
+BB_SQUEEZE_PATH = (1, 0, 0, 1, 0)
+BB_SQUEEZE_KEY = "t6/d100/BB/LJ:raise@2.5,BTN:call"
 BB_SQUEEZE_SEQUENCE = COLD_CALLED_COMMITTED_SEQUENCE
 
-# The margin, both ends. Seventy-eight hundredths of a point apart, and the report publishes both.
-WIDEST_ADMITTED_PATH = (0, 0, 1, 1)
-WIDEST_ADMITTED_KEY = "t6/d100/SB/CO:raise@2.5,BTN:call"
-WIDEST_ADMITTED_SPLIT = (0.0, 76.6712, WIDEST_ADMITTED_EXPOSURE_PCT)
+# The margin, both ends. A point and a quarter apart, and the report publishes both. The widest
+# admitted moved under clause five: the spot that held it reads 9.6609 off a split that closes on
+# 76.67, so it is refused now rather than being the margin.
+WIDEST_ADMITTED_PATH = (1, 0, 1, 1, 2, 0, 1, 0)
+WIDEST_ADMITTED_KEY = "t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,LJ:call"
+WIDEST_ADMITTED_SPLIT = (0.0017, 90.8038, WIDEST_ADMITTED_EXPOSURE_PCT)
 NARROWEST_REFUSED_PATH = (0, 0, 1, 1, 0)
 NARROWEST_REFUSED_KEY = "t6/d100/BB/CO:raise@2.5,BTN:call"
 NARROWEST_REFUSED_SEQUENCE = (
@@ -221,6 +230,7 @@ from chart_selection_walk import (  # noqa: E402
     key_of,
     raises_faced,
     selected,
+    terminal_split_closes,  # noqa: F401  - re-exported for the sibling files
     terminal_split_pct,  # noqa: F401  - re-exported for the sibling files
     walk_of,
     within_raise_depth,
@@ -491,18 +501,22 @@ def test_no_clause_is_co_extensive_with_another(export: SolverExport, walked: Wa
     assert deep - exposed - squeezed
 
 
-def test_the_four_clauses_select_the_committed_284(
+def test_the_five_clauses_select_the_committed_156(
     export: SolverExport, walked: Walk, committed: tuple[SolverNode, ...]
 ) -> None:
     """The set every later measurement in this phase is taken over.
 
-    **284 of 30,609** - 5 first-in, 25 facing an open, 254 facing a three-bet - carrying
+    **156 of 30,609** - 5 first-in, 16 facing an open, 135 facing a three-bet - carrying
     **98.7380 percent** of preflop decisions, split 52.7327 across the five opens, 38.0261 across
     the answers to an open and 7.9792 across the answers to a three-bet. The split is asserted
-    and not only the total, because a build committing 284 of the wrong nodes reaches the same
+    and not only the total, because a build committing 156 of the wrong nodes reaches the same
     total from a different shape.
 
-    Compared as keys as well as counts: 284 nodes are not self-evidently 284 spots, and a grammar
+    **The coverage did not move when clause five removed 128 spots**, and that is the check on
+    decision 7 rather than a coincidence: every one of the 128 carries zero arrival, so the chart
+    lost 0 of 6,054,005,282 parts per billion. A build that refused the wrong 128 would move it.
+
+    Compared as keys as well as counts: 156 nodes are not self-evidently 156 spots, and a grammar
     collision shows up here as a set that is short rather than as a merge nobody noticed.
     """
     module = derivation()

@@ -76,25 +76,25 @@ else - not of how many cold callers are in. The seat term is what MAINT-34 added
 this was one price per depth. `CHART-CANNOT-EXPRESS-TWO-RAISE-SIZES-AT-ONE-SPOT` is still the
 property being stated, and it still holds: one price per *spot*, several across a depth."""
 
-SPOTS_OFFERING_A_PRICE = 284
+SPOTS_OFFERING_A_PRICE = 156
 SPOTS_OFFERING_NO_PRICE = 0
 """The two directions of decision 6's invariant over the committed set. The second is one of
 the phase's three vacuous criteria: every committed spot offers hero a raise, so the half
 that says a spot offering none carries no key has nothing to fire on."""
 
-PRICED_CELLS = 7_885
-"""Cells across the 284 whose *published* raise weight is positive, so the strategy has to be
+PRICED_CELLS = 3_830
+"""Cells across the 156 whose *published* raise weight is positive, so the strategy has to be
 able to ask what the raise is. It counts the merged flats: after decision 45 a class that the
 solve only called publishes a raise, and a chart that says raise and cannot say how much is
 the defect decision 6 exists to prevent."""
 
 JAM_NODES = 3_777
 JAM_RAISES_FACED = {2: 96, 3: 3_681}
-COMMITTED_JAM_NODES = 49
-JAM_NODES_BELOW_A_COMMITTED_SPOT = 244
-JAM_NODES_WHERE_ACES_ARRIVE = 119
-ACES_JAM_THE_WHOLE_RANGE_AT = 49
-PAIR_INVERSIONS_ON_THE_JAM = 80
+COMMITTED_JAM_NODES = 34
+JAM_NODES_BELOW_A_COMMITTED_SPOT = 131
+JAM_NODES_WHERE_ACES_ARRIVE = 92
+ACES_JAM_THE_WHOLE_RANGE_AT = 39
+PAIR_INVERSIONS_ON_THE_JAM = 69
 """The jam canary's own figures, over the export rather than the chart.
 
 **The canary's containment claim is gone and is replaced by a count, not weakened.** Before

@@ -46,6 +46,7 @@ from pathlib import Path
 import pytest
 import test_chart_derivation as derivation_tests
 import test_derived_chart_report as report_tests
+from derived_chart_shape import a_full_grid, monotone
 
 from poker_training_bot.solver_artifacts import lookup
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES
@@ -137,6 +138,7 @@ def a_census(derivation, committed: int | None = None, excluded: Mapping[str, in
             derivation_tests.EXPOSURE_CODE: derivation_tests.EXPOSURE_REFUSED_NODES,
             derivation_tests.SQUEEZE_CODE: derivation_tests.BB_SQUEEZE_REFUSED_NODES,
             derivation_tests.NO_ARRIVING_CODE: derivation_tests.NO_ARRIVING_REFUSED_NODES,
+            derivation_tests.SPLIT_CODE: derivation_tests.SPLIT_REFUSED_NODES,
             derivation_tests.DEPTH_CODE: derivation_tests.BEYOND_DEPTH_NODES,
         }
     return derivation.NodeCensus(committed=committed, excluded=dict(excluded), inexpressible={})
@@ -149,12 +151,14 @@ def test_the_census_is_refused_when_it_does_not_cover_the_export(derivation, gen
     that refusal reads exactly like this test passing. Decision 52 closed it at three codes,
     MAINT-34's decision 2 adds a fourth, and decision 8 keeps them disjoint from the miss codes.
 
-    **Four codes rather than one, because each names a different way back.** The 154 over the
+    **Five codes rather than one, because each names a different way back.** The 154 over the
     exposure threshold return when GTOpen can price a multiway pot; the 9 squeeze spots when the
     flats are repaired; the 160 with no arriving class only if a size change puts a range there;
+    the 128 whose split does not close when the solve stops routing mass into zero-reach nodes;
     the 30,002 past the depth clause when a later phase takes up the four-bet.
     """
     assert set(lookup.DERIVATION_EXCLUSION_CODES) == {
+        derivation_tests.SPLIT_CODE,
         derivation_tests.EXPOSURE_CODE,
         derivation_tests.SQUEEZE_CODE,
         derivation_tests.NO_ARRIVING_CODE,
@@ -242,20 +246,6 @@ def test_the_artifact_spot_count_is_checked_against_the_walk_key_by_key(generato
 
 
 # --- the four relations, counted rather than gated -------------------------------------------- #
-
-
-def a_full_grid(value) -> dict[str, float]:
-    """All 169 classes with `value(name)` in each. A partial grid silently drops the comparisons
-    whose other half is missing and reports a clean measurement."""
-    return {name: value(name) for name in HAND_CLASSES}
-
-
-def monotone(name: str) -> float:
-    """A frequency falling with the high card and with the kicker, a tenth of a point higher
-    suited than offsuit - so all three play-not-fold relations hold with room to spare and any
-    violation counted below is the one the case put there."""
-    high, low = RANKS.index(name[0]), RANKS.index(name[1])
-    return 100.0 - 3.0 * high - 0.2 * low + (0.1 if name.endswith("s") else 0.0)
 
 
 def a_grid(**overrides: float) -> dict[str, dict[str, float]]:

@@ -90,6 +90,7 @@ DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH = "derivation:beyond-committed-raise-dep
 DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD = "derivation:multiway-exposure-above-threshold"
 DERIVATION_BIG_BLIND_SQUEEZE_SPOT = "derivation:big-blind-squeeze-spot"
 DERIVATION_NO_ARRIVING_HAND_CLASS = "derivation:no-arriving-hand-class"
+DERIVATION_TERMINAL_SPLIT_DOES_NOT_CLOSE = "derivation:terminal-split-does-not-close"
 DERIVATION_NO_LEGAL_SPOT_KEY = "derivation:no-legal-spot-key"
 
 # MAINT-34 added the fourth exclusion code and it is NOT the retired `DERIVATION_BELOW_REACH_FLOOR`
@@ -106,13 +107,24 @@ DERIVATION_NO_LEGAL_SPOT_KEY = "derivation:no-legal-spot-key"
 # measurement, and this one will move again on the next re-solve.
 # `RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET`.
 
+# MAINT-34's decision 7 added the fifth, and it is a rule about the *measurement* rather than
+# about the node: clause two refuses a spot whose multiway exposure is too high, and this one
+# refuses a spot whose exposure could not be measured at all. The same re-solve is behind both -
+# `action_frequency` reads 0.0 at a zero-reach node, so decision mass flowing into the 9,079 such
+# nodes leaves the terminal split without being redistributed. 128 committed spots were admitted
+# on a split that did not close and 109 of them read an exposure of exactly 0.0 because every
+# branch had evaporated, not because hero was heads-up. When a guard cannot measure its input it
+# fails closed, which is how this bot handles every other gap.
+# `MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN`.
+
 # In the order the census files a refusal under, because the precedence is what makes the
-# buckets a partition rather than four overlapping descriptions of the same node.
+# buckets a partition rather than five overlapping descriptions of the same node.
 DERIVATION_EXCLUSION_CODES: tuple[str, ...] = (
     DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH,
     DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD,
     DERIVATION_BIG_BLIND_SQUEEZE_SPOT,
     DERIVATION_NO_ARRIVING_HAND_CLASS,
+    DERIVATION_TERMINAL_SPLIT_DOES_NOT_CLOSE,
 )
 DERIVATION_INEXPRESSIBILITY_CODES: tuple[str, ...] = (DERIVATION_NO_LEGAL_SPOT_KEY,)
 

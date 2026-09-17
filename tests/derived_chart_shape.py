@@ -111,3 +111,26 @@ def reach_by_class(artifact: PreflopArtifact, spot_id: str) -> dict[str, int]:
         if keyed == spot_id:
             return dict(classes)
     raise AssertionError(f"the committed artifact carries no arriving reach for {spot_id!r}")
+
+
+RANKS = "AKQJT98765432"
+"""High card first, so an index into it falls as the card gets weaker."""
+
+
+def a_full_grid(value) -> dict[str, float]:
+    """All 169 classes with `value(name)` in each. A partial grid silently drops the comparisons
+    whose other half is missing and reports a clean measurement.
+
+    Here rather than beside its callers because MAINT-34's decision 7 took the validators file
+    past its 700-line cap. The assertions stay with their owner; only the grid builders moved.
+    """
+    return {name: value(name) for name in HAND_CLASSES}
+
+
+def monotone(name: str) -> float:
+    """A frequency falling with the high card and with the kicker, a tenth of a point higher
+    suited than offsuit - so all three play-not-fold relations hold with room to spare and any
+    violation a case counts is the one that case put there."""
+    high, low = RANKS.index(name[0]), RANKS.index(name[1])
+    return 100.0 - 3.0 * high - 0.2 * low + (0.1 if name.endswith("s") else 0.0)
+

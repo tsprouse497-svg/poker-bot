@@ -79,17 +79,25 @@ def committed_library(export: SolverExport, tmp_path_factory) -> PreflopChartLib
     return PreflopChartLibrary.from_artifacts([import_preflop_artifact(path)])
 
 
-def test_the_five_bucket_census_accounts_for_every_node_the_source_card_publishes(
+def test_the_six_bucket_census_accounts_for_every_node_the_source_card_publishes(
     export: SolverExport, walked: spec.Walk, counted
 ) -> None:
     """Committed, then one bucket per clause, and nothing falling between them.
 
-    **284 committed, 154 above the exposure threshold, 9 big-blind squeeze spots, 160 with no
-    arriving hand class, 30,002 beyond the committed raise depth, summing to 30,609.** Buckets
-    are compared as sets of paths rather than as counts, because the precedence is what makes
-    them a partition: seventeen of the twenty-six squeeze nodes are over the threshold too and
-    are filed under exposure, so a build ordering the clauses differently balances and describes
-    a different chart. The total is checked against the source card, which a reader has.
+    **156 committed, 154 above the exposure threshold, 9 big-blind squeeze spots, 160 with no
+    arriving hand class, 128 whose terminal split does not close, 30,002 beyond the committed
+    raise depth, summing to 30,609.** Buckets are compared as sets of paths rather than as
+    counts, because the precedence is what makes them a partition: seventeen of the twenty-six
+    squeeze nodes are over the threshold too and are filed under exposure, so a build ordering
+    the clauses differently balances and describes a different chart.
+
+    **Clause five is the sharpest case of that and it is asserted, not assumed.** All 160
+    no-arriving nodes also fail to close - a node with no arriving class has no frequencies, so
+    its split is empty by construction - so the two clauses are nested rather than disjoint and
+    only the order keeps them apart. Filed before clause four, clause five reads 375 and empties
+    the no-arriving bucket to zero; filed first it also cuts exposure from 154 to 71. Last, every
+    earlier bucket is untouched and it holds the 128 decision 7 names. The total is checked
+    against the source card, which a reader has.
     """
     card = load_source_card(COMMITTED_SOURCE_CARD_PATH)
     beyond = {n.path for n in export.nodes if not spec.within_raise_depth(walked, n)}
@@ -113,14 +121,32 @@ def test_the_five_bucket_census_accounts_for_every_node_the_source_card_publishe
         and n.path not in squeezed
         and not spec.has_an_arriving_hand_class(walked, n)
     }
-    kept = {n.path for n in export.nodes} - beyond - exposed - squeezed - unarrived
-    buckets = (kept, exposed, squeezed, unarrived, beyond)
+    unclosed = {
+        n.path
+        for n in export.nodes
+        if n.path not in beyond
+        and n.path not in exposed
+        and n.path not in squeezed
+        and n.path not in unarrived
+        and not spec.terminal_split_closes(walked, n)
+    }
+    kept = {n.path for n in export.nodes} - beyond - exposed - squeezed - unarrived - unclosed
+    buckets = (kept, exposed, squeezed, unarrived, unclosed, beyond)
 
     assert len(kept) == spec.COMMITTED_NODES
     assert len(exposed) == spec.EXPOSURE_REFUSED_NODES
     assert len(squeezed) == spec.BB_SQUEEZE_REFUSED_NODES
     assert len(unarrived) == spec.NO_ARRIVING_REFUSED_NODES
+    assert len(unclosed) == spec.SPLIT_REFUSED_NODES
     assert len(beyond) == spec.BEYOND_DEPTH_NODES
+    # The nesting the precedence exists to separate, asserted rather than described.
+    assert unarrived <= {
+        n.path for n in export.nodes if not spec.terminal_split_closes(walked, n)
+    }, "a no-arriving node whose split closes would make the two clauses independent"
+    assert len(
+        {n.path for n in export.nodes
+         if spec.within_raise_depth(walked, n) and not spec.terminal_split_closes(walked, n)}
+    ) == spec.NON_CLOSING_NODES_AT_COMMITTED_DEPTH
     for index, bucket in enumerate(buckets):
         for other in buckets[index + 1 :]:
             assert bucket.isdisjoint(other)
@@ -135,6 +161,7 @@ def test_the_five_bucket_census_accounts_for_every_node_the_source_card_publishe
         spec.EXPOSURE_CODE: spec.EXPOSURE_REFUSED_NODES,
         spec.SQUEEZE_CODE: spec.BB_SQUEEZE_REFUSED_NODES,
         spec.NO_ARRIVING_CODE: spec.NO_ARRIVING_REFUSED_NODES,
+        spec.SPLIT_CODE: spec.SPLIT_REFUSED_NODES,
         spec.DEPTH_CODE: spec.BEYOND_DEPTH_NODES,
     }
     assert counted.committed + sum(counted.excluded.values()) == counted.total
@@ -157,12 +184,13 @@ def test_a_census_that_folds_two_codes_together_balances_and_is_refused_anyway(
     folded = {
         spec.EXPOSURE_CODE: spec.EXPOSURE_REFUSED_NODES + spec.BB_SQUEEZE_REFUSED_NODES,
         spec.NO_ARRIVING_CODE: spec.NO_ARRIVING_REFUSED_NODES,
+        spec.SPLIT_CODE: spec.SPLIT_REFUSED_NODES,
         spec.DEPTH_CODE: spec.BEYOND_DEPTH_NODES,
     }
 
     assert spec.COMMITTED_NODES + sum(folded.values()) == spec.EXPORTED_NODES, "it balances"
     assert dict(counted.excluded) != folded, "and is refused anyway"
-    assert len(counted.excluded) == 4
+    assert len(counted.excluded) == 5
     assert spec.SQUEEZE_CODE in counted.excluded
     # Every one of the nine is inside the threshold, so the folded bucket would be a false claim
     # about all nine rather than a rounding of one.
@@ -206,6 +234,8 @@ def test_each_node_takes_the_code_that_names_why_it_is_not_committed(
             assert code == spec.SQUEEZE_CODE, node.path
         elif not spec.has_an_arriving_hand_class(walked, node):
             assert code == spec.NO_ARRIVING_CODE, node.path
+        elif not spec.terminal_split_closes(walked, node):
+            assert code == spec.SPLIT_CODE, node.path
         else:
             assert code is None, node.path
 
@@ -239,6 +269,11 @@ def test_both_reason_vocabularies_are_closed_enumerated_and_apart_from_the_miss_
     )
     no_key = lookup.DERIVATION_NO_LEGAL_SPOT_KEY
     assert no_key == "derivation:no-legal-spot-key"
+    closing = published_code("DERIVATION_TERMINAL_SPLIT_DOES_NOT_CLOSE")
+    assert closing == spec.SPLIT_CODE, (
+        "MAINT-34's decision 7 gives the unmeasurable-exposure clause its own reason; `lookup.py`"
+        f" must publish DERIVATION_TERMINAL_SPLIT_DOES_NOT_CLOSE = {spec.SPLIT_CODE!r}"
+    )
     arriving = published_code("DERIVATION_NO_ARRIVING_HAND_CLASS")
     assert arriving == spec.NO_ARRIVING_CODE, (
         "MAINT-34's decision 2 gives the zero-reach clause its own reason; `lookup.py` must"
@@ -249,8 +284,9 @@ def test_both_reason_vocabularies_are_closed_enumerated_and_apart_from_the_miss_
         spec.SQUEEZE_CODE,
         spec.DEPTH_CODE,
         spec.NO_ARRIVING_CODE,
+        spec.SPLIT_CODE,
     }
-    assert len(lookup.DERIVATION_EXCLUSION_CODES) == 4
+    assert len(lookup.DERIVATION_EXCLUSION_CODES) == 5
     assert lookup.DERIVATION_INEXPRESSIBILITY_CODES == (no_key,)
     for retired in (
         "DERIVATION_SOURCE_MISPRICES_MULTIWAY",
@@ -305,11 +341,17 @@ def test_a_cold_call_in_front_of_hero_refuses_nothing_on_its_own(
 ) -> None:
     """The sentence decision 52 corrected, asserted in the only form that can be wrong.
 
-    Ten committed spots have a caller already in and hero still to act - the cutoff, the button
-    and the small blind answering an open somebody flatted - and 229 of the 284 carry a call
-    somewhere in their sequence. So nothing about a cold call refuses a node; the ten big-blind
-    squeeze spots are refused for being the big blind's, which is what makes the third clause a
-    clause about a seat rather than about an action.
+    One committed spot has a caller already in and hero still to act - the small blind answering a
+    lojack open the button flatted - and 101 of the 156 carry a call somewhere in their sequence.
+    So nothing about a cold call refuses a node; the nine big-blind squeeze spots are refused for
+    being the big blind's, which is what makes the third clause a clause about a seat rather than
+    about an action.
+
+    **It was ten spots across three seats until MAINT-34's clause five**, which refused nine of
+    them for a terminal split that does not close. The claim is unchanged and its witness is
+    nearly gone, so the count is pinned rather than the seat set: at one spot this test is one
+    re-solve away from being vacuous, and a lane that finds it at zero should say so rather than
+    delete it.
     """
     facing_an_open = [node for node in committed if spec.raises_faced(walked, node) == 1]
     with_a_caller = [
@@ -325,7 +367,7 @@ def test_a_cold_call_in_front_of_hero_refuses_nothing_on_its_own(
 
     assert len(with_a_caller) == spec.COMMITTED_WITH_A_CALLER_ALREADY_IN
     assert len(anywhere) == spec.COMMITTED_WITH_A_CALL_IN_THE_SEQUENCE
-    assert {node.actor_pos for node in with_a_caller} == {"CO", "BTN", "SB"}
+    assert {node.actor_pos for node in with_a_caller} == {"SB"}
     named = walked.by_path[spec.COLD_CALLED_COMMITTED_PATH]
     assert spec.key_of(walked, named) == spec.COLD_CALLED_COMMITTED_KEY
     assert named in with_a_caller
@@ -386,7 +428,7 @@ def test_exposure_is_published_per_committed_spot_with_its_terminal_split(
         ("the big blind's squeeze spot, refused by the third clause",
          spec.BB_SQUEEZE_KEY, "BB", spec.BB_SQUEEZE_SEQUENCE, False),
         ("the same board one seat over, committed - a cold call refuses nothing",
-         spec.COLD_CALLED_COMMITTED_KEY, "CO", spec.COLD_CALLED_COMMITTED_SEQUENCE, True),
+         spec.COLD_CALLED_COMMITTED_KEY, "SB", spec.COLD_CALLED_COMMITTED_SEQUENCE, True),
         ("the narrowest refusal, over the exposure threshold at 10.4362",
          spec.NARROWEST_REFUSED_KEY, "BB", spec.NARROWEST_REFUSED_SEQUENCE, False),
         ("hero facing a four-bet, beyond the committed raise depth",

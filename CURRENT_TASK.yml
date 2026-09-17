@@ -34,6 +34,7 @@ approved_scope:
 - src/poker_training_bot/solver_artifacts/untrained_cells.py
 - reports/phase_audits/decisions/PHASE_10_SOLVER_EXTRACTION_DECISIONS.md
 - scripts/ask_preflop_chart.py
+- src/poker_training_bot/solver_artifacts/chart_provenance_facts.py
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -1866,3 +1867,23 @@ scope_change_log:
     whose own docstring says that failing is the intended way to find out. The code is reachable from
     a terminal, so a student can hit it. Reported by the test lane rather than worked around, and it wrote
     the witness anyway so the gap is only the English.
+- date: '2026-09-17'
+  reason: 'The sixth and seventh cap-forced extractions of this task. Decision 7''s fifth census bucket
+    took chart_provenance.py to 524 against a 500 cap and tests/test_derived_chart_report_validators.py
+    to 703 against 700.
+
+    chart_provenance_facts.py takes the eight private helpers that MEASURE the export - the committed
+    set, seats live, the faced price, the combo-weighted fold, whether a call closes into a multiway flop,
+    the aggressive prices and the decision shares - and leaves chart_provenance.py holding how the note
+    READS. That seam is the module''s own argument: it exists so the artifact''s prose is derived from
+    the run that writes it, and the measuring half is what makes that true while the prose half is what
+    a human opens the chart to read.
+
+    The validators test file moves its fixtures and grid builders into the existing derived_chart_shape.py
+    support module rather than growing an eighth one.
+
+    Both are coordinator work rather than a lane''s, which the Delegation Plan otherwise forbids, and
+    the reason is specific rather than a statement about the session: the lane that owns these files stalled
+    twice at the same step - running the suite after finishing its edits - and a third dispatch to re-derive
+    state it had already produced costs more than the extraction. Both are mechanical moves under a seam
+    already ruled, no behaviour changes, and the independent review covers them like everything else.'

@@ -18,8 +18,8 @@ no other file defines.
 **Re-cut at stage 4 on 2026-09-02 against the committed set**, superseding a cut written against a
 six-spot set. That cut recorded two of this field's criteria as unexercised: no committed line
 arrived at zero, and the rarest arrived at 1,280 basis points, so parts per billion bought nothing.
-**Both statements are now false** - over the 284, **181** spots round to zero in parts per billion
-and **175** arrive at exactly zero - which is why the contract says in as many words that the
+**Both statements are now false** - over the 156, **53** spots round to zero in parts per billion
+and **47** arrive at exactly zero - which is why the contract says in as many words that the
 zero-arrival case is not vacuous. So there is no vacuous criterion here and no `vacuous()` helper:
 the one convention this file drops, dropped because the data changed, not the convention.
 
@@ -121,19 +121,19 @@ spot: six of the traced spot's fifty answered cells arrive less than 2 percent o
 the thinnest at a single basis point. A floor is therefore not a no-op that could be left in the
 code unnoticed - reinstating any floor at all would visibly empty cells the chart answers."""
 
-SPOTS_ROUNDING_TO_ZERO = 181
-SPOTS_TRUNCATING_TO_ZERO = 181
+SPOTS_ROUNDING_TO_ZERO = 53
+SPOTS_TRUNCATING_TO_ZERO = 53
 SPOTS_BETWEEN_HALF_AND_ONE_PPB = 0
-SPOTS_AT_EXACTLY_ZERO = 175
-"""The grain, over the committed 284 (decision 53, and
+SPOTS_AT_EXACTLY_ZERO = 47
+"""The grain, over the committed 156 (decision 53, and
 `A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT`, whose title MAINT-34 has outgrown).
-**The largest unruled movement in the re-solve, recorded rather than smoothed.** At 7.5bb, 44 of
-249 committed spots rounded to zero and 2 arrived at exactly zero. At 13.5bb it is 181 of 284
-rounding to zero and **175 arriving at exactly zero**, so about two thirds of the committed chart
-answers lines this solve never plays and the 98.7380 coverage is carried by the other 103. 72 of
-the 175 sit below a node with no arriving hand class - the clause decision 2 added at the node
-itself and did not extend to its descendants. No spot now sits between half and one part per
-billion, so rounding and truncating agree at 181 and the sibling test draws no distinction."""
+**The movement that MAINT-34's decision 7 was ruled on, and what refusing 128 spots did to it.**
+At 7.5bb, 44 of 249 committed spots rounded to zero and 2 arrived at exactly zero. At 13.5bb it
+went to 181 of 284 and 175 - about two thirds of the chart answering lines the solve never plays.
+Clause five then refused the 128 whose exposure could not be measured, every one of them at zero
+arrival, and it stands at **53 of 156 rounding to zero and 47 at exactly zero**. The 98.7380
+coverage did not move at any point, which is the same fact read from the other side. No spot sits
+between half and one part per billion, so rounding and truncating agree at 53."""
 
 
 # --- The walks, written here rather than imported from the rule they check ---
@@ -383,11 +383,11 @@ def test_arrival_is_one_product_rounded_once_and_not_rounded_at_each_step(
 def test_the_grain_is_published_as_the_count_of_spots_that_round_to_zero(
     recorded_arrival: dict[str, int],
 ) -> None:
-    """The published grain, read off the artifact: 181 of the 284 record an arrival of zero.
+    """The published grain, read off the artifact: 53 of the 156 record an arrival of zero.
 
     The contract asks for the count because arrival runs from one down to about 1e-26, and a reader
-    given only the values cannot see how much of the chart is effectively never dealt - here, most
-    of it. The rounding rule is visible only before the field is written; the sibling test has it.
+    given only the values cannot see how much of the chart is effectively never dealt - here, a
+    third of it. The rounding rule is visible only before the field is written; the sibling has it.
     """
     values = list(recorded_arrival.values())
 
@@ -407,7 +407,7 @@ def test_the_grain_counts_are_measured_from_the_export_under_both_rounding_rules
     spot lies between half and one part per billion, so the rule is pinned without a witness that
     separates the two - recorded as such rather than left reading as a live distinction.
 
-    175 of the 284 arrive at exactly zero, so only 6 of the 181 are spots the field cannot tell
+    47 of the 156 arrive at exactly zero, so only 6 of the 53 are spots the field cannot tell
     from never-played that are in fact played. At 7.5bb that split was 2 and 42.
     """
     products = [arrival_probability(by_path, node.path) for node in committed]
@@ -430,7 +430,7 @@ def test_the_spots_the_solve_never_reaches_are_recorded_at_zero_and_still_answer
 ) -> None:
     """The zero case, which over this committed set is real and is not labelled vacuous.
 
-    175 of the 284 are lines the solve gives no weight to at all, and 181 are lines it gives so
+    47 of the 156 are lines the solve gives no weight to at all, and 53 are lines it gives so
     little weight to that the field cannot tell them from zero. The contract states in as many
     words that this case is not vacuous, and this is where that claim is measured rather than
     asserted in prose: a cut of this file that skipped here would be describing the retired

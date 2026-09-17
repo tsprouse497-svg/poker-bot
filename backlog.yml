@@ -812,7 +812,7 @@ items:
       from 7.5 big blinds to 13.5. This is the layer the fact checker watches, and the re-solve was
       aimed at exactly the seat this entry names: at 7.5 the big blind three-bet almost its whole
       pair ladder and flatted almost nothing, so its calling range was an artefact of the price
-      rather than a strategy. The big blind holds 60 of the 145 human call disagreements and the
+      rather than a strategy. The big blind holds 60 of the 143 human call disagreements and the
       small blind 48, against 15 for the button, 13 for the cutoff, 6 for the hijack and 3 for the
       lojack. Human calls agree 38.0% on 234 scored decisions and Pluribus calls 21.6% on 37, under
       headlines of 90.1% on both, still 73.4% folds. The big blind's flats agree 52.0% on 125
@@ -4673,7 +4673,7 @@ items:
       pass: the same item's big-blind call-disagreement pair, 58 of 89 as filed, against a repo that
       computed 42 and 14 that day. Both halves were restated 2026-09-04 against the committed chart, at
       68 of 150, which was the third value the pair has carried and the point this entry is making.
-      It carried a fourth on 2026-09-16, 60 of 145, when the blind three-bet was re-solved - that one
+      It carried a fourth on 2026-09-16, 60 of 143, when the blind three-bet was re-solved - that one
       by a real change in the chart rather than by a typo, but restated by hand in the same way and
       only because one of the two halves happens to be a registered fact.
       This is the shape `THE-ARTIFACT-DESCRIBES-ITS-OWN-CENSUS-IN-PROSE-NOTHING-CHECKS` already names

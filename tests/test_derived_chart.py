@@ -115,7 +115,7 @@ from derived_chart_shape import (  # noqa: E402
     weights_by_class,
 )
 
-FAMILY_SIZES = {FIRST_IN: 5, BB_OPEN: 5, MERGED: 20, THREE_BET: 254}
+FAMILY_SIZES = {FIRST_IN: 5, BB_OPEN: 5, MERGED: 11, THREE_BET: 135}
 """5 + 5 + 20 + 254 = 284. The contract's 25 facing an open split into the 5 big-blind spots
 that publish unchanged and the 20 that merge; decisions 45 and 48. Only the three-bet family
 moved under MAINT-34: a 13.5bb blind three-bet keeps 35 more lines inside the depth clause."""
@@ -130,26 +130,29 @@ PUBLISHED_MENUS = {
 none - while the merged twenty *had* one and no longer do, so the two share a menu for
 different reasons and only the merged one is evidence about decision 45."""
 
-MERGED_CELLS = 676
+MERGED_CELLS = 72
 MERGED_CELLS_PURE_ENTIRE_WEIGHT = 4
-MERGED_CELLS_PURE_AT_99 = 13
-"""Decision 45 as corrected by decision 53. The 676 is the number of cells at the twenty
-merged spots whose solve puts weight on calling; 4 put a hand's *entire* weight there and 13
-put 99 percent or more. Two measures under one name is how the second was published as the
-first. **All three moved far under MAINT-34, in opposite directions**: four times as many cells
-carry some calling weight, a tenth as many carry all of it - a 13.5bb three-bet behind makes
-flatting an open mixed where 7.5 made it pure, read at the cells rather than at a range."""
+MERGED_CELLS_PURE_AT_99 = 11
+"""Decision 45 as corrected by decision 53. The 72 is the number of cells at the **eleven**
+merged spots whose solve puts weight on calling; 4 put a hand's *entire* weight there and 11 put
+99 percent or more. Two measures under one name is how the second was published as the first.
 
-CELLS_AT_NON_ZERO_REACH = 25_273
-ZERO_REACH_CELLS_DROPPED = 22_723
+These moved twice in MAINT-34 and for different reasons. The 13.5bb three-bet took them from
+165/40/73 to 676/4/13 - four times the cells carrying some calling weight and a tenth carrying
+all of it, because a bigger three-bet behind makes flatting an open a mixed decision where 7.5
+made it pure. Then decision 7's clause five refused nine of the twenty merged spots outright,
+taking the cell count to 72. The first movement is poker, the second is a spot count."""
+
+CELLS_AT_NON_ZERO_REACH = 14_586
+ZERO_REACH_CELLS_DROPPED = 11_778
 """284 spots times 169 classes is 47,996 grid cells; the chart holds the 25,273 hero can
 arrive holding. Decision 49's denominator, and the dropped count is asserted beside it
 because a converter that dropped nothing and a converter that dropped everything both agree
 with a one-sided bound."""
 
-EXACT_UNIFORM_CELLS = 187
-TOLERANT_UNIFORM_CELLS = 192
-UNTRAINED_SPOTS = 17
+EXACT_UNIFORM_CELLS = 167
+TOLERANT_UNIFORM_CELLS = 168
+UNTRAINED_SPOTS = 1
 UNIFORM_TOLERANCE_BP = 200
 """`UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY`, at both readings the contract names:
 within a basis point of 1/n, the quantisation step, and within two points of it. Both read

@@ -54,7 +54,7 @@ from full_table_queries import (  # noqa: E402
     stacks,
 )
 
-COMMITTED_SPOTS = 284
+COMMITTED_SPOTS = 156
 """5 first-in, 25 facing an open, 219 facing a three-bet. Tree shape rather than solve output."""
 
 SB_OPEN_KEY = f"t6/d{DEPTH_BB}/SB/rfi"
@@ -63,7 +63,7 @@ FIRST_IN_SEATS = ("LJ", "HJ", "CO", "BTN", "SB")
 LADDER_BB, BLIND_SEATS = (2.5, 7.5, 13.5, 22.5, 40.5, 100.0), ("SB", "BB")
 OPEN_BB, GLOBAL_MULT, BLIND_MULT, ALLIN_AT = 2.5, 3.0, 5.4, 67.0
 """Every raise price the solved tree holds; the 100bb jam went with the four-bet family."""
-DECLARED_CELLS = 25273
+DECLARED_CELLS = 14586
 """Cells at non-zero reach over the 284 (49); zero-reach classes are dropped, so it is every one."""
 
 

@@ -19,11 +19,12 @@ four add up to the node count the export's own source card publishes. That total
 check worth making: a converter that quietly skipped a subtree balances its own books
 perfectly, and only a figure from outside catches it.
 
-  committed  284
+  committed  156
   excluded  derivation:beyond-committed-raise-depth  30002
   excluded  derivation:multiway-exposure-above-threshold  154
   excluded  derivation:big-blind-squeeze-spot  9
   excluded  derivation:no-arriving-hand-class  160
+  excluded  derivation:terminal-split-does-not-close  128
   inexpressible  derivation:no-legal-spot-key  0
   total  30609
   coverage  98.7380 percent
@@ -45,19 +46,19 @@ answers, weighted by how often each node is actually reached rather than by coun
 nodes. The four-bet family is the great majority of the nodes and a little over one
 percent of the play, which is why the two readings are so far apart.
 
-And 284 nodes are not self-evidently 284 keys. A converter
+And 156 nodes are not self-evidently 156 keys. A converter
 that dropped one node while inventing one key publishes the identical count, so the
 artifact and the walk are compared key by key and both directions are named:
 
-  artifact keys  284  walked keys  284  invented  0  dropped  0
+  artifact keys  156  walked keys  156  invented  0  dropped  0
 
 What the committed set is made of, by how many raises are already in when hero is asked.
 Three-bet-facing is the deepest the filters admit, so a fourth row here would be a
 converter that committed something above the ruled depth:
 
   raises faced  0  5
-  raises faced  1  25
-  raises faced  2  254
+  raises faced  1  16
+  raises faced  2  135
 
 Every price on a committed key is one of the three the solve offers - 2.5 to open, 7.5
 to three-bet, 22.5 to four-bet - and a shove is not among them. Hero's own jam lives only
@@ -72,7 +73,7 @@ still live, and over the branches the bot can take - hero's cold call is removed
 the chart never offers it to him.
 
   threshold  10.0
-  widest admitted  t6/d100/SB/CO:raise@2.5,BTN:call  9.6609
+  widest admitted  t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,LJ:call  9.1945
   narrowest refused  t6/d100/BB/CO:raise@2.5,BTN:call  10.4362
 
 Sixteen hundredths of a point separate the two, which is why every committed spot's own
@@ -86,8 +87,8 @@ They do not always close on a hundred, and the shortfall is published rather tha
 rounded past. Mass that reaches a node no hand class arrives at is dropped rather than
 redistributed, so it never reaches a terminal and never lands in either column:
 
-  rows adding to a hundred  143 of 284
-  rows falling short  141  widest shortfall  100.0000 points
+  rows adding to a hundred  143 of 156
+  rows falling short  13  widest shortfall  0.0106 points
 
 A row has three columns and only two quantities, and that is said here rather than left
 for a reader to notice by adding them up. `exposure` and `multiway` are the SAME number
@@ -123,18 +124,12 @@ Any later build re-measures these rather than carrying them forward
   t6/d100/BB/BTN:raise@2.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BB/BTN:raise@2.5,SB:raise@13.5  exposure 0.0186  multiway 0.0186  heads-up 99.9814
   t6/d100/BB/CO:raise@2.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/BB/CO:raise@2.5,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/BB/CO:raise@2.5,BTN:raise@7.5  exposure 0.0208  multiway 0.0208  heads-up 99.9792
   t6/d100/BB/CO:raise@2.5,BTN:raise@7.5,SB:call  exposure 3.1133  multiway 3.1133  heads-up 96.8867
   t6/d100/BB/CO:raise@2.5,SB:raise@13.5  exposure 0.0177  multiway 0.0177  heads-up 99.9823
   t6/d100/BB/HJ:raise@2.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/BB/HJ:raise@2.5,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/BB/HJ:raise@2.5,BTN:raise@7.5  exposure 0.0574  multiway 0.0574  heads-up 99.9426
   t6/d100/BB/HJ:raise@2.5,BTN:raise@7.5,SB:call  exposure 3.1431  multiway 3.1431  heads-up 96.8569
-  t6/d100/BB/HJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/HJ:raise@2.5,CO:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/HJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/HJ:raise@2.5,CO:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/BB/HJ:raise@2.5,CO:raise@7.5  exposure 0.0637  multiway 0.0637  heads-up 99.9363
   t6/d100/BB/HJ:raise@2.5,CO:raise@7.5,BTN:call  exposure 2.9981  multiway 2.9981  heads-up 97.0019
   t6/d100/BB/HJ:raise@2.5,CO:raise@7.5,SB:call  exposure 4.2608  multiway 4.2608  heads-up 95.7392
@@ -143,25 +138,9 @@ Any later build re-measures these rather than carrying them forward
   t6/d100/BB/LJ:raise@2.5,BTN:call,SB:raise@13.5  exposure 0.2191  multiway 0.2191  heads-up 99.7809
   t6/d100/BB/LJ:raise@2.5,BTN:raise@7.5  exposure 0.0230  multiway 0.0230  heads-up 99.9770
   t6/d100/BB/LJ:raise@2.5,BTN:raise@7.5,SB:call  exposure 4.8925  multiway 4.8925  heads-up 95.1075
-  t6/d100/BB/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,CO:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,CO:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/BB/LJ:raise@2.5,CO:raise@7.5  exposure 0.0370  multiway 0.0370  heads-up 99.9630
   t6/d100/BB/LJ:raise@2.5,CO:raise@7.5,BTN:call  exposure 5.4441  multiway 5.4441  heads-up 94.5559
   t6/d100/BB/LJ:raise@2.5,CO:raise@7.5,SB:call  exposure 4.9137  multiway 4.9137  heads-up 95.0863
-  t6/d100/BB/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,BTN:raise@7.5,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,CO:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,CO:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,CO:raise@7.5,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/BB/LJ:raise@2.5,HJ:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5  exposure 0.0404  multiway 0.0404  heads-up 99.9596
   t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5,BTN:call  exposure 4.5096  multiway 4.5096  heads-up 95.4904
   t6/d100/BB/LJ:raise@2.5,HJ:raise@7.5,CO:call  exposure 5.4824  multiway 5.4824  heads-up 94.5176
@@ -173,11 +152,9 @@ Any later build re-measures these rather than carrying them forward
   t6/d100/BTN/BTN:raise@2.5,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BTN/CO:raise@2.5  exposure 0.1065  multiway 0.1065  heads-up 99.8935
   t6/d100/BTN/HJ:raise@2.5  exposure 0.1784  multiway 0.1784  heads-up 99.8216
-  t6/d100/BTN/HJ:raise@2.5,CO:call  exposure 4.8309  multiway 4.8309  heads-up 82.0943
   t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,BB:raise@13.5,CO:call  exposure 0.1447  multiway 0.1447  heads-up 99.8456
   t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0001  multiway 0.0001  heads-up 99.9998
-  t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5,CO:call  exposure 1.4733  multiway 1.4733  heads-up 98.4219
   t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,BB:call  exposure 5.8256  multiway 5.8256  heads-up 94.1744
   t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,CO:call  exposure 1.4721  multiway 1.4721  heads-up 98.5173
@@ -189,32 +166,22 @@ Any later build re-measures these rather than carrying them forward
   t6/d100/BTN/LJ:raise@2.5,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BTN/LJ:raise@2.5,BTN:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BTN/LJ:raise@2.5,BTN:call,SB:raise@13.5,LJ:call  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/BTN/LJ:raise@2.5,CO:call  exposure 3.5040  multiway 3.5040  heads-up 83.7500
   t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,BB:raise@13.5,CO:call  exposure 3.8999  multiway 3.8999  heads-up 96.0411
   t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0040  multiway 0.0040  heads-up 99.9960
-  t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5,CO:call  exposure 0.8698  multiway 0.8698  heads-up 99.0220
   t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,BB:call  exposure 1.6042  multiway 1.6042  heads-up 98.3958
-  t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,CO:call  exposure 1.3571  multiway 1.3571  heads-up 97.0317
   t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,LJ:call  exposure 9.1945  multiway 9.1945  heads-up 90.8055
   t6/d100/BTN/LJ:raise@2.5,CO:raise@7.5  exposure 0.0702  multiway 0.0702  heads-up 99.9298
-  t6/d100/BTN/LJ:raise@2.5,HJ:call  exposure 4.0511  multiway 4.0511  heads-up 84.6491
   t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,BB:raise@13.5,HJ:call  exposure 1.0997  multiway 1.0997  heads-up 98.8998
   t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@13.5,LJ:call  exposure 0.0016  multiway 0.0016  heads-up 99.9984
   t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/BTN/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@13.5,HJ:call  exposure 0.0094  multiway 0.0094  heads-up 99.9902
-  t6/d100/BTN/LJ:raise@2.5,HJ:call,CO:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/BTN/LJ:raise@2.5,HJ:raise@7.5  exposure 0.0725  multiway 0.0725  heads-up 99.9275
   t6/d100/BTN/LJ:raise@2.5,HJ:raise@7.5,CO:call  exposure 5.3255  multiway 5.3255  heads-up 94.6745
   t6/d100/BTN/rfi  exposure 0.0766  multiway 0.0766  heads-up 99.9234
   t6/d100/CO/CO:raise@2.5,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/CO/CO:raise@2.5,BTN:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/CO:raise@2.5,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/CO:raise@2.5,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/CO:raise@2.5,BTN:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/CO/CO:raise@2.5,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,BB:call  exposure 4.1269  multiway 4.1269  heads-up 95.8731
   t6/d100/CO/CO:raise@2.5,BTN:raise@7.5,SB:call  exposure 3.2132  multiway 3.2132  heads-up 96.7868
@@ -222,54 +189,20 @@ Any later build re-measures these rather than carrying them forward
   t6/d100/CO/CO:raise@2.5,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/CO/HJ:raise@2.5  exposure 0.1716  multiway 0.1716  heads-up 99.8284
   t6/d100/CO/LJ:raise@2.5  exposure 0.0851  multiway 0.0851  heads-up 99.9149
-  t6/d100/CO/LJ:raise@2.5,HJ:call  exposure 4.8040  multiway 4.8040  heads-up 81.1161
   t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BB:raise@13.5,HJ:call  exposure 1.3539  multiway 1.3539  heads-up 98.6451
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@13.5,HJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@13.5,LJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@13.5,LJ:call,HJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@13.5,HJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@13.5,LJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@13.5,LJ:call,HJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5,BB:call,HJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5,BB:call,LJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5,BB:call,LJ:call,HJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5,HJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5,LJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5,LJ:call,HJ:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@13.5,HJ:call  exposure 4.0013  multiway 4.0013  heads-up 95.9973
   t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@13.5,LJ:call  exposure 1.4179  multiway 1.4179  heads-up 98.5821
   t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:raise@13.5,BB:call  exposure 3.8733  multiway 3.8733  heads-up 94.6923
   t6/d100/CO/LJ:raise@2.5,HJ:call,CO:call,SB:raise@13.5,HJ:call  exposure 1.3485  multiway 1.3485  heads-up 98.6505
   t6/d100/CO/LJ:raise@2.5,HJ:raise@7.5  exposure 0.0782  multiway 0.0782  heads-up 99.9218
   t6/d100/CO/rfi  exposure 0.0842  multiway 0.0842  heads-up 99.9158
   t6/d100/HJ/HJ:raise@2.5,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/HJ/HJ:raise@2.5,BTN:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,BTN:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,BB:call  exposure 3.8196  multiway 3.8196  heads-up 96.1804
   t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5,SB:call  exposure 3.2250  multiway 3.2250  heads-up 96.7750
-  t6/d100/HJ/HJ:raise@2.5,CO:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,BTN:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,BTN:raise@7.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/HJ/HJ:raise@2.5,CO:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,BB:call  exposure 4.4312  multiway 4.4312  heads-up 95.5688
   t6/d100/HJ/HJ:raise@2.5,CO:raise@7.5,BTN:call  exposure 3.0655  multiway 3.0655  heads-up 96.9345
@@ -286,54 +219,10 @@ Any later build re-measures these rather than carrying them forward
   t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,BB:call  exposure 3.0462  multiway 3.0462  heads-up 96.9538
   t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5,SB:call  exposure 5.0191  multiway 5.0191  heads-up 94.9809
-  t6/d100/LJ/LJ:raise@2.5,CO:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:raise@7.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,BTN:raise@7.5,SB:call,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,CO:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,BB:call  exposure 4.6711  multiway 4.6711  heads-up 95.3289
   t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,BTN:call  exposure 5.5835  multiway 5.5835  heads-up 94.4165
   t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5,SB:call  exposure 5.0176  multiway 5.0176  heads-up 94.9824
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,BTN:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,BTN:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,BTN:raise@7.5,SB:call,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,BTN:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5,SB:call,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call,SB:call,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,SB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,CO:raise@7.5,SB:call,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,SB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/LJ/LJ:raise@2.5,HJ:call,SB:raise@13.5,BB:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,BB:call  exposure 5.0881  multiway 5.0881  heads-up 94.9119
   t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5,BTN:call  exposure 4.6251  multiway 4.6251  heads-up 95.3749
@@ -347,21 +236,16 @@ Any later build re-measures these rather than carrying them forward
   t6/d100/SB/BTN:raise@2.5,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/SB/BTN:raise@2.5,SB:call,BB:raise@13.5,BTN:call  exposure 5.0448  multiway 5.0448  heads-up 94.9552
   t6/d100/SB/CO:raise@2.5  exposure 0.0018  multiway 0.0018  heads-up 99.9982
-  t6/d100/SB/CO:raise@2.5,BTN:call  exposure 9.6609  multiway 9.6609  heads-up 76.6712
   t6/d100/SB/CO:raise@2.5,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/SB/CO:raise@2.5,BTN:call,SB:call,BB:raise@13.5,BTN:call  exposure 1.4739  multiway 1.4739  heads-up 96.3907
   t6/d100/SB/CO:raise@2.5,BTN:raise@7.5  exposure 0.0232  multiway 0.0232  heads-up 99.9768
   t6/d100/SB/CO:raise@2.5,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/SB/HJ:raise@2.5  exposure 0.0005  multiway 0.0005  heads-up 99.9995
-  t6/d100/SB/HJ:raise@2.5,BTN:call  exposure 4.8638  multiway 4.8638  heads-up 82.9081
   t6/d100/SB/HJ:raise@2.5,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/SB/HJ:raise@2.5,BTN:call,SB:call,BB:raise@13.5,HJ:call  exposure 9.0964  multiway 9.0964  heads-up 90.9036
   t6/d100/SB/HJ:raise@2.5,BTN:raise@7.5  exposure 0.0582  multiway 0.0582  heads-up 99.9418
-  t6/d100/SB/HJ:raise@2.5,CO:call  exposure 4.1436  multiway 4.1436  heads-up 85.9085
   t6/d100/SB/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/SB/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5,CO:call  exposure 0.0037  multiway 0.0037  heads-up 99.9940
   t6/d100/SB/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5,HJ:call  exposure 0.0158  multiway 0.0158  heads-up 99.9842
-  t6/d100/SB/HJ:raise@2.5,CO:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/SB/HJ:raise@2.5,CO:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/SB/HJ:raise@2.5,CO:call,SB:call,BB:raise@13.5,CO:call  exposure 0.0063  multiway 0.0063  heads-up 99.9871
   t6/d100/SB/HJ:raise@2.5,CO:call,SB:call,BB:raise@13.5,HJ:call  exposure 1.8099  multiway 1.8099  heads-up 98.1901
@@ -371,33 +255,22 @@ Any later build re-measures these rather than carrying them forward
   t6/d100/SB/LJ:raise@2.5  exposure 0.0005  multiway 0.0005  heads-up 99.9995
   t6/d100/SB/LJ:raise@2.5,BTN:call  exposure 4.6476  multiway 4.6476  heads-up 95.3524
   t6/d100/SB/LJ:raise@2.5,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/SB/LJ:raise@2.5,BTN:call,SB:call,BB:raise@13.5,BTN:call  exposure 6.3643  multiway 6.3643  heads-up 80.0798
   t6/d100/SB/LJ:raise@2.5,BTN:raise@7.5  exposure 0.0239  multiway 0.0239  heads-up 99.9761
-  t6/d100/SB/LJ:raise@2.5,CO:call  exposure 3.1460  multiway 3.1460  heads-up 87.2722
   t6/d100/SB/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/SB/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5,BTN:call  exposure 0.5984  multiway 0.5984  heads-up 99.4016
-  t6/d100/SB/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5,CO:call  exposure 0.0968  multiway 0.0968  heads-up 99.8105
   t6/d100/SB/LJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@13.5,LJ:call  exposure 0.6102  multiway 0.6102  heads-up 99.3898
-  t6/d100/SB/LJ:raise@2.5,CO:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/SB/LJ:raise@2.5,CO:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/SB/LJ:raise@2.5,CO:call,SB:call,BB:raise@13.5,CO:call  exposure 0.4835  multiway 0.4835  heads-up 97.1873
   t6/d100/SB/LJ:raise@2.5,CO:raise@7.5  exposure 0.0377  multiway 0.0377  heads-up 99.9623
   t6/d100/SB/LJ:raise@2.5,CO:raise@7.5,BTN:call  exposure 5.3281  multiway 5.3281  heads-up 94.6719
-  t6/d100/SB/LJ:raise@2.5,HJ:call  exposure 3.0244  multiway 3.0244  heads-up 88.4700
   t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@13.5,HJ:call  exposure 0.0001  multiway 0.0001  heads-up 99.9998
   t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:call,SB:call,BB:raise@13.5,LJ:call  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/SB/LJ:raise@2.5,HJ:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,BTN:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,BTN:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@13.5,CO:call  exposure 0.0000  multiway 0.0000  heads-up 100.0000
   t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@13.5,HJ:call  exposure 0.0201  multiway 0.0201  heads-up 99.9785
   t6/d100/SB/LJ:raise@2.5,HJ:call,CO:call,SB:call,BB:raise@13.5,LJ:call  exposure 0.8762  multiway 0.8762  heads-up 99.1238
-  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:raise@7.5  exposure 0.0000  multiway 0.0000  heads-up 0.0000
-  t6/d100/SB/LJ:raise@2.5,HJ:call,CO:raise@7.5,BTN:call  exposure 0.0000  multiway 0.0000  heads-up 0.0000
   t6/d100/SB/LJ:raise@2.5,HJ:call,SB:call,BB:raise@13.5  exposure 0.0000  multiway 0.0000  heads-up 100.0000
-  t6/d100/SB/LJ:raise@2.5,HJ:call,SB:call,BB:raise@13.5,HJ:call  exposure 0.0736  multiway 0.0736  heads-up 95.2081
   t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5  exposure 0.0409  multiway 0.0409  heads-up 99.9591
   t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5,BTN:call  exposure 4.4151  multiway 4.4151  heads-up 95.5849
   t6/d100/SB/LJ:raise@2.5,HJ:raise@7.5,CO:call  exposure 5.3698  multiway 5.3698  heads-up 94.6302
@@ -434,8 +307,8 @@ read every one of them as a spot the solve never reaches, where almost all of th
 lines that are played and are rare.
 
   grain  parts per billion
-  rounding to zero  181 of 284
-  exactly zero  175
+  rounding to zero  53 of 156
+  exactly zero  47
 
 The two figures are different measurements and the gap between them is the point. The
 first counts spots whose arrival falls below half a part per billion once rounded; the
@@ -447,12 +320,12 @@ merges hero's cold call away, so a committed spot whose own key records hero cal
 spot the bot's own play cannot reach. There are a lot of them by count and almost none of
 them by weight, and both readings are printed because either one alone misleads:
 
-  downstream of hero's own call  85 of 284 spots  29.9 percent by count
+  downstream of hero's own call  59 of 156 spots  37.8 percent by count
   the same family by arrival  1,341,995 of 6,054,005,282 ppb  0.0222 percent by weight
 
 Read it as: as the tree the BOT plays, every one of these is dead and no packet may count
 them toward what the bot answers - but what they are worth is the weight row and not the
-count row, and the two rows differ by a factor of 1,350.
+count row, and the two rows differ by a factor of 1,706.
 
 As a reference a HUMAN is drilled on they are legitimate, because the range at each is
 the solve's own range for a cold-caller and a human student does cold-call: the right
@@ -473,20 +346,20 @@ chart, and it is the one that matters: the inversion that halted this phase sits
 where both hands are played 100 percent, so anything stated over play-not-fold reads
 nothing there at all.
 
-  relation  pair ladder  violations  149  of 3408 comparisons  worst  33 at 0.00 under 22 at 100.00, a 100.00 point gap, at t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5
-  relation  suited over its offsuit twin  violations  86  of 22152 comparisons  worst  AKs at 39.09 under AKo at 93.58, a 54.49 point gap, at t6/d100/SB/HJ:raise@2.5,BTN:call,SB:call,BB:raise@13.5
-  relation  row kicker ladder  violations  278  of 37488 comparisons  worst  A6o at 0.00 under A5o at 100.00, a 100.00 point gap, at t6/d100/BB/BTN:raise@2.5
-  relation  pair ladder on the raise weight  violations  125  of 3408 comparisons  worst  88 at 0.00 under 77 at 100.00, a 100.00 point gap, at t6/d100/BTN/BTN:raise@2.5,SB:raise@13.5
+  relation  pair ladder  violations  87  of 1872 comparisons  worst  33 at 0.00 under 22 at 100.00, a 100.00 point gap, at t6/d100/HJ/HJ:raise@2.5,BTN:raise@7.5
+  relation  suited over its offsuit twin  violations  58  of 12168 comparisons  worst  AKs at 39.09 under AKo at 93.58, a 54.49 point gap, at t6/d100/SB/HJ:raise@2.5,BTN:call,SB:call,BB:raise@13.5
+  relation  row kicker ladder  violations  197  of 20592 comparisons  worst  A6o at 0.00 under A5o at 100.00, a 100.00 point gap, at t6/d100/BB/BTN:raise@2.5
+  relation  pair ladder on the raise weight  violations  73  of 1872 comparisons  worst  88 at 0.00 under 77 at 100.00, a 100.00 point gap, at t6/d100/BTN/BTN:raise@2.5,SB:raise@13.5
 
 The denominator is the comparisons the committed spots would offer if every one carried a
 full grid. Most do not - a deep line hero reaches holding four hand classes offers almost
 nothing to compare - so what was actually looked at is published beside it, a comparison
 whose other half never arrived being skipped rather than scored against a stand-in zero:
 
-  compared  pair ladder  2824 compared  584 skipped
-  compared  suited over its offsuit twin  9375 compared  12777 skipped
-  compared  row kicker ladder  17695 compared  19793 skipped
-  compared  pair ladder on the raise weight  2824 compared  584 skipped
+  compared  pair ladder  1462 compared  410 skipped
+  compared  suited over its offsuit twin  5693 compared  6475 skipped
+  compared  row kicker ladder  10469 compared  10123 skipped
+  compared  pair ladder on the raise weight  1462 compared  410 skipped
 
 None of the four is gated as an order, and this is a ruling rather than an omission. The
 committed chart holds surviving cases that were read grid by grid and ruled correct play:
@@ -506,11 +379,11 @@ rank at a time, and each high card's row of suited hands, come out in order. The
 column is the committed chart; the transposed column is the same measure over a chart
 with every suited hand reading its offsuit twin's row.
 
-  group  pairs, 13 single ranks  solved  88  transposed  88
-  group  pairs, 4 bands  solved  11  transposed  11
-  group  pairs, 3 bands  solved  8  transposed  8
-  group  pairs, 2 bands  solved  7  transposed  7
-  group  suited rows  solved  117  transposed  86
+  group  pairs, 13 single ranks  solved  53  transposed  53
+  group  pairs, 4 bands  solved  6  transposed  6
+  group  pairs, 3 bands  solved  7  transposed  7
+  group  pairs, 2 bands  solved  3  transposed  3
+  group  suited rows  solved  74  transposed  44
 
 This family gates nothing and is published only for a human to read. It returned a
 different verdict on every committed set it has ever been run over - it failed on one,
@@ -539,16 +412,16 @@ comparisons - the reversal carries a present cell onto a different row - and one
 standing for both is how the withdrawn `149 against 69` was built, out of the solved side
 of one rule and the counterfactual side of another.
 
-  hero=BB  spots 48  suit swap solved 1 transposed 42  rank reversal solved 38 permuted 134  over 48 scored  skipped 0  permuted-skipped 0  asserted
-  hero=BTN  spots 42  suit swap solved 5 transposed 28  rank reversal solved 111 permuted 133  over 30 scored  skipped 2450  permuted-skipped 2589  asserted
-  hero=CO  spots 40  suit swap solved 1 transposed 15  rank reversal solved 18 permuted 99  over 15 scored  skipped 4240  permuted-skipped 4295  asserted
-  hero=HJ  spots 29  suit swap solved 0 transposed 25  rank reversal solved 24 permuted 263  over 29 scored  skipped 2808  permuted-skipped 2970  asserted
-  hero=LJ  spots 64  suit swap solved 5 transposed 56  rank reversal solved 27 permuted 542  over 64 scored  skipped 6804  permuted-skipped 7182  asserted
-  hero=SB  spots 61  suit swap solved 5 transposed 44  rank reversal solved 60 permuted 169  over 47 scored  skipped 3491  permuted-skipped 3583  asserted
+  hero=BB  spots 26  suit swap solved 0 transposed 26  rank reversal solved 28 permuted 95  over 26 scored  skipped 0  permuted-skipped 0  asserted
+  hero=BTN  spots 34  suit swap solved 3 transposed 21  rank reversal solved 101 permuted 114  over 22 scored  skipped 2343  permuted-skipped 2455  asserted
+  hero=CO  spots 18  suit swap solved 1 transposed 10  rank reversal solved 12 permuted 28  over 10 scored  skipped 1620  permuted-skipped 1660  asserted
+  hero=HJ  spots 13  suit swap solved 0 transposed 9  rank reversal solved 9 permuted 23  over 13 scored  skipped 1144  permuted-skipped 1210  asserted
+  hero=LJ  spots 20  suit swap solved 0 transposed 12  rank reversal solved 3 permuted 23  over 20 scored  skipped 2052  permuted-skipped 2166  asserted
+  hero=SB  spots 45  suit swap solved 4 transposed 32  rank reversal solved 44 permuted 107  over 32 scored  skipped 2964  permuted-skipped 3031  asserted
   raises faced 0  spots 5  suit swap solved 0 transposed 5  rank reversal solved 11 permuted 56  over 5 scored  skipped 0  permuted-skipped 0  asserted
-  raises faced 1  spots 25  suit swap solved 0 transposed 25  rank reversal solved 42 permuted 176  over 25 scored  skipped 0  permuted-skipped 0  asserted
-  raises faced 2  spots 254  suit swap solved 17 transposed 180  rank reversal solved 225 permuted 1108  over 203 scored  skipped 19793  permuted-skipped 20619  asserted
-  the committed set  spots 284  suit swap solved 17 transposed 210  rank reversal solved 278 permuted 1340  over 233 scored  skipped 19793  permuted-skipped 20619  asserted
+  raises faced 1  spots 16  suit swap solved 0 transposed 16  rank reversal solved 26 permuted 112  over 16 scored  skipped 0  permuted-skipped 0  asserted
+  raises faced 2  spots 135  suit swap solved 8 transposed 89  rank reversal solved 160 permuted 222  over 102 scored  skipped 10123  permuted-skipped 10522  asserted
+  the committed set  spots 156  suit swap solved 8 transposed 110  rank reversal solved 197 permuted 390  over 123 scored  skipped 10123  permuted-skipped 10522  asserted
 
 A partition scoring fewer than 5 spots publishes rather than
 asserts, a strict comparison over one or two grids being a coin flip, and each row says
@@ -570,7 +443,7 @@ hero closes the action, no hand folded above 99 percent of the time should hold 
 equity against the opponent's arriving range than a hand played above 99 percent. It is
 internal consistency: no realization model can excuse violating it.
 
-  fires at  43 of 97 spots where hero closes
+  fires at  43 of 89 spots where hero closes
 
 A correct chart would fail it, which is why it gates nothing and is a measurement rather
 than a check. The firings are not near-ties a tolerance would remove. They are `A9s`
@@ -593,14 +466,14 @@ requirements forbid that word for exactly this list.
 
   defect  the big blind over-folds against every opener   it defends 24.95 to 52.69 percent where rake-free solves are roughly 40 through 65, and its flat barely moves with who opened
   defect  the opening ranges read narrower than a raked reference   at 3 of 5 seats this chart opens fewer hands than a game that is paying rake, worst at BTN with 37.363 against 40.560 and slightest at HJ with -0.345 points, which is a tie rather than a shortfall and is counted because the rule is the SIGN and not the size, where rake-free is supposed to open WIDER rather than tighter - the same realization fit as the row above, read at the seats that open rather than the seat that answers
-  defect  the pair ladder inverts   149 cases on play-not-fold and 125 on the raise weight the bot plays, 48 of those invisible to play-not-fold
-  defect  the kicker row ladder inverts   278 cases, of which 89 are exempted as the wheel-ace premium - correct poker at 86 of them and a name match with no poker story at the 3 first-in spots below - 15 have no poker story at a 50 point gap or wider, and 174 below it
-  defect  the merged flats play differently   676 cells move at 20 spots, and three-betting 66 commits 7.5 big blinds and can face a four-bet where the solve would have seen a cheap flop
+  defect  the pair ladder inverts   87 cases on play-not-fold and 73 on the raise weight the bot plays, 27 of those invisible to play-not-fold
+  defect  the kicker row ladder inverts   197 cases, of which 60 are exempted as the wheel-ace premium - correct poker at 57 of them and a name match with no poker story at the 3 first-in spots below - 15 have no poker story at a 50 point gap or wider, and 122 below it
+  defect  the merged flats play differently   72 cells move at 11 spots, and three-betting 66 commits 7.5 big blinds and can face a four-bet where the solve would have seen a cheap flop
 
 The wheel-ace cases are separated out because at almost all of them they are correct
 poker, and lumping them in overstates what is wrong with the chart by about half: a
 suited wheel ace makes the nut straight and is less dominated than a middling suited ace,
-so 86 of the 278 are the premium GTOpen's own fit measures
+so 57 of the 197 are the premium GTOpen's own fit measures
 and not a defect. The other 3 the exemption catches are caught by name
 alone and the section below says why the argument does not reach them.
 The three parts add back to the family, which is the check that the split has the right
@@ -611,7 +484,7 @@ otherwise claim more than the measurement supports. `kicker_split` exempts a cas
 whenever the more-played hand is A5, A4, A3 or A2, and it tests nothing else - not the
 size of the gap, and not the spot. The gap it is not testing is usually large:
 
-  exempted cases  89  with a gap of 50 points or wider  47  with the better ace under 5 percent and the wheel ace over 95  34
+  exempted cases  60  with a gap of 50 points or wider  43  with the better ace under 5 percent and the wheel ace over 95  34
 
 And the spot it is not testing is the one the poker story turns on. A suited wheel ace is
 the canonical three-bet bluff - nut-straight potential plus an ace blocker - so choosing
@@ -623,10 +496,10 @@ giving up only the A2345 straight, worth on the order of a point of equity. So t
 that matters is by how many raises are already in when hero is asked:
 
   exempted at raises faced  0  3  first-in, no bluff selection to justify it
-  exempted at raises faced  1  19  facing an open - three-bet, squeeze or defence
-  exempted at raises faced  2  67  facing a three-bet
+  exempted at raises faced  1  13  facing an open - three-bet, squeeze or defence
+  exempted at raises faced  2  44  facing a three-bet
 
-The 86 exempted at a raise already in are the ruled case and this
+The 57 exempted at a raise already in are the ruled case and this
 report does not reopen them. The first-in ones are named, because a reader owed the
 claim is owed the instances:
 
@@ -643,16 +516,16 @@ whole.
 
 The mixed-cell share sits here because it is what makes the merged flats a real cost
 rather than a relabelling, and each reading says which grid it is measured over, both
-being taken over the same 25273 cells at non-zero reach:
+being taken over the same 14586 cells at non-zero reach:
 
-  in the solve, before the merge  pure at 99 percent 80.63  mixed below 90 percent 14.29
-  in the published chart, after the merge  pure at 99 percent 80.83  mixed below 90 percent 14.16
+  in the solve, before the merge  pure at 99 percent 90.79  mixed below 90 percent 5.68
+  in the published chart, after the merge  pure at 99 percent 91.04  mixed below 90 percent 5.55
 
 Read the first pair as the argument: the solve barely mixes, so the hole the merge had to
 fill was large rather than marginal - `the solver was near-indifferent, take the other
 action` was never available to it. The second pair is the chart this phase writes. The
-merge moved 676 cells and the pure share moved by 0.19 points over
-the same 25273, which is about 49 cells - so most of what the
+merge moved 72 cells and the pure share moved by 0.25 points over
+the same 14586, which is about 36 cells - so most of what the
 merge moved was already pure before it, and a sentence saying the merge turned
 every moved cell pure would be wrong twice over. A generator computing purity off the
 file it just wrote would read only the second pair. Both are printed and each is
@@ -774,11 +647,11 @@ One quantity, five families: how much of hero's arriving range the chart puts mo
 with, combination-weighted, in points. The ends are the family's true minimum and maximum
 rather than a summary of them.
 
-  band  the committed set  over 284 spots  min 0.0000 max 98.6941
+  band  the committed set  over 156 spots  min 0.0000 max 66.5225
   band  the first-in spots  over 5 spots  min 18.5689 max 53.8395
   band  the big blind facing an open  over 5 spots  min 24.9457 max 52.6869
-  band  the merged spots  over 20 spots  min 3.8848 max 16.0983
-  band  the three-bet-facing spots  over 254 spots  min 0.0000 max 98.6941
+  band  the merged spots  over 11 spots  min 6.8549 max 16.0983
+  band  the three-bet-facing spots  over 135 spots  min 0.0000 max 66.5225
 
 No four-bet frequency appears in any band here, and none may be offered as evidence that
 the unfitted terminal fails to reach the output. A committed three-bet-facing spot has to
@@ -801,7 +674,7 @@ and it is where a later phase taking up the four-bet family starts.
 The bot never cold-calls. Money in behind an opener with nothing of hero's own already
 in buys a multiway pot out of position, so where hero faces an open and has nothing in
 BEYOND THE BLINDS the solve's call is merged into his raise. That wording is the whole
-rule, because 10 of these 20 spots ARE the small blind,
+rule, because 5 of these 11 spots ARE the small blind,
 which has posted 0.5: a blind is posted rather than chosen, so calling from there is
 still money going in behind an opener and it merges like the rest. The big blind is the
 one seat exempted, and not because it has posted more - because it closes the action.
@@ -811,13 +684,13 @@ blind is still behind it and can raise. Nor is a seat that opened and now faces 
 three-bet cold, its own raise being already in. Three families, three menus:
 
   family  the big blind facing an open  spots 5  menu fold/call/raise
-  family  the merged spots  spots 20  menu fold/raise
-  family  the three-bet-facing spots  spots 254  menu fold/call/raise
+  family  the merged spots  spots 11  menu fold/raise
+  family  the three-bet-facing spots  spots 135  menu fold/call/raise
 
-  cells moved  676
+  cells moved  72
 
 Merged and not deleted, and the difference is a hand with an answer against a hand with
-none: at 2 of these 20 spots, across 4 of the 676 moved cells, a hand's
+none: at 2 of these 11 spots, across 4 of the 72 moved cells, a hand's
 whole weight sits on calling, so deleting would leave a row of zeroes, and printing fold
 would publish `fold pocket nines to an open`. Both counts are over the merging spots and
 nothing wider - the same walk over every committed spot is a different measurement.
@@ -829,24 +702,15 @@ the basis point, and both columns are printed rather than the claim:
 
   t6/d100/BTN/CO:raise@2.5  defence 11.2827  solve raise+call 11.2827
   t6/d100/BTN/HJ:raise@2.5  defence 9.6701  solve raise+call 9.6701
-  t6/d100/BTN/HJ:raise@2.5,CO:call  defence 4.3685  solve raise+call 4.3685
   t6/d100/BTN/LJ:raise@2.5  defence 7.3164  solve raise+call 7.3164
-  t6/d100/BTN/LJ:raise@2.5,CO:call  defence 3.8848  solve raise+call 3.8848
-  t6/d100/BTN/LJ:raise@2.5,HJ:call  defence 4.1068  solve raise+call 4.1068
   t6/d100/CO/HJ:raise@2.5  defence 8.2320  solve raise+call 8.2320
   t6/d100/CO/LJ:raise@2.5  defence 6.9736  solve raise+call 6.9736
-  t6/d100/CO/LJ:raise@2.5,HJ:call  defence 3.9868  solve raise+call 3.9868
   t6/d100/HJ/LJ:raise@2.5  defence 6.8549  solve raise+call 6.8549
   t6/d100/SB/BTN:raise@2.5  defence 16.0983  solve raise+call 16.0983
   t6/d100/SB/CO:raise@2.5  defence 12.4433  solve raise+call 12.4433
-  t6/d100/SB/CO:raise@2.5,BTN:call  defence 8.7220  solve raise+call 8.7220
   t6/d100/SB/HJ:raise@2.5  defence 10.5213  solve raise+call 10.5213
-  t6/d100/SB/HJ:raise@2.5,BTN:call  defence 7.8337  solve raise+call 7.8337
-  t6/d100/SB/HJ:raise@2.5,CO:call  defence 5.9152  solve raise+call 5.9152
   t6/d100/SB/LJ:raise@2.5  defence 9.4802  solve raise+call 9.4802
   t6/d100/SB/LJ:raise@2.5,BTN:call  defence 7.7246  solve raise+call 7.7246
-  t6/d100/SB/LJ:raise@2.5,CO:call  defence 5.9913  solve raise+call 5.9913
-  t6/d100/SB/LJ:raise@2.5,HJ:call  defence 5.5939  solve raise+call 5.5939
 
 The cost is real and is stated rather than waved through. A hand that flatted now
 three-bets: 66 commits 7.5 big blinds and can face a four-bet, where the solve would have
@@ -1123,11 +987,11 @@ family, the merged family's shape is not sound whatever its size is, and a stude
 drilled on these 10 grids is being taught to fold king-queen offsuit to an open at every one of them.
 It is published here rather than repaired because repairing it is a re-solve, which this
 phase does not do, and because the conversion itself is exact against the export at all
-25273 cells at non-zero reach (PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS,
+14586 cells at non-zero reach (PUBLISHED-RANGES-ANSWER-A-FIELD-THAT-UNDER-COLD-CALLS,
 whose word for the size of this was `slightly`).
 
 Fifth, WHICH hands do the four-betting at the 15 spots the reference reaches out of the
-254 in the family - 89 percent of this chart -
+135 in the family - 87 percent of this chart -
 because the second block published how OFTEN and nobody had asked what with. A
 four-bet bluff is chosen for its blockers: it wants the ace and the king that the hands
 continuing against it are made of. Two columns per spot - how much king-ten or king-jack
@@ -1152,7 +1016,7 @@ mass held by hands with neither an ace nor a king, which is the opposite of a bl
 
   KTs or KJs four-betting above 50 percent at  3 of 15 spots  raked reference  10 of 15
   no-blocker share higher here at  14 of 15 spots  here 0.0 to 46.9 percent
-  over all 254 three-bet-facing spots  arrival-weighted  15.12 percent  carrying four-bet mass  221
+  over all 135 three-bet-facing spots  arrival-weighted  16.50 percent  carrying four-bet mass  114
   at the 10 spots priced within half a big blind of each other  here 0.0 to 46.9 percent  raked reference 0.0 to 0.9
 
 The reference four-bets a king-blocker hand and this chart never does. Where its four-bet
@@ -1199,10 +1063,10 @@ phase exists to end. Anybody can fetch the same bytes and recount every figure h
   retired spots  86
   sizing entries  36
   priced at a jam  36
-  derived spots  284
+  derived spots  156
   carried over  12
   refused  74
-  gained  272
+  gained  144
 
 Both sides close. The retired chart's spots are the ones carried over plus the ones the
 new rules refuse; the derived chart's are the ones carried over plus the ones gained.
@@ -1240,11 +1104,11 @@ printed. `Offers` can mean the spot carries a sizing KEY at all, or that its cel
 raise, or that some arriving class actually TAKES one - and the three came apart when the
 arriving classes came apart from the menu:
 
-  spots carrying a sizing key  284 of 284  carrying none  0
-  menus naming a raise for hero  284 of 284  naming none  0
-  spots where some arriving class takes a raise  276 of 284
-  sizing keys with at least one class priced  276  with an empty price list  8
-  spots whose arriving range raises at all  276 of 284
+  spots carrying a sizing key  156 of 156  carrying none  0
+  menus naming a raise for hero  156 of 156  naming none  0
+  spots where some arriving class takes a raise  148 of 156
+  sizing keys with at least one class priced  148  with an empty price list  8
+  spots whose arriving range raises at all  148 of 156
 
 The label belongs to the first two rows and to those only. The criterion is about a spot
 that carries NO KEY and therefore makes the strategy refuse, and no committed spot
@@ -1256,7 +1120,7 @@ paragraph above warns about - it tells a reader that a real measurement is empty
 than that an empty one passed.
 
 The same rows say that a SPOT-level reading of `exactly the spots that raise carry a
-sizing entry` is now FALSE rather than vacant: every spot carries an entry and only 276 raise, so the rule holds class by class and not spot by spot. That is a
+sizing entry` is now FALSE rather than vacant: every spot carries an entry and only 148 raise, so the rule holds class by class and not spot by spot. That is a
 gap in what is asserted rather than a figure in dispute
 (COMMITTED-SPOTS-THE-BOT-CANNOT-REACH-BY-ITS-OWN-PLAY).
 
@@ -1332,19 +1196,19 @@ seeded draw for a chart fidelity problem.
 
   Pluribus
     agreement, before  68 of 72 scored decisions (94.4%)
-    agreement, after  428 of 475 scored decisions (90.1%)
+    agreement, after  424 of 471 scored decisions (90.0%)
     refused, before  430 of 502 decisions (85.7%)
-    refused, after  27 of 502 decisions (5.4%)
+    refused, after  31 of 502 decisions (6.2%)
     sampled-action match, before  51 of 72 drawn decisions (70.8%)
-    sampled-action match, after  421 of 475 drawn decisions (88.6%)
+    sampled-action match, after  417 of 471 drawn decisions (88.5%)
 
   humans
     agreement, before  399 of 447 scored decisions (89.3%)
-    agreement, after  2192 of 2432 scored decisions (90.1%)
+    agreement, after  2145 of 2383 scored decisions (90.0%)
     refused, before  2099 of 2546 decisions (82.4%)
-    refused, after  114 of 2546 decisions (4.5%)
+    refused, after  163 of 2546 decisions (6.4%)
     sampled-action match, before  312 of 447 drawn decisions (69.8%)
-    sampled-action match, after  2144 of 2432 drawn decisions (88.2%)
+    sampled-action match, after  2097 of 2383 drawn decisions (88.0%)
 
 None of this is a verdict and none of it gates. The corpus verdict is PHASE 17's, and
 what this report does is republish the measurement so a reader can see what moved. A
@@ -1494,7 +1358,7 @@ failure, so no reason from that other vocabulary appears in this section at all.
   lookup:no-artifact-for-stack-depth  0  0
   lookup:position-not-at-table  0  0
   lookup:unrepresentable-spot  0  0
-  lookup:spot-not-covered  2527  131
+  lookup:spot-not-covered  2527  184
   lookup:hand-class-not-covered  2  10
   lookup:untrained-cell  0  0
 
@@ -1511,16 +1375,25 @@ first, then the spot key they reached.
   30  t6/d100/BB/SB:call
   8  t6/d100/BB/LJ:raise@2.5,BTN:call
   7  t6/d100/BB/BTN:raise@2.5,SB:call
+  7  t6/d100/BTN/LJ:raise@2.5,CO:call
+  7  t6/d100/BTN/LJ:raise@2.5,HJ:call
+  7  t6/d100/CO/LJ:raise@2.5,HJ:call
+  7  t6/d100/SB/LJ:raise@2.5,CO:call
+  7  t6/d100/SB/LJ:raise@2.5,HJ:call
   6  t6/d100/BB/LJ:raise@2.5,HJ:call
   6  t6/d100/SB/SB:call,BB:raise@3
   5  t6/d100/BB/HJ:raise@2.5,BTN:call
   5  t6/d100/BB/LJ:raise@2.5,CO:call
+  5  t6/d100/SB/HJ:raise@2.5,BTN:call
   4  t6/d100/BB/CO:raise@2.5,BTN:call
   4  t6/d100/BB/HJ:raise@2.5,SB:call
   4  t6/d100/BB/LJ:raise@2.5,SB:call
+  4  t6/d100/SB/CO:raise@2.5,BTN:call
   3  t6/d100/BB/CO:raise@2.5,SB:call
   3  t6/d100/BB/HJ:raise@2.5,CO:call
   3  t6/d100/BTN/BTN:raise@2.5,BB:raise@13.5
+  3  t6/d100/BTN/HJ:raise@2.5,CO:call
+  3  t6/d100/SB/HJ:raise@2.5,CO:call
   2  t6/d100/HJ/LJ:call
   2  t6/d100/SB/BTN:raise@2.5,SB:call,BB:raise@13.5
   2  t6/d100/SB/SB:call,BB:raise@3.5
@@ -1530,6 +1403,7 @@ first, then the spot key they reached.
   1  t6/d100/BB/LJ:call,HJ:raise@2.75
   1  t6/d100/BB/LJ:raise@2.5,BTN:call,SB:call
   1  t6/d100/BB/LJ:raise@2.5,CO:call,SB:call
+  1  t6/d100/BB/LJ:raise@2.5,CO:call,SB:raise@13.5
   1  t6/d100/BB/LJ:raise@2.5,HJ:call,SB:call
   1  t6/d100/BB/SB:call,BB:raise@3,SB:raise@12
   1  t6/d100/BB/SB:raise@2.5,BB:raise@9,SB:raise@27
@@ -1538,6 +1412,7 @@ first, then the spot key they reached.
   1  t6/d100/BTN/HJ:raise@2.5,BTN:raise@8,HJ:raise@25.35
   1  t6/d100/BTN/LJ:call,CO:raise@2.5
   1  t6/d100/BTN/LJ:call,HJ:raise@2.75
+  1  t6/d100/CO/CO:raise@2.5,BTN:call,BB:raise@13.5
   1  t6/d100/CO/CO:raise@2.5,SB:raise@13.5,CO:raise@22.5,SB:raise@100
   1  t6/d100/CO/HJ:raise@2.5,CO:raise@6.81,HJ:raise@19.93
   1  t6/d100/CO/HJ:raise@2.5,CO:raise@6.81,HJ:raise@19.93,CO:raise@36.67,HJ:raise@100
@@ -1557,6 +1432,7 @@ first, then the spot key they reached.
   1  t6/d100/LJ/LJ:call,CO:raise@2.5,SB:call
   1  t6/d100/LJ/LJ:call,HJ:raise@2.75
   1  t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5
+  1  t6/d100/LJ/LJ:raise@2.5,CO:call,BB:raise@13.12
   1  t6/d100/LJ/LJ:raise@2.5,CO:call,SB:raise@13.5,BB:raise@100
   1  t6/d100/LJ/LJ:raise@2.5,SB:raise@13.5
   1  t6/d100/LJ/LJ:raise@2.5,SB:raise@13.5,LJ:raise@25.25,SB:raise@100
@@ -1596,7 +1472,7 @@ is with the file it comes out of and the arithmetic that produces it.
 
   the number  30609 action nodes in the committed export
   the file  data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
-  the arithmetic  284 + 30002 + 154 + 9 + 160 + 0 = 30609
+  the arithmetic  156 + 30002 + 154 + 9 + 160 + 128 + 0 = 30609
 
 The terms are the census rows above, in the same order, and the total is the
 `node_counts.exported` figure on that card. If they do not add to it then a solved node

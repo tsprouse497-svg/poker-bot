@@ -86,17 +86,22 @@ def test_the_big_blind_squeeze_spots_are_refused(library: PreflopChartLibrary) -
 
 def test_a_squeeze_in_front_of_a_non_blind_seat_is_answered(library: PreflopChartLibrary) -> None:
     """The reversal of what the 86 said, and the general form decision 52 names: a cold call in
-    front of hero refuses nothing on its own. Ten such spots are committed and the button facing a
-    lojack open with the cutoff already in is one. Under the retired predicate it failed twice over
-    - two opponents invested and three players live - and decision 46 measures its exposure over
-    the branches the bot can take at under ten percent, because the button's answer is a three-bet
-    or a fold and neither of those makes the flop three-handed."""
-    sequence = (*charts.solved_line(library, "BTN", "LJ"), PreflopAction("CO", "call"))
+    front of hero refuses nothing on its own. The small blind facing a lojack open with the button
+    already in is the case. Under the retired predicate it failed twice over - two opponents
+    invested and three players live - and decision 46 measures its exposure over the branches the
+    bot can take at under ten percent, because the small blind's answer is a three-bet or a fold
+    and neither of those makes the flop three-handed.
 
-    result = library.lookup(ChartQuery(6, 100, "BTN", sequence, "AA"))
+    **It is the only one of the ten left, and that is the point of naming it rather than a count.**
+    MAINT-34's clause five refused the other nine for a terminal split that does not close, the
+    button's version among them. The claim survives its witnesses thinning - a cold call still
+    refuses nothing - but at one spot this test is one re-solve from being vacuous."""
+    sequence = (*charts.solved_line(library, "SB", "LJ"), PreflopAction("BTN", "call"))
+
+    result = library.lookup(ChartQuery(6, 100, "SB", sequence, "AA"))
 
     assert isinstance(result, ChartHit)
-    assert result.spot_key.endswith("CO:call")
+    assert result.spot_key.endswith("BTN:call")
     assert result.best_action == "raise"
 
 

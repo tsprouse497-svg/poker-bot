@@ -76,22 +76,24 @@ from committed_chart_vocabulary import (  # noqa: E402
     solved_line,  # noqa: F401  - re-exported for `test_preflop_committed_lookup.py`
 )
 
-COMMITTED_SPOTS = 284
+COMMITTED_SPOTS = 156
 FIRST_IN_SPOTS = 5
-FACING_AN_OPEN_SPOTS = 25
-FACING_A_THREE_BET_SPOTS = 254
+FACING_AN_OPEN_SPOTS = 16
+FACING_A_THREE_BET_SPOTS = 135
 """Decision 48's final set, split by how many raises hero faces. Contract, decision 49."""
 
 BB_FACING_AN_OPEN = 5
-MERGED_FACING_AN_OPEN = 20
-NON_BLIND_SQUEEZE_SPOTS = 10
-"""How the 25 split. Ten non-blind seats face an open with nobody in between - LJ opens and four
-seats can answer, HJ three, CO two, BTN one - ten more face an open with exactly one cold caller
-already in, and the big blind's five close the action alone. The big blind's own nine squeeze
-spots are the third clause's whole bucket (decision 48) and are refused."""
+MERGED_FACING_AN_OPEN = 11
+NON_BLIND_SQUEEZE_SPOTS = 1
+"""How the 16 split. Ten non-blind seats face an open with nobody in between - LJ opens and four
+seats can answer, HJ three, CO two, BTN one - **one** more faces an open with a cold caller
+already in, and the big blind's five close the action alone. It was ten with a caller until
+MAINT-34's clause five refused nine of them for a terminal split that does not close. The big
+blind's own nine squeeze spots are the third clause's whole bucket (decision 48) and are
+refused."""
 
-CELLS_AT_NON_ZERO_REACH = 25_273
-"""Every cell the 284 declare. A class is declared where it arrives, so a spot at which hero has
+CELLS_AT_NON_ZERO_REACH = 14_586
+"""Every cell the 156 declare. A class is declared where it arrives, so a spot at which hero has
 not acted declares all 169 and the rest declare hero's arriving range. Decision 49."""
 
 RETIRED_SPOTS = 86

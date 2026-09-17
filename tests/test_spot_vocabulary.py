@@ -145,7 +145,7 @@ def test_rendering_is_injective_over_the_committed_sizes(library, sizing) -> Non
     each spot once: a per-spot read would report the menu, and the menu is not what the
     table can put in front of hero. The two readings agree here and it is not a tautology
     that they do - every price in every committed menu carries weight for at least one class,
-    the four-bet rungs included, which live only at the 254 spots facing a three-bet.
+    the four-bet rungs included, which live only at the 135 spots facing a three-bet.
 
     The committed tree offers six prices - 2.5, 7.5, 13.5, 22.5, 40.5 and 100.0 - which is
     tree shape and is pinned here. **MAINT-34 doubled the ladder and put the stack back on
@@ -177,7 +177,7 @@ def test_rendering_is_injective_over_the_committed_sizes(library, sizing) -> Non
 
     assert prices == [2.5, 7.5, 13.5, 22.5, 40.5, 100.0]
     assert len(set(rendered)) == len(prices)
-    assert sum(1 for found in priced.values() if found) == 276
+    assert sum(1 for found in priced.values() if found) == 148
 
 
 # --------------------------------------------------------------------------- #
@@ -420,7 +420,7 @@ def test_every_committed_raise_entry_carries_a_size(library) -> None:
     ]
 
     assert sizeless == []
-    assert sum(1 for spot_key_text in keys if ":raise@" in spot_key_text) == 279
+    assert sum(1 for spot_key_text in keys if ":raise@" in spot_key_text) == 151
     assert sorted(
         spot_key_text for spot_key_text in keys if ":raise@" not in spot_key_text
     ) == [f"t6/d100/{seat}/rfi" for seat in ("BTN", "CO", "HJ", "LJ", "SB")]
@@ -429,8 +429,8 @@ def test_every_committed_raise_entry_carries_a_size(library) -> None:
 def test_the_committed_spot_count_is_the_one_the_artifact_declares(library) -> None:
     """Phase 12 asserted 36 here, on the argument that re-keying is not re-solving.
 
-    Phase 14 re-selects, so the number moves to 284: 5 first-in, 25 facing an open and 254
-    facing a three-bet, what the ruled four-clause predicate keeps out of the export's
+    Phase 14 re-selects, so the number moves to 156: 5 first-in, 16 facing an open and 135
+    facing a three-bet, what the ruled five-clause predicate keeps out of the export's
     30,609 action nodes. That is tree shape rather than solve output, so it is pinned rather
     than floored - a floor would pass for any rule that kept more than the retired chart,
     which is exactly the confusion decision 1's two supersessions left behind. What survives
@@ -439,7 +439,7 @@ def test_the_committed_spot_count_is_the_one_the_artifact_declares(library) -> N
     or collided a spot cannot pass silently.
     """
     assert len(library.spot_keys()) == library.artifacts[0].audit_fields.spot_count
-    assert len(library.spot_keys()) == 284
+    assert len(library.spot_keys()) == 156
 
 
 SEATS_IN_ACTION_ORDER = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
@@ -448,15 +448,20 @@ SEATS_IN_ACTION_ORDER = ("LJ", "HJ", "CO", "BTN", "SB", "BB")
 def facing_an_open_keys() -> set[str]:
     """The facing-an-open family, enumerated here rather than read off the artifact.
 
-    Three ruled clauses decide it and all three are readable from a key. At most two raises
-    are in, so this family carries exactly one. The bot never cold-calls but opponents do,
-    so one opponent may already have flat-called - decision 46 admits the single-cold-caller
-    spots, and decision 48 takes back only the ones where hero is the big blind. Everyone
-    opens to 2.5, the one price the first-in family carries.
+    Three of the five clauses are readable from a key and this enumerates what they admit. At
+    most two raises are in, so this family carries exactly one. The bot never cold-calls but
+    opponents do, so one opponent may already have flat-called - decision 46 admits the
+    single-cold-caller spots, and decision 48 takes back only the ones where hero is the big
+    blind. Everyone opens to 2.5, the one price the first-in family carries.
 
     That is every strictly-ordered (opener, hero) pair and every strictly-ordered (opener,
-    cold caller, hero) triple whose hero is not the big blind: fifteen and ten. Their sum is
-    the ruled 25, which is what makes this enumeration a derivation rather than a guess.
+    cold caller, hero) triple whose hero is not the big blind: fifteen and ten, summing to 25.
+
+    **These are candidates rather than the committed family, which MAINT-34 separated.** Clause
+    four reads hero's arriving range and clause five the solve's terminal split, and neither is
+    in a key, so no enumeration from the grammar can be the committed set. Nine of the ten
+    triples are refused by clause five. Kept as a derivation of what the grammar admits, which
+    is still worth deriving: it is the set a key-shaped reader would expect to be answered.
     """
     keys: set[str] = set()
     for opener_index, opener in enumerate(SEATS_IN_ACTION_ORDER):
@@ -495,7 +500,10 @@ def test_the_committed_keys_are_the_measured_ones(library) -> None:
     assert "t6/d100/LJ/rfi" in keys
     assert "t6/d100/BB/CO:raise@2.5" in keys
     assert "t6/d100/BTN/CO:raise@2.5" in keys
-    assert "t6/d100/BTN/LJ:raise@2.5,CO:call" in keys
+    # The surviving cold-called committed spot. It was the button answering a cutoff flat until
+    # MAINT-34's clause five refused that one for a terminal split that does not close; the small
+    # blind's is the only one of the ten left.
+    assert "t6/d100/SB/LJ:raise@2.5,BTN:call" in keys
     assert "t6/d100/LJ/LJ:raise@2.5,BTN:raise@7.5" in keys
     assert "t6/d100/BB/CO:raise@2.5,BB:raise@7.5,CO:raise@22.5" not in keys
     assert "t6/d100/BB/CO:raise@2.5,BTN:call" not in keys
@@ -503,9 +511,19 @@ def test_the_committed_keys_are_the_measured_ones(library) -> None:
 
     expected = facing_an_open_keys()
 
+    pairs = {spot for spot in expected if ":call" not in spot}
+    triples = expected - pairs
+
     assert len(expected) == 25
-    assert expected <= keys
-    assert {spot for spot in keys if spot.count(":raise") == 1} == expected
+    assert (len(pairs), len(triples)) == (15, 10)
+    # **The family stopped being derivable from the key grammar alone under MAINT-34.** Every
+    # one of the fifteen (opener, hero) pairs is still committed, and nine of the ten
+    # (opener, caller, hero) triples are not - refused by clause five, which reads the solve's
+    # terminal split and is the one clause a key cannot express. So the enumeration is now the
+    # set of *candidates* the grammar admits, and what the chart commits is a subset of it.
+    assert pairs <= keys, "a facing-an-open spot with no caller stopped being committed"
+    assert triples & keys == {"t6/d100/SB/LJ:raise@2.5,BTN:call"}
+    assert {spot for spot in keys if spot.count(":raise") == 1} == pairs | (triples & keys)
 
 
 def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> None:
@@ -513,7 +531,7 @@ def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> N
 
     They are indexed the same way, so a re-keying that moved one and not the other would
     leave every raise refusing for no committed size. After the cutover the table prices 168
-    of the committed 284.
+    of the committed 156.
 
     This read "all 249, the no-raise half has no instance" when it was written, and that
     conflated two questions. Every committed spot's MENU does offer hero a raise - the
@@ -536,7 +554,7 @@ def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> N
     would price the classes that only ever fold or call at `t6/d100/BB/BTN:raise@2.5`. That
     is caught by the set equality rather than by a count, so it cannot hide in a total.
 
-    The two-price schema itself is **vacuous over the committed 284** and is labelled so
+    The two-price schema itself is **vacuous over the committed 156** and is labelled so
     rather than counted as a check that passed: `add_allin: false` leaves each spot one
     named raise, so no class anywhere is offered two. The vacuity premise is asserted before
     it is relied on - a build that reintroduced a second price would fail here rather than
@@ -556,7 +574,7 @@ def test_exactly_the_spots_that_raise_carry_a_sizing_entry(library, sizing) -> N
 
     assert {spot for spot, classes in priced.items() if classes} == raising
     assert set(sizing.raise_to_bb) <= covered
-    assert len(raising) == 276
+    assert len(raising) == 148
     assert len(covered - raising) == 8
     for spot in covered - raising:
         hero_seat, sequence = spot.split("/")[2], spot.split("/", 3)[3]

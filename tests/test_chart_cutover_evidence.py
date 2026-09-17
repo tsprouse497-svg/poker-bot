@@ -204,16 +204,16 @@ class PartitionFigures:
 
 
 PARTITIONS = (
-    PartitionFigures("the committed set", 284, 17, 210, 233, 278, 1340, 19793, 20619),
+    PartitionFigures("the committed set", 156, 8, 110, 123, 197, 390, 10123, 10522),
     PartitionFigures("raises faced 0", 5, 0, 5, 5, 11, 56, 0, 0),
-    PartitionFigures("raises faced 1", 25, 0, 25, 25, 42, 176, 0, 0),
-    PartitionFigures("raises faced 2", 254, 17, 180, 203, 225, 1108, 19793, 20619),
-    PartitionFigures("hero=LJ", 64, 5, 56, 64, 27, 542, 6804, 7182),
-    PartitionFigures("hero=HJ", 29, 0, 25, 29, 24, 263, 2808, 2970),
-    PartitionFigures("hero=CO", 40, 1, 15, 15, 18, 99, 4240, 4295),
-    PartitionFigures("hero=BTN", 42, 5, 28, 30, 111, 133, 2450, 2589),
-    PartitionFigures("hero=SB", 61, 5, 44, 47, 60, 169, 3491, 3583),
-    PartitionFigures("hero=BB", 48, 1, 42, 48, 38, 134, 0, 0),
+    PartitionFigures("raises faced 1", 16, 0, 16, 16, 26, 112, 0, 0),
+    PartitionFigures("raises faced 2", 135, 8, 89, 102, 160, 222, 10123, 10522),
+    PartitionFigures("hero=LJ", 20, 0, 12, 20, 3, 23, 2052, 2166),
+    PartitionFigures("hero=HJ", 13, 0, 9, 13, 9, 23, 1144, 1210),
+    PartitionFigures("hero=CO", 18, 1, 10, 10, 12, 28, 1620, 1660),
+    PartitionFigures("hero=BTN", 34, 3, 21, 22, 101, 114, 2343, 2455),
+    PartitionFigures("hero=SB", 45, 4, 32, 32, 44, 107, 2964, 3031),
+    PartitionFigures("hero=BB", 26, 0, 26, 26, 28, 95, 0, 0),
 )
 """All ten, and dropping one is forbidden - the whole set, one per raises faced, one per hero
 seat. Every column sums by seat and by raises faced to the whole set's own figure, which is what
@@ -221,16 +221,16 @@ stops a partition being quietly re-cut.
 
 **The rank arm scores every spot in its partition**, skipping a comparison whose partner cell is
 absent, so the two skipped columns say how much of a partition it could look at: `hero=LJ` skips
-6,804 of its 8,448 possible comparisons on the solved side and 7,182 on the permuted one. The
+2,052 of its 2,640 possible comparisons on the solved side and 2,166 on the permuted one. The
 sides skip different comparisons, the reversal carrying a present cell onto a different row, so
 one number for both would be the splice that produced the withdrawn "149 against 69".
 
-**Re-measured whole for MAINT-34, and both arms pass by more than before.** The rank arm's
-margin over the committed set went 181 against 433 to 278 against 1,340, and the tightest
-partition is now `hero=BTN` at 111 against 133 rather than `hero=LJ` at 75 against 96. The seat
-counts moved a long way in both directions - `hero=LJ` 32 to 64, `hero=HJ` 36 to 29 - because a
-13.5bb blind three-bet changes which lines survive the depth clause, not because a partition was
-re-cut."""
+**Re-measured twice in MAINT-34, and both arms still pass on every partition.** The 13.5bb
+re-solve took the rank arm's margin over the committed set from 181 against 433 to 278 against
+1,340; decision 7's clause five then refused 128 spots and it reads 197 against 390. The tightest
+partition is `hero=BTN` at 101 against 114, where it was `hero=LJ` at 75 against 96. Seat counts
+moved a long way in both directions and no partition was re-cut - what changed is which lines
+survive the clauses."""
 
 EQUITY_BACKLOG_ID = "GATE-ONE-RELATION-AGAINST-A-COMMITTED-EQUITY-TABLE"
 """Decision 42: a correct chart fails the equity relation, so it is published, it gates nothing,
@@ -503,20 +503,20 @@ def test_every_committed_cell_is_measured_by_all_four_relations(
 def test_the_fourth_relation_reads_the_raise_weight_the_bot_plays(
     export: SolverExport, committed: tuple[SolverNode, ...], tree: tuple[dict, dict]
 ) -> None:
-    """Taylor's ruling of 2026-09-03, re-measured for MAINT-34 rather than carried across. At each
-    of the twenty merged spots the relation reads the solve's raise plus its cold call, which is
-    what the bot commits there: the pre-merge reading finds 38 pair inversions over those spots
-    and the merged one 26, thirteen being resolved by the merge and one the bot really does commit
-    - `99` three-bet more often than `TT` at `t6/d100/SB/CO:raise@2.5,BTN:call` - appearing only
-    after it. At 7.5bb those figures were 11 and 9 with one gained and three resolved; a 13.5bb
-    three-bet gives the merge far more calling weight to fold in, which is why both sides grew.
+    """Taylor's ruling of 2026-09-03, re-measured twice for MAINT-34 rather than carried across.
+    At each of the **eleven** merged spots the relation reads the solve's raise plus its cold
+    call, which is what the bot commits there: the pre-merge reading finds 19 pair inversions over
+    those spots and the merged one 11, so eight are resolved by the merge. The figures were 11 and
+    9 over twenty spots at 7.5bb and 38 and 26 over twenty at 13.5; decision 7's clause five then
+    refused nine of the twenty.
 
-    **Decision 50's third named case no longer inverts and is asserted absent rather than
-    dropped.** `t6/d100/BB/CO:raise@2.5` read an inversion under the 7.5bb solve and reads none
-    under this one, so the named set is two surviving and one cleared - a fact about this solve
-    that a later one may reverse, which is why it is pinned in both directions. Those that remain
-    stay invisible to play-not-fold, which is the whole reason the relation exists. None of the
-    three merges, so they were never what the reading turned on; the twenty that do merge were."""
+    **Two of the three named witnesses this test carried are gone, and both absences are
+    asserted rather than replaced.** No inversion is gained by the merge any more - the one that
+    was, `99` over `TT` at `t6/d100/SB/CO:raise@2.5,BTN:call`, sat at a spot clause five refuses -
+    and decision 50's third case `t6/d100/BB/CO:raise@2.5` reads none. Pinning the absences keeps
+    a later solve that brings either back visible instead of silently agreeing. What survives is
+    the claim itself: the merged reading differs from the raw one, and the two decision 50 cases
+    that remain stay invisible to play-not-fold, which is the whole reason the relation exists."""
     faced, _ = tree
     keyed = {derivation.key_of(derivation.walk_of(export), node): node for node in committed}
     merged = [node for node in committed if is_merged_spot(node, faced)]
@@ -524,15 +524,21 @@ def test_the_fourth_relation_reads_the_raise_weight_the_bot_plays(
     before = sum(len(inversions(cells, ADJACENT_PAIRS)) for cells in raw.values())
     after = sum(len(inversions(raise_weight(node, faced), ADJACENT_PAIRS)) for node in merged)
 
-    assert len(merged) == report_tests.MERGED_SPOTS == 20
+    assert len(merged) == report_tests.MERGED_SPOTS == 11
     for node in merged:
         called = _weight(node, ("call",))
         assert raise_weight(node, faced) == {n: v + called[n] for n, v in raw[node.path].items()}
-    assert (before, after) == (38, 26), (before, after)
+    assert (before, after) == (19, 11), (before, after)
 
-    gained = keyed["t6/d100/SB/CO:raise@2.5,BTN:call"]
-    assert inversions(raise_weight(gained, faced), (("TT", "99"),))
-    assert not inversions(raw[gained.path], (("TT", "99"),))
+    # Nothing is gained by the merge on this chart, asserted so a solve that brings one back is
+    # visible. `t6/d100/SB/CO:raise@2.5,BTN:call` carried the only one and clause five refuses it.
+    assert "t6/d100/SB/CO:raise@2.5,BTN:call" not in keyed
+    for node in merged:
+        before_pairs = {(a, b) for a, b, _, _ in inversions(raw[node.path], ADJACENT_PAIRS)}
+        after_pairs = {
+            (a, b) for a, b, _, _ in inversions(raise_weight(node, faced), ADJACENT_PAIRS)
+        }
+        assert after_pairs <= before_pairs, (node.path, after_pairs - before_pairs)
     cleared = keyed["t6/d100/BB/CO:raise@2.5"]
     assert not inversions(raise_weight(cleared, faced), ADJACENT_PAIRS)
     for key in ("t6/d100/BB/HJ:raise@2.5", "t6/d100/CO/CO:raise@2.5,BTN:raise@7.5"):

@@ -33,6 +33,14 @@ COMMITTED_RAISE_DEPTH = 2
 EXPOSURE_THRESHOLD_PCT = 10.0
 """Decision 46's line, in points of a node's decision mass reaching a multiway flop."""
 
+SPLIT_CLOSURE_TOLERANCE_PCT = 0.05
+"""How far a terminal split may miss 100 before clause two has not measured anything.
+
+The same tolerance `SPLIT_LEAK_PCT` in `test_chart_derivation.py` has carried since phase 14,
+which is the point: it was frozen as the line a build losing a whole branch could not hide
+inside, it caught exactly that, and MAINT-34's decision 7 turned it from a tripwire into the
+clause. One number for one question."""
+
 
 @dataclass(frozen=True)
 class Walk:
@@ -204,18 +212,31 @@ def has_an_arriving_hand_class(walk: Walk, node: SolverNode) -> bool:
     return any(node.reach_bp)
 
 
+def terminal_split_closes(walk: Walk, node: SolverNode) -> bool:
+    """Clause five: the exposure measurement measured something.
+
+    The three shares close on 100 when every branch is accounted for, and do not when mass
+    reaches a node no hand class arrives at - `action_frequency` reads 0.0 there, so the mass
+    leaves the walk rather than being redistributed and clause two divides by a denominator
+    missing the branches it was meant to weigh. MAINT-34's decision 7: a guard that cannot see
+    its own input fails closed.
+    """
+    return abs(100.0 - sum(terminal_split_pct(walk, node))) <= SPLIT_CLOSURE_TOLERANCE_PCT
+
+
 def is_committed(walk: Walk, node: SolverNode) -> bool:
-    """All four clauses, in the order the census files a refusal under."""
+    """All five clauses, in the order the census files a refusal under."""
     return (
         within_raise_depth(walk, node)
         and below_exposure_threshold(walk, node)
         and not is_big_blind_squeeze(walk, node)
         and has_an_arriving_hand_class(walk, node)
+        and terminal_split_closes(walk, node)
     )
 
 
 def selected(export: SolverExport) -> tuple[SolverNode, ...]:
-    """The committed 284, walked here rather than asked of the rule under test."""
+    """The committed 156, walked here rather than asked of the rule under test."""
     walk = walk_of(export)
     return tuple(node for node in export.nodes if is_committed(walk, node))
 

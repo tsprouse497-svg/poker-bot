@@ -378,7 +378,7 @@ t6/d100/SB/SB:raise@2.5,BB:raise@7.5,SB:raise@22.5,BB:raise@100 t6/d100/SB/rfi
 """The chart this phase retires, generated from it and carried here rather than read at a git pin.
 
 **Not read off `ARTIFACT_DIR` at test time, because stage 6 replaces that path in place**: a helper
-reading the working tree would return the committed 284 the moment the cutover lands, and every
+reading the working tree would return the committed 156 the moment the cutover lands, and every
 cost below would be the new chart compared against itself - green, and measuring nothing.
 
 **And not out of git history either, because no git object survives this lane's workflow.** Commit
@@ -421,7 +421,7 @@ def test_the_retired_chart_fixture_agrees_with_its_source() -> None:
     """The fixture is a copy, so it is compared against the file it came from, both ways.
 
     While `RETIRED_CHART_PATH` still holds the retired chart - which its sha256 decides, not its
-    name - the ids must match. Once stage 6 writes the 284 there the bytes change and the ids must
+    name - the ids must match. Once stage 6 writes the 156 there the bytes change and the ids must
     then differ, which is the same claim read the other way and is what stops a stale checksum
     passing quietly. Neither branch skips, so this never goes dormant."""
     source = REPO_ROOT / RETIRED_CHART_PATH
@@ -526,7 +526,7 @@ def test_the_two_raise_decisions_split_where_the_ruling_puts_them(comparison, li
     and decision 40 has since dropped the clause that did the inverting. So the split of the
     corpus stays - 204 two-raise decisions, 125 with two opponents invested, 79 heads-up, all
     three read off the corpus's own key shapes and unmoved by any chart - and what each side owes
-    is restated against the 284.
+    is restated against the 156.
 
     The heads-up family must be answered, at the derived prices: every price in one of those keys
     is one of the three the tree holds, so a build keeping a retired 8, 11 or 13.5 three-bet fails
@@ -577,7 +577,7 @@ def test_the_refusal_total_moved_only_where_the_ruling_gave_a_spot_up(
 ) -> None:
     """Phase 12 pinned 290 because it added no coverage and a drop would have been a finding.
     Phase 14 moves the total a long way in **both** directions and the contract expects that: the
-    chart answers 249 nodes where the retired one declared 86 keys, and it gives the whole
+    chart answers 156 nodes where the retired one declared 86 keys, and it gives the whole
     four-bet family up. No ruling fixes where the two land, so a direction asserted here would be
     a guess dressed as a check, and the total is neither pinned nor bounded.
 
@@ -593,7 +593,7 @@ def test_the_refusal_total_moved_only_where_the_ruling_gave_a_spot_up(
     key shapes, so it moves only if the replay does.
 
     **Under the key reading** the ledger balances on the 86: 12 retired ids are literally
-    committed keys, 74 are refused, 272 keys are new, and 12 + 272 is the 284. The shape reading
+    committed keys, 74 are refused, 144 keys are new, and 12 + 144 is the 156. The shape reading
     produces 21 where the key reading produces 12 - 41 of the 86 have a committed *shape* - so
     both are stated and neither figure is ever quoted for the other."""
     covered = {spot_shape(key) for key in library.spot_keys()}
@@ -609,8 +609,8 @@ def test_the_refusal_total_moved_only_where_the_ruling_gave_a_spot_up(
     assert (len(kept), len(given_up)) == (21, 30)
 
     assert (len(committed_ids), len(retired_ids) - len(committed_ids)) == (12, 74)
-    assert len(declared - set(retired_ids)) == 272
-    assert len(committed_ids) + 272 == len(declared) == 284
+    assert len(declared - set(retired_ids)) == 144
+    assert len(committed_ids) + 144 == len(declared) == 156
     assert len([key for key in retired_ids if spot_shape(key) in covered]) == 41
 
     refused = [row for row in comparison.rows if row.refusal is not None]
