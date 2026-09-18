@@ -70,6 +70,16 @@ that changed got tighter. Nine non-blockers, all fixed, the two worth naming bei
 compared the committed card's `achieved_gap_bb` to its own `target_gap_bb` - a solve that stopped
 short of its declared accuracy would have shipped with the card saying so in a field no test read.
 
+**The coordinator's own repairs - no blockers.** A third round, on the work done in answer to the
+first two, because that work was itself unreviewed. Every load-bearing repair reproduces exactly:
+the per-spot table and both its denominators, the exposure re-pin and the argument that no other pin
+can work, both jam-canary walks reimplemented, the new convergence test shown able to fail, the
+`refused:` assertion verified under the actual mutation on a copied file, and all 75 `find:` strings
+in `verification/mutations.yml` resolving exactly once. Six non-blockers, all fixed, and every one
+the same disease: a figure the re-solve falsified that nothing watches - including three inside this
+task's own repairs, the sharpest being the `UNGUARDED-PROSE` backlog entry, whose new paragraph
+recording that unwatched figures go stale went stale, unwatched, in its own commit.
+
 **The poker - two blockers, both fixed, neither on the data.**
 
 1. The central claim was a one-spot measurement published as though it were general. Fixed in the

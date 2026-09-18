@@ -7,7 +7,9 @@ number of decision points that reached it, and whether the self-play run had
 already reached the same spot. Most-reached first.
 
 That last column compares SHAPES rather than keys: a spot key with its @prices
-stripped off. Self-play only ever plays the three prices the solved tree holds,
+stripped off. Self-play only ever plays the prices the solved tree holds - six of
+them since the blinds were given their own re-raise multiplier, not the three this
+line named -
 and real players raised to whatever they liked, so the same decision is never
 the same key on both sides and comparing keys would mark every spot below new.
 A row marked yes is the same decision the simulator reaches, at different money.

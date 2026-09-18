@@ -47,6 +47,7 @@ approved_scope:
 - src/poker_training_bot/solver_artifacts/solve_conditions.py
 - src/poker_training_bot/data_pipeline/self_play_reference.py
 - src/poker_training_bot/data_pipeline/comparison.py
+- src/poker_training_bot/data_pipeline/comparison_report.py
 - verification/mutations.yml
 standing_scope:
 - CURRENT_TASK.yml
@@ -63,6 +64,16 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+- date: 2026-09-17
+  reason: >-
+    `data_pipeline/comparison_report.py` joins approved_scope for one sentence. The third
+    independent review found that the shipped refusal inventory tells its reader "self-play only
+    ever plays the three prices the solved tree holds", which this task made false - the tree holds
+    six, and the same paragraph is the one explaining why the SEEN/NEW column compares shapes rather
+    than keys, so the stale count sits directly under the reasoning it is meant to support. The
+    sentence is rendered by this module, so regenerating the report cannot fix it; the same class as
+    the stale derived-chart report and the 36-spot sentence in `gtopen_export_report.py` that this
+    task already repaired. Nothing else in the file is touched and no behaviour changes.
 - date: 2026-09-17
   reason: >-
     `verification/mutations.yml` joins approved_scope for one re-pin and nothing else. The

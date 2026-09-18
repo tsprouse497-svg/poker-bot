@@ -1039,11 +1039,14 @@ items:
       reader moved to data_pipeline.self_play_reference.self_play_spots when comparison.py hit
       its size cap, and the loud-failure guard moved with it.
       The column was fixed rather than left uniform. On full spot keys the cross-reference is
-      empty and structurally cannot be otherwise: self-play only ever plays 2.5, 7.5 and 22.5
-      while the corpus plays the prices real players used, so the same decision is never the same
-      string on both sides and all 61 gap spots read NEW. Taylor ruled on 2026-09-03 that the
-      comparison is made on price-stripped shapes, and it now reads 7 SEEN against 54 NEW, every
-      one of the 7 a four-bet spot the simulator refuses on every run.
+      empty and structurally cannot be otherwise: self-play only ever plays the prices the solved
+      tree holds while the corpus plays the prices real players used, so the same decision is never
+      the same string on both sides and every gap spot reads NEW. Taylor ruled on 2026-09-03 that
+      the comparison is made on price-stripped shapes. Re-measured 2026-09-17 after MAINT-34: 75
+      gap spots, 8 SEEN against 67 NEW, every one of the 8 a four-bet spot the simulator refuses on
+      every run. It read 61, 7 and 54 before, and the solved tree held three prices where it now
+      holds six - 2.5 to open, 7.5 or 13.5 to three-bet, and 22.5, 40.5 or hero's whole stack to
+      four-bet.
       WHAT STAYS DEFERRED, and it is narrower than the title used to claim. Self-play is not
       worthless as a coverage instrument - it surfaces the four-bet family reliably - but it can
       only ever surface gaps that lie on the prices the solved tree holds, because those are the
@@ -4450,11 +4453,19 @@ items:
       the two options - register the rest as facts, or stop stating numbers no fact watches - are
       unchanged. Retitling is deferred because the id is cited from this entry's siblings.
       THE PREDICTION CAME TRUE A SECOND TIME, 2026-09-16, and this time it caught all three unwatched
-      figures at once. The blind three-bet was re-solved and the document had to be repaired by hand:
-      "the human denominator is 2,434" is now 2,432, the seat span's low end is now 1.2 percent rather
-      than 1.0, and the sentence quoted above as reproducing exactly no longer does. The high end, 20.3
-      percent in the big blind, is the only one of the three that survived, and it survived by
-      coincidence rather than by anything checking it. The refusal breakdown in the same paragraph -
+      figures at once. The blind three-bet was re-solved and the document had to be repaired by hand,
+      so "the human denominator is 2,434" moved and so did both ends of the seat span, and the
+      sentence quoted above as reproducing exactly no longer does.
+      AND THEN IT CAME TRUE A THIRD TIME, INSIDE THIS PARAGRAPH, 2026-09-17. The three "after"
+      figures written here on 2026-09-16 were 2,432, a low end of 1.2 percent and a high end of 20.3
+      percent said to have survived. Decision 7 then cut the committed set from 284 spots to 156 in
+      the same task, and docs/CORPUS_COMPARISON_LIMITS.md as shipped reads 2,383, 1.3 percent and
+      20.6 percent - verified against reports/active/latest_sample_comparison_report.txt, where the
+      human denominator is 2,383, the lojack reads 1.35 percent and the big blind 20.6. So two of
+      the three were stale within a day and the third did not survive after all. Caught by the third
+      independent review of MAINT-34 rather than by anything in the gate, which is the entry's whole
+      point arriving inside the entry itself: a paragraph written to record that unwatched figures
+      go stale went stale, unwatched, in its own commit. The refusal breakdown in the same paragraph -
       52, 52, 25 and 10 by category - is a fourth unwatched set and one of its four categories was also
       wrong on its own terms before the re-solve, describing two squeeze refusals as hand-class misses.
       So the count of unwatched figures in that one document is larger than this entry states, and the
@@ -5935,8 +5946,11 @@ items:
       reference, ours then reference then gap: LJ 18.569 / 17.487 / +1.082; HJ 21.305 / 21.653 /
       -0.348; CO 25.340 / 27.894 / -2.554; BTN 37.363 / 40.564 / -3.201; and the small blind read on
       entry 53.839 / 48.137 / +5.702. The sign pattern is unchanged, the same three seats reading
-      narrower, but the three negative gaps roughly tripled - -0.085 to -0.348, -0.721 to -2.554,
-      -1.298 to -3.201 - and the small blind's entry gap fell from +6.16 to +5.702. The honesty above
+      narrower, but the three negative gaps roughly tripled - -0.088 to -0.348, -0.721 to -2.554,
+      -1.298 to -3.201 - and the small blind's entry gap fell from +6.16 to +5.702. All six of those
+      gaps are against the reference read combo-weighted off its per-hand grid, which is what the
+      new column uses; the -0.085 this line first gave for the hijack was the older aggregate-file
+      reading of the same gap and is the kind of quiet mixing this entry exists to catch. The honesty above
       calling HJ a tie and only CO and BTN material therefore no longer holds: all three are material
       now. This is the solver behaving correctly rather than a second defect, since a bigger blind
       three-bet makes opening less profitable and every range tightens. It is recorded because the

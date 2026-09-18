@@ -638,11 +638,11 @@ def test_the_self_play_cross_reference_was_read_rather_than_defaulted(comparison
     membership of `self_play_shapes()`, recomputed from the same read, then both halves on sets.
 
     Shapes, not keys, and that is the column itself since 2026-09-03 rather than a reading laid
-    over it. On keys both halves cannot hold at once: self-play plays only the three solved prices
-    while the corpus plays the prices humans played, so one three-bet pot is
-    `CO:raise@7.5,HJ:raise@23` here and `@7.5,@22.5` there, the overlap is 0 whatever the chart
-    does, and all 61 gap spots read NEW. On shapes 7 read SEEN and 54 NEW, so both halves are live
-    readings rather than unfailable claims, and every one of the 7 is a four-bet spot.
+    over it. On keys both halves cannot hold at once: self-play plays only the solved prices, six of
+    them since the 13.5bb re-solve, while the corpus plays the prices humans played, so one
+    three-bet pot is `CO:raise@7.5,HJ:raise@23` here and `@7.5,@22.5` there, the overlap is 0
+    whatever the chart does, and all 75 gap spots read NEW. On shapes 8 read SEEN and 67 NEW, so
+    both halves are live readings rather than unfailable claims, and all 8 are four-bet spots.
 
     Both halves read a rendered report, so they depend on it being regenerated in the same commit
     as the chart: a stale inventory naming the retired chart's gaps lies.

@@ -39,9 +39,11 @@ def corrupted_artifact(tmp_path: Path, how: str) -> Path:
         del payload["arriving_reach_bp"][source]
         payload["arrival_ppb"].pop(source, None)
     else:
-        # The narrowest spot the exposure filter refuses, at 10.0234 percent against the ruled
-        # ten. Its cells are copied off a committed spot, so the file stays internally consistent
-        # and only a comparison against the walk can see it.
+        # The narrowest spot the exposure filter refuses - `NARROWEST_REFUSED_EXPOSURE_PCT`, which
+        # this solve puts at 10.4362 against the ruled ten. Its cells are copied off a committed
+        # spot, so the file stays internally consistent and only a comparison against the walk can
+        # see it. Read the percentage from that constant rather than from this comment: it said
+        # 10.0234 until 2026-09-17, which was the 7.5bb solve's figure.
         invented = derivation_tests.NARROWEST_REFUSED_KEY
         assert invented not in payload["action_weights"], f"{invented} is already committed"
         payload["spots"].append(

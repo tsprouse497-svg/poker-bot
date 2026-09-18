@@ -1200,8 +1200,9 @@ mutations:
       cheap repair at stage 7 would then have been to drop this command from `must_fail`, which
       loosens the gate instead of the code. Do not delete that case. It is also the right claim on
       its own terms: the retired chart three-bets to 8, 11 and 13.5 and opens the small blind to
-      3.5, the derived one holds only 2.5, 7.5, 22.5 and 100, and two charts that disagree about
-      hero's own opening price cannot agree on a thousand shared corpus decisions.
+      3.5, the derived one holds 2.5, 7.5, 13.5, 22.5, 40.5 and hero's whole stack - six prices
+      since MAINT-34, where this sentence said four - and two charts that disagree about hero's
+      own opening price cannot agree on a thousand shared corpus decisions.
       Re-pointed 2026-09-04: the pin became a command-line argument so the frozen tests can feed
       a bad one, so the call reads `arguments.retired_commit` rather than the constant. Same
       call, same line, same substitution.
@@ -1428,10 +1429,11 @@ mutations:
   # canary aims instead at the narrowest refused node that would otherwise ship. The
   # two still come at the same clause from opposite ends without meeting at a node: one
   # moves the rule and regenerates, the other moves the artifact and leaves the rule
-  # alone. The prose in `tests/test_derived_chart_report_validators.py` still calls that
-  # spot 10.0234 percent and still calls it this canary's node. Both are 7.5bb figures;
-  # the parameter itself reads the key off the walk and is unaffected, and that file is
-  # not this lane's to change.
+  # alone. The parameter itself reads the key off `derivation_tests.NARROWEST_REFUSED_KEY`
+  # and is unaffected by any of this. The prose that used to call that spot 10.0234 percent
+  # and this canary's node - both 7.5bb figures - was corrected in the same lane, in
+  # `tests/test_derived_chart_report_validators.py` and in `tests/corrupted_artifacts.py`,
+  # which the builder was extracted into under the 700-line cap.
 
   # Canary debt, triaged at stage 6 on 2026-09-04 by a lane that wrote none of this
   # phase's implementation. Each of the six items below was either written or struck
