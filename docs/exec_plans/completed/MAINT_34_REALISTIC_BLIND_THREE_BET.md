@@ -203,12 +203,27 @@ rulings and the integration. No two lanes write the same file.
 - [x] S1 Config and amendments. `raise_mults_by_seat` into `RULED_CONFIG`; three one-line amendments.
 - [x] S2 Solve, determinism run, convert. New export, card, chart, sizings.
 - [x] S3 Provenance. The artifact stops asserting its own stale ladder.
-- [ ] S4 Frozen tests, against measured values, then re-freeze. Corrections done and the suite is
-  green; the lock-diff review was re-dispatched after the session loss below and the re-freeze
-  waits on it.
-- [ ] S5 Documents and the report prose. The generator prose is written; the report itself had
-  never been re-run against it and has now been regenerated.
-- [ ] S6 Gate, `check_gate_bite`, independent review, packet, closeout.
+- [x] S4 Frozen tests, against measured values, then re-freeze. The lock-diff review cleared the
+  whole `tests/**` diff with no blockers and nine non-blockers, all fixed; lock regenerated over 50
+  files and 963 test functions.
+- [x] S5 Documents and the report prose. The generator prose was written but never run against the
+  report, so the committed report still said 249 spots and no jam; regenerated, and nine hand-typed
+  counts in the generator were replaced with derived ones.
+- [x] S6 Gate, `check_gate_bite`, independent review, packet, closeout. Three independent read-only
+  rounds, not two: the third reviewed the repairs made in answer to the first two, because those
+  were themselves unreviewed. It found no blockers and six more stale figures, three of them inside
+  this task's own repairs.
+
+## What the reviews cost and bought, since the delegation plan only names the lanes
+
+Three rounds, none of them by a lane that wrote what it read. Two blockers on the poker, both on the
+record rather than the data - the one-spot claim, and the exposure canary gone vacuous. Nine
+non-blockers on the tests, six on the repairs. **Three separate checks were reporting a pass while
+measuring nothing**, and only one of the three was caught by a machine: `check_gate_bite` found the
+report canary; a reviewer reading a spot key with `@7.5` in it found the exposure canary; and a
+reviewer reading the number under the prose found the jam canary. That asymmetry is filed as an
+alignment item, because nothing in the gate can distinguish a canary whose gap has emptied from a
+command that merely exited 0.
 
 **Session lost 2026-09-17, and what was recovered.** The coordinator session ended mid-S4 with both
 reviewers in flight and their findings unwritten, so neither round survives and both were

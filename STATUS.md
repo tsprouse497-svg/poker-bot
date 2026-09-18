@@ -1,8 +1,8 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `MAINT_34_REALISTIC_BLIND_THREE_BET`
-Task mode: `contract-update`
+Current task: `none (idle)`
+Task mode: `idle`
 Active phase: `none`
 Completed phases: `15`
 
