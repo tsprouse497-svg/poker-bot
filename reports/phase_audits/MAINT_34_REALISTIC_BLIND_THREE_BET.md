@@ -77,7 +77,7 @@ can work, both jam-canary walks reimplemented, the new convergence test shown ab
 `refused:` assertion verified under the actual mutation on a copied file, and all 75 `find:` strings
 in `verification/mutations.yml` resolving exactly once. Six non-blockers, all fixed, and every one
 the same disease: a figure the re-solve falsified that nothing watches - including three inside this
-task's own repairs, the sharpest being the `UNGUARDED-PROSE` backlog entry, whose new paragraph
+task's own repairs, the sharpest being `FACT-DRIFT-WATCHES-TWO-OF-A-DOCUMENTS-SIX-LIVE-NUMBERS`, whose new paragraph
 recording that unwatched figures go stale went stale, unwatched, in its own commit.
 
 **The poker - two blockers, both fixed, neither on the data.**

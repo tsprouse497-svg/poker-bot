@@ -61,7 +61,7 @@ watches - and three of them are in repairs this task made.
    in it - so the shipped report told its reader something this task made false, directly under the
    reasoning it was meant to support. `comparison_report.py` joined `approved_scope` for that one
    sentence under a dated entry.
-5. **The `UNGUARDED-PROSE` entry's own new paragraph went stale inside its own commit.** Written on
+5. **`FACT-DRIFT-WATCHES-TWO-OF-A-DOCUMENTS-SIX-LIVE-NUMBERS`'s own new paragraph went stale inside its own commit.** Written on
    2026-09-16 to record that three unwatched figures in `CORPUS_COMPARISON_LIMITS.md` had moved, it
    gave the new values as 2,432, a low end of 1.2 percent and a high end of 20.3 percent said to
    have survived. Decision 7 landed in the same task and the document as shipped reads 2,383, 1.3
@@ -100,6 +100,6 @@ not a defect in the change.
 
 **What would mislead a reader six months out.** All three are non-blockers 1, 2, 4 and 5 above, and
 all are fixed: the `10.0234` pair that pointed at the wrong file while saying it was out of scope;
-the `UNGUARDED-PROSE` entry being wrong about its own subject; and the 61-spot, three-price
+`FACT-DRIFT-WATCHES-TWO-OF-A-DOCUMENTS-SIX-LIVE-NUMBERS` being wrong about its own subject; and the 61-spot, three-price
 description of the sample that a reader reconciling against a 75-spot inventory would take for a
 different run rather than a stale sentence.
