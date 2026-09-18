@@ -911,18 +911,20 @@ mutations:
 
   - id: the-big-blind-squeeze-clause-is-dropped
     description: >-
-      The third selection clause stops being asked, so the ten spots decision 48 refuses ship in
-      the chart. At the table that is the big blind being taught to defend against a raise
-      somebody has already flat-called. Those ten are the only committed shape whose own chart
+      The third selection clause stops being asked, so five of the nine spots decision 48
+      refuses ship in the chart. At the table that is the big blind being taught to defend
+      against a raise somebody has already flat-called. Those nine are the only committed shape
+      whose own chart
       still offers hero a call that buys him a three-way flop - everywhere else the call the bot
       may take is either dropped from the exposure measurement as a cold call or the pot is
       heads-up by then - and a three-way flop is exactly the pot GTOpen prices with the product
       approximation decisions 35 and 46 exist to keep out of the chart.
       Neither other clause can reach them, which is why the clause is a clause. The raises in
-      front of hero are at one, so the depth clause is satisfied; and the big blind folds better
-      than nine times in ten here, so the branch that goes multiway carries under nine points and
-      the exposure clause reads them as safe. A rule about a seat is what refuses them and
-      nothing else in the gate is a statement about that seat.
+      front of hero are at one, so the depth clause is satisfied; and the big blind folds between
+      82.86 and 92.55 percent of its range here, so the branch that goes multiway carries 2.90 to
+      6.13 points against a threshold of ten and the exposure clause reads them as safe. A rule
+      about a seat is what refuses them and nothing else in the gate is a statement about that
+      seat.
       This entry REPLACES `derivation-predicate-drops-its-subtree-clause` rather than re-pointing
       it. That canary attacked `invested_opponents(...) <= 1 and live_players(...) <= 2`, the
       two-clause predicate Taylor ruled on 2026-08-24 and superseded on 2026-08-25, and its
@@ -935,12 +937,16 @@ mutations:
       A frozen test asserts `is_big_blind_squeeze_spot` directly on named nodes, so a mutation
       inside the predicate dies to a test reading the predicate back and proves only that the
       predicate is pinned. Dropped at the call site the predicate still answers True and the only
-      thing that can notice is a spot moving. Measured 2026-09-04 against the committed export:
-      the committed set goes from 249 to 259, and the `derivation:big-blind-squeeze-spot` census
-      bucket from 10 to nothing at all.
+      thing that can notice is a spot moving. Measured 2026-09-17 against the committed export:
+      the committed set goes from 156 to 161, and the `derivation:big-blind-squeeze-spot` census
+      bucket from 9 to nothing at all. Nine leave the bucket and five ship: the other four fail
+      clause five, so `derivation:terminal-split-does-not-close` goes from 128 to 132 and catches
+      them. That is the clause order doing its job rather than a weaker canary - five spots still
+      move, which is all the report's comparison needs - but a reader expecting nine in the chart
+      would be reading the bucket, not the walk.
       `generate_derived_chart_report` is named and is the load-bearing entry, for the same reason
       it is on the exposure canary: the report cannot read the clause, it compares the artifact's
-      spot set against the walk's key by key, so it fails only because ten spots moved. If it
+      spot set against the walk's key by key, so it fails only because five spots moved. If it
       exits 0 under this mutation, that is the finding and not a reason to drop the command.
     file: src/poker_training_bot/solver_artifacts/chart_selection.py
     find: "    if is_big_blind_squeeze_spot(by_path, node):"
@@ -956,16 +962,16 @@ mutations:
       a solve whose four-bet is priced a quarter oversized
       (`PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED`), and the answer at that depth is a call-off
       or a fold for a stack - the most expensive single decision in the game to take from a chart
-      that was not solved at the price in front of him. Measured 2026-09-04 against the committed
-      export: the committed set goes from 249 to 2,456 and the depth bucket from 33,362 to 29,105.
+      that was not solved at the price in front of him. Measured 2026-09-17 against the committed
+      export: the committed set goes from 156 to 755 and the depth bucket from 30,002 to 25,745.
       Loud rather than at the margin, and that is the clause's own shape rather than a lazy aim: a
       raise depth names a family, so it cannot be moved a little the way a threshold can. It is
       written as the constant rather than as the call site because dropping the clause outright
-      commits 18,789 nodes, which is a mutation no reviewer learns anything from.
+      commits 3,706 nodes, which is a mutation no reviewer learns anything from.
       The kill in the pytest commands is a frozen test reading `COMMITTED_RAISE_DEPTH` back and
       comparing it to two, and a kill of that kind proves the constant is pinned rather than that
       the rule uses it. `generate_derived_chart_report` is therefore the load-bearing entry: the
-      report cannot read the constant, and fails only because 2,207 spots moved. Same argument as
+      report cannot read the constant, and fails only because 599 spots moved. Same argument as
       `a-spot-above-the-exposure-threshold-is-committed`, and the same finding if the report
       exits 0.
     file: src/poker_training_bot/solver_artifacts/chart_selection.py
@@ -977,7 +983,7 @@ mutations:
 
   - id: the-cold-call-survives-into-the-published-chart
     description: >-
-      Decision 45's merge changes seats, so both halves of the ruling break at once. The twenty
+      Decision 45's merge changes seats, so both halves of the ruling break at once. The eleven
       non-big-blind spots facing an open stop folding hero's call into the raise and publish a
       cold call instead; the five big-blind spots lose their defence flat into the raise. At the
       table the first is the bot putting money in behind an opener with nothing already invested,
@@ -988,8 +994,8 @@ mutations:
       to be there - a cold call is money in from a seat with nothing invested, a big blind's call
       is a defence - and inverting that seat test is the way this rule is most likely to be got
       wrong by someone who reads "the bot never cold-calls" and applies it to every call.
-      Measured 2026-09-04 against the committed export: the spots that merge go from 20 to 5, and
-      the cells the merge moves from 165 to 276.
+      Measured 2026-09-17 against the committed export: the spots that merge go from 11 to 5, and
+      the cells the merge moves from 72 to 341.
       `generate_derived_chart_report` is deliberately NOT named, and saying so is a finding rather
       than an omission: the merge moves cells inside spots and never the spot set, so the report's
       key-by-key comparison is blind to it, and no canary on this file should be read as evidence
@@ -1194,8 +1200,9 @@ mutations:
       cheap repair at stage 7 would then have been to drop this command from `must_fail`, which
       loosens the gate instead of the code. Do not delete that case. It is also the right claim on
       its own terms: the retired chart three-bets to 8, 11 and 13.5 and opens the small blind to
-      3.5, the derived one holds only 2.5, 7.5, 22.5 and 100, and two charts that disagree about
-      hero's own opening price cannot agree on a thousand shared corpus decisions.
+      3.5, the derived one holds 2.5, 7.5, 13.5, 22.5, 40.5 and hero's whole stack - six prices
+      since MAINT-34, where this sentence said four - and two charts that disagree about hero's
+      own opening price cannot agree on a thousand shared corpus decisions.
       Re-pointed 2026-09-04: the pin became a command-line argument so the frozen tests can feed
       a bad one, so the call reads `arguments.retired_commit` rather than the constant. Same
       call, same line, same substitution.
@@ -1340,19 +1347,36 @@ mutations:
   - id: a-spot-above-the-exposure-threshold-is-committed
     description: >-
       The multiway exposure threshold moves off the ten percent Taylor ruled on
-      2026-09-02 by five hundredths of a point, so the chart commits a spot the rule
-      refuses. That is one node and it is the named one: the button facing a big-blind
-      three-bet into a four-handed pot,
-      `t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5`, measured at
-      **10.0234** percent against a widest admitted **9.8642**. Ten-point-oh-five is
-      not an arbitrary widening: the next refused node above it sits at 10.1189, so
-      every value in that gap admits exactly this one spot and no other, and the
-      canary therefore attacks the threshold at its own margin instead of at a
-      catastrophe. The committed set goes from 249 to 250 and the census bucket from
-      348 to 347.
+      2026-09-02 to eleven point four, so the chart commits a spot the rule refuses.
+      That is one spot and it is the named one: the small blind facing a big-blind
+      three-bet after flatting a hijack open the opener has since called behind,
+      `t6/d100/SB/HJ:raise@2.5,SB:call,BB:raise@13.5,HJ:call`, measured at **11.3681**
+      percent against a widest admitted **9.1945**
+      (`t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,LJ:call`).
+      Eleven-point-four is not an arbitrary widening: the next node the clause refuses
+      above it sits at **11.8240**, so every value in that gap admits exactly this one
+      spot and no other, and the canary therefore attacks the threshold at its own
+      margin instead of at a catastrophe. The committed set goes from **156 to 157**
+      and the `derivation:multiway-exposure-above-threshold` census bucket from
+      **154 to 152**.
+      The bucket loses two while the chart gains one, and that is the margin's own shape
+      rather than a slack pin. The narrowest node this clause refuses is
+      `t6/d100/BB/CO:raise@2.5,BTN:call` at **10.4362**, and it is a big-blind squeeze
+      spot: any threshold past it hands that node to clause three instead, moving the
+      squeeze bucket from 9 to 10 and the committed set not at all. No pin admits a spot
+      without also moving that one, so the tightest canary that moves a spot is the one
+      that moves exactly these two.
+      Re-pinned 2026-09-17 and every figure above re-measured on the shipped export. The
+      previous pin was 10.05, naming
+      `t6/d100/BTN/HJ:raise@2.5,CO:call,BTN:call,SB:call,BB:raise@7.5` at 10.0234 against
+      a widest admitted 9.8642 and a next refused 10.1189. Those figures were measured on
+      the 7.5bb solve and went vacuous when MAINT-34 moved the blind three-bet to 13.5bb:
+      the key spells a size this solve cannot emit, nothing at all sits in the interval
+      above 10.0 and up to 10.05, so the mutation moved no spot and the load-bearing
+      command below exited 0 under it.
       Decision 46 is the whole reason this filter exists, and it is the clause with
-      the least margin behind it: a sixteen-hundredths gap between the widest spot the
-      bot may be taught and the narrowest it may not. Nothing else in the gate is a
+      the least margin behind it: 1.2417 points between the widest spot the bot may be
+      taught and the narrowest it may not. Nothing else in the gate is a
       statement about that gap. The raise-depth clause has a whole family behind it and
       the big-blind squeeze clause names a seat, so both fail loudly if they move; a
       threshold is a number, and a number that has quietly drifted still selects a set,
@@ -1366,18 +1390,20 @@ mutations:
       ten - and a kill of that kind proves only that the constant is pinned, not that
       the rule uses it. The report cannot read the constant: it compares the artifact's
       spot set against the walk's key by key, so it fails only if the moved threshold
-      actually moved a spot. If stage 6 declares the constant and then hardcodes ten in
-      the predicate beside it, the pytest commands still go red, the report exits 0, and
+      actually moved a spot. A pin that declares the constant and then hardcodes ten in
+      the predicate beside it, and a pin whose gap has gone empty under a re-solve, fail
+      the same way: the pytest commands still go red, the report exits 0, and
       `check_gate_bite` reports this mutation as having survived a command it named -
-      which is the finding, not a reason to drop the command.
-      Re-pointed 2026-09-04, and the `file:` field is the only thing that moved. Stage 6 split
+      which is the finding, and it is the finding that produced the 2026-09-17 re-pin,
+      not a reason to drop the command.
+      Re-pointed 2026-09-04, when the `file:` field was the only thing that moved. Stage 6 split
       the selection rule out of `chart_derivation.py` into `chart_selection.py` under the 500-line
       cap, and wrote the constant as the bare `NAME = 10.0` this block asked for. It occurs
-      exactly once there. The mutation, the margin it attacks, the node it admits and the reason
-      `generate_derived_chart_report` is load-bearing are all unchanged.
+      exactly once there. The reason `generate_derived_chart_report` is load-bearing has not
+      changed since; the node admitted and the margin's own width are re-measured per solve.
     file: src/poker_training_bot/solver_artifacts/chart_selection.py
     find: "MULTIWAY_EXPOSURE_THRESHOLD_PCT = 10.0"
-    replace: "MULTIWAY_EXPOSURE_THRESHOLD_PCT = 10.05"
+    replace: "MULTIWAY_EXPOSURE_THRESHOLD_PCT = 11.4"
     must_fail:
       - pytest_derived_chart
       - generate_derived_chart_report
@@ -1394,11 +1420,20 @@ mutations:
   # `drop-a-spot` removes the artifact's first committed spot and restamps the audit
   # fields, so only a comparison against the walk sees it, and
   # `commit-a-spot-above-the-exposure-threshold` appends the narrowest spot the filter
-  # refuses at 10.0234 percent - the same node
-  # `a-spot-above-the-exposure-threshold-is-committed` names above - with its cells
+  # refuses - `t6/d100/BB/CO:raise@2.5,BTN:call` at 10.4362 percent, which
+  # `tests/test_chart_derivation.py` holds as `NARROWEST_REFUSED_KEY` - with its cells
   # copied off a committed spot, so the file stays internally consistent and loads.
-  # The two canaries meet at that node from opposite ends: one moves the rule and
-  # regenerates, the other moves the artifact and leaves the rule alone.
+  # That is NOT the node `a-spot-above-the-exposure-threshold-is-committed` names, and
+  # since 2026-09-17 it cannot be: the narrowest refused node is a big-blind squeeze
+  # spot, which clause three refuses at any threshold, so no pin can admit it and the
+  # canary aims instead at the narrowest refused node that would otherwise ship. The
+  # two still come at the same clause from opposite ends without meeting at a node: one
+  # moves the rule and regenerates, the other moves the artifact and leaves the rule
+  # alone. The parameter itself reads the key off `derivation_tests.NARROWEST_REFUSED_KEY`
+  # and is unaffected by any of this. The prose that used to call that spot 10.0234 percent
+  # and this canary's node - both 7.5bb figures - was corrected in the same lane, in
+  # `tests/test_derived_chart_report_validators.py` and in `tests/corrupted_artifacts.py`,
+  # which the builder was extracted into under the 700-line cap.
 
   # Canary debt, triaged at stage 6 on 2026-09-04 by a lane that wrote none of this
   # phase's implementation. Each of the six items below was either written or struck
@@ -1407,11 +1442,12 @@ mutations:
   #
   #   - STRUCK, moot. "Fold the fifteen four-bet-pot nodes into another exclusion
   #     reason, once `derivation:source-misprices-four-bet-pot` exists." That code
-  #     never existed and never will: the exclusion vocabulary in force is exactly
-  #     three, `derivation:beyond-committed-raise-depth`,
-  #     `derivation:multiway-exposure-above-threshold` and
-  #     `derivation:big-blind-squeeze-spot`, and the four-bet pots are refused by the
-  #     first of them along with 33,362 other nodes. What this item wanted defended -
+  #     never existed and never will: the exclusion vocabulary in force was three when
+  #     this was struck and is five now - `derivation:beyond-committed-raise-depth`,
+  #     `derivation:multiway-exposure-above-threshold`,
+  #     `derivation:big-blind-squeeze-spot`, `derivation:no-arriving-hand-class` and
+  #     `derivation:terminal-split-does-not-close` - and the four-bet pots are refused
+  #     by the first of them, which holds 30,002 nodes. What this item wanted defended -
   #     that the four-bet family stays out - is now defended by
   #     `the-four-bet-family-is-committed-after-all`.
   #   - STRUCK, moot. "Widen the withholding from `raises_faced == 3` to `>= 3`,
@@ -1435,8 +1471,8 @@ mutations:
   #     splits the material across `## The big blind's defence and flat, per opener`
   #     and `## The menu each family publishes, and the merged flats`. The flat
   #     behaviour itself is now attacked directly and much harder by
-  #     `the-cold-call-survives-into-the-published-chart`, which moves 165 cells
-  #     rather than emptying a heading.
+  #     `the-cold-call-survives-into-the-published-chart`, which swaps a 72-cell merge
+  #     for a 341-cell one rather than emptying a heading.
   #   - STRUCK, and a FINDING. "Blank the `## The withheld jams, and what aces do at
   #     each` section." It survives as `## Hero's own jam, at the spots this phase
   #     withholds`, so the item is live in principle, but the test that reads it only
@@ -1451,10 +1487,11 @@ mutations:
   #     raise-depth clause and carry no committed cell to attack. The general shape -
   #     a committed spot's call weight being wrong while every count stays put - is
   #     what `the-cold-call-survives-into-the-published-chart` attacks. Measured
-  #     2026-09-04 against the committed artifact, 210 of the 249 spots carry a
-  #     nonzero call weight somewhere in their 2,816 such cells, so the shape has
-  #     plenty of surface; that canary reaches the 25 spots where the merge rule
-  #     itself decides the answer, and the other 185 remain uncovered.
+  #     2026-09-17 against the committed artifact, 132 of the 156 spots carry a
+  #     nonzero call weight somewhere in their 2,925 such cells, so the shape has
+  #     plenty of surface; that canary reaches the 16 spots where the merge rule
+  #     itself decides the answer - 11 of them carrying such a cell - and the other
+  #     121 remain uncovered.
 
   # The imbalance this block recorded, and where it stands after stage 6. It said the
   # three re-cut canaries all attacked `scripts/generate_derived_chart_report.py` and
@@ -1464,10 +1501,13 @@ mutations:
   # them: `discrimination-tolerates-a-tie`, `dominance-tolerance-widened-past-the-ruling`
   # and `the-transposed-reading-is-not-transposed` now attack `chart_relations.py`,
   # which owns the four relations and both counterfactual arms. `chart_selection.py`,
-  # which owns the three-clause rule the whole phase turns on, carries one canary per
-  # clause: `the-four-bet-family-is-committed-after-all` on the raise depth,
+  # which owns the selection rule the whole phase turns on, carries a canary on three of
+  # its clauses: `the-four-bet-family-is-committed-after-all` on the raise depth,
   # `a-spot-above-the-exposure-threshold-is-committed` on the exposure threshold, and
-  # `the-big-blind-squeeze-clause-is-dropped` on the squeeze clause.
+  # `the-big-blind-squeeze-clause-is-dropped` on the squeeze clause. The rule was three
+  # clauses when that was written and is five now; clause four, the arriving hand class,
+  # and clause five, the split that has to close, carry no canary at all, and 288 of the
+  # 30,453 refused nodes are refused under those two.
   #
   # What is still thin, stated rather than left to be discovered. `lookup.py` carries
   # two canaries and neither is about the derivation codes it now publishes. `schema.py`

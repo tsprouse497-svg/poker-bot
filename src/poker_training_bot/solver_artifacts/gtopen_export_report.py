@@ -6,10 +6,14 @@ the same solved arena, so a disagreement is this repo's tree walk, hand-class ma
 reach handling, quantisation, storage or rendering - which is exactly where a defect would
 live and where nothing automated in this phase can reach.
 
-The report is capped like every other report, so it cannot hold 38,828 nodes. Decision 11
-fixes the selection: the five opening spots and the five big-blind-versus-open spots the
-reference file names, plus one four-bet line, which is the part of the tree no reference
-covers and no v1 spot key reaches. What is omitted is counted rather than left implicit.
+The report is capped like every other report, so it cannot hold the whole tree - 30,609
+action nodes as the committed export stands on 2026-09-17, where this sentence read 38,828
+before the rake-free re-solve and 33,969 before the blind three-bet moved to 13.5. Take the
+count from the report's own `action nodes` line rather than from here; this one is typed and
+goes stale on every re-solve. Decision 11 fixes the selection: the five opening spots and the
+five big-blind-versus-open spots the reference file names, plus one four-bet line, which is
+the part of the tree no reference covers and no v1 spot key reaches. What is omitted is
+counted rather than left implicit.
 """
 
 from __future__ import annotations
@@ -229,8 +233,11 @@ def render_solver_export_report(
         "=" * 60,
         "",
         "One solved six-handed 100bb preflop tree, captured from GTOpen and committed as",
-        "data. Nothing downstream reads it yet: the bot still plays the committed 36-spot",
-        "chart. This report exists so a person can say whether the extraction is faithful.",
+        "data. The bot plays a chart derived from this export rather than reading the export",
+        "itself, and how many spots that chart holds is counted by the derived-chart report",
+        "rather than named here, where it would go stale at every re-solve - as the 36 this",
+        "sentence carried through two chart generations did. This report exists so a person",
+        "can say whether the extraction is faithful.",
         "",
         "How to check it: load the saved solve named below in GTOpen's own interface and",
         "read its range grids against the grids here. Do not press the Build or Re-solve",

@@ -32,6 +32,18 @@
   "raise_mults": [
    3.0
   ],
+  "raise_mults_by_seat": [
+   [],
+   [],
+   [],
+   [],
+   [
+    5.4
+   ],
+   [
+    5.4
+   ]
+  ],
   "rake_cap": 0.0,
   "rake_pct": 0.0,
   "realization": "calibrated",
@@ -43,33 +55,33 @@
   "result": "byte-identical",
   "shape_differences": 0
  },
- "export_sha256": "f7182f4bbcc080c7715d8195cd0552d4604ec9856c8d7d64cd5a52483e0949e7",
+ "export_sha256": "8d14266ddfa32a69f44775a0d266b60f59c6990014768a52c878a98b7f60a297",
  "licence": "GTOpen ships no LICENSE file upstream, and neither its README.md nor its Cargo.toml mentions licensing. This is an unresolved limitation rather than a permission anybody granted.",
  "model": "realization=calibrated. GTOpen's preflop engine resolves flops by scaled equity share rather than by playing them, so this is a preflop-only model and not a full solve.",
  "node_counts": {
-  "exported": 33969,
+  "exported": 30609,
   "reconciliation": "equal",
-  "solver_action_nodes": 33969
+  "solver_action_nodes": 30609
  },
  "saved_solve": {
-  "bytes": 98422122,
+  "bytes": 88557951,
   "path": "/Users/taylorsprouse/projects/gtopen/saves/preflop/six-max-100bb-rakefree.gtop",
-  "sha256": "1777810729942cfda30b10a1189ed5a910a5ce4f6c383f4664fd66a222312027"
+  "sha256": "8e053a982034c6c732ad84f390defdad2d3926c2a33bc71ef34056188e52f8de"
  },
  "size": {
-  "bytes": 2555076,
-  "bytes_per_expressible_spot": 10261.35,
-  "bytes_per_expressible_spot_note": "the whole export divided by the 249 spots the committed chart expresses today, so it is what keeping the entire tree costs per spot currently usable rather than the size of a derived chart. The roadmap's 7.1 KB per spot was measured off the GTO Wizard chart format and is not comparable",
-  "bytes_per_node": 75.22,
-  "headroom_bytes": 15774195,
+  "bytes": 2519803,
+  "bytes_per_expressible_spot": 16152.58,
+  "bytes_per_expressible_spot_note": "the whole export divided by the 156 spots the committed chart expresses today, so it is what keeping the entire tree costs per spot currently usable rather than the size of a derived chart. The roadmap's 7.1 KB per spot was measured off the GTO Wizard chart format and is not comparable",
+  "bytes_per_node": 82.32,
+  "headroom_bytes": 16133415,
   "limit_bytes": 20971520
  },
  "solve": {
-  "achieved_gap_bb": 0.00015590818199695747,
-  "iteration_cap": 2000,
-  "iterations": 1900,
+  "achieved_gap_bb": 0.00015587719683285103,
+  "iteration_cap": 5000,
+  "iterations": 3800,
   "target_gap_bb": 0.00016,
-  "wall_clock_seconds": 200.4
+  "wall_clock_seconds": 188.4
  },
  "solver": {
   "commit": "4aee435bdeb155b25f0c8140e707a8342ce4356f",
@@ -78,6 +90,6 @@
  },
  "walk": {
   "mismatches": 0,
-  "reresolved_nodes": 33969
+  "reresolved_nodes": 30609
  }
 }

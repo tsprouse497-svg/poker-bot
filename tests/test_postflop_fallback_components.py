@@ -231,7 +231,7 @@ class TestComposite:
         up: hero in the big blind facing a four-bet. Three raises are already in and the
         selection rule keeps at most two, so the key is outside the committed set by a
         count of the sequence rather than by a measurement nobody here can redo - and the
-        ruled census, 5 first-in plus 25 facing an open plus 219 facing a three-bet, holds
+        ruled census, 5 first-in plus 16 facing an open plus 135 facing a three-bet, holds
         no facing-a-four-bet family at all.
 
         A composite that let a refused preflop query fall through to the postflop
@@ -288,7 +288,7 @@ class TestComposite:
         `preflop-chart:weighted-draw:raise[...]` and a `StrategyRefusal` coded
         `preflop-chart:lookup:spot-not-covered` are indistinguishable to `startswith`. The
         lojack's first-in spot is the one the cutover turns on: under the retired 86 it was a
-        refusal and under the 249 it is an answer, so a chart shipped with every key misspelled
+        refusal and under the 156 it is an answer, so a chart shipped with every key misspelled
         would still name the right component here. The expected kind is what tells them apart.
         """
         for request in enumeration_queries():

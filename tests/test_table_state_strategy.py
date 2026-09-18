@@ -6,10 +6,10 @@ money: three signals, each pinned on a table where it is the only one that can s
 `tests/test_table_state.py` covers query validation, the pot reconciliation, the audit schema
 version and the all-in ceiling.
 
-**What phase 14 changed, and it is not the phase-13 behaviour.** The chart becomes the 249 spots
-the three ruled clauses select: all five first-in seats open, every seat behind an opener is
+**What phase 14 changed, and it is not the phase-13 behaviour.** The chart becomes the 156 spots
+the five ruled clauses select: all five first-in seats open, every seat behind an opener is
 covered, and the raise-depth clause gives up the four-bet family instead. What the cutover takes
-away is narrow - the big blind's ten squeeze spots, the two-or-more-caller pots, the limped pot,
+away is narrow - the big blind's nine squeeze spots, the two-or-more-caller pots, the limped pot,
 and everything from the four-bet on. A green run can still hide a dead subject: `decide` runs
 forced money, then depth, then the chart, so a depth test on a refused spot goes on passing with
 its subject unreachable - a claim about a table the bot can never be handed. So every query below
@@ -249,7 +249,7 @@ def strategy() -> PreflopChartStrategy:
 def charted(strategy: PreflopChartStrategy, query: StrategyQuery) -> ChartHit:
     """The cell a query reaches, or an assertion naming what stopped it short. `chart_lookup` runs
     the same forced-money and depth checks `decide` runs and returns None when either answered, so
-    a hit proves the shape under test was accepted AND that the spot is one of the 249. Read
+    a hit proves the shape under test was accepted AND that the spot is one of the 156. Read
     instead of `decide` wherever the claim is about the shape rather than the action, which keeps
     the fixture from also asserting what the sizing table prices."""
     found = strategy.chart_lookup(query)
@@ -647,7 +647,7 @@ class TestForcedMoney:
         blind holds 100 where its blind alone predicts 50, and the extra fifty is a call it is
         recorded as making; comparing against the blinds and nothing else would call the most
         common pot in a home game an anted one. The chart holds no limped spot at all - the solve
-        is `limp: false`, so `t6/d100/BB/SB:call` passes all three clauses and has no node to
+        is `limp: false`, so `t6/d100/BB/SB:call` passes all five clauses and has no node to
         derive from - so this refuses, which is why the code is read rather than the
         outcome counted: a limped pot must refuse for want of a cell, never for forced money."""
         outcome = strategy.decide(
@@ -669,7 +669,7 @@ class TestForcedMoney:
     ) -> None:
         """The negative control the whole detection rests on. A 2.5bb cutoff open at 50/100 with
         the big blind closing the action is the most ordinary spot the chart holds, and after the
-        cutover one of the 25 facing an open - five of them the big blind's, where hero keeps fold,
+        cutover one of the 16 facing an open - five of them the big blind's, where hero keeps fold,
         call and three-bet. A signal firing here replaces a bound that over-refused with a rule
         that over-refuses differently. The button and the small blind fold rather than sitting
         behind hero, which is both the street the big blind actually acts on and the shape the

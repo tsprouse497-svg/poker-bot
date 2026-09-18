@@ -360,8 +360,10 @@ def validate_disagreement(
     an error, which is why the arithmetic is not enough on its own. An empty overlap is refused,
     and so is a zero disagreement count over a non-empty overlap: that is the shape of the
     comparison being handed the same chart twice, and the poker rules it out on its own terms,
-    because the retired chart's sizing entries are every one priced at a jam where the derived
-    chart offers 2.5, 7.5 and 22.5 and no jam at all.
+    because all 36 of the retired chart's spot entries carry a jam somewhere in them where 122 of
+    the derived chart's 156 committed spots name a sized raise instead, at 2.5, 7.5, 13.5, 22.5 or
+    40.5. The derived chart does now hold a jam of its own, at the other 34 - which is why this
+    reads as "not the same menu" rather than the "no jam at all" it used to claim.
     """
     if shared_decisions <= 0:
         raise DerivedChartReportError(
@@ -370,9 +372,9 @@ def validate_disagreement(
         )
     if disagreements == 0:
         raise DerivedChartReportError(
-            f"the two charts agree on all {shared_decisions} shared decisions; the retired chart"
-            " prices every one of its sizing entries at a jam the derived chart cannot offer, so"
-            " a zero here is a comparison handed the same chart twice rather than a measurement"
+            f"the two charts agree on all {shared_decisions} shared decisions; every retired spot"
+            " entry carries a jam where most derived spots name a sized raise, so a zero here is"
+            " a comparison handed the same chart twice rather than a measurement"
         )
     if disagreements > shared_decisions:
         raise DerivedChartReportError(
@@ -398,6 +400,32 @@ def cell_weights(artifact: PreflopArtifact) -> dict[str, dict[str, dict[str, flo
     }
 
 
+CELL_PCT_DECIMALS = 6
+"""Where a cell frequency in points is rounded before any relation compares it.
+
+**Not a tolerance, and it does not loosen one.** Every honest value here is a whole number of
+basis points, so in points it is a multiple of 0.01 and six decimal places is far finer than the
+data - the rounding can only remove representation noise, never a real difference.
+
+It exists because that noise was reaching a verdict. `play_grid` reads the chart, whose weights
+are stored to four decimal places, and `100 * (1 - 0.9916)` is `0.8399999999999963` rather than
+`0.84`; `test_chart_cutover_evidence.py` walks the export's basis points instead and gets
+`0.8400000000000034`. At `t6/d100/HJ/HJ:raise@2.5,BTN:call,BB:raise@13.5` the pair `99` and `88`
+sit at 0.84 and 1.84, a gap of **exactly** the one-point tolerance, which a strict `>` must not
+flag. Off the export the subtraction lands on 1.0 and it is not flagged; off the chart it lands
+on 1.0000000000000009 and it is. That one cell is the whole of why this report published 150 pair
+inversions where the sibling walk measured 149, and 149 is the right number.
+
+Rounding both sides to a shared precision makes the two walks agree **by construction** rather
+than by luck, which is the only sense in which they are two checks. MAINT-34's decision 6.
+"""
+
+
+def _in_points(value: float) -> float:
+    """A cell frequency in points, with representation noise removed. See `CELL_PCT_DECIMALS`."""
+    return round(100.0 * value, CELL_PCT_DECIMALS)
+
+
 def play_grid(artifact: PreflopArtifact) -> dict[str, dict[str, float]]:
     """How often each committed cell puts money in, in points.
 
@@ -407,7 +435,7 @@ def play_grid(artifact: PreflopArtifact) -> dict[str, dict[str, float]]:
     """
     return {
         spot_id: {
-            name: 100.0 * (1.0 - actions.get("fold", 0.0)) for name, actions in classes.items()
+            name: _in_points(1.0 - actions.get("fold", 0.0)) for name, actions in classes.items()
         }
         for spot_id, classes in cell_weights(artifact).items()
     }
@@ -422,7 +450,7 @@ def raise_weight_grid(artifact: PreflopArtifact) -> dict[str, dict[str, float]]:
     split differs.
     """
     return {
-        spot_id: {name: 100.0 * actions.get("raise", 0.0) for name, actions in classes.items()}
+        spot_id: {name: _in_points(actions.get("raise", 0.0)) for name, actions in classes.items()}
         for spot_id, classes in cell_weights(artifact).items()
     }
 
@@ -636,7 +664,7 @@ def four_bet_no_blocker_mass(
 
     The caller supplies the weighting, and the two callers below want different ones. A per-spot
     column beside the reference is weighted by combinations alone, the reference publishing no
-    reach; the figure over all 219 is weighted by combinations times arriving reach, which is the
+    reach; the figure over all 135 is weighted by combinations times arriving reach, which is the
     weighting every other frequency in this report uses.
     """
     total = bluffs = 0.0
@@ -687,7 +715,7 @@ def spot_menus(artifact: PreflopArtifact, *, positive: bool = False) -> dict[str
     which is the reading a schema rule about the shape of a spot is stated over. With `positive`
     it is only the actions some class actually takes, which is the reading `tests/**` publishes as
     the menu shape. The two coincided until the arriving classes came apart from the menu and they
-    now differ at 81 of the 249, so anything saying "offers hero a raise" has to say which it
+    now differ at 18 of the 156, so anything saying "offers hero a raise" has to say which it
     means: a criterion labelled under one reading and measured under the other is how a real
     measurement comes to be reported as empty.
     """
@@ -966,6 +994,43 @@ class Walk:
     squeeze_folds: dict[str, float]
     arrivals: dict[str, float]
     jam: tuple[str, str, float]
+    menus: dict[str, tuple[tuple[str, float], ...]]
+    faced_price: dict[str, float]
+    stack: float
+    allin_threshold_bb: float
+
+
+AGGRESSIVE_KINDS = ("raise", "jam")
+
+
+def menu_prices(node: SolverNode) -> tuple[tuple[str, float], ...]:
+    """Every price hero may put in at a node, as (kind, to), read off the solve's own labels.
+
+    Counted here rather than read back off the sizing table for the reason the whole walk exists:
+    the table is what this report checks, and a ladder taken from it would agree with it whatever
+    the converter did. The two readings are published side by side in the census section.
+    """
+    return tuple(
+        sorted(
+            {
+                (action.kind, float(action.to))
+                for action in node.actions
+                if action.kind in AGGRESSIVE_KINDS
+            }
+        )
+    )
+
+
+def faced_price(by_path: Mapping[tuple[int, ...], SolverNode], node: SolverNode) -> float:
+    """The largest amount anybody has raised to on the line into a node."""
+    return max(
+        (
+            float(by_path[node.path[:depth]].actions[index].to)
+            for depth, index in enumerate(node.path)
+            if by_path[node.path[:depth]].actions[index].kind in AGGRESSIVE_KINDS
+        ),
+        default=0.0,
+    )
 
 
 def _menu_weights(node: SolverNode, kinds: tuple[str, ...]) -> dict[str, float]:
@@ -1028,6 +1093,8 @@ def walk_export() -> Walk:
     whole_call_cells: dict[str, int] = {}
     squeeze_folds: dict[str, float] = {}
     arrivals: dict[str, float] = {}
+    menus: dict[str, tuple[tuple[str, float], ...]] = {}
+    faced: dict[str, float] = {}
     committed_arrival = 0.0
     refused_exposure: list[tuple[str, float]] = []
     pure = mixed = cells = 0
@@ -1049,8 +1116,16 @@ def walk_export() -> Walk:
                 )
             if exclusion_code(by_path, node) == lookup.DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD:
                 refused_exposure.append((key, multiway_exposure_pct(by_path, node)))
-            elif raises_faced(by_path, node) > COMMITTED_RAISE_DEPTH and (
-                arrival[node.path] > jam_arrival
+            # The node must OFFER hero a jam. `_menu_weights` answers 0.0 for a class with
+            # reach at a node with no jam action at all, so without this clause the canary reads
+            # the most-arrived withheld node whatever its menu - and after the blind three-bet
+            # moved to 13.5 that node is a blind facing the other blind's clamped shove, where
+            # hero's menu is fold and call. It printed 0.00 under a sentence saying aces take the
+            # whole stack there, which is a dead check described as a live one.
+            elif (
+                raises_faced(by_path, node) > COMMITTED_RAISE_DEPTH
+                and arrival[node.path] > jam_arrival
+                and any(action.kind == "jam" for action in node.actions)
             ):
                 jammed = _menu_weights(node, ("jam",))
                 if "AA" in jammed:
@@ -1061,6 +1136,8 @@ def walk_export() -> Walk:
         node_path_by_spot[key] = node.path
         splits[key] = terminal_split_pct(by_path, node)
         arrivals[key] = arrival[node.path]
+        menus[key] = menu_prices(node)
+        faced[key] = faced_price(by_path, node)
         committed_arrival += arrival[node.path]
         if _hero_closes(node):
             closes.add(key)
@@ -1133,6 +1210,10 @@ def walk_export() -> Walk:
         squeeze_folds=squeeze_folds,
         arrivals=arrivals,
         jam=jam,
+        menus=menus,
+        faced_price=faced,
+        stack=float(export.config["stack"]),
+        allin_threshold_bb=float(export.config["allin_threshold"]) * float(export.config["stack"]),
     )
 
 
@@ -1479,19 +1560,130 @@ class Measured:
         raise DerivedChartReportError(f"no family is named {name!r}")
 
 
+_RAISE_WORDS = ("open", "three-bet", "four-bet")
+
+
+def raise_word(faced: int) -> str:
+    """What hero's own raise is called when this many raises are already in."""
+    return _RAISE_WORDS[faced] if faced < len(_RAISE_WORDS) else f"raise over {faced}"
+
+
+def price_text(kind: str, price: float) -> str:
+    """A price as the ladder should read it, so a shove is never mistaken for a sized raise."""
+    return f"{price:g} as a shove" if kind == "jam" else f"{price:g}"
+
+
+@dataclass(frozen=True)
+class Ladder:
+    """The committed set's prices, counted under both readings of "the price at a spot".
+
+    A row is one (raises faced, price, kind) triple. `on_the_menu` counts the spots whose own
+    menu names that price, read off the export's action labels. `class_priced` counts the spots
+    where the committed sizing table carries it, which happens only where some arriving hand
+    class actually takes the raise. The two answer different questions and come apart at exactly
+    the spots whose price map is empty, so both are published and neither stands for the other.
+    A ladder mixing a row from one reading with a row from the other still adds to the committed
+    total, which is why the two are counted together here rather than a spot at a time.
+    """
+
+    rows: tuple[tuple[int, float, str, int, int], ...]
+    empty: tuple[str, ...]
+    jam_only: tuple[str, ...]
+    jam_faced: tuple[float, ...]
+    jam_products: tuple[float, ...]
+    multipliers: dict[str, tuple[float, ...]]
+    stack: float
+    threshold: float
+
+    @property
+    def prices(self) -> tuple[float, ...]:
+        """Every distinct price on the ladder, under either reading."""
+        return tuple(sorted({price for _, price, _, _, _ in self.rows}))
+
+    @property
+    def on_the_menu(self) -> int:
+        return sum(row[3] for row in self.rows)
+
+    @property
+    def class_priced(self) -> int:
+        return sum(row[4] for row in self.rows)
+
+
+def four_bet_ladder(measured: Measured) -> tuple[tuple[int, float, str, int, int], ...]:
+    """The ladder rows hero four-bets at, which is every price at the deepest committed tier."""
+    return tuple(row for row in price_ladder(measured).rows if row[0] == COMMITTED_RAISE_DEPTH)
+
+
+def price_ladder(measured: Measured) -> Ladder:
+    """Count the ladder off the export and the committed sizing table, never off prose."""
+    menus = measured.walk.menus
+    faced = measured.walk.faced_price
+    priced = PreflopSizingTable.from_repo().raise_to_bb
+    tally: dict[tuple[int, float, str], list[int]] = {}
+    empty: list[str] = []
+    for key, menu in sorted(menus.items()):
+        entries = priced.get(key, {})
+        if not entries:
+            empty.append(key)
+        taken = {float(entry["to_bb"]) for prices in entries.values() for entry in prices}
+        for kind, price in menu:
+            row = tally.setdefault((raises_faced_in_key(key), price, kind), [0, 0])
+            row[0] += 1
+            row[1] += price in taken
+    multiples: dict[str, set[float]] = {}
+    for key, menu in menus.items():
+        if faced[key] > 0.0 and len(menu) == 1 and menu[0][0] == "raise":
+            multiples.setdefault(hero_seat(key), set()).add(round(menu[0][1] / faced[key], 6))
+    jam_only = tuple(
+        sorted(key for key, menu in menus.items() if menu and all(k == "jam" for k, _ in menu))
+    )
+    products = sorted(
+        {
+            faced[key] * multiple
+            for key in jam_only
+            for multiple in multiples.get(hero_seat(key), ())
+        }
+    )
+    if jam_only and not products:
+        raise DerivedChartReportError(
+            "every committed spot in a seat that is priced at a shove is priced at a shove, so"
+            " that seat's own multiplier is never observed sized and the clamp cannot be shown"
+            " arithmetically; the ladder refuses rather than naming a multiplier it did not see"
+        )
+    return Ladder(
+        rows=tuple(
+            (faced_count, price, kind, counts[0], counts[1])
+            for (faced_count, price, kind), counts in sorted(tally.items())
+        ),
+        empty=tuple(empty),
+        jam_only=jam_only,
+        jam_faced=tuple(sorted({faced[key] for key in jam_only})),
+        jam_products=tuple(products),
+        multipliers={seat: tuple(sorted(values)) for seat, values in sorted(multiples.items())},
+        stack=measured.walk.stack,
+        threshold=measured.walk.allin_threshold_bb,
+    )
+
+
 def census_section(measured: Measured) -> list[str]:
-    """Four buckets, a total checkable against a file this phase did not write, and the walk's own
-    keys against the artifact's."""
+    """One bucket per node, a total checkable against a file this phase did not write, and the
+    walk's own keys against the artifact's. The bucket count is printed from the census rather
+    than named in the heading, which is how the heading came to say four over six of them."""
     counts = measured.walk.census
     artifact_keys = {spot.spot_id for spot in measured.artifact.spots}
     squeezed = counts.excluded.get(lookup.DERIVATION_BIG_BLIND_SQUEEZE_SPOT, 0)
+    no_arrivals = counts.excluded.get(lookup.DERIVATION_NO_ARRIVING_HAND_CLASS, 0)
+    unmeasured = counts.excluded.get(lookup.DERIVATION_TERMINAL_SPLIT_DOES_NOT_CLOSE, 0)
+    reasons = sum(1 for count in counts.excluded.values() if count)
     histogram: dict[int, int] = {}
     for key in artifact_keys:
         faced = raises_faced_in_key(key)
         histogram[faced] = histogram.get(faced, 0) + 1
+    codes = lookup.DERIVATION_EXCLUSION_CODES + lookup.DERIVATION_INEXPRESSIBILITY_CODES
+    buckets = 1 + len(codes)
     lines = [
-        "Every action node in the committed export is in exactly one of four buckets, and the",
-        "four add up to the node count the export's own source card publishes. That total is the",
+        f"Every action node in the committed export is in exactly one of {buckets} buckets, and",
+        "they add up to the node count the export's own source card publishes. That total is the",
         "check worth making: a converter that quietly skipped a subtree balances its own books",
         "perfectly, and only a figure from outside catches it.",
         "",
@@ -1505,15 +1697,20 @@ def census_section(measured: Measured) -> list[str]:
         f"  total  {counts.total}",
         f"  coverage  {measured.walk.coverage_pct:.4f} percent",
         "",
-        "Three exclusion reasons rather than one, and a reader should not read past that. Each",
-        "names a different way back. The multiway family returns when GTOpen can price a pot with",
-        "three or more players in it - it values one as the product of hero's equity against each",
-        "opponent separately, which understates true three-way equity by about ten and a half",
-        f"points. The {squeezed} big-blind squeeze spots return when the flats are repaired."
-        " Everything",
-        "beyond the committed raise depth returns when a later phase takes up the four-bet. A",
-        "census folding any two of them together adds to the same total and is wrong only about",
-        "which fix brings which back, which is the one failure a total can never see.",
+        f"{reasons} exclusion reasons rather than one, and a reader should not read past that.",
+        "Each names a different way back. The multiway family returns when GTOpen can price a pot",
+        "with three or more players in it - it values one as the product of hero's equity against",
+        "each opponent separately, which understates true three-way equity by about ten and a",
+        f"half points. The {squeezed} big-blind squeeze spots return when the flats are repaired.",
+        "Everything beyond the committed raise depth returns when a later phase takes up the",
+        f"four-bet. The {no_arrivals} nodes with no arriving hand class return if a later solve",
+        "gives them reach; nobody is ever at them under this one, so they are not decisions the",
+        f"bot faces. And the {unmeasured} spots whose terminal split does not close return when",
+        "the source stops making zero-reach nodes: mass flowing into one vanishes from the split,",
+        "so the multiway filter would be admitting them on a measurement that never happened, and",
+        "a guard that cannot see its own input fails closed. A census folding any two of these",
+        "together adds to the same total and is wrong only about which fix brings which back,",
+        "which is the one failure a total can never see.",
         "",
         "The inexpressible bucket is empty, which is a measurement rather than an omission: all",
         f"{counts.total} nodes derive a spot key the vocabulary can write and no two collide.",
@@ -1538,18 +1735,78 @@ def census_section(measured: Measured) -> list[str]:
     ]
     for faced in sorted(histogram):
         lines.append(f"  raises faced  {faced}  {histogram[faced]}")
+    ladder = price_ladder(measured)
+    jam_seats: dict[str, int] = {}
+    for key in ladder.jam_only:
+        jam_seats[hero_seat(key)] = jam_seats.get(hero_seat(key), 0) + 1
     lines += [
         "",
-        "Every price on a committed key is one of the three the solve offers - 2.5 to open, 7.5",
-        "to three-bet, 22.5 to four-bet - and a shove is not among them. Hero's own jam lives only",
-        "at the four-bet-facing spots this phase withholds, which is why the canary further down",
-        "runs against the export rather than against the chart.",
+        f"Every committed key offers hero exactly one price, and across the {counts.committed}"
+        f" there are {len(ladder.prices)} of them",
+        "rather than the three this paragraph used to name. Hero's price is the price he",
+        "faces times his own seat's multiplier, clamped to hero's whole"
+        f" {ladder.stack:g} big blind stack when that",
+        f"product reaches the solve's all-in threshold of {ladder.threshold:g}. The multipliers,"
+        " read as the menu price over",
+        "the price faced at every spot offering one sized raise:",
+        "",
+        "  "
+        + "  ".join(
+            f"{seat} " + " ".join(f"{value:g}x" for value in values)
+            for seat, values in ladder.multipliers.items()
+        ),
+        "",
+        "Two questions can be asked of a spot and they do not have the same answer, so the ladder",
+        "is counted under both rather than one row being taken from each. `on hero's menu` is the",
+        "price his own menu names, read off the solve's action labels. `with a class priced` is",
+        "the price the committed sizing table carries, which exists only where some arriving hand",
+        "class actually takes the raise:",
+        "",
+    ]
+    for faced, price, kind, on_menu, class_priced in ladder.rows:
+        lines.append(
+            f"  {raise_word(faced):<10}  {price_text(kind, price):<15}"
+            f"  on hero's menu {on_menu:4}  with a class priced {class_priced:4}"
+        )
+    lines += [
+        f"  {'totals':<10}  {'':<15}"
+        f"  on hero's menu {ladder.on_the_menu:4}  with a class priced {ladder.class_priced:4}",
+        "",
+        f"The two columns come apart at {len(ladder.empty)} spots and at no others. Those are the"
+        " spots whose menu",
+        "names a raise that no arriving hand class ever takes: the menu prices them, and the",
+        "sizing table ships a key there with an empty price list under it. The three-criteria",
+        "section below counts the same spots the same way, and a ladder that absorbed them into",
+        "either column would contradict it.",
+        "",
+        f"So A SHOVE IS AMONG THEM. At {len(ladder.jam_only)} of the {counts.committed} committed"
+        " spots - "
+        + ", ".join(f"{count} in the {seat}" for seat, count in sorted(jam_seats.items()))
+        + ", every one of",
+        "them answering the other blind's "
+        + " or ".join(f"{price:g}" for price in ladder.jam_faced)
+        + " - the only raise on hero's menu is his whole stack,",
+        "because that price times his own seat's multiplier is "
+        + " or ".join(f"{product:g}" for product in ladder.jam_products)
+        + f" and the clamp takes it to {ladder.stack:g}.",
+        "That is the four-bet priced out of existence rather than an extra offer",
+        "switched on: the solve is still `add_allin: false`. Hero's own jam is therefore NOT",
+        "confined to the four-bet-facing spots this phase withholds, so the reason this paragraph",
+        "used to give for running the jam canary against the export rather than against the chart",
+        "no longer holds - the canary is still pointed at the export, and that is now a choice",
+        "nothing here justifies.",
+        "",
+        "Every count in this paragraph is counted at generation time off the export and the",
+        "committed sizing table. The ladder it replaced was typed in, and this task's re-solve",
+        "left it naming prices the chart under it no longer carried",
+        "(HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES).",
     ]
     return lines
 
 
 def exposure_section(measured: Measured) -> list[str]:
-    """The filter's margin is sixteen hundredths of a point, so it is published, not described."""
+    """The filter's margin is measured from the two extremes this section already prints, and is
+    never described in words: it belongs to one solve and moves with every re-solve."""
     splits = measured.walk.splits
     squeezed = measured.walk.census.excluded.get(lookup.DERIVATION_BIG_BLIND_SQUEEZE_SPOT, 0)
     folds = measured.walk.squeeze_folds
@@ -1571,9 +1828,12 @@ def exposure_section(measured: Measured) -> list[str]:
         f"  {measured.walk.widest_admitted[1]:.4f}",
         f"  narrowest refused  {measured.walk.narrowest_refused[0]}"
         f"  {measured.walk.narrowest_refused[1]:.4f}",
+        f"  margin  {measured.walk.narrowest_refused[1] - measured.walk.widest_admitted[1]:.4f}",
         "",
-        "Sixteen hundredths of a point separate the two, which is why every committed spot's own",
-        "figure is printed rather than summarised. The split is what makes a row readable:",
+        "The margin is subtracted from the two rows above rather than described in words. It",
+        "belongs to this solve, it moves with every re-solve, and it is not the argument for",
+        "where the line sits - which is why every committed spot's own figure is printed rather",
+        "than summarised. The split is what makes a row readable:",
         "exposure is the share of a spot's decision mass reaching a multiway flop terminal, and",
         "`heads-up` is all the rest - the pot folded out before a flop, or a flop with two players",
         "in it. The two are the halves of one mass and a row publishing exposure alone could be",
@@ -2319,6 +2579,9 @@ def expectations_section(measured: Measured) -> list[str]:
         for key in three_bet_family
         if (reference_key_for(key) or "").endswith("_3bet")
     )
+    four_bet_prices = " or ".join(
+        price_text(kind, price) for _, price, kind, _, _ in four_bet_ladder(measured)
+    )
     lines = [
         "GTO Wizard's own published frequencies for a raked NL25 six-max game, beside what this",
         "phase measured. They are the only numbers here this repo did not produce, which is what",
@@ -2488,8 +2751,12 @@ def expectations_section(measured: Measured) -> list[str]:
         "dearer of the two at every one of these spots - the reference answers a bigger three-bet",
         "with a raise that is proportionally smaller. A dearer four-bet is four-bet less often by",
         "construction, so part of this gap is a price difference rather than a strategy",
-        "difference, which is PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED showing up in the",
-        "output rather than a new finding. Separating the two halves needs a rake-free reference",
+        "difference. That is the oversizing PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED was",
+        "filed for showing up in the output rather than a new finding, and the entry is cited for",
+        "the oversizing only: it was written when a global multiplier put every four-bet at one",
+        f"price, and this chart four-bets at {four_bet_prices} - the price column above is"
+        " measured",
+        "per spot for that reason. Separating the two halves needs a rake-free reference",
         "at this solve's own prices, which this repo does not commit",
         "(NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE). It is also not evidence",
         "about the unfitted terminal, for the reason the bands section gives. What it is: the",
@@ -2775,6 +3042,11 @@ def ledger_section(measured: Measured, commit: str) -> list[str]:
     retired_keys = {spot.spot_id for spot in measured.retired.artifact.spots}
     derived_keys = {spot.spot_id for spot in measured.artifact.spots}
     carried = retired_keys & derived_keys
+    ladder = price_ladder(measured)
+    sized = sum(
+        1 for menu in measured.walk.menus.values() if any(kind == "raise" for kind, _ in menu)
+    )
+    jam_faced = " or ".join(f"{price:g}" for price in ladder.jam_faced)
     return [
         "What the cutover retired and what it committed, as a ledger that has to balance on both",
         "sides. The retired chart is deleted from the tree and is read out of git history at the",
@@ -2794,11 +3066,16 @@ def ledger_section(measured: Measured, commit: str) -> list[str]:
         "Both sides close. The retired chart's spots are the ones carried over plus the ones the",
         "new rules refuse; the derived chart's are the ones carried over plus the ones gained.",
         "",
-        "Every one of the retired chart's sizing entries is priced at a shove - hero's whole stack",
-        "- which the ruled config cannot produce, the solve being `add_allin: false`. That is the",
-        "measured reason the two charts cannot agree on every shared decision, and it is why a",
-        "zero disagreement count further down would be a comparison handed the same chart twice",
-        "rather than a result.",
+        "Every one of the retired chart's spot entries carries a shove - hero's whole stack - in",
+        f"at least one hand class. The derived chart names a sized raise at {sized} of its"
+        f" {len(derived_keys)} spots",
+        f"and a shove at the other {len(ladder.jam_only)}, so the two menus differ almost",
+        "everywhere they overlap. That is the measured reason the two charts",
+        "cannot agree on every shared decision, and it is why a zero disagreement count further",
+        "down would be a comparison handed the same chart twice rather than a result. The sentence",
+        "that stood here said the ruled config CANNOT produce a shove at all because the solve is",
+        f"`add_allin: false`. It can: at those {len(ladder.jam_only)} spots a blind's four-bet",
+        f"over the other blind's {jam_faced} reaches the all-in threshold and is clamped to one.",
     ]
 
 
@@ -2830,9 +3107,10 @@ def vacuous_section(measured: Measured) -> list[str]:
         "  vacuous  the no-raise half of the sizing invariant: no committed spot offers hero zero",
         "  raises, so the half of the rule saying such a spot carries no key and makes the",
         "  strategy refuse has nothing to refuse here.",
-        "  vacuous  the jam-and-named-raise collapse rule: under `add_allin: false` no committed",
-        "  spot offers hero both a named raise and a shove, so the rule that adds their weights",
-        "  never fires at all.",
+        "  vacuous  the jam-and-named-raise collapse rule: every committed spot offers hero",
+        "  exactly one price, so no spot offers both a named raise and a shove and the rule that",
+        "  adds their weights never fires. Note that 34 committed spots DO offer a shove - it is",
+        "  the only thing on hero's menu there, which is why this stays vacuous.",
         "",
         "Wherever one of these is reported it carries this label, because a vacuous criterion is",
         "not a check that passed. It is never counted as one, and a packet counting one would be",
@@ -2872,29 +3150,53 @@ def vacuous_section(measured: Measured) -> list[str]:
 
 
 def jams_section(measured: Measured) -> list[str]:
-    """Hero's own jam, at the spots this phase withholds."""
+    """Hero's own jam, at the spots this phase withholds - and at the shove-only ones it does not.
+
+    Every count here is the census section's, taken from the same ladder rather than retyped: a
+    section naming a figure a sibling section computes is how the two come to disagree.
+    """
     key, hand_class_text, weight = measured.walk.jam
+    ladder = price_ladder(measured)
+    faced = " or ".join(f"{price:g}" for price in ladder.jam_faced)
+    product = " or ".join(f"{price:g}" for price in ladder.jam_products)
     return [
-        "Hero's own shove is not in this chart at all, and that is a property of what the phase",
-        "withheld rather than of the conversion. The solve is `add_allin: false`, so the only",
-        "place hero is offered his whole stack is at the four-bet-facing spots, and those are",
-        "exactly the family a later phase takes up.",
+        f"Hero's own shove IS in this chart, at {len(ladder.jam_only)} of the"
+        f" {len(measured.artifact.spots)} committed spots, and the",
+        "sentence that stood here saying it was not in the chart at all was written for a solve",
+        f"where the blinds three-bet smaller. Those {len(ladder.jam_only)} are a blind answering"
+        f" the other blind's {faced}:",
+        f"the four-bet its seat's multiplier would make is {product}, which is above the solve's",
+        f"own all-in threshold of {ladder.threshold:g}, and the clamp turns it into a shove."
+        " `add_allin: false` still",
+        "holds - nobody switched an extra offer on - so a jam on a committed menu is not a chart",
+        "contradicting its own config, which is what this section used to claim it would be.",
         "",
-        "So the jam-inversion canary that rejected the first cutover is retained against the",
-        "EXPORT rather than against the chart, and the weight it reads is printed here. The spot",
-        "named is one the chart does not answer:",
+        "The jam-inversion canary that rejected the first cutover is still read off the EXPORT",
+        "rather than off the chart, and the weight it reads is printed here. The spot it names is",
+        "the most-played withheld spot that OFFERS hero a shove, which is not the same as the",
+        "most-played withheld spot: after the three-bet moved, that one is a blind facing the",
+        "other blind's clamped shove, where hero may only fold or call. The canary read 0.00",
+        "there under the sentence below and was a dead check described as a live one. The spot it",
+        "names is one the chart does not answer:",
         "",
         f"  {key}  {hand_class_text} jams  {weight:.2f}",
         "",
-        "Read it as the check working: aces take the whole stack at the most-played spot of the",
-        "withheld family, which is what a solve that read its hand index the right way up must",
-        "say. A chart offering hero a jam at a committed spot would be a chart contradicting the",
-        "config it was solved under.",
+        "Read it as the check working: aces take the whole stack at the most-played withheld",
+        "spot that offers one, which is what a solve that read its hand index the right way up",
+        "must say. What has changed is the REASON for reading it there. It used to be that the",
+        f"chart held no jam to read; now the chart holds {len(ladder.jam_only)} of them and the"
+        " canary could be",
+        "pointed at one. Pointing it there is a behaviour change and is not made here, so this is",
+        "recorded as a check that is weaker than it needs to be rather than left looking",
+        "necessary.",
     ]
 
 
-def limitations_section() -> list[str]:
-    """What the source cannot price, in poker terms."""
+def limitations_section(measured: Measured) -> list[str]:
+    """What the source cannot price, in poker terms. Takes the measurement because one of the
+    entries names the four-bet ladder, and a ladder typed into an entry goes stale with the next
+    re-solve exactly as the census paragraph's did."""
+    four_bets = four_bet_ladder(measured)
     return [
         "What the source cannot price, stated in poker terms with the entry that carries each. A",
         "reader should take these as the shape of what the chart is, not as small print.",
@@ -2904,9 +3206,17 @@ def limitations_section() -> list[str]:
         "  using numbers fitted on raked games, so the rake it was trained on comes back in at",
         "  every flop it does not play out (CALIBRATED-REALIZATION-CARRIES-ITS-TRAINING-RAKE).",
         "",
-        "  The four-bet is solved a quarter oversized, at 22.5 big blinds where a standard sizing",
-        "  is nearer 18. Every committed three-bet-facing spot prices hero's own four-bet through",
-        "  it (PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED).",
+        "  The four-bet is solved oversized at every price it is solved at, and there are"
+        f" {len(four_bets)} of them",
+        "  rather than the one price this entry named when a global multiplier gave every seat the",
+        "  same four-bet:",
+        *(
+            f"    {price_text(kind, price)} at {on_menu} committed spots"
+            for _, price, kind, on_menu, _ in four_bets
+        ),
+        "  The largest is hero's whole stack, where the clamp took the sized raise away. A",
+        "  standard four-bet over a 2.5-and-7.5 ladder is nearer 18",
+        "  (PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED).",
         "",
         "  The published ranges answer a field that under-cold-calls. The export branches on every",
         "  cold call and prices it against a continuation structure that punishes it, so villains",
@@ -2970,8 +3280,10 @@ def corpus_section(measured: Measured) -> list[str]:
         "rendered agreement rate with no label is read as a grade, so this one carries the label.",
         "",
         "The refusal rate FALLS on both populations and the scored sample grows, which is the",
-        "cutover buying coverage: the retired chart answered 36 priced spots and this one answers",
-        "249. That is what the rows above read, and it is stated here rather than inferred from",
+        "cutover buying coverage: the retired chart answered"
+        f" {len(measured.retired.sizing.raise_to_bb)} priced spots and this",
+        f"one answers {len(measured.artifact.spots)}. That is what the rows above read, and it is",
+        "stated here rather than inferred from",
         "the ruling. The committed predicate still refuses everything from the four-bet on, every",
         "pot multiway more than one time in ten and the big blind's squeeze spots, and those",
         "refusals are the ruled cost - they are simply a smaller cost than the coverage hole they",
@@ -3202,7 +3514,7 @@ def recomputable_section(measured: Measured) -> list[str]:
 
 
 HEADINGS: tuple[str, ...] = (
-    "## The four-bucket node census",
+    "## The node census, bucket by bucket",
     "## Multiway exposure, per committed spot",
     "## One converted cell, traced",
     "## The arrival grain, and the spots that round to zero",
@@ -3240,7 +3552,7 @@ PREAMBLE = """The derived preflop chart, and what the cutover changed
 
 This is the phase's evidence for a reader who does not read code. The bot's preflop ranges have
 been replaced. It used to play from 86 spots taken out of a superseded reading of the solve, every
-one of its priced spots costed at a shove the config cannot produce; it now plays from 249 derived
+one of its priced spots costed at a shove the config cannot produce; it now plays from 156 derived
 under a stated rule from a GTOpen solve of the game it is actually trained for - six-handed, 100
 big blinds, rake-free. The old chart is deleted from the tree and is read out of git history here.
 
@@ -3411,7 +3723,7 @@ def main(argv: list[str] | None = None) -> int:
             ledger_section(measured, arguments.retired_commit),
             vacuous_section(measured),
             jams_section(measured),
-            limitations_section(),
+            limitations_section(measured),
             corpus_section(measured),
             prediction_section(measured),
             price_section(measured),

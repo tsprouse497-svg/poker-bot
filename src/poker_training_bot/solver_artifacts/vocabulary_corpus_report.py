@@ -42,7 +42,9 @@ def inventory_lines(result: ComparisonResult) -> list[str]:
 
     The total is the one figure here the chart cutover moves. The vocabulary widening added
     no coverage and the total held at 290; the cutover took it down, because the chart it
-    commits answers more of the sample rather than less.
+    commits answers more of the sample rather than less. It has since come back up, 139 to
+    194, where the 13.5bb blind three-bet re-solve refused 128 spots whose multiway-exposure
+    guard could not measure its own input. Still below 290, which is all this section claims.
 
     The direction is computed from the count rather than asserted beside it. An earlier
     version of this prose argued the total had risen while the table under it printed a total
@@ -53,10 +55,15 @@ def inventory_lines(result: ComparisonResult) -> list[str]:
     rather than a place they are asserted. The retired artifact is not in the tree: it was
     deleted by the cutover, so a gate command cannot read it, and reading it out of a
     revision would make a report depend on git history. So they are historical constants,
-    measured 2026-09-04 against
+    re-measured 2026-09-17 against
     `git show ada5205:data/artifacts/preflop/six_max_nl25_100bb.json`, where `ada5205` is
-    this branch's merge base with `main` - 36 spots, and 17 of its keys absent from the
-    committed 249, of which 16 have a same-shape counterpart once prices are stripped.
+    this branch's merge base with `main` - 36 spots, and 13 of its keys absent from the
+    committed 156, of which 12 have a same-shape counterpart once prices are stripped.
+
+    The historical label does not protect all three of those figures equally. The 36 is a
+    property of the retired chart alone and cannot move. The 13 and the 12 are measured
+    AGAINST whatever set is committed, so they move every time it does: they read 17 and 16
+    against the 249-spot chart, and any later re-solve has to re-measure them here by hand.
     """
     catch_all = [
         entry for entry in result.refusal_inventory if entry.spot_key == "(no expressible spot)"
@@ -111,24 +118,31 @@ def inventory_lines(result: ComparisonResult) -> list[str]:
         "historical constant rather than a measurement taken on this run, and it is labelled",
         "that way because the module it lives in forbids the two sharing a column. The retired",
         "artifact was deleted by the cutover, so nothing here can read it: the figures were",
-        "measured on 2026-09-04 against the copy carried at this branch's merge base with",
-        "`main`, and a later chart would leave them describing a comparison nobody re-ran.",
+        "re-measured on 2026-09-17 against the copy carried at this branch's merge base with",
+        "`main`, and a later chart leaves them describing a comparison nobody re-ran - which is",
+        "what happened to their previous values, taken against the 249-spot chart.",
         "",
-        "Seventeen of the retired chart's 36 keys are absent from the committed set, and that",
+        "Thirteen of the retired chart's 36 keys are absent from the committed set, and that",
         "is the figure a reader is most likely to be handed as what the cutover cost. It is",
-        "not what it cost. Sixteen of the seventeen are the same situation at a price this",
-        "solve moved: one is the small blind's open, which went from 3.5 to 2.5, and fifteen",
-        "are three-bets, which went from 8, 10.5, 11 or 13.5 to a single 7.5. Strip the prices",
-        "out and all sixteen have a counterpart in the committed set.",
+        "not what it cost. Twelve of the thirteen are the same situation at a price this solve",
+        "moved: one is the big blind against a small-blind open, which went from 3.5 to 2.5,",
+        "and eleven are three-bets, which came in at 8, 10.5 or 11 and are answered at 7.5",
+        "where a seat in position makes them and 13.5 where a blind does. Strip the prices out",
+        "and all twelve have a counterpart in the committed set.",
         "",
-        "The seventeenth is gone at every price, and it is the only situation that is: the big",
+        "It was seventeen and sixteen while the committed chart three-bet to 7.5 from every",
+        "seat. Re-solving the blinds to 13.5 made four of the retired chart's own three-bet",
+        "keys match EXACTLY rather than only by shape, which is the whole of why the gap",
+        "narrowed - the retired raked chart had the big blind three-betting to 13.5 already.",
+        "",
+        "The thirteenth is gone at every price, and it is the only situation that is: the big",
         "blind facing a small-blind limp. This solve was run with limping switched off, so the",
         "small blind's first-in range never limps and the tree holds no such node to price.",
         "That is a ruling's consequence rather than a gap, and the limped pots the sample does",
         "contain are refused for it.",
         "",
         "Keys given up and situations given up are different claims, and the difference here",
-        "is sixteen against one. Only the second kind is a cost, which is why this section",
+        "is twelve against one. Only the second kind is a cost, which is why this section",
         "counts both rather than reporting the larger number on its own.",
         "",
         "The deepest sequence the committed sample reached, now expressible:",

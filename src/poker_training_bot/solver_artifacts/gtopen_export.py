@@ -66,10 +66,12 @@ QUANTISATION_SCALE = 10_000
 """Decision 8: basis points, 0 to 10,000, each class's row renormalised to the scale."""
 
 SOLVE_TARGET_GAP_BB = 0.00016
-SOLVE_ITERATION_CAP = 2_000
-"""Phase 14 decision 14, superseding phase 10's decision 3 for this phase. The cap is
-still GTOpen's default; the target is not. GTOpen's 0.01 was beaten at iteration 300,
-stopping the solve early; 0.00016 is met at 1,900 of 2,000, so the cap binds instead.
+SOLVE_ITERATION_CAP = 5_000
+"""Phase 14 decision 14; MAINT-34 raised the cap and left the target alone, which are opposite
+moves - a wider target lowers the bar, more iterations clear the same bar with more work. 2,000
+was never reached at 7.5bb, where the target was met at 1,900; at 13.5bb it stopped the solve
+holding 0.00033. The target is met at 3,800; 5,000 rather than just above that because the gap
+is not monotone there. Reaching the cap means the solve did not converge.
 """
 
 EXPORT_SCHEMA_VERSION = 1
@@ -335,9 +337,9 @@ class SolverExport:
     ) -> SolverExport:
         """Validate a tree and hold it, or say every way it is broken at once.
 
-        The extractor builds nodes directly rather than through a payload dict, because a
-        38,828-node tree round-tripped through lists of boxed integers is a gigabyte of
-        pointers for data that fits in 59 MB.
+        The extractor builds nodes directly rather than through a payload dict, because phase
+        10's 38,828-node tree round-tripped through lists of boxed integers is a gigabyte of
+        pointers for data that fits in 59 MB. Both figures are that tree's, not this one's.
         """
         errors = config_errors(config)
         if quantisation_scale != QUANTISATION_SCALE:
@@ -440,7 +442,7 @@ def write_solver_export(path: Path, export: SolverExport) -> None:
     """Write the export as a deterministic gzip container.
 
     Header JSON carries the config and one descriptor per node; the weights follow as raw
-    little-endian `uint16`, which is what keeps a 38,828-node tree inside a byte limit a
+    little-endian `uint16`, which is what kept phase 10's 38,828-node tree inside a limit a
     reviewer can defend. `mtime=0` is what makes two writes of the same tree byte-identical,
     and a container that stamps the clock makes every checksum a moving target.
     """

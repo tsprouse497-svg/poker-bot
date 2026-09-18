@@ -301,6 +301,14 @@ not taken, because 0.01 bb is the tool's own default and the honest reference po
 Options: gap-0.01-cap-2000 | gap-0.002-cap-5000 | gap-0.01-and-also-tighter-run-reported
 Answer: [gap-0.01-cap-2000]
 
+**Amended 2026-09-16 by MAINT-34, decision 3.** The accuracy target is unchanged and the iteration
+cap is not. Re-solving at a 13.5bb blind three-bet, the solve stopped at the 2,000 cap having reached
+0.00033389 against a declared 0.00016, and reaches it at iteration 3,800; the cap is 5,000 rather
+than 3,900 because the gap is not monotone near the target. Raising a cap to clear a bar that has not
+moved is not the widening this phase forbids at its own criterion - that forbids relaxing the target
+after seeing the number. `RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET`.
+Answer: [gap-0.01-cap-5000]
+
 ## 4. The orderings check, restated as internal
 
 Reversibility: frozen-into-data

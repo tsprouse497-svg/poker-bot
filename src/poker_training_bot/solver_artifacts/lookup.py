@@ -13,8 +13,10 @@ There is exactly one abstraction in here, and it exists because a human ruled it
 Ruling 8 of `docs/V2_ROADMAP.md` says the solved tree carries one opening price and
 every other price is answered from it; Taylor extended it on 2026-08-20 to every
 raise in the sequence, because three-bets arrive at sizes the tree does not hold
-either and exact matching there would refuse 72 of the 79 three-bet decisions the
-committed chart can answer at all. So an observed price is normalised to the nearest
+either and exact matching there would refuse 167 of the 199 three-bet decisions the
+committed chart can answer at all - a figure over the committed corpus sample that
+moves with the chart and with the sample, re-measured by the spot vocabulary report
+rather than pinned here. So an observed price is normalised to the nearest
 price the loaded artifacts actually declare for that position after the same
 already-normalised prefix, and the answer carries the substitution so nothing
 downstream can mistake it for an exact one.
@@ -48,6 +50,7 @@ from poker_training_bot.solver_artifacts.schema import (
     render_size_bb,
 )
 from poker_training_bot.solver_artifacts.schema import spot_key as derive_spot_key
+from poker_training_bot.solver_artifacts.untrained_cells import is_untrained_cell
 
 MISS_NO_ARTIFACT_FOR_TABLE = "lookup:no-artifact-for-table-size"
 MISS_NO_ARTIFACT_FOR_DEPTH = "lookup:no-artifact-for-stack-depth"
@@ -55,6 +58,10 @@ MISS_POSITION_NOT_AT_TABLE = "lookup:position-not-at-table"
 MISS_UNREPRESENTABLE_SPOT = "lookup:unrepresentable-spot"
 MISS_SPOT_NOT_COVERED = "lookup:spot-not-covered"
 MISS_HAND_CLASS_NOT_COVERED = "lookup:hand-class-not-covered"
+MISS_UNTRAINED_CELL = "lookup:untrained-cell"
+"""Defined here rather than beside `is_untrained_cell` in `untrained_cells`, so the closed refusal
+vocabulary stays one list in one file - and so `untrained_cells` can be imported from here without
+a cycle. What decides the refusal moved; what names it did not."""
 
 MISS_CODES: tuple[str, ...] = (
     MISS_NO_ARTIFACT_FOR_TABLE,
@@ -63,6 +70,7 @@ MISS_CODES: tuple[str, ...] = (
     MISS_UNREPRESENTABLE_SPOT,
     MISS_SPOT_NOT_COVERED,
     MISS_HAND_CLASS_NOT_COVERED,
+    MISS_UNTRAINED_CELL,
 )
 
 LIBRARY_DUPLICATE_SPOT = "library:duplicate-spot"
@@ -74,22 +82,51 @@ LIBRARY_ERROR_CODES: tuple[str, ...] = (LIBRARY_DUPLICATE_SPOT, LIBRARY_NO_ARTIF
 # `lookup:` knows a query was refused at the table, and `derivation:` that a solved node never
 # shipped as a cell at all. One code per selection clause, so each bucket is exactly the set of
 # spots that come back when that one thing is fixed: a source that can price a multiway pot, a
-# big blind that defends correctly, a phase that takes up the four-bet family. Folding two of
-# them together balances at the same total and points a later phase at the wrong fix. The fourth
-# names a node no legal spot key can spell. Closed here rather than open: a code the converter
-# invents for a node it merely failed to handle would be indistinguishable from a property of
-# the grammar.
+# big blind that defends correctly, a phase that takes up the four-bet family, a solve whose
+# ranges reach the node at all. Folding two of them together balances at the same total and
+# points a later phase at the wrong fix. The last of the five names a node no legal spot key can
+# spell, and it is the one that is not an exclusion. Closed here rather than open: a code the
+# converter invents for a node it merely failed to handle would be indistinguishable from a
+# property of the grammar.
 DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH = "derivation:beyond-committed-raise-depth"
 DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD = "derivation:multiway-exposure-above-threshold"
 DERIVATION_BIG_BLIND_SQUEEZE_SPOT = "derivation:big-blind-squeeze-spot"
+DERIVATION_NO_ARRIVING_HAND_CLASS = "derivation:no-arriving-hand-class"
+DERIVATION_TERMINAL_SPLIT_DOES_NOT_CLOSE = "derivation:terminal-split-does-not-close"
 DERIVATION_NO_LEGAL_SPOT_KEY = "derivation:no-legal-spot-key"
 
+# MAINT-34 added the fourth exclusion code and it is NOT the retired `DERIVATION_BELOW_REACH_FLOOR`
+# under another name. A floor refuses a node hero reaches rarely, and this repo ruled on
+# 2026-08-27 that such a node still ships with its cells, because a committed cell that was never
+# computed looks exactly like one that was and a beginner cannot tell them apart. This code says
+# something else: not one of the 169 classes arrives here at all, so there is no range to publish
+# and no cell to blank. The two are distinguishable in the data - a zero-arrival spot still has
+# arriving reach, and one of these has none - which is why a floor could be retired while this
+# cannot be. It exists because a 13.5bb blind three-bet drives the button's cold call behind two
+# other cold calls to zero, and 160 such nodes cleared the other three clauses - hijack 64,
+# cutoff 48, button 48. The count was 32 on the first 13.5bb run, which stopped at its iteration
+# cap at twice the declared accuracy target; a figure taken off an unconverged export is not a
+# measurement, and this one will move again on the next re-solve.
+# `RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET`.
+
+# MAINT-34's decision 7 added the fifth, and it is a rule about the *measurement* rather than
+# about the node: clause two refuses a spot whose multiway exposure is too high, and this one
+# refuses a spot whose exposure could not be measured at all. The same re-solve is behind both -
+# `action_frequency` reads 0.0 at a zero-reach node, so decision mass flowing into the 9,079 such
+# nodes leaves the terminal split without being redistributed. 128 committed spots were admitted
+# on a split that did not close and 109 of them read an exposure of exactly 0.0 because every
+# branch had evaporated, not because hero was heads-up. When a guard cannot measure its input it
+# fails closed, which is how this bot handles every other gap.
+# `MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN`.
+
 # In the order the census files a refusal under, because the precedence is what makes the
-# buckets a partition rather than three overlapping descriptions of the same node.
+# buckets a partition rather than five overlapping descriptions of the same node.
 DERIVATION_EXCLUSION_CODES: tuple[str, ...] = (
     DERIVATION_BEYOND_COMMITTED_RAISE_DEPTH,
     DERIVATION_MULTIWAY_EXPOSURE_ABOVE_THRESHOLD,
     DERIVATION_BIG_BLIND_SQUEEZE_SPOT,
+    DERIVATION_NO_ARRIVING_HAND_CLASS,
+    DERIVATION_TERMINAL_SPLIT_DOES_NOT_CLOSE,
 )
 DERIVATION_INEXPRESSIBILITY_CODES: tuple[str, ...] = (DERIVATION_NO_LEGAL_SPOT_KEY,)
 
@@ -405,6 +442,17 @@ class PreflopChartLibrary:
                 MISS_HAND_CLASS_NOT_COVERED,
                 f"spot {spot_key_text!r} in artifact {artifact.artifact_id!r} declares no"
                 f" weights for {query.hand_class}",
+                spot_key=spot_key_text,
+                price_substitutions=substitutions,
+            )
+        if is_untrained_cell(weights, artifact.arrival_ppb_for(spot_key_text)):
+            return ChartMiss(
+                MISS_UNTRAINED_CELL,
+                f"spot {spot_key_text!r} in artifact {artifact.artifact_id!r} publishes the"
+                f" solver's untouched initialisation for {query.hand_class} rather than a"
+                " strategy: the solve never plays this line, so nothing was learned here."
+                " Answering it would hand a beginner an even split across the menu as though"
+                " it were solved",
                 spot_key=spot_key_text,
                 price_substitutions=substitutions,
             )

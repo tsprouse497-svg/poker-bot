@@ -14,8 +14,8 @@ over.
 
 **The rank arm is scored over every spot in its partition**, a comparison whose partner cell is
 absent being skipped, and what it skipped is published per partition on both sides.
-`reverse_hand_ranks` is total only on a full grid and 83 of the 249 carry one, which is why 19,774
-of the solved side's 32,868 possible comparisons and 20,279 of the permuted side's are skipped. A
+`reverse_hand_ranks` is total only on a full grid and 58 of the 156 carry one, which is why 10,123
+of the solved side's 20,592 possible comparisons and 10,522 of the permuted side's are skipped. A
 partition scoring fewer than five spots publishes rather than asserts; none does, the smallest
 scoring exactly five.
 
@@ -24,7 +24,7 @@ scoring exactly five.
 three-bet-facing spots the arm reads "149 against 69" and fails, is not a reading of anything: 149
 is the solved side of the skip rule and 69 the counterfactual side of a different rule. Both
 self-consistent readings pass, and the test below measures both rather than saying so. The
-tightest margin over the ten partitions is `hero=LJ` at 75 against 96. If an arm ever does go red
+tightest margin over the ten partitions is `hero=BTN` at 101 against 114. If an arm ever goes red
 the tolerance and which comparisons count are still frozen: that is a halt and a decision for
 Taylor, never a tolerance re-derived until it admits the artifact it judges.
 
@@ -192,8 +192,8 @@ def test_both_arms_prefer_the_solved_hand_index_on_every_partition(
 
     **If this goes red, nothing here is adjusted.** Not the tolerance and not which comparisons
     count. The contract calls a failure a halt and a decision for Taylor. Every partition is
-    asserted, none scoring below the five-spot floor, and the closest of the ten is `hero=LJ` at
-    75 against 96."""
+    asserted, none scoring below the five-spot floor, and the closest of the ten is `hero=BTN` at
+    101 against 114."""
     faced, _ = tree
     groups = partitioned(committed, faced)
     expected = {figures.name: figures for figures in PARTITIONS}
@@ -240,9 +240,9 @@ def test_the_rank_arm_is_scored_on_every_spot_and_says_what_it_skipped(
     different row, so the two skip different comparisons.
 
     **The withdrawn restriction is measured here rather than argued about.** The claim that the
-    unrestricted arm fails - "149 against 69" over the 219 three-bet-facing spots - is not a
-    reading of anything. Under the skip rule that partition reads 149 against 260 and passes;
-    restricted to the spots closed under reversal it reads 32 against 33 and also passes. The
+    unrestricted arm fails - "149 against 69" over the three-bet-facing spots - is not a reading
+    of anything. Under the skip rule that partition reads 160 against 222 and passes; restricted
+    to the 37 spots closed under reversal it reads 31 against 54 and also passes. The
     failing figure took the solved side of the first and the counterfactual side of the second.
     Both readings are computed below and both must pass, so a later hand that wants the
     restriction back has to make one of them fail first.
@@ -322,8 +322,8 @@ def test_neither_arm_passing_is_evidence_the_ranges_are_sound(
     nothing here can see, both arms comparing cells against each other rather than against any
     external level.
 
-    The over-folded chart differs from the committed one at 236 of the 249 spots and at none of
-    the other 13, because those 13 fold every hand that reaches them and half of zero is zero. No
+    The over-folded chart differs from the committed one at 152 of the 156 spots and at none of
+    the other 4, because those 4 fold every hand that reaches them and half of zero is zero. No
     over-folding of a chart can move a grid that already folds everything, so the fixture is right
     and the count is what has to say so.
 
@@ -341,7 +341,7 @@ def test_neither_arm_passing_is_evidence_the_ranges_are_sound(
     )
     assert arm_verdicts(mis_assigned) == (False, False)
     assert arm_verdicts(over_folding) == (False, False)
-    assert len(folds_everything) == SPOTS_FOLDING_EVERY_HAND == 13
+    assert len(folds_everything) == SPOTS_FOLDING_EVERY_HAND == 4
     assert sum(
         1 for before, after in zip(grids, over_folding, strict=True) if before != after
     ) == len(grids) - len(folds_everything), (

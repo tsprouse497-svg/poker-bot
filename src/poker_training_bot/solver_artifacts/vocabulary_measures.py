@@ -91,8 +91,8 @@ def strip_sizes(spot_key_text: str) -> str:
     beside its own v1 form. The re-derivation section that mapped every key this way was
     retired with the cutover: the chart it compared against is gone from the tree, and the
     phase 12 weights checksum belongs to a solve the repo no longer ships. The reason given
-    here before - "86 committed keys stripping to 51" - does not hold; measured 2026-09-04,
-    the 249 committed keys strip to 249 distinct forms, so stripping is still injective.
+    here before - "86 committed keys stripping to 51" - does not hold: measured 2026-09-17 and
+    recomputed by nothing, the committed 156 strip to 156 distinct forms, still injective.
     """
     return _SIZE_SUFFIX.sub("", spot_key_text)
 

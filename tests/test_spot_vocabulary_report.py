@@ -42,7 +42,7 @@ REPORT_EXAMPLE_KEY = "t6/d100/BB/BTN:raise@2.5"
 """The spot `vocabulary_report._key_examples` works through, and the one thing a chart cutover
 breaks outright: the module raises `VocabularyReportError` when the library stops declaring
 it, which exits `generate_spot_vocabulary_report` non-zero - a completed phase's gate command.
-The big blind facing a button open survives the cutover as one of the 249, and as one of the
+The big blind facing a button open survives the cutover as one of the 156, and as one of the
 five where hero still has fold, call and three-bet in front of him."""
 
 
@@ -143,7 +143,7 @@ def test_the_report_carries_the_price_substitution_census(report, comparison) ->
 
 def test_the_report_states_the_refusal_total_it_measured(report, comparison) -> None:
     """Phase 12 asserted 290 at its branch point. The cutover moves the total in both directions
-    - 249 answered nodes against 86 declared keys, and the four-bet family given up - and no
+    - 156 answered nodes against 86 declared keys, and the four-bet family given up - and no
     ruling fixes where it lands, so the direction is not asserted here and the report is what says
     which way it moved. What is asserted is that the report states the number it measured:
     `str(refused) in report` passed off the restatement table's carried-over `refusals` row, so

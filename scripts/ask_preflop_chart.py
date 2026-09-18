@@ -72,6 +72,7 @@ from poker_training_bot.solver_artifacts.lookup import (  # noqa: E402
     MISS_POSITION_NOT_AT_TABLE,
     MISS_SPOT_NOT_COVERED,
     MISS_UNREPRESENTABLE_SPOT,
+    MISS_UNTRAINED_CELL,
     ChartHit,
     ChartLibraryError,
     ChartMiss,
@@ -115,6 +116,10 @@ PLAIN_ENGLISH: dict[str, str] = {
     MISS_SPOT_NOT_COVERED: (
         "this is a real spot and no committed chart holds it; the cell has never been solved"
     ),
+    MISS_UNTRAINED_CELL: (
+        "the chart holds this spot, but the solve never played this line, so this hand's row is"
+        " the even split the solver starts from rather than anything it worked out"
+    ),
     MISS_HAND_CLASS_NOT_COVERED: (
         "the chart holds this spot but says nothing about this hand in it"
     ),
@@ -125,8 +130,8 @@ examples:
   ask what the button does with ace-king against a cutoff open
     --seat BTN --facing "CO raise 2.5" --hand AhKs
 
-  ask what the big blind does with queens facing a four-bet
-    --seat BB --facing "SB raise 2.5,BB raise 7.5,SB raise 22.5" --hand QQ
+  ask what the button does with ace-queen offsuit facing the big blind's three-bet
+    --seat BTN --facing "BTN raise 2.5,BB raise 13.5" --hand AQo
 
   ask what the lojack opens with when the pot is folded to it
     --seat LJ --hand 72o

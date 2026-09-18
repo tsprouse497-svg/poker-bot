@@ -45,6 +45,14 @@ from poker_training_bot.solver_artifacts.gtopen_export import (
 )
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES, hand_class_grid_index
 from scripts.repo_paths import REPO_ROOT
+from tests.broken_export_payloads import (
+    BROKEN_EXPORTS,
+    FOLD,
+    JAM,
+    OPEN,
+    POSITIONS,
+    minimal_payload,
+)
 
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
@@ -53,13 +61,6 @@ from run_verify import COMMANDS  # noqa: E402
 
 ARTIFACTS = REPO_ROOT / "data" / "artifacts"
 CAPTURED_PATH = ARTIFACTS / "preflop" / "exports" / "gtopen_node_payloads.captured.json"
-POSITIONS = ["LJ", "HJ", "CO", "BTN", "SB", "BB"]
-
-FOLD = {"label": "Fold", "kind": "fold", "to": 0.0, "terminal": True}
-OPEN = {"label": "Raise 2.5", "kind": "raise", "to": 2.5, "terminal": False}
-JAM = {"label": "All-in 100", "kind": "jam", "to": 100.0, "terminal": True}
-CALL = {"label": "Call 2.5", "kind": "call", "to": 2.5, "terminal": True}
-LIMP = {"label": "Limp 1.0", "kind": "limp", "to": 1.0, "terminal": False}
 
 RULED_CONFIG = {
     "positions": POSITIONS,
@@ -69,6 +70,7 @@ RULED_CONFIG = {
     "limp": False,
     "open_raises": [2.5],
     "raise_mults": [3.0],
+    "raise_mults_by_seat": [[], [], [], [], [5.4], [5.4]],
     "max_raises": 4,
     "add_allin": False,
     "allin_threshold": 0.67,
@@ -87,11 +89,16 @@ then refused by name, so nine tests in this file raised before any assertion ran
 migration the contract puts in the same task that changes the contents, and phases 11 and 12
 each paid a separate repair task for deferring it.
 
+**Migrated again on 2026-09-16 for MAINT-34**, which added `raise_mults_by_seat` so the two blind
+seats three-bet to 13.5 instead of 7.5. A field the copy does not name is a field `config_errors`
+refuses the fixture on, so the same nine tests error again - the second time this exact migration
+has been owed, which is why the guard below is asserted and not merely described.
+
 `test_the_local_config_is_the_ruled_one` below is what stops the copy drifting a second time."""
 
 
-RESOLVED_NODES = 33_969
-"""What decision 14's re-solve produced, replacing the 38,828 of the `add_allin: true` build.
+RESOLVED_NODES = 30_609
+"""What MAINT-34's re-solve produced, replacing the 33,969 of the 7.5bb blind three-bet build.
 The hand-built card fixtures below post it; the committed export is asserted against it."""
 
 
@@ -119,37 +126,6 @@ def view(captured: dict, name: str) -> dict:
     return captured["nodes"][name]["view"]
 
 
-def uniform_node(path: tuple[int, ...], actor: str, actions: list[dict], split: tuple[int, ...]):
-    """A node whose every hand class plays the same mix.
-
-    Real strategies vary by class. These fixtures exist to exercise the validator, so
-    they trade poker realism for fitting on one line.
-    """
-    return {
-        "path": list(path),
-        "actor_pos": actor,
-        "actions": actions,
-        "strategy_bp": [[weight] * 169 for weight in split],
-        "reach_bp": [QUANTISATION_SCALE] * 169,
-    }
-
-
-def minimal_payload(**overrides) -> dict:
-    """The smallest export the validator should accept: a root and one child."""
-    payload = {
-        "export_schema_version": 1,
-        "config": dict(RULED_CONFIG),
-        "positions": list(POSITIONS),
-        "quantisation_scale": QUANTISATION_SCALE,
-        "nodes": [
-            uniform_node((), "LJ", [FOLD, OPEN, JAM], (8000, 2000, 0)),
-            uniform_node((1,), "HJ", [FOLD, CALL, JAM], (7000, 3000, 0)),
-        ],
-    }
-    payload.update(overrides)
-    return payload
-
-
 # --------------------------------------------------------------------------- #
 # What the solver actually returns, read off a captured payload
 # --------------------------------------------------------------------------- #
@@ -164,24 +140,30 @@ def test_the_captured_payload_came_from_a_solve_at_the_ruled_config() -> None:
     payload = json.loads(CAPTURED_PATH.read_text(encoding="utf-8"))
     posted = payload["config_posted"]
 
-    # **The capture predates decision 14 and `add_allin` is the one field it moved.** Migrated
-    # on 2026-09-01: the capture is a *shape* fixture - what a node payload looks like on the
-    # wire - and the flag changes which actions a node offers, not the encoding, so the shape
-    # assertions below still describe the solver. Every other field must still match, so a
-    # capture taken at some other config fails here as it always did, and re-taking it at the
-    # ruled config is data work this test cannot do.
+    # **Two fields are exempted and both are exempted for the same reason.** `add_allin` moved
+    # under decision 14 and `raise_mults_by_seat` was added by MAINT-34. This capture is a
+    # *shape* fixture - what a node payload looks like on the wire - and neither field changes
+    # the encoding: the first changes which actions a node offers, the second what those actions
+    # cost. The shape assertions below still describe the solver. Every other field must still
+    # match, so a capture taken at some other config fails here as it always did, and re-taking
+    # it at the ruled config is data work this test cannot do.
+    exempt = {"add_allin", "raise_mults_by_seat"}
     assert posted["add_allin"] is True, "the capture has been re-taken; drop this exemption"
-    assert {k: v for k, v in posted.items() if k != "add_allin"} == {
-        k: v for k, v in RULED_CONFIG.items() if k != "add_allin"
+    assert "raise_mults_by_seat" not in posted, "the capture has been re-taken; drop this too"
+    assert {k: v for k, v in posted.items() if k not in exempt} == {
+        k: v for k, v in RULED_CONFIG.items() if k not in exempt
     }
     assert re.fullmatch(r"[0-9a-f]{40}", payload["solver"]["commit"])
     assert payload["solve_status"]["state"] == "done"
-    # Measured against the target this capture was actually given rather than against
-    # today's module constant, because phase 14's decision 2 lowers the constant for the
-    # permitted re-solve and a fixture captured before that still came from the ruled
-    # config. The claim is unchanged: the capture converged to the target it was set.
-    assert payload["solve_status"]["gap_total"] < payload["solve_request"]["target_gap"]
-    assert payload["solve_request"]["iterations"] == SOLVE_ITERATION_CAP
+    # **The two convergence assertions that stood here are deleted, ruled by Taylor for MAINT-34.**
+    # They read `gap_total < solve_request.target_gap` and `solve_request.iterations ==
+    # SOLVE_ITERATION_CAP`, and what they actually said was that a *superseded* solve reached a
+    # target of 0.01 - sixty times looser than the 0.00016 this repo declares - at a cap of 2,000
+    # that is no longer the cap. A test reading "the solve converged" off a solve we do not ship
+    # is worse than no test, because it sits exactly where the real check belongs and makes the
+    # gap look covered. The gap is real and filed:
+    # `A-SOLVE-THAT-MISSES-ITS-DECLARED-TARGET-SHIPS-WITH-NOTHING-OBJECTING`, from decision 3 -
+    # no gate command compares the committed card's achieved gap to the target that card declares.
 
 
 def test_a_strategy_row_is_uniform_where_the_hand_never_arrives(captured: dict) -> None:
@@ -347,65 +329,6 @@ def test_the_minimal_export_is_accepted() -> None:
     assert export.node_count == 2
     assert export.node(()).actor_pos == "LJ"
     assert export.node((1,)).actor_pos == "HJ"
-
-
-def _unbalanced(payload: dict) -> None:
-    payload["nodes"][0]["strategy_bp"][0][gtopen_class_index("AA")] = 7999
-
-
-def _missing_row(payload: dict) -> None:
-    payload["nodes"][0]["strategy_bp"].pop()
-
-
-def _negative_weight(payload: dict) -> None:
-    payload["nodes"][0]["strategy_bp"][0][0] = -1
-
-
-def _oversized_weight(payload: dict) -> None:
-    payload["nodes"][0]["strategy_bp"][0][0] = QUANTISATION_SCALE + 1
-
-
-def _no_child(payload: dict) -> None:
-    payload["nodes"] = payload["nodes"][:1]
-
-
-def _child_of_a_terminal(payload: dict) -> None:
-    payload["nodes"].append(uniform_node((0,), "HJ", [FOLD, CALL], (5000, 5000)))
-
-
-def _orphan(payload: dict) -> None:
-    payload["nodes"].append(uniform_node((1, 1, 1), "CO", [FOLD, CALL], (5000, 5000)))
-
-
-def _duplicate_path(payload: dict) -> None:
-    payload["nodes"].append(uniform_node((1,), "HJ", [FOLD, CALL, JAM], (1, 9999, 0)))
-
-
-def _unknown_actor(payload: dict) -> None:
-    payload["nodes"][0]["actor_pos"] = "UTG"
-
-
-def _carries_a_limp(payload: dict) -> None:
-    payload["nodes"][0]["actions"] = [FOLD, LIMP, OPEN]
-    payload["nodes"][0]["strategy_bp"] = [[8000] * 169, [1000] * 169, [1000] * 169]
-
-
-BROKEN_EXPORTS = [
-    # a class whose action weights no longer form a distribution
-    ("unbalanced-class", _unbalanced, "10000"),
-    # a strategy with fewer rows than the node has actions
-    ("missing-row", _missing_row, "row"),
-    ("negative-weight", _negative_weight, "weight"),
-    ("oversized-weight", _oversized_weight, "weight"),
-    # the traversal must close: a branch silently dropped is the failure that matters
-    ("non-terminal-with-no-child", _no_child, "child"),
-    ("child-hanging-off-a-terminal", _child_of_a_terminal, "terminal"),
-    ("node-whose-parent-is-absent", _orphan, "parent"),
-    ("two-nodes-at-one-path", _duplicate_path, "duplicate"),
-    ("actor-outside-the-vocabulary", _unknown_actor, "UTG"),
-    # ruling 1 read backwards: this is what fails if the wrong config produced the file
-    ("limp-in-a-no-limp-tree", _carries_a_limp, "limp"),
-]
 
 
 @pytest.mark.parametrize(
@@ -623,8 +546,11 @@ def test_the_committed_export_holds_the_whole_solved_tree(committed: SolverExpor
     assert committed.node_count == card["node_counts"]["exported"]
     assert committed.node_count == RESOLVED_NODES
     # A floor as well as the equality: the point of this test is that the whole tree shipped, and
-    # an export that lost a subtree would still agree with a card restamped beside it.
-    assert committed.node_count > 33_000
+    # an export that lost a subtree would still agree with a card restamped beside it. Measured
+    # at 30,609 after MAINT-34's 13.5bb blind three-bet, down from 33,969 at 7.5bb because a
+    # bigger three-bet folds more of the tree out before a four-bet can branch. The floor tracks
+    # the measurement at the same round-thousand step below it that 33,000 was below 33,969.
+    assert committed.node_count > 30_000
 
 
 def test_the_committed_export_reaches_a_four_bet(committed: SolverExport) -> None:
@@ -651,6 +577,28 @@ def test_the_committed_card_is_complete_and_matches_the_export(committed: Solver
     assert source_card_errors(card) == []
     assert card["export_sha256"] == export_checksum(committed)
     assert card["config_posted"] == RULED_CONFIG
+
+
+def test_the_committed_solve_reached_the_target_it_declared() -> None:
+    """The shipped solve is held to its own stated accuracy, which nothing else checked.
+
+    MAINT-34's decision 6 rightly deleted two convergence assertions reading off a captured
+    payload whose target is `0.01` and whose cap is long superseded, and left the hole empty:
+    nothing in `tests/`, `scripts/` or `src/` then compared the COMMITTED card's
+    `achieved_gap_bb` to its own `target_gap_bb`, though both are written side by side and the
+    card is loaded three lines above. A re-solve stopping at the iteration cap short of its
+    target would have shipped, with the card saying so in a field no test read
+    (`A-SOLVE-THAT-MISSES-ITS-DECLARED-TARGET-SHIPS-WITH-NOTHING-OBJECTING`).
+
+    Compared against the card's OWN posted target rather than `SOLVE_TARGET_GAP_BB`, because a
+    card records the run that produced it and a later ruling moving the constant must not
+    silently re-grade a solve already on disk. That the two agree today is a separate line.
+    """
+    card = load_source_card(COMMITTED_SOURCE_CARD_PATH)
+    solve = card["solve"]
+
+    assert solve["achieved_gap_bb"] < solve["target_gap_bb"]
+    assert solve["target_gap_bb"] == SOLVE_TARGET_GAP_BB
 
 
 def test_the_committed_export_sits_under_the_limit_with_stated_headroom() -> None:

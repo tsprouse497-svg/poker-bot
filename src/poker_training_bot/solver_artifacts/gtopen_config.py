@@ -12,6 +12,29 @@ neither of them owns the ruling.
 verifies the committed export by loading the saved solve rather than by rebuilding from the
 form.
 
+**MAINT-34, 2026-09-16, adds `raise_mults_by_seat` and it is not a simplification of
+`raise_mults`.** `raise_mults` is the re-raise TO-amount as a multiple of the current bet and
+it applies at *every* re-raise level, so a global `[5.4]` would put the four-bet at
+13.5 x 5.4 = 72.9, and `mults_of` at `crates/solver/src/preflop/mod.rs:97-102` feeds a clamp at
+`:2219` that turns any raise at or above `allin_threshold * stack` - 67bb here - into a jam. The
+sized four-bet would cease to exist and every three-bet-facing committed spot would become
+fold/call/shove. The per-seat form gives the two blind seats 5.4 and leaves the other four on the
+global 3.0, so the ladder is 2.5 / 13.5 / 40.5 / jam: a realistic blind three-bet with the
+four-bet still a sized raise. An empty inner list means "use the global menu", which is the
+solver's own convention. Seat order is the `positions` order, so index 4 is the small blind and
+index 5 the big blind. `RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET`.
+
+It is a `RULED_CONFIG` key rather than a field the extractor posts on the side, and that is
+load-bearing: `config_errors` iterates `RULED_CONFIG.items()`, so a posted field this dict does
+not name is invisible to the card check, the frozen config guards and the gate, and the export's
+own origin would stop being checkable at exactly the field this task changed.
+
+Copy this dict deeply if you intend to change a copy. `dict(RULED_CONFIG)` is shallow, so the
+lists inside it - `positions`, `posts`, `open_raises`, `raise_mults` and now the per-seat menus -
+are shared with every copy, and a caller that edits one in place silently rewrites the ruling for
+the whole process. Nothing does that today; the hazard predates this field and is recorded here
+because a per-seat menu is a nested list and the obvious way to build a variant is to reach in.
+
 **`realization` was moved to `"static"` on 2026-08-31 and moved back the same day. Read this
 before proposing it again.** Decision 19 ruled `static` because `calibrated` prices every flop
 terminal from 169 per-class numbers with no four-bet-pot cell, and applied at SPR 1.67 it folds
@@ -42,6 +65,7 @@ RULED_CONFIG: dict = {
     "limp": False,
     "open_raises": [2.5],
     "raise_mults": [3.0],
+    "raise_mults_by_seat": [[], [], [], [], [5.4], [5.4]],
     "max_raises": 4,
     "add_allin": False,
     "allin_threshold": 0.67,

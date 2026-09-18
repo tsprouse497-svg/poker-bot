@@ -13,7 +13,10 @@ report has to be able to re-derive them without shelling out to a script.
 
 Three files come out and one that used to is now excluded on purpose.
 
-- `six_max_100bb_rakefree.json`, the chart: 249 spots of the 33,969 solved action nodes.
+- `six_max_100bb_rakefree.json`, the chart: the spots `chart_derivation` selects out of the
+  export's solved action nodes. Neither count is written here. Both have already moved -
+  36 spots became 249 at the phase 14 cutover and then 156 over MAINT-34, whose re-solve also
+  took the tree from 33,969 nodes to 30,609 - and a literal here is a number nothing recomputes.
 - `sizings/six_max_100bb_rakefree.json`, every price a spot offers hero per hand class.
 - the export's own source card, whose `size` block is restamped. Deleting the retired chart
   and writing a smaller one both move the `data/artifacts` total, so the card's headroom is
@@ -57,7 +60,7 @@ SIZINGS = PREFLOP_DIR / "sizings" / "six_max_100bb_rakefree.json"
 
 BYTE_LIMIT = 20 * 1024 * 1024
 """Phase 10's ruled cap on `data/artifacts`, enforced by `scripts/check_file_sizes.py`.
-At 249 spots the tree is still the bulk of it and the cap does not bind, and it stays a
+The export is still the bulk of `data/artifacts` and the cap does not bind, and it stays a
 halt and a decision rather than a number to raise - which is what the card's headroom
 figure is for."""
 
@@ -101,10 +104,12 @@ def build_source_card(
 ) -> str:
     """The committed card with its `size` block recomputed, and nothing else touched.
 
-    Decision 2 ships the solve as it stands and this phase runs no re-solve, so every other
-    field on the card describes a solve that has not moved: one solve record, 300 iterations,
-    both checksums where phase 10 left them. Restamping any of those would be a re-solve
-    nobody ruled, which carries five separate obligations of its own.
+    Every other field on the card belongs to whoever ran the solver. This script never has a
+    solver in front of it, so restamping a solve record here would be inventing one:
+    `scripts/extract_gtopen_preflop.py` writes the iteration count, the achieved gap, the
+    wall clock, the checksums and the determinism result, and this script leaves all of them
+    alone. MAINT-34 did re-solve, which is why the figures this docstring used to quote are
+    gone rather than corrected - a solve record copied into prose goes stale at the next one.
     """
     card = json.loads(COMMITTED_SOURCE_CARD_PATH.read_text(encoding="utf-8"))
     size = card["size"]

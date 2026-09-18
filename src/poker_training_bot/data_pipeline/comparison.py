@@ -315,11 +315,20 @@ class ComparisonResult:
         but whose raise the strategy will not render gives no draw, and counting those
         as misses would blame the collapse for a sizing problem. Corrected 2026-09-05:
         this docstring used to give "the raise size is not committed" as the case, and
-        over the committed chart that is not what happens. Both instances in the sample
-        have a committed size - the ruled four-bet at 22.5 big blinds - which sits below
-        the table's own minimum raise at the price the hand was really played, so the
-        strategy refuses with `committed-size-below-minimum-raise`. That is a chart
-        fidelity finding rather than a missing entry.
+        over the 249-spot chart that is not what happened. Both instances in the sample
+        had a committed size - the four-bet, then a single 22.5 - sitting below the
+        table's own minimum raise at the price the hand was really played, so the
+        strategy refused with `committed-size-below-minimum-raise`.
+
+        **Re-measured 2026-09-17 under MAINT-34 and it no longer happens at all.** Over
+        the committed sample the refusal codes are exactly
+        `lookup:spot-not-covered` 184 and `lookup:hand-class-not-covered` 10, and
+        `committed-size-below-minimum-raise` fires zero times. Decision 7 stopped
+        committing the spots that produced both instances, so the sizing case this
+        paragraph was written to describe has no live example - which is why the case is
+        described here rather than pinned by a test. The four-bet is also no longer one
+        price: it is 22.5, 40.5 or hero's whole stack depending on his seat and what he
+        faces, so "the ruled four-bet at 22.5" names a ladder that no longer exists.
         """
         drawn = [
             row

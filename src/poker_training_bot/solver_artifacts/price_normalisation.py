@@ -3,9 +3,15 @@
 Ruling 8 of `docs/V2_ROADMAP.md` says the solved tree carries one opening price and every
 other price is answered from it. Taylor extended it on 2026-08-20 to every raise in the
 sequence, because a three-bet also arrives at sizes the tree does not hold, and exact
-matching there would refuse 72 of the 79 three-bet decisions the committed chart can
+matching there would refuse 167 of the 199 three-bet decisions the committed chart can
 answer at all - collapsing the raised-pot half of every later measurement the same way
 the ruling was written to stop the opened-pot half collapsing.
+
+That pair is measured over the committed corpus sample and moves with the chart and with
+the sample; `latest_spot_vocabulary_report.txt` re-derives it and nothing pins it. The
+figures above are from 2026-09-17 against the committed 156. The same walk reads 173 of 204
+against the 249-spot chart and 71 of 79 against the retired 86-spot one, and that last is
+the vintage the "72 of the 79" which stood here came from.
 
 It lives in its own module because the boundary matters more than the code. Normalising
 a price is not finding a nearest spot: a nearer position, a nearer depth, a nearer hand

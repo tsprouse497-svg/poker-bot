@@ -33,10 +33,13 @@ A cheaper price is a correct reason to continue with more hands, so part of ever
 The price abstraction did not go away with the coarse key, it became visible.
 A price the tree does not hold is still answered from a price it does, and the answer now records which price it was asked at, so a rate here is still computed partly across substituted prices - the difference is that the substitution is counted rather than invisible.
 
-**The chart answers 249 spots, and five of them are opening ranges.**
-The cutover's selection rule keeps a spot only where the source prices every terminal below it, and every seat that can open the pot survives it: the lojack, hijack, cutoff, button and small blind each have a first-in range, and behind them sit 25 spots facing a single open and 219 where a three-bet is already in.
+**The chart answers 156 spots, and five of them are opening ranges.**
+The cutover's selection rule keeps a spot only where the source prices every terminal below it, and every seat that can open the pot survives it: the lojack, hijack, cutoff, button and small blind each have a first-in range, and behind them sit 16 spots facing a single open and 135 where a three-bet is already in.
+Of those 135, 81 sit behind a blind three-betting to 13.5 big blinds and 54 behind an in-position three-bet at 7.5, which is the shape the 2026-09-16 re-solve left; that family held 219 spots before it, every one of them at 7.5.
 What the rule does not keep is the limped pot and the big blind's multiway defence, and the four-bet family is withheld on purpose for a later phase.
-So the agreement rates below are computed over almost all of the sample - slightly more of it than the rates published before the cutover, which came from a raked chart holding 36 keys - and what separates the two is the rake and the tree rather than how much of the sample each could reach.
+So the agreement rates below are computed over most of the sample - 93.6% of its decision points, the rest refused - and still over more of it than the rates published before the cutover, which came from a raked chart holding 36 keys, so what separates the two is the rake and the tree rather than how much of the sample each could reach.
+A bigger chart is not by itself more coverage, and that re-solve is the case in point in both directions: the spot count first rose from 249 to 284 at the new three-bet size and the refusal count rose with it, 139 to 141, and then decision 7 took the spot count down to 156 and the refusal count up again, to 194.
+So the count moved both ways over one task and coverage only ever fell, because what this sample asks and this chart cannot answer is mostly shapes the tree holds no branch for rather than prices it holds too few of - and, since decision 7, spots the chart now declines rather than answers from a guard that never ran.
 
 ## What the comparison measures
 
@@ -46,14 +49,33 @@ Phase 06's fallback never bets and never raises, so a postflop comparison would 
 **Real players are not an oracle.**
 A disagreement means this chart and this player did different things in this spot.
 These are strong professionals, but they are not solvers, and they were playing an opponent pool of one superhuman bot rather than the pool the chart was solved for.
-Agreement with Pluribus is the closer thing to a correctness signal, and there 475 scored decisions is a sample rather than a proof.
-The human denominator is 2,434.
+Agreement with Pluribus is the closer thing to a correctness signal, and there 471 scored decisions is a sample rather than a proof.
+The human denominator is 2,383.
 Both grew at the cutover, from 456 and 2,302, because the committed chart answers more of this sample than the retired one did.
+Both then shrank again at decision 7, from 475 and 2,432, because a refused decision leaves the denominator rather than joining the disagreements; they are still above what the retired chart reached.
+
+**One disagreement count moved on purpose, and it is still not evidence of better poker.**
+The blinds' three-bet was re-solved from 7.5 big blinds to 13.5 on 2026-09-16, because at the cheap size the big blind three-bet almost its entire pair ladder and flatted almost nothing, so its calling range was an artefact of the price rather than a strategy.
+Measured against this sample afterwards, the chart's disagreements with human flats fell from 150 to 143, and the big blind's share of them from 68 to 60.
+Refusals moved the other way and by more, 139 to 194 over 75 distinct spots rather than 61, because the same task stopped committing 128 spots whose multiway-exposure guard had nothing left to measure.
+The bot now refuses at those rather than answering from a check that never ran, which is a decision and not a regression, and it is the larger of the two movements.
+That is a measurement taken outside this repo - these are hands nobody here played - and it says the new calling range flats more of what these players flatted.
+It is also the paragraph above applied to a result we happen to like, so it gets read the same way.
+Moving toward a table of six strong professionals is not moving toward equilibrium, they were not playing this chart's opponents, and nothing here measured equity, a win rate or a solver gap.
+The honest statement is narrow: one specific artefact was removed and one specific count moved with it.
+Over the same re-solve the refusal count went the other way, from 139 to 141, and MAINT-34's decision 7 then took it to 194; the two belong in the same breath.
 
 **Refusals sit outside every agreement rate, and they are not spread evenly.**
-There are 139 refusals, outside every agreement denominator, and they land on **61 distinct spots the chart holds no cell for**.
-That is 4.6% of the sample, and it is what the solve does not contain rather than a defect: 52 of them are decisions in a limped pot, which no first-in range in this solve ever enters, 52 are the big blind facing an open with a cold-caller behind it, which the tree has no branch for, 25 are four-bet-or-deeper chains the phase withheld, and 10 are three-bet spots the chart holds but where hero's hand class is outside the solved cells.
-The refusal rate runs from 1.0% of the lojack's decision points up to 20.3% of the big blind's, so the seat the chart answers least is the one that acts after a limp and the one whose multiway defence is missing.
+There are 194 refusals, outside every agreement denominator, and they land on **75 distinct spots the chart holds no cell for**.
+That is 6.4% of the sample, and most of it is what the solve does not contain rather than a defect: 52 are decisions in a limped pot, which no first-in range in this solve ever enters, 52 are the big blind facing an open with a cold-caller behind it, which the tree has no branch for, 25 are four-bet-or-deeper chains the phase withheld, 10 are three-bet spots the chart holds but where hero's hand class is outside the solved cells, and 5 are a three-bet arriving over a cold-caller, which is again a branch the tree does not have.
+That last split used to be reported as ten hand-class misses and no more; the squeeze shape was always in the bucket and was always a missing cell rather than a missing class, and it is separated here because the two need different work.
+
+**The remaining 50 are new, they are one shape, and they are a cost this repo chose rather than a hole in the solve.**
+They are a seat other than the big blind - the small blind at 26, the button at 17, the cutoff at 7 - facing an open with one cold caller already in.
+The chart answered them until MAINT-34's decision 7, which refuses a spot whose multiway exposure could not be measured because its terminal split does not close; nine of the ten cold-called committed spots went with it.
+Decision 7 says in as many words that this would happen: zero arrival is measured under the solve's own play, a human takes lines the solver never does, so refusing these raises the refusal count without costing any coverage the solve had.
+The bot now declines there instead of answering from a guard that never checked, and 53 more decision points is what that is worth against this corpus.
+The refusal rate runs from 1.3% of the lojack's decision points up to 20.6% of the big blind's, so the seat the chart answers least is the one that acts after a limp and the one whose multiway defence is missing.
 That is the shape the raked chart had as well - it refused 26.6% in the big blind against 1.3% in the hijack - so a reader carrying the pre-cutover reading in mind is not being misled here.
 That subset is not a random sample of them.
 
