@@ -408,17 +408,17 @@ class TestTheImporterRefusesRatherThanRenders:
         is a legality failure `DecisionAuditRecord` would raise on at the table, in the middle of a
         hand, once. Refused at import it is one red on a file nobody has played yet.
 
-        The menu keeps its length: decision 6 keeps class weights parallel to the action list, so
-        a one-element menu would likely trip an arity check too, and a canary refused by a check
-        other than the one it disables survives the command it names.
+        Inflate a **raise**, never a bet. Decision 14 put the menu check on bets only, because a
+        flop raise answers a bet at 2.5x rather than as a fraction of the pot - so an inflated
+        bet is refused by the menu one line on and this canary survives the command it names.
         """
         importer = owed(artifact_module, "import_postflop_cell")
         error = owed(artifact_module, "PostflopArtifactError")
-        _, payload = sample_cell(SAMPLE_DIR)
-        # Each action has carried its own size since the 2026-09-16 schema repair replaced the
-        # parallel `bet_sizes_bb` array. Unchanged: the first sized entry, inflated past the stack.
-        sized = [entry for entry in payload["actions"] if "size_bb" in entry]
-        sized[0]["size_bb"] = payload["effective_stack_bb"] * 10
+        cells = [json.loads(path.read_text("utf-8")) for path in sorted(SAMPLE_DIR.glob("*.json"))]
+        raises = [(c, act) for c in cells for act in c["actions"] if act["action"] == "raise"]
+        assert raises, "no committed cell offers a raise, and only a raise reaches this check"
+        payload, inflated = raises[0]
+        inflated["size_bb"] = payload["effective_stack_bb"] * 10
 
         with pytest.raises(error):
             importer(self.written(tmp_path, payload))
