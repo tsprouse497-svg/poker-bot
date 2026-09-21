@@ -314,11 +314,11 @@ class PreflopChartStrategy:
         """Chips to raise to, or a refusal code explaining why there are none.
 
         The price is asked for per hand class, ruled 2026-08-26: a spot offers the class its
-        own prices with its own weights, and at `t6/d100/BB/BTN:raise@2.5` that is the whole
-        difference between a strategy and a caricature - aces three-bet to 7.5 there and never
-        shove, 44 shoves nearly nine times in ten, and one price per spot plays both of them
-        the same way. `draw_price_bb` picks among them with this decision's own seed, so the
-        price is drawn by the mechanism that drew the action rather than chosen by a rule.
+        own prices with its own weights. Every spot on the committed chart offers exactly one
+        price today, so what the per-class lookup buys is which classes are priced at all - at
+        `t6/d100/BB/BTN:raise@2.5`, 43 of 169 and every one of them at 13.5, a count the next
+        re-solve will move. `draw_price_bb` picks among the entries with this decision's own
+        seed, so the price is drawn by what drew the action, and an unpriced class refuses.
         """
         _, big_blind = query.blinds
         offered = self.sizing.sizes_bb(spot_key_text, hand_class_text)

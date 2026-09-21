@@ -40,10 +40,17 @@ The README's 1.4x and 2.2x are branch counts at the first chance node, not speed
 
 **The saving has a precondition, and it is all-or-nothing.** A suit permutation is admitted only if it fixes every board card and maps every combo in each range to an equal-weight combo in the same range. One suit-specific entry anywhere in either range - an `AhKh:0.25`, a per-combo import, a suit-specific node lock - collapses the group to the identity and the entire saving goes to zero on every board that is not rainbow. Every measurement below used class-uniform range strings, so the whole cost model assumes this holds. See `ISOMORPHISM-FACTORS-MISREAD-AS-SPEEDUPS` in `backlog.yml`.
 
-One config trap, because this document records the preflop body above with `"allin_threshold": 0.67`.
+One config trap, because this document records a preflop body below carrying `"allin_threshold": 0.67`.
 The postflop `/api/spot` route reads that field as a **percent of pot**, not the preflop fraction. Posting 0.67 there asks for a 0.67% threshold, which replaces every configured bet with a jam. The measurements below post 85.0.
 
-## Config surface, as accepted
+## Config surface, as accepted by the 2026-08-13 probe
+
+**This block is the probe body, and it has never been the config this repo solves under.**
+It is kept because it is what was actually posted and because the node counts under it are its node counts, and it is labelled because a reader has already taken it for the ruling.
+Three fields were settled the other way: `add_allin` is `true` here and ruled `false`, and `rake_pct` and `rake_cap` are 5.0 and 3.0 here where every committed solve is rake-free at 0.0 and 0.0.
+Two more do not appear here at all, because they did not exist yet: `realization`, and the per-seat re-raise menu `raise_mults_by_seat`.
+The ruling lives in `RULED_CONFIG` in `src/poker_training_bot/solver_artifacts/gtopen_config.py`, and what a given export was actually solved under is on that export's own source card under `config_posted`.
+Read one of those two before copying anything out of the block below.
 
 This exact body was posted to `/api/preflop/spot` and built successfully.
 Position names `LJ` and `HJ` are taken as given, so no vocabulary translation is needed.
@@ -66,7 +73,7 @@ Position names `LJ` and `HJ` are taken as given, so no vocabulary translation is
 }
 ```
 
-It returned `{"nodes": 83123, "action_nodes": 38828, "arena_mb": 112.4}`.
+It returned `{"nodes": 83123, "action_nodes": 38828, "arena_mb": 112.4}`, which is that probe's tree and not the committed one.
 
 Rake and opening size are parameters rather than properties of a fixed solution: `rake_pct` and `rake_cap` set the rake basis, `open_raises` sets the first-raise amounts, and `max_raises` decides how deep the raise tree goes, with the open counting as the first.
 
@@ -79,7 +86,13 @@ Four calls, all exercised end to end. Drivable from Python; no Rust needed to ex
 3. `GET /api/preflop/status` until `state` leaves `"running"`. Carries `iteration`.
 4. `POST /api/preflop/node` with `{"path": [...]}`, empty for the root. Returns the node view below; walk the tree by extending `path`.
 
-Preflop solve time and determinism were open questions here until phase 10 settled them, and both are recorded on the committed source card `data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json` rather than restated in this file: 300 iterations in 54.2 seconds to a 0.0062 bb gap against a 0.01 bb target, and byte-identical output when the ruled config was solved and walked a second time in a fresh process against a restarted server.
+Preflop solve time and determinism were open questions here until phase 10 settled them, and both are recorded on the committed source card `data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json` rather than restated in this file.
+Read `solve` on that card for the iteration count, the wall clock, the accuracy reached and the target it was measured against, and `determinism` for the second solve and walk in a fresh process against a restarted server.
+
+**That sentence promised not to restate the card and then restated it**, carrying the phase 10 probe's 300 iterations, 54.2 seconds, 0.0062 bb gap and 0.01 bb target from 2026-08-13 until 2026-09-16.
+The card has been re-cut twice since that probe and all four figures were wrong from the first re-cut onward; the card stayed right the whole time and only the copy rotted.
+So the copy is deleted rather than refreshed, because refreshing it rebuilds the thing that failed.
+A document that says it will not hold a figure and then holds one is worse than either choice made honestly: the promise is what stops a reader checking, and the copy is what they read.
 
 ## The payload to convert
 

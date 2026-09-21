@@ -282,8 +282,8 @@ def preflop_query(
     setting `open_to_bb` to `depth_bb` makes it an open-shove.
 
     Used for the street-routing tests, which hold whatever the chart would have said.
-    Neither file asserts this spot is committed: the ruled census names 5 first-in, 25
-    facing an open and 219 facing a three-bet without saying which facing-an-open keys the
+    Neither file asserts this spot is committed: the ruled census names 5 first-in, 16
+    facing an open and 135 facing a three-bet without saying which facing-an-open keys the
     exposure clause keeps, so every chart claim here is made at `first_in_preflop_query`.
     """
     hero = preflop_seat_of("BB")
@@ -354,8 +354,8 @@ def beyond_raise_depth_query(**overrides: Any) -> StrategyQuery:
 
     Everyone folds to the button, which opens to 2.5; hero three-bets to 7.5 and the
     button four-bets to 22.5. That is three raises already in and the rule keeps at most
-    two, so the key is outside the committed set - the ruled census is 5 first-in plus 25
-    facing an open plus 219 facing a three-bet, with no facing-a-four-bet family anywhere.
+    two, so the key is outside the committed set - the ruled census is 5 first-in plus 16
+    facing an open plus 135 facing a three-bet, with no facing-a-four-bet family anywhere.
     Its exclusion code is `beyond-committed-raise-depth`. Chosen over a limped or a squeeze
     spot because a raise count can be argued from the contract without reading the export.
     """

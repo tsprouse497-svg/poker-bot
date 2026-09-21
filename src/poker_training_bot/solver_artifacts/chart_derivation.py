@@ -1,11 +1,11 @@
 """What a committed node becomes, and the census that accounts for the ones that are not.
 
-The export holds 33,969 action nodes and the chart holds 249 of them. Which 249 is
+The export holds 30,609 action nodes and the chart holds 156 of them. Which 156 is
 `chart_selection.py`'s question, and every name it answers with is re-exported here, so a
 caller reads one module and the split between the two stays a line-cap detail. This module
 owns the other half: the spot key a node derives, the cells and prices it publishes, the
 merge that turns hero's cold call into a raise, the arrival and reach it carries, and the
-four-bucket census over the whole export.
+census over the whole export - seven buckets since MAINT-34, not four.
 
 Selection lives as a predicate over the tree rather than as a list of keys somebody wrote
 down, because a list cannot be re-derived and a later phase that fixes the source would
@@ -27,11 +27,11 @@ from typing import Any
 
 from poker_training_bot.poker_core.positions import table_positions
 from poker_training_bot.solver_artifacts.chart_provenance import (
-    ARTIFACT_NOTES,
     EXPORT_REFERENCE,
     GENERATED_AT,
-    SIZING_NOTES,
     SOURCE_NAME,
+    artifact_notes,
+    sizing_notes,
 )
 from poker_training_bot.solver_artifacts.chart_selection import (
     COMMITTED_RAISE_DEPTH,
@@ -40,6 +40,7 @@ from poker_training_bot.solver_artifacts.chart_selection import (
     below_multiway_exposure_threshold,
     cold_call_index,
     exclusion_code,
+    has_an_arriving_hand_class,
     is_big_blind_squeeze_spot,
     is_committed_node,
     multiway_exposure_pct,
@@ -73,16 +74,17 @@ from poker_training_bot.solver_artifacts.schema import (
 # line-cap split, not a second module a caller has to know about, and a name that exists in
 # both places is the way the two would come to disagree.
 __all__ = [
-    "ARTIFACT_NOTES",
     "COMMITTED_RAISE_DEPTH",
     "MULTIWAY_EXPOSURE_THRESHOLD_PCT",
     "DerivedChart",
     "NodeCensus",
+    "artifact_notes",
     "below_multiway_exposure_threshold",
     "census",
     "cold_call_index",
     "derive_chart",
     "exclusion_code",
+    "has_an_arriving_hand_class",
     "is_big_blind_squeeze_spot",
     "is_committed_node",
     "merged_cells",
@@ -101,11 +103,10 @@ STACK_DEPTH_BB = 100
 ORDERED_CLASSES = tuple(sorted(HAND_CLASSES, key=hand_class_grid_index))
 
 PARTS_PER_BILLION = 1_000_000_000
-"""Arrival is stored in parts per billion, not basis points. Over the committed 249 only 2
-spots are never reached at all, while 44 round to zero even at this grain and far more sit
-below one basis point, so in basis points the played-but-rare lines would be indistinguishable
-from the two the solve never reaches - which is the one distinction the field exists to
-carry."""
+"""Arrival is stored in parts per billion, not basis points. Most committed spots sit under one
+basis point, so at that grain a line the solve plays rarely and one it never plays at all read
+alike, and telling those apart is the only thing this field is for. The counts this used to
+quote were measured over a committed set two re-solves ago; recount them off the export."""
 
 SIZING_SCHEMA_VERSION = 2
 
@@ -161,10 +162,10 @@ def merges_the_cold_call(by_path: dict[tuple[int, ...], SolverNode], node: Solve
 
     The bot never cold-calls: money in behind an opener with nothing already invested buys a
     multiway pot out of position. So where hero faces an open and has nothing in BEYOND THE BLINDS,
-    the solve's call is merged into the raise - merged and not deleted, because at 15 of these 20
-    spots, across 40 of the 165 moved cells, a hand's whole weight is on calling and deleting would
-    leave a hand with no answer at all. Both counts are over the 20 merging spots alone; the same
-    walk over all 249 committed spots gives 108 spots and 748 cells, a different set entirely.
+    the solve's call is merged into the raise - merged and not deleted, because at 2 of these 11
+    spots, across 4 of the 72 moved cells, a hand's whole weight is on calling and deleting would
+    leave it with no answer at all. That was 15 spots and 40 cells at 7.5bb, so re-measure before
+    leaning on it. The same walk over every committed spot gives 42 spots and 382 cells.
 
     Half of these spots ARE the small blind: its 0.5 is posted rather than chosen, so it is cold
     and it merges. The big blind is the one exemption, not for posting more but for closing the
@@ -225,7 +226,7 @@ def node_arrival_ppb(by_path: dict[tuple[int, ...], SolverNode], node: SolverNod
 
     Accumulated as a left-to-right float product and rounded once at the end. Carrying
     parts per billion as an integer and rounding after every factor instead disagrees at
-    31 of the committed 249, so it is a different answer rather than a better one, and the
+    15 of the committed 156, so it is a different answer rather than a better one, and the
     ruled reading is the one written here.
     """
     probability = 1.0
@@ -251,7 +252,7 @@ class NodeCensus:
     threshold is counted once, under the depth, that being the first thing that would have
     to change for it to ship. A reason with no nodes under it carries no entry, and the
     inexpressible bucket publishes empty over the committed export - a measurement rather
-    than an omission, all 33,969 nodes deriving a valid spot key and no two colliding.
+    than an omission, all 30,609 nodes deriving a valid spot key and no two colliding.
     """
 
     committed: int
@@ -478,7 +479,7 @@ def derive_chart(export: SolverExport) -> DerivedChart:
             weights_sha256=weights_checksum(weights),
             spot_count=len(spots),
             hand_class_count=len({name for _, cells in weights for name, _ in cells}),
-            notes=ARTIFACT_NOTES,
+            notes=artifact_notes(export, by_path, counted),
         ),
         arrival_ppb=tuple(arrival_ppb.items()),
     )
@@ -489,7 +490,7 @@ def derive_chart(export: SolverExport) -> DerivedChart:
             "kind": "solver-export",
             "reference": EXPORT_REFERENCE,
         },
-        "notes": SIZING_NOTES,
+        "notes": sizing_notes(export, by_path, prices),
         "raise_to_bb": prices,
     }
     return DerivedChart(

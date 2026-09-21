@@ -140,7 +140,7 @@ said rested on the wrong one.
     depth, true                 100bb
     depth, taken from the price 100bb, agreeing
     the table shape             flat at 100bb
-    the chart answered          raise to 750  preflop-chart:weighted-draw:raise[fold=0,call=0,raise=1]
+    the chart answered          raise to 1350  preflop-chart:weighted-draw:raise[fold=0,call=0,raise=1]
     The small blind bought in for 20bb, posted, and folded. Its chips stay in the pot
     and in the reconciliation, and it cannot change a chip of hero's decision, because
     effective stack is pairwise and against seats that can still act. This table is flat
@@ -380,7 +380,7 @@ under.
     minimum raise offered   400
     minimum raise predicted 400
     the old bound           admitted (pot 400 at or under its bound of 400)
-    the chart's answer      raise to 750  preflop-chart:weighted-draw:raise[fold=0,call=0,raise=1]
+    the chart's answer      raise to 1350  preflop-chart:weighted-draw:raise[fold=0,call=0,raise=1]
     The most ordinary spot the chart holds. A signal firing here would replace a bound
     that over-refused with a rule that over-refuses differently.
 
@@ -425,7 +425,7 @@ than omitted for one reason: a number here that moves is a defect, not a discove
 
   hands compared                     499
   preflop decision points            3048
-  refusals                           139
+  refusals                           194
 
   preflop-chart:stack-depth-not-a-whole-big-blind         0
   preflop-chart:table-is-not-one-flat-stack-depth         0
@@ -438,7 +438,7 @@ The refusals the corpus does produce are all about chart coverage rather than ta
 shape, and they are unchanged by this phase:
 
   preflop-chart:lookup:hand-class-not-covered            10
-  preflop-chart:lookup:spot-not-covered                 129
+  preflop-chart:lookup:spot-not-covered                 184
 
 One live corpus number is worth reading twice. 10 of 3048 decisions price hero at its
 whole stack, which is the population the capped-price ruling is about and the population
@@ -568,7 +568,7 @@ composed here, and only one of the two tables ever reaches one. The button all-i
 300 sat down with 300, which is three big blinds against hero's hundred, so that table
 is not one flat depth and it is refused before any key is built:
 
-    the recorded under-raise   raise to 2250  preflop-chart:weighted-draw:raise[fold=0,call=0,raise=1]
+    the recorded under-raise   raise to 4050  preflop-chart:weighted-draw:raise[fold=0,call=0,raise=1]
     the short all-in for 300   refused  preflop-chart:a-live-seat-is-shorter-than-hero  (seat 3, starting_chips 300, stack_depth_bb 3)
 
 So the merge lives in the key space and not in what this strategy does with these two
@@ -702,10 +702,10 @@ one signal left agrees with the table exactly:
 
     the table offers a minimum raise to      2200
     two blinds and those two raises predict  2200
-    the key the lookup asked about           t6/d100/CO/CO:raise@2.5,BB:raise@7.5
-    what it says it had to move to get there price_substitution_0 5->2.5, price_substitution_1 13.5->7.5
+    the key the lookup asked about           t6/d100/CO/CO:raise@2.5,BB:raise@13.5
+    what it says it had to move to get there price_substitution_0 5->2.5
     the weights it answered from             fold=0, call=0, raise=1
-    the chart's answer                       raise to 2250  preflop-chart:weighted-draw:raise[fold=0,call=0,raise=1]
+    the chart's answer                       raise to 4050  preflop-chart:weighted-draw:raise[fold=0,call=0,raise=1]
 
 Those weights are the range solved for a 2.5bb cutoff open three-bet to 13.5bb at 50/100
 with nothing forced in the pot, which is a different game from the one being played. The

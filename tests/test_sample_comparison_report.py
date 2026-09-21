@@ -102,7 +102,7 @@ def test_the_sample_was_played_at_a_price_the_chart_was_not_solved_for(compariso
     2.5 is answering a more expensive question than the one it was asked.
 
     **Whose price sensitivity the band gap measures.** The chart's is not in it. Its big-blind
-    flat is 19.63, 20.98, 22.44, 21.09 and 20.30 percent against the five openers - a 2.81-point
+    flat is 17.90, 21.09, 21.82, 24.41 and 34.27 percent against the five openers - a 16.37-point
     spread, which the neighbouring range test pins as a defect in its own right - and the lookup
     keys on the solved 2.5 whatever the human actually faced, so the chart's answer is the same
     at every band. A constant cannot produce a gap. What the ten points below therefore measure is
@@ -133,6 +133,16 @@ def test_the_sample_was_played_at_a_price_the_chart_was_not_solved_for(compariso
     changed. Naming the seat keeps the population the ten-point margin was measured over.
     The two arbitrary floors it carried - fifty cheap decisions and ten dear ones - are
     replaced by a partition: every scored blind-defence call falls in exactly one band.
+
+    **MAINT-34 left the ten-point floor alone and widened what clears it, which is evidence
+    the re-solve worked.** The big blind's calling range is exactly what a 13.5bb three-bet
+    moved, and this is the one place in the suite that scores it against human callers. Over
+    the same 124 banded decisions, cheap went 40.00 to 45.88 percent and dear went 58.82 to
+    82.35, so the gap widened from 18.82 points to 36.47 and the seat's overall agreement rose
+    from 57 of 125 to 65. Nearly all of the gain is in the band the chart was solved for -
+    a 2.5bb open is a decision over 2.50bb - while the cheap band, where the chart answers
+    off-price, barely moved. The floor is not tightened to 36: it is a floor on a sample of
+    17 dear decisions, and refitting it to this run is what freezing a measurement means.
     """
     solved = solved_open_bb()
     sizes = comparison.open_sizes_bb()
@@ -173,13 +183,13 @@ def test_price_banded_decisions_are_no_longer_blind_defence_alone(comparison) ->
     exactly ten held one raise - the big blind against each of the five openers, at 2.5 and
     at 100 - so every banded decision the chart scored was blind defence, and every other
     seat facing a single open still had players behind it, failed the subtree clause and
-    refused. The cutover commits 25 facing-an-open spots, 20 of them outside the big blind,
+    refused. The cutover commits 16 facing-an-open spots, 11 of them outside the big blind,
     so the banded scored population spans several seats and a reader who takes the cheap and
     dear rates for blind defence is reading them off the retired chart. That is why the test
     above names its seat.
 
     Two things are asserted rather than the old equality, because the ruled census counts
-    the 25 without listing them and this file will not guess which. The big blind is a
+    the 16 without listing them and this file will not guess which. The big blind is a
     strict subset of the seats scored, which fails if the merged spots did not arrive. And
     the lojack is absent, which is not a fact about the chart at all: the lojack acts first,
     so it faces one raise only in a limped pot reopened by a raise, and no committed spot

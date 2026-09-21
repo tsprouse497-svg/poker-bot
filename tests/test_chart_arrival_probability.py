@@ -15,11 +15,11 @@ classes; `tests/test_chart_cutover_evidence.py` the relations and both arms;
 `tests/test_derived_chart_report.py` what the report prints. A number this file asserts is a number
 no other file defines.
 
-**Re-cut at stage 4 on 2026-09-02 against the committed 249**, superseding a cut written against a
+**Re-cut at stage 4 on 2026-09-02 against the committed set**, superseding a cut written against a
 six-spot set. That cut recorded two of this field's criteria as unexercised: no committed line
 arrived at zero, and the rarest arrived at 1,280 basis points, so parts per billion bought nothing.
-**Both statements are now false** - over the 249, **44** spots round to zero in parts per billion
-and **2** arrive at exactly zero - which is why the contract says in as many words that the
+**Both statements are now false** - over the 156, **53** spots round to zero in parts per billion
+and **47** arrive at exactly zero - which is why the contract says in as many words that the
 zero-arrival case is not vacuous. So there is no vacuous criterion here and no `vacuous()` helper:
 the one convention this file drops, dropped because the data changed, not the convention.
 
@@ -82,53 +82,58 @@ is exactly one. It is a committed spot - one of the five first-in - which makes 
 case rather than a hypothetical: the refusal has to be *strictly* above one, and a validator
 written as "a probability below one" would delete the commonest spot in the chart."""
 
-TRACED_PATH = (1, 2, 0, 0, 0, 0)
-TRACED_KEY = "t6/d100/LJ/LJ:raise@2.5,HJ:raise@7.5"
+TRACED_PATH = (1, 0, 2, 0, 0, 0)
+TRACED_KEY = "t6/d100/LJ/LJ:raise@2.5,CO:raise@7.5"
 TRACED_SEQUENCE = (
     PreflopAction("LJ", "raise", 2.5),
-    PreflopAction("HJ", "raise", 7.5),
+    PreflopAction("CO", "raise", 7.5),
 )
-"""The traced cell's spot: the lojack opens to 2.5, the hijack three-bets to 7.5, everybody folds,
+"""The traced cell's spot: the lojack opens to 2.5, the cutoff three-bets to 7.5, everybody folds,
 and the lojack is back in facing the three-bet heads-up. It cannot stop being committed - two
-raises are in and nothing deeper, only two players are live so no flop below it can be multiway at
-all, and hero is not the big blind. It is chosen because one node carries all four of this file's
+raises are in and nothing deeper, only two players are live so no flop below it can be multiway,
+and hero is not the big blind. It is chosen because one node carries all four of this file's
 subjects: hero has acted, so its reach is a real range rather than a full grid; the plain and
-combo-weighted readings of that range disagree by 737 basis points; nine of its cells sit below the
-retired reach floor; and rounding once and rounding at each step give different answers here."""
+combo-weighted readings of that range disagree by 720 basis points; six of its cells sit below the
+retired reach floor; and rounding once and rounding at each step give different answers here.
+**Moved for MAINT-34 from `LJ:raise@2.5,HJ:raise@7.5`**, one seat over, the 13.5bb re-solve having
+made the two accumulations agree at the old node. Same reach profile."""
 
-TRACED_ARRIVAL_PPB = 11_490_264
-TRACED_ARRIVAL_ROUNDED_AT_EACH_STEP = 11_490_262
+TRACED_ARRIVAL_PPB = 11_155_195
+TRACED_ARRIVAL_ROUNDED_AT_EACH_STEP = 11_155_194
 """The same six frequencies accumulated the two ways the contract distinguishes. Rounding once at
-the end gives 11,490,264; carrying parts per billion as an integer and rounding after every factor
-gives 11,490,262. Two in eleven million is nothing to a poker decision and everything to a check
+the end gives 11,155,195; carrying parts per billion as an integer and rounding after every factor
+gives 11,155,194. One in eleven million is nothing to a poker decision and everything to a check
 claiming to pin how the number is computed."""
 
-TRACED_REACH_SUM_BP = 441_201
-TRACED_CLASSES_AT_NON_ZERO_REACH = 55
+TRACED_REACH_SUM_BP = 435_563
+TRACED_CLASSES_AT_NON_ZERO_REACH = 50
 TRACED_PLAIN_MEAN_REACH_BP = TRACED_REACH_SUM_BP / HAND_CLASS_COUNT
-TRACED_COMBO_WEIGHTED_REACH_BP = 1_873.9683257918552
-"""2,610.66 against 1,873.97 basis points for the same arriving range. The plain mean is ruled; the
+TRACED_COMBO_WEIGHTED_REACH_BP = 1_856.892911010558
+"""2,577.30 against 1,856.89 basis points for the same arriving range. The plain mean is ruled; the
 combo-weighted one is what a reader who thinks in combinations computes from the same words, and it
-is wrong by 737 basis points here. The disagreement is asserted rather than assumed."""
+is wrong by 720 basis points here. The disagreement is asserted rather than assumed."""
 
 RETIRED_REACH_FLOOR_BP = 200
-TRACED_CELLS_BELOW_THE_RETIRED_FLOOR = 9
+TRACED_CELLS_BELOW_THE_RETIRED_FLOOR = 6
 TRACED_THINNEST_CELL_BP = 1
 """Decision 1's 2-percent reach floor is retired, and this is what retiring it is worth at one
-spot: nine of the traced spot's fifty-five answered cells arrive less than 2 percent of the time,
+spot: six of the traced spot's fifty answered cells arrive less than 2 percent of the time,
 the thinnest at a single basis point. A floor is therefore not a no-op that could be left in the
 code unnoticed - reinstating any floor at all would visibly empty cells the chart answers."""
 
-SPOTS_ROUNDING_TO_ZERO = 44
-SPOTS_TRUNCATING_TO_ZERO = 45
-SPOTS_BETWEEN_HALF_AND_ONE_PPB = 1
-SPOTS_AT_EXACTLY_ZERO = 2
-"""The grain, over the committed 249 (decision 53, and
-`A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT`). 44 under the repo's own rule,
-`round(p * 1e9) == 0`, which is strictly below half a part per billion; 45 if the same field were
-truncated instead, because one spot sits between 0.5 and 1.0 parts per billion. Only 2 arrive at
-exactly zero. The gap between 44 and 45 is one spot and the rounding rule is the whole of what
-decides it, so the rule is pinned here and not only its count."""
+SPOTS_ROUNDING_TO_ZERO = 53
+SPOTS_TRUNCATING_TO_ZERO = 53
+SPOTS_BETWEEN_HALF_AND_ONE_PPB = 0
+SPOTS_AT_EXACTLY_ZERO = 47
+"""The grain, over the committed 156 (decision 53, and
+`A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT`, whose title MAINT-34 has outgrown).
+**The movement that MAINT-34's decision 7 was ruled on, and what refusing 128 spots did to it.**
+At 7.5bb, 44 of 249 committed spots rounded to zero and 2 arrived at exactly zero. At 13.5bb it
+went to 181 of 284 and 175 - about two thirds of the chart answering lines the solve never plays.
+Clause five then refused the 128 whose exposure could not be measured, every one of them at zero
+arrival, and it stands at **53 of 156 rounding to zero and 47 at exactly zero**. The 98.7380
+coverage did not move at any point, which is the same fact read from the other side. No spot sits
+between half and one part per billion, so rounding and truncating agree at 53."""
 
 
 # --- The walks, written here rather than imported from the rule they check ---
@@ -260,7 +265,7 @@ def selection():
 
 @pytest.fixture(scope="module")
 def committed(selection, export: SolverExport) -> tuple[SolverNode, ...]:
-    """The 249 nodes the phase commits, taken from the file that owns the rule that picks them."""
+    """The 156 nodes the phase commits, taken from the file that owns the rule that picks them."""
     nodes = tuple(selection.selected(export))
     assert len(nodes) == selection.COMMITTED_NODES
     return nodes
@@ -378,13 +383,11 @@ def test_arrival_is_one_product_rounded_once_and_not_rounded_at_each_step(
 def test_the_grain_is_published_as_the_count_of_spots_that_round_to_zero(
     recorded_arrival: dict[str, int],
 ) -> None:
-    """The published grain, read off the artifact: 44 of the 249 record an arrival of zero.
+    """The published grain, read off the artifact: 53 of the 156 record an arrival of zero.
 
-    The contract asks for the count because arrival here runs from one down to about 1e-26, and a
-    reader given only the values cannot see how much of the chart is effectively never dealt. What
-    the artifact can show is the count and that nothing in the map is negative; which rounding rule
-    produced 44 rather than 45 is only visible before the field is written, and the sibling test
-    below measures it there.
+    The contract asks for the count because arrival runs from one down to about 1e-26, and a reader
+    given only the values cannot see how much of the chart is effectively never dealt - here, a
+    third of it. The rounding rule is visible only before the field is written; the sibling has it.
     """
     values = list(recorded_arrival.values())
 
@@ -397,17 +400,15 @@ def test_the_grain_is_published_as_the_count_of_spots_that_round_to_zero(
 def test_the_grain_counts_are_measured_from_the_export_under_both_rounding_rules(
     committed: tuple[SolverNode, ...], by_path: dict[tuple[int, ...], SolverNode]
 ) -> None:
-    """The rule that decides 44 from 45, measured where the distinction still exists.
+    """The two rounding rules, measured on the unrounded product rather than on the stored field.
 
     The artifact only ever stores the rounded value, so once the field is written the difference
-    between rounding and truncating is gone. Measured on the unrounded product: 44 committed spots
-    are strictly below half a part per billion, 45 are below one, and the single spot between them
-    is the whole of the difference. A test that pinned only the count would go green against a
-    converter that had quietly changed how it rounds.
+    between rounding and truncating is gone. On the 13.5bb export both give 181 and no committed
+    spot lies between half and one part per billion, so the rule is pinned without a witness that
+    separates the two - recorded as such rather than left reading as a live distinction.
 
-    Only 2 of the 249 arrive at exactly zero, which is the other half of why the grain is worth
-    printing: 42 spots that the field cannot tell from never-played are in fact played, just not in
-    any hand a student will ever be dealt.
+    47 of the 156 arrive at exactly zero, so only 6 of the 53 are spots the field cannot tell
+    from never-played that are in fact played. At 7.5bb that split was 2 and 42.
     """
     products = [arrival_probability(by_path, node.path) for node in committed]
 
@@ -429,7 +430,7 @@ def test_the_spots_the_solve_never_reaches_are_recorded_at_zero_and_still_answer
 ) -> None:
     """The zero case, which over this committed set is real and is not labelled vacuous.
 
-    Two of the 249 are lines the solve gives no weight to at all, and 44 are lines it gives so
+    47 of the 156 are lines the solve gives no weight to at all, and 53 are lines it gives so
     little weight to that the field cannot tell them from zero. The contract states in as many
     words that this case is not vacuous, and this is where that claim is measured rather than
     asserted in prose: a cut of this file that skipped here would be describing the retired
@@ -534,22 +535,22 @@ def test_one_committed_cell_traced_from_the_root_to_its_artifact_row(
 ) -> None:
     """The end-to-end trace: a named spot, its line, its six frequencies, and their product.
 
-    The lojack opens to 2.5, the hijack three-bets to 7.5, the cutoff, button, small blind and big
-    blind all fold, and the lojack is in for the second time facing 7.5 heads-up. Every step is
-    read off the export rather than remembered. Whose action each one is comes from the parent
-    node, which is the single most likely conversion defect and a silent one: read the actor off
-    the child instead and the lojack's open becomes the hijack's, keying a spot that never happened
-    while validating perfectly. Hero's own raise stays in the sequence, which is how the key says
-    it is the lojack who is back in. The arrival is those six numbers multiplied together, checked
-    as a product so a reviewer can follow the arithmetic. The cell is `AA`: it arrives at full
-    reach - the lojack opens it every time - and four-bets to 22.5 every time.
+    The lojack opens to 2.5, the hijack folds, the cutoff three-bets to 7.5, the button, small
+    blind and big blind all fold, and the lojack is in for the second time facing 7.5 heads-up.
+    Every step is read off the export rather than remembered. Whose action each one is comes from
+    the parent node, which is the single most likely conversion defect and a silent one: read the
+    actor off the child instead and the lojack's open becomes the cutoff's, keying a spot that
+    never happened while validating perfectly. Hero's own raise stays in the sequence, which is how
+    the key says it is the lojack who is back in. The arrival is those six numbers multiplied
+    together, checked as a product so a reviewer can follow the arithmetic. The cell is `AA`: it
+    arrives at full reach - the lojack opens it every time - and four-bets to 22.5 every time.
     """
     node = by_path[TRACED_PATH]
     frequencies = step_frequencies(by_path, TRACED_PATH)
 
     assert node.actor_pos == "LJ"
     assert node_action_sequence(by_path, node) == TRACED_SEQUENCE
-    assert [entry.position for entry in TRACED_SEQUENCE] == ["LJ", "HJ"]
+    assert [entry.position for entry in TRACED_SEQUENCE] == ["LJ", "CO"]
     assert key_of(by_path, node) == TRACED_KEY
     assert [action.kind for action in node.actions] == ["fold", "call", "raise"]
 

@@ -36,7 +36,21 @@ SCHEMA_VERSION = 1
 
 
 def test_files() -> list[Path]:
-    return sorted(path for path in TEST_DIR.glob("test_*.py") if path.is_file())
+    """Every Python file under `tests/`, not only the ones pytest collects.
+
+    The glob read `test_*.py` until 2026-09-17. That was the same thing for as long
+    as `tests/` held nothing else, and MAINT-34 ended it: four support modules were
+    extracted to get three files back under their line cap, and 571 lines of checking
+    logic - including the whole independent walk that `chart_selection.py` is compared
+    against - left the lock without anything noticing. A helper an implementer can edit
+    freely is a helper an implementer can make agree with the code it exists to check,
+    and the per-file hash is the only thing that catches that. The test-function floor
+    does not: none of those lines is a `test_` function, so the count never moved.
+
+    A support module scores zero test functions and so contributes nothing to the floor,
+    which is correct - it is frozen for its content, not counted as coverage.
+    """
+    return sorted(path for path in TEST_DIR.glob("*.py") if path.is_file())
 
 
 def file_digest(path: Path) -> str:

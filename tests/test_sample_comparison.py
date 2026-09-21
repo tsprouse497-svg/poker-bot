@@ -509,12 +509,12 @@ def test_the_position_split_is_what_localises_the_calling_gap(comparison) -> Non
     Phase 08 found that calls are where the chart and real players part company, and that the
     gap was the big blind, which was also the seat the chart refused most often. Both halves
     were asserted, since either alone reads as a smaller problem than it is. Both move under the
-    cutover and none of their numbers survives a chart answering 249 nodes where it answered 36
+    cutover and none of their numbers survives a chart answering 156 nodes where it answered 36
     keys, so the ruled mechanism replaces them - nothing here can re-measure before the artifact
     exists, and an invented figure would be a guess.
 
     **The calling gap is now every seat but the big blind, and the merge is why.** Decision 45
-    keeps the bot's flats and merges them into its raises at the 20 non-big-blind spots facing
+    keeps the bot's flats and merges them into its raises at the 11 non-big-blind spots facing
     an open, which publish raise-or-fold; the five big-blind spots keep fold, call and raise. A
     human who flat-calls an open therefore agrees in the big blind and disagrees at every other
     seat, by construction rather than by any disagreement about which hands are worth playing -
@@ -638,11 +638,11 @@ def test_the_self_play_cross_reference_was_read_rather_than_defaulted(comparison
     membership of `self_play_shapes()`, recomputed from the same read, then both halves on sets.
 
     Shapes, not keys, and that is the column itself since 2026-09-03 rather than a reading laid
-    over it. On keys both halves cannot hold at once: self-play plays only the three solved prices
-    while the corpus plays the prices humans played, so one three-bet pot is
-    `CO:raise@7.5,HJ:raise@23` here and `@7.5,@22.5` there, the overlap is 0 whatever the chart
-    does, and all 61 gap spots read NEW. On shapes 7 read SEEN and 54 NEW, so both halves are live
-    readings rather than unfailable claims, and every one of the 7 is a four-bet spot.
+    over it. On keys both halves cannot hold at once: self-play plays only the solved prices, six of
+    them since the 13.5bb re-solve, while the corpus plays the prices humans played, so one
+    three-bet pot is `CO:raise@7.5,HJ:raise@23` here and `@7.5,@22.5` there, the overlap is 0
+    whatever the chart does, and all 75 gap spots read NEW. On shapes 8 read SEEN and 67 NEW, so
+    both halves are live readings rather than unfailable claims, and all 8 are four-bet spots.
 
     Both halves read a rendered report, so they depend on it being regenerated in the same commit
     as the chart: a stale inventory naming the retired chart's gaps lies.

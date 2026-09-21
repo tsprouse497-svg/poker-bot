@@ -43,7 +43,7 @@ def test_the_four_relations_are_published_with_their_counts_and_gate_nothing(rep
     Three run on play-not-fold - the pair ladder, the suited-versus-offsuit twins, and the kicker
     row ladder at 132 comparisons over a full grid. The fourth runs on the **merged raise weight
     the bot plays**, and it is the one that matters: the inversion that halted this phase sits at
-    cells where both hands are played 100 percent, so play-not-fold reads nothing there at all. 25
+    cells where both hands are played 100 percent, so play-not-fold reads nothing there at all. 27
     pair inversions are visible only on the raise action and were invisible to every relation and
     both arms.
 
@@ -208,14 +208,14 @@ def test_the_five_accepted_defects_are_published_as_defects_with_their_measureme
 
     The wheel-ace cases are separated out because they are correct poker - `A9s` folded at 39.6
     against `A5s` played at 39.0 is the wheel-ace premium GTOpen's own fit measures - and lumping
-    them in over-states what is wrong with the chart by about half. 87 of the 181 kicker
-    inversions are that, 29 have no poker story at a 50-point gap and 65 below it.
+    them in over-states what is wrong with the chart by about half. 60 of the 197 kicker
+    inversions are that, 15 have no poker story at a 50-point gap and 122 below it.
 
     The mixed-cell share sits here because it is what makes the merged flats a real cost rather
-    than a relabelling: in the solve, 93.20 percent of cells at non-zero reach put 99 percent or
+    than a relabelling: in the solve, 90.79 percent of cells at non-zero reach put 99 percent or
     more on one action, so there was no near-indifference to fall back on when the flats were
     merged away. Both readings are published and each says which grid it is over - the merge turns
-    165 mixed cells pure, so the chart this phase writes reads 93.48, and a report printing one
+    36 mixed cells pure, so the chart this phase writes reads 91.04, and a report printing one
     figure under the other's name would be the mistake that produced two meanings for "27".
     """
     body = report.section(report_text, "defects")
@@ -383,8 +383,8 @@ def test_the_big_blind_defence_and_flat_are_published_with_the_band_at_both_ends
 
     **The accepted defect is the over-folding, and it is what the band prices.** Decision 34 ruled
     it in those words and is unamended: the big blind defends too tight against every opener, and
-    the flat's near-invariance to who opened - a 2.81-point spread across openers whose own ranges
-    span 18.74 to 54.30 - is the fingerprint it named, not a separate defect and not what the cost
+    the flat's near-invariance to who opened - a 16.37-point spread across openers whose own
+    ranges span 18.57 to 53.84 - is the fingerprint it named, not a separate defect and not the cost
     below is measured on. The cause is the fit's own realization number for facing a bet in a
     single-raised pot, taken from raked games where flatting genuinely is worse, rather than the
     cold-call branch, since hero closes the action at all five of these nodes.
@@ -522,11 +522,11 @@ def test_the_menu_per_family_and_each_merged_spots_defence_against_the_solve(
     """Three families, three menus, and the merge shown preserving the range exactly.
 
     The bot never cold-calls outside the big blind, and decision 45 rules that its flats are
-    merged into its raise rather than deleted: at 9 of the facing-an-open spots the solve puts a
+    merged into its raise rather than deleted: at 2 of the facing-an-open spots the solve puts a
     hand's entire weight on `call`, so printing fold would publish "fold pocket nines to an open"
-    and an all-zero row would be the untouched initialisation the contract requires absent. So 20
+    and an all-zero row would be the untouched initialisation the contract requires absent. So 11
     spots publish raise-or-fold with each cell's raise weight being the solve's raise plus its
-    call, 165 cells move, and the published defence equals the solve's raise-plus-call to the
+    call, 72 cells move, and the published defence equals the solve's raise-plus-call to the
     basis point at every one of them.
 
     The cost is real and is stated rather than waved through: three-betting `66` commits 7.5bb and

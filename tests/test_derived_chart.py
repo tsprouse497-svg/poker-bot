@@ -6,7 +6,7 @@ specification rather than a description of what got built.
 **What this file owns.** That the chart is reproduced byte for byte from
 `data/artifacts/preflop/exports/` by a committed script with a `--check` mode that writes
 nothing; that the retired chart stays absent from the artifact directory, its glob and
-`sizings/`; that the committed 249 are 249 *keys*, checked one at a time; that the artifact
+`sizings/`; that the committed 156 are 156 *keys*, checked one at a time; that the artifact
 declares the blind structure the solve posted and refuses one that describes no game; that
 no spot folded to hero carries a call weight; that no committed row is the solver's
 untouched initialisation and that zero-reach classes are dropped; and decision 45's merge -
@@ -22,7 +22,7 @@ the jam canary; it imports this file's walk and its `vacuous` helper.
 **Two habits run through both of this lane's files.** Every count is recomputed here by a
 walk written in this file rather than imported from the derivation under test - a test that
 imports the rule it checks is one copy of a rule agreeing with another. And a criterion the
-committed 249 cannot exercise is *labelled* vacuous and skipped rather than counted as a
+committed 156 cannot exercise is *labelled* vacuous and skipped rather than counted as a
 check that passed, after an assertion that the vacuity premise still holds.
 """
 
@@ -33,7 +33,7 @@ import sys
 
 import pytest
 
-# The sibling that owns the selection, as a module rather than by name: the 249-node
+# The sibling that owns the selection, as a module rather than by name: the 156-node
 # interface it publishes does not exist until that file is re-cut, and naming its members in
 # an import block would turn every miss into a collection error that silences this file too.
 import test_chart_derivation as spec
@@ -43,6 +43,7 @@ from poker_training_bot.poker_core.positions import table_positions
 # The derivation as a module for the same reason: decision 45's merge does not exist until
 # stage 6, so `chart_derivation.merged_cells` must fail per test rather than at import.
 from poker_training_bot.solver_artifacts import chart_derivation, schema
+from poker_training_bot.solver_artifacts.chart_query import ChartQuery
 from poker_training_bot.solver_artifacts.gtopen_export import (
     COMMITTED_EXPORT_PATH,
     COMMITTED_SOURCE_CARD_PATH,
@@ -55,17 +56,21 @@ from poker_training_bot.solver_artifacts.gtopen_export import (
 )
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES, hand_class_grid_index
 from poker_training_bot.solver_artifacts.importer import import_preflop_artifacts
-from poker_training_bot.solver_artifacts.lookup import PreflopChartLibrary
+from poker_training_bot.solver_artifacts.lookup import (
+    MISS_UNTRAINED_CELL,
+    ChartMiss,
+    PreflopChartLibrary,
+)
 from poker_training_bot.solver_artifacts.schema import (
     ARTIFACT_SCHEMA_VERSION,
     ArtifactAuditFields,
     ArtifactSource,
-    PreflopAction,
     PreflopArtifact,
     SpotDefinition,
     spot_key,
     weights_checksum,
 )
+from poker_training_bot.solver_artifacts.untrained_cells import is_untrained_cell
 from scripts.repo_paths import REPO_ROOT
 
 ARTIFACT_DIR = REPO_ROOT / "data" / "artifacts" / "preflop"
@@ -89,13 +94,33 @@ present beside the absence above, an empty artifact directory otherwise passing 
 #
 # Recomputed below by a walk, not read off the artifact: a menu read from the file under
 # test is the file agreeing with itself. `first-in` is the pot folded to hero, `bb-open` the
-# big blind facing an open, `merged` the twenty other seats facing an open, `three-bet` the
+# big blind facing an open, `merged` the eleven other seats facing an open, `three-bet` the
 # spots facing a three-bet.
-FIRST_IN, BB_OPEN, MERGED, THREE_BET = "first-in", "bb-open", "merged", "three-bet"
+# The keying walk and the family split live in `derived_chart_shape.py`, a support module this
+# file owns: MAINT-34's untrained-cell assertion did not fit under the 700-line cap here and the
+# ruling was to split rather than compress. Re-exported so `test_chart_conversion.py` needs no
+# edit and each name is defined exactly once.
+from derived_chart_shape import (  # noqa: E402
+    BB_OPEN,
+    FIRST_IN,
+    MERGED,
+    THREE_BET,
+    action_sequence_of,  # noqa: F401  - re-exported for `test_chart_conversion.py`
+    arriving_classes,
+    family_of,
+    key_of,
+    raises_faced_of,
+    reach_by_class,
+    solve_weights,
+    weights_by_class,
+)
 
-FAMILY_SIZES = {FIRST_IN: 5, BB_OPEN: 5, MERGED: 20, THREE_BET: 219}
-"""5 + 5 + 20 + 219 = 249. The contract's 25 facing an open split into the 5 big-blind spots
-that publish unchanged and the 20 that merge; decisions 45 and 48."""
+FAMILY_SIZES = {FIRST_IN: 5, BB_OPEN: 5, MERGED: 11, THREE_BET: 135}
+"""5 + 5 + 11 + 135 = 156. The contract's 16 facing an open split into the 5 big-blind spots
+that publish unchanged and the 11 that merge; decisions 45 and 48. Both of those families moved
+under MAINT-34: the 13.5bb blind three-bet kept more lines inside the depth clause, and decision
+7's clause five then refused 128 spots, taking the three-bet family from 219 to 135 and the
+merged one from 20 to 11."""
 
 PUBLISHED_MENUS = {
     FIRST_IN: ("fold", "raise"),
@@ -104,30 +129,54 @@ PUBLISHED_MENUS = {
     THREE_BET: ("call", "fold", "raise"),
 }
 """What each family publishes. The first-in spots have no call to publish - the solve offers
-none - while the merged twenty *had* one and no longer do, so the two share a menu for
+none - while the merged eleven *had* one and no longer do, so the two share a menu for
 different reasons and only the merged one is evidence about decision 45."""
 
-MERGED_CELLS = 165
-MERGED_CELLS_PURE_ENTIRE_WEIGHT = 40
-MERGED_CELLS_PURE_AT_99 = 73
-"""Decision 45 as corrected by decision 53. The 165 is the number of cells at the twenty
-merged spots whose solve puts weight on calling; 40 put a hand's *entire* weight there and 73
-put 99 percent or more. Two measures under one name is how the 73 was published as the 40."""
+MERGED_CELLS = 72
+MERGED_CELLS_PURE_ENTIRE_WEIGHT = 4
+MERGED_CELLS_PURE_AT_99 = 11
+"""Decision 45 as corrected by decision 53. The 72 is the number of cells at the **eleven**
+merged spots whose solve puts weight on calling; 4 put a hand's *entire* weight there and 11 put
+99 percent or more. Two measures under one name is how the second was published as the first.
 
-CELLS_AT_NON_ZERO_REACH = 18_431
-ZERO_REACH_CELLS_DROPPED = 23_650
-"""249 spots times 169 classes is 42,081 grid cells; the chart holds the 18,431 hero can
+These moved twice in MAINT-34 and for different reasons. The 13.5bb three-bet took them from
+165/40/73 to 676/4/13 - four times the cells carrying some calling weight and a tenth carrying
+all of it, because a bigger three-bet behind makes flatting an open a mixed decision where 7.5
+made it pure. Then decision 7's clause five refused nine of the twenty merged spots outright,
+taking the three to 72/4/11. The first movement is poker, the second is a spot count."""
+
+CELLS_AT_NON_ZERO_REACH = 14_586
+ZERO_REACH_CELLS_DROPPED = 11_778
+"""156 spots times 169 classes is 26,364 grid cells; the chart holds the 14,586 hero can
 arrive holding. Decision 49's denominator, and the dropped count is asserted beside it
 because a converter that dropped nothing and a converter that dropped everything both agree
 with a one-sided bound."""
 
-EXACT_UNIFORM_CELLS = 0
-TOLERANT_UNIFORM_CELLS = 0
+EXACT_UNIFORM_CELLS = 167
+TOLERANT_UNIFORM_CELLS = 168
+UNTRAINED_SPOTS = 1
 UNIFORM_TOLERANCE_BP = 200
 """`UNIFORM-INITIALISATION-ROWS-ARE-NOT-STRATEGY`, at both readings the contract names:
 within a basis point of 1/n, the quantisation step, and within two points of it. Both read
-zero over the committed 249 and the readings are compared as *sets*, which two zeroes agreeing
-as counts cannot show."""
+zero over the committed 249 of the 7.5bb solve, and the readings are compared as *sets*, which
+two zeroes agreeing as counts cannot show.
+
+**The criterion changed shape under MAINT-34's decision 5, and got stronger rather than
+weaker.** It used to read zero and it now reads 167 exact and 168 tolerant, over 1 committed
+spot, arriving at exactly zero - the solve never plays into it, so regret matching never moved
+its rows off the initialisation. All 167 sit at that one spot and are 167 of its own 169 cells -
+almost its whole published range an even split across the menu.
+
+Those cells are no longer *answered*, which is what the criterion was ever about. Taylor ruled
+that an untrained cell **refuses** by its own code rather than being dropped or answered, so the
+count alone stopped being the guarantee and the test below asserts the behaviour instead: every
+one of the 167 refuses at the table with `lookup:untrained-cell`, and nothing else does. A count
+pinned at zero could only have been kept by dropping the spots, which would have taken the two
+*trained* cells at the worst of them with it.
+
+The tolerant reading is 1 cell wider than the exact one and that cell is trained, which is why
+`untrained_cells.is_untrained_cell` compares against an exact quantised row rather than against
+this tolerance."""
 
 CALL_CELLS_AT_A_FIRST_IN_SPOT = 0
 """The vacuity premise for `CHART-HERO-MUST-NEVER-LIMP` over this artifact: the five first-in
@@ -138,7 +187,7 @@ rule forbids. Asserted before the criterion is labelled vacuous."""
 def vacuous(what: str) -> None:
     """Stop the test and record it as skipped rather than as a pass.
 
-    The contract keeps three criteria the committed 249 cannot exercise and requires each
+    The contract keeps three criteria the committed 156 cannot exercise and requires each
     labelled vacuous wherever it is reported and never counted as a check that passed. A
     skip is the only outcome pytest has that is neither. Every call sits *after* an
     assertion that the premise making it vacuous still holds, so a later solve that
@@ -148,86 +197,6 @@ def vacuous(what: str) -> None:
 
 
 # --- The walk. Written here, not imported from the conversion on trial -----------------
-
-
-def action_sequence_of(
-    by_path: dict[tuple[int, ...], SolverNode], node: SolverNode
-) -> tuple[PreflopAction, ...]:
-    """What hero faces at a node: the live actions in front of him, in order.
-
-    The actor of a recorded action is whoever was to act at the node the action was taken
-    *at*, which is the parent of the node it leads to. Reading it off the child shifts every
-    entry one seat round the ring - the lojack's open becomes the hijack's - and the result
-    keys a spot that never happened while validating perfectly. Folds never enter: an empty
-    sequence means the pot was folded to hero, and a recorded fold would be a second
-    spelling of the same spot that keys apart from the first.
-    """
-    entries: list[PreflopAction] = []
-    for depth, index in enumerate(node.path):
-        parent = by_path[node.path[:depth]]
-        action = parent.actions[index]
-        if action.kind == "fold":
-            continue
-        if action.kind == "call":
-            entries.append(PreflopAction(parent.actor_pos, "call"))
-        else:
-            entries.append(PreflopAction(parent.actor_pos, "raise", float(action.to)))
-    return tuple(entries)
-
-
-def key_of(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> str:
-    """The spot key a node derives, in the one vocabulary this repo names spots with."""
-    return spot_key(TABLE_SIZE, STACK_DEPTH_BB, node.actor_pos, action_sequence_of(by_path, node))
-
-
-def raises_faced_of(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> int:
-    """How many raises are already in when hero is asked."""
-    return sum(1 for entry in action_sequence_of(by_path, node) if entry.action == "raise")
-
-
-def family_of(by_path: dict[tuple[int, ...], SolverNode], node: SolverNode) -> str:
-    """Which of decision 45's four families a committed node belongs to."""
-    faced = raises_faced_of(by_path, node)
-    if faced == 0:
-        return FIRST_IN
-    if faced == 1:
-        return BB_OPEN if node.actor_pos == "BB" else MERGED
-    return THREE_BET
-
-
-def arriving_classes(node: SolverNode) -> list[str]:
-    """The classes hero can be holding here, in the grid order the artifact writes."""
-    return [
-        name
-        for name in sorted(HAND_CLASSES, key=hand_class_grid_index)
-        if node.reach_bp[gtopen_class_index(name)] > 0
-    ]
-
-
-def solve_weights(node: SolverNode, hand_class_text: str) -> dict[str, int]:
-    """One cell as the solve holds it, in basis points, keyed by the artifact's action names
-    with a jam counted as a raise. Read off the node so the merge below compares the
-    published number against the source rather than against another published number."""
-    column = gtopen_class_index(hand_class_text)
-    totals = {"fold": 0, "call": 0, "raise": 0}
-    for index, action in enumerate(node.actions):
-        recorded = "raise" if action.kind in ("raise", "jam") else action.kind
-        totals[recorded] = totals.get(recorded, 0) + node.strategy_bp[index][column]
-    return totals
-
-
-def weights_by_class(artifact: PreflopArtifact, spot_id: str) -> dict[str, dict[str, float]]:
-    for keyed, classes in artifact.action_weights:
-        if keyed == spot_id:
-            return {name: dict(weights) for name, weights in classes}
-    raise AssertionError(f"the committed artifact declares no spot {spot_id!r}")
-
-
-def reach_by_class(artifact: PreflopArtifact, spot_id: str) -> dict[str, int]:
-    for keyed, classes in artifact.arriving_reach_bp:
-        if keyed == spot_id:
-            return dict(classes)
-    raise AssertionError(f"the committed artifact carries no arriving reach for {spot_id!r}")
 
 
 @pytest.fixture(scope="module")
@@ -250,8 +219,8 @@ def committed_nodes(
 ) -> dict[str, SolverNode]:
     """Every committed node, keyed by the walk above.
 
-    `spec.selected` is the three ruled clauses and is the sibling's to own; the keying is
-    this file's, because "249 nodes" and "249 keys" are different claims and the second is
+    `spec.selected` is the five ruled clauses and is the sibling's to own; the keying is
+    this file's, because "156 nodes" and "156 keys" are different claims and the second is
     what the chart has to satisfy. A function rather than a fixture on purpose: while the
     sibling is mid-re-cut this call is the thing that fails, and a fixture would report that
     as a setup error against every test at once instead of as a failure inside each.
@@ -328,7 +297,7 @@ def test_the_chart_is_reproduced_from_the_export_and_check_writes_nothing(
 
     **Reproducible is not the same as right, so the spot count travels with it**: a chart the
     converter regenerates byte for byte is still the wrong chart if the converter applies the
-    wrong rulings, and the count is what tells the committed 249 from the 86 in the tree now.
+    wrong rulings, and the count is what tells the committed 156 from the 86 in the tree now.
     """
     import scripts.convert_preflop_export as converter
 
@@ -376,10 +345,10 @@ def test_the_retired_chart_stays_absent_from_the_directory_the_glob_and_the_sizi
     assert (EXPECTATIONS_DIR / RETIRED_CHART_NAME).exists(), "the external oracle is gone"
 
 
-def test_the_committed_nodes_are_two_hundred_and_forty_nine_distinct_keys(
+def test_the_committed_nodes_are_one_hundred_and_fifty_six_distinct_keys(
     artifact: PreflopArtifact, committed_export: SolverExport
 ) -> None:
-    """249 nodes are not self-evidently 249 keys, so the count is taken key by key.
+    """156 nodes are not self-evidently 156 keys, so the count is taken key by key.
 
     Two nodes reaching the same key is a grammar collision. The spot key states what hero
     *faces*, and two different lines can face the same thing - so a collision would silently
@@ -389,8 +358,8 @@ def test_the_committed_nodes_are_two_hundred_and_forty_nine_distinct_keys(
     bucket holds one.
 
     The artifact is then compared against the walk as *sets* rather than as counts, a chart
-    holding 249 of the wrong keys reporting the right total, and the raises-faced histogram
-    goes with it: 5 first-in, 25 facing an open, 219 facing a three-bet is what tells this
+    holding 156 of the wrong keys reporting the right total, and the raises-faced histogram
+    goes with it: 5 first-in, 16 facing an open, 135 facing a three-bet is what tells this
     selection from one that admitted the four-bet family and refused something else.
     """
     by_path = committed_export.by_path()
@@ -506,7 +475,7 @@ def test_no_first_in_spot_could_carry_a_call_weight_here(
     labelled in `test_chart_conversion.py` and counted as exactly three by the report. This is
     a fourth vacuity the phase carries, reported as a schema rule rather than as one of them.
 
-    The rule above forbids a call at a spot folded to hero. Over the committed 249 nothing
+    The rule above forbids a call at a spot folded to hero. Over the committed 156 nothing
     can violate it: the five first-in nodes offer hero fold and a raise and no call at all,
     so there is no weight for the converter to write. The rule is retained because a solve
     with `limp: true` reactivates it, and the premise is asserted so that solve turns this
@@ -530,15 +499,22 @@ def test_no_committed_row_is_the_solvers_untouched_initialisation(
     full strategy row, and an untouched row is the solver's initialisation - an even split
     across the menu - rather than a played frequency. The criterion is stated over cells with
     **non-zero reach**, so the precondition is half the check and is asserted first: the
-    converter must drop the classes hero cannot be holding. 18,431 of the 42,081 grid cells
-    survive that and 23,650 do not, and both are asserted, a one-sided bound being satisfied
+    converter must drop the classes hero cannot be holding. 14,586 of the 26,364 grid cells
+    survive that and 11,778 do not, and both are asserted, a one-sided bound being satisfied
     by a converter that dropped everything.
 
     Then the rows, at both readings the contract names - within a basis point of 1/n, the
     quantisation step, so this is the initialisation exactly rather than near it; and within
-    two points of it, which is where a trained frequency does not land on a menu of three.
-    Both read zero, and they are compared as **sets**, which two zeroes agreeing as counts
-    cannot show.
+    two points of it, which is where a trained frequency does not land on a menu of three. Both
+    read zero on the 7.5bb solve and 167 and 168 on this one, and the two no longer agree: the
+    one between them is a trained row that happens to sit near uniform, which is the measurement
+    that rules out a tolerance as the detector.
+
+    **What the criterion now guarantees is that none of them is answered.** Decision 5: an
+    untrained cell refuses. So the exact set is asserted to be exactly the set the shipped
+    detector finds, and every one of those cells is asked through the library and must come back
+    refused with `lookup:untrained-cell` - a stronger claim than the count it replaces, and one a
+    build that quietly started answering them would fail.
     """
     keyed = committed_nodes(committed_export, by_path)
     kept = 0
@@ -564,11 +540,30 @@ def test_no_committed_row_is_the_solvers_untouched_initialisation(
             if deviation < UNIFORM_TOLERANCE_BP:
                 tolerant.add((key, name))
 
+    library = PreflopChartLibrary.from_artifacts((artifact,))
+    detected = {
+        (key, name)
+        for key, cells in artifact.action_weights
+        for name, row in cells
+        if is_untrained_cell(row, artifact.arrival_ppb_for(key))
+    }
+
     assert kept == CELLS_AT_NON_ZERO_REACH
     assert dropped == ZERO_REACH_CELLS_DROPPED
     assert len(exact) == EXACT_UNIFORM_CELLS
     assert len(tolerant) == TOLERANT_UNIFORM_CELLS
-    assert exact == tolerant, "the exact and tolerant readings have stopped agreeing"
+    assert len({key for key, _ in exact}) == UNTRAINED_SPOTS
+    assert exact < tolerant, "the tolerant reading no longer covers the exact one"
+    assert detected == exact, (
+        "the shipped detector and this file's own reading of the export disagree about which"
+        " cells are untrained"
+    )
+    for key, name in sorted(detected):
+        spot = artifact.spot(key)
+        query = ChartQuery(6, 100, spot.hero_position, spot.action_sequence, name)
+        outcome = library.lookup(query)
+        assert isinstance(outcome, ChartMiss), (key, name)
+        assert outcome.code == MISS_UNTRAINED_CELL, (key, name, outcome.code)
 
 
 # --- Decision 45: the bot's cold call is merged into its raise, not deleted -------------
@@ -583,12 +578,12 @@ def test_the_menu_shape_is_the_one_decision_45_rules_for_each_family(
     blind spots facing an open publish fold, call and three-bet unchanged - the big blind is
     already in for one blind, so its call is a defence rather than a cold call. The twenty
     other seats facing an open publish **raise or fold**: their call is a cold call the bot
-    may not make, and decision 45 merges it rather than deleting it. The 219 spots facing a
+    may not make, and decision 45 merges it rather than deleting it. The 135 spots facing a
     three-bet publish fold, call and four-bet, hero's call there being a call to a raise he
     made himself.
 
-    The family sizes are asserted with the menus because 5 + 5 + 20 + 219 and 5 + 20 + 5 +
-    219 are the same 249, and a converter that took the big blind for one of the merged seats
+    The family sizes are asserted with the menus because 5 + 5 + 11 + 135 and 5 + 11 + 5 +
+    135 are the same 156, and a converter that took the big blind for one of the merged seats
     would publish the right number of the wrong menus.
     """
     keyed = committed_nodes(committed_export, by_path)
@@ -612,14 +607,14 @@ def test_each_merged_cell_publishes_the_solves_raise_plus_its_call(
 ) -> None:
     """The merge itself, cell by cell against the solve.
 
-    At each of the twenty merged spots the published raise weight is the solve's raise plus
+    At each of the eleven merged spots the published raise weight is the solve's raise plus
     its call, to the basis point, and no cold-call weight is published anywhere. The two
     failures this separates are the ones decision 45 was ruled between: a converter that
-    *publishes* the call has not merged, and one that drops it has thrown range away - at 9
+    *publishes* the call has not merged, and one that drops it has thrown range away - at 2
     of these spots the solve puts a hand's entire weight on calling, so dropping would leave
     an all-zero row, which is the untouched initialisation the criterion above forbids.
 
-    **165 cells move**, 40 of them a hand's entire weight and 73 at 99 percent or more, and
+    **72 cells move**, 4 of them a hand's entire weight and 11 at 99 percent or more, and
     all three are asserted because they are three measures the record has published under one
     name. The fold weight is asserted unchanged beside the raise: a converter that renormalised
     the row rather than adding into the raise would satisfy the sum and change every fold.
@@ -662,7 +657,7 @@ def test_the_unmerged_families_publish_the_solves_call_untouched(
 
     A converter that merged *everywhere* passes the test above and destroys the big blind's
     defending range and every call to a three-bet. So the five big-blind spots facing an open
-    and the 219 facing a three-bet are checked to publish the solve's call and raise apart,
+    and the 135 facing a three-bet are checked to publish the solve's call and raise apart,
     to the basis point, with `chart_derivation.merged_cells` asked which cells it moved so
     the derivation's own answer is compared against the walk rather than assumed.
     """
