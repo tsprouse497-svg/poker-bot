@@ -414,10 +414,21 @@ def commit_verdict(outcome: SolveOutcome) -> tuple[bool, str]:
     )
 
 
+RUN_TO_THE_CAP_TARGET_PCT = 0.0
+"""The stopping target for a run only the iteration cap may stop, which is decision 15's.
+
+The server ends on `pct <= target_exploit_pct` or on the cap; zero is unreachable, so the cap is
+what is left. Nothing else moves - `spot_body` is the ruled config, so the tree, the menu, the
+ranges, the arena and every guard are the committed campaign's, and one field of the
+`/api/solve` body is the whole deviation. What comes back measures settling and is never a
+committed cell. `scripts/solve_postflop_sample.py` says why that is the only honest way to ask."""
+
+
 def run_solve(
     plan: SolvePlan,
     transport: Transport,
     *,
+    stop_only_at_the_iteration_cap: bool = False,
     deadline_seconds: float = 6 * 60 * 60,
     poll_seconds: float = 5.0,
     sleep: Callable[[float], None] = time.sleep,
@@ -430,6 +441,9 @@ def run_solve(
     will not converge otherwise runs until somebody notices, and on a rented box that is money; a
     run it stops is a floor and it raises rather than returning a cost. `/api/stop` is **not** one
     of the four routes the record drove end to end, so nothing here reads its response.
+
+    `stop_only_at_the_iteration_cap` is decision 15's deep run and the only caller of it;
+    `RUN_TO_THE_CAP_TARGET_PCT` says what it changes and what it deliberately does not.
     """
     refusals = plan_refusals(plan)
     if refusals:
@@ -451,7 +465,9 @@ def run_solve(
         "/api/solve",
         {
             "max_iterations": plan.config.get("max_iterations", SOLVE_ITERATION_CAP),
-            "target_exploit_pct": plan.config.get(
+            "target_exploit_pct": RUN_TO_THE_CAP_TARGET_PCT
+            if stop_only_at_the_iteration_cap
+            else plan.config.get(
                 "target_exploit_pct_of_pot", EXPLOITABILITY_TARGET_PCT_OF_POT
             ),
             "check_every": CHECK_EVERY_ITERATIONS,

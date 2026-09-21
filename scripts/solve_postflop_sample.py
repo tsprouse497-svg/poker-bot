@@ -38,11 +38,23 @@ document goes to `--object-dir` with its object. That is the ordinary state of a
 listed here, fetched nowhere - and until decision 18b it was the one state this sample could not
 reach, because every cell it solved it also kept.
 
+**`--deep-check` asks a different question and is the only thing here that changes the stopping
+rule.** Every figure the campaign rests on is an exploitability figure, which says what a perfect
+opponent wins against a strategy and not that the strategy has stopped moving; hands the solver
+has driven to indifference keep trading frequency long after exploitability has flattened,
+because moving them costs nothing by the measure being minimised. Decision 15 rules that one
+committed cell is re-solved with the iteration cap as the only stopping condition and its action
+frequencies diffed against the committed strategy, and that the diff is committed beside the
+sample. The tree, the menu, the ranges, the arena and every guard are the committed campaign's;
+one field of the `/api/solve` body moves, because a run that keeps the ruled target stops where
+the committed run stopped and measures nothing.
+
 Usage:
 
     uv run python scripts/solve_postflop_sample.py --list
     uv run python scripts/solve_postflop_sample.py --cell monotone-connected-cbet
     uv run python scripts/solve_postflop_sample.py --all
+    uv run python scripts/solve_postflop_sample.py --deep-check
 """
 
 from __future__ import annotations
@@ -51,6 +63,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import math
 import os
 import signal
 import subprocess
@@ -77,11 +90,13 @@ from poker_training_bot.solver_artifacts.gtopen_export import (  # noqa: E402
 from poker_training_bot.solver_artifacts.hand_classes import HAND_CLASSES  # noqa: E402
 from poker_training_bot.solver_artifacts.postflop_artifact import (  # noqa: E402
     EXPLOITABILITY_CEILING_PCT_OF_POT,
+    EXPLOITABILITY_TARGET_PCT_OF_POT,
     INDEX_PATH,
     INDEX_SCHEMA_VERSION,
     POSTFLOP_DIR,
     RANGE_WEIGHT_FLOOR,
     SAMPLE_DIR,
+    SOLVE_ITERATION_CAP,
     floor_range,
     import_postflop_cell,
     import_postflop_index,
@@ -89,16 +104,22 @@ from poker_training_bot.solver_artifacts.postflop_artifact import (  # noqa: E40
 from poker_training_bot.solver_artifacts.postflop_harvest import (  # noqa: E402
     CLASS_AGREEMENT_TOLERANCE,
     cell_document,
+    combo_cards,
     harvest_node,
     strategy_digest,
+)
+from poker_training_bot.solver_artifacts.postflop_isomorphism import (  # noqa: E402
+    canonical_hole_cards,
 )
 from poker_training_bot.solver_artifacts.postflop_key import (  # noqa: E402
     completed_preflop_line,
     postflop_spot_key,
 )
 from poker_training_bot.solver_artifacts.postflop_solve_driver import (  # noqa: E402
+    CHECK_EVERY_ITERATIONS,
     MEASURING_MACHINE,
     RULED_ARENA_STORAGE,
+    RUN_TO_THE_CAP_TARGET_PCT,
     SolvePlan,
     commit_verdict,
     describe_memory_ceiling,
@@ -843,6 +864,697 @@ def record_cell(
 
 
 # --------------------------------------------------------------------------- #
+# The determinism proof the contract asks for
+# --------------------------------------------------------------------------- #
+
+
+DETERMINISM_PATH = POSTFLOP_DIR / "determinism.json"
+DETERMINISM_SCHEMA_VERSION = 1
+
+DETERMINISM_NOTE = (
+    "Determinism proved by re-solving and diffing rather than by checksumming one run, on the"
+    " configuration actually committed, in two processes against a restarted server. No"
+    " tolerance is set anywhere here: the contract rules that if the two runs are not"
+    " byte-identical the phase halts and a human is asked, so this records identical or not and"
+    " never how close."
+)
+"""What this check is, in the contract's own terms rather than in a summary of them.
+
+It is worth saying which configuration, because the only determinism figure this repo held before
+was taken on a different one: `reports/active/latest_postflop_solve_cost.txt` carries a
+determinism row on `Kc7c2c` in a three-bet pot of 16.0 with a 92.5 stack at 240 iterations under
+quantized arenas, and the committed campaign is a single-raised pot of 5.5 with a 97.5 stack on
+four other boards at 280 to 340 iterations under full-precision ones. Neither result stands in
+for the other, and the contract asks for this one by name."""
+
+
+def second_run_objects(second_objects: Path, name: str) -> Path:
+    path = second_objects / name
+    if not path.is_file():
+        raise SystemExit(
+            f"{path} does not exist, so the second run did not solve that board and there is"
+            " nothing to compare. Re-solve it before asking whether the two runs agree."
+        )
+    return path
+
+
+def compare_node_payloads(one: dict[str, Any], two: dict[str, Any]) -> dict[str, Any]:
+    """Two answers for one node compared per combo, under the rounding rather than over it.
+
+    The committed rows are thousandths and the solver answers in floats, so two runs can differ
+    by a ten-thousandth and still write the same committed bytes. This looks at what the solver
+    produced, which is the only place a difference that small is visible at all.
+    """
+    if one["actions"] != two["actions"]:
+        return {"menu_matched": False, "combos_in_only_one_run": None, "largest_gap": None}
+    rows_one = {
+        str(hand["combo"]): [float(value) for value in hand["strategy"]]
+        for hand in one["players"][int(one["player"])]["hands"]
+    }
+    rows_two = {
+        str(hand["combo"]): [float(value) for value in hand["strategy"]]
+        for hand in two["players"][int(two["player"])]["hands"]
+    }
+    shared = sorted(set(rows_one) & set(rows_two))
+    gaps = [
+        max(abs(a - b) for a, b in zip(rows_one[combo], rows_two[combo], strict=True))
+        for combo in shared
+    ]
+    return {
+        "menu_matched": True,
+        "combos": len(rows_one),
+        "combos_in_only_one_run": len(set(rows_one) ^ set(rows_two)),
+        "largest_gap": max(gaps) if gaps else None,
+    }
+
+
+def determinism_document(second_tree: Path, second_objects: Path) -> dict[str, Any]:
+    """Both runs of the committed configuration, compared, with nothing averaged or tolerated."""
+    if second_tree.resolve() == POSTFLOP_DIR.resolve():
+        raise SystemExit(
+            "the second run's tree is the committed one, so this would compare a file with"
+            " itself and pass whatever the solver did. Point it at a tree a second run wrote."
+        )
+    manifest = json.loads(OBJECT_MANIFEST_PATH.read_text(encoding="utf-8"))
+    committed_objects = {
+        key: Path(value["object_path"]) for key, value in manifest["objects"].items()
+    }
+    cells: list[dict[str, Any]] = []
+    for path in sorted(SAMPLE_DIR.glob("*.json")):
+        committed = import_postflop_cell(path)
+        other_path = second_tree / "sample" / path.name
+        if not other_path.is_file():
+            raise SystemExit(f"{other_path} does not exist, so the second run skipped {path.name}")
+        object_path = committed_objects[committed.spot_key]
+        one = json.loads(gzip.open(object_path).read())
+        two = json.loads(gzip.open(second_run_objects(second_objects, object_path.name)).read())
+        if one["solve"]["wall_seconds"] == two["solve"]["wall_seconds"]:
+            raise SystemExit(
+                f"{object_path.name} and the second run's copy report the same wall clock to the"
+                " microsecond, which two runs do not. The second tree is a copy of the first"
+                " rather than a second run, and comparing it would prove nothing."
+            )
+        name = path.stem
+        cells.append(
+            {
+                "cell": name,
+                "spot_key": committed.spot_key,
+                "board": list(committed.board),
+                "cell_document_bytes_identical": (
+                    path.read_bytes() == other_path.read_bytes()
+                ),
+                "committed_bytes": path.stat().st_size,
+                "second_run_bytes": other_path.stat().st_size,
+                "iterations": [one["solve"]["iterations"], two["solve"]["iterations"]],
+                "achieved_exploitability_pct_of_pot": [
+                    one["solve"]["exploit_pct_of_pot"],
+                    two["solve"]["exploit_pct_of_pot"],
+                ],
+                "wall_seconds": [
+                    round(one["solve"]["wall_seconds"], 1),
+                    round(two["solve"]["wall_seconds"], 1),
+                ],
+                "arena_storage": [one["solve"]["arena_storage"], two["solve"]["arena_storage"]],
+                "strategy_digest": [
+                    strategy_digest(committed.hand_classes, committed.class_weights),
+                    strategy_digest(
+                        *_cell_strategy(json.loads(other_path.read_text(encoding="utf-8")))
+                    ),
+                ],
+                "per_combo": compare_node_payloads(one["nodes"][name], two["nodes"][name]),
+            }
+        )
+    for spot_key, figures in sorted(manifest.get(LISTED_NOT_HELD, {}).items()):
+        document_path = Path(figures["cell_document"])
+        other_path = second_objects / document_path.name
+        if not other_path.is_file():
+            raise SystemExit(
+                f"{other_path} does not exist, so the second run did not produce the cell the"
+                " index lists and the repo does not hold. It is part of the committed"
+                " configuration and is compared like any other."
+            )
+        name = document_path.name.removesuffix(".cell.json")
+        object_path = Path(
+            str(document_path.parent / f"srp-{''.join(figures['board'])}.nodes.json.gz")
+        )
+        one = json.loads(gzip.open(object_path).read())
+        two = json.loads(gzip.open(second_run_objects(second_objects, object_path.name)).read())
+        cells.append(
+            {
+                "cell": name,
+                "spot_key": spot_key,
+                "board": list(figures["board"]),
+                "held_in_the_repo": False,
+                "cell_document_bytes_identical": (
+                    document_path.read_bytes() == other_path.read_bytes()
+                ),
+                "committed_bytes": document_path.stat().st_size,
+                "second_run_bytes": other_path.stat().st_size,
+                "iterations": [one["solve"]["iterations"], two["solve"]["iterations"]],
+                "achieved_exploitability_pct_of_pot": [
+                    one["solve"]["exploit_pct_of_pot"],
+                    two["solve"]["exploit_pct_of_pot"],
+                ],
+                "wall_seconds": [
+                    round(one["solve"]["wall_seconds"], 1),
+                    round(two["solve"]["wall_seconds"], 1),
+                ],
+                "arena_storage": [one["solve"]["arena_storage"], two["solve"]["arena_storage"]],
+                "strategy_digest": [
+                    strategy_digest(
+                        *_cell_strategy(json.loads(document_path.read_text(encoding="utf-8")))
+                    ),
+                    strategy_digest(
+                        *_cell_strategy(json.loads(other_path.read_text(encoding="utf-8")))
+                    ),
+                ],
+                "per_combo": compare_node_payloads(one["nodes"][name], two["nodes"][name]),
+            }
+        )
+    identical = all(
+        cell["cell_document_bytes_identical"]
+        and cell["per_combo"]["menu_matched"]
+        and cell["per_combo"]["combos_in_only_one_run"] == 0
+        and cell["per_combo"]["largest_gap"] == 0.0
+        for cell in cells
+    )
+    return {
+        "check_schema_version": DETERMINISM_SCHEMA_VERSION,
+        "what_this_is": DETERMINISM_NOTE,
+        "configuration": "data/artifacts/postflop/solve_config.json, unchanged between the runs",
+        "the_two_runs_are_distinct": (
+            "Each cell carries both wall clocks, and they differ: the second run shared the"
+            " machine with other work. A second tree whose wall clock matched the first to the"
+            " microsecond is refused rather than compared, because that is a copy of the first"
+            " run and would pass whatever the solver did."
+        ),
+        "identical": identical,
+        "cells_compared": len(cells),
+        "how": (
+            "Two comparisons per cell. The committed cell document byte for byte, which is what"
+            " the repo holds; and the solver's own per-combo strategies inside the two runs'"
+            " objects, which is the stronger of the two because a committed row is rounded to a"
+            " thousandth and two runs could differ under that and still write the same bytes."
+        ),
+        "cells": cells,
+    }
+
+
+def _cell_strategy(document: dict[str, Any]) -> tuple[list[str], list[list[float]]]:
+    return list(document["hand_classes"]), [list(row) for row in document["class_weights"]]
+
+
+def report_determinism(document: dict[str, Any]) -> None:
+    print(f"  identical          {document['identical']}")
+    for cell in document["cells"]:
+        combo = cell["per_combo"]
+        print(f"  {cell['cell']:40s} document"
+              f" {'identical' if cell['cell_document_bytes_identical'] else 'DIFFERENT'},"
+              f" {combo['combos']} combos, largest per-combo gap {combo['largest_gap']},"
+              f" combos in only one run {combo['combos_in_only_one_run']}")
+
+
+# --------------------------------------------------------------------------- #
+# Decision 15's deep convergence check
+# --------------------------------------------------------------------------- #
+
+
+DEEP_CHECK_PATH = POSTFLOP_DIR / "deep_convergence_check.json"
+DEEP_CHECK_SCHEMA_VERSION = 1
+
+DEEP_CHECK_CELL = "monotone-connected-cbet"
+"""Which cell is re-solved deep, and why it is this one rather than the cheapest one.
+
+Decision 15 already names the monotone cell, so this is not a choice being made here; what
+follows is the poker reason it is also the right cell rather than only the affordable one.
+
+**The question is about hands the solver has driven to indifference**, because those are the ones
+that keep trading frequency after exploitability has flattened - moving them costs nothing by the
+measure being minimised. So the cell that tests the settling claim hardest is the one holding the
+most indifference, and on the committed sample that is this one by a distance: of its 152 classes
+only 19 put 99% or more on a single action and 101 spread past a tenth, measured off the
+committed file rather than asserted. `9c8c7c` is monotone and connected, every hand in the
+button's range has some share of the flush and straight structure, and equities run close
+together - which is exactly the texture that produces mixing. A dry, disconnected, ace- or
+king-high rainbow board is the opposite: much of the range plays one action at a frequency near
+one, so a settling check run there would flatter the answer by asking it of hands that were never
+going to move.
+
+**It is also the node a reader consults most.** Hero is the preflop raiser deciding a continuation
+bet after the caller checks, which is about half of all flops, against a caller's donk node that
+is reached only when hero's own line puts them there.
+
+**What it cannot settle.** One board is one board. The classes here are 152 because a monotone
+flop collapses hardest, against 1,176 on the rainbow board the sample also holds, and rainbow was
+never solved to target anywhere in this phase. A settled answer here is evidence about this cell
+and is not a campaign-wide result - which is the same limit the cost model already states about
+rainbow, in the other direction."""
+
+PURE_ENOUGH = 0.99
+"""At or above this on one action, a class is playing that action and nothing else: the residue
+is under the third decimal a committed row is even written in."""
+
+LIGHTLY_MIXED = 0.90
+"""Between this and `PURE_ENOUGH` a class has a clear action and a small alternative; below it,
+two actions are genuinely in contention and the class is where indifference lives."""
+
+NOTABLE_MOVEMENT = 0.05
+"""Past this, a frequency written on a chart would be written differently: a hand bet 60% of the
+time rather than 65%. Under it, the difference is inside what a reader rounds away anyway. It is
+the threshold the shape split counts against, so the sentence a reader wants - how many of the
+hands that actually moved were the indifferent ones - comes off the file rather than off prose."""
+
+MOVEMENT_BUCKET_EDGES = (0.0, 0.005, 0.01, 0.02, 0.05, 0.10, 0.25)
+"""How far a class moved, in bands a reader can act on rather than in a single mean.
+
+The first is exact equality, which is a real outcome and not a rounding artefact: both rows are
+thousandths. `0.005` is half of the third decimal a row carries, `0.05` is the point at which a
+mixed frequency written on a chart would be written differently, and `0.25` is a different
+strategy for that hand rather than a different frequency."""
+
+
+def committed_cell_path(name: str) -> Path:
+    path = SAMPLE_DIR / f"{name}.json"
+    if not path.is_file():
+        raise SystemExit(
+            f"{path} does not exist, so there is no committed strategy to diff a deep run"
+            " against. Solve the sample first; the deep check measures movement away from what"
+            " the repo holds and cannot invent the end it is measuring from."
+        )
+    return path
+
+
+def class_reach_shares(
+    node: dict[str, Any], board: tuple[str, ...]
+) -> dict[str, float]:
+    """How often hero's own committed line actually brings each class to this node, normalised.
+
+    Read off the solved node rather than off the committed cell, because a cell carries hero's
+    strategy and not hero's reach - and a movement figure that ignores reach counts a class hero
+    arrives here with once as loudly as one they arrive with a hundred times. The board's own suit
+    map collapses combos into classes here exactly as the harvest does, so the labels line up with
+    the committed rows without any re-dressing.
+    """
+    actor = int(node["player"])
+    totals: dict[str, float] = {}
+    for hand in node["players"][actor]["hands"]:
+        cards = combo_cards(str(hand["combo"]))
+        label = "".join(canonical_hole_cards(board, cards))
+        totals[label] = totals.get(label, 0.0) + float(hand.get("reach") or 0.0)
+    live = sum(totals.values())
+    if live <= 0:
+        raise SystemExit(
+            "the deep node answers a zero reach for every class, so nothing here is weighted by"
+            " how often hero arrives and the check would be reporting an unweighted figure under"
+            " a weighted name"
+        )
+    return {label: value / live for label, value in totals.items()}
+
+
+def quantile(values: list[float], fraction: float) -> float:
+    """The nearest-rank quantile of an already-sorted-able list, taken without numpy.
+
+    Nearest rank rather than interpolated: every value here is a multiple of a thousandth and an
+    interpolated quantile would publish a movement figure no class actually exhibits.
+    """
+    if not values:
+        raise SystemExit("no classes to summarise, so every distribution figure would be empty")
+    ordered = sorted(values)
+    rank = max(1, min(len(ordered), math.ceil(fraction * len(ordered))))
+    return ordered[rank - 1]
+
+
+def row_shape(row: list[float]) -> str:
+    """What kind of decision a committed row describes, which is what the movement is sorted by."""
+    top = max(row)
+    if top >= PURE_ENOUGH:
+        return "pure"
+    if top >= LIGHTLY_MIXED:
+        return "lightly-mixed"
+    return "mixed"
+
+
+def movement_buckets(movements: list[float]) -> dict[str, int]:
+    counts = {"exactly 0": sum(1 for value in movements if value == 0.0)}
+    previous = 0.0
+    for edge in MOVEMENT_BUCKET_EDGES[1:]:
+        counts[f"> {previous:g} and <= {edge:g}"] = sum(
+            1 for value in movements if previous < value <= edge
+        )
+        previous = edge
+    counts[f"> {previous:g}"] = sum(1 for value in movements if value > previous)
+    return counts
+
+
+def summarise_movement(
+    movements: list[float], shapes: list[str], reach: list[float]
+) -> dict[str, Any]:
+    """The distribution of per-class movement, and the same thing split by how mixed the class is.
+
+    The split is the poker question rather than a presentation choice: a strategy that has settled
+    where a reader would act and still trades frequency between two actions worth the same thing
+    is a different finding from one that has moved a hand off a decision, and a single mean over
+    all classes cannot tell them apart.
+    """
+    by_shape: dict[str, Any] = {}
+    for shape in ("pure", "lightly-mixed", "mixed"):
+        picked = [value for value, kind in zip(movements, shapes, strict=True) if kind == shape]
+        by_shape[shape] = {
+            "classes": len(picked),
+            "max": round(max(picked), 4) if picked else None,
+            "mean": round(sum(picked) / len(picked), 5) if picked else None,
+            f"classes_moving_past_{NOTABLE_MOVEMENT:g}": sum(
+                1 for value in picked if value > NOTABLE_MOVEMENT
+            ),
+        }
+    weighted = sum(value * share for value, share in zip(movements, reach, strict=True))
+    return {
+        "metric": (
+            "per class, the largest absolute change in any one action's frequency between the"
+            " committed strategy and the deep one"
+        ),
+        "classes": len(movements),
+        "max": round(max(movements), 4),
+        "mean": round(sum(movements) / len(movements), 5),
+        "median": round(quantile(movements, 0.50), 4),
+        "p75": round(quantile(movements, 0.75), 4),
+        "p90": round(quantile(movements, 0.90), 4),
+        "p95": round(quantile(movements, 0.95), 4),
+        "p99": round(quantile(movements, 0.99), 4),
+        "reach_weighted_mean": round(weighted, 5),
+        "buckets": movement_buckets(movements),
+        "by_committed_shape": by_shape,
+    }
+
+
+def aggregate_frequencies(
+    actions: list[dict[str, Any]],
+    shallow: list[list[float]],
+    deep: list[list[float]],
+    reach: list[float],
+) -> list[dict[str, Any]]:
+    """What the whole range does with each action, which is the figure a reader takes off a chart.
+
+    Weighted by the deep run's reach on both sides, so the two numbers differ only by the strategy
+    and never by the weights. A range betting the same share of the time out of hands that have
+    swapped places is the specific outcome decision 15 predicts for indifferent hands, and it is
+    invisible in a per-class figure.
+    """
+    built: list[dict[str, Any]] = []
+    for index, action in enumerate(actions):
+        before = sum(row[index] * share for row, share in zip(shallow, reach, strict=True))
+        after = sum(row[index] * share for row, share in zip(deep, reach, strict=True))
+        built.append(
+            {
+                **action,
+                "committed_frequency": round(before, 4),
+                "deep_frequency": round(after, 4),
+                "moved": round(after - before, 4),
+            }
+        )
+    return built
+
+
+def action_flips(
+    classes: list[str],
+    shallow: list[list[float]],
+    deep: list[list[float]],
+    reach: list[float],
+) -> list[dict[str, Any]]:
+    """Every class whose most-played action is a different action after the deep run.
+
+    `committed_margin` is what separated the top two actions in the committed row, and it is the
+    whole reading: a flip out of a row whose top two were a thousandth apart is two actions the
+    solver holds equal swapping places, and a flip out of a row that was not close is the deep run
+    contradicting something a reader would have acted on.
+    """
+    flips: list[dict[str, Any]] = []
+    for index, label in enumerate(classes):
+        before, after = shallow[index], deep[index]
+        if before.index(max(before)) == after.index(max(after)):
+            continue
+        ordered = sorted(before, reverse=True)
+        flips.append(
+            {
+                "hand_class": label,
+                "committed": before,
+                "deep": after,
+                "committed_margin": round(ordered[0] - ordered[1], 4),
+                "reach_share": round(reach[index], 5),
+            }
+        )
+    return flips
+
+
+def deep_check_document(
+    cell: SampleCell,
+    committed: dict[str, Any],
+    deep: dict[str, Any],
+    outcome: Any,
+    arena_storage: str,
+    node: dict[str, Any],
+    divergence: float,
+) -> dict[str, Any]:
+    """The committed diff: both strategies, what moved, and enough of each to recompute it."""
+    if deep["spot_key"] != committed["spot_key"]:
+        raise SystemExit(
+            f"the deep run landed on {deep['spot_key']} and the committed cell is"
+            f" {committed['spot_key']}. Two different spots cannot be diffed as one."
+        )
+    if deep["actions"] != committed["actions"]:
+        raise SystemExit(
+            f"the deep run's menu is {deep['actions']} against the committed"
+            f" {committed['actions']}. A frequency is a frequency of an action, so a moved menu"
+            " makes every difference below meaningless."
+        )
+    order = list(committed["hand_classes"])
+    deep_rows = dict(zip(deep["hand_classes"], deep["class_weights"], strict=True))
+    missing = [label for label in order if label not in deep_rows]
+    extra = [label for label in deep["hand_classes"] if label not in set(order)]
+    if missing or extra:
+        raise SystemExit(
+            f"the deep run answers for a different set of hand classes: {len(missing)} the"
+            f" committed cell holds are absent and {len(extra)} are new. Refused rather than"
+            " diffed over the intersection, which would publish a movement figure for a range"
+            " that is not the committed one."
+        )
+    shares = class_reach_shares(node, tuple(committed["board"]))
+    shallow_rows = [list(row) for row in committed["class_weights"]]
+    aligned = [list(deep_rows[label]) for label in order]
+    reach = [shares.get(label, 0.0) for label in order]
+    movements = [
+        round(max(abs(a - b) for a, b in zip(before, after, strict=True)), 4)
+        for before, after in zip(shallow_rows, aligned, strict=True)
+    ]
+    shapes = [row_shape(row) for row in shallow_rows]
+    ranked = sorted(range(len(order)), key=lambda i: (-movements[i], order[i]))
+    return {
+        "check_schema_version": DEEP_CHECK_SCHEMA_VERSION,
+        "what_this_is": (
+            "Decision 15's deep convergence check. One committed cell re-solved on the same tree"
+            " with the iteration cap as the only stopping condition, and its action frequencies"
+            " diffed against the strategy this repo committed. Exploitability says what a perfect"
+            " opponent wins; it does not say the strategy has stopped moving, and this is the"
+            " measurement that does."
+        ),
+        "the_arithmetic_decision_15_states": (
+            "The ruling says four cells at a 240-iteration working point and one of them"
+            " re-solved to the cap and diffed against 'its own 240-iteration strategy'. No run"
+            " ever produced a 240-iteration strategy: 240 was the working point assumed before"
+            " the arena was ruled to full precision, and the cells the repo committed converged"
+            " to the 0.3%-of-pot target at 280 to 340 iterations at full precision. So the"
+            " comparison is against this cell's own committed strategy, at the iteration count it"
+            " actually converged at, which is what the ruling's 'its own' names."
+        ),
+        "cell": cell.name,
+        "why_this_cell": DEEP_CHECK_CELL_REASON,
+        "spot_key": committed["spot_key"],
+        "board": list(committed["board"]),
+        "hero_position": committed["hero_position"],
+        "preflop_line": committed["preflop_line"],
+        "node_path": list(cell.node_path),
+        "actions": committed["actions"],
+        "committed_run": {
+            "iterations": committed["iterations"],
+            "achieved_exploitability_pct_of_pot": committed[
+                "achieved_exploitability_pct_of_pot"
+            ],
+            "strategy_digest": strategy_digest(
+                committed["hand_classes"], committed["class_weights"]
+            ),
+            "source": str(committed_cell_path(cell.name).relative_to(REPO_ROOT)),
+            "stopping_rule": (
+                f"the ruled target of {EXPLOITABILITY_TARGET_PCT_OF_POT}% of pot, checked every"
+                f" {CHECK_EVERY_ITERATIONS} iterations"
+            ),
+        },
+        "deep_run": {
+            "iterations": outcome.iterations,
+            "achieved_exploitability_pct_of_pot": outcome.exploit_pct_of_pot,
+            "wall_seconds": round(outcome.wall_seconds, 1),
+            "arena_storage": arena_storage,
+            "arena_bytes": outcome.arena_bytes,
+            "machine": MEASURING_MACHINE,
+            "largest_in_class_divergence": divergence,
+            "strategy_digest": strategy_digest(deep["hand_classes"], deep["class_weights"]),
+            "stopping_rule": (
+                f"the {SOLVE_ITERATION_CAP}-iteration cap alone, with the target posted at"
+                f" {RUN_TO_THE_CAP_TARGET_PCT} so nothing else could stop it. The tree, the menu,"
+                " the ranges and the arena are the committed configuration unchanged."
+            ),
+        },
+        "movement": summarise_movement(movements, shapes, reach),
+        "aggregate_frequencies": aggregate_frequencies(
+            committed["actions"], shallow_rows, aligned, reach
+        ),
+        "classes_whose_top_action_changed": action_flips(order, shallow_rows, aligned, reach),
+        "largest_movers": [
+            {
+                "hand_class": order[index],
+                "committed": shallow_rows[index],
+                "deep": aligned[index],
+                "moved": movements[index],
+                "committed_shape": shapes[index],
+                "reach_share": round(reach[index], 5),
+            }
+            for index in ranked[:25]
+        ],
+        "per_class": {
+            "note": (
+                "Parallel arrays in the committed cell's own class order, so every figure above"
+                " can be recomputed from this file without re-running anything. `reach_share` is"
+                " the deep run's, and is how often hero's own line brings that class here."
+            ),
+            "hand_classes": order,
+            "committed_weights": shallow_rows,
+            "deep_weights": aligned,
+            "moved": movements,
+            "committed_shape": shapes,
+            "reach_share": [round(value, 5) for value in reach],
+        },
+    }
+
+
+DEEP_CHECK_CELL_REASON = (
+    "9c8c7c is where indifference lives on the committed sample: of its 152 classes only 19 put"
+    " 99% or more on one action and 101 spread past a tenth, so it is the hardest cell to claim"
+    " settling on rather than the easiest. It is also hero's continuation-bet decision, which is"
+    " the node a flop chart is read at most. Decision 15 names the monotone cell, and it is also"
+    " the cheapest board this machine solves. One board is one board: rainbow collapses to 1,176"
+    " classes against this board's 152 and was never solved to target anywhere in this phase."
+)
+
+
+def write_deep_object(
+    object_dir: Path, cell: SampleCell, outcome: Any, arena_storage: str, node: dict[str, Any]
+) -> tuple[Path, str]:
+    """The deep run's whole node payload, outside git and digested, on the campaign's own shape.
+
+    The committed diff is a reading of this, and a reading whose source nobody kept is a figure
+    with nothing behind it. It is written beside the sample's objects for the same reason they
+    are: the bytes are large, nothing in the gate reads them, and the repo holds the evidence
+    that they exist rather than the bytes.
+    """
+    object_dir.mkdir(parents=True, exist_ok=True)
+    path = object_dir / f"deep-srp-{cell.board_text}.node.json.gz"
+    payload = {
+        "board": list(cell.board),
+        "cell": cell.name,
+        "preflop_line": preflop_line_for("BB").rendered,
+        "solve": {
+            "outcome": outcome.outcome,
+            "exploit_pct_of_pot": outcome.exploit_pct_of_pot,
+            "iterations": outcome.iterations,
+            "wall_seconds": outcome.wall_seconds,
+            "arena_bytes": outcome.arena_bytes,
+            "arena_storage": arena_storage,
+            "machine": MEASURING_MACHINE,
+            "stopping_rule": f"the {SOLVE_ITERATION_CAP}-iteration cap alone",
+        },
+        "config": solve_config_document(),
+        "nodes": {cell.name: node},
+    }
+    raw = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    with path.open("wb") as handle, gzip.GzipFile(
+        filename="", mode="wb", fileobj=handle, mtime=0
+    ) as stream:
+        stream.write(raw)
+    return path, hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def run_deep_check(
+    cell: SampleCell,
+    transport,
+    oop_text: str,
+    ip_text: str,
+    tolerance: float,
+    object_dir: Path,
+) -> dict[str, Any]:
+    """Re-solve one committed cell to the iteration cap and diff its frequencies."""
+    committed = json.loads(committed_cell_path(cell.name).read_text(encoding="utf-8"))
+    line = preflop_line_for("BB")
+    plan = SolvePlan(
+        label=f"deep-srp-{cell.board_text}",
+        board=cell.board_text,
+        preflop_line=line.rendered,
+        range_oop=oop_text,
+        range_ip=ip_text,
+        starting_pot=line.pot_bb,
+        effective_stack=line.effective_stack_bb,
+        config=solve_config_document(),
+    )
+    outcome = run_solve(plan, transport, stop_only_at_the_iteration_cap=True)
+    if outcome.iterations != SOLVE_ITERATION_CAP:
+        raise SystemExit(
+            f"the deep run stopped at {outcome.iterations} of {SOLVE_ITERATION_CAP} iterations,"
+            " so it is not the deep run decision 15 asks for and nothing from it is written."
+        )
+    node = transport("/api/node", {"path": [path_step(i) for i in cell.node_path]})
+    hero_line = preflop_line_for(cell.hero_position)
+    harvested = harvest_node(
+        node, cell.board, seat_of_player(cell.hero_position), hero_line.pot_bb, tolerance
+    )
+    deep = cell_document(
+        harvested,
+        preflop_line=hero_line,
+        board=cell.board,
+        blinds=BLINDS,
+        price_substitutions=PRICE_SUBSTITUTIONS,
+        achieved_exploitability_pct_of_pot=outcome.exploit_pct_of_pot,
+        iterations=outcome.iterations,
+    )
+    arena_storage = transport.arena()
+    document = deep_check_document(
+        cell, committed, deep, outcome, arena_storage, node, harvested.class_divergence
+    )
+    path, digest = write_deep_object(object_dir, cell, outcome, arena_storage, node)
+    document["deep_run"]["object_path"] = str(path)
+    document["deep_run"]["object_digest"] = digest
+    return document
+
+
+def report_deep_check(document: dict[str, Any]) -> None:
+    movement = document["movement"]
+    deep = document["deep_run"]
+    print(f"  deep run           {deep['iterations']} iterations,"
+          f" {deep['achieved_exploitability_pct_of_pot']:.4f}% of pot,"
+          f" {deep['wall_seconds'] / 60:.1f} min")
+    print(f"  committed run      {document['committed_run']['iterations']} iterations,"
+          f" {document['committed_run']['achieved_exploitability_pct_of_pot']:.4f}% of pot")
+    print(f"  movement           max {movement['max']}, median {movement['median']},"
+          f" p90 {movement['p90']}, mean {movement['mean']},"
+          f" reach-weighted mean {movement['reach_weighted_mean']}")
+    for shape, figures in movement["by_committed_shape"].items():
+        print(f"  {shape:17s} {figures['classes']} classes,"
+              f" max {figures['max']}, mean {figures['mean']}")
+    for action in document["aggregate_frequencies"]:
+        size = "" if action.get("size_bb") is None else f" {action['size_bb']:.4g}bb"
+        print(f"  {action['action'] + size:17s} {action['committed_frequency']:.4f}"
+              f" -> {action['deep_frequency']:.4f} ({action['moved']:+.4f})")
+    print(f"  top action changed {len(document['classes_whose_top_action_changed'])} classes")
+
+
+# --------------------------------------------------------------------------- #
 # The run
 # --------------------------------------------------------------------------- #
 
@@ -861,6 +1573,55 @@ def report(result: BoardResult) -> None:
         print(f"  {note}")
 
 
+def deep_check_run(args: argparse.Namespace, object_storage: str) -> int:
+    """Decision 15's deep run end to end: one cell, one restarted server, one committed diff.
+
+    It writes the deep node's whole payload to object storage the way a solve does, so the diff
+    in the repo is a reading of bytes that exist rather than the only copy of them, and then
+    rebuilds the index because the diff lands inside `data/artifacts` and moves its byte figures.
+    """
+    named = [cell for cell in SAMPLE_CELLS if cell.name == args.deep_check]
+    if not named:
+        raise SystemExit(f"no such cell: {args.deep_check!r}")
+    cell = named[0]
+    if not cell.in_the_sample:
+        raise SystemExit(
+            f"{cell.name} is listed and not held, so the repo holds no committed strategy to"
+            " diff a deep run against."
+        )
+    oop, ip = conditional_ranges()
+    oop_text, ip_text = range_text(oop), range_text(ip)
+    print(f"machine            {MEASURING_MACHINE}")
+    print(f"memory ceiling     {describe_memory_ceiling()}")
+    print(f"arena              {RULED_ARENA_STORAGE}, asked for by"
+          f" {SOLVER_COMPRESS_VARIABLE}={SOLVER_COMPRESS_FULL_PRECISION!r}")
+    print(f"deep check         {cell.name} on {cell.board_text}, to the"
+          f" {SOLVE_ITERATION_CAP}-iteration cap")
+    refuse_a_foreign_server()
+    server = Server(Path(args.server), Path(args.log_dir))
+    tolerance = CLASS_AGREEMENT_TOLERANCE if args.tolerance is None else float(args.tolerance)
+    transport = ArenaVerifiedTransport(http_transport(), RULED_ARENA_STORAGE)
+    server.start(f"deep-{cell.board_text}")
+    try:
+        document = run_deep_check(
+            cell, transport, oop_text, ip_text, tolerance, Path(args.object_dir)
+        )
+    except SolveDriverError as error:
+        print(f"  refused: {error}")
+        return 1
+    finally:
+        server.stop()
+    write_json(DEEP_CHECK_PATH, document)
+    report_deep_check(document)
+    print(f"  wrote              {DEEP_CHECK_PATH.relative_to(REPO_ROOT)}"
+          f" ({DEEP_CHECK_PATH.stat().st_size} bytes)")
+    index = rebuild_index(load_manifest(object_storage))
+    import_postflop_index(INDEX_PATH)
+    print(f"  index             {index['committed_bytes']} bytes committed,"
+          f" {index['headroom_bytes']} of headroom")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cell", action="append", default=[], help="a cell name; repeatable")
@@ -873,6 +1634,18 @@ def main(argv: list[str] | None = None) -> int:
                         help="in-class agreement tolerance; the harvest's own default otherwise")
     parser.add_argument("--index-only", action="store_true",
                         help="rebuild the index from what is already committed, solving nothing")
+    parser.add_argument("--determinism-tree", default=None, metavar="DIR",
+                        help="a second run's data/artifacts/postflop tree; with"
+                             " --determinism-objects, diffs it against the committed one and"
+                             " writes data/artifacts/postflop/determinism.json")
+    parser.add_argument("--determinism-objects", default=None, metavar="DIR",
+                        help="that second run's object directory")
+    parser.add_argument("--deep-check", nargs="?", const=DEEP_CHECK_CELL, default=None,
+                        metavar="CELL",
+                        help="decision 15's deep run: re-solve one committed cell to the"
+                             f" {SOLVE_ITERATION_CAP}-iteration cap and diff its action"
+                             " frequencies against the strategy the repo committed"
+                             f" (default {DEEP_CHECK_CELL})")
     args = parser.parse_args(argv)
 
     if args.list:
@@ -890,6 +1663,25 @@ def main(argv: list[str] | None = None) -> int:
               f" {index['committed_bytes']} bytes committed,"
               f" {index['headroom_bytes']} bytes of headroom")
         return 0
+
+    if args.determinism_tree or args.determinism_objects:
+        if not (args.determinism_tree and args.determinism_objects):
+            parser.error("--determinism-tree and --determinism-objects are used together")
+        document = determinism_document(
+            Path(args.determinism_tree), Path(args.determinism_objects)
+        )
+        write_json(DETERMINISM_PATH, document)
+        report_determinism(document)
+        print(f"  wrote              {DETERMINISM_PATH.relative_to(REPO_ROOT)}"
+              f" ({DETERMINISM_PATH.stat().st_size} bytes)")
+        index = rebuild_index(load_manifest(object_storage))
+        import_postflop_index(INDEX_PATH)
+        print(f"  index              {index['committed_bytes']} bytes committed,"
+              f" {index['headroom_bytes']} of headroom")
+        return 0 if document["identical"] else 1
+
+    if args.deep_check is not None:
+        return deep_check_run(args, object_storage)
 
     wanted = SAMPLE_CELLS if args.all else tuple(
         cell for cell in SAMPLE_CELLS if cell.name in set(args.cell)

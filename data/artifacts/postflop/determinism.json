@@ -1,0 +1,202 @@
+{
+ "check_schema_version": 1,
+ "what_this_is": "Determinism proved by re-solving and diffing rather than by checksumming one run, on the configuration actually committed, in two processes against a restarted server. No tolerance is set anywhere here: the contract rules that if the two runs are not byte-identical the phase halts and a human is asked, so this records identical or not and never how close.",
+ "configuration": "data/artifacts/postflop/solve_config.json, unchanged between the runs",
+ "the_two_runs_are_distinct": "Each cell carries both wall clocks, and they differ: the second run shared the machine with other work. A second tree whose wall clock matched the first to the microsecond is refused rather than compared, because that is a copy of the first run and would pass whatever the solver did.",
+ "identical": true,
+ "cells_compared": 5,
+ "how": "Two comparisons per cell. The committed cell document byte for byte, which is what the repo holds; and the solver's own per-combo strategies inside the two runs' objects, which is the stronger of the two because a committed row is rounded to a thousandth and two runs could differ under that and still write the same bytes.",
+ "cells": [
+  {
+   "cell": "monotone-connected-cbet",
+   "spot_key": "f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5",
+   "board": [
+    "9c",
+    "8c",
+    "7c"
+   ],
+   "cell_document_bytes_identical": true,
+   "committed_bytes": 8253,
+   "second_run_bytes": 8253,
+   "iterations": [
+    280,
+    280
+   ],
+   "achieved_exploitability_pct_of_pot": [
+    0.27735663733758104,
+    0.27735663733758104
+   ],
+   "wall_seconds": [
+    375.6,
+    606.0
+   ],
+   "arena_storage": [
+    "f32",
+    "f32"
+   ],
+   "strategy_digest": [
+    "f39ba5644e88d64a578a76c9bfd62b05f320651a34c17803a016cbf76dcd42b8",
+    "f39ba5644e88d64a578a76c9bfd62b05f320651a34c17803a016cbf76dcd42b8"
+   ],
+   "per_combo": {
+    "menu_matched": true,
+    "combos": 447,
+    "combos_in_only_one_run": 0,
+    "largest_gap": 0.0
+   }
+  },
+  {
+   "cell": "rainbow-dry-high-donk",
+   "spot_key": "f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5",
+   "board": [
+    "Kh",
+    "7d",
+    "2c"
+   ],
+   "cell_document_bytes_identical": true,
+   "committed_bytes": 17144,
+   "second_run_bytes": 17144,
+   "iterations": [
+    340,
+    340
+   ],
+   "achieved_exploitability_pct_of_pot": [
+    0.283013340119407,
+    0.283013340119407
+   ],
+   "wall_seconds": [
+    1677.4,
+    2523.9
+   ],
+   "arena_storage": [
+    "f32",
+    "f32"
+   ],
+   "strategy_digest": [
+    "3de9b6704124490649689dd5975f64b300a7f20afc255b218e48f58c9944a4e9",
+    "3de9b6704124490649689dd5975f64b300a7f20afc255b218e48f58c9944a4e9"
+   ],
+   "per_combo": {
+    "menu_matched": true,
+    "combos": 342,
+    "combos_in_only_one_run": 0,
+    "largest_gap": 0.0
+   }
+  },
+  {
+   "cell": "rainbow-dry-high-facing-a-bet",
+   "spot_key": "f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:BB:check,BTN:bet@33/p:5.5/e:97.5",
+   "board": [
+    "Kh",
+    "7d",
+    "2c"
+   ],
+   "cell_document_bytes_identical": true,
+   "committed_bytes": 16815,
+   "second_run_bytes": 16815,
+   "iterations": [
+    340,
+    340
+   ],
+   "achieved_exploitability_pct_of_pot": [
+    0.283013340119407,
+    0.283013340119407
+   ],
+   "wall_seconds": [
+    1677.4,
+    2523.9
+   ],
+   "arena_storage": [
+    "f32",
+    "f32"
+   ],
+   "strategy_digest": [
+    "d305055b3fee1afd8480b3e91fc44f35f121e4e3388396576140f5d97bb5fc25",
+    "d305055b3fee1afd8480b3e91fc44f35f121e4e3388396576140f5d97bb5fc25"
+   ],
+   "per_combo": {
+    "menu_matched": true,
+    "combos": 342,
+    "combos_in_only_one_run": 0,
+    "largest_gap": 0.0
+   }
+  },
+  {
+   "cell": "two-tone-paired-donk",
+   "spot_key": "f/b:8c8d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5",
+   "board": [
+    "8c",
+    "8d",
+    "3c"
+   ],
+   "cell_document_bytes_identical": true,
+   "committed_bytes": 11713,
+   "second_run_bytes": 11713,
+   "iterations": [
+    320,
+    320
+   ],
+   "achieved_exploitability_pct_of_pot": [
+    0.28373142426273523,
+    0.28373142426273523
+   ],
+   "wall_seconds": [
+    1035.9,
+    1487.3
+   ],
+   "arena_storage": [
+    "f32",
+    "f32"
+   ],
+   "strategy_digest": [
+    "32df801ee16fcd6fe29e5f0f8fd1c54c16b0ef539b38ed32dc45132586eb3819",
+    "32df801ee16fcd6fe29e5f0f8fd1c54c16b0ef539b38ed32dc45132586eb3819"
+   ],
+   "per_combo": {
+    "menu_matched": true,
+    "combos": 350,
+    "combos_in_only_one_run": 0,
+    "largest_gap": 0.0
+   }
+  },
+  {
+   "cell": "monotone-disconnected-listed-not-held",
+   "spot_key": "f/b:Ac8c3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5",
+   "board": [
+    "Ac",
+    "8c",
+    "3c"
+   ],
+   "held_in_the_repo": false,
+   "cell_document_bytes_identical": true,
+   "committed_bytes": 6357,
+   "second_run_bytes": 6357,
+   "iterations": [
+    320,
+    320
+   ],
+   "achieved_exploitability_pct_of_pot": [
+    0.27173729894428417,
+    0.27173729894428417
+   ],
+   "wall_seconds": [
+    616.0,
+    645.9
+   ],
+   "arena_storage": [
+    "f32",
+    "f32"
+   ],
+   "strategy_digest": [
+    "2cc028773f624f4acece454d5a21478161dcc400552544925388682d4e539d94",
+    "2cc028773f624f4acece454d5a21478161dcc400552544925388682d4e539d94"
+   ],
+   "per_combo": {
+    "menu_matched": true,
+    "combos": 331,
+    "combos_in_only_one_run": 0,
+    "largest_gap": 0.0
+   }
+  }
+ ]
+}

@@ -19,16 +19,155 @@ here, so a row names the cell the chart was really asked about.
 ## six copies of the chart bot
 
   hands dealt         600
-  hands refused        23
-  distinct spots       12
+  hands refused       163
+  distinct spots      151
 
    hands  spot key                                 hands seen  reason
        5  t6/d100/SB/BTN:raise@2.5,SB:raise@13.5,BTN:raise@40.5          4  spot-not-covered
        3  t6/d100/BB/BTN:raise@2.5,BB:raise@13.5,BTN:raise@40.5          2  spot-not-covered
        3  t6/d100/SB/CO:raise@2.5,SB:raise@13.5,CO:raise@40.5          3  spot-not-covered
+       2  (no expressible spot)                             2  no-cell-for-this-preflop-line
        2  t6/d100/BB/CO:raise@2.5,BB:raise@13.5,CO:raise@40.5          2  spot-not-covered
        2  t6/d100/BB/SB:raise@2.5,BB:raise@13.5,SB:raise@100          2  spot-not-covered
        2  t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5          2  spot-not-covered
+       1  f/b:6h4d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:7d4d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:7d7h2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:7h4d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:8d5c2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:8d7c2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:9c9d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:AcAd4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:AdJh9c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:AdTd3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Ah7d5c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Jc6d4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Jd7d4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Jd8c7c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Jd9c8c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:JdTh9c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Jh9d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Jh9d4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Kc9d4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:KcKd7c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:KdTh7c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Kh4d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:QdJcTc/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:QdJd4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Qh4c4d/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  f/b:Qh7d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5          1  no-cell-for-this-board
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
+       1  (no expressible spot)                             1  no-cell-for-this-preflop-line
        1  t6/d100/BB/HJ:raise@2.5,BTN:raise@7.5,SB:raise@40.5          1  spot-not-covered
        1  t6/d100/BB/LJ:raise@2.5,BB:raise@13.5,LJ:raise@40.5          1  spot-not-covered
        1  t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5          1  spot-not-covered
@@ -40,9 +179,148 @@ here, so a row names the cell the chart was really asked about.
     t6/d100/SB/BTN:raise@2.5,SB:raise@13.5,BTN:raise@40.5: 88, A7s, QQ, QTsx2
     t6/d100/BB/BTN:raise@2.5,BB:raise@13.5,BTN:raise@40.5: 96sx2, AKs
     t6/d100/SB/CO:raise@2.5,SB:raise@13.5,CO:raise@40.5: 22, 76s, 88
+    (no expressible spot): AKo, JJ
     t6/d100/BB/CO:raise@2.5,BB:raise@13.5,CO:raise@40.5: A5o, QJo
     t6/d100/BB/SB:raise@2.5,BB:raise@13.5,SB:raise@100: 99, AKo
     t6/d100/BTN/HJ:raise@2.5,BTN:raise@7.5,HJ:raise@22.5: AJs, AKs
+    f/b:6h4d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: T9s
+    f/b:7d4d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: KQs
+    f/b:7d7h2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: QTo
+    f/b:7h4d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: A4s
+    f/b:8d5c2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: KJo
+    f/b:8d7c2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: QTo
+    f/b:9c9d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: QTo
+    f/b:AcAd4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: A4s
+    f/b:AdJh9c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: KTo
+    f/b:AdTd3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: AJs
+    f/b:Ah7d5c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: K4s
+    f/b:Jc6d4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: K7s
+    f/b:Jd7d4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: KQo
+    f/b:Jd8c7c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: KQo
+    f/b:Jd9c8c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: QTo
+    f/b:JdTh9c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: 66
+    f/b:Jh9d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: AQo
+    f/b:Jh9d4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: 44
+    f/b:Kc9d4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: A7s
+    f/b:KcKd7c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: A9o
+    f/b:KdTh7c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: A5s
+    f/b:Kh4d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: QTo
+    f/b:QdJcTc/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: ATo
+    f/b:QdJd4c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: A8s
+    f/b:Qh4c4d/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: KTs
+    f/b:Qh7d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5: A2s
+    (no expressible spot): Q5s
+    (no expressible spot): A9o
+    (no expressible spot): 55
+    (no expressible spot): T8o
+    (no expressible spot): A4s
+    (no expressible spot): ATo
+    (no expressible spot): 88
+    (no expressible spot): 88
+    (no expressible spot): K6o
+    (no expressible spot): JTs
+    (no expressible spot): QJo
+    (no expressible spot): ATs
+    (no expressible spot): 98s
+    (no expressible spot): QTs
+    (no expressible spot): KJo
+    (no expressible spot): Q4s
+    (no expressible spot): A9o
+    (no expressible spot): K7o
+    (no expressible spot): QTs
+    (no expressible spot): 87o
+    (no expressible spot): K9s
+    (no expressible spot): KTo
+    (no expressible spot): Q9s
+    (no expressible spot): KTs
+    (no expressible spot): 33
+    (no expressible spot): TT
+    (no expressible spot): QQ
+    (no expressible spot): 52s
+    (no expressible spot): 33
+    (no expressible spot): A6o
+    (no expressible spot): J5s
+    (no expressible spot): AQo
+    (no expressible spot): J2s
+    (no expressible spot): A8s
+    (no expressible spot): KTo
+    (no expressible spot): Q9s
+    (no expressible spot): T9o
+    (no expressible spot): 88
+    (no expressible spot): 97s
+    (no expressible spot): ATo
+    (no expressible spot): T8s
+    (no expressible spot): JTo
+    (no expressible spot): ATo
+    (no expressible spot): 77
+    (no expressible spot): KTs
+    (no expressible spot): A2o
+    (no expressible spot): 86s
+    (no expressible spot): K5s
+    (no expressible spot): Q9o
+    (no expressible spot): KJo
+    (no expressible spot): J4s
+    (no expressible spot): QTo
+    (no expressible spot): AJo
+    (no expressible spot): TT
+    (no expressible spot): K8s
+    (no expressible spot): AQo
+    (no expressible spot): K8s
+    (no expressible spot): 44
+    (no expressible spot): 98o
+    (no expressible spot): 66
+    (no expressible spot): AKo
+    (no expressible spot): QTs
+    (no expressible spot): AJs
+    (no expressible spot): AQo
+    (no expressible spot): 95s
+    (no expressible spot): AKo
+    (no expressible spot): QTs
+    (no expressible spot): K8o
+    (no expressible spot): 64s
+    (no expressible spot): A8o
+    (no expressible spot): 64s
+    (no expressible spot): AJo
+    (no expressible spot): AJs
+    (no expressible spot): AQs
+    (no expressible spot): A3s
+    (no expressible spot): K7s
+    (no expressible spot): AJs
+    (no expressible spot): QJs
+    (no expressible spot): A4s
+    (no expressible spot): KJo
+    (no expressible spot): J8s
+    (no expressible spot): A3s
+    (no expressible spot): AJo
+    (no expressible spot): ATs
+    (no expressible spot): A4s
+    (no expressible spot): 44
+    (no expressible spot): T8s
+    (no expressible spot): 99
+    (no expressible spot): 87s
+    (no expressible spot): TT
+    (no expressible spot): 64s
+    (no expressible spot): JTo
+    (no expressible spot): A9o
+    (no expressible spot): 33
+    (no expressible spot): A5s
+    (no expressible spot): AKo
+    (no expressible spot): KJo
+    (no expressible spot): AKo
+    (no expressible spot): ATs
+    (no expressible spot): AJo
+    (no expressible spot): J9s
+    (no expressible spot): 33
+    (no expressible spot): KJo
+    (no expressible spot): K7o
+    (no expressible spot): AKo
+    (no expressible spot): 66
+    (no expressible spot): 99
+    (no expressible spot): KQo
+    (no expressible spot): ATo
+    (no expressible spot): T9s
+    (no expressible spot): KJo
+    (no expressible spot): KK
     t6/d100/BB/HJ:raise@2.5,BTN:raise@7.5,SB:raise@40.5: 85s
     t6/d100/BB/LJ:raise@2.5,BB:raise@13.5,LJ:raise@40.5: A6s
     t6/d100/BTN/LJ:raise@2.5,BTN:raise@7.5,LJ:raise@22.5: QQ
@@ -50,7 +328,7 @@ here, so a row names the cell the chart was really asked about.
     t6/d100/SB/HJ:raise@2.5,SB:raise@13.5,HJ:raise@40.5: 88
     t6/d100/SB/LJ:raise@2.5,SB:raise@13.5,LJ:raise@40.5: 88
 
-  23 refused hands across 12 distinct spots. Those two numbers must agree with the
+  163 refused hands across 151 distinct spots. Those two numbers must agree with the
   hands-refused count above; if they do not, refusal detail is being dropped somewhere
   between the strategy and this file.
 

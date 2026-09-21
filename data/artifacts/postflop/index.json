@@ -7,8 +7,8 @@
  ],
  "line_count_bound_by": "campaign-cost",
  "cells_solved_and_rejected_above_one_percent": 0,
- "committed_bytes": 62590,
- "headroom_bytes": 16070825,
+ "committed_bytes": 100845,
+ "headroom_bytes": 16032570,
  "entries": [
   {
    "spot_key": "f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5",
