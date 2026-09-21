@@ -274,7 +274,7 @@ subagents in this one worktree; the coordinator owns every commit.
   nothing it could get wrong that the gate does not already catch. D2 and D3 both produce a number
   this lane's own record then rests on, which is the shape that needs an author who is not quoting
   their own campaign back to themselves.
-- Status, 2026-09-21. **D4 done**: decision 18b's fifth cell, code only, committed at `52fa2f9`.
+- Status: 2026-09-21. **D4 done**: decision 18b's fifth cell, code only, committed at `52fa2f9`.
   It returned two corrections from outside its brief, both re-measured before they were believed -
   `check_file_sizes` has no pattern covering `scripts/` at all, so the cap three earlier extractions
   in this stage were paid against does not exist for that file; and this plan's "four files at
