@@ -1,8 +1,15 @@
-task_id: null
+task_id: MAINT-35
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: contract-update
+base_commit: 1d891581619ff4b99a2ed34bc390f0398c7619c7
+approved_scope:
+- AGENTS.md
+- README.md
+- docs/ROADMAP.md
+- docs/V2_ROADMAP.md
+- docs/ARCHITECTURE.md
+- docs/phase_contracts/**
+- verification/loop_policy.yml
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -18,6 +25,27 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+- date: 2026-09-21
+  reason: >-
+    MAINT-35 opens from idle, so every pattern in `approved_scope` reads as a widening against
+    `base_commit` and this entry is what puts the whole of it on the record at once. Taylor ruled on
+    2026-09-21 that the goal of this repo is a bot that plays strong no-limit hold'em and that the
+    training product is backlogged until the bot is strong, and that some recent decisions refused
+    spots the solve takes on the grounds that they would not make sense for a trainee. Nothing in the
+    repo carries that ruling yet: `AGENTS.md`, `README.md` and `docs/ARCHITECTURE.md` all still state
+    the training frame as the purpose, so they are in scope. `docs/ROADMAP.md` and
+    `docs/V2_ROADMAP.md` carry the direction and the eight 2026-08-15 rulings, two of which Taylor
+    moved on 2026-09-21, so they are in scope. `docs/phase_contracts/**` is in scope because phase 15
+    is retired and phases 18, 19 and 20 are declared, and `verification/loop_policy.yml` is in scope
+    because a declared phase needs a policy entry and a retired one must not keep hers.
+    `task_mode` is `contract-update` because two boundary changes are semantic: table automation and
+    browser observation lift at phase 20 for Taylor's own home games and for nothing else, and the
+    "no heuristic guessing" boundary that `docs/V2_ROADMAP.md` ruled permanent now lifts at phase 19.
+    What is deliberately NOT in scope: `src/**`, `tests/**`, `scripts/**`, `data/**` and
+    `verification/mutations.yml`. This task reverses no acceptance, re-derives no artifact and
+    changes no behaviour. The teaching-motivated acceptances it found are filed in `backlog.yml` as
+    work to reopen, and the big blind's tight defence is filed to reopen after phase 16 has flop
+    cells, which is Taylor's ruling rather than this task's choice.
 - date: 2026-09-17
   reason: >-
     `data_pipeline/comparison_report.py` joins approved_scope for one sentence. The third
