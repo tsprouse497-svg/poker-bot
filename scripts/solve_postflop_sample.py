@@ -12,6 +12,12 @@ a freshly restarted one on the identical config. Nothing in `postflop_solve_driv
 anything - it is handed a transport and assumes a server - so the restart lives here, once per
 plan, and the wall clock this script reports is therefore a cold-start figure on every row.
 
+**It starts the server with full-precision arenas and then proves it got them.** GTOpen defaults
+to quantized ones and no route it serves says which it allocated, so asking is not enough: the
+server is started with `SOLVER_COMPRESS=0` in its own environment, and every tree it builds is
+checked against the arena the configuration rules before anything is solved. What the index
+records is that reading rather than the value the run asked for.
+
 **What it will not do.** It will not route around `check_memory_ceiling`: GTOpen's own guard
 reads `/proc/meminfo`, which Darwin does not have, and falls through to a flat 48,000 MB it
 cannot reach before this machine thrashes, so the driver's ceiling is the only one there is. It
@@ -92,6 +98,7 @@ from poker_training_bot.solver_artifacts.postflop_key import (  # noqa: E402
 )
 from poker_training_bot.solver_artifacts.postflop_solve_driver import (  # noqa: E402
     MEASURING_MACHINE,
+    RULED_ARENA_STORAGE,
     SolvePlan,
     commit_verdict,
     describe_memory_ceiling,
@@ -102,6 +109,7 @@ from poker_training_bot.solver_artifacts.postflop_solve_driver import (  # noqa:
 from poker_training_bot.solver_artifacts.postflop_transport import (  # noqa: E402
     BASE_URL,
     SolveDriverError,
+    check_arena_storage,
     http_transport,
 )
 from poker_training_bot.solver_artifacts.schema import PreflopAction  # noqa: E402
@@ -327,11 +335,35 @@ def range_text(weights: dict[str, float]) -> str:
 # --------------------------------------------------------------------------- #
 
 
+SOLVER_COMPRESS_VARIABLE = "SOLVER_COMPRESS"
+SOLVER_COMPRESS_FULL_PRECISION = "0"
+"""How GTOpen picks its arena, read off `crates/server/src/main.rs` rather than off the name.
+
+    fn storage_from_env() -> Storage {
+        match std::env::var("SOLVER_COMPRESS").as_deref() {
+            Ok("0") => Storage::F32,
+            _ => Storage::Compressed,
+        }
+    }
+
+The match is on the exact string `"0"` and everything else is the quantized arena: the variable
+absent, `"false"`, `"no"`, `"0.0"`, `" 0"`, an unset value inherited from a login shell. There is
+no error and no log line, so a name typed slightly wrong produces a solve that looks entirely
+normal and measures something else. The value is read per request rather than at boot, but from
+the server process's own environment, so it is fixed when the process starts and this is the only
+place it can be set. `check_arena_storage` is what proves it took, because nothing the server
+answers says so.
+"""
+
+
 class Server:
     """One GTOpen process, started and stopped by this script.
 
     Restarted per plan on purpose: the server never returns freed pages, and a session carrying
     a large high-water mark measured about 1.6x slower per iteration on the identical config.
+
+    Started with the arena the campaign is configured for, so full precision is a property of the
+    committed run rather than of whoever typed the command.
     """
 
     def __init__(self, binary: Path, log_dir: Path) -> None:
@@ -350,6 +382,7 @@ class Server:
         self.process = subprocess.Popen(  # noqa: S603 - a local binary named on the command line
             [str(self.binary)],
             cwd=str(self.binary.resolve().parents[2]),
+            env={**os.environ, SOLVER_COMPRESS_VARIABLE: SOLVER_COMPRESS_FULL_PRECISION},
             stdout=log,
             stderr=subprocess.STDOUT,
             start_new_session=True,
@@ -379,6 +412,42 @@ class Server:
             process.wait(timeout=SERVER_STOP_TIMEOUT_SECONDS)
 
 
+class ArenaVerifiedTransport:
+    """The real transport with one thing added: every built tree is checked for its arena.
+
+    The check sits here rather than in `postflop_solve_driver.run_solve` because it has to hold
+    for the committed campaign and cannot hold for a caller handing the driver a two-field stub.
+    Wrapping the transport puts it on the only path a real solve takes - `/api/spot` answers, the
+    arena is decided from that answer, and a quantized tree raises before `/api/solve` is called -
+    with no flag to forget and no way to run the campaign around it.
+
+    `verified` is what the run actually got, kept so the provenance records a reading rather than
+    the constant the run asked for.
+    """
+
+    def __init__(self, inner, wanted: str) -> None:
+        self.inner = inner
+        self.wanted = wanted
+        self.verified: str | None = None
+
+    def __call__(self, path: str, body: dict | None = None) -> dict:
+        answer = self.inner(path, body)
+        if path == "/api/spot":
+            self.verified = check_arena_storage(answer, self.wanted)
+        return answer
+
+    def arena(self) -> str:
+        """The verified arena, or a refusal: a board that never built a tree has nothing to say
+        about which arena it was solved in, and a blank string in the provenance is exactly the
+        placeholder the index forbids."""
+        if self.verified is None:
+            raise SystemExit(
+                "no tree was built on this transport, so nothing verified which arena the solve"
+                " used. Refused rather than recorded as the value it was asked for."
+            )
+        return self.verified
+
+
 def refuse_a_foreign_server() -> None:
     """A server this script did not start is somebody's session, and `/api/spot` drops it."""
     try:
@@ -404,6 +473,7 @@ class BoardResult:
 
     board: tuple[str, ...]
     outcome: Any
+    arena_storage: str = ""
     cells: list[dict[str, Any]] = field(default_factory=list)
     node_payloads: dict[str, Any] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
@@ -451,7 +521,7 @@ def solve_one_board(
         config=solve_config_document(),
     )
     outcome = run_solve(plan, transport)
-    result = BoardResult(board=board, outcome=outcome)
+    result = BoardResult(board=board, outcome=outcome, arena_storage=transport.arena())
     commit, verdict = commit_verdict(outcome)
     result.committed, result.verdict = commit, verdict
     if not commit:
@@ -512,6 +582,7 @@ def write_object(object_dir: Path, board: tuple[str, ...], result: BoardResult) 
             "iterations": result.outcome.iterations,
             "wall_seconds": result.outcome.wall_seconds,
             "arena_bytes": result.outcome.arena_bytes,
+            "arena_storage": result.arena_storage,
             "machine": MEASURING_MACHINE,
             "memory_ceiling": describe_memory_ceiling(),
         },
@@ -568,14 +639,24 @@ INDEX_ENTRY_FIELDS = (
     "board",
     "achieved_exploitability_pct_of_pot",
     "iterations",
+    "arena_storage",
     "strategy_digest",
     "object_digest",
 )
-"""What an index entry carries: its key, where it sits, and the four measured figures.
+"""What an index entry carries: its key, where it sits, the four measured figures, and the arena
+its solve ran in.
 
 Named once and filled through `index_entry`, because the sample cells and the listed-not-held
 cell reach the index by different routes and an entry that is thinner on one route is exactly
-the placeholder the index forbids."""
+the placeholder the index forbids.
+
+**The arena is per entry rather than in the header**, even though one campaign rules one arena
+for every cell it solves. A cell is solved one board at a time, a run can be resumed days later
+against a server somebody else started, and the manifest carries entries across runs - so the
+storage mode is a property of the solve that produced a cell, in the same way its iteration count
+is, and a header field would assert it for cells it never saw. A quantized number and a
+full-precision one are not the same measurement, so a reader reconstructing one cell has to be
+able to tell which it is holding without trusting that the file beside it describes that run."""
 
 
 def index_entry(figures: dict[str, Any], origin: str) -> dict[str, Any]:
@@ -658,6 +739,7 @@ def rebuild_index(manifest: dict[str, Any]) -> dict[str, Any]:
                         cell.achieved_exploitability_pct_of_pot
                     ),
                     "iterations": cell.iterations,
+                    "arena_storage": recorded.get("arena_storage"),
                     "strategy_digest": strategy_digest(cell.hand_classes, cell.class_weights),
                     "object_digest": recorded["object_digest"],
                 },
@@ -717,6 +799,7 @@ def record_cell(
     object_dir: Path,
     object_path: Path,
     digest: str,
+    arena_storage: str,
 ) -> str:
     """Write one solved cell where its own `in_the_sample` sends it, and record it.
 
@@ -738,6 +821,7 @@ def record_cell(
         manifest["objects"][spot_key] = {
             "object_path": str(object_path),
             "object_digest": digest,
+            "arena_storage": arena_storage,
             "board": list(cell.board),
         }
         return (f"wrote              {target.relative_to(REPO_ROOT)}"
@@ -750,6 +834,7 @@ def record_cell(
         "board": list(cell.board),
         "achieved_exploitability_pct_of_pot": cell.achieved_exploitability_pct_of_pot,
         "iterations": cell.iterations,
+        "arena_storage": arena_storage,
         "strategy_digest": strategy_digest(cell.hand_classes, cell.class_weights),
         "object_digest": digest,
         "cell_document": str(target),
@@ -770,7 +855,8 @@ def report(result: BoardResult) -> None:
     print(f"  iterations         {outcome.iterations} (+/-{outcome.iteration_bracket})")
     print(f"  wall clock         {outcome.wall_seconds:.1f}s"
           f" = {outcome.wall_seconds / 60:.1f} min")
-    print(f"  planned arena      {outcome.arena_bytes / 1e9:.2f} GB")
+    print(f"  planned arena      {outcome.arena_bytes / 1e9:.2f} GB, {result.arena_storage}"
+          " (read back off the built tree, not assumed from the environment)")
     for note in result.notes:
         print(f"  {note}")
 
@@ -819,6 +905,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"machine            {MEASURING_MACHINE}")
     print(f"memory ceiling     {describe_memory_ceiling()}")
     print(f"solver own guard   {gtopen_memory_guard()['solver_guard_live']}")
+    print(f"arena              {RULED_ARENA_STORAGE}, asked for by"
+          f" {SOLVER_COMPRESS_VARIABLE}={SOLVER_COMPRESS_FULL_PRECISION!r} and verified on"
+          " every built tree")
     print(f"floor              {RANGE_WEIGHT_FLOOR} class-level, from the committed export")
     print(f"range oop          {len(oop)} classes, {sum(class_combos(h) for h in oop)} combos")
     print(f"range ip           {len(ip)} classes, {sum(class_combos(h) for h in ip)} combos")
@@ -840,7 +929,8 @@ def main(argv: list[str] | None = None) -> int:
         server.start(label)
         try:
             result = solve_one_board(
-                board, cells_for_board(board, wanted), http_transport(),
+                board, cells_for_board(board, wanted),
+                ArenaVerifiedTransport(http_transport(), RULED_ARENA_STORAGE),
                 oop_text, ip_text, tolerance,
             )
         except SolveDriverError as error:
@@ -858,7 +948,10 @@ def main(argv: list[str] | None = None) -> int:
         path, digest = write_object(object_dir, board, result)
         print(f"  object             {path} sha256 {digest[:16]}...")
         for built in result.cells:
-            print(f"  {record_cell(built, manifest, object_dir, path, digest)}")
+            recorded = record_cell(
+                built, manifest, object_dir, path, digest, result.arena_storage
+            )
+            print(f"  {recorded}")
 
     manifest["object_storage"] = object_storage
     write_json(OBJECT_MANIFEST_PATH, manifest)

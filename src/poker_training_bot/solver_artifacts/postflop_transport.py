@@ -92,3 +92,86 @@ def arena_bytes(arena_mb: float) -> int:
     GTOpen's routes says whether that field is 10^6 or 2^20 bytes, and 2^20 makes a planned solve
     look bigger, so the ambiguity errs toward refusing rather than starting a run that dies."""
     return int(arena_mb * 1024 * 1024)
+
+
+# --- Which arena the server actually allocated, decided rather than assumed
+
+FULL_PRECISION_ARENA = "f32"
+QUANTIZED_ARENA = "compressed"
+"""GTOpen's two storage modes, named as `crates/solver/src/store.rs` names them: four bytes an
+entry, or two bytes an entry plus one f32 scale per tree node for each of four arrays."""
+
+_MB = 1_000_000
+"""The server's own conversion, `spot.arena_bytes_for(storage) as f64 / 1e6`. `arena_bytes` above
+reads the same field as 2^20 on purpose, because a guard that over-reads refuses early; this
+reader is reproducing the server's arithmetic rather than sizing a guard, so it must use the
+server's unit or it compares two different numbers."""
+
+_GPU_SLACK_BYTES = 512 * 1024 * 1024
+"""The flat term `Spot::vram_estimate_bytes` adds after the staging buffers and the arenas."""
+
+
+def arena_storage(built: Mapping[str, object]) -> str:
+    """Which arena a built tree got, read off `/api/spot`'s own answer, or a refusal.
+
+    **No route reports the storage mode.** The server picks it from its own environment and says
+    nothing about it, so a run asking for full precision and silently getting quantized arenas
+    looks identical on the wire - which is the one failure that makes every number a campaign
+    produces the wrong measurement under a right-looking label.
+
+    It is nevertheless decidable, because two fields of one `TreeInfo` are computed from the same
+    entry count under different rules. `vram_mb` is
+    `nodes * (hands_oop + hands_ip + max of the two) * 4 + entries * 8 + 512 MiB`, and its arena
+    term is full precision whatever the storage is; `arena_mb` is `entries * 8` under full
+    precision and `entries * 4 + nodes * 16` under quantization. So the entry count comes out of
+    `vram_mb` and the two candidate arenas are then arithmetic, and they differ by roughly a
+    factor of two - far too wide for the answer to be in doubt.
+
+    Every reading is refused rather than guessed: an entry count that is not a whole number, an
+    arena matching neither candidate, and the degenerate tree where both candidates coincide.
+    """
+    nodes = int(numeric(built, "/api/spot", "nodes"))
+    oop = int(numeric(built, "/api/spot", "hands_oop"))
+    ip = int(numeric(built, "/api/spot", "hands_ip"))
+    arena = round(numeric(built, "/api/spot", "arena_mb") * _MB)
+    vram = round(numeric(built, "/api/spot", "vram_mb") * _MB)
+    staging = nodes * (oop + ip + max(oop, ip)) * 4
+    entries_bytes = vram - staging - _GPU_SLACK_BYTES
+    if entries_bytes <= 0 or entries_bytes % 8:
+        raise SolveDriverError(
+            f"/api/spot answered arena_mb and vram_mb that do not reconcile: {vram} bytes of VRAM "
+            f"less {staging} of staging and {_GPU_SLACK_BYTES} of slack leaves {entries_bytes}, "
+            "which is not a whole number of solver entries. The storage mode cannot be told from "
+            "this answer, so the run is refused rather than assumed."
+        )
+    candidates = {
+        FULL_PRECISION_ARENA: entries_bytes,
+        QUANTIZED_ARENA: entries_bytes // 2 + nodes * 16,
+    }
+    matched = sorted(name for name, size in candidates.items() if size == arena)
+    if len(matched) != 1:
+        raise SolveDriverError(
+            f"/api/spot planned an arena of {arena} bytes, and this tree's two storage modes come "
+            f"to {candidates}. {'Both' if matched else 'Neither'} answers to that, so which arena "
+            "the server allocated cannot be told and the run is refused."
+        )
+    return matched[0]
+
+
+def check_arena_storage(built: Mapping[str, object], wanted: str) -> str:
+    """`arena_storage`, refusing anything but the arena the campaign was configured for.
+
+    The server chooses from its environment and reports nothing, so the only honest order is ask,
+    read back, refuse - the same order the memory ceiling uses, and for the same reason: a run
+    that has already started is a cost that has already been paid.
+    """
+    found = arena_storage(built)
+    if found != wanted:
+        raise SolveDriverError(
+            f"the solve was configured for {wanted} arenas and the server built {found} ones. "
+            "GTOpen selects storage from SOLVER_COMPRESS in its own environment and answers "
+            "nothing about it, so a server started without that variable, or with any value but "
+            "the one it tests for, quantizes silently. Refused before solving: numbers from the "
+            "two arenas are not the same measurement."
+        )
+    return found

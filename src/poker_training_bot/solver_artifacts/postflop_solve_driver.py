@@ -44,6 +44,7 @@ from poker_training_bot.solver_artifacts.postflop_artifact import (
     SOLVE_ITERATION_CAP,
 )
 from poker_training_bot.solver_artifacts.postflop_transport import (
+    FULL_PRECISION_ARENA,
     SolveDriverError,
     Transport,
     answered,
@@ -55,11 +56,22 @@ from poker_training_bot.solver_artifacts.postflop_transport import (
 
 MEASURING_MACHINE = "Apple M4, 10 cores, 34.4 GB RAM, CPU engine"  # what a report must name
 
-MEMORY_CEILING_FRACTION = 0.35
+MEMORY_CEILING_FRACTION = 0.40
 """A policy rather than a measurement, which is why it is what travels between machines. The arena
 is faulted in lazily during the solve, so it is paid as resident memory alongside the tree, the
 ranges and whatever else the box runs, and a ceiling near the RAM figure lets a machine swap. The
-measuring script keeps the same fraction; it is the only guard that fired in the record."""
+measuring script keeps the same fraction; it is the only guard that fired in the record.
+
+**It was 0.35 and Taylor moved it to 0.40 on 2026-09-20, `frozen-into-data`, to admit the flop
+campaign at full-precision arenas.** Quantized arenas cost about half as much memory, and every
+arena figure this phase recorded before that date was taken under them, so asking for full
+precision roughly doubles the planned arena on the same tree - `arena_storage` in
+`postflop_transport` derives both sizes from one `/api/spot` answer, and they differ by
+`entries * 4` less `nodes * 16`. The campaign plans an arena the 0.35 ceiling refused by a
+fraction of a percent and this one clears with room to spare. What moved is the policy rather than
+the arithmetic: 0.35 was the number meant to travel to the rented box the contract names, so this
+loosens the guard there too, which is a cost of the ruling rather than an oversight in it.
+Decision 20 carries the measurements and what was rejected."""
 
 FALLBACK_MEMORY_CEILING_BYTES = 4096 * 1024 * 1024
 """Used only when this machine will not say how much memory it has. Deliberately small, and not
@@ -184,6 +196,14 @@ type, so a committed flop cell's action set is what its menu says. On later stre
 and the four things deciding which side a node falls on - `max_raises`, the raise multiplier, the
 starting pot and the effective stack - are pinned on this config and on every cell."""
 
+RULED_ARENA_STORAGE = FULL_PRECISION_ARENA
+"""Full precision, ruled by Taylor 2026-09-20, `frozen-into-data`, and part of the configuration
+rather than of the command line because a number solved under quantized arenas and a number solved
+under these are not the same measurement. The server picks its arena from its own environment and
+reports nothing, so this is the value `check_arena_storage` holds the built tree against, and
+`solve_config.json` carries it beside the menu so a reader of a committed cell can tell which of
+the two it is reading."""
+
 RULED_MAX_RAISES = 2
 FLOP_BET_SIZES = ("33", "75")
 LATER_STREET_BET_SIZES = ("66", "125")
@@ -198,6 +218,7 @@ _RULED_SEAT: dict[str, dict[str, object]] = {
 
 RULED_SOLVE_CONFIG: dict[str, object] = {
     "seats": {"ip": _RULED_SEAT, "oop": _RULED_SEAT},
+    "arena_storage": RULED_ARENA_STORAGE,
     "allin_threshold": RULED_ALLIN_THRESHOLD_PCT,
     "add_allin": False,
     "max_raises": RULED_MAX_RAISES,

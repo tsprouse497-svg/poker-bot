@@ -13,13 +13,16 @@ hand against the same board. `postflop_isomorphism.canonical_hole_cards` is the 
 that label here, exactly as it is at the table, so a cell cannot be written under labels the
 lookup will never ask for.
 
-**Two combos of one class are checked against each other rather than averaged.** The solver
-exploits the same symmetry internally and `/api/node` calls `ensure_symmetric` before it
-answers, so the rows of one class are a *prediction* this module can test: they must agree. They
-are compared and a disagreement above `CLASS_AGREEMENT_TOLERANCE` refuses the cell, because a
-mean over two rows that should have been equal is a number with no solve behind it and nothing
-downstream could tell it from one that had. The largest divergence actually seen travels back on
-the result so a run reports it rather than assuming it was zero.
+**Two combos of one class are checked against each other rather than averaged.** Nothing in the
+solver makes them agree: `Solver::ensure_symmetric` transports solved data between *chance*
+branches, and `symmetrize_node`'s action arm only walks its children and writes nothing into an
+action node's own per-hand arrays, so the flop node this module harvests - which sits above every
+chance node - is never touched by it. The combos of one class agree because the game is symmetric
+under the board's own suit map and the solve converges toward that, which is an empirical fact
+about a particular run rather than a guarantee. So the check measures how far this run got, and a
+disagreement above `CLASS_AGREEMENT_TOLERANCE` refuses the cell, because the collapse then has to
+pick one of several answers that are not the same answer. The largest divergence actually seen
+travels back on the result so a run reports it rather than assuming it was zero.
 
 **Weights are rounded once, in thousandths, and the residue is paid by the largest entry.**
 Decision 6's lean JSON is three-decimal floats; the importer needs every row to sum to one
@@ -67,11 +70,22 @@ lets the residue be paid once rather than accumulate one half-thousandth per act
 CLASS_AGREEMENT_TOLERANCE = 5e-4
 """How far two combos of one suit-isomorphism class may disagree before the cell is refused.
 
-Half a thousandth: below the third decimal the cell is written to, so anything this tolerates
-cannot change a committed number, and anything it refuses would have. It is not a fudge for a
-solver that answers asymmetrically - `ensure_symmetric` runs before every `/api/node` answer, so
-a real divergence here says the group the server used is not the group the table will use, and
-that is a refusal rather than a rounding."""
+**What it catches is a run whose combos have not converged onto each other.** The game is
+symmetric under the board's own suit map, so the true strategies of two combos of one class are
+equal and a solve approaching equilibrium drives their difference toward zero. Nothing enforces
+it: `ensure_symmetric` transports data between chance branches and writes nothing into a flop
+action node, which is the node harvested here. A gap above this is therefore a measurement - the
+run is far enough from equilibrium, or the arena is coarse enough, that the combos of one hand
+disagree more than a thousandth-place cell can hide - and it is also what a genuine mismatch
+between the solver's suit group and this repo's would look like, which is the other thing worth
+refusing over.
+
+**What it does not promise is that a tolerated gap leaves the committed number alone.** A
+committed row is rounded to thousandths, and two values astride a thousandth boundary round apart
+at any separation at all: 0.7724 and 0.7726 differ by 2e-4, well inside this tolerance, and round
+to 0.772 and 0.773. So the collapse's choice of which combo to commit can move a committed digit
+anywhere below this bound, and half a thousandth is a bound on how often rather than on whether.
+`THE-COMMITTED-ROW-IS-ONE-COMBO-RATHER-THAN-AN-AGREED-ANSWER` owns that."""
 
 OOP_PLAYER = 0
 IP_PLAYER = 1
@@ -275,9 +289,12 @@ def collapse_hero_strategy(
 
     Returns the classes in the order they were first met, their rounded rows, the largest
     disagreement seen inside any class, and how many classes hero reaches with no probability at
-    all. That last count is reported rather than filtered: a zero-reach class is a hand hero's
-    own committed strategy never brings here, so its row is unexercised rather than wrong, and
-    dropping it would refuse at a table any seat that arrived off this policy.
+    all. The row committed is the first combo of the class in GTOpen's hand order, one of several
+    answers rather than one agreed between them -
+    `THE-COMMITTED-ROW-IS-ONE-COMBO-RATHER-THAN-AN-AGREED-ANSWER`. The zero-reach count is
+    reported rather than filtered: such a class is a hand hero's own committed strategy never
+    brings here, so its row is unexercised rather than wrong, and dropping it would refuse at a
+    table any seat that arrived off this policy.
     """
     seen: dict[str, list[list[float]]] = {}
     reach: dict[str, float] = {}
@@ -301,9 +318,10 @@ def collapse_hero_strategy(
         if gap > tolerance:
             raise HarvestError(
                 f"the {len(rows_held)} combos of class {label} disagree by {gap:.6f}, over the"
-                f" {tolerance} two dresses of one hand may differ by. The solve's suit group is"
-                " not the group the table collapses under, so the cell is refused rather than"
-                " averaged into a number no solve produced"
+                f" {tolerance} two dresses of one hand may differ by. Either this solve has not"
+                " converged onto its own symmetry or the suit group it used is not the one the"
+                " table collapses under; the cell is refused rather than reduced to whichever"
+                " combo came back first"
             )
     classes = tuple(seen)
     rows = tuple(_rounded(seen[label][0]) for label in classes)

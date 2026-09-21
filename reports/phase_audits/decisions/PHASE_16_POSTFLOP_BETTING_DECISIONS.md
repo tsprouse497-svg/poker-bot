@@ -2138,3 +2138,137 @@ strict importer, the solve driver with its four guards, the harvest, the writer,
 betting strategy, the report, and eleven corrected frozen tests. The pipeline was proven end to end
 on a real solve that converged in 7.7 minutes to 0.2954% of pot; the cell it produced was discarded
 because of its input, not its machinery.
+
+## 20. The arena the committed campaign solves in, and the memory ceiling that admits it
+
+**Ruled by Taylor, 2026-09-20.** `frozen-into-data`, because the arena a cell was solved in is a
+property of the numbers in that cell and cannot be changed afterwards without re-solving it.
+
+**Ruling.** The flop campaign solves with GTOpen's uncompressed arenas - full-precision f32 regrets
+and strategy sums rather than the 16-bit quantized ones the server defaults to - and
+`MEMORY_CEILING_FRACTION` in `postflop_solve_driver` moves from 0.35 to 0.40 to admit it. Taylor was
+told, and accepted, that 0.35 is the number meant to travel to the rented box the contract names, so
+this loosens the guard there too and is done deliberately rather than nudged to fit.
+
+### How the solver picks an arena, and why asking is not enough
+
+`storage_from_env` in `crates/server/src/main.rs` is four lines: the environment variable
+`SOLVER_COMPRESS` read as a string, full precision when it is exactly `"0"`, and the quantized arena
+for everything else. Everything else means the variable absent, `"false"`, `"no"`, `"0.0"`, a value
+with a space in it, or a name typed one character wrong. There is no error, no warning and no log
+line, and **no route the server serves reports which arena it allocated**: `/api/status` carries the
+solve state and `/api/spot` carries the tree's geometry, and neither names the storage mode.
+
+So a campaign that asks for full precision and silently gets quantized arenas is indistinguishable
+on the wire from one that got what it asked for, and every number it produces is a real measurement
+of the wrong computation. That is the failure this decision exists to remove, so the campaign
+**verifies rather than assumes**, and the verification is arithmetic rather than a field:
+
+- `Spot::arena_bytes_for` is `entries * 8` at full precision and `entries * 4 + nodes * 16` when
+  quantized (`crates/solver/src/game.rs`).
+- `Spot::vram_estimate_bytes` is
+  `nodes * (hands_oop + hands_ip + max of the two) * 4 + entries * 8 + 512 MiB`, and its arena term
+  is full precision whatever the storage actually is.
+- `/api/spot` answers `nodes`, `hands_oop`, `hands_ip`, `arena_mb` and `vram_mb` in one `TreeInfo`.
+
+The entry count therefore comes out of `vram_mb`, and the two candidate arenas are then arithmetic.
+They differ by nearly a factor of two, so the answer is never in doubt, and a reading that
+reconciles to neither - or to both, on a degenerate tree - is refused rather than guessed.
+`arena_storage` and `check_arena_storage` in `postflop_transport` hold that, and
+`scripts/solve_postflop_sample.py` runs every built tree through them before `/api/solve` is called.
+
+**This was checked against the record rather than only against the source.** Run over all 55 build
+rows in `reports/active/latest_postflop_solve_cost.txt`, the quantized formula reproduces the
+reported `arena_mb` exactly - to the byte, on every row - and the full-precision formula reproduces
+none of them. That is both a self-test of the method and a finding in its own right: every arena and
+timing figure this phase has published was taken on quantized arenas, and nothing said so.
+
+### The measurements the ruling rests on
+
+Measured by the stage-6 arena lane on `9c8c7c` in the single-raised pot, on the Apple M4 the rest of
+the phase measured on. These are that lane's readings and are not re-derivable from anything
+committed, so they are recorded here as measurements rather than as figures a later task can check:
+
+| arenas | iterations | exploitability | largest in-class gap | classes whose committed row differs |
+| --- | --- | --- | --- | --- |
+| quantized | 320 | 0.3203% | 5.03e-04 | 5 of 152 |
+| quantized | 1200 | 0.3152% | 2.48e-03 | 38 of 152 |
+| full | 320 | 0.2293% | 7.15e-05 | 2 of 152 |
+| full | 640 | 0.0800% | 1.40e-04 | 1 of 152 |
+
+Two things in that table decide the ruling. **The quantized rows do not converge**: four times the
+iterations buys 0.005 points of exploitability while the combos of one suit-isomorphism class drift
+five times further apart, which is what an accuracy floor looks like rather than a slow solve. And
+**the drift reaches the committed data**: at 1200 iterations 38 of 152 classes would commit a
+different row depending on which of their combos the collapse happened to take first.
+
+**It is free in wall clock.** 640 iterations took 11.9 minutes under either arena. What it costs is
+memory, and the same arithmetic above prices that: on an identical tree the full-precision arena is
+just under twice the quantized one, the node term being about one percent of the total.
+
+### The ceiling, and exactly what 0.40 buys
+
+On the 32 GiB machine the phase measured on, `MEMORY_CEILING_BYTES` is 12,025,908,428 at 0.35 and
+13,743,895,347 at 0.40. The campaign's planned arena at full precision reads as 12,041,846,784
+bytes, which is over the old ceiling by 0.13 percent and sits at about 88 percent of the new one.
+
+Two qualifications belong on that, both re-derived by this lane rather than quoted:
+
+- **The planned arena is deliberately over-read.** `arena_bytes` multiplies the server's `arena_mb`
+  by 2^20 where the server computes it as a division by 10^6, which inflates every planned arena by
+  4.86 percent. In the server's own unit the same campaign sits at about 95.5 percent of the *old*
+  ceiling and would not have been refused at all. The over-read is deliberate and is not changed
+  here; it is filed as
+  `THE-MEMORY-GUARD-COMPARES-AN-ARENA-FIGURE-IT-DELIBERATELY-OVER-READS-BY-FIVE-PERCENT`, because a
+  guard 4.86 percent wide decided a question whose true margin was 4.5 percent the other way.
+- **A ceiling is not a headroom figure for anything but this campaign.** The four flops the sample
+  solves are the ones the ruling admits; nothing here says a wider campaign fits, and the driver
+  builds each tree and reads its arena back before solving, so a plan that does not fit is refused
+  rather than discovered.
+
+### What was rejected, and why
+
+- **Raise `CLASS_AGREEMENT_TOLERANCE` instead.** The tolerance is what refuses a cell whose combos
+  disagree, and admitting the 1200-iteration quantized cell would take roughly 6e-4 - and buys a
+  property that is unattainable at any value, because a committed row is rounded to thousandths and
+  two values astride a thousandth boundary round apart at any separation whatever. The tolerance's
+  own docstring claimed the opposite, that anything it tolerates cannot change a committed number,
+  and that claim is corrected in this task: 0.7724 and 0.7726 are 2e-4 apart and round to 0.772 and
+  0.773. Loosening the check would hide the drift rather than price it, so the value is unchanged.
+- **Solve deeper on quantized arenas.** Measured, and it makes the disagreement worse rather than
+  better: the in-class gap grows from 5.03e-04 to 2.48e-03 between 320 and 1200 iterations while
+  exploitability barely moves. There is nothing at the bottom of that well.
+- **Leave the ceiling at 0.35 and shrink the tree.** Every lever left is a poker decision already
+  ruled - the menu is decision 11, the range floor is decision 12, the covered lines are decision 3 -
+  so buying memory here means reopening a ruling to fit a guard, which is the move the decision list
+  exists to stop.
+
+### What this does not fix, and must not be read as fixing
+
+The phase's own claim about why two combos of one class agree was wrong, and correcting it is part
+of this task rather than a consequence of the ruling. `Solver::ensure_symmetric` transports solved
+data between *chance* branches; `symmetrize_node`'s action arm walks its children and writes nothing
+into an action node's own per-hand arrays, so the flop node the harvest reads - which sits above
+every chance node - is never touched by it. **Nothing in the solver makes the combos of one class
+agree at the harvested node.** They agree because the game is symmetric under the board's own suit
+map and a converging solve approaches that, which is a fact about a particular run. Full-precision
+arenas make the run converge; they do not install a guarantee, and the check remains the only thing
+that would see a real mismatch between the solver's suit group and this repo's.
+
+Three findings this ruling surfaced are filed rather than fixed here:
+`QUANTIZED-ARENAS-PUT-A-FLOOR-UNDER-EVERY-EXPLOITABILITY-THIS-PHASE-MEASURED`,
+`EVERY-ARENA-FIGURE-IN-THE-COST-RECORD-IS-A-QUANTIZED-ARENA-AND-FULL-PRECISION-ROUGHLY-DOUBLES-IT`,
+and `THE-COMMITTED-ROW-IS-ONE-COMBO-RATHER-THAN-AN-AGREED-ANSWER`, which is the one the table's last
+column is about and which this ruling shrinks rather than closes. So is
+`NOTHING-TESTS-THE-MODULE-THAT-DECIDES-WHAT-EVERY-COMMITTED-CELL-CONTAINS`, found while reading the
+harvest for this decision.
+
+### What the committed record now carries
+
+`data/artifacts/postflop/solve_config.json` gains `arena_storage`, from `RULED_SOLVE_CONFIG`, so the
+configuration a reader reconstructs a cell from names the arena the same way it names the bet menu,
+and `solve_config_errors` refuses a plan that disagrees with it. Every index entry gains
+`arena_storage` too, carrying the reading taken off that cell's own built tree rather than the
+constant the run asked for - per entry rather than in the header, because a cell is solved one board
+at a time and a run can be resumed later against a server somebody else started, so the arena is a
+property of the solve that produced a cell in the same way its iteration count is.
