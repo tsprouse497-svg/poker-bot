@@ -9063,6 +9063,40 @@ items:
       stage-6 mechanical review, 2026-09-15, read-only, and independently by the same stage's
       domain review from the other end - it measured a bot that raised to 454 chips and then
       refused its own raise because `raise_fractions` was empty.
+      2026-09-21: the empty-set half is repaired. `load_library` now derives the raise sizes from
+      each cell's own `actions`, where `CellAction.fraction` already carries the size as a share
+      of the pot the cell decides into, so the committed raise on `Kh7d2c` is on the set and the
+      bot's own raise is matched. The tolerance this entry is really about is untouched and still
+      owed a ruling, and repairing the source exposed a second wall, filed as
+      `THE-KEY-CANNOT-NAME-A-RAISE-THE-COMMITTED-MENU-HOLDS`.
+
+  - id: THE-KEY-CANNOT-NAME-A-RAISE-THE-COMMITTED-MENU-HOLDS
+    status: deferred
+    phase: '16'
+    title: A 2.5x raise off a 33% bet is 62.030075% of pot, which a spot key cannot name, so the bot still cannot look up the node after its own raise
+    reason: >-
+      A spot key renders a size to a hundredth of a percent and refuses anything finer rather than
+      rounding it onto a neighbouring cell - `render_size_bb` in `solver_artifacts/spot_key.py`,
+      and `size_pct` in `solver_artifacts/postflop_harvest.py` makes the same refusal from the
+      harvest side. The solve is configured with `raise: "2.5x"`, so a raise over the committed
+      33% bet goes to 4.5375bb into a pot of 7.315bb, which is 62.030075187969...% of it. Measured
+      2026-09-21 off the committed `Kh7d2c` facing-a-bet cell: that is the one raise any committed
+      cell holds, and it is not a hundredth of a percent.
+      The consequence is that the two refusals are not the same refusal and only one of them is
+      honest. Before the source repair above, the bot raised to 454 chips and the other chair
+      refused with `postflop-betting:flop-size-off-the-committed-menu` and a detail reading
+      `pct_of_pot 62`, which blames the other seat for a size the bot chose off its own menu.
+      After it, the size is matched and the key construction is what fails; the detail now says the
+      size is on the committed menu and is not nameable in a key, and the refusal code is unchanged
+      because the code vocabulary is closed. The hand still dies on the flop, which is what
+      `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN` owns.
+      Filed rather than patched because closing it is a ruling, not a repair, and there are only
+      two ways to close it. Either a raise stops being carried in a key as a percent of pot - a
+      multiplier is what the solve configures and a multiplier is exact - or the key's quantum
+      stops being a hundredth of a percent for raises, which is the rounding the repo has twice
+      refused by name. Both change what a committed key looks like, which is data, so neither
+      belongs to an implementer. `THE-FLOP-RAISE-TOLERANCE-IS-BORROWED-FROM-THE-BET-MENU-RULING`
+      is the neighbouring entry and owns the width rather than the vocabulary.
 
   - id: THE-WEIGHTED-DRAW-IS-WRITTEN-TWICE
     status: deferred

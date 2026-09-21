@@ -8,10 +8,16 @@ chart has to say which of the two it means, so this report says it here first.
 Every figure below is re-derived when this report is generated, out of a committed file
 or out of the deck itself, and the command exits non-zero and writes nothing when one
 does not reconcile. Sources, once: the class census is brute-forced over all
-22,100 three-card boards; the solve figures come from
-reports/active/latest_postflop_solve_cost.txt and data/artifacts/postflop/index.json;
+22,100 three-card boards; the cost model comes from
+reports/active/latest_postflop_solve_cost.txt, which is a separate campaign measured in
+August; everything about the cells this repo commits - their accuracy, the two runs that
+prove them, the ranges they were solved against and the deep solve one of them was
+diffed against - comes from data/artifacts/postflop/, out of index.json,
+solve_config.json, determinism.json and deep_convergence_check.json by those names;
 the corpus figures are counted off data/samples/public_corpus; the behaviour figures
-come from asking the strategy about the spots this machine holds.
+come from asking the strategy about the spots this machine holds; and the one block
+that needs what the other seat did first reads the solved node objects, each verified
+against the digest the index commits for it.
 
 Four qualifications, stated as qualifications rather than as caveats. Convergence at the
 committed iteration count is unproven. The published exploitability binds only against
@@ -128,24 +134,175 @@ Per-spot accuracy, and the spread across the committed set
   cells the campaign solved and rejected above 1.0% of pot: 0
 
 Convergence at the committed iteration count is unproven: exploitability was targeted,
-frequencies on hands the solver drove to indifference settle later, and nothing here has
-diffed a deep solve against a shallow one. The figures above are not proven to have
-converged and are not reported as settled accuracy. No single accuracy figure is
-published for the artifact as a whole - the per-cell figures are the evidence, and one
-number over the set would be a claim nothing measured.
+and frequencies on hands the solver drove to indifference settle later. The figures above
+are not proven to have converged and are not reported as settled accuracy. No single
+accuracy figure is published for the artifact as a whole - the per-cell figures are the
+evidence, and one number over the set would be a claim nothing measured.
+
+One of the committed cells has now been re-solved to the cap and diffed against the
+strategy the repo holds, which is the next section. It does not make the set settled: it
+measures how far one cell moved, and the answer is that the decision between betting and
+checking had settled and the split between the two bet sizes had not.
+
+The deep solve, diffed against the committed one
+------------------------------------------------
+
+Exploitability says what a perfect opponent wins against a strategy. It does not say the
+strategy has stopped moving. So one cell was re-solved on the same tree, the same menu,
+the same ranges and the same arena, with the iteration cap as its only stopping rule, and
+its frequencies diffed against the committed ones hand class by hand class.
+
+  cell: board 9c8c7c, BTN to act
+  committed run: 280 iterations, exploitability 0.2774% of pot, menu-bound
+  deep run: 1,200 iterations, exploitability 0.0478% of pot, menu-bound
+
+  what the whole range does, weighted by how often hero's own line brings it here:
+
+    action                committed      deep      moved
+    check                   0.12%     0.00%    -0.0012
+    bet 33% of pot         80.86%    75.84%    -0.0502
+    bet 75% of pot         19.03%    24.16%    +0.0513
+
+  how far each hand class moved, as the largest change in any one of its frequencies:
+
+    hand classes in the cell: 152
+    classes that did not move at all: 0
+    median: 0.0535    mean: 0.0816    worst: 0.4670
+    classes moving more than 0.05: 79
+    classes that changed which action they prefer: 16
+
+  and split by how mixed the committed strategy already was:
+
+    pure              19 classes   mean movement 0.0071
+    lightly-mixed     32 classes   mean movement 0.0495
+    mixed            101 classes   mean movement 0.1058
+
+Read it this way. Whether to put money in had settled: the check goes from a frequency
+already near zero to zero, so both solves bet essentially the whole range here. Which
+size to bet had not: the two sizes trade range between them, as the table above shows,
+and the classes that moved are the ones the committed strategy already had mixing. The
+classes it had playing one action barely moved at all.
+
+So a reader may take the bet-or-check answer from this cell and may not take the size
+split from it. That is narrower than the contract's blanket qualification and it is what
+was measured; the qualification stands for every cell nothing was re-solved for.
 
 Determinism: solved twice, and diffed rather than checksummed
 -------------------------------------------------------------
 
-  configuration solved twice: board Kc7c2c, starting pot 16.0
-  runs: two processes against a restarted server, 240 iterations each
+  configuration solved twice: data/artifacts/postflop/solve_config.json, unchanged between the runs
+  cells re-solved: 5, at starting pot 5.5
+  iterations: 280 to 340, the same count in both runs of every cell
+  arena precision: f32, which is what the committed campaign was ruled to
+  runs: two processes against a restarted server, the second sharing the machine with
+    other work, so no cell reports the same wall clock twice
   strategies compared: byte-identical
-  strategy digests: ca16cf82eeb9c96e and ca16cf82eeb9c96e
-  per-action divergence: 0.0; shape differences: 0
+
+  Two comparisons a cell. The committed document byte for byte, which is what the repo
+  holds; and the solver's own per-combo strategies inside the two runs' objects, which is
+  the stronger of the two, because a committed row is rounded to a thousandth and two
+  runs could differ under that and still write the same bytes.
+
+    board   flop line so far      document   combos  in one run only  largest gap  wall clocks
+    9c8c7c  BB:check             same bytes      447                0            0  375.6s / 606.0s
+    Kh7d2c  none                 same bytes      342                0            0  1677.4s / 2523.9s
+    Kh7d2c  BB:check,BTN:bet@33  same bytes      342                0            0  1677.4s / 2523.9s
+    8c8d3c  none                 same bytes      350                0            0  1035.9s / 1487.3s
+    Ac8c3c  none                 same bytes      331                0            0  616.0s / 645.9s
+
+    Ac8c3c is listed by the index and not held here, so its document was compared in object storage
+
+  strategy digests, one a cell and the same in both runs: f39ba5644e88d64a, 3de9b67041244906, d305055b3fee1afd, 32df801ee16fcd6f, 2cc028773f624f4a
 
 If two runs of the committed configuration were not byte-identical the phase halts and
 a human is asked. No figure is set here in place of that, because a number nobody has a
 basis for would become the accuracy the artifact claims.
+
+This block is the campaign the repo commits and nothing else. An earlier draft read it
+out of the solve-cost record, whose repeated solve is another board at another starting
+pot and iteration count under quantized arenas rather than the full precision ruled
+here; the contract asks for determinism on the configuration actually committed, and the
+two are not the same measurement.
+
+Who bets first, and what hero's bet frequency is conditioned on
+---------------------------------------------------------------
+
+Ruled on 2026-09-21. The solve lets the out-of-position player bet the flop, that is
+legal poker, and the cells are a correct solution to the game as configured. They ship.
+What must never travel without them is this block: a continuation-bet frequency read
+on its own, with no statement of what the other seat already did, misleads whoever
+reads it, and the preflop re-solve that preceded this campaign did not produce that
+number and must not be read as having fixed it.
+
+Weighting, said once. Every share below is range-weighted: each two-card combination the
+board leaves is weighted by that seat's own committed weight for it, collapsed to the
+class label the cell holds, and averaged. That is the frequency the other seat actually
+faces. The unweighted class mean is printed beside it because the two differ by several
+points where one class stands for six dealt combinations and another for two, and a
+reader given one number cannot tell which convention produced it.
+
+  hero's own frequencies, by committed cell. The flop line is what happened before
+  hero's turn, so 'none' is a cell hero decides first on.
+
+    board   seat  flop line so far      classes   action              range-weighted   class mean
+    8c8d3c  BB    none                     230   check                      70.16%       63.19%
+                                                 bet 33% of pot             29.51%       36.32%
+                                                 bet 75% of pot              0.33%        0.50%
+    9c8c7c  BTN   BB:check                 152   check                       0.12%        0.11%
+                                                 bet 33% of pot             80.86%       79.55%
+                                                 bet 75% of pot             19.03%       20.34%
+    Kh7d2c  BB    BB:check,BTN:bet@33      342   fold                       27.12%       28.78%
+                                                 call                       44.25%       43.86%
+                                                 raise 62% of pot           28.63%       27.36%
+    Kh7d2c  BB    none                     342   check                      84.61%       82.51%
+                                                 bet 33% of pot             11.83%       13.40%
+                                                 bet 75% of pot              3.56%        4.10%
+
+  what the other seat did before hero's turn came round
+
+  Recovered from the solved node objects, each verified against the digest the committed
+  index carries for it. A seat's reach at a node is the product of its own action
+  probabilities down the path, so reach over that hand's preflop weight is how often it
+  played the line that leads here, and one less that is how often hero's node was never
+  reached at all.
+
+    board 9c8c7c, the other seat is BB, its committed line is 'check'
+    it arrives with 294.86 weighted combinations and plays that line 47.32% of the time,
+    so 52.68% of its range does something else and hero is never asked
+    source: srp-9c8c7c.nodes.json.gz, digest 3da00bc2973ca381
+
+      holding            weighted combos   share before   share after   does otherwise
+      High card             168.58         57.17%        57.53%           52.39%
+      Pair                   89.27         30.27%        34.93%           45.40%
+      Flush                  25.57          8.67%         4.79%           73.89%
+      Three of a kind         7.40          2.51%         1.38%           73.95%
+      Straight                3.00          1.02%         1.30%           39.77%
+      Straight flush          1.00          0.34%         0.07%           90.35%
+      Two pair                0.04          0.01%         0.01%           83.09%
+
+    board Kh7d2c, the other seat is BTN, its committed line is 'bet 33% of pot'
+    it arrives with 445.08 weighted combinations and plays that line 89.71% of the time,
+    so 10.29% of its range does something else and hero is never asked
+    source: srp-Kh7d2c.nodes.json.gz, digest 11be015ccaed468b
+
+      holding            weighted combos   share before   share after   does otherwise
+      High card             260.00         58.42%        57.59%           11.56%
+      Pair                  172.08         38.66%        39.61%            8.10%
+      Three of a kind         9.00          2.02%         1.95%           13.46%
+      Two pair                4.00          0.90%         0.86%           14.61%
+
+Read the two blocks together and never apart. On the three-club board the button's own
+frequency says it bets nearly its whole range. The block under it says why that is not
+the sentence 'the raiser bets every flop': half the caller's range, and three quarters of
+its best hands, has already bet and is not in front of the button at all. What reaches
+the button is a range with the flushes and the sets thinned out of it, and against that
+range the button's answer is a reasonable one.
+
+A student drilled on the first number alone would learn to bet every flop in position.
+A student shown both would learn something narrower and true: against a caller who leads
+half its flops, what is left to bet into is weak. Whether a caller who leads half its
+flops is the opponent worth drilling against is the ruling above, not a measurement, and
+it is recorded here so nobody has to reconstruct it from the data.
 
 The bet menu the solve is configured with
 -----------------------------------------
@@ -284,18 +441,30 @@ The committed ranges, as pair weights on both sides
   than lifted, and the floor is class-level because one suit-specific weight collapses
   the isomorphism group and forfeits the saving on every non-rainbow board
 
-  range_oop config.range_oop@568ae7b39c57
-    pair weights: 22 0.9994, 33 0.162, 44 0.0007, 55 0.9776, 66 0.999, 77 0.9985, 88 0.9988, 99 0.9982, AA 1, JJ 0.9725, KK 0.9996, QQ 0.9993, TT 0.9579
-    dropped by the floor: 44
-  range_ip config.range_ip@75dddc9d9ce2
-    pair weights: 22 0.9854, 33 0.9978, 44 0.0194, 55 0.847, 66 0.9996, 77 0.9993, 88 0.8588, 99 0.9989, JJ 0.0032, QQ 0.0013, TT 0.9285
-    dropped by the floor: JJ, QQ
-  range_oop config.range_oop@717f36499fb4
-    pair weights: 22 0.8064, 33 0.9474, 44 0.8244, 55 0.5712, 66 0.0043, 77 0.0041, 88 0.0016, 99 0.0011, TT 0.0002
-    dropped by the floor: 66, 77, 88, 99, TT
-  range_ip config.range_ip@23642f5e22e7
-    pair weights: 22 1, 33 0.9999, 44 0.9997, 55 1, 66 1, 77 1, 88 1, 99 1, AA 1, JJ 1, KK 1, QQ 1, TT 1
-    dropped by the floor: none
+  read out of solve_config.json, beside the cells it produced
+  derived from data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz
+
+  oop_bb_call: the big blind's call frequency facing a 2.5bb button open
+    pair weights: 22 0.9713, 33 0.208, 44 0.9997, 55 1, 66 1, 77 1, 88 0.9993, 99 0.4672
+    classes: 65, standing for 380 dealt combinations at full weight and 323.7 weighted
+    smallest weight in the range: 0.0147
+  ip_btn_open: the button's opening frequency with the three earlier seats folded
+    pair weights: 22 1, 33 1, 44 1, 55 1, 66 1, 77 1, 88 1, 99 1, TT 1, JJ 1, QQ 1, KK 1, AA 1
+    classes: 84, standing for 498 dealt combinations at full weight and 495.4 weighted
+    smallest weight in the range: 0.7865
+
+The two combination counts are both worth having and only one of them describes the
+range. A class kept at a weight of a tenth is one tenth of a hand in the solve and a
+whole one in the count at full weight, so on the out-of-position side the full-weight
+figure overstates the range the cells were solved against. Anything comparing one seat's
+range against the other's has to use the weighted figure or it is comparing a count of
+labels.
+
+There is no dropped-by-the-floor list here, and there cannot be one. The committed file
+stores the range after the floor ran, so a class the floor removed is not in it to be
+named; what is checkable, and is checked before this block prints, is that no surviving
+weight sits under 0.01. The smallest weight on each side is printed
+above as the evidence for that.
 
 A pair sitting near zero on one side while its neighbours sit near one is an asymmetry
 the floor exposes rather than causes, and it belongs to the export that produced the

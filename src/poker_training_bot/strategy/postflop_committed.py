@@ -173,12 +173,19 @@ def load_library() -> PostflopLibrary:
         )
         for line, held in sorted(grouped.items(), key=lambda pair: pair[0].rendered)
     )
+    # The raise sizes the bot may make, off each cell's **own menu** rather than off the flop
+    # line that leads to it. `flop_actions` is what the other seats already did; a cell whose
+    # line holds no raise - which is every committed cell - contributed nothing, so the set came
+    # out empty and `_menu_fraction` refused every raise, including the one the bot had just
+    # chosen from this very menu. `CellAction.fraction` is already the size as a share of the
+    # pot the cell decides into, which is the quantity `_menu_fraction` compares, so no second
+    # conversion happens here.
     fractions = sorted(
         {
-            float(entry.size_pct or 0.0) / 100.0
+            float(entry.fraction)
             for cell in cells
-            for entry in cell.flop_actions
-            if entry.action == "raise"
+            for entry in cell.actions
+            if entry.name == "raise" and entry.fraction is not None
         }
     )
     listed = frozenset()
@@ -234,7 +241,23 @@ def flop_action_line(
                     ("action", entry.action),
                     ("pct_of_pot", str(round(100 * added / pot))),
                 )
-            built.append(FlopAction(labels[entry.seat], entry.action, fraction * 100))
+            try:
+                built.append(FlopAction(labels[entry.seat], entry.action, fraction * 100))
+            except ValueError:
+                # The size is on the committed menu and the key still cannot name it. A key
+                # renders a size to a hundredth of a percent and refuses anything finer rather
+                # than rounding it onto a neighbouring cell, which a 2.5x raise off a 33% bet
+                # is: 4.5375bb into 7.315bb is 62.030075...% of pot. Miss, with the cause said
+                # in the detail, rather than let a `ValueError` out of a strategy whose contract
+                # is to answer or refuse. `THE-KEY-CANNOT-NAME-A-RAISE-THE-COMMITTED-MENU-HOLDS`
+                # is the entry; the ruling it needs is whether a raise belongs in a key as a
+                # percent at all, and that is a decision rather than a repair.
+                return None, (
+                    ("action", entry.action),
+                    ("pct_of_pot", f"{100 * fraction:.6f}"),
+                    ("on_the_committed_menu", "yes"),
+                    ("nameable_in_a_key", "no"),
+                )
             pot += added
             level = entry.amount or 0
             street_bet[entry.seat] = level
