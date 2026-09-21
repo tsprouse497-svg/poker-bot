@@ -25,6 +25,13 @@ outside the repo; what is committed is an index plus the sample. This writes the
 node payload to `--object-dir` outside the repo, digests it, and records that digest in the
 index, so the index authenticates something that exists rather than something promised.
 
+**The index is larger than the sample, and one cell here is what makes it so.** A cell whose
+`in_the_sample` is false is solved and stored like any other and then not written into `sample/`:
+its four measured figures go into the object manifest and from there into the index, and its
+document goes to `--object-dir` with its object. That is the ordinary state of a fresh clone -
+listed here, fetched nowhere - and until decision 18b it was the one state this sample could not
+reach, because every cell it solved it also kept.
+
 Usage:
 
     uv run python scripts/solve_postflop_sample.py --list
@@ -81,6 +88,7 @@ from poker_training_bot.solver_artifacts.postflop_harvest import (  # noqa: E402
 )
 from poker_training_bot.solver_artifacts.postflop_key import (  # noqa: E402
     completed_preflop_line,
+    postflop_spot_key,
 )
 from poker_training_bot.solver_artifacts.postflop_solve_driver import (  # noqa: E402
     MEASURING_MACHINE,
@@ -138,6 +146,13 @@ class SampleCell:
     `board` is the canonical representative of its class, because a solve posted on the
     representative comes back with hero's combos already in the dressing a committed cell is
     written in and nothing has to be re-dressed afterwards.
+
+    `in_the_sample` is how a cell says whether the repo keeps its bytes. A cell with it set is
+    solved, written into `sample/` and listed in the index, which is every cell decision 6 item 4
+    ruled. A cell without it is solved, listed in the index with the same four measured figures,
+    and its document and its object stay in object storage - so the index names a spot this clone
+    can see and cannot play, which on a real clone is the ordinary case and in a sample where the
+    two sets coincide is a case the refusal vocabulary can never reach.
     """
 
     name: str
@@ -145,6 +160,7 @@ class SampleCell:
     hero_position: str
     node_path: tuple[int, ...]
     why: str
+    in_the_sample: bool = True
 
     @property
     def board_text(self) -> str:
@@ -193,17 +209,45 @@ SAMPLE_CELLS: tuple[SampleCell, ...] = (
         node_path=(0,),
         why="the preflop raiser continuation-betting, about half of all flops",
     ),
+    SampleCell(
+        name="monotone-disconnected-listed-not-held",
+        board=("Ac", "8c", "3c"),
+        hero_position="BB",
+        node_path=(),
+        in_the_sample=False,
+        why="a spot the index lists and this clone cannot play, which nothing else here is",
+    ),
 )
-"""Four cells on the three ruled flops. Decision 6 item 4 freezes the texture and rank splits -
-rainbow and dry-high, two-tone and paired, monotone and connected - and Taylor's 2026-09-15
-amendment allows a fourth file on a board already present, which is what puts two cells on the
-rainbow board.
+"""Five cells on four flops: four the repo keeps, and one it lists and does not keep.
 
-**Three of the four come off three solves rather than four**, and that is a property of the tree
-rather than a saving anybody arranged: one flop solve holds every node of that flop, so the
+Decision 6 item 4 freezes the texture and rank splits - rainbow and dry-high, two-tone and
+paired, monotone and connected - and Taylor's 2026-09-15 amendment allows a fourth file on a
+board already present, which is what puts two cells on the rainbow board. Those four are the
+sample and the splits govern them.
+
+**Three of those four come off three solves rather than four**, and that is a property of the
+tree rather than a saving anybody arranged: one flop solve holds every node of that flop, so the
 caller's first decision, the raiser's answer to a check, and the caller's decision facing that
 bet are three nodes of one solved tree, reached by `path` `[]`, `[Check]` and `[Check, Bet 33%]`.
-Only the board changes the solve."""
+Only the board changes the solve.
+
+**The fifth is outside the splits on purpose, and it is chosen for cost rather than for poker.**
+Decision 18b rules it. It exists because the index is meant to be larger than the sample and in a
+four-cell sample it was not, so the refusal a fresh clone meets on almost every spot - listed
+here, fetched nowhere - had nothing to name and could not be exercised at all. `Ac8c3c` is
+monotone because monotone is the cheapest flop this machine solves: all three cards share a suit,
+the solver's isomorphism group collapses hardest, and the one monotone solve this phase measured
+took 7.7 minutes and 320 iterations to 0.2954% of pot. Its ranks are as far from `9c8c7c` as the
+deck allows - ace-high rather than nine-high, and no two of A, 8, 3 within four ranks of each
+other - so it cannot be mistaken for a second reading of the ruled monotone-connected split. The
+7.7 minutes is the figure measured on the connected board and is quoted as the nearest
+measurement there is, not as a prediction for this one.
+
+**Its hero and its node are fixed by the strategy side rather than chosen.** The big blind first
+to act - `BB` at `path` `[]` - is what `an_indexed_but_unfetched_query` looks for, because that
+helper builds its key from the committed table whose spot key sorts first and walks boards with
+no flop action in front of hero. `check_the_listed_cell_is_reachable` holds the two ends
+together and fails the rebuild rather than letting them drift."""
 
 
 def cells_for_board(
@@ -510,8 +554,83 @@ def tree_bytes(root: Path) -> int:
     return sum(path.stat().st_size for path in root.rglob("*") if path.is_file())
 
 
+LISTED_NOT_HELD = "listed_not_held"
+"""The manifest key under which a solved cell the repo does not keep records its figures.
+
+It lives in `objects.json` beside the object digests rather than in `sample/`, which is decision
+18b's whole point: the bytes of that cell are in object storage and what the repo commits is the
+evidence that they exist and what they came out to. `sample/` stays exactly the four files
+decision 6 item 4 rules, so nothing that walks the sample picks this cell up by accident."""
+
+INDEX_ENTRY_FIELDS = (
+    "spot_key",
+    "preflop_line",
+    "board",
+    "achieved_exploitability_pct_of_pot",
+    "iterations",
+    "strategy_digest",
+    "object_digest",
+)
+"""What an index entry carries: its key, where it sits, and the four measured figures.
+
+Named once and filled through `index_entry`, because the sample cells and the listed-not-held
+cell reach the index by different routes and an entry that is thinner on one route is exactly
+the placeholder the index forbids."""
+
+
+def index_entry(figures: dict[str, Any], origin: str) -> dict[str, Any]:
+    """One index entry, refused rather than written thin.
+
+    A present-but-empty field passes a presence check and authenticates nothing, so absence and
+    `None` are the same failure here and both name the cell they came from.
+    """
+    missing = [name for name in INDEX_ENTRY_FIELDS if figures.get(name) is None]
+    if missing:
+        raise SystemExit(f"{origin} would enter the index missing {missing}")
+    return {name: figures[name] for name in INDEX_ENTRY_FIELDS}
+
+
+def check_the_listed_cell_is_reachable(
+    held: list[Any], listed: list[dict[str, Any]]
+) -> None:
+    """A listed-but-unheld entry the strategy cannot reach proves nothing, so this derives the
+    key the strategy will look for and refuses anything else.
+
+    `an_indexed_but_unfetched_query` builds its key from the committed table whose spot key sorts
+    first, on boards with no flop action in front of hero, and walks the index for it. That ties
+    the listed cell's hero, node, pot and stack to a sort order over four other files - which is
+    a coupling nothing else in the repo would notice parting, so it is checked here on every
+    rebuild rather than left to the gate to discover.
+    """
+    if not held or not listed:
+        return
+    first = min(held, key=lambda cell: cell.spot_key)
+    for entry in listed:
+        try:
+            wanted = postflop_spot_key(
+                first.preflop_line, entry["board"], (), first.pot_bb, first.effective_stack_bb
+            )
+        except ValueError as error:
+            raise SystemExit(
+                f"the sample's first spot key is {first.spot_key}, and the strategy cannot build"
+                f" a hero-first key from its line at all: {error}. The helper takes that cell's"
+                " line verbatim, so the first-sorting sample cell has to be one hero acts first"
+                " in, and adding a board that sorts ahead of it is what breaks this."
+            ) from error
+        if entry["spot_key"] != wanted:
+            raise SystemExit(
+                f"the index lists {entry['spot_key']} as solved and unheld, but the strategy will"
+                f" look for {wanted} - the same board on the sample's own line, hero first to act."
+                " Re-solve that cell at hero BB on the root node, or it is listed unreachably."
+            )
+
+
 def rebuild_index(manifest: dict[str, Any]) -> dict[str, Any]:
     """The committed index, rebuilt from the sample on disk and the object manifest beside it.
+
+    The index is deliberately larger than the sample - decision 6 puts the bytes in object
+    storage and commits an index plus three flops - so it is built from two sources: the sample
+    files, and the manifest's record of cells solved and stored without being kept.
 
     `committed_bytes` and `headroom_bytes` are self-referential - writing them changes the file
     they are written into - so the write is iterated to a fixed point rather than computed once
@@ -519,6 +638,7 @@ def rebuild_index(manifest: dict[str, Any]) -> dict[str, Any]:
     """
     entries: list[dict[str, Any]] = []
     lines: list[str] = []
+    held: list[Any] = []
     for path in sorted(SAMPLE_DIR.glob("*.json")):
         cell = import_postflop_cell(path)
         recorded = manifest["objects"].get(cell.spot_key)
@@ -527,19 +647,37 @@ def rebuild_index(manifest: dict[str, Any]) -> dict[str, Any]:
                 f"{path.name} has no object recorded in {OBJECT_MANIFEST_PATH.name}, so its index"
                 " entry would carry a digest of nothing. Re-solve that board or remove the file."
             )
+        held.append(cell)
         entries.append(
-            {
-                "spot_key": cell.spot_key,
-                "preflop_line": cell.preflop_line.rendered,
-                "board": list(cell.board),
-                "achieved_exploitability_pct_of_pot": cell.achieved_exploitability_pct_of_pot,
-                "iterations": cell.iterations,
-                "strategy_digest": strategy_digest(cell.hand_classes, cell.class_weights),
-                "object_digest": recorded["object_digest"],
-            }
+            index_entry(
+                {
+                    "spot_key": cell.spot_key,
+                    "preflop_line": cell.preflop_line.rendered,
+                    "board": list(cell.board),
+                    "achieved_exploitability_pct_of_pot": (
+                        cell.achieved_exploitability_pct_of_pot
+                    ),
+                    "iterations": cell.iterations,
+                    "strategy_digest": strategy_digest(cell.hand_classes, cell.class_weights),
+                    "object_digest": recorded["object_digest"],
+                },
+                path.name,
+            )
         )
         if cell.preflop_line.rendered not in lines:
             lines.append(cell.preflop_line.rendered)
+    listed: list[dict[str, Any]] = []
+    for spot_key, figures in sorted(manifest.get(LISTED_NOT_HELD, {}).items()):
+        if spot_key in {entry["spot_key"] for entry in entries}:
+            raise SystemExit(
+                f"{spot_key} is recorded as listed and not held, and {SAMPLE_DIR.name}/ holds it."
+                " Delete one of the two; a spot cannot be both."
+            )
+        listed.append(index_entry({**figures, "spot_key": spot_key}, spot_key))
+        if figures["preflop_line"] not in lines:
+            lines.append(figures["preflop_line"])
+    check_the_listed_cell_is_reachable(held, listed)
+    entries.extend(listed)
     index = {
         "index_schema_version": INDEX_SCHEMA_VERSION,
         "object_storage": manifest["object_storage"],
@@ -561,13 +699,62 @@ def rebuild_index(manifest: dict[str, Any]) -> dict[str, Any]:
 
 
 def load_manifest(object_storage: str) -> dict[str, Any]:
-    if OBJECT_MANIFEST_PATH.is_file():
-        return json.loads(OBJECT_MANIFEST_PATH.read_text(encoding="utf-8"))
-    return {
+    manifest = {
         "object_storage": object_storage,
         "rejected_above_one_percent": 0,
         "objects": {},
+        LISTED_NOT_HELD: {},
     }
+    if OBJECT_MANIFEST_PATH.is_file():
+        manifest.update(json.loads(OBJECT_MANIFEST_PATH.read_text(encoding="utf-8")))
+    manifest.setdefault(LISTED_NOT_HELD, {})
+    return manifest
+
+
+def record_cell(
+    built: dict[str, Any],
+    manifest: dict[str, Any],
+    object_dir: Path,
+    object_path: Path,
+    digest: str,
+) -> str:
+    """Write one solved cell where its own `in_the_sample` sends it, and record it.
+
+    Both routes write the document, re-import it and record what the *importer* returned rather
+    than what the harvest handed over, so a cell that a fresh clone would refuse is refused here
+    instead of being listed on figures nothing ever read back.
+
+    The difference is only where the bytes land. A sample cell goes into the repo and the
+    manifest keeps its object's digest beside it. A listed-not-held cell goes to object storage,
+    document and all, and the manifest keeps the four figures its index entry owes - which is the
+    only copy of them the repo gets, and the reason they are read off a re-import.
+    """
+    sample, document = built["sample"], built["document"]
+    spot_key = document["spot_key"]
+    if sample.in_the_sample:
+        target = SAMPLE_DIR / f"{sample.name}.json"
+        write_json(target, document)
+        cell = import_postflop_cell(target)
+        manifest["objects"][spot_key] = {
+            "object_path": str(object_path),
+            "object_digest": digest,
+            "board": list(cell.board),
+        }
+        return (f"wrote              {target.relative_to(REPO_ROOT)}"
+                f" ({target.stat().st_size} bytes, re-imported clean)")
+    target = object_dir / f"{sample.name}.cell.json"
+    write_json(target, document)
+    cell = import_postflop_cell(target)
+    manifest[LISTED_NOT_HELD][spot_key] = {
+        "preflop_line": cell.preflop_line.rendered,
+        "board": list(cell.board),
+        "achieved_exploitability_pct_of_pot": cell.achieved_exploitability_pct_of_pot,
+        "iterations": cell.iterations,
+        "strategy_digest": strategy_digest(cell.hand_classes, cell.class_weights),
+        "object_digest": digest,
+        "cell_document": str(target),
+    }
+    return f"listed, not held  {target} (outside the repo, re-imported clean)"
 
 
 # --------------------------------------------------------------------------- #
@@ -605,8 +792,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.list:
         for cell in SAMPLE_CELLS:
             path = "root" if not cell.node_path else " -> ".join(str(i) for i in cell.node_path)
-            print(f"{cell.name:34s} {cell.board_text:8s} hero={cell.hero_position:3s}"
-                  f" node=[{path}]  {cell.why}")
+            kept = "sample+index" if cell.in_the_sample else "index only "
+            print(f"{cell.name:38s} {cell.board_text:8s} hero={cell.hero_position:3s}"
+                  f" node=[{path}]  {kept}  {cell.why}")
         return 0
 
     object_storage = f"local directory {args.object_dir} (no remote store is provisioned yet)"
@@ -666,26 +854,18 @@ def main(argv: list[str] | None = None) -> int:
             manifest["rejected_above_one_percent"] += 1
             failures += 1
             continue
-        path, digest = write_object(Path(args.object_dir), board, result)
+        object_dir = Path(args.object_dir)
+        path, digest = write_object(object_dir, board, result)
         print(f"  object             {path} sha256 {digest[:16]}...")
         for built in result.cells:
-            sample, document = built["sample"], built["document"]
-            target = SAMPLE_DIR / f"{sample.name}.json"
-            write_json(target, document)
-            import_postflop_cell(target)
-            manifest["objects"][document["spot_key"]] = {
-                "object_path": str(path),
-                "object_digest": digest,
-                "board": list(board),
-            }
-            print(f"  wrote              {target.relative_to(REPO_ROOT)}"
-                  f" ({target.stat().st_size} bytes, re-imported clean)")
+            print(f"  {record_cell(built, manifest, object_dir, path, digest)}")
 
     manifest["object_storage"] = object_storage
     write_json(OBJECT_MANIFEST_PATH, manifest)
     index = rebuild_index(manifest)
     import_postflop_index(INDEX_PATH)
-    print(f"\nindex              {len(index['entries'])} entries")
+    print(f"\nindex              {len(index['entries'])} entries,"
+          f" {len(manifest[LISTED_NOT_HELD])} listed and not held")
     print(f"committed bytes    {index['committed_bytes']} in data/artifacts/postflop")
     print(f"artifact headroom  {index['headroom_bytes']} of {ARTIFACT_BYTE_CAP}")
     return 1 if failures else 0

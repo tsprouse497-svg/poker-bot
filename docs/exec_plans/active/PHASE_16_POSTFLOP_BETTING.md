@@ -259,6 +259,31 @@ subagents in this one worktree; the coordinator owns every commit.
   running commits as converged - worse than either defect on the list. Neither was on the list a
   coordinator working from the previous session's notes would have handed out, which is the
   argument for the lane and against the checklist.
+- Four lanes are added on 2026-09-20, when the halt lifted and the lane resumed. **D1**, the solve
+  campaign: run the four planned cells against the merged chart, commit the cells and the index,
+  and report measured wall clock, peak memory and achieved exploitability per cell against
+  MAINT-26's figures. **D2**, decision 15's deep convergence check: one cell re-solved to the 1,200
+  cap with its frequencies diffed against its 240-iteration run, which is a measurement whose
+  answer the campaign's own driver must not be allowed to supply. **D3**, the solver export source
+  card, whose `headroom_bytes` counts the whole artifact tree and reds six tests the moment a flop
+  artifact lands. **V1**, the consolidated stage-6 review, which is none of D1, D2 or D3 and none
+  of the lanes that built any of this.
+- **D1 is coordinator-owned and D2 and D3 are not.** The campaign writes no code: it runs a
+  committed script, and what it produces is bytes whose correctness is judged by the frozen tests
+  and by D2's independent measurement, not by whoever typed the command. A lane there would own
+  nothing it could get wrong that the gate does not already catch. D2 and D3 both produce a number
+  this lane's own record then rests on, which is the shape that needs an author who is not quoting
+  their own campaign back to themselves.
+- **What the merge settled, and the one thing it did not.** MAINT-34's re-solve landed on this lane
+  at `d7712d5`. Re-measured here rather than taken on report: at `t6/d100/BB/BTN:raise@2.5` the big
+  blind's call branch now holds 88, 77, 66, 55, 44 and 22 outright and splits 99 and 33, where every
+  pair from aces down to fives read raise 1.0 before. That is the line all four planned cells solve -
+  `BTN_OPEN_BB_CALL` in `scripts/solve_postflop_sample.py:370-379` - so the cells sit on the side of
+  the fix that worked. The spot the fix did not reach, `t6/d100/BB/SB:raise@2.5`, raises every pair
+  sevens and up and flats sixes and below, before and after; no planned cell uses it, and
+  `RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET` is explicit that a c-bet frequency
+  measured there is not evidence about the fix either way. If the campaign ever grows a second
+  preflop line, that entry is the table it picks from.
 - W5's repair took `postflop_solve_driver.py` from 500 to 527 against a 500-line cap that compares
   `> limit`, so the module had zero headroom before it was touched. Ruled: extract, do not compress,
   which is the third extraction in this stage and the third one a lane reported rather than slipped

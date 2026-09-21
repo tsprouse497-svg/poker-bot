@@ -1,12 +1,5 @@
 auto_advance: false
-halt_reason: 'Taylor''s decision 19, 2026-09-16: the committed preflop chart is re-solved
-  with a realistic blind 3-bet before phase 16 commits any cell. The big blind''s
-  calling range holds no set and no overpair - every pair from aces down to fives reads exactly 1.0000
-  on the 3-bet branch - so hero''s solved c-bet came out at 99.94% of range. raise_mults_by_seat
-  at 13.5bb fixes it (0.00 to 7.40 sets on 9c8c7c against a reference 8.34), but data/artifacts/preflop/**
-  is phase 10 and 14''s committed data and is not in this task''s approved_scope.
-  Phase 16 resumes at stage 6 when that chart exists.'
-loop: halted
+loop: running
 phase_id: '16'
 schema_version: 1
 stage: 6
