@@ -274,6 +274,27 @@ subagents in this one worktree; the coordinator owns every commit.
   nothing it could get wrong that the gate does not already catch. D2 and D3 both produce a number
   this lane's own record then rests on, which is the shape that needs an author who is not quoting
   their own campaign back to themselves.
+- Status, 2026-09-21. **D4 done**: decision 18b's fifth cell, code only, committed at `52fa2f9`.
+  It returned two corrections from outside its brief, both re-measured before they were believed -
+  `check_file_sizes` has no pattern covering `scripts/` at all, so the cap three earlier extractions
+  in this stage were paid against does not exist for that file; and this plan's "four files at
+  exactly their cap" is six under `src` at 500 and ten test files at 700. **D5 done**: the harvest
+  refusal is arithmetic, not a group mismatch, and the docstring that said otherwise was wrong about
+  the solver's own guarantee. **W6 done**, committed at `7b712c3`: full-precision arenas, verified
+  rather than asked for, plus decision 20 and five filed findings. **D1 done**, committed at
+  `479aaf2`: four cells and the listed-not-held fifth, all converged. **D3 done**, committed at
+  `7d6866f`: the source card restamped and `base_commit` moved past the merge. **R2 done**,
+  committed at `de62604`: the last red, plus two more vacuous checks in the same file that nobody
+  asked about. **D2 running**: determinism and decision 15's deep convergence check. **V1 not
+  dispatched**, and it is the stage's own review - none of the seven above may write it.
+- **Each of the four lanes asked one question returned a finding outside its brief, and all of them
+  were real** - D4 two, D5 one, W6 three, R2 four. The two that cost the most were on no list a
+  coordinator would have handed out. W6 found that the memory guard which decided the arena question
+  over-reads its own input by 4.86%, so the 0.13% overage Taylor ruled on was partly our own
+  arithmetic, and the decision is open again on that ground. R2 found that the refusal
+  reconciliation in the report was `sum(x) == sum(x)` and could not fail on any input, having been
+  asked only about the byte figure beside it. The pattern held at stage 4 too, where W4 and W5 each
+  returned one. A brief is a floor rather than a scope.
 - **What the merge settled, and the one thing it did not.** MAINT-34's re-solve landed on this lane
   at `d7712d5`. Re-measured here rather than taken on report: at `t6/d100/BB/BTN:raise@2.5` the big
   blind's call branch now holds 88, 77, 66, 55, 44 and 22 outright and splits 99 and 33, where every
@@ -320,7 +341,7 @@ subagents in this one worktree; the coordinator owns every commit.
       independent reviews, eight blockers, all repaired and verified. 54 tests execute assertions,
       22 failing on assertions and 32 passing against what already exists; no collection error, so
       nothing is frozen having never run. Decision 14 filed and taken on its recorded default.
-- [ ] S5 Freeze. `tests/**` and `verification/**` leave scope.
+- [x] S5 Freeze. `tests/**` and `verification/**` leave scope.
 - [ ] S6 Build. Every command the contract declares green.
 - [ ] S7 Gate. Full `run_verify.py` plus `check_gate_bite`.
 - [ ] S8 Review. Two reviewers, mechanical and domain.
