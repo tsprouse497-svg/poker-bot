@@ -141,10 +141,16 @@ class ReportFigureError(RuntimeError):
 
 
 def check_bytes_reconcile(*, declared: float, on_disk: float) -> bool:
-    """The byte figure the index declares against the bytes actually on disk."""
+    """The byte figure the index declares against the bytes actually on disk.
+
+    The index declares what the repo commits, which the contract scopes to the index and the
+    sample rather than to the whole artifact tree, so `on_disk` is the postflop tree. Handing
+    this the whole tree compares a postflop figure against a number that is mostly preflop
+    chart, and reds on a difference that is not a defect.
+    """
     if float(declared) != float(on_disk):
         raise ReportFigureError(
-            f"the committed index declares {declared} bytes and the artifact tree holds"
+            f"the committed index declares {declared} bytes and the postflop tree holds"
             f" {on_disk}; a byte budget checked against itself is not a byte budget"
         )
     return True
@@ -785,15 +791,27 @@ def weight_bytes_and_count() -> tuple[int, int]:
     Counted off the committed JSON's own weight block rather than off the whole file, because a
     whole-file rate charges the per-spot provenance fields against every weight and those scale
     per spot rather than per weight.
+
+    The numerator is checked against the sample's bytes on disk here, where it is produced.
+    `check_rate_excludes_non_weight_bytes` can only re-derive the division it is handed, so
+    nothing downstream can tell a weight block from the file it was cut out of.
     """
     total_bytes = 0
     total_weights = 0
+    file_bytes = 0
     files = sorted(SAMPLE_DIR.glob("*.json")) if SAMPLE_DIR.is_dir() else []
     for path in files:
         payload = json.loads(path.read_text(encoding="utf-8"))
         rows = payload.get("class_weights") or []
         total_bytes += len(json.dumps(rows, separators=(",", ":")).encode("utf-8"))
         total_weights += sum(len(row) for row in rows)
+        file_bytes += path.stat().st_size
+    if files and total_bytes >= file_bytes:
+        raise ReportFigureError(
+            f"the committed sample's weight blocks measure {total_bytes} bytes against"
+            f" {file_bytes} bytes of sample file on disk; a numerator at least as large as the"
+            " files it was cut out of is the whole file charged against every weight"
+        )
     return (total_bytes, total_weights)
 
 
@@ -855,13 +873,19 @@ def measure() -> Measured:
 
     strategy = PostflopBettingStrategy(library=library)
     behaviour = measure_behaviour(strategy)
+    # The total comes from the loop's own counter less the decisions, never from summing the
+    # breakdown being checked: `sum(x) == sum(x)` is a check that cannot fail, and an answer that
+    # is neither a decision nor a refusal would be dropped by a breakdown nobody could catch.
     check_refusal_counts_reconcile(
-        total=sum(behaviour.refusals.values()), by_code=behaviour.refusals
+        total=behaviour.asked - sum(behaviour.decisions.values()), by_code=behaviour.refusals
     )
 
     on_disk = artifact_bytes()
+    committed_on_disk = postflop_bytes()
     if index is not None:
-        check_bytes_reconcile(declared=float(index["committed_bytes"]), on_disk=float(on_disk))
+        check_bytes_reconcile(
+            declared=float(index["committed_bytes"]), on_disk=float(committed_on_disk)
+        )
     weight_bytes, weight_count = weight_bytes_and_count()
     rate = 0.0 if weight_count == 0 else weight_bytes / weight_count
     check_rate_excludes_non_weight_bytes(
@@ -893,7 +917,7 @@ def measure() -> Measured:
         behaviour=behaviour,
         unreachable=unreachable_fallback_codes(strategy),
         artifact_bytes=on_disk,
-        postflop_bytes=postflop_bytes(),
+        postflop_bytes=committed_on_disk,
         weight_bytes=weight_bytes,
         weight_count=weight_count,
         rate_per_weight=rate,
@@ -1334,8 +1358,9 @@ def byte_lines(measured: Measured) -> list[str]:
     ]
     if measured.index is not None:
         lines.append(
-            f"  the index declares {int(measured.index['committed_bytes']):,} bytes,"
-            " reconciled against the bytes on disk above"
+            f"  the index declares {int(measured.index['committed_bytes']):,} bytes, reconciled"
+            "\n  against the postflop index and sample bytes above, not against the whole tree,"
+            "\n  which is mostly the preflop chart and is not what the index declares"
         )
     else:
         lines.append(
