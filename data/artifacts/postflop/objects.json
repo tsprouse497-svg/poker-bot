@@ -1,0 +1,62 @@
+{
+ "object_storage": "local directory /Users/taylorsprouse/poker-bot-solve-objects/postflop (no remote store is provisioned yet)",
+ "rejected_above_one_percent": 0,
+ "objects": {
+  "f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5": {
+   "object_path": "/Users/taylorsprouse/poker-bot-solve-objects/postflop/srp-Kh7d2c.nodes.json.gz",
+   "object_digest": "11be015ccaed468b21c6b40fd68b611f381d9b5f4efbf88445e37b1c5358ecd0",
+   "arena_storage": "f32",
+   "board": [
+    "Kh",
+    "7d",
+    "2c"
+   ]
+  },
+  "f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:BB:check,BTN:bet@33/p:5.5/e:97.5": {
+   "object_path": "/Users/taylorsprouse/poker-bot-solve-objects/postflop/srp-Kh7d2c.nodes.json.gz",
+   "object_digest": "11be015ccaed468b21c6b40fd68b611f381d9b5f4efbf88445e37b1c5358ecd0",
+   "arena_storage": "f32",
+   "board": [
+    "Kh",
+    "7d",
+    "2c"
+   ]
+  },
+  "f/b:8c8d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5": {
+   "object_path": "/Users/taylorsprouse/poker-bot-solve-objects/postflop/srp-8c8d3c.nodes.json.gz",
+   "object_digest": "ee8703c542fddb751a6898d115e67e0f90f7d2e8d92dc7a6c3319d57d394e2f7",
+   "arena_storage": "f32",
+   "board": [
+    "8c",
+    "8d",
+    "3c"
+   ]
+  },
+  "f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5": {
+   "object_path": "/Users/taylorsprouse/poker-bot-solve-objects/postflop/srp-9c8c7c.nodes.json.gz",
+   "object_digest": "3da00bc2973ca381aa99b8e13bb97710122a144e423e235f85a5dd9c69536f59",
+   "arena_storage": "f32",
+   "board": [
+    "9c",
+    "8c",
+    "7c"
+   ]
+  }
+ },
+ "listed_not_held": {
+  "f/b:Ac8c3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5": {
+   "preflop_line": "t6/d100/BB/BTN:raise@2.5,BB:call",
+   "board": [
+    "Ac",
+    "8c",
+    "3c"
+   ],
+   "achieved_exploitability_pct_of_pot": 0.27173729894428417,
+   "iterations": 320,
+   "arena_storage": "f32",
+   "strategy_digest": "2cc028773f624f4acece454d5a21478161dcc400552544925388682d4e539d94",
+   "object_digest": "6476333e3e1e982df93d85e9caa81dc8e8739e4df955eebe12921befcaf23fda",
+   "cell_document": "/Users/taylorsprouse/poker-bot-solve-objects/postflop/monotone-disconnected-listed-not-held.cell.json"
+  }
+ }
+}
