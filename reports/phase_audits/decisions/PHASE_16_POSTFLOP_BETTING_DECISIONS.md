@@ -2334,10 +2334,21 @@ nobody can state, and `scripts/measure_postflop_solve_cost.py` guards the same q
 server's unit at 0.35, making the driver 9.0% looser than the script its own docstring claims to
 match.
 
-## 23. The conditioning entry the contract makes this phase repair or refuse - OPEN
+## 23. The conditioning entry the contract makes this phase repair or refuse
 
-**Not ruled. This item exists so the obligation is visible rather than missed**, and it needs
-Taylor. `frozen-into-data`: smoothing the input changes every committed cell.
+**Ruled by Taylor, 2026-09-21. `frozen-into-data`**: smoothing the input would change every
+committed cell.
+
+**Ruling, in his words: "idk if we need to solve for this. if it's what the solver says we should
+stick with it."** So the smoothing is **refused explicitly**, which is the second of the two things
+the contract allows, and the packet says so with the numbers below beside it rather than leaving a
+reader to find them. The backlog entry stays open and unowned by this phase; a later phase that
+wants a studyable range picks it up.
+
+This is the repo's standing position rather than a new one: we ship GTOpen's output as solved, and
+the burden is on the objection. Hand-smoothing a ladder the solver produced is us overriding a
+judgement it actually made, on hands it measured as equal, with nothing measured to put in its
+place.
 
 The contract says `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` "is this phase's to repair or
 refuse explicitly". The entry holds two problems and the phase has discharged one of them.
@@ -2354,9 +2365,13 @@ the entry describes. It has a board-dependent cost rather than a cosmetic one: o
 three the caller arrives with roughly four fifths of its sets of threes missing, and `Ac8c3c` - the
 listed-not-held cell committed last night - is such a board.
 
-The options are to smooth the ladder at class level and re-solve, or to refuse the smoothing
-explicitly and say in the packet that the committed cells are solved against a caller whose small
-pairs are an arbitrary pick among indifferent options. Decision 12 carries a do-not-smooth argument,
-but `DECISION-12-S-DO-NOT-SMOOTH-ARGUMENT-DESCRIBES-A-RANGE-THAT-WAS-SUPERSEDED` is this lane's own
-finding that the argument was made about a range MAINT-34 replaced, so it cannot be leant on as it
-stands.
+**What the packet must therefore say**, and it is the whole of what the refusal costs: the committed
+cells are solved against a caller whose small pairs are an arbitrary pick among options the preflop
+solve judged equal, and on a flop holding a three that caller arrives with about four fifths of its
+sets of threes missing.
+
+Decision 12 carries a do-not-smooth argument and this ruling does **not** rest on it.
+`DECISION-12-S-DO-NOT-SMOOTH-ARGUMENT-DESCRIBES-A-RANGE-THAT-WAS-SUPERSEDED` is this lane's own
+finding that the argument was made about a range MAINT-34 replaced, so it could not be leant on as
+it stands and was not put in front of Taylor as a reason. The ruling above was taken on the
+measurement, not on the older argument, and that entry stays open on its own account.
