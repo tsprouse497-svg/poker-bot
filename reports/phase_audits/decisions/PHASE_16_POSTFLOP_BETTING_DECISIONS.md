@@ -2272,3 +2272,91 @@ and `solve_config_errors` refuses a plan that disagrees with it. Every index ent
 constant the run asked for - per entry rather than in the header, because a cell is solved one board
 at a time and a run can be resumed later against a server somebody else started, so the arena is a
 property of the solve that produced a cell in the same way its iteration count is.
+
+## 21. The out-of-position caller leads the flop, and what the phase does about it
+
+**Ruled by Taylor, 2026-09-21. `frozen-into-data`**: what it decides is the committed cells, which a
+later phase cannot revise without re-solving.
+
+**Ruling. The flop-leading caller is accepted as the opponent this artifact models, and the phase
+records it rather than re-solves.** The cells are a correct solution to the game as configured, that
+game lets the out-of-position seat bet first, and betting first out of position is legal poker. The
+obligation the ruling creates is a reporting one: the continuation-bet frequency is never published
+without the lead frequency it is conditioned on beside it.
+
+**Why it was asked.** The phase halted on 2026-09-16 because a flop cell solved against a broken
+caller's range produced a continuation bet at 99.94% of range. The chart was re-solved, the lane
+resumed, and the committed cell on `9c8c7c` bets **99.88%** of range with check at 0.0012, which the
+deep run drives to 0.0000. The number did not move.
+
+**The preflop re-solve is not the cause, and that is measured rather than argued.** The caller's
+call branch on this line now holds 7.399 set combinations of a possible 9, which is the figure
+`RE-SOLVE-THE-PREFLOP-CHART-WITH-A-REALISTIC-BLIND-THREE-BET` predicted. On this board the caller
+holds a larger share of flushes than the raiser, 8.67% against 6.29%, and a larger share of sets,
+2.51% against 2.02%.
+
+**The cause is the node above.** The big blind leads 52.68% of its range on this flop, taking 73.9%
+of its flushes and 74.0% of its sets with it, so what reaches the button is a range whose flushes
+have fallen to 4.79% and whose sets have fallen to 1.38%. Betting almost everything into that is
+close to coherent. The lead is documented behaviour rather than a tree defect - `RULED_SOLVE_CONFIG`
+in `postflop_solve_driver.py` records that GTOpen gates the donk list on street above root, so a
+flop-rooted solve lets the out-of-position seat use the ordinary bet list - but its poker
+consequence had never been measured, and three of the four committed cells are that node.
+
+**What was rejected.** Re-solving with the out-of-position seat unable to bet the flop. It needs a
+patch to our own copy of GTOpen and one to two hours of solving plus repeating determinism and the
+deep check, and it buys a continuation-bet number comparable to a published chart by modelling a
+game in which a player may never bet a flop out of position. That is a different wrong answer, not a
+right one.
+
+**What this obliges.** The report publishes the button's continuation bet, the caller's lead, and the
+composition of the range that therefore reaches the button, in one place. A reader who is shown the
+first without the other two is being misled, and closing this phase with the record implying the
+preflop re-solve fixed the continuation bet would be the false statement the phase is currently set
+up to make.
+
+## 22. The memory ceiling stays at 0.40 after the over-read was found
+
+**Ruled by Taylor, 2026-09-21. `runtime-reversible`**: it is a guard on what may be planned, and
+changing it re-plans rather than re-derives.
+
+**Ruling. 0.40 stands.** Decision 20 raised it from 0.35 on a 0.13% overage. W6 then found that
+`arena_bytes` reads `arena_mb` as 2^20 while the server computes it as 1e6, an over-read of
+1.048576 exactly, so in the server's own unit the deep run sits at 95.49% of the **old** ceiling and
+would never have been refused. Taylor was told this and kept 0.40.
+
+**It is not purely an artefact, which is what decides it.** The four boards planned 11.60 to 12.24 GB
+as the guard reads them, and the paired board's 12.24 GB is above the 0.35 ceiling of 12,025,908,428
+bytes however the unit argument comes out, so 0.35 would have refused that board. The over-read is
+filed as `THE-MEMORY-GUARD-COMPARES-AN-ARENA-FIGURE-IT-DELIBERATELY-OVER-READS-BY-FIVE-PERCENT`
+and stays open: a guard that is conservative by an undeclared five percent is a guard whose margin
+nobody can state, and `scripts/measure_postflop_solve_cost.py` guards the same quantity in the
+server's unit at 0.35, making the driver 9.0% looser than the script its own docstring claims to
+match.
+
+## 23. The conditioning entry the contract makes this phase repair or refuse - OPEN
+
+**Not ruled. This item exists so the obligation is visible rather than missed**, and it needs
+Taylor. `frozen-into-data`: smoothing the input changes every committed cell.
+
+The contract says `EXPORT-RANGES-NEED-CONDITIONING-BEFORE-POSTFLOP` "is this phase's to repair or
+refuse explicitly". The entry holds two problems and the phase has discharged one of them.
+
+**Repaired: the unfloored residue.** Decision 12 ruled the 0.01 class-level floor and the committed
+solves ran under it - `range_weight_floor` is 0.01 in `solve_config.json`, and the ranges it wrote
+are 65 classes and 380 combos out of position against 84 and 498 in position.
+
+**Not repaired, and still present after MAINT-34: the indifference artifacts.** Measured on the
+committed ranges every cell was solved against, the caller's pair ladder reads 88 at 0.9993, 77 at
+1.0, 66 at 1.0, 55 at 1.0, 44 at 0.9997, **33 at 0.208** and 22 at 0.9713, with 99 at 0.4672. Threes
+call about a fifth as often as fours and deuces for no strategic reason, which is the exact shape
+the entry describes. It has a board-dependent cost rather than a cosmetic one: on any flop holding a
+three the caller arrives with roughly four fifths of its sets of threes missing, and `Ac8c3c` - the
+listed-not-held cell committed last night - is such a board.
+
+The options are to smooth the ladder at class level and re-solve, or to refuse the smoothing
+explicitly and say in the packet that the committed cells are solved against a caller whose small
+pairs are an arbitrary pick among indifferent options. Decision 12 carries a do-not-smooth argument,
+but `DECISION-12-S-DO-NOT-SMOOTH-ARGUMENT-DESCRIBES-A-RANGE-THAT-WAS-SUPERSEDED` is this lane's own
+finding that the argument was made about a range MAINT-34 replaced, so it cannot be leant on as it
+stands.
