@@ -1,7 +1,7 @@
 task_id: PHASE_16_POSTFLOP_BETTING
 active_phase: '16'
 task_mode: implementation
-base_commit: 95122e34b691f8293968adc3f30b3138020dfc68
+base_commit: d7712d52d964ede96d98c6d7e2d6f5ed021783eb
 approved_scope:
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
   - tests/test_postflop_key.py
@@ -38,6 +38,7 @@ approved_scope:
   - src/poker_training_bot/solver_artifacts/postflop_transport.py
   - src/poker_training_bot/solver_artifacts/postflop_harvest.py
   - scripts/solve_postflop_sample.py
+  - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -53,6 +54,33 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-09-20
+    reason: >-
+      `base_commit` moves to d7712d5, the commit that merged `main` into this lane, on the same
+      argument that moved it twice before: scope is measured as the diff from `base_commit`, and a
+      merge puts 70 of main's files into that diff which this lane did not write and must not be read
+      as having written. Every one of them is MAINT-34's or an earlier phase's - the re-solved chart,
+      its reports, `tests/**` that main split into support modules, `verification/mutations.yml`.
+      Left at 95122e3 the check reports this lane editing the preflop chart and the frozen tests,
+      which is the precise accusation the stage-5 narrowing exists to make impossible and which would
+      then be false. Nothing is lost by moving it: `tests/**`, `verification/freeze.lock` and
+      `verification/mutations.yml` are still out of `approved_scope`, so a write to any of them after
+      the merge is caught exactly as before, and everything before the merge was committed under the
+      narrower base and checked there. The lane's own stage-6 work stays in front of the stage-6
+      reviewers, who read the whole stage diff from `stage_base` rather than from this field.
+  - date: 2026-09-20
+    reason: >-
+      The solver export's source card joins approved_scope for one number, which the ExecPlan named
+      as the coordinator's before the campaign ran. Its `size` block carries `headroom_bytes` as the
+      20 MiB cap less the whole `data/artifacts` tree, so committing a flop artifact makes it stale
+      by construction and reds six tests that all reduce to the same staleness: the card does not
+      reproduce from the export it stamps. Regenerated with `scripts/convert_preflop_export.py`,
+      which rewrites the chart, the sizing table and the card together; the chart and the sizing
+      table came back byte-identical, so the only tracked change is 16,133,415 to 16,070,825, a fall
+      of exactly the 62,590 bytes the postflop tree now holds. Nothing about the preflop chart is
+      touched and this path is here for that one figure. `data/artifacts/preflop/**` at large stays
+      out: it is phases 10 and 14's committed data and MAINT-34's, and the halt this phase just came
+      off was that boundary being respected rather than argued with.
   - date: 2026-09-17
     reason: >-
       `data_pipeline/comparison_report.py` joins approved_scope for one sentence. The third
