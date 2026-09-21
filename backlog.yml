@@ -1,5 +1,54 @@
 schema_version: 1
 items:
+  - id: A-MUTATION-DESCRIPTION-ARGUES-THE-DEFENCE-THAT-FAILED
+    status: deferred
+    phase: "16"
+    title: The unplayable-size canary's own description names the wrong action and closes with the argument that did not hold
+    reason: >-
+      `verification/mutations.yml`, the entry `postflop-unplayable-size-imports`. Its description
+      opens "a committed **bet** size", never uses the word raise anywhere, and closes with a
+      paragraph arguing that the menu keeps its length so a canary refused by a check other than the
+      one it disables survives the command it names. That last sentence describes precisely what then
+      happened, and the description is the proximate cause of a three-lane detour at stage 7: the
+      canary survived because the test inflated a bet, and only a raise reaches the check the
+      mutation disables, because decision 14 put the on-menu check on bets only.
+      `check_gate_bite` reads `file`, `find`, `replace` and `must_fail`, and all four are correct, so
+      nothing is broken and no gate is red on it. What is wrong is the prose, and the next lane whose
+      canary misfires reads the prose rather than the git log.
+      Deliberately not fixed in phase 16. `verification/mutations.yml` is outside this task's
+      approved_scope, and the file is one an implementer must not be able to write - editing it costs
+      a scope re-open, a gate re-run and another independent-review cycle for a paragraph no check
+      reads. Ruled by the stage-7 reviewer as not clearing that bar on its own and filed instead, so
+      it rides to whatever task next opens that file with an owner attached rather than living in a
+      commit message. The correction it needs: say raise rather than bet, and replace the
+      menu-arity paragraph with the reason a bet cannot reach this check.
+      Filed 2026-09-21 by the review of the correction.
+
+  - id: NOTHING-CATCHES-THE-IMPORT-CHECK-THAT-REFUSES-A-BET-OFF-THE-COMMITTED-MENU
+    status: deferred
+    phase: "16"
+    title: The off-menu bet refusal has no test and no canary, and it is the check that silently absorbed another canary
+    reason: >-
+      Measured at stage 7 by the independent reviewer of the canary correction, in an isolated copy:
+      disabling the on-menu refusal in `postflop_sizing.py` alone - the branch that refuses a bet
+      whose fraction matches no entry of the committed menu - leaves the whole
+      `pytest_postflop_betting` set at **238 passed**. No test catches its removal, no mutation in
+      `verification/mutations.yml` points at `postflop_sizing.py` at all, and grepping the artifact
+      test file for the word menu returns only the two docstring lines added by the correction.
+      The check is not decorative. The sizing module's own docstring gives its case: a 3.0bb bet into
+      a 5.5bb pot is 54.5 percent, on neither the 33 nor the 75 entry, and without this refusal it
+      imports clean and the bot bets a size it will then refuse to price from the other chair.
+      It is also the check that quietly absorbed `postflop-unplayable-size-imports` for the whole of
+      stage 6, which is how that canary came to survive: an unguarded check that catches other
+      people's inputs is worse than an unguarded check that catches none, because it makes a test
+      that proves nothing look like a test that passes.
+      The reviewer's own recommendation, recorded rather than acted on: this is a better candidate
+      for the canary `THE-PHASE-S-CENTRAL-MODULE-HAS-NO-MUTATION-CANARY` is asking for than anything
+      currently proposed. Both `tests/**` and `verification/mutations.yml` are outside this task's
+      approved_scope by the stage-5 narrowing, so neither the test nor the canary can be written
+      here.
+      Filed 2026-09-21.
+
   - id: A-CONTRACT-CLAUSE-ASSERTS-A-GAP-ITS-OWN-PHASE-THEN-CLOSED
     status: deferred
     phase: contract-update

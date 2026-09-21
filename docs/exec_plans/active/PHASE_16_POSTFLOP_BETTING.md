@@ -464,6 +464,13 @@ Stages 0-5 closed. Stage 6 built and repaired everything except the data:
   at 1.0001 times the stack. The canary bites exactly as the contract wrote it; the test was
   inflating the wrong kind of action. A prediction that a check cannot bite is a prediction to
   measure per action, not per module.
+  **And the old test was worse than narrow, which the correction's own commit got wrong.** The
+  stage-7 reviewer ran the matrix - old and new test against each check disabled alone and together -
+  and the old test stayed **green** with the playability check disabled by itself. Its single-check
+  kill set was empty rather than small: it died only when both checks went at once, so "it raised"
+  never said which check had fired. The new test's kill set is a strict superset, so no coverage was
+  traded, but the premise written into 5df2826 and its scope entry was false and is corrected here
+  rather than left to mislead the next reader the way this canary's own description did.
 - **A unit trap.** The key renders a bet as a percent (`@33`); `FLOP_BET_MENU` and
   `match_menu_fraction` are fractions (`0.33`); `CellAction` now carries `size_bb` as well. Three
   units, all pinned by frozen tests. `postflop_committed.py:237` is the seam.

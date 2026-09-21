@@ -1,19 +1,9 @@
 task_id: PHASE_16_POSTFLOP_BETTING
 active_phase: '16'
 task_mode: implementation
-base_commit: d7712d52d964ede96d98c6d7e2d6f5ed021783eb
+base_commit: 5df28262e55f990ef3d87f5ccca2825492118f85
 approved_scope:
-  - tests/test_postflop_artifact.py
-  - verification/freeze.lock
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
-  - tests/test_postflop_key.py
-  - tests/test_postflop_fallback_components.py
-  - tests/test_simulator.py
-  - tests/test_postflop_query_recording.py
-  - tests/test_postflop_solve_driver.py
-  - tests/test_postflop_artifact.py
-  - tests/test_postflop_betting.py
-  - verification/freeze.lock
   - src/poker_training_bot/solver_artifacts/postflop_key.py
   - src/poker_training_bot/solver_artifacts/postflop_isomorphism.py
   - src/poker_training_bot/solver_artifacts/postflop_sizing.py
@@ -56,6 +46,35 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-09-21
+    reason: >-
+      The canary correction is committed at 5df2826 and reviewed, so the narrowing goes back on -
+      and it takes **all seven** test paths plus `verification/freeze.lock`, not the two this task
+      last re-opened. From here nothing in this phase may write a test or the lock, which is the
+      protection stage 5 exists for, restored for the run to the gate.
+      **Two corrections to my own record, both found by the independent reviewer and neither
+      cosmetic.** The first: the two paths I re-opened were already in `approved_scope`, so the
+      re-open granted permission that was already granted and left each listed twice. The record was
+      still right to write - it is Taylor's standing condition rather than `check_scope` that governs
+      a frozen-test correction - but `check_scope` would have allowed the edit either way, and the
+      narrowing that was owed from an earlier re-open had never gone back on. `tests/**` has been
+      writable by an implementer for seven files since then, which is exactly what stage 5's removal
+      exists to prevent, and nothing noticed because the mechanical guard cannot object to a path
+      that is listed.
+      The second: my entry of earlier today said the old test's "whole kill set was the check the
+      mutation disables". That is false and it inverts the defect. The reviewer ran the four-cell
+      matrix - old and new test against each check disabled alone and together - and disabling the
+      playability check **alone** left the old test green. Its single-check kill set was **empty**;
+      it was vacuous rather than narrow, and it died only when both checks went at once. The new
+      test's kill set is {playability, both} against the old {both}, so the correction is a strict
+      enlargement and no coverage was traded, which is the conclusion I reached from the wrong
+      premise. A premise that happens to support a true conclusion is still what misleads the next
+      reader, which is how this canary got its description wrong in the first place.
+      `base_commit` moves to 5df2826, the correction itself, on the same argument that moved it to
+      the stage-5 freeze and to d635b49: scope is the diff from `base_commit`, and a narrowing that
+      leaves the corrected test in that diff reads from here on as the builder writing tests, which
+      is what the narrowing exists to stop. The correction and its review are in front of the
+      stage-8 reviewers whether or not the path is still writable.
   - date: 2026-09-21
     reason: >-
       `tests/test_postflop_artifact.py` and `verification/freeze.lock` re-open for one fixture line
