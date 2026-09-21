@@ -3,6 +3,8 @@ active_phase: '16'
 task_mode: implementation
 base_commit: d7712d52d964ede96d98c6d7e2d6f5ed021783eb
 approved_scope:
+  - tests/test_postflop_artifact.py
+  - verification/freeze.lock
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
   - tests/test_postflop_key.py
   - tests/test_postflop_fallback_components.py
@@ -54,6 +56,39 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-09-21
+    reason: >-
+      `tests/test_postflop_artifact.py` and `verification/freeze.lock` re-open for one fixture line
+      and the re-freeze that follows it. This is the sixth re-open and it is the narrowest: one test,
+      one selection, no assertion changed and no expected number moved.
+      The stage-7 gate is green on 53 of 55 and one of the two reds is `check_gate_bite`, where
+      `postflop-unplayable-size-imports` survived `pytest_postflop_betting`. Lane C3 diagnosed it
+      read-only in a scratch copy and the mutation is not the problem: `find`, `file` and `must_fail`
+      are all correct. The test is. It takes `sorted(glob)[0]`, which is the monotone cell, and
+      inflates its first sized action, which is a **bet** - and with the playability check disabled a
+      bet is refused one line later by the menu check in `postflop_sizing.py:159`, so the canary is
+      caught by a check other than the one it disables and survives the command it names. Its own
+      docstring names that failure mode and did not escape it.
+      The ExecPlan predicted this canary could not bite at all, and that prediction is **half wrong**,
+      which is why this is a fixture fix rather than a retirement. For a bet it is right and C3 put
+      numbers on it: on-menu means added at most 0.80 of the pot before, unplayable means added above
+      what is behind, so both need a pot above 1.25 times the stack, and every committed cell sits at
+      5.5 or 7.315 against 97.5 behind - missing by 16 to 22 times, across the whole committed domain
+      of two single-raised lines. For a **raise** it is wrong: decision 14 ruled the menu check onto
+      bets only, because a flop raise is 2.5x the bet it answers rather than a pot fraction, so a
+      raise is exempt and nothing else catches it. Measured on `rainbow-dry-high-facing-a-bet`, whose
+      one sized action is a raise: mutated it imports clean, unmutated it is refused at 10x the stack
+      and again at 1.0001x.
+      So the check guards a real committed-shaped input at import, the contract's canary is
+      satisfiable exactly as written, and the fix is to inflate the raise rather than the bet. The
+      test asserts such a cell exists, so a future sample that loses its raise fails loudly rather
+      than going quiet again.
+      `tests/test_postflop_artifact.py` is at exactly 700 lines against a 700 cap, so the edit is
+      net-zero or shorter: the docstring's menu-arity paragraph gives up its lines to the reason that
+      actually matters. The correction is written by a lane that wrote none of the implementation and
+      read by an independent reviewer before the gate, which is the condition Taylor set on
+      2026-09-03 and again on 2026-09-04 and has governed all five earlier re-opens. The narrowing
+      goes back on in its own commit once the lock is re-pinned.
   - date: 2026-09-20
     reason: >-
       `base_commit` moves to d7712d5, the commit that merged `main` into this lane, on the same

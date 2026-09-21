@@ -453,6 +453,17 @@ Stages 0-5 closed. Stage 6 built and repaired everything except the data:
 - **`postflop_betting.py` has no mutation canary at all** - the module that decides whether the bot
   bets. And `postflop-unplayable-size-imports` cannot bite on a `bet`: the on-menu and unplayable
   checks are jointly unsatisfiable there. `check_gate_bite` will find the second at stage 7.
+  **Corrected 2026-09-21, after stage 7 found exactly that and lane C3 measured why.** The first half
+  is right and now has numbers: on-menu caps the added amount at 0.80 of the pot before, unplayable
+  needs it above what is behind, so both want a pot over 1.25 times the stack, and every committed
+  cell is 5.5 or 7.315 against 97.5 - short by 16 to 22 times, over the whole committed domain of two
+  single-raised lines. The conclusion drawn from it was wrong. Decision 14 ruled the menu check onto
+  bets only, because a flop raise is `2.5x` the bet it answers rather than a pot fraction, so **a
+  raise is exempt and nothing else catches it**: with the mutation applied
+  `rainbow-dry-high-facing-a-bet` imports clean at any size, and without it the same cell is refused
+  at 1.0001 times the stack. The canary bites exactly as the contract wrote it; the test was
+  inflating the wrong kind of action. A prediction that a check cannot bite is a prediction to
+  measure per action, not per module.
 - **A unit trap.** The key renders a bet as a percent (`@33`); `FLOP_BET_MENU` and
   `match_menu_fraction` are fractions (`0.33`); `CellAction` now carries `size_bb` as well. Three
   units, all pinned by frozen tests. `postflop_committed.py:237` is the seam.
