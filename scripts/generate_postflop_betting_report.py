@@ -829,6 +829,18 @@ class DeepCheck:
     def moving_past(self, threshold: float) -> int:
         return sum(1 for value in self.moved if value > threshold)
 
+    @property
+    def median_moved(self) -> float:
+        """The nearest-rank median, which is a movement some class actually exhibits.
+
+        `statistics.median` interpolates between the two middle values of an even-sized set and
+        would publish 0.0535 where no hand class moved by 0.0535. The file this reads chose
+        nearest rank for that reason and says so beside its own `quantile` helper; recomputing it
+        here under the other convention would make the report and the artifact disagree about a
+        figure neither of them needed to derive twice."""
+        ordered = sorted(self.moved)
+        return ordered[(len(ordered) + 1) // 2 - 1]
+
     def shape_mean(self, shape: str) -> tuple[int, float]:
         found = [
             value
@@ -1903,7 +1915,7 @@ def deep_check_lines(measured: Measured) -> list[str]:
         "",
         f"    hand classes in the cell: {check.classes}",
         f"    classes that did not move at all: {check.unmoved}",
-        f"    median: {statistics.median(check.moved):.4f}"
+        f"    median: {check.median_moved:.4f}"
         f"    mean: {statistics.fmean(check.moved):.4f}"
         f"    worst: {max(check.moved):.4f}",
         f"    classes moving more than 0.05: {check.moving_past(0.05)}",

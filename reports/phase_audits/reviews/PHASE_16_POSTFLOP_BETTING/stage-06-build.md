@@ -101,10 +101,37 @@ of my new blocker list.
 
 ### New
 
-- **The required report's determinism block and its committed-ranges block are both read out of
-  the August cost measurement, so both describe a solve that is not the one the repo commits.**
+- **[resolved] The required report's determinism block and its committed-ranges block are both read
+  out of the August cost measurement, so both describe a solve that is not the one the repo
+  commits.**
 
-  `determinism_record` (`scripts/generate_postflop_betting_report.py:510`) walks
+  Repaired in `b285a6b` by a lane that wrote none of what it read, and re-measured here on
+  2026-09-21 rather than taken on report. `determinism_record` now reads `DETERMINISM_PATH`, and
+  every figure the block prints re-derives from `determinism.json`: five cells at starting pot 5.5,
+  280 to 340 iterations, f32 arenas, the five 16-hex digests, per-cell combo counts of 447, 342,
+  342, 350 and 331, zero combos in one run only and a largest per-combo gap of 0 in every one, and
+  wall clocks that differ in every pair. `committed_ranges` now reads `SOLVE_CONFIG_PATH`, and the
+  printed pair weights are the committed ones to the digit - 22 0.9713, 33 0.208, 44 0.9997, 55 1,
+  66 1, 77 1, 88 0.9993, 99 0.4672 out of position, every pair at 1 in position - with both
+  combination counts printed and labelled, 380 at full weight against 323.7 weighted, which answers
+  the range-size non-blocker below rather than dropping it. The "dropped by the floor" lists are
+  gone and the reason is stated in the report: a post-floor file cannot name what the floor
+  removed, so what is printed instead is the smallest surviving weight on each side, 0.0147 and
+  0.7865, both of which I re-derived from `solve_config.json`.
+
+  The new guards are reconciliations rather than restatements, which I established by driving them.
+  `check_determinism_covers_what_is_committed` passes the true input and refuses all four wrong
+  ones I fed it: an indexed spot key outside the proof, a disagreeing strategy digest, a
+  disagreeing iteration count, and an index with cells but no proof at all. It compares two files
+  written by different code paths, so it is not a value checked against itself.
+  `check_every_committed_weight_clears_the_floor` refuses a surviving weight of 0.001 and passes
+  the committed ranges. `check_the_two_runs_are_distinct` refuses a record in which any cell
+  reports the same wall clock twice, over **all five** cells - which closes at report time the
+  one-loop asymmetry recorded under the non-blockers, where the writing script guards only four.
+  `object_for` refuses an object whose bytes no longer hash to the digest the index commits; I
+  perturbed a scratch copy outside the repo and it refused.
+
+  The original finding, for the record. `determinism_record` walked
   `reports/active/latest_postflop_solve_cost.txt` for a row whose group is `determinism`. I read
   that row: board `Kc7c2c`, starting pot **16.0**, effective stack 92.5, **240 iterations**,
   measured 2026-08-24, against ranges `config.range_oop@568ae7b39c57` and
@@ -116,32 +143,50 @@ of my new blocker list.
   configuration actually committed". `scripts/solve_postflop_sample.py:884-890` says this in its own
   words - "Neither result stands in for the other, and the contract asks for this one by name".
 
-  `committed_ranges` (`:528`) has the same shape: it reads the cost report's appendix for the
+  `committed_ranges` had the same shape: it read the cost report's appendix for the
   ranges of its converged rows. The report's section "The committed ranges, as pair weights on both
-  sides" therefore prints four ranges, **none of which is either range the committed cells were
+  sides" therefore printed four ranges, **none of which is either range the committed cells were
   solved against**. The committed ones are in `data/artifacts/postflop/solve_config.json` under
   `oop_bb_call` and `ip_btn_open`; their pocket-pair weights are 22 0.9713, 33 0.208, 44 0.9997, 55
   1.0, 66 1.0, 77 1.0, 88 0.9993, 99 0.4672 out of position, and every pair at 1.0 in position. No
-  printed block matches either; the printed ones carry TT through AA in the out-of-position range,
-  which the committed one does not hold at all. The printed "dropped by the floor" lists are drops
+  printed block matched either; the printed ones carry TT through AA in the out-of-position range,
+  which the committed one does not hold at all. The printed "dropped by the floor" lists were drops
   that did not happen here: the committed ranges' minimum weights are **0.0147 and 0.7865**, so
   nothing in either sits at or under the 0.01 floor.
 
-  **And nothing anywhere reads `data/artifacts/postflop/determinism.json`.** I grepped `scripts/`,
-  `src/`, `tests/` and `docs/`; the only file that names it is the script that wrote it. So the
-  phase has a real determinism proof - five cells, both runs, per-combo gaps of 0.0, wall clocks
-  375.6s against 606.0s on the monotone board - sitting beside a report that cites somebody else's.
+  **And nothing anywhere read `data/artifacts/postflop/determinism.json`.** I grepped `scripts/`,
+  `src/`, `tests/` and `docs/`; the only file that named it was the script that wrote it. So the
+  phase had a real determinism proof - five cells, both runs, per-combo gaps of 0.0, wall clocks
+  375.6s against 606.0s on the monotone board - sitting beside a report that cited somebody else's.
 
-  What closes it: point `determinism_record` at `determinism.json` and `committed_ranges` at
-  `solve_config.json`. The second needs `conditional_ranges` to record which classes the floor
-  dropped, because `solve_config.json` stores the post-floor range and the dropped list is not
-  recoverable from it.
+  What closed it: `determinism_record` points at `determinism.json` and `committed_ranges` at
+  `solve_config.json`. The dropped-by-the-floor list was not recovered and could not have been,
+  which the report now says in place of printing one.
 
-- **The required report says "nothing here has diffed a deep solve against a shallow one" in the
-  commit that committed that diff, and the diff contradicts the sentence it is reassuring the
-  reader with.**
+- **[resolved] The required report says "nothing here has diffed a deep solve against a shallow
+  one" in the commit that committed that diff, and the diff contradicts the sentence it is
+  reassuring the reader with.**
 
-  `reports/active/latest_postflop_betting_report.txt:132` still carries that clause.
+  Repaired in `b285a6b` and re-measured here. The clause is gone from `accuracy_lines` and from the
+  committed report - I grepped the whole of `reports/` and it survives only inside this note. In
+  its place the report carries a section publishing the diff, and every figure in that section
+  re-derives from `deep_convergence_check.json`: 280 iterations at 0.2774% of pot against 1,200 at
+  0.0478%; the range-weighted action row 0.12% to 0.00%, 80.86% to 75.84%, 19.03% to 24.16%; 152
+  classes with none unmoved, mean 0.0816, worst 0.4670, 79 past 0.05, 16 changing their preferred
+  action; and the split by shape, 19 pure at 0.0071, 32 lightly mixed at 0.0495, 101 mixed at
+  0.1058. It also states the narrower reading the measurement supports - take the bet-or-check
+  answer from this cell, do not take the size split - which is what the evidence says rather than
+  a softer version of it. One figure is re-derived under a different convention from the file's
+  own and that is a non-blocker below, not a reason to hold this open.
+
+  The same sentence still sits at `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md:106` and in a
+  frozen test docstring. That is filed as
+  `A-CONTRACT-CLAUSE-ASSERTS-A-GAP-ITS-OWN-PHASE-THEN-CLOSED`, it needs `contract-update` mode
+  which this task is not in, and my finding was against the report rather than the contract, so it
+  does not hold this blocker open.
+
+  The original finding, for the record.
+  `reports/active/latest_postflop_betting_report.txt:132` carried that clause.
   `399b739` committed `data/artifacts/postflop/deep_convergence_check.json` and regenerated the
   report in the same commit; the only lines that moved were the byte figures. I read the deep check:
   the monotone continuation-bet cell re-solved to the 1,200-iteration cap reaches 0.0478% of pot
@@ -151,13 +196,67 @@ of my new blocker list.
   bet sizes is not: 0.8086 to 0.7584 small and 0.1903 to 0.2416 large. That is the strongest single
   piece of evidence this phase produced about its own data, it is exactly what the contract's
   qualification "convergence at the committed iteration count is unproven" is about, and the report
-  denies it exists. Like `determinism.json`, `deep_convergence_check.json` is read by nothing.
+  denied it existed. Like `determinism.json`, `deep_convergence_check.json` was read by nothing.
 
-  What closes it: delete the clause, and print the movement summary the file already holds. The
-  contract's ban is on reporting an accuracy for the solve as a whole, not on reporting how far the
-  frequencies moved.
+  What closed it: the clause was deleted and the movement summary the file already held is
+  published in its place. The contract's ban is on reporting an accuracy for the solve as a whole,
+  not on reporting how far the frequencies moved.
 
 ## Non-blocker
+
+*The four items under this rule were added on 2026-09-21, after `b285a6b` repaired the two
+blockers above. Everything below them is the note as first written and is left as the snapshot it
+is.*
+
+- **The report publishes a movement median the source file refused to publish.** The deep-solve
+  section prints `median: 0.0535`. `deep_convergence_check.json` carries `movement.median` of
+  **0.053**, and the `quantile` helper that produced it says in terms why: nearest rank rather
+  than interpolated, because "every value here is a multiple of a thousandth and an interpolated
+  quantile would publish a movement figure no class actually exhibits". I re-derived both off
+  `per_class.moved` - nearest rank gives 0.053 and the interpolated median gives 0.0535 - so the
+  report recomputed the figure under the convention the file that wrote it chose against, and
+  0.0535 is a movement no hand class has. Every other figure in that section matches the file. One
+  line, and the fix is to print the committed figure rather than a second derivation of it.
+
+- **On a machine without the object store the report drops the block it says must never travel
+  separately, and the gate is green.** The conditioning block is recovered from
+  `srp-*.nodes.json.gz` outside git. I pointed `OBJECTS_PATH` at a missing file in process and
+  rendered: `measure()`, `render()` and the generator's own text checks all pass, and the section
+  publishes hero's frequencies - including the 0.12% check on `9c8c7c` - with the conditioning
+  table replaced by a paragraph telling the reader to take no continuation-bet number off it.
+  Green is the *right* outcome, because the contract's non-goals require the gate to pass with no
+  fetched solve object. What is missing is that the committed report is a regenerated artefact:
+  anyone running the generator on a fresh clone overwrites the full report with the degraded one,
+  the gate stays green, the freshness check passes because the file was just written, and nothing
+  records which of the two states the committed copy is in. A one-line marker naming the state in
+  the header would make a degraded copy visible in a diff. Proposed
+  `the-committed-report-cannot-say-which-of-its-two-states-it-is-in`, to be filed in upper case by
+  whoever files it.
+
+- **The raise is half repaired, the remaining half is filed, and the guard is honest rather than
+  silent** - which updates the first non-blocker below rather than replacing it. `load_library` now
+  reads the raise sizes off each cell's own `actions`, so `raise_fractions` is `(0.6203007518796994,)`
+  and the matcher does recognise the bot's own raise. It then cannot key it: `render_size_bb`
+  refuses 62.030075 as finer than a hundredth, and I confirmed both that the bare value raises and
+  that 4.5375 into 7.315 is 62.03007518796991% of pot, so a 2.5x raise over a 33% bet is simply not
+  a percent a key can hold. Without the guard that is an uncaught `ValueError` out of a strategy
+  whose contract is to answer or refuse. With it, the refusal detail reads
+  `pct_of_pot 62.030075`, `on_the_committed_menu yes`, `nameable_in_a_key no`, which is the cause
+  said plainly and no longer blames the other seat. The one thing left wrong is the code's own
+  name, `postflop-betting:flop-size-off-the-committed-menu`, which still reads as somebody having
+  sized off the menu when the detail beside it says the opposite; a reader who counts codes and
+  does not open the detail gets the old wrong story.
+  `THE-KEY-CANNOT-NAME-A-RAISE-THE-COMMITTED-MENU-HOLDS` owns the rest and needs a ruling on
+  whether a raise belongs in a key as a percent at all.
+
+- **The clause I found false in the report is still in the contract, and that is correctly
+  scoped.** `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md:106` and the docstring of a frozen
+  test still say nobody has diffed a deep solve against a shallow one. Filed as
+  `A-CONTRACT-CLAUSE-ASSERTS-A-GAP-ITS-OWN-PHASE-THEN-CLOSED`, it is a semantic contract edit and
+  needs `contract-update` mode, and the contract is at 299 lines against a cap of 300 compared
+  `> limit`, so it is a same-line replacement or a fold-in rewrite and not an amendment line. I
+  record it here so a reader of this note does not take the report's repair as having reached the
+  contract.
 
 - **A raise the matcher cannot name, still live, and the fix is one field.** The poker note's
   sub-finding under its first blocker was not repaired. `load_library`

@@ -167,7 +167,7 @@ its frequencies diffed against the committed ones hand class by hand class.
 
     hand classes in the cell: 152
     classes that did not move at all: 0
-    median: 0.0535    mean: 0.0816    worst: 0.4670
+    median: 0.0530    mean: 0.0816    worst: 0.4670
     classes moving more than 0.05: 79
     classes that changed which action they prefer: 16
 
