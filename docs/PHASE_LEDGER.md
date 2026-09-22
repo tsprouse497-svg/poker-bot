@@ -17,7 +17,7 @@
 | 12 | Spot Vocabulary V2 | completed | `docs/phase_contracts/PHASE_12_SPOT_VOCABULARY.md` | `reports/phase_audits/PHASE_12_SPOT_VOCABULARY.md` |
 | 13 | Table-State Fidelity | completed | `docs/phase_contracts/PHASE_13_TABLE_STATE.md` | `reports/phase_audits/PHASE_13_TABLE_STATE.md` |
 | 14 | Chart Cutover | completed | `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` | `reports/phase_audits/PHASE_14_CHART_CUTOVER.md` |
-| 16 | Postflop That Can Bet | future | `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` | `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` |
+| 16 | Postflop That Can Bet | completed | `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` | `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` |
 | 17 | The Corpus Verdict On The Committed Chart | future | `docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md` | `reports/phase_audits/PHASE_17_CORPUS_VERDICT.md` |
 | 18 | The Yardstick | future | `docs/phase_contracts/PHASE_18_YARDSTICK.md` | `reports/phase_audits/PHASE_18_YARDSTICK.md` |
 | 19 | Heuristics And Merged Charts | future | `docs/phase_contracts/PHASE_19_HEURISTICS_AND_MERGED_CHARTS.md` | `reports/phase_audits/PHASE_19_HEURISTICS_AND_MERGED_CHARTS.md` |

@@ -46,6 +46,57 @@ NOT_BACKLOG_IDS: dict[str, str] = {
     "CC-BY-4": "the same licence, with its version caught by the id shape",
     "NON-BLOCKER": "a review-note heading in Phase 05, not an id: findings a review"
     " classified as not blocking the gate",
+    "ALL-CAPS": "prose describing the shape a backlog id takes, in Phase 16's stage-3"
+    " fold-in review, rather than naming one",
+    "ALL-CAPS-DASH": "the same sentence, quoting the id convention itself",
+    "NAMES-NONE-OF-ITS-OWN": "the middle of a longer id, quoted in prose as"
+    " 'its id says ...' in the same note",
+    "A-K-7-5-2": "a poker hand, not an id: the ace-high heart flush a stage-6 domain"
+    " review names when pricing the pot-odds river call. BACKLOG-CITATION-SHAPE-MATCHES"
+    "-POKER-NOTATION is the open entry for the detector reading poker notation as a"
+    " citation, and it says in terms that it cannot quote its own offenders without"
+    " becoming one",
+}
+
+# Ids that were real and are not the live name of their finding. A citation of one is a
+# citation, not a false positive, which is why they are kept apart from NOT_BACKLOG_IDS
+# above: the finding was filed, under a name the note that found it does not use.
+#
+# A review note is a snapshot of what a stage believed and is not rewritten afterwards,
+# so a name corrected after the note was filed stays in the note forever. Without this
+# table the only ways to keep the gate green are to edit a closed record or to file a
+# second item for a finding that already has one, and the second is the thing the
+# citation check exists to prevent.
+#
+# Each entry names where the finding actually lives, so a reader who follows the note's
+# name is sent on rather than left with nothing. Adding one is a claim that the finding
+# is filed - check that it is before adding, because an entry here silences the check
+# for that name everywhere in the repo.
+SUPERSEDED_BACKLOG_IDS: dict[str, str] = {
+    "A-PHASE-CONTRACT-NAMES-NONE-OF-ITS-OWN-DEFERRED-ITEMS": "filed as"
+    " A-CONTRACT-NAMES-SOME-OF-ITS-PHASE-ITEMS-AND-NOTHING-CHECKS-THE-REST, which"
+    " carries the same measurement; the note keeps the name round 1 proposed",
+    "NO-FIGURE-STATES-THE-SHARE-OF-CORPUS-FLOPS-THE-ARTIFACT-CAN-ANSWER": "merged into"
+    " THE-PHASE-CAN-ANSWER-AT-MOST-THREE-QUARTERS-OF-CORPUS-FLOPS",
+    "A-TWO-RANGE-SOLVE-CANNOT-ANSWER-A-MULTIWAY-FLOP-AND-NOTHING-COUNTS-THEM": "merged"
+    " into the same entry, which carries the multiway share as its own figure",
+    "A-STAGE-THAT-TOOK-SIX-REVIEW-ROUNDS-LOOKS-LIKE-ONE-THAT-TOOK-ONE": "the name the"
+    " note proposed and rejected, a count inside an id being what AGENTS.md's naming"
+    " rules forbid; filed as A-REVIEW-NOTE-RECORDS-ITS-FINDINGS-BUT-NOT-ITS-ROUNDS",
+    "A-REVIEW-NOTES-ROUND-COUNT-IS-NOT-RECORDED": "the same note's second suggested"
+    " name for that entry",
+}
+
+# Ids proposed and then withdrawn, which are cited by name so that nobody files them
+# again. NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT is named inside
+# NO-MENU-IN-THE-RECORD-OFFERS-AN-OVERBET precisely to say it is not the same claim and
+# was measured false - 96 all-in states exist in the single-raised tree - and that
+# sentence reaches docs/BACKLOG.md through the generator. Filing it to satisfy the check
+# would put a claim the repo has already disproved into the backlog permanently.
+WITHDRAWN_BACKLOG_IDS: dict[str, str] = {
+    "NO-MENU-IN-THE-RECORD-CAN-STACK-OFF-A-SINGLE-RAISED-POT": "withdrawn 2026-09-09 by"
+    " Phase 16's stage-2 poker review, which measured the claim false and said in terms"
+    " not to file it",
 }
 
 # Task ids share the shape of a backlog id and are not one. They name a unit of work in
@@ -78,6 +129,8 @@ def _citations(known: set[str]) -> dict[str, set[str]]:
         for path in sorted(REPO_ROOT.glob(pattern)):
             cited = set(BACKLOG_ID.findall(path.read_text(encoding="utf-8")))
             cited -= set(NOT_BACKLOG_IDS)
+            cited -= set(SUPERSEDED_BACKLOG_IDS)
+            cited -= set(WITHDRAWN_BACKLOG_IDS)
             cited = {token for token in cited if not NOT_BACKLOG_ID_SHAPES.match(token)}
             if cited:
                 citations[str(path.relative_to(REPO_ROOT))] = cited

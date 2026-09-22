@@ -34,10 +34,10 @@ gives a known expected answer to check the machinery against, which a run betwee
 different profiles cannot do.
 
   net chips across the table                   0   (must be exactly 0)
-  hands reaching a showdown                 140
+  hands reaching a showdown                   0
   hands won uncontested                     437
-  hands refused                              23
-  hands re-derived by the replayer          577
+  hands refused                             163
+  hands re-derived by the replayer          437
 
 The last line is the cross-check that matters most. Every dealt hand is written out in
 the Phase 02 normalized schema as it is played, then handed back to the Phase 02
@@ -53,8 +53,8 @@ averaged away.
 ### Coverage: six copies of the chart bot
 
   hands dealt                               600
-  hands measured                            577
-  hands refused                              23     3.8%
+  hands measured                            437
+  hands refused                             163    27.2%
 
 A refused hand is one where the committed chart had no answer for the spot it reached.
 The hand is voided rather than guessed at: stacks are restored, no chips move, and it is
@@ -63,15 +63,17 @@ coverage signal, and it is the most actionable number in this file - it is a lis
 spots the charts do not yet hold.
 
   refusals by reason:
+    postflop-betting:no-cell-for-this-board                 26
+    postflop-betting:no-cell-for-this-preflop-line         114
     preflop-chart:lookup:spot-not-covered                   23
 
-So this run measured the strategy over 577 of 600 hands. Whatever the figures below say,
+So this run measured the strategy over 437 of 600 hands. Whatever the figures below say,
 they say it about that subset.
 
 ### Chips per hand: six copies of the chart bot
 
 profile                                        seats     total  per hand   std err
-composite-preflop-chart-postflop-fallback          6         0      0.00      0.00
+composite-preflop-chart-postflop-betting           6         0      0.00      0.00
 
 A profile's figure sums every seat it occupies, because a comparison is between
 strategies rather than between chairs. `std err` is the run's own variation in that
@@ -107,7 +109,7 @@ shallow, so the deeper spots the chart does not cover are never reached.
 ### Chips per hand: chart bot against five check-fold seats
 
 profile                                        seats     total  per hand   std err
-composite-preflop-chart-postflop-fallback          1     24900     41.50      2.59
+composite-preflop-chart-postflop-betting           1     24900     41.50      2.59
 reference-check-fold                               5    -24900    -41.50      2.59
 
 A profile's figure sums every seat it occupies, because a comparison is between
@@ -115,7 +117,7 @@ strategies rather than between chairs. `std err` is the run's own variation in t
 figure, so a reader can see whether a difference is a difference.
 
 Clears its own noise by more than two standard errors, best first:
-composite-preflop-chart-postflop-fallback, reference-check-fold.
+composite-preflop-chart-postflop-betting, reference-check-fold.
 
 ## Position coverage, and the number to check by hand
 

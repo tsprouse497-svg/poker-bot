@@ -359,6 +359,24 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_derived_chart_report.py"],
         "Generate the derived preflop chart report and the closing corpus measurement",
     ),
+    "pytest_postflop_betting": CommandSpec(
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_postflop_key.py",
+            "tests/test_postflop_artifact.py",
+            "tests/test_postflop_solve_driver.py",
+            "tests/test_postflop_betting.py",
+            "tests/test_postflop_query_recording.py",
+            "tests/test_postflop_betting_report.py",
+        ],
+        "Run the postflop key, committed-solve, betting-strategy and report tests",
+    ),
+    "generate_postflop_betting_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_postflop_betting_report.py"],
+        "Generate the postflop betting report: coverage, accuracy spread, refusals and bytes",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",

@@ -35,6 +35,8 @@ All passed: True
 - PASS generate_table_state_report: Generate the table-state report: pot reconciliation, depth, and blind structure
 - PASS pytest_derived_chart: Run the derived-chart selection, conversion, artifact, and report tests
 - PASS generate_derived_chart_report: Generate the derived preflop chart report and the closing corpus measurement
+- PASS pytest_postflop_betting: Run the postflop key, committed-solve, betting-strategy and report tests
+- PASS generate_postflop_betting_report: Generate the postflop betting report: coverage, accuracy spread, refusals and bytes
 - PASS check_generated_status: Check generated STATUS.md freshness
 - PASS check_generated_phase_ledger: Check generated phase ledger freshness
 - PASS check_generated_backlog: Check generated backlog freshness

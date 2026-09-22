@@ -2,7 +2,7 @@ Postflop Fallback Report
 ========================
 
 Fallback: postflop-fallback v1
-Composite: composite-preflop-chart-postflop-fallback v1
+Composite: composite-preflop-chart-postflop-betting v1
 
 ## What this is, and what it is not
 
@@ -180,10 +180,11 @@ version would turn the one fact this module rests on back into a guess.
 Fixture: `data/samples/normalized_hands.json`
 
 One strategy object plays the whole hand: preflop from the committed charts, flop
-through river from the fallback. Every recorded action in a hand is a decision point. A
-point can only be asked when the hand history records that seat's hole cards, which it
-does only for seats that reached showdown, so points belonging to a seat that folded
-earlier are skipped rather than guessed at.
+through river from the postflop component, which since phase 16 is the betting strategy
+rather than the fallback. Every recorded action in a hand is a decision point. A point
+can only be asked when the hand history records that seat's hole cards, which it does
+only for seats that reached showdown, so points belonging to a seat that folded earlier
+are skipped rather than guessed at.
 
 These four hands were recorded to exercise the replayer, not to be preflop spots the
 six-handed 100bb charts cover, so the chart refuses every one of them. That is the
@@ -193,12 +194,12 @@ being quietly converted into a check.
   phase02-heads-up-showdown
     preflop seat 0   refused  (preflop-chart:lookup:no-artifact-for-table-size)
     preflop seat 1   refused  (preflop-chart:lookup:no-artifact-for-table-size)
-    flop    seat 1   check  (postflop-fallback:check-when-free)
-    flop    seat 0   check  (postflop-fallback:check-when-free)
-    turn    seat 1   check  (postflop-fallback:check-when-free)
-    turn    seat 0   check  (postflop-fallback:check-when-free)
-    river   seat 1   check  (postflop-fallback:check-when-free)
-    river   seat 0   check  (postflop-fallback:check-when-free)
+    flop    seat 1   refused  (postflop-betting:no-cell-for-this-preflop-line)
+    flop    seat 0   refused  (postflop-betting:no-cell-for-this-preflop-line)
+    turn    seat 1   refused  (postflop-betting:no-committed-turn-solution)
+    turn    seat 0   refused  (postflop-betting:no-committed-turn-solution)
+    river   seat 1   refused  (postflop-betting:no-committed-river-solution)
+    river   seat 0   refused  (postflop-betting:no-committed-river-solution)
 
   phase02-three-way-side-pot
     preflop seat 2   refused  (preflop-chart:a-live-seat-is-shorter-than-hero)
@@ -218,26 +219,31 @@ being quietly converted into a check.
     turn    seat 0   not asked (this seat's hole cards are not recorded)
 
 Broken out by which component answered. Preflop is the chart, flop through river is the
-fallback, and no query reaches both.
+postflop component named in the heading below, and no query reaches both.
 
                                                preflop              postflop
-                                         preflop-chart     postflop-fallback
+                                         preflop-chart      postflop-betting
 
 decision points                                      9                    10
 asked (hole cards recorded)                          5                     6
-decisions                                            0                     6
-refusals                                             5                     0
+decisions                                            0                     0
+refusals                                             5                     6
 skipped (hole cards unknown)                         4                     4
 
-Refusal codes, all of them from the chart and none from the fallback:
+Refusal codes. The prefix on each names the component that refused:
 
+  postflop-betting:no-cell-for-this-preflop-line           2
+  postflop-betting:no-committed-river-solution             2
+  postflop-betting:no-committed-turn-solution              2
   preflop-chart:a-live-seat-is-shorter-than-hero           1
   preflop-chart:lookup:no-artifact-for-table-size          2
   preflop-chart:table-is-not-one-flat-stack-depth          2
 
 Read the per-hand listing above as the shape of a hand played by this bot: the chart
-speaks preflop or declines to, every postflop street checks through, and the hand is
-settled at showdown. Nothing bets and nothing raises after the flop.
+speaks preflop or declines to, and each postflop street is either answered out of a
+committed solved cell or refused under a code naming the gap. A refusal is not an action
+- the composite hands it back untouched and the hand is voided rather than checked down,
+which is why a refused hand reaches no showdown.
 
 ## Check one number by hand
 
@@ -269,8 +275,8 @@ Phase 03 record shape, written with the same serializer as the preflop audit, so
 reader that already checks preflop decisions checks these unchanged.
 
   from the enumeration                                  72
-  from the sample hands (postflop only)                  6
-  total lines                                           78
+  from the sample hands (postflop only)                  0
+  total lines                                           72
 
 Refusals are counted in this report and are deliberately not written to that file. The
 record shape does accept a refusal, but a decision audit whose lines are not all

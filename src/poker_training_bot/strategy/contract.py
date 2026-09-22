@@ -5,18 +5,15 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
-# Version 3 carries each seat's own contributions and its folded and all-in markers, and
-# renames the bet-level key from `street_bet` to `current_bet`. Version 2 bytes and version 3
-# bytes would otherwise be indistinguishable at an unchanged version number, which is the
-# defect `DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS` already records once.
-DECISION_AUDIT_SCHEMA_VERSION = 3
+# A bump is a payload shape. Two shapes under one number are indistinguishable in the bytes,
+# which is the defect `DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS` already records
+# once. Version 3 carried each seat's own contributions and its folded and all-in markers and
+# renamed the bet-level key from `street_bet` to `current_bet`; 4 adds `postflop_actions`.
+DECISION_AUDIT_SCHEMA_VERSION = 4
 
 _STREET_BOARD_SIZES = {"preflop": 0, "flop": 3, "turn": 4, "river": 5}
-
 _ACTION_NAMES = ("fold", "check", "call", "bet", "raise")
 _AMOUNT_ACTIONS = frozenset({"bet", "raise"})
-_PREFLOP_HISTORY_ACTIONS = ("fold", "check", "call", "raise")
-
 _CARD_RANKS = frozenset("23456789TJQKA")
 _CARD_SUITS = frozenset("cdhs")
 
@@ -34,12 +31,15 @@ class SeatAction:
     position here would bake a derivation into the raw decision context and give
     two places to disagree about what `CO` means.
 
-    A raise carries the amount it raised *to*, in chips, which is the unit the hand
-    history and the engine already use; converting to big blinds is the chart layer's
-    job and it needs the blinds to do it. Without this a size-aware spot key cannot be
-    derived at all, because the history is where the price in front of hero lives.
-    Every other action carries nothing: a call pays the level the preceding raise
-    states, and a fold and a check pay nothing.
+    A bet or a raise carries the amount it put the level *at*, in chips, which is the unit
+    the hand history and the engine already use; converting to big blinds or to a fraction
+    of pot is the chart layer's job and it needs the blinds or the pot to do it. Without it
+    a size-aware spot key cannot be derived at all, and a sizeless bet is that defect's
+    postflop half: read as matching any price, it answers a 75% bet out of a 33% cell.
+    Every other action carries nothing: a call pays the level the preceding aggression
+    states, and a fold and a check pay nothing. All five are recordable since phase 16 gave
+    the query a flop history; `bet` was refused while preflop, which has none, was the only
+    street carrying one.
     """
 
     seat: int
@@ -49,21 +49,16 @@ class SeatAction:
     def __post_init__(self) -> None:
         if not isinstance(self.seat, int) or isinstance(self.seat, bool) or self.seat < 0:
             raise ValueError(f"seat must be a non-negative integer, got {self.seat!r}")
-        if self.action not in _PREFLOP_HISTORY_ACTIONS:
+        if self.action not in _ACTION_NAMES:
             raise ValueError(
-                f"unknown history action {self.action!r};"
-                f" expected one of {list(_PREFLOP_HISTORY_ACTIONS)}"
+                f"unknown history action {self.action!r}; expected one of {list(_ACTION_NAMES)}"
             )
-        if self.action == "raise":
-            if (
-                self.amount is None
-                or isinstance(self.amount, bool)
-                or not isinstance(self.amount, int)
-                or self.amount <= 0
-            ):
+        if self.action in _AMOUNT_ACTIONS:
+            counted = isinstance(self.amount, int) and not isinstance(self.amount, bool)
+            if not counted or self.amount <= 0:
                 raise ValueError(
-                    "a recorded raise requires the positive raise-to amount in chips,"
-                    f" got {self.amount!r}"
+                    f"a recorded {self.action} requires the positive amount in chips it put"
+                    f" the level at, got {self.amount!r}"
                 )
         elif self.amount is not None:
             raise ValueError(f"a recorded {self.action} must not carry an amount")
@@ -131,6 +126,10 @@ class StrategyQuery:
     plus `stacks` cannot distinguish those. Defaults to empty, meaning the action folded to
     hero. Each recorded raise carries the amount it raised to, because a spot key telling a
     2.25bb open from a 2.5bb one cannot come from a history without the price in it.
+
+    `postflop_actions` is the same history within the street being played, kept separate
+    because a flop is not one decision: a check-check flop and a bet-call flop reach hero
+    at the same price out of the same preflop line. Empty means hero is first to act here.
     """
 
     hand_id: str
@@ -148,6 +147,7 @@ class StrategyQuery:
     seat_states: tuple[SeatState, ...]
     blinds: tuple[int, int]
     preflop_actions: tuple[SeatAction, ...] = ()
+    postflop_actions: tuple[SeatAction, ...] = ()
 
     def __post_init__(self) -> None:
         if not self.hand_id:
@@ -253,27 +253,27 @@ class StrategyQuery:
             raise ValueError("small blind must be positive")
         if small_blind > big_blind:
             raise ValueError("small blind cannot exceed big blind")
-        if not isinstance(self.preflop_actions, tuple):
-            raise ValueError(
-                f"preflop_actions must be a tuple, got {type(self.preflop_actions).__name__}"
-            )
+        # One walk over both histories rather than two that can drift apart.
+        for field in ("preflop_actions", "postflop_actions"):
+            recorded = getattr(self, field)
+            if not isinstance(recorded, tuple):
+                raise ValueError(f"{field} must be a tuple, got {type(recorded).__name__}")
+            for entry in recorded:
+                if not isinstance(entry, SeatAction):
+                    raise ValueError(f"{field} entries must be SeatAction, got {entry!r}")
+                if entry.seat not in seated:
+                    raise ValueError(f"{field} names seat {entry.seat}, which is not at the table")
         # The level a preflop street stands at, walked the way every consumer walks it: it starts
         # at the big blind and a raise moves it to its own raise-to. A raise-to at or below the
         # standing level is not a raise, and no betting round produces one - the engine records a
         # shove for less than the level as a call. Both walks in `table_state.forced_money` take
         # the level from this same sequence, so a sub-level entry would DROP the level there and
         # corrupt every increment after it, which those walks then report as a straddle or as
-        # unexplained forced money: two poker claims about a pot that holds nothing forced at all.
-        # Refused here, where the record is built, rather than clamped in each walk, because a
-        # clamp launders an impossible history into a plausible one and then answers it.
+        # unexplained forced money: two poker claims about a pot holding nothing forced at all.
+        # Refused here, where the record is built, rather than clamped in each walk: a clamp
+        # launders an impossible history into a plausible one and then answers it.
         level = big_blind
         for entry in self.preflop_actions:
-            if not isinstance(entry, SeatAction):
-                raise ValueError(f"preflop_actions entries must be SeatAction, got {entry!r}")
-            if entry.seat not in seated:
-                raise ValueError(
-                    f"preflop_actions names seat {entry.seat}, which is not at the table"
-                )
             if entry.action == "raise" and entry.amount is not None:
                 if entry.amount <= level:
                     raise ValueError(
@@ -310,6 +310,7 @@ class StrategyQuery:
             },
             "blinds": list(self.blinds),
             "preflop_actions": [entry.to_payload() for entry in self.preflop_actions],
+            "postflop_actions": [entry.to_payload() for entry in self.postflop_actions],
         }
 
 

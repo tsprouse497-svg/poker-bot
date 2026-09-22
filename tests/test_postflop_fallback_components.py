@@ -49,7 +49,7 @@ from test_postflop_fallback import (
     shape_with,
 )
 
-from poker_training_bot.strategy.composite import CompositeStrategy
+from poker_training_bot.strategy.composite import POSTFLOP_COMPONENT, CompositeStrategy
 from poker_training_bot.strategy.contract import (
     StrategyDecision,
     StrategyProtocol,
@@ -65,6 +65,14 @@ from poker_training_bot.strategy.postflop_fallback import (
 )
 
 CHART_PREFIX = "preflop-chart:"
+
+BETTING_PREFIX = f"{POSTFLOP_COMPONENT}:"
+"""The code prefix the composite's postflop component stamps on every answer.
+
+Built off `POSTFLOP_COMPONENT` rather than written out, because `composite.py` states in terms
+that "these names match each component's own `strategy_id` and code prefix". That was a comment
+nothing checked while the label and the answers disagreed; through this constant the two tests
+below go red if they ever part again."""
 
 
 class TestOutcomeCodes:
@@ -147,12 +155,22 @@ class TestComposite:
         assert composite.strategy_version > 0
 
     # One place decides which component owns a street.
-    def test_component_for_routes_preflop_to_the_chart_and_the_rest_to_the_fallback(
+    def test_component_for_routes_preflop_to_the_chart_and_the_rest_to_the_betting_strategy(
         self, composite
     ) -> None:
+        """Decision 16a, ruled by Taylor 2026-09-16: the name follows the behaviour.
+
+        This test passed while asserting something false, which is worse than any red. Phase 16
+        rewired `from_repo` to `PostflopBettingStrategy` at `dbffd03` and left this label at
+        `postflop-fallback`, so the bot that bets a flop reported itself as the one that folds
+        every flop - in a gate command's own report, under a column header, beside a sentence
+        saying none of these codes came from the fallback. The strings are literals here rather
+        than the module's constants, because a test comparing a constant to itself is how the
+        label got away with being wrong in the first place.
+        """
         assert composite.component_for("preflop") == "preflop-chart"
         for street in POSTFLOP_STREETS:
-            assert composite.component_for(street) == "postflop-fallback"
+            assert composite.component_for(street) == "postflop-betting"
 
     def test_a_preflop_query_is_answered_by_the_chart(self, composite) -> None:
         """The subject is the routing, and the spot is chosen so the routing is all it tests.
@@ -249,10 +267,20 @@ class TestComposite:
         assert dict(outcome.detail).get("spot_key") == BEYOND_RAISE_DEPTH_KEY
         assert outcome == composite.preflop.decide(request)
 
-    def test_postflop_queries_are_answered_by_the_fallback(self, composite) -> None:
+    def test_postflop_queries_are_answered_by_the_betting_strategy(self, composite) -> None:
+        """Contract: "replace the conservative postflop fallback with flop play that can bet
+        and raise", and "a refusal is not an action: the composite returns it untouched and the
+        simulator voids the hand".
+
+        The kind moved with the component and that is the point of the seam, not an accident of
+        an empty clone. Turn and river refuse by decision 1 whatever data lands, and this
+        harness's flop shapes are ragged-stacked, so all three refuse before a cell is ever
+        looked for. `refusal` rather than `decision` is therefore the assertion, and a composite
+        that quietly turned a refusal back into a check would fail on the kind alone.
+        """
         for street in POSTFLOP_STREETS:
             free = query(shape_with("fold", "check", "bet"), street, WEAK)
-            assert decision(composite.decide(free)).code.startswith(FALLBACK_PREFIX), street
+            assert refusal(composite.decide(free)).code.startswith(BETTING_PREFIX), street
 
     # A preflop chart refusal passes through carrying its original reason code; a passive
     # action would erase the coverage signal Phases 04 and 05 were built to produce.
@@ -290,9 +318,13 @@ class TestComposite:
         lojack's first-in spot is the one the cutover turns on: under the retired 86 it was a
         refusal and under the 156 it is an answer, so a chart shipped with every key misspelled
         would still name the right component here. The expected kind is what tells them apart.
+
+        The postflop prefix moved to the betting strategy's with decision 16a and the contract's
+        replacement of the fallback; it is `BETTING_PREFIX` above, built off the composite's own
+        component label so a report column and an audit line cannot name two different things.
         """
         for request in enumeration_queries():
-            assert composite.decide(request).code.startswith(FALLBACK_PREFIX)
+            assert composite.decide(request).code.startswith(BETTING_PREFIX)
 
         answered = decision(composite.decide(first_in_preflop_query()))
         assert answered.code.startswith(CHART_PREFIX)

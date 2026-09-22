@@ -193,8 +193,8 @@ class TestTheShapeOfTheQuery:
             assert record_fields[name].default is dataclasses.MISSING, name
 
     def test_the_decision_audit_schema_version_moved_because_the_payload_did(self) -> None:
-        """Two payload shapes under one version number is the defect this repo already has."""
-        assert DECISION_AUDIT_SCHEMA_VERSION == 3
+        """Two payload shapes under one number is this repo's defect. 3 to 4 at phase 16."""
+        assert DECISION_AUDIT_SCHEMA_VERSION == 4
 
 
 class TestEverySeatIsAccountedFor:
@@ -620,7 +620,7 @@ class TestTheSerializedQuery:
         assert payload["seat_states"].keys() == payload["stacks"].keys()
 
     def test_the_audit_line_carries_the_moved_schema_version(self) -> None:
-        assert '"schema_version":3' in make_record().to_json_line()
+        assert '"schema_version":4' in make_record().to_json_line()
 
     def test_a_record_at_the_old_schema_version_is_rejected(self) -> None:
         with pytest.raises(ValueError, match="schema_version"):

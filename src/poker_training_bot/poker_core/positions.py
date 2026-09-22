@@ -67,6 +67,22 @@ def preflop_action_order(table_size: int) -> tuple[str, ...]:
     return table_positions(table_size)
 
 
+def postflop_action_order(table_size: int) -> tuple[str, ...]:
+    """Order the positions act in on every street after the flop.
+
+    Action starts with the first seat left of the button and runs round to the button
+    itself, so the blinds lead and the button closes. That is the same ring
+    `table_positions` walks, rotated to begin one seat past `BTN`, rather than an
+    ordering of its own - and the rotation is what the preflop order above says it is
+    not. Deriving this from the seating order gets heads-up exactly backwards: the
+    button posts the small blind and acts first preflop, and acts last on every street
+    after it.
+    """
+    labels = table_positions(table_size)
+    button = labels.index("BTN")
+    return labels[button + 1 :] + labels[: button + 1]
+
+
 def seat_positions(seats: Sequence[int], button_seat: int) -> dict[int, str]:
     """Map each occupied seat to its position label.
 

@@ -253,8 +253,8 @@ def test_a_decision_with_nothing_to_add_carries_no_detail() -> None:
 def test_the_decision_audit_schema_version_moved() -> None:
     """The payload keeps changing shape and the version has to keep up, or two shapes share
     one number - DECISION-AUDIT-VERSION-SPANS-TWO-STREET-BET-READINGS. Phase 12 moved it to 2
-    for the raise-to amount; Phase 13 to 3, for per-seat states and `current_bet`."""
-    assert contract_module.DECISION_AUDIT_SCHEMA_VERSION == 3
+    for the raise-to amount; Phase 13 to 3, per-seat states; Phase 16 to 4, postflop history."""
+    assert contract_module.DECISION_AUDIT_SCHEMA_VERSION == 4
 
 
 # --------------------------------------------------------------------------- #

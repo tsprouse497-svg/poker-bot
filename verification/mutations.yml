@@ -1408,6 +1408,123 @@ mutations:
       - pytest_derived_chart
       - generate_derived_chart_report
 
+  # ------------------------------------------------------------------------- #
+  # Phase 16, authored at stage 4 on 2026-09-10, before any implementation exists.
+  #
+  # Three canaries for two new command ids. The contract names two claims - a wrong
+  # committed weight must fail the command rather than be rendered, and a spot whose
+  # committed size cannot be played must be refused at import - and both are importer
+  # behaviour, so both land on `pytest_postflop_betting`. It separately requires
+  # **both** new command ids to carry one, so the third attacks the report generator's
+  # own re-derivation, which is the only way a `generate_*` command can be made to go
+  # red: disabling a check makes a generator pass, so the mutation has to corrupt a
+  # figure the generator re-derives rather than remove the check that reads it.
+  # Phases 08 and 09 each omitted the canary on their own new command and each had it
+  # caught at stage 7; the first entry below is this phase's.
+  #
+  # None of the three names bare `pytest` as a witness. A `must_fail` of the whole
+  # suite proves nothing, because
+  # `tests/test_loop_machinery.py::test_every_mutation_applies_exactly_once_to_its_file`
+  # asserts each mutation's `find` occurs exactly once in its file, so **any** mutation
+  # reds the suite on that one bookkeeping test before a single behaviour is examined.
+  #
+  # The three `find` strings name lines stage 6 has not written yet, so
+  # `pytest_loop_machinery` is red from now until stage 6 lands them. That is the price
+  # of authoring canaries before the implementation, which the contract requires and
+  # which stage 6 cannot do instead: a builder diff under `verification/**` halts the
+  # loop. Stage 6 writes each line in the exact form quoted here, the way phase 14's
+  # stage 6 wrote `MULTIWAY_EXPOSURE_THRESHOLD_PCT = 10.0` for the entry above.
+
+  - id: postflop-weight-bounds-not-enforced
+    description: >-
+      The postflop importer computes each committed class weight's bounds and then
+      ignores them, so a cell holding a weight of 1.5 beside one of -0.5 imports cleanly
+      and is handed to the table as a frequency. This is the contract's first named
+      stage-4 canary - a wrong committed weight must fail the command rather than be
+      rendered - and it is the one that targets this phase's own new command.
+      It is not vacuous, and the witness is named for a reason.
+      `tests/test_postflop_artifact.py::TestTheImporterRefusesRatherThanRenders` replaces
+      the cell's first class row with `[1.5, -0.5, 0.0, ...]`, keeping the row's length,
+      and requires `PostflopArtifactError`, with a positive control beside it importing
+      the good committed sample, so an importer that refused everything would fail that
+      control rather than pass this canary.
+      **That row sums to exactly 1.0, which is what makes this line the only thing in the
+      importer that can refuse it.** Stage 4's own independent review caught the earlier
+      witness, which set one entry of a summing row to 1.7 and so broke the bound and the
+      sum together: with this line disabled the sibling sum-to-one check - which the
+      contract separately forces the importer to hold, and
+      `test_a_class_whose_weights_do_not_sum_to_one_is_refused` pins - still refused the
+      cell, the canary survived the command it names, and nothing would have said so
+      until `check_gate_bite` at stage 7, after stage 5 had frozen both `tests/**` and
+      `verification/**`. The repair is that the witness now replaces the whole row rather
+      than one entry of it, so the sum it is replaced with is chosen rather than whatever
+      the arithmetic leaves behind. `1.5 + (-0.5) + 0.0` is 1.0 in binary floating point
+      with no residue, so an exact sum comparison accepts the row as readily as a
+      toleranced one. One entry sits above the upper bound and one below the lower, so
+      either half of the disabled comparison witnesses the defect on its own.
+      What the defect does at the table is the part worth stating: a weight outside 0 to 1
+      is not a strategy, and a lookup that renders one hands a student a frequency no
+      dealer can deal - silently, because every count, every digest and every byte figure
+      the report prints stays exactly right while it happens.
+    file: src/poker_training_bot/solver_artifacts/postflop_artifact.py
+    find: "if not 0.0 <= weight <= 1.0:"
+    replace: "if False and not 0.0 <= weight <= 1.0:"
+    must_fail:
+      - pytest_postflop_betting
+
+  - id: postflop-unplayable-size-imports
+    description: >-
+      The importer stops checking that a committed bet size is one the acting seat could
+      actually put in, so a cell whose size exceeds `hero.street_bet + stack` imports and
+      the refusal moves from import time into the middle of a hand. The contract's second
+      named stage-4 canary: a committed size that cannot be played is refused at import
+      rather than at the table.
+      Why that distinction is the whole point rather than tidiness. `DecisionAuditRecord`
+      already raises on an amount above the all-in maximum, so nothing silently plays an
+      illegal bet - but it raises once, at a table, mid-hand, on whichever spot happens to
+      arrive first, and the simulator voids that hand and carries on. Refused at import it
+      is one red against a file nobody has played yet, naming the cell.
+      Witnessed by `pytest_postflop_betting`, which holds
+      `test_a_committed_size_that_cannot_be_played_is_refused_at_import`: it inflates one
+      entry of the cell's size menu to ten times the effective stack and requires a
+      refusal. The same class's positive control stops that being satisfied by an importer
+      that refuses everything.
+      The menu keeps its length, for the reason the weight-bounds entry above sets out at
+      more length. Decision 6's encoding keeps class weights parallel to the action list,
+      so a one-element size menu would probably trip an arity check as well, and a canary
+      refused by a check other than the one it disables survives the command it names.
+    file: src/poker_training_bot/solver_artifacts/postflop_artifact.py
+    find: "if size_chips > hero_street_bet + hero_stack:"
+    replace: "if False and size_chips > hero_street_bet + hero_stack:"
+    must_fail:
+      - pytest_postflop_betting
+
+  - id: postflop-report-spot-count-drifts
+    description: >-
+      The report prints one more committed spot than the index holds. One node, and the
+      figure stays plausible - no reader tells 41 from 42 by eye, and every other number
+      on the page still reconciles.
+      This is the canary for `generate_postflop_betting_report`, the phase's second new
+      command id, and it is shaped the way a generator canary has to be. Disabling a
+      validator makes a generator **pass**, so a mutation that removed the reconciliation
+      would survive; this corrupts the figure instead and requires the generator's own
+      re-derivation to notice. The contract's obligation is exactly that - every figure it
+      names is re-derived by the generator, which exits non-zero when one does not hold -
+      and a defect of this shape is the only kind that can prove the re-derivation runs.
+      `generate_postflop_betting_report` is the load-bearing witness rather than a second
+      opinion. `pytest_postflop_betting` could kill a spot-count defect by reading the
+      count back out of the index, and a kill of that kind proves the index is pinned, not
+      that the report checks itself against it. The report has to compare what it printed
+      against what it loaded, which is what this attacks.
+      If stage 6 writes the count into the report text without routing it through
+      `check_spot_count_matches_index`, this mutation survives a command it names, and
+      that is the finding rather than a reason to drop the command.
+    file: scripts/generate_postflop_betting_report.py
+    find: "printed_spot_count = len(cells)"
+    replace: "printed_spot_count = len(cells) + 1"
+    must_fail:
+      - generate_postflop_betting_report
+
   # The lane table's other stage-4 canary - "a wrong artifact fails the command
   # rather than being rendered" - is NOT written here, because it already exists as
   # `the-derived-chart-report-renders-whatever-it-is-handed` and a second entry
