@@ -1,6 +1,8 @@
 # Architecture
 
-The v1 product is a CLI and report-driven offline training system. Runtime
+The product is an offline-first deterministic bot that plays strong no-limit
+hold'em. Today the only way to reach it is the CLI scripts under `scripts/`;
+training and coaching surfaces are backlogged until the bot plays well. Runtime
 poker decisions are deterministic and cannot rely on LLM reasoning.
 
 ## Package Boundaries
@@ -24,8 +26,12 @@ poker decisions are deterministic and cannot rely on LLM reasoning.
   spot returns an explicit miss code instead of a guessed action. See
   `docs/PREFLOP_ARTIFACT_CONTRACT.md`.
 - `simulator`: offline bot-vs-bot simulation and reports.
+- `table_state`: pure arithmetic over a table's own chips, shared by reports and
+  strategies so neither re-derives a price or a depth. It refuses nothing and
+  reads no chart.
 - `profiles`: bot profile metadata and comparison labels.
 - `data_pipeline`: tiny normalized sample ingestion.
 
-Deferred platform automation and UI work belongs in `docs/ROADMAP.md` and
-`backlog.yml`.
+What this repo may not build yet, and what lifts each of those limits, is
+stated in `AGENTS.md` under `Boundaries`. The sequencing behind them lives in
+`docs/ROADMAP.md` and `backlog.yml`.

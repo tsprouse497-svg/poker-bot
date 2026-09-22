@@ -1,6 +1,6 @@
 # Agent Instructions
 
-This repo is an offline-first deterministic NLHE training bot.
+This repo builds an offline-first deterministic bot that plays strong no-limit hold'em. Training and coaching tools are backlogged until the bot plays well.
 Git is the source of truth.
 Runtime poker decisions must not rely on LLM reasoning.
 This file is the single source for behavior rules.
@@ -121,7 +121,7 @@ A phase's new command IDs are declared in its contract frontmatter and registere
 ## Naming Rules
 
 Script, fixture, test, report, and command-ID names describe what the thing does, never which phase produced it.
-Phase numbers belong only in contracts, exec plans, and audit packets.
+Phase numbers belong only in contracts, exec plans, audit packets, and the lift conditions in `Boundaries` below.
 Example: `generate_golden_hand_report.py`, not `generate_phase_01_replay_report.py`.
 
 ## Testing Ladder
@@ -138,11 +138,12 @@ Prefer the lowest test that proves real behavior without hiding defects:
 Mocks are allowed only at hard external boundaries.
 Do not mock core poker state, strategy legality, replay, or report generation just to pass tests.
 
-## V1 Boundaries
+## Boundaries
 
-- No PokerNow automation.
-- No browser/platform observation.
-- No UI package.
-- No runtime solver calls.
-- No heuristic guessing for missing preflop chart spots.
-- No large hand-history ingestion.
+Each boundary states what it forbids and what lifts it. A boundary holds exactly as written until the phase named below lands; no task may anticipate a lift, and moving one is a semantic change that needs `contract-update`.
+
+- **No PokerNow automation, and no browser or platform observation.** Lifts at phase 20, bounded to Taylor's own home games and nothing else; public real-money tables stay forbidden. The 2026-08-15 ruling kept both out on terms-of-service and account-risk grounds, and those attach to the platform rather than to the guest list, so a private table carries the same ban exposure as a public one; Taylor was shown that on 2026-09-21 and accepted the risk for his own games rather than re-scoping it away. Nothing before phase 20 opens a browser or drives a table.
+- **No heuristic guessing for missing preflop chart spots.** Lifts at phase 19, which builds the heuristics and merges solved charts with unsolved spots, carrying every substitution on the decision. Until phase 19 it holds exactly as written: fail-closed stays, and no task may guess a spot in the meantime. `docs/V2_ROADMAP.md` ruled this permanent, and that framing was wrong. It was written for a tool that reports on hands already played, where refusing costs nothing; a bot that has to act at a table cannot refuse.
+- **No runtime solver calls.** Holds permanently. Offline extraction into a committed artifact is a different thing and is already how charts are built.
+- **No UI package.** Stays deferred, and the reason has changed. It used to wait on the drill; the drill is now backlogged, so it waits on the bot playing well.
+- **No large hand-history ingestion.** No phase owns a lift: phase 15 did, and MAINT-35 retired it without naming a replacement. So this holds exactly as written, and by the rule above it keeps holding until some phase claims it and states the bound as a number - the intended lift being a single player's own exported history at a stated size, never corpus-scale mining. A lift with no owner and no number is not a lift.
