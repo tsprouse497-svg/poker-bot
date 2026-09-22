@@ -153,6 +153,9 @@ below stand as first written; each carries its verdict at the head of the bullet
 - **Open.** Ruled entry by entry in `stage-08-review.md`: four close, three do not, and the three
   are `POSTFLOP-UNBEATABLE-EARLIER-STREETS`, `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` and
   `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED`. The evidence per entry is there rather than here.
+  **[resolved]** at `7254a50`: the verdicts were applied exactly, both refusals stand, and the
+  depth-ratios entry closed as a fifth once the one live sentence blocking it was fixed. Re-measured
+  against `main`: exactly five status changes and no others.
 
   **Every backlog entry the contract says this phase closes is still open, and nothing looks.** The
   contract's closing section names five entries as Closed - `V2-POSTFLOP-STRATEGY`,

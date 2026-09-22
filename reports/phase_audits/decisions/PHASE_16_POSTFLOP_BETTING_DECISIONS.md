@@ -2409,7 +2409,10 @@ evidence available argues against it. What is established instead: a different i
 fuse a multiply and an add where another does not, which is a different rounding rather than a
 different order; and the rented box exists to use the CUDA backend this contract's own scope calls
 untested, and a GPU solve is not the CPU computation with its sums reordered. Naming summation order
-invited the wrong fix - pin the thread count and assume the proof travels - which is the kind of
+invited the wrong fix - pin the thread count and assume the proof travels, which is a fix somebody
+would reach for because GTOpen derives its thread count from the machine, half of
+`available_parallelism()` unless `SOLVER_THREADS` overrides it, five on this ten-core box, as
+`GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT` already records. It is the kind of
 unmeasured mechanism this phase's reviews have spent their time removing from its documents.
 
 The gap between the contract's wording and this ruling is filed rather than amended:

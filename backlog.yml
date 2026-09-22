@@ -1,5 +1,34 @@
 schema_version: 1
 items:
+  - id: A-CONTRACT-CLOSED-LIST-ASSERTS-A-CLOSURE-ITS-PHASE-REFUSED-ON-EVIDENCE
+    status: deferred
+    phase: contract-update
+    title: Phase 16's contract names an entry as closed that the phase then declined to close, and only the backlog reader learns it
+    reason: >-
+      `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` names `POSTFLOP-UNBEATABLE-EARLIER-STREETS`
+      among the entries this phase closes. The stage-8 mechanical review read the code rather than
+      the list and found the work was never done: `hand_cannot_lose` still raises on a flop board
+      with its cost unchanged in its own docstring, and what moved is the surroundings, since the
+      composite now routes postflop to the betting strategy so the flop fold the entry was filed
+      against no longer happens. The subject survives that move - on the 22,060 board classes with no
+      committed cell the bot refuses where an unbeatable hand could still call - so the entry stays
+      `deferred` and the refusal is written into it.
+      **The asymmetry is the finding.** A reader of `backlog.yml` meets the refusal at the entry's
+      own end. A reader of the contract meets the Closed list still asserting the closure, and
+      nothing reconciles the two: no script reads a contract's Closed list, which is the same gap
+      the stage-8 review raised as its fourth blocker.
+      Third instance of one shape in this phase, and that is why it is its own entry rather than a
+      note on an existing one. `A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE`
+      and `A-CONTRACT-CLAUSE-ASSERTS-A-GAP-ITS-OWN-PHASE-THEN-CLOSED` are the other two: in each, a
+      contract sentence written before the work reads as false once the work is done, and the phase
+      cannot amend it because the contract sits at 299 of 300 lines against a cap compared
+      greater-than. The nearest existing entry,
+      `CONTRACT-SCOPE-ENUMERATES-RESIDUALS-WITH-NOTHING-CHECKING-THE-COUNT`, is about a count
+      disagreeing rather than a closure refused on evidence, so it does not cover this.
+      The fold-in rewrite that clears all three is one `contract-update` task. Until then the
+      stage-9 packet carries the substance, which is where a human vetting the phase will meet it.
+      Filed 2026-09-22 by the stage-8 review.
+
   - id: A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE
     status: deferred
     phase: contract-update

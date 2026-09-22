@@ -60,12 +60,22 @@ measured.
   obligation now sits on the stage-9 packet, which does not exist yet; what discharges it is the
   coverage number and the closure fact in the packet's own words, not this ruling.
 
-- **The contract's Closed list, ruled entry by entry. Four close, three do not, and the three are
+- **[resolved]** at `7254a50`, re-measured against `main` rather than taken on report: the backlog
+  now carries **exactly five status changes and no others** - the four I ruled close plus
+  `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED`, which closes because its condition was met rather than
+  waived. Both refusals stand as `deferred` with the reasoning written into the entries, including
+  the sentence saying the contract's list expected otherwise. Every closing note carries the ground
+  I gave and both caveats survived - capability rather than coverage on the strategy entry, and the
+  never-arrived precondition on the pot-odds one - and the three coverage entries that make the
+  first closure honest are all still open. The stale 32 GB in the memory-guard entry now reads 34.4.
+  The original diagnoses are appended to rather than replaced, so the pointers into them still
+  resolve.
+
+  **The contract's Closed list, ruled entry by entry. Four close, three do not, and the three are
   the point.** `stage-08-review-mechanical.md`, blocker 4, measured: this lane adds 90 entries to
   `backlog.yml`, all deferred, and changes the status of none. Below is a verdict and the evidence
   per entry. A status change is implementation and is the coordinator's to apply; this is the
-  ruling it applies from. The blocker stays open until the four are closed and the three are left
-  alone with their restatements.
+  ruling it applies from.
 
   **Close - `V2-POSTFLOP-STRATEGY`.** The entry names its own condition: what was missing was a
   ruling on how deep the committed solution goes and on what the bot does on a board it holds no
@@ -130,6 +140,10 @@ measured.
   any memory handling at all. The restatement is the opposite of the one the contract drafted, and
   one figure in the entry is stale: it says "this 32 GB machine" where the machine is 34.4 GB.
 
+  **Closed after the sweep, 2026-09-22.** The survivor was fixed at `7254a50` and I re-ran the
+  sweep: no live document now offers the falsified ratio as a basis for reasoning. The ruling as
+  first written follows, and it was "do not close" only while that one line stood.
+
   **Do not close - `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED`. Its condition is checkable and it is not
   met.** The contract closes it only once no live document still says the turn costs 49 flops.
   `docs/V2_ROADMAP.md:216` still reads "only the ratio is safe to reason from: the turn is about 49
@@ -141,7 +155,15 @@ measured.
   of its 500-line cap with room for the correction, and the entry closes the moment that line is
   fixed. It does not close before.
 
-- **The determinism proof is machine-local, and the reason the packet is about to give for it is
+- **[resolved]** at `7254a50`, and it did not overstate my finding in the other direction, which
+  was the thing to check. Decision 24's ruling now says only that two runs in two processes on this
+  Mac constrain this machine and nothing else. The dated correction under it scopes itself to "the
+  one path it could trace", says the evidence available argues against the mechanism rather than
+  that the mechanism is ruled out, and claims nothing about the reduction sites I did not read. It
+  does not assert that thread count is harmless. That is exactly the certainty I offered and no
+  more.
+
+  **The determinism proof is machine-local, and the reason the packet is about to give for it is
   not the one the code supports.** The conclusion is right and I would keep it: `determinism.json`
   records two processes on one Mac, so nothing in it constrains a different machine, and that holds
   whatever the mechanism. The stated mechanism - that floating-point summation order differs
@@ -175,10 +197,39 @@ now resolved above and the rest stand; `stage-08-review-poker.md` has five, of w
 deep solve landed and N5 on which preflop line comes second are the two a later phase should read
 before it funds anything. New here:
 
-- The fix to `docs/V2_ROADMAP.md:216` is a one-line edit and it is the only thing between
-  `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` and closure. Worth doing in this task rather than deferring,
-  since the entry then closes on the same pass as the other four and the phase's Closed list comes
-  out four-of-five rather than four-of-seven.
+- **[done at `7254a50`]** The fix to `docs/V2_ROADMAP.md:216` is a one-line edit and it is the only
+  thing between `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` and closure. Checked for truth and for a second
+  falsified figure, which was the risk: the replacement is true and it removes two wrong things
+  rather than one. Its "node counts are not costs and the ratio above is not one either" names the
+  actual origin of the error, since the 49 in the line above is the count of turn cards after a
+  three-card board and the old sentence read that count as a cost multiple. The surrounding
+  arithmetic survives the edit and I re-derived it: 1,755 x 49 = 85,995 and 85,995 x 48 = 4,127,760,
+  both as printed, and both are genuine spot counts. The 99.5% re-derives from the entry's own node
+  counts, 1,239,749 of 1,245,971 = 99.50%. The old sentence's premise was falsified too - it opened
+  "No solve in this repo has been timed to a real exploitability target", which the committed
+  campaign's own wall clocks contradict - and the replacement drops it. The file is 307 lines
+  against its 500-line cap, unchanged, since one line replaced one line.
+- The roadmap's replacement points a reader at "the phase 16 decision list for the costs", and that
+  pointer is thin rather than wrong. The decision list's cost figures are a mix: real wall clocks
+  from the committed campaign, and projections at a 240-iteration working point that no run ever
+  produced - `deep_convergence_check.json` says so in its own words, and decision 20 records that
+  every arena and timing figure published before it was taken on quantized arenas. All of them are
+  laptop figures, which only decisions 20 and 24 say. A reader following the pointer cannot tell
+  the three apart without reading all three decisions.
+- The contract's Closed list now names an entry the phase deliberately did not close, and no entry
+  owns that shape. `POSTFLOP-UNBEATABLE-EARLIER-STREETS` records the refusal at its own end, which
+  is where a reader of the backlog will find it, but a reader of the contract will not: its Closed
+  list still asserts the closure. This is the same shape as
+  `A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE` and
+  `A-CONTRACT-CLAUSE-ASSERTS-A-GAP-ITS-OWN-PHASE-THEN-CLOSED`, and the nearest existing entry,
+  `CONTRACT-SCOPE-ENUMERATES-RESIDUALS-WITH-NOTHING-CHECKING-THE-COUNT`, is about a count
+  disagreeing rather than about a closure being refused on evidence. Proposed as its own entry, and
+  not a blocker: the substance is recorded and the stage-9 packet will carry it.
+- Decision 24's correction names "pin the thread count" as the wrong fix it invited, without saying
+  why anyone would reach for it - that GTOpen derives the thread count from the machine, half of
+  `available_parallelism()` unless `SOLVER_THREADS` overrides, which is five on this ten-core box.
+  One clause would make the sentence self-explaining, and
+  `GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT` already owns the fact.
 - `docs/GTOPEN_SOLVER_NOTES.md:41` cites `ISOMORPHISM-FACTORS-MISREAD-AS-SPEEDUPS` by id. Closing
   that entry leaves the citation pointing at a closed entry, which still resolves - a closed entry
   keeps its diagnosis and stays in the file - but the coordinator should decide knowingly rather
