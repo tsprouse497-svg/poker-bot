@@ -93,13 +93,6 @@ phases:
       the reference for everything after it, and its closing measurement is a claim
       about whether v1's calling gap was rake and price or a real defect, which is a
       judgement rather than a threshold.
-  "15":
-    auto_advance: false
-    needs_human_data: false
-    reason: >-
-      Commits session records, and it is the first surface a human uses directly
-      rather than reads about. What a drill asks and how it scores an answer is a
-      product judgement no test settles.
   "16":
     auto_advance: false
     needs_human_data: false
@@ -127,3 +120,37 @@ phases:
       human makes on the evidence, and the phase is designed so a miss in either
       direction against its pre-registered prediction is a result rather than something
       to explain away. Split from phase 14 by Taylor on 2026-08-31.
+  "18":
+    auto_advance: false
+    needs_human_data: false
+    reason: >-
+      Nothing in this repo measures how well the bot plays, and this phase builds the
+      thing that would. It commits an opponent pool - strategies, not stubs - and every
+      later strength claim is read against them, so a pool that is weak in a way nobody
+      noticed becomes a flattering number every phase after it inherits. That is committed
+      data in the sense this file cares about. The second reason is that a head-to-head
+      result and an exploitability figure are only as good as their error bars, and what
+      counts as enough hands to call a difference real is a judgement a human makes once
+      and the repo then lives with.
+  "19":
+    auto_advance: false
+    needs_human_data: false
+    reason: >-
+      This is the phase where the fail-closed boundary lifts, so it is the first phase
+      allowed to answer a spot the solve never solved. It commits the substitution rules
+      and whatever merged cells they produce, and a wrong rule here is a wrong answer at
+      every spot it covers rather than a refusal a reader can see. It also needs 18 in
+      front of it, because the only honest way to ship a merge is to measure that it plays
+      better than refusing, and a phase that could assert that instead would.
+  "20":
+    auto_advance: false
+    needs_human_data: true
+    reason: >-
+      The bot sits down and plays in Taylor's own home games, which the repo cannot
+      begin without things only he has: which game, on which platform, under whose house
+      rules, and his standing answer on what the bot may do unattended at a table with his
+      friends at it. He ruled on 2026-09-21 that the bot is handed the game's URL and joins
+      the table, and that the question may stay open for now, so the platform is a working
+      reading for stage 1 to confirm rather than an answer the repo already holds. Sitting in a real game is also the one thing in this repo that cannot
+      be undone by an edit, so the driver halts before stage 1 rather than letting a
+      session choose a venue on its own.

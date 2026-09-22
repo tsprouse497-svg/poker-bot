@@ -10,6 +10,8 @@ approved_scope:
 - docs/ARCHITECTURE.md
 - docs/phase_contracts/**
 - verification/loop_policy.yml
+- reports/phase_audits/MAINT_35_PLAY_STRENGTH_DIRECTION.md
+- reports/phase_audits/reviews/MAINT_35_PLAY_STRENGTH_DIRECTION/**
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -25,6 +27,19 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+- date: 2026-09-22
+  reason: >-
+    The audit packet and its review directory join `approved_scope`, which is the same widening every
+    task makes when it reaches closeout: `AGENTS.md` requires an audit packet and requires the
+    independent review's findings to be recorded in it, and neither path is in `standing_scope`.
+    `reports/phase_audits/MAINT_35_PLAY_STRENGTH_DIRECTION.md` is the packet and
+    `reports/phase_audits/reviews/MAINT_35_PLAY_STRENGTH_DIRECTION/**` holds the review note. Nothing
+    else under `reports/phase_audits/` is touched; in particular no completed phase's packet, decision
+    list or review note is edited, because a packet is a snapshot of what a phase believed and this
+    task corrects what the repo says now rather than what an earlier phase recorded. The review found
+    one blocker and eight smaller items, all repaired by a lane that wrote neither the original work
+    nor the review, and it surfaced two questions that went to Taylor and came back as rulings 7 and 8
+    in the ExecPlan.
 - date: 2026-09-21
   reason: >-
     MAINT-35 opens from idle, so every pattern in `approved_scope` reads as a widening against
@@ -41,6 +56,12 @@ scope_change_log:
     `task_mode` is `contract-update` because two boundary changes are semantic: table automation and
     browser observation lift at phase 20 for Taylor's own home games and for nothing else, and the
     "no heuristic guessing" boundary that `docs/V2_ROADMAP.md` ruled permanent now lifts at phase 19.
+    There is a THIRD semantic boundary movement and this entry declared only two: the large
+    hand-history bullet now reads as a bounded lift, and its owner was phase 15, which this task
+    retired, so the lift was left with no owning phase and still no size bound. Added 2026-09-21 by
+    the repair lane after the independent review found it. The bullet is corrected in place to say
+    the boundary holds as written until a phase claims the lift and states the bound as a number;
+    that correction is the boundary movement being declared here, not a new one.
     What is deliberately NOT in scope: `src/**`, `tests/**`, `scripts/**`, `data/**` and
     `verification/mutations.yml`. This task reverses no acceptance, re-derives no artifact and
     changes no behaviour. The teaching-motivated acceptances it found are filed in `backlog.yml` as

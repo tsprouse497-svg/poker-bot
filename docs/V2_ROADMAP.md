@@ -1,307 +1,144 @@
-# V2 Roadmap (Proposed)
+# V2 Roadmap: The Argument Behind The Phase Graph
 
-**This is a proposal, not the sequence.**
-`phase_status.yml` holds ten completed phases and nothing after them, and it stays that way until someone adopts this document in a separate task.
-Nothing here is declared: no contract skeleton exists for any phase below, `verification/loop_policy.yml` has no entry for them, and the V1 boundaries in `AGENTS.md` are unchanged.
+`docs/ROADMAP.md` is the short form: the goal, the phase table, the graph, and the warning that the table is hand-typed while the contracts are the source. This file is the reasoning underneath it, the rulings that settle what to build, and the costs each ruling accepts.
 
-A future agent reading this should treat it as an argument to evaluate rather than a plan to execute.
+**This is no longer a proposal, and the label is worth a sentence because the label is what let the file rot.** It was written on 2026-08-15 as an argument to evaluate rather than a plan to execute, and it kept that framing long after the sequence it proposed was adopted, its contracts declared and five of its phases completed. A document nobody has to be right about stays wrong, and this one did: it described a repo of ten completed phases with no contracts, no policy entries and no human-facing surface, none of which had been true for weeks. It carries the project's direction, so it is the document that most needs to be right.
 
-The seven questions this document originally left open were all ruled on by Taylor on 2026-08-15, along with an eighth that only became visible once the first seven were written down, and the rulings are recorded at the end.
-They are decisions about what to build, not adoption of the sequence that builds it, and three of them describe boundaries that `AGENTS.md` still states the old way.
+Every figure below is recomputed from committed data or from a generated report, and each one names where it came from. Nothing here is carried out of older prose.
 
-Four of the rulings carry a consequence that damages a later phase if nobody plans for it.
-Those consequences are named where the phase that inherits each one will see it, and `docs/V2_RULING_MITIGATIONS.md` plans them in full.
-Read it before writing any contract below.
+`docs/V2_RULING_MITIGATIONS.md` planned the consequences of four of the 2026-08-15 rulings and is still worth reading for rulings 2 and 8, but read it with its date in hand: it opens by saying nothing in it has been acted on and no phase has been declared, which stopped being true in August, and its section 1 was withdrawn at phase 10's human gate. Correcting that file is its own task.
 
-## Where V1 Leaves The Repo
+## The goal, ruled 2026-09-21
 
-Ten phases produced a deterministic engine, a replayer that refuses out-of-order hands, a strategy contract that refuses rather than guesses, a fail-closed chart lookup, a self-play simulator, a public-corpus comparison, and a verification gate that proves itself by breaking on purpose.
-That machinery is the asset and v2 keeps all of it.
+A bot that plays strong no-limit hold'em. The training product comes after, to help a person, and is backlogged until the bot plays well.
 
-The ceiling v1 reached is three things, and they are different in kind.
+That reverses a reason rather than a fact. Several decisions in `reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md` refused a line the solve takes, or accepted a distortion in the committed ranges, on the grounds that a student would be misled or that the cost was pedagogical rather than monetary. Those acceptances stand as shipped; what is retired is the argument for them. Each one is filed in `backlog.yml` to be reopened against a measured number under the new goal, and reopening them is not this document's decision to pre-empt.
 
-The committed chart answers 36 spots.
-Against the committed public corpus it refuses at 290 of 3,048 decision points, spread over 78 rows of `reports/active/latest_sample_refusal_inventory.txt`.
-Of those rows, 65 are raised pots the v1 vocabulary can express (250 decision points), 12 are limped pots (21 points), and one is a catch-all for the 19 points where a seat acts twice and no v1 spot key exists at all.
+Two boundary movements come with the goal and are recorded under **Rulings** below.
 
-The postflop fallback never invests unless it cannot lose, so it never bets and is exploitable by any bet whatsoever.
+## Where the repo actually is
 
-There is no human-facing surface anywhere in the repo.
-Every entry point under `scripts/` is a report generator, so nobody can currently use this to get better at poker.
+Phases 00 through 14 are `completed` in `phase_status.yml`.
 
-The backlog is where v1 recorded what it could not reach.
-Roughly twenty-five deferred entries, and almost every one is a phase below or part of one.
+**The chart the bot plays.** `data/artifacts/preflop/six_max_100bb_rakefree.json` holds 156 spots at six-handed, 100bb, rake-free. The chart it replaced answered 36. Those 156 are what `reports/active/latest_derived_chart_report.txt` reports as committed out of the solve's 30,609 action nodes, and they carry 98.7380 percent of the preflop decisions the bot faces under the solve's own play.
+
+That 98.74 is reach-weighted by the solve, which is a flattering measure, and the same report is explicit that the two readings of coverage are far apart. Weighted by nodes it is 156 of 30,609, because 30,002 of the excluded nodes are the four-bet family: almost all of the tree and a little over one percent of the play. Measured against real hands rather than against the solve's own reach, the chart refuses 194 of 3,048 preflop decision points, spread over 75 distinct spot keys: 6.4 percent refused and 93.6 percent answered. Both numbers are true and they are not the same claim.
+
+**What the refusals are.** Of the 75 rows in `reports/active/latest_sample_refusal_inventory.txt`, 59 are raised pots carrying 142 decision points and 16 are limped pots carrying 52. The limped rows exist because ruling 3 was narrowed after this document was written; see below. The catch-all is gone: `reports/active/latest_spot_vocabulary_report.txt` records 0 rows reading `(no expressible spot)` where the v1 vocabulary filed 19, and those 19 now arrive as an uncovered spot with a name rather than as a refusal naming nothing.
+
+**Where the chart is weak.** `reports/active/latest_sample_comparison_report.txt` puts both populations at 90.0 percent agreement overall, which is mostly a measurement of how easy it is to fold trash. Split by what the player did, folds agree at 97.6 percent for humans and 98.9 for Pluribus, and calls agree at 89 of 232 for humans, 38.4 percent, and 8 of 37 for Pluribus, 21.6 percent. Calling is the weak spot and has been since phase 08. Phase 17 is the verdict on it.
+
+**Postflop.** There is still no postflop strategy. `reports/active/latest_postflop_fallback_report.txt` describes a continuity device: it checks whenever checking is free, folds to a bet, and puts money in on exactly one path, a board on which no holding a villain could have beats hero whatever card is still to come. That path is open on the turn and the river and closed on the flop, so a flop bet always takes the pot from this bot, and against another copy of itself every postflop street checks through. Phase 16 is the only declared phase that changes this.
+
+**The human-facing surface.** `scripts/ask_preflop_chart.py` asks the committed chart one question from a terminal and prints what it says, including a refusal's own reason code and a shouted label when ruling 8's price abstraction substituted a cell. It never decides. Everything else under `scripts/` is a report generator, a check, or loop and conversion tooling, so the repo has exactly one front door onto the strategy and it is preflop-only.
+
+**What nothing measures.** How well the bot plays. Every number above is agreement with somebody else's decisions or coverage of a decision space, and neither is a win rate. That gap is phase 18.
 
 ## Boundaries
 
-The V1 boundaries live in `AGENTS.md`, so changing any of them is a `contract-update` and not something a phase does in passing.
-Every row below is ruled rather than proposed, as of 2026-08-15.
-Only one row moves, and `AGENTS.md` has not moved with it yet.
+`AGENTS.md` holds the boundaries and is the authority on them; the table that used to live here duplicated that file and disagreed with it. Each boundary there states what it forbids and which phase lifts it, and two of them moved on 2026-09-21: table automation and browser observation lift at phase 20 for Taylor's own home games and nothing else, and no heuristic guessing lifts at phase 19. Both are recorded in full under **Rulings**.
 
-| V1 boundary | Ruled | Reason |
-| --- | --- | --- |
-| No heuristic guessing for missing chart spots | Holds permanently | It is the property that makes every number in this repo mean something. |
-| No runtime solver calls | Holds permanently | Offline extraction into a committed artifact is a different thing and is already how charts are built. |
-| No large hand-history ingestion | Lifts, bounded | A leak report on your own play needs your own hands. The lift is for a single player's own history with a stated size bound, not corpus-scale mining. |
-| No UI package | Stays deferred | Revisit once the drill exists. A UI over a training loop nobody has used yet is a commitment made on a guess. |
-| No PokerNow automation | Stays out of v2 | Terms of service and account risk are a human ruling rather than an engineering one, and the ruling is to stay out. |
-| No browser or platform observation | Stays out of v2 | Same ruling, and it only pays off once there is something worth observing for. |
+Changing a boundary is a semantic change and needs `contract-update`. Nothing before the named phase may anticipate a lift.
 
-The ingestion lift is the only change, and it is owed two things before proposed phase 15 can use it: the size bound stated as a number, and the wording in `AGENTS.md`.
-Until that `contract-update` lands, the boundary as written forbids what this table says is allowed, and the file wins.
+## The ordering rule
 
-## Ordering Rule
+Format before data, data before product. A chart is expensive to solve and expensive to re-commit, so nothing that changes what a chart file can express may land after the chart does.
 
-Format before data, data before product.
-A chart is expensive to solve and expensive to re-commit, so nothing that changes what a chart file can express may land after the chart does.
+There was one deliberate exception and it was the first phase. A solver export is written in the solver's own vocabulary rather than in this repo's spot keys, so capturing one did not depend on the format work at all, and whether an extraction is faithful is a question only a human looking at range grids can answer. So the export and its human verdict led, and only the derived chart waited for the format.
 
-There is one deliberate exception and it is the first phase.
-A solver export is written in the solver's own vocabulary rather than in this repo's spot keys, so capturing one does not depend on the format work at all.
-Whether an extraction is faithful is also a question only a human looking at range grids can answer, and that verification should happen early rather than after three phases of plumbing.
-So the export and its human verdict lead; only the derived chart waits for the format.
+The rule is spent. The format work is done and the chart is committed. What orders the rest is measurement before the thing being measured, and playing before anything built on top of playing.
 
-## The Proposed Phases
-
-### 10. Solver Extraction, And A Human Verdict On It
-
-Commits the export. Would not auto-advance. Changes no chart.
-
-`docs/GTOPEN_SOLVER_NOTES.md` records what was verified about GTOpen by running it, and what was not.
-This phase answers the unverified list with numbers: solve time to a stated exploitability target, determinism across two identical runs, the node payload's path encoding, and whether a node's strategy is conditioned on reaching that node.
-The last one decides whether the converter needs the range-intersection step the GTO Wizard export required.
-
-It then walks the tree, writes the export, and produces a range report a person reads: grids per spot, opening and defence frequencies, and those same aggregates checked against `data/artifacts/preflop/expectations/six_max_nl25_100bb.json`.
-That expectations file is the only set of numbers in the repo that the repo did not produce, which makes it the one thing that can catch an extraction that is uniformly wrong rather than merely self-consistent.
-It should be retained for that reason even after the chart it describes is retired.
-
-The rulings this phase needs are the ones baked into the solve itself, and all four are made.
-
-| Ruling | Decided | Consequence for this phase |
-| --- | --- | --- |
-| Rake | Rake-free | Matches the games this trains for and makes the corpus comparison apples-to-apples. It also means the expectations file describes a different solve than the one being checked against it. |
-| Open size | 2.5bb, as today | Only one variable moves at the chart cutover. The corpus median is 2.25bb, so a price gap survives into proposed phase 14. |
-| Limps | In the solved tree | Closes the limped-pot refusals rather than deferring them. Larger solve, and roughly double the artifact. |
-| Licence | Proceed, and record the gap | GTOpen ships no LICENSE file. The source card must state that plainly as a known limitation rather than leave `source.kind` implying a permission nobody granted. |
-
-Rake-free is the ruling that changes this phase's own verification, so it needs saying in full.
-`six_max_nl25_100bb.json` describes a raked NL25 solve, and the whole finding of the Phase 08 review was that rake predicts tighter blind defence.
-Checked against a rake-free solve, that file is a gross-error check and not an equality check: a uniform tolerance would either pass an extraction that is badly wrong or fail one that is right, and blind defence is exactly where the legitimate difference lands.
-Its value is unchanged and so is the reason to keep it: it catches an extraction that is uniformly wrong, which is the failure self-consistency cannot see.
-
-`docs/V2_RULING_MITIGATIONS.md` plans this one out, and corrects an assumption made here first.
-There is no split into rake-invariant and rake-sensitive aggregates to be had, because all eleven numbers in that file are rake-sensitive.
-What works instead is a parity solve at the NL25 basis to grade the extractor against, plus the position orderings and a one-sided direction bound, which are the parts rake genuinely does not touch.
-That plan also finds a second, independent reason to put limps in the tree, since the expectations file reports a small-blind limp frequency and therefore describes a solve that had them.
-
-Limps being in the tree makes this a bigger solve than the note's 300-iteration smoke test suggests, which is another reason the unverified solve-time and determinism questions get answered here with numbers before anything is planned around them.
-
-What replaces what is deliberately not decided here, because nothing is replaced: the bot still reads the 36-spot chart when this phase closes.
-
-One instruction matters more than it looks.
-The extractor must dump the entire solved tree rather than the subset today's vocabulary can express.
-Four-bet nodes are present in the solve and unreachable through a v1 spot key, and an extractor that filters to what fits today is the single thing that would force a re-extraction after phase 12.
-
-Closes nothing on its own.
-It is the input every chart phase after it reads.
-
-### 11. Engine And Query Fidelity
-
-Commits no data. Could auto-advance. Touches the Phase 01, 02, 03, and 06 contracts.
-
-Five correctness gaps, all found by v1's own reviews and none fixable inside the phase that found them.
-
-The engine treats a fold as illegal when checking is free, so any real history containing an open fold does not replay at all (`FOLD-WHEN-FREE`).
-That blocks ingesting anyone's actual hands.
-`StrategyQuery.street_bet` has two readings and one consumer uses the wrong one, so replayed hands reach the chart with a mis-derived stack depth and refuse for the wrong reason (`STREET-BET-MEANING-AMBIGUOUS`).
-The decision audit's all-in ceiling is too loose by exactly the price to call (`DECISION-AUDIT-ALL-IN-BOUND-TOO-LOOSE`).
-The postflop fallback's fail-closed branch can invest and can refuse postflop, both of which its own contract says never happen (`FALLBACK-FAIL-CLOSED-CAN-CALL`).
-Betting is not reopened when consecutive short all-ins amount to a full raise (`UNDER-RAISE-ACCUMULATION`).
-
-Ahead of every measurement, because everything downstream replays through the engine and reads the query.
-A phase that fixes measurement bugs after the measurements are taken is a phase that invalidates them.
-
-### 12. Spot Vocabulary V2
-
-Re-derives the committed artifact. Would not auto-advance.
-
-Two changes to what a spot key can say.
-
-Raise sizes enter the key, so a 2.25bb open and a 2.5bb open stop sharing a spot (`RAISE-SIZE-IN-SPOT-KEY`).
-Today every agreement rate in the repo is computed across prices the chart cannot distinguish, which is why the Phase 08 finding had to be qualified.
-And a position may act twice, which is what four-bets and beyond need (`SECOND-ORBIT-PREFLOP-SPOTS`).
-Real hands reach that edge 19 times in 3,048 decisions and the inventory can only file them as no expressible spot (`CORPUS-INEXPRESSIBLE-SPOTS`).
-
-The proof it broke nothing is already built.
-The committed GTO Wizard export must re-derive into the new format through `scripts/convert_preflop_export.py --check`, carrying the same ranges under new keys, and the real-hand refusal inventory must lose its catch-all row.
-
-### 13. Table-State Fidelity
-
-Commits no data. Could auto-advance. Touches the Phase 03 and 04 contracts.
-
-What the query can carry, as against what the chart can express.
-Per-seat committed chips make three currently-approximated things exact at once: a straddle, an ante, and an asymmetric effective stack (`PER-SEAT-CONTRIBUTIONS-IN-QUERY`, `BLIND-STRUCTURE-VARIANTS`, `ASYMMETRIC-EFFECTIVE-STACKS`).
-This matters more than it sounds for the home games this bot targets.
-A straddled pot currently reads as an ordinary one, so the bot confidently answers a question nobody asked.
-
-Separate from phase 12 rather than merged with it because 12 changes the artifact format and this changes the runtime query.
-The loop's freeze-then-build discipline works better on one axis at a time.
-
-### 14. Chart Cutover
-
-Commits a chart. Would not auto-advance.
-
-Derive the artifact from the export committed at phase 10, at the v2 vocabulary, and retire the 36-spot chart.
-Smaller than it would otherwise be, because the solve and the human verdict on it already happened.
-What is left is the conversion, the sizing table, and the one decision held back from phase 10: that a new six-handed 100bb artifact replaces the GTO Wizard one rather than sitting beside it, since `PreflopChartLibrary` rejects duplicate spot keys.
-
-The v1 spot vocabulary can express 1,691 six-handed 100bb spots, 848 of them without limps, against the 36 committed today.
-Both counts are recomputable by enumerating `solver_artifacts.schema.spot_key` over action sequences.
-At 7.1 KB per spot, the limps-included ruling puts this at 1,691 spots and roughly 12 MB rather than the 848 and 6 MB a no-limp solve would have cost.
-That is the price of closing the limped-pot refusals, and it is worth restating at the contract stage against whatever the phase-10 export actually weighs, since 7.1 KB per spot is measured off the current artifact and not off a GTOpen export.
-`docs/V2_RULING_MITIGATIONS.md` plans that measurement, and two things around it: `data/artifacts/**` is covered by no size check at all today, and the limped spots can go in their own artifact, which the chart library already composes without a code change.
-
-This phase carries its own closing measurement.
-Rerunning the corpus comparison against the new chart either resolves the calling gap or re-diagnoses it as a real defect (`CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT`, `CHART-COVERAGE-EXPANSION`, `CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK`).
-The rake-free ruling removes one of the two explanations the evidence offered, so what this measurement can attribute is narrower and cleaner than the earlier framing suggested: rake is gone as a variable, and open size is not.
-
-Open size is not gone, and it collides with proposed phase 12 in a way that phase has to settle before this one runs.
-Phase 12 puts raise size in the spot key so that a 2.25bb open and a 2.5bb open stop sharing a spot.
-The solve is ruled at 2.5bb and the corpus median is 2.25bb.
-Taken literally, those two facts mean corpus decisions facing a 2.25bb open would find no matching key at all and arrive as refusals, which would convert the calling gap from a measured disagreement into an empty sample and quietly destroy this phase's closing measurement.
-Ruling 8 settles this: opponent sizes abstract to the solved 2.5, so the lookup always finds a cell and no sample is lost.
-The collision is dissolved rather than managed, and the tree stays at one price.
-
-Two things follow for this phase and they are not the ones the earlier draft of this section expected.
-The measurement keeps its full sample, so rake becomes a controlled variable and this phase can attribute to it, but price does not: every rate is still computed across prices the chart answers identically, which is the same confound Phase 08 had to qualify.
-So the closing measurement resolves less than it would have, and it must say so rather than reading a residual gap as a defect.
-`docs/V2_RULING_MITIGATIONS.md` carries the detail, including where the abstraction has to live for the ruling to stay revisitable.
-More depths and table sizes get cheap here in machinery terms, but each one is another solve, so they follow the same phase-10-then-phase-14 shape rather than landing inside this phase.
-
-`STACK-DEPTH-BUCKETS` is narrowed rather than closed: solving more depths means more exact matches, and bucketing stays deferred because it is a heuristic.
-
-### 15. The Drill
-
-Commits session records. Would not auto-advance. First CLI entry point in the repo.
-
-Deal a spot, take the player's action, say what the chart says and what the difference costs, record the session, and turn a run of sessions into a leak report.
-Very little of this is new code.
-A training session is a hand history, and a leak report is the Phase 08 agreement measurement pointed at one player instead of a corpus.
-The bounded-ingestion boundary lift belongs here, so the same report can run over an exported personal history rather than only over hands the drill dealt.
-
-After phase 14 because a drill against a 36-spot chart refuses most of what it deals, and a trainer that says no opinion teaches nothing.
-This is the phase that makes the previous five worth having.
-
-Also the natural home for `SAMPLE-HAND-THE-CHARTS-COVER`, `SIMULATOR-DECISION-AUDIT-NOT-COMMITTED`, and `SIMULATOR-REPORT-UNITS-AND-IDS`.
+## The phases ahead
 
 ### 16. Postflop That Can Bet
 
-Commits a solution or a rule. Would not auto-advance. Gated on a ruling, not on a source.
+Commits a postflop solution or a rule. Depends on 14, the chart its flop solve is keyed against.
 
-The honest one, and bigger than everything above it combined.
+The honest one, and bigger than everything before it combined. It is the phase that makes this a bot that plays rather than a bot that answers a preflop question and runs the hand out.
 
-An earlier draft of this section said the only sizing source in the repo is a preflop export and that the phase is blocked on a source that does not exist.
-That was wrong, and it is corrected here rather than quietly rewritten, because the wrong version was quoted into `verification/loop_policy.yml` and `backlog.yml` and read back as established.
-GTOpen solves postflop as its primary function, and the Preflop Lab that phase 10 uses is the bolt-on beside it: per-street bet, raise and donk sizes, node locking, best response, and a batch report over a weighted canonical flop subset of 47, 95, 184, or all 1,755 flops.
-`docs/GTOPEN_SOLVER_NOTES.md` now records that surface and marks it unrun, since its absence is what allowed the inference.
+A committed postflop artifact does not have to be a joint solved tree. A spot is self-contained in its board, both ranges, pot, stacks and sizes, so the artifact can be a library of independent per-street spots keyed the way the preflop chart already is. What does not decouple is ranges: postflop strategy is range against range rather than a function of hero's two cards, so the same hand on the same board plays differently after `LJ open, BTN call` than after `BTN open, BB 3-bet, BTN call`, and the action summary in a spot key is a handle on a pair of ranges rather than history for its own sake.
 
-So the phase opens the way Phase 08 did, but blocked on two rulings rather than on an input (`V2-POSTFLOP-STRATEGY`).
-`reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md` holds them with defaults.
+Ruled flop only on 2026-08-19, over every canonical flop against a small head of common preflop lines, with turn and river refusing the way an uncovered preflop spot refuses today. Flop-only is what dissolves the board-texture question rather than answering it: mapping an unsolved `K72r` onto a solved `Q83r` was the heuristic guessing `AGENTS.md` forbade, and covering all 1,755 canonical flops means never needing the map. Suit isomorphism is exact and GTOpen exploits it internally; rank texture is not.
 
-The first is depth, and one design point narrows it a long way.
-A committed postflop artifact does not have to be a joint solved tree.
-A spot is self-contained in its board, both ranges, pot, stacks and sizes, so the artifact can be a library of independent per-street spots keyed the way the preflop chart already is, and the bot can evaluate each street from the board, its hand, and a summary of prior action.
-What does not decouple is ranges: postflop strategy is range against range rather than a function of hero's two cards, so the same hand on the same board plays differently after `LJ open, BTN call` than after `BTN open, BB 3-bet, BTN call`, and the action summary in a spot key is a handle on a pair of ranges rather than history for its own sake.
-Generation also stays sequential even where storage does not, because villain's turn range is whatever he would bet and check with on the flop.
-A spot is keyed by the board rather than by hero's hand, so one flop spot is 49 turn spots and 48 rivers below each of those: per preflop line covered, 1,755 flops, 85,995 turns, and 4,127,760 rivers.
-No solve in this repo has been timed to a real exploitability target, so affordability at any depth is unmeasured and only the ratio is safe to reason from: the turn is about 49 times a flop and the river about 2,350 times.
-Ruled flop only on 2026-08-19, with turn and river refusing the way an uncovered preflop spot refuses today, and every canonical flop against a small head of common preflop lines.
+An earlier draft of this section said no solve in this repo had been timed to a real exploitability target. That is no longer true and the correction is `ROADMAP-CLAIMS-NO-SOLVE-WAS-EVER-TIMED`. `reports/active/latest_postflop_solve_cost.txt` measures 30 solve rows, of which 7 reached their target and are pooled: every pooled row targets 0.3 percent of the starting pot, and the pooled per-unit costs are a median 1.37873 seconds per iteration and a peak resident set between 3,951.1 and 10,864.9 MB. Twenty-three rows are excluded as cap-bound, which is a floor rather than a cost, and the pooled rows are six monotone and one two-tone with rainbow unmeasured at that target, so a rainbow figure taken from that block is scaled rather than measured. The affordability question is now a measured one, which is the point.
 
-The second is what the bot does on a board it holds no cell for.
-Suit isomorphism is exact and GTOpen already exploits it internally; rank texture is not, and mapping an unsolved `K72r` onto a solved `Q83r` is precisely the heuristic guessing `AGENTS.md` forbids.
-Flop-only removes the runout fan-out, which is what makes every canonical flop the option that dissolves this question rather than answering it: pruning is real on the preflop-line axis and nearly absent on the flop axis, where the 1,755 classes come up at broadly comparable rates.
-GTOpen's 47, 95 and 184 flop subsets are study sets for a human reading texture patterns; as a bot's lookup table a 47-flop subset covers 2.7% of flops.
-If measured solve time rules the full set out, the fallback is fewer preflop lines, then a flop subset plus refusal, and never a subset plus abstraction. Amending the boundary for board texture would be its own `contract-update`.
-
-There is a cheap intermediate that needs no new data: call a river bet when equity against the unseen deck beats the price (`POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK`).
-It is an assumption rather than a fact about the hand, and it would make the bot over-call the way it currently over-folds, so it is worth building only if real opponents bet at it.
-That evidence arrives in phase 15, which is another reason the drill comes first.
-
-**Superseded 2026-09-06 by Taylor's ruling, recorded in `PHASE-16-WAITED-ON-PHASE-15-FOR-A-REASON-THAT-WAS-NOT-A-DEPENDENCY`.**
-The goal of v2 is a bot that plays hands, and the drill is at most a checkpoint on preflop rather than the point of the sequence.
-This paragraph was long read as the basis for `depends_on: "15"` in the phase 16 contract, and an independent review showed it was not even that: the edge was a leftover from the straight chain the v2 contracts were first declared as, and MAINT-21 later certified it "already right" without tracing it.
-The paragraph does not carry the weight either way. It argues that the drill would supply evidence for one cheap optional feature, the river pot-odds call, and says nothing about what teaching the bot to bet requires - and the drill deals preflop decisions only, so it could never have produced evidence about what an opponent does on a river.
-Phase 16 now depends on 14, the chart it solves flops against, and phase 15 is parked at its human gate.
-The pot-odds call keeps its own justification and loses its stated evidence, so it is built on the argument in `POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK` or not at all.
+There is a cheap intermediate that needs no new data: call a river bet when equity against the unseen deck beats the price (`POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK`). It is an assumption about the deck rather than a fact about the hand, and it would make the bot over-call the way it currently over-folds. It once claimed the drill as its evidence, which it never could have had, so it is built on its own argument or not at all.
 
 `POSTFLOP-UNBEATABLE-EARLIER-STREETS` belongs here too, and is a faster evaluator rather than a new rule.
 
-## Carried Forward From V1
+### 17. The Corpus Verdict On The Committed Chart
+
+Publishes the verdict. Depends on 14.
+
+Rerun the corpus comparison against the committed chart and say what the calling gap is. Phase 08 measured it and could not attribute it, because two explanations were live at once: the reference solve was raked, and it was solved at a price real players rarely used.
+
+Rake is gone as a variable, because the committed solve takes no share and the corpus hands were played rake-free, so `reports/active/latest_sample_comparison_report.txt` no longer has that excuse to offer. Price is not gone, and ruling 8 is why: the bot answers any opening size out of the 2.5bb cell, so no sample is lost and every rate is still computed across prices the chart answers identically. This phase can attribute to rake and cannot attribute to price, and its verdict has to say so rather than reading a residual gap as a defect.
+
+### 18. The Yardstick
+
+Depends on 14.
+
+Nothing in this repo measures how well the bot plays. Every published number is agreement with somebody else's decisions, or coverage of a decision space, and a bot can score well on both while losing money. The other kind of number needs an opponent with a strategy, and this repo does not have one.
+
+It comes before 19 because a merge of solved cells with heuristics can otherwise only be asserted to help.
+
+### 19. Heuristics And Merged Charts
+
+Depends on 16 and 18.
+
+Fail-closed refusal was the right property for a tool that reports on hands already played, where refusing costs nothing and a guessed answer contaminates every measurement downstream. A bot at a table cannot refuse; folding is an action and it is usually the wrong one.
+
+So this phase fills the gaps by merging solved cells with heuristics, with every substitution carried on the decision rather than hidden in the lookup - the discipline `scripts/ask_preflop_chart.py` already applies to ruling 8's price abstraction, generalised. It needs 18 so the merge is shown to help rather than asserted to, and it needs 16 so flop gaps are in scope alongside preflop ones. It is the phase that lifts the heuristic-guessing boundary in `AGENTS.md`, and nothing before it may anticipate that.
+
+### 20. The Home Game
+
+Depends on 16 and 19.
+
+A bot that sits down in Taylor's own home games. Table automation and browser observation lift here, bounded to those games; public real-money tables stay forbidden. The terms-of-service and account-risk reasoning that kept both out of v2 is not answered by the narrowing, because it attaches to the platform and not to who is at the table; Taylor was shown that and accepted the risk knowingly, which is a different thing from the reason having gone away.
+
+Last, because a bot that folds every flop and refuses every uncovered spot should not sit anywhere.
+
+## Retired: 15, The Drill
+
+The drill was a training tool for a human: deal a spot, take the player's action, say what the chart says and what the difference costs, and turn a run of sessions into a leak report. Under the goal ruled on 2026-09-21 it is not what the sequence is for, so it is backlogged rather than built.
+
+Nothing depended on it. Its one outgoing edge, into phase 16, was cut on 2026-09-06 after a review found the edge had never been argued at all: it was a leftover from the straight chain the v2 contracts were first declared as, affirmed once without being traced, and it held the only phase that makes the bot play behind a training tool. `PHASE-16-WAITED-ON-PHASE-15-FOR-A-REASON-THAT-WAS-NOT-A-DEPENDENCY` carries the diagnosis and `A-DEPENDS-ON-EDGE-INHERITED-FROM-A-CHAIN-IS-NEVER-RE-EXAMINED` carries the general repair.
+
+The bounded hand-history lift of ruling 5 was scoped to this phase and now has no owner until a leak report is built on top of a bot that plays.
+
+## Carried forward from v1
 
 Two lessons that cost a phase each to learn.
 
-**Canary the phase's own new command at stage 4.**
-Phases 08 and 09 both authored mutation canaries for every command except the one the phase was adding, and both were caught at stage 7 by a gate that would otherwise have been decorative for exactly the behavior the phase existed to add.
+**Canary the phase's own new command at stage 4.** Phases 08 and 09 both authored mutation canaries for every command except the one the phase was adding, and both were caught at stage 7 by a gate that would otherwise have been decorative for exactly the behaviour the phase existed to add.
 
-**Point stage 8 at the poker, not at the code's fidelity to its contract.**
-The findings that changed v1's direction were domain findings: that folding a hand nothing can beat is a certain loss, that a single headline agreement rate mostly measures how easy it is to fold trash, that a raked solve explains a blind-defence gap.
-None came from checking whether an implementation matched its contract.
-
-One loose end sits outside the sequence.
-`MUTATION-SENTINEL-IS-COMMITTABLE` lets an interrupted mutation run commit a deliberate defect, and it is tooling rather than phase work, so it should land as a maintenance task before the next phase rather than inside one.
-
-## Adopting This
-
-Mechanically: rewrite `docs/ROADMAP.md`, add seven entries to `phase_status.yml` at `future`, create seven contract skeletons under `docs/phase_contracts/`, add seven `verification/loop_policy.yml` entries, and re-tag `backlog.yml` so every deferred item either names the phase that will close it or stays honestly deferred.
-That is a maintenance task, since those contract edits are structural rather than semantic.
-
-Then the boundary change in `AGENTS.md`, which is semantic and needs its own `contract-update` before any phase starts.
-After the rulings below it is a single line rather than a set: large hand-history ingestion lifts for one player's own hands with a stated bound, and the other five boundaries stay exactly as written.
-The bound itself is the open part, and it is a number rather than a question of principle.
+**Point the review at the poker, not at the code's fidelity to its contract.** The findings that changed v1's direction were domain findings: that folding a hand nothing can beat is a certain loss, that a single headline agreement rate mostly measures how easy it is to fold trash, that a raked solve explains a blind-defence gap. None came from checking whether an implementation matched its contract.
 
 ## Rulings
 
-Seven questions were open when this document was written, none of them answerable from the repo.
-Taylor ruled on all seven on 2026-08-15.
-They are recorded here because a decision that lives only in a conversation is a decision the next agent re-opens.
+### The eight of 2026-08-15, and where they stand
 
-Four are about the solve, and they bind proposed phase 10 rather than the adoption task.
+Seven questions were open when this document was written and none was answerable from the repo. Taylor ruled on all seven that day, and on an eighth that only became visible once the first seven were written down. They are recorded because a decision that lives only in a conversation is a decision the next agent reopens.
 
-1. **Rake: rake-free.**
-   It matches the games this trains for and makes the corpus comparison apples-to-apples, since the committed corpus is rake-free too.
-   The cost is that the expectations file describes a raked solve, which is worked through in proposed phase 10 above.
-2. **Open size: 2.5bb, as today.**
-   Only one variable moves at the chart cutover.
-   The measurement-only 2.25bb second solve that was floated alongside this is not adopted, so the corpus median stays 2.25bb against a chart solved at 2.5, and proposed phase 12 has to say how a size key matches a size that was not solved.
-3. **Limps: in the solved tree.**
-   1,691 expressible spots rather than 848, and roughly 12 MB rather than 6.
-   Real hands reached limped spots on 12 inventory rows, and this is what stops those arriving as refusals.
-4. **Licence: proceed, and record the gap.**
-   GTOpen ships no LICENSE file, and `source.kind` is a provenance claim no checksum can verify.
-   The ruling is to commit the ranges anyway with the missing licence stated plainly in the source card, as a known limitation of the artifact rather than an omission.
-   It belongs in `docs/CORPUS_COMPARISON_LIMITS.md`'s successor for the chart, alongside the limit that nothing in this repo can check a committed artifact against the tool that produced it, because the gate has no network by design.
+1. **Rake: rake-free.** Stands, and is what the repo committed: the export's source card posts `rake_pct` 0 and `rake_cap` 0. The corpus hands are rake-free too, so the comparison is like for like and rake explains nothing in it.
+2. **Open size: 2.5bb.** Stands. Recomputed from the committed chart's own opening ranges rather than stored: `chart_solved_open_bb` in `scripts/repo_facts.py` reads every price the opening ranges offer below the all-in and requires exactly one, and it is 2.5.
+3. **Limps: in the solved tree.** Narrowed at phase 10's human gate, and the narrowing is now what the repo does: the posted config in `data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json` has `limp` false, so limps left the committed solve entirely. The narrowing was made on a measurement rather than on a preference. The cost is that no spot where an opponent limped can be answered from this export, and that cost is visible: 16 of the 75 real-hand refusal rows are limped pots, carrying 52 of the 194 refused decision points.
+4. **Licence: proceed, and record the gap.** Done. GTOpen ships no LICENSE file and the source card says so in its own `licence` field, as a known limitation of the artifact rather than a permission anybody granted.
+5. **Large hand-history ingestion: lifts, bounded.** Stands, for a single player's own exported history with a stated size bound and not corpus-scale mining. `AGENTS.md` now states it that way. The bound is still owed as a number, and the lift is not usable until the number exists.
+6. **UI package: stays deferred.** Stands as a deferral and its reason has changed. It used to wait on the drill existing and being used; the drill is now backlogged, so it waits on the bot playing well.
+7. **PokerNow automation and browser observation: stay out of v2.** **Superseded 2026-09-21 for private home games only.** Both lift at phase 20 and are bounded to Taylor's own home games; public real-money tables stay forbidden. The original reasoning was terms of service and account risk, and narrowing the venue does not address it: a private club on a platform is the same account and the same ban exposure as a public table there. It was put to Taylor in those words on 2026-09-21 and he ruled proceed, risk accepted. Recorded as accepted rather than resolved, so no later reader takes the narrowing for an answer.
+8. **Opponent opening sizes abstract to the single solved price.** Stands, and is implemented. The tree carries 2.5bb and nothing else, and an open at any other size is answered from the 2.5 cell, with the substitution carried on the answer rather than hidden.
 
-Three are boundaries, and they change what `AGENTS.md` should say rather than what any phase does.
+   The cost is known and accepted rather than overlooked, and it is bigger than the figure this document used to carry. `reports/active/latest_sample_comparison_report.txt` scores 1,156 decisions facing exactly one raise, median and mean size 2.25bb, with only 209 of them at or above the solved 2.5. Split by the price faced, humans calling at or under 2.25bb agree with the chart 39 of 121 times, 32.2 percent, against 14 of 18, 77.8 percent, facing over 2.50bb. Of the 60 big-blind human call disagreements, 46 faced an open cheaper than the solved size. So the bot under-defends against cheap opens, which is most opens, and that is a chosen approximation rather than an open defect.
 
-5. **Large hand-history ingestion: lifts, bounded.**
-   For a single player's own exported history with a stated size bound, not corpus-scale mining.
-   The bound is a number nobody has chosen yet, and proposed phase 15 cannot use the lift until both it and the `AGENTS.md` wording exist.
-6. **UI package: stays deferred past v2.**
-   Revisit once the drill exists and has been used.
-7. **PokerNow automation and browser observation: stay out of v2.**
+### The boundary the old table called permanent
 
-One more was ruled the same day, after `docs/V2_RULING_MITIGATIONS.md` showed that ruling 2 had settled only half of what it appeared to.
+**No heuristic guessing for missing chart spots** was ruled here as holding permanently, on the grounds that it is the property that makes every number in this repo mean something. **Superseded 2026-09-21.** It lifts at phase 19. The permanent framing was written for a tool that reports on hands already played, where refusing costs nothing; a bot that has to act at a table cannot refuse, and a fold is not a null answer. Until phase 19 lands it holds exactly as written, and `AGENTS.md` is the authority on that.
 
-8. **Opponent opening sizes abstract to the single solved price.**
-   The tree carries 2.5bb and nothing else, and an open at any other size is answered from the 2.5 cell.
-   Ruling 2 settled what the bot opens to; this settles what it can answer when it is facing an open instead of making one, which is a separate axis nobody had asked about.
-   The reason is tree size: one price keeps the solve and the artifact at what the limps ruling already costed, rather than multiplying both by the number of prices.
+**No runtime solver calls** was the other permanent row and is unchanged. Offline extraction into a committed artifact is a different thing and is already how charts are built.
 
-   The cost is known, was put alongside the ruling, and is accepted rather than overlooked.
-   The bot plays a 2.25bb open as though it cost 2.5, so it folds hands that are correct calls at the cheaper price, and since the corpus median is 2.25 the abstraction errs in that direction most of the time.
-   Phase 08 measured the size of the effect: calls agree with real players 52.5 percent facing 2.25 or less against 77.8 percent facing above 2.50, and 47 of the 58 big-blind call disagreements faced an open cheaper than the solved size.
-   So the bot is expected to keep under-defending against cheap opens after the cutover, and that is a chosen approximation rather than an open defect.
-   `docs/V2_RULING_MITIGATIONS.md` records what the ruling asks of proposed phases 12 and 14 in return, including the one design choice that decides whether it can be revisited without re-solving.
+### Spot counts this document used to state
 
-None of these eight adopt the sequence.
-`phase_status.yml` still holds ten completed phases and nothing after them, no contract skeleton exists for any phase above, `verification/loop_policy.yml` has no entry for them, and `AGENTS.md` still states all six V1 boundaries in their original form including the one ruling 5 lifts.
-That last point is the one a reader is most likely to get wrong: until the `contract-update` lands, the file forbids what ruling 5 permits, and the file wins.
+It stated 1,691 expressible six-handed 100bb spots with limps and 848 without, and said both were recomputable by enumerating `solver_artifacts.schema.spot_key` over action sequences. They are not. Phase 12 ran exactly that enumeration and published the measured pair in `reports/active/latest_spot_vocabulary_report.txt`: the v1 single-orbit vocabulary expresses 1,949 spots with limps and 977 without, and the v2 vocabulary, in which positions may repeat, expresses 18,773 and 9,389 to a bound of six recorded actions. The correction is `ROADMAP-SPOT-COUNTS-DO-NOT-REPRODUCE`.
+
+The artifact-size estimate built on the wrong pair goes with it. The committed chart is 1,616,156 bytes for 156 spots, about 10.1 KB per spot, and `data/artifacts` totals 4,838,105 bytes against the 20 MB directory limit in `scripts/check_file_sizes.py`. A per-spot cost measured on one chart format does not transfer to another, which is what the retired 7.1 KB figure assumed.
