@@ -20,6 +20,46 @@ forbidden_scope:
 scope_change_log:
   - date: 2026-09-22
     reason: >-
+      The audit packet and its review directory join `approved_scope`, which is the same widening every
+      task makes when it reaches closeout: `AGENTS.md` requires an audit packet and requires the
+      independent review's findings to be recorded in it, and neither path is in `standing_scope`.
+      `reports/phase_audits/MAINT_35_PLAY_STRENGTH_DIRECTION.md` is the packet and
+      `reports/phase_audits/reviews/MAINT_35_PLAY_STRENGTH_DIRECTION/**` holds the review note. Nothing
+      else under `reports/phase_audits/` is touched; in particular no completed phase's packet, decision
+      list or review note is edited, because a packet is a snapshot of what a phase believed and this
+      task corrects what the repo says now rather than what an earlier phase recorded. The review found
+      one blocker and eight smaller items, all repaired by a lane that wrote neither the original work
+      nor the review, and it surfaced two questions that went to Taylor and came back as rulings 7 and 8
+      in the ExecPlan.
+  - date: 2026-09-21
+    reason: >-
+      MAINT-35 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry is what puts the whole of it on the record at once. Taylor ruled on
+      2026-09-21 that the goal of this repo is a bot that plays strong no-limit hold'em and that the
+      training product is backlogged until the bot is strong, and that some recent decisions refused
+      spots the solve takes on the grounds that they would not make sense for a trainee. Nothing in the
+      repo carries that ruling yet: `AGENTS.md`, `README.md` and `docs/ARCHITECTURE.md` all still state
+      the training frame as the purpose, so they are in scope. `docs/ROADMAP.md` and
+      `docs/V2_ROADMAP.md` carry the direction and the eight 2026-08-15 rulings, two of which Taylor
+      moved on 2026-09-21, so they are in scope. `docs/phase_contracts/**` is in scope because phase 15
+      is retired and phases 18, 19 and 20 are declared, and `verification/loop_policy.yml` is in scope
+      because a declared phase needs a policy entry and a retired one must not keep hers.
+      `task_mode` is `contract-update` because two boundary changes are semantic: table automation and
+      browser observation lift at phase 20 for Taylor's own home games and for nothing else, and the
+      "no heuristic guessing" boundary that `docs/V2_ROADMAP.md` ruled permanent now lifts at phase 19.
+      There is a THIRD semantic boundary movement and this entry declared only two: the large
+      hand-history bullet now reads as a bounded lift, and its owner was phase 15, which this task
+      retired, so the lift was left with no owning phase and still no size bound. Added 2026-09-21 by
+      the repair lane after the independent review found it. The bullet is corrected in place to say
+      the boundary holds as written until a phase claims the lift and states the bound as a number;
+      that correction is the boundary movement being declared here, not a new one.
+      What is deliberately NOT in scope: `src/**`, `tests/**`, `scripts/**`, `data/**` and
+      `verification/mutations.yml`. This task reverses no acceptance, re-derives no artifact and
+      changes no behaviour. The teaching-motivated acceptances it found are filed in `backlog.yml` as
+      work to reopen, and the big blind's tight defence is filed to reopen after phase 16 has flop
+      cells, which is Taylor's ruling rather than this task's choice.
+  - date: 2026-09-22
+    reason: >-
       `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` enters approved_scope for stage 9, which is
       where the ExecPlan's Scope section always said it would. The contract requires the packet to
       carry a plain-language summary, a pass/fail checklist a non-coding reviewer can work through, a

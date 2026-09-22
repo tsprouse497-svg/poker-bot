@@ -1,5 +1,460 @@
 schema_version: 1
 items:
+  - id: THE-BIG-BLIND-DEFENCE-WAS-ACCEPTED-ON-TWO-ARGUMENTS-AND-ONE-OF-THEM-HAS-EXPIRED
+    status: deferred
+    phase: contract-update
+    title: The tight big blind was accepted partly because teaching wide defence would mislead a student, and there is no student any more
+    reason: >-
+      Filed by MAINT-35 on 2026-09-21 under Taylor's ruling that the goal of this repo is a bot
+      that plays well and that the training product waits. Nothing is reversed here. Decision 34
+      of reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md stands as ruled and
+      the chart is untouched.
+      What changes is that the ruling rests on two arguments fused into one sentence, and only one
+      of them survives the new goal. The first is that the bot has no postflop strategy, so a
+      chart defending wide would be taking marginal hands to flops the bot cannot play. That one
+      is still true today and phase 16 is what retires it. The second is the teaching argument,
+      in the decision's own words, that such a chart "would be teaching a student to take marginal
+      hands out of position to flops this bot cannot help them play". There is no student in the
+      north star any more, so that half now argues for nothing.
+      The defect as the shipped chart has it, re-measured for this entry from
+      reports/active/latest_derived_chart_report.txt, section "The big blind's defence and flat,
+      per opener", which is generated off the committed artifact rather than typed. The big blind
+      defends 24.946 percent against the lojack, 28.646 against the hijack, 31.756 against the
+      cutoff, 37.326 against the button and 52.687 against the small blind. Its flat runs 17.900,
+      21.088, 21.818, 24.413 and 34.272 across the same five, a spread of 16.37 points where the
+      raked reference spreads 9.00 and orders them differently, which is the opener-invariance
+      fingerprint decision 34 named. Do not carry the 25.7 / 28.9 / 32.8 / 36.7 / 48.4 figures the
+      decision states; those were taken before the re-solve and the entry above them has moved.
+      The cost is the one figure here nobody can re-derive. The report publishes it as two bands,
+      0.10 to 0.70 bb per 100 at a realization of 0.65 and 8.76 to 13.04 at 0.85, and says in the
+      same paragraph that these two rows are the only ones in the whole report quoted from the
+      decision record rather than computed by the command that prints them. Nothing in this repo
+      measures realization in this game, so the band cannot be narrowed by reading anything.
+      When to reopen, and it is not now. Taylor ruled on 2026-09-21 that this waits until phase 16
+      has flop cells, so the decision is made against a measured number rather than against an
+      argument. Phase 18 is what turns that number into chips.
+      What reopening costs procedurally, which is why this is filed rather than done.
+      docs/phase_contracts/PHASE_14_CHART_CUTOVER.md forbids widening the big blind's flat by hand
+      in as many words, so any change is a contract edit and needs `contract-update` mode. That
+      contract is also at exactly 300 of 300 lines, so it cannot take an amendment at all until
+      the fold-in rewrite has run. See CHART-CUTOVER-CONTRACT-IS-AT-ITS-LINE-CAP,
+      PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP and
+      THE-CHART-CUTOVER-CONTRACT-BODY-STATES-FIGURES-THE-RE-SOLVE-REPLACED. Related:
+      COMMITTED-SPOTS-NEVER-FLAT-A-RAISE, BIG-BLIND-FLAT-IS-NEARLY-OPENER-INVARIANT,
+      NOTHING-READS-THE-DEFENCE-LEVEL-AGAINST-A-RAKE-FREE-REFERENCE.
+  - id: THE-LADDER-INVERSIONS-WERE-ACCEPTED-AS-A-TEACHING-COST-AND-NOTHING-HAS-PRICED-THEM-IN-CHIPS
+    status: deferred
+    phase: "18"
+    title: Accepted twice because the cost is pedagogical rather than monetary, and under the new goal that sentence is a measurement nobody has taken
+    reason: >-
+      Filed by MAINT-35 on 2026-09-21. Nothing is reversed. Decisions 41 and 47 of
+      reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md stand as ruled, and this
+      entry does not propose a smoothing rule.
+      Both acceptances turn on one sentence. Decision 41 says of the pair ladder that "the cost is
+      pedagogical, not monetary", and decision 47 accepts the kicker family "on the same terms as
+      the pair ladder". Under a goal that has no student in it, that sentence resolves two ways
+      and nobody knows which. Either the cost really is near zero by the solver's own reckoning,
+      in which case the acceptance is free and should be recorded as free. Or it is a monetary
+      cost that was never priced because pricing it needed an opponent, and this repo had none.
+      Phase 18 is the phase that can tell them apart, which is why this is filed against it.
+      Correcting the brief this entry was raised from, and correcting two shipped entries. The
+      `PREFLOP_PRUNE=0` experiment was NOT left unrun. It was run on 2026-09-02 and came back
+      negative: every inversion reproduced identically with pruning off, at a better convergence
+      gap than the committed solve, so the inversions are a preference the fit holds rather than
+      actions the solver left stuck. The record is in the "Open, and not to be invented" section
+      of docs/exec_plans/completed/PHASE_14_CHART_CUTOVER.md.
+      Two shipped entries still send a reader to run it, in different words, and both are stale on
+      that point. KICKER-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED carries the phrase verbatim: the
+      experiment "covers this family and the pair family together and has not been run".
+      PAIR-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED says the same thing differently, that
+      `PREFLOP_PRUNE=0` and a re-solve "would settle that in about 200 seconds and should be run
+      before any smoothing rule is written". Quotation corrected 2026-09-21 by the independent
+      review of MAINT-35, which found this sentence attributing one entry's words to both. Whoever
+      reopens this fixes both sentences first, because the obvious first move they prescribe is a
+      move that has already been made.
+      What is genuinely unrun is the same experiment against the chart that actually ships. The
+      2026-09-02 run predates MAINT-34, which re-solved the tree at a 13.5bb blind three-bet and
+      moved the ranges, so its negative result is about a build the repo no longer holds.
+      THE-PAIR-ORDERING-ARTEFACT-MOVED-SEAT-RATHER-THAN-DYING records that the artefact survived
+      that re-solve and changed seat. A re-run is cheap: the committed solve's own wall clock is
+      188.4 seconds, read from `solve.wall_clock_seconds` in
+      data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json.
+      The shipped relation counts, re-derived for this entry from the "four relations" section of
+      reports/active/latest_derived_chart_report.txt over the committed 156 spots at the
+      one-point tolerance, so no earlier count is carried forward: pair ladder 87 violations of
+      1,872 comparisons; pair ladder on the raise weight 73 of 1,872; row kicker ladder 197 of
+      20,592; suited over its offsuit twin 58 of 12,168. Do not cite 42, 86, 114 or 181 for the
+      shipped chart; those were measured on sets this re-solve replaced.
+      A raw relation count is not the size of the defect, and this entry published 197 as though it
+      were. Corrected 2026-09-21 by the independent review of MAINT-35.
+      KICKER-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED left a standing obligation on exactly this:
+      the report must keep the wheel-ace cases separated and labelled as correct poker, and no
+      packet may cite the raw family count as the number of things wrong. Re-derived from the "five
+      accepted defects" section of the same report, which splits the relation itself: of the 197,
+      60 are exempted as the wheel-ace premium, and that 60 splits again into 57 where preferring
+      the wheel ace is correct poker and 3 first-in spots caught by name alone where the argument
+      does not reach. So the accepted kicker defect on the shipped chart is 140, not 197: the 137
+      the exemption never touched, of which 15 sit at a gap of 50 points or wider and 122 below it,
+      plus those 3 first-in cases the report names individually as t6/d100/BTN/rfi, t6/d100/HJ/rfi
+      and t6/d100/LJ/rfi. 57 of the 197 are correct poker and nobody should go pricing them.
+      The worst case the report attaches to the row kicker ladder is itself one of those 57. It is
+      A6o at 0.00 under A5o at 100.00, a 100.00 point gap, at t6/d100/BB/BTN:raise@2.5. The
+      more-played hand is A5o, so the exemption fires; hero faces one raise there, which is the
+      bucket the report calls "facing an open - three-bet, squeeze or defence", where bluff
+      selection is the whole argument for the premium. The headline gap on this relation is
+      therefore not an instance of the defect at all, and an agent reopening this must not take it
+      as the worst thing to price. The pair ladder carries no such exemption: its 87 and its 73 are
+      the counts as they stand.
+      Related: LADDER-INVERSIONS-ARE-PUBLISHED-AS-COUNTS-AND-THE-COUNT-IS-NOT-THE-COST, which asks
+      the same question from the count side and prices it in how often the bot is dealt the wrong
+      side rather than in chips won. Also REALIZATION-MODEL-UNDERPRICES-POSITION and
+      REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH, which are the mechanism.
+  - id: THE-MULTIWAY-THRESHOLD-WAS-MOVED-FOR-A-STUDENT-AND-MEASURED-ON-A-CIRCULAR-QUANTITY
+    status: deferred
+    phase: contract-update
+    title: The exposure line went from one percent to ten because a squeeze is a spot a student meets, and the quantity it is measured on is low partly because the model under-flats
+    reason: >-
+      Filed by MAINT-35 on 2026-09-21. Nothing is reversed. Decision 46 of
+      reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md stands as ruled and the
+      committed set is untouched.
+      Two things about that ruling need reopening together under a goal with no student in it, and
+      neither is a defect in the ruling as made.
+      First, the stated reason. Decision 46 says in its own closing paragraph that coverage "was
+      not the argument and the packet must not present it as one", and gives the argument as: "a
+      squeeze is a spot a student meets constantly and the chart refused it". That is the whole
+      justification for moving the line, and it is a teaching argument. A bot that plays needs the
+      line justified in chips instead, and that is phase 18's measurement.
+      Second, the quantity. Exposure is the share of a spot's decision mass reaching a flop with
+      three or more players, walked over the branches the bot can take. It is low in this build
+      partly because this build under-flats, which is the same defect decisions 34 and 41 accept,
+      so a threshold set against it is set against a number the accepted defects are holding down.
+      MULTIWAY-EXPOSURE-IS-LOW-ONLY-BECAUSE-THE-FLATS-ARE-BROKEN records exactly this and requires
+      any later build to re-measure rather than carry the figure forward.
+      The sharpest form of the circle is already published. The 9 big-blind squeeze spots pass the
+      exposure clause because the big blind folds so much of its range there that almost nothing
+      reaches a three-way flop, and they are refused by a separate clause instead. Re-derived for
+      this entry from reports/active/latest_derived_chart_report.txt, that fold rate runs 82.8572
+      to 92.5475 percent across the nine, with 5 of the 9 under 90. The clause is blindest exactly
+      where the mispricing has already turned a call into a fold.
+      What the line is worth today, all re-derived from the same committed report rather than
+      carried from the decision. Threshold 10.0. Widest admitted 9.1945 at
+      `t6/d100/BTN/LJ:raise@2.5,CO:call,BTN:call,SB:raise@13.5,LJ:call`; narrowest refused 10.4362
+      at `t6/d100/BB/CO:raise@2.5,BTN:call`; margin 1.2417 points, which is wider than the
+      sixteen hundredths decision 46 published and is a property of this solve rather than of
+      poker. 154 nodes are still refused as `derivation:multiway-exposure-above-threshold` and 9
+      as `derivation:big-blind-squeeze-spot`. And counting the committed spots by their own
+      exposure, 48 of the 156 sit at or above one percent, so the move from one to ten is what
+      admits 48 spots and a one-percent line would ship 108.
+      Do not cite decision 46's 143, 259, 348 or 33,969; the committed set has moved twice since
+      and the export it was counted over has been re-solved. Related:
+      THE-EXPOSURE-ROW-PRINTS-ONE-FIGURE-UNDER-TWO-LABELS,
+      EXPOSURE-WALK-DROPS-MASS-AT-NODES-NO-HAND-REACHES, MULTIWAY-EQUITY-IS-A-PRODUCT-APPROXIMATION.
+  - id: COVERAGE-IS-PUBLISHED-UNDER-THE-SOLVES-OWN-PLAY-AND-A-HUMAN-DOES-NOT-PLAY-IT
+    status: deferred
+    phase: "18"
+    title: The headline coverage figure is reach-weighted under the solve's own strategy, and the nodes dropped for having nobody at them were dropped on that same measure
+    reason: >-
+      Filed by MAINT-35 on 2026-09-21. Nothing is reversed and no exclusion is reopened here. This
+      records what the published figure does and does not say once the bot is meant to sit against
+      somebody other than itself.
+      The figure, re-derived for this entry from reports/active/latest_derived_chart_report.txt,
+      which computes it off the committed export. Coverage reads 98.7380 percent. It is the share
+      of preflop decisions the committed set answers, weighted by how often each node is reached.
+      By node count the same chart answers 156 of 30,609, which is 0.5097 percent. The report says
+      plainly that the two readings are far apart and why. Neither is wrong. The weighting is the
+      issue: reach is computed under this solve's own strategy on both sides of every decision, so
+      the figure answers "how much of the play the bot generates does it cover" and is read as
+      "how much of the play it will meet".
+      Where that bites hardest is the exclusion whose justification is the measure itself. Of the
+      30,609 nodes, 160 are excluded as `derivation:no-arriving-hand-class`, and the stated reason,
+      in the artifact's own notes, is that they "clear every other clause and still have no hand
+      class hero can be holding, so there is no range to publish at all". No hand class arrives
+      there under this solve. A human opponent is not this solve, and a home game full of humans is
+      the venue the new goal names.
+      Two other buckets are adjacent and are not the same set, which is worth stating because
+      conflating them is easy and produces the same total. 128 nodes are excluded as
+      `derivation:terminal-split-does-not-close`, where mass flowing into a node no hand class
+      arrives at leaves the walk without being redistributed, so exposure could not be measured at
+      all; at 109 of those 128 every branch evaporated and the measurement read exactly zero, which
+      the exposure clause would have admitted as heads-up. That is a guard failing closed on an
+      input it cannot see rather than a node nobody reaches.
+      There are five exclusion reasons, not three and not four. Corrected 2026-09-21 after the
+      independent review of MAINT-35 found this paragraph naming three of them and calling the
+      largest "the remaining", which it is not. The artifact's own `audit_fields.notes` says "5
+      clauses can refuse a node and 5 of them do here", and the census in
+      reports/active/latest_derived_chart_report.txt prints all five with the same counts:
+      `derivation:beyond-committed-raise-depth` 30,002, the four-bet family a later phase takes up;
+      `derivation:multiway-exposure-above-threshold` 154; `derivation:big-blind-squeeze-spot` 9;
+      `derivation:no-arriving-hand-class` 160; and `derivation:terminal-split-does-not-close` 128.
+      The two this entry had dropped are the multiway and squeeze buckets, which are the subject of
+      THE-MULTIWAY-THRESHOLD-WAS-MOVED-FOR-A-STUDENT-AND-MEASURED-ON-A-CIRCULAR-QUANTITY.
+      The identity that closes, re-derived here from the same report and matching the hand-checkable
+      arithmetic it publishes: 30,002 + 154 + 9 + 160 + 128 = 30,453 excluded, plus 156 committed and
+      0 inexpressible as `derivation:no-legal-spot-key`, gives 30,609, which is
+      `node_counts.exported` on
+      data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json. That 30,453 is the
+      figure the artifact's notes call 99.49 percent of the nodes. All seven counts are recomputed
+      by the run that writes the chart. A census that folds any two of the five together still adds
+      to 30,609 and is wrong only about which fix brings which back, which is the one error a total
+      can never show - and this paragraph was that error.
+      The same measure is publishing rarity inside the committed set too, which is the reason this
+      is one entry rather than two. Of the 156 committed spots, 53 have an arrival that rounds to
+      zero at parts per billion and 47 are exactly zero. Those are two different measurements and
+      only the first is read off the artifact. Corrected 2026-09-21: `arrival_ppb` in
+      data/artifacts/preflop/six_max_100bb_rakefree.json holds 156 values of which exactly 53 are
+      zero, counted in this worktree, so the field gives the 53 and nothing else. The 47 is read off
+      the unrounded arrival product rather than off the field, and the report's arrival-grain section
+      says in as many words that "only the second is a spot nobody plays" - the other 6 are lines
+      that are played and are rare. Whoever re-derives this must not check the 47 against
+      `arrival_ppb` and conclude the chart is wrong. The chart is
+      right to commit them and right to print the count. The point is that rarity and coverage are
+      both being measured with the same instrument, and the instrument is the solve.
+      What would settle it is the thing phase 18 builds: coverage re-measured against an opponent
+      pool that does not play this chart, published beside the self-play figure rather than
+      instead of it. Related: COVERAGE-IS-DECISION-MASS-AND-A-TRAINEE-MEETS-A-PER-SEAT-RATE,
+      ARRIVING-REACH-IS-NOT-A-TRAINED-NESS-MEASURE, SELF-PLAY-COVERAGE-PREMISE-RESTS-ON-THE-REACH-FLOOR,
+      SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS.
+  - id: THE-FIVE-BET-JAMS-WERE-WITHHELD-ON-TWO-ARGUMENTS-AND-THE-TRAINEE-ONE-HAS-EXPIRED
+    status: deferred
+    phase: "16"
+    title: Fifteen spots where the solve calls off a jam were refused partly because a student could not detect a wrong answer, and the bot still cannot stack off preflop
+    reason: >-
+      Filed 2026-09-21 by MAINT-35's repair lane, after the independent review found that the eight
+      entries this task filed had missed it. Nothing is reversed. Decision 26 of
+      reports/phase_audits/decisions/PHASE_14_CHART_CUTOVER_DECISIONS.md stands as ruled, and the
+      shipped chart is untouched.
+      Why it belongs with the others. Decision 26 rejected `keep-them-and-record` in these words: it
+      "ships advice a student cannot detect as wrong, in a training tool". That is a spot the solve
+      takes, refused on a trainee argument, which is the shape Taylor's ruling of 2026-09-21 retires.
+      It sits beside THE-BIG-BLIND-DEFENCE-WAS-ACCEPTED-ON-TWO-ARGUMENTS-AND-ONE-OF-THEM-HAS-EXPIRED
+      and is filed the same way, because it has the same two legs and only one of them expires.
+      The leg that expired. The trainee clause above, and with it decision 26's framing that the
+      phase "was refusing the parent as untrustworthy and shipping the child", which reads the choice
+      as a publication problem. There is no student in the north star, so nothing in that sentence
+      argues for anything any more. It expired twice over, in fact: decision 32 says in its own text
+      that it "supersedes the withholding cascade that decisions 20, 26 and 28 built", and ruled cut
+      by action rather than by spot. So the reason the five-bet spots are out today is not decision
+      26 at all.
+      The leg that stands, and it is not a teaching argument. Decision 35 ruled the committed depth
+      directly: first-in, facing an open and facing a three-bet are committed, facing a four-bet and
+      everything beyond it is excluded. Its reason is the realization fit, not the reader. A four-bet
+      pot is SPR 1.70 after the call; the fit was measured on solves spanning SPR 3 to 74 and its
+      lowest bucket edge is 2.5, so 1.70 is below every observation it has, and it extrapolates,
+      pricing JJ at 0.749 of its equity and 76s at 1.133. Decision 43 then strengthened that: over
+      the 35 canonical nodes the export continues 43.41 to 67.80 percent against a standard of 28 to
+      35, worse than decision 35 published. A five-bet cell is hero's answer to a jam range computed
+      at exactly those four-bet nodes, so it inherits the mispricing whole. That leg holds until a
+      fitted four-bet-pot cell exists, which is why this is filed against phase 16 rather than 18.
+      What the shipped chart actually does, re-derived in the MAINT-35 worktree rather than carried
+      from any decision. The committed set is 156 spots and hero faces 0 raises at 5 of them, 1 at 16
+      and 2 at 135, counted off `action_sequence` in
+      data/artifacts/preflop/six_max_100bb_rakefree.json. The only opponent raise sizes appearing in
+      those sequences are 2.5, 7.5 and 13.5. So no committed spot has hero facing a four-bet or a
+      five-bet, and the whole family lives in the 30,002 nodes excluded as
+      `derivation:beyond-committed-raise-depth`.
+      The bot DOES have a jam on its menu today, which is the one thing a reader of
+      CHART-CANNOT-ADVISE-A-FIVE-BET would get wrong. That entry says of the retired 36-spot set that
+      "`100.0` leaves hero's price menu entirely", and on the shipped chart it does not: 33 committed
+      spots price a 100bb raise for at least one arriving hand class, counted over `raise_to_bb` in
+      data/artifacts/preflop/sizings/six_max_100bb_rakefree.json, all 33 at two raises faced, small
+      blind 28 and big blind 5. Every one of them is a four-bet jam a blind is forced into by the
+      clamp rather than a stack-off hero chose, which
+      A-BLIND-CANNOT-FOUR-BET-A-BLIND-WITHOUT-JAMMING-AND-THE-MULTIPLIER-GEOMETRY-SAYS-WHY is about.
+      So the sentence in CHART-CANNOT-ADVISE-A-FIVE-BET is stale on the menu and still correct on the
+      action: hero can never five-bet, because he is never asked.
+      What this entry does not re-derive, said plainly rather than restated as fact. Decision 26's
+      own measurements - fifteen spots, hero calling 77.5 into 123.0 and needing 38.65 percent, AKs
+      calling 0.00 at all five lojack jam spots, the KK 72.84 against QQ 94.29 inversion, and the
+      4,815,347 of 1,216,733,387 parts per billion it costs - were all taken on the pre-cutover
+      export at a 7.5bb blind three-bet. The committed set has moved twice since and MAINT-34
+      re-solved the tree at 13.5. Whoever reopens this re-measures every one of them against the
+      shipped export before quoting any of them.
+      Related: CHART-CANNOT-ADVISE-A-FIVE-BET, which is the coverage this spends measured from the
+      other side and needs the correction above; THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL,
+      which is the same unfitted four-bet terminal reaching the committed spots;
+      DECISION-ITEMS-STATE-WHAT-AN-OPTION-COMMITS-NOT-WHAT-IT-REMOVES, filed because this exclusion
+      is what took the jam-inversion canary and the two-price sizing schema out of the committed set;
+      and SUPERSEDED-FROZEN-ITEM-STILL-PARSES-AS-ANSWERED, which is why decision 26 still reads as a
+      live ruling when decision 32 superseded its cascade.
+  - id: THE-DRILL-IS-DEFERRED-UNTIL-THE-BOT-IS-WORTH-LEARNING-FROM
+    status: deferred
+    phase: v2
+    title: Phase 15 is retired from the graph and the drill becomes post-strength work
+    reason: >-
+      Taylor ruled on 2026-09-21 that the goal of this repo is a bot that plays strong poker and
+      that the training product comes after, to help a user, once the bot plays well. The drill is
+      that product's first surface, so it is deferred rather than cancelled, and this entry is
+      where it lives until then.
+      What was retired, by MAINT-35. Phase 15 is removed from phase_status.yml and from
+      verification/loop_policy.yml, and docs/phase_contracts/PHASE_15_DRILL.md is deleted. It was
+      a bare skeleton: boilerplate acceptance criteria, two unregistered command ids, and no
+      implementation anywhere in the tree. Nothing depended on it. Phase 16's dependency edge into
+      it was already cut on 2026-09-06 and the diagnosis is in
+      PHASE-16-WAITED-ON-PHASE-15-FOR-A-REASON-THAT-WAS-NOT-A-DEPENDENCY.
+      Where the work is, so nobody has to rediscover it. The contract is in git history as
+      docs/phase_contracts/PHASE_15_DRILL.md at commit cd6154d, the last commit before this task
+      deleted it. Its lane holds more than the contract did: the branch phase/15-the-drill, parked
+      at loop stage 3 with a written and reviewed contract and decision list, checked out at
+      ~/projects/poker-bot-worktrees/phase-15. Whether that branch and worktree are kept is
+      Taylor's to say and MAINT-35 did not touch either.
+      Five filed entries were pointed at phase 15 and had to move when it went, which is recorded
+      here rather than five times over. Genuinely about the drill, and deferred with it:
+      A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT, which asks how a drill samples a
+      committed set whose arrival spans orders of magnitude, now filed under v2 beside this entry.
+      Not about the drill at all, and filed against 15 only because 15 was the next phase when
+      they were written: SAMPLE-HAND-THE-CHARTS-COVER moves to samples, SIMULATOR-REPORT-UNITS-AND-IDS
+      and SIMULATOR-DECISION-AUDIT-NOT-COMMITTED move to simulator. And one that the new goal makes
+      more urgent rather than less: A-REFUSAL-CANNOT-TELL-THE-HUMAN-WHY moves to 19, because a
+      refusal that cannot say which rule refused it is unusable to the phase whose whole job is
+      substituting for refusals.
+      Related: V2-TRAINING-UI, whose own deferral reason was corrected on 2026-09-21 because it
+      still named phase 15 as the thing that would change the answer.
+  - id: THE-PACKAGING-METADATA-IS-THE-LAST-LIVE-PROSE-STATEMENT-OF-THE-RETIRED-PURPOSE
+    status: deferred
+    phase: contract-update
+    title: pyproject describes a training bot while phase_status declares a playing bot, and nothing in the repo compares the two
+    reason: >-
+      Filed 2026-09-21 by MAINT-35's repair lane as an alignment item raised by the independent
+      review. Out of MAINT-35's approved scope - `pyproject.toml` is not in it - so it is filed
+      rather than fixed, and nothing here is urgent.
+      Measured in the MAINT-35 worktree, by grep over the tracked tree rather than from prose.
+      `pyproject.toml` line 2 reads `name = "poker-training-bot"` and line 4 reads
+      `description = "Offline deterministic NLHE training bot scaffold."`. `phase_status.yml` line 2
+      reads `project: poker-playing-bot`, and `STATUS.md` line 3 carries the same string because it
+      is generated from that field. Those are the only three occurrences of either string anywhere
+      in the tracked `.py`, `.toml`, `.yml` and `.md` files, `docs/BACKLOG.md` aside, and no script
+      reads `pyproject.toml` at all, so no check compares them and none would notice them diverging
+      further.
+      The name is correct as it stands and must not be changed here. Taylor ruled on 2026-09-21 that
+      the rename is documents only and that the `poker_training_bot` package keeps its name, and the
+      package directory `src/poker_training_bot` matches the distribution name. The description is a
+      different thing: it is one sentence of prose, it is not an identifier anything imports, and it
+      is the last live statement in the repo that this is a tool for training somebody. The word
+      "scaffold" in it is stale on its own account, twenty phases after the scaffold.
+      Why it is worth filing rather than shrugging at. A packaging description is the first line a
+      person reads about a project from outside it, and this repo has now twice shipped prose stating
+      a build it does not hold; HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES is the same
+      failure with numbers. What would close it: the description rewritten in a `contract-update`
+      task that also decides whether anything should compare the two identifiers, since a check that
+      reads one field out of `pyproject.toml` is cheap and nothing reads it today.
+  - id: THE-BACKLOGS-COST-LANGUAGE-IS-STILL-WRITTEN-FOR-A-STUDENT-RATHER-THAN-A-TABLE
+    status: deferred
+    phase: "18"
+    title: The top-level documents were re-aimed at playing strength and the backlog was not, so the two largest live strategy defects still state their cost as what a learner cannot see
+    reason: >-
+      Filed 2026-09-21 by MAINT-35's repair lane as an alignment item raised by the independent
+      review. It is drift across a whole file rather than a defect in any one entry, which is why it
+      is one item and not forty.
+      MAINT-35 restated the purpose in AGENTS.md, README.md, docs/ARCHITECTURE.md and both roadmaps,
+      and it filed nine entries recording teaching-motivated acceptances to reopen. What it did not
+      do, and could not have done entry by entry, is re-aim the cost language of the entries that
+      were already there. The two largest live strategy defects are the clearest cases.
+      KICKER-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED prices its accepted inversions as "a real
+      pedagogical cost since a student learns a false rule".
+      PAIR-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED accepts on the matching terms. Both sentences
+      are correct records of what was ruled and neither is to be edited to say something Taylor did
+      not say. The point is that a reader opening the backlog to decide what to fix next is handed a
+      cost in lessons when the goal is now chips.
+      Why this is an alignment item and not a sweep to run now. A cost in chips is a measurement
+      nobody in this repo can take yet: pricing any of these needs an opponent with a strategy, which
+      is what phase 18 builds, and
+      THE-LADDER-INVERSIONS-WERE-ACCEPTED-AS-A-TEACHING-COST-AND-NOTHING-HAS-PRICED-THEM-IN-CHIPS is
+      the entry that asks for exactly that measurement on exactly these two families. So the honest
+      order is: phase 18 first, then a pass over the backlog restating each accepted cost in the unit
+      phase 18 produces, with the teaching sentence kept beside it as the record of what was ruled
+      and when. Restating them before the measurement exists would replace one unpriced claim with
+      another. Related: LADDER-INVERSIONS-ARE-PUBLISHED-AS-COUNTS-AND-THE-COUNT-IS-NOT-THE-COST,
+      which is the same complaint about a different unit.
+  - id: THE-AGENTS-FILE-IS-ONE-LINE-UNDER-ITS-CAP-AND-THE-NEXT-CORRECTION-PAYS-FOR-IT
+    status: deferred
+    phase: contract-update
+    title: The repo's process law has one line of headroom, so the next one-line fix to it becomes a rewrite
+    reason: >-
+      Measured in the MAINT-35 worktree on 2026-09-21. `wc -l AGENTS.md` reads 149 and
+      scripts/check_file_sizes.py line 9 caps it at 150. At the task's base commit 1d89158 it read
+      148, so the squeeze predates this task and this task made it one line worse.
+      This is the trap the repo already has two names for. A cap that only fails after the fact
+      charges the correction rather than the growth, so the person who finds a wrong sentence in
+      AGENTS.md is the person who has to reflow the whole document to fix it. That is exactly what
+      PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP and CHART-CUTOVER-CONTRACT-IS-AT-ITS-LINE-CAP describe
+      for a phase contract, and the same failure mode has now reached the file those rules are
+      written in. AGENTS.md itself forbids raising a cap to make room, and that prohibition is
+      right and is not what this entry disputes.
+      What should happen is a scheduled fold-in rewrite of AGENTS.md as its own task, the way a
+      contract at its cap gets one, rather than an ad hoc compression inside somebody's one-line
+      fix. Nothing should be compressed to buy headroom in the meantime; a shorter statement of
+      the process law is a change to the process law. Related:
+      PHASE-CONTRACT-LINE-CAP-FORCES-REWRITES-OVER-AMENDMENTS,
+      CONTRACT-LINE-CAP-BLOCKS-ITS-OWN-AMENDMENT, CONTRACT-LINE-CAP-COUNTS-LINES-AND-MEANS-CONTENT.
+  - id: THE-CHART-CUTOVER-CONTRACT-BODY-STATES-FIGURES-THE-RE-SOLVE-REPLACED
+    status: deferred
+    phase: contract-update
+    title: Every headline count in the phase 14 contract body is from a build the repo no longer holds, and an amendment already says so without correcting any of them
+    reason: >-
+      Found by MAINT-35 on 2026-09-21 and confirmed by re-derivation in that worktree. The
+      contract is not silently wrong: the MAINT-34 amendment at docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+      line 46 warns a reader that the ladder, the node counts, the committed-spot count, the
+      coverage figure, the determinism record and the iteration record are all no longer true. It
+      warns and it corrects nothing, because there is nowhere to put a correction: the file is at
+      exactly 300 of 300 lines.
+      What the body still states, with the line it states it on. 33,969 action nodes at lines 29,
+      67 and 90. 249 committed nodes at 31, 84, 90, 120, 170, 198 and 299. Coverage 98.5949
+      percent at 31 and 98.59 at 266. A target of 0.00016 at a 2,000-iteration cap, first met at
+      iteration 1,900, at line 68. And "Prices are exactly `[2.5, 7.5, 22.5]`" at line 126.
+      What the committed data says instead, every figure re-derived rather than copied. The
+      artifact holds 156 spots, with `len(action_weights)` and `audit_fields.spot_count` agreeing.
+      The export holds 30,609 action nodes, with `node_counts.exported` equal to
+      `node_counts.solver_action_nodes` in
+      data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json. The same card's
+      `solve` block reads target 0.00016, cap 5000, iterations 3800, achieved
+      0.00015587719683285103 and 188.4 seconds of wall clock, so the cap does not nearly bind and
+      the iteration count is not 1,900. Coverage reads 98.7380 percent in
+      reports/active/latest_derived_chart_report.txt. And the ladder is six prices rather than
+      three: 2.5 at 5 spots, 7.5 at 6, 13.5 at 10, 22.5 at 28, 40.5 at 73 and the whole 100bb
+      stack at 34, counted on hero's menu and summing to 156.
+      Per the Contract Amendments rule in AGENTS.md, a contract at its cap is due a rewrite folding
+      its amendments into the criteria they amend, as its own `contract-update` task, and the cap
+      is never raised to fit one. That rewrite is what this entry asks for, and it is the same
+      rewrite three other entries are already queued behind:
+      CHART-CUTOVER-CONTRACT-IS-AT-ITS-LINE-CAP for the cap itself,
+      PHASE-14-CONTRACT-IS-AT-THE-SIZE-CAP for the two edits it already has to carry, and
+      PHASE-14-CONTRACT-STATES-A-GROUP-GATE-THAT-DID-NOT-SHIP for the gate the contract describes
+      and the repo did not build. This entry adds the body figures to that list so the rewrite
+      lane does not have to rediscover them. The general shape is
+      HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES, reaching a contract this time rather
+      than a report.
+  - id: THE-V2-MITIGATIONS-PLAN-STILL-OPENS-BY-SAYING-NONE-OF-IT-HAS-HAPPENED
+    status: deferred
+    phase: contract-update
+    title: A committed planning document declares itself unacted-on in its third line, and every clause of that sentence is now false
+    reason: >-
+      Found by MAINT-35's roadmap lane on 2026-09-21 and filed rather than fixed, because
+      docs/V2_RULING_MITIGATIONS.md is not in that task's approved scope.
+      The document's third and fourth lines read "A plan, not work done. Nothing in this document
+      has been acted on, no phase has been declared, and no check, limit, or solve described below
+      exists." Taken clause by clause against this worktree: phases 10 through 20 are declared in
+      phase_status.yml; the solve exists and is committed at
+      data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.gtx.gz; and the size limit its
+      section 2 asks for exists as the 20 MB `data/artifacts` entry in `DIRECTORY_BYTE_LIMITS` in
+      scripts/check_file_sizes.py, whose own comment records that phase 10 ruled it.
+      Its section 1 is worse than stale, it is superseded, and the supersession is already written
+      down somewhere else. docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md says in its scope
+      that section 1's planned second solve at the NL25 rake basis "is withdrawn and section 1 is
+      superseded for this phase", ruled by Taylor on 2026-08-18. A reader who opens the mitigations
+      document first gets the withdrawn plan with no marking on it.
+      Why it is worth an entry rather than a quiet edit. The document's own stated purpose is that
+      "the agent that eventually does the work starts from the analysis instead of rediscovering
+      it". A preamble asserting that none of the work has happened is the one sentence that makes
+      the whole file unsafe to start from, because it tells that agent the repo is in a state it
+      left two years of phases ago. It also carries figures from the pre-cutover era, including a
+      committed chart of 36 spots and a 7.1 KB per spot extrapolation, which the export's own
+      source card already contradicts and labels not comparable.
+      What would close it: the preamble rewritten to say what the document is now, which is a
+      record of analysis some of which was acted on and some of which was withdrawn, with section 1
+      marked superseded by phase 10's ruling and each remaining figure either re-derived or
+      described without a number. The same failure mode as
+      HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES and
+      MITIGATIONS-ORDERING-AND-BOUND-CLAIMS-FALSE, which is already filed against this same file.
   - id: THE-GATE-ENFORCES-A-SEAM-SENTENCE-THIS-PHASE-MEASURED-AS-FALSE
     status: deferred
     phase: contract-update
@@ -814,6 +1269,12 @@ items:
       V1 is CLI and report driven, and ruling 6 keeps it deferred through v2. The thing
       that would change the answer is proposed phase 15, the drill: a UI is worth arguing
       about once a CLI trainer exists and has been used, and not before.
+      Corrected 2026-09-21 by MAINT-35's repair lane: that last sentence now defers this on
+      something that is itself deferred. Taylor ruled on 2026-09-21 that the training product waits
+      until the bot plays well, phase 15 was retired from the graph, and the drill is filed under
+      THE-DRILL-IS-DEFERRED-UNTIL-THE-BOT-IS-WORTH-LEARNING-FROM. So what would change the answer is
+      the bot playing well first and a CLI trainer existing after that, which is the reason the
+      `No UI package` boundary in AGENTS.md now gives.
   - id: V2-LARGE-DATASET-COMPARISON
     status: deferred
     phase: v2
@@ -1316,7 +1777,7 @@ items:
       STRATEGY-QUERY-TO-CALL-HAS-TWO-READINGS.
   - id: SAMPLE-HAND-THE-CHARTS-COVER
     status: deferred
-    phase: "15"
+    phase: samples
     title: No committed sample hand is a preflop spot the charts cover
     reason: >-
       The four hands in data/samples/normalized_hands.json were written to exercise the
@@ -1384,7 +1845,7 @@ items:
       vacuity that hid judgment call 4 until a mutation canary caught it.
   - id: SIMULATOR-REPORT-UNITS-AND-IDS
     status: deferred
-    phase: "15"
+    phase: "18"
     title: Report the win rate in bb/100, and disambiguate hand ids across runs
     reason: >-
       Two small things from the Phase 07 review. The floor figure is printed as 38.67 chips
@@ -1397,7 +1858,7 @@ items:
       different seeding scheme.
   - id: SIMULATOR-DECISION-AUDIT-NOT-COMMITTED
     status: deferred
-    phase: "15"
+    phase: simulator
     title: The simulator records a decision audit and never writes it out
     reason: >-
       Every decision the simulator applies becomes a Phase 03 DecisionAuditRecord and the
@@ -3848,7 +4309,7 @@ items:
       menu, ranges and flop lines, so a separately configured turn spot remains a different
       game. What must change is the stated compute rationale in both documents, and that is a
       contract-shaped edit phase 16 owns rather than a measurement task.
-      Closed 2026-09-22 by phase 16, on the condition the contract set: closed only once no live document still offers the falsified ratio as a basis for reasoning. The stage-8 mechanical review swept for it and found one survivor, docs/V2_ROADMAP.md line 216, which read that only the ratio is safe to reason from and gave the turn at about 49 flops and the river at about 2,350. That sentence now carries the measurement instead. The decision list was already clean; completed exec plans are snapshots and do not count.
+      Closed 2026-09-22 by phase 16, on the condition the contract set: closed only once no live document still offers the falsified ratio as a basis for reasoning. The stage-8 mechanical review swept for it and found one survivor, docs/V2_ROADMAP.md line 216, which read that only the ratio is safe to reason from and gave the turn at about 49 flops and the river at about 2,350. Phase 16 replaced that sentence with MAINT-26's measurement, and MAINT-35's roadmap rewrite then removed the whole paragraph, so on the merged result the falsified ratio is absent rather than corrected - which satisfies the condition more completely than the edit this entry was closed on. The decision list was already clean; completed exec plans are snapshots and do not count.
 
   - id: SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS
     status: deferred
@@ -4487,8 +4948,8 @@ items:
       A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT.
   - id: A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT
     status: deferred
-    phase: "15"
-    title: 44 of the 249 committed spots have an arrival that rounds to zero, and a drill built on them drills nothing
+    phase: v2
+    title: 53 of the 156 committed spots have an arrival that rounds to zero, and a drill built on them drills nothing
     reason: >-
       Filed 2026-09-02 from the fifth stage-1 review of phase 14 and confirmed by a second
       independent walk of the export. Of the 249 committed spots, 44 have an arrival probability
@@ -4506,6 +4967,29 @@ items:
       out of the artifact's iteration order. What would settle it is a stated sampling policy on
       the drill with the arrival distribution printed beside it. Related:
       ARRIVING-REACH-IS-NOT-A-TRAINED-NESS-MEASURE.
+      Re-filed 2026-09-21 by MAINT-35, which retired phase 15 from the graph; this is deferred with
+      the drill under THE-DRILL-IS-DEFERRED-UNTIL-THE-BOT-IS-WORTH-LEARNING-FROM. Every count above
+      belongs to a build the repo no longer holds. On the shipped chart the committed set is 156
+      spots, of which 53 have an arrival that rounds to zero at parts per billion and 47 are
+      exactly zero; see COVERAGE-IS-PUBLISHED-UNDER-THE-SOLVES-OWN-PLAY-AND-A-HUMAN-DOES-NOT-PLAY-IT.
+      Sourcing corrected 2026-09-21 by the independent review of MAINT-35, which found this
+      sentence and its twin in that entry crediting both figures to one field. Only the 53 comes
+      from `arrival_ppb` in data/artifacts/preflop/six_max_100bb_rakefree.json: that field holds 156
+      values and exactly 53 of them are zero, counted in the MAINT-35 worktree. The 47 is a
+      different measurement, read off the unrounded arrival product, and the arrival-grain section
+      of reports/active/latest_derived_chart_report.txt says the gap between the two is the point -
+      only the 47 are spots nobody plays, and the other 6 are lines that are played and are rare.
+      A re-deriver who checks the 47 against the field will find 53 and must not read that as a bug.
+
+      RETITLED 2026-09-21 by MAINT-35's repair lane, on the precedent
+      KICKER-LADDER-INVERSIONS-ARE-PUBLISHED-AS-SOLVED set on 2026-09-05: a title is a figure like
+      any other, and it is the line that renders into the generated docs/BACKLOG.md table. The
+      title said "44 of the 249 committed spots", which is the retired cut, while the body above had
+      already been corrected to the shipped set. Re-derived independently for this retitle by
+      counting zeros in `arrival_ppb` in data/artifacts/preflop/six_max_100bb_rakefree.json: 156
+      values, 53 zero. The id still says "a sixth", which was 44 of 249; on the shipped set 53 of
+      156 is a third. The id is left exactly as it is on purpose, because ids are cited across this
+      file and renaming one breaks every citation; the title is where the figure gets corrected.
   - id: UNIFORM-ROW-TEST-IS-BLIND-AT-A-BINARY-NODE
     status: deferred
     phase: charts
@@ -5029,7 +5513,7 @@ items:
 
   - id: A-REFUSAL-CANNOT-TELL-THE-HUMAN-WHY
     status: deferred
-    phase: '15'
+    phase: "19"
     title: The derivation reason exists in the converter and never reaches the answer
     reason: >-
       Filed by phase 14's stage-6 poker review, and it lands on phase 15 rather than on the chart.
@@ -5040,6 +5524,10 @@ items:
       read identically. After the cutover this is most of what a driller sees: refusals go from 9.2
       to 85.7 percent of Pluribus decisions, and the four most-refused keys are the four retired
       opening ranges. A drill that ends the hand on a refusal without saying why teaches nothing.
+      Re-filed 2026-09-21 by MAINT-35 from phase 15, which is retired, to phase 19. The new goal
+      makes this more urgent rather than less: phase 19 substitutes for refusals, and a rule that
+      cannot see which clause refused a spot cannot choose what to substitute. The figures above
+      were taken at the cutover and are not re-derived here.
 
   - id: PHASE-12-CONTRACT-ASSERTS-A-REMOVED-BIJECTION
     status: deferred
@@ -7658,6 +8146,21 @@ items:
       completion - only a human using it over many sessions would - so half the ruled method points at a
       source that would not exist even if phase 15 shipped first, and phase 15 is now parked. The
       decision has been annotated rather than re-ruled: the answer stands and the corpus half drives it.
+
+      EXTENDED 2026-09-21 by MAINT-35's repair lane, on an alignment item the independent review
+      raised, rather than filed as a duplicate, because this entry already carries the same decision
+      and the same half of the same problem. Two things in the paragraph above have moved and the
+      item is now urgent rather than hypothetical. "Phase 15 is now parked" is no longer true: Taylor
+      ruled on 2026-09-21 that the training product waits until the bot plays well, MAINT-35 retired
+      phase 15 from `phase_status.yml` and deleted its contract, and the drill is deferred under
+      THE-DRILL-IS-DEFERRED-UNTIL-THE-BOT-IS-WORTH-LEARNING-FROM. So the source is not late, it is
+      gone. And phase 16 is the next lane to open - it is the lowest-numbered phase left at `future`
+      in `phase_status.yml`, every phase 00 through 14 reading `completed` there - so the phase that
+      has to execute decision 3 is the one about to start, with half its ruled method pointing at
+      data that will never exist. Decision 3 is `frozen-into-data` and was ruled by Taylor on
+      2026-08-19, so re-ruling it is Taylor's and not a lane's. What phase 16's stage 1 owes is to put
+      the surviving half in front of him: rank the preflop lines by how often the CORPUS reaches them
+      alone, and say so, rather than quietly dropping a clause of a ruled answer.
       The general shape is that a decision list records what a human chose and never records whether the
       inputs that choice names are available, so a ruling can be correct when made and unbuildable when
       read. What would close it: decision lists mark, per input a default names, whether that source is
