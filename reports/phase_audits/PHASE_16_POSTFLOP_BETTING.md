@@ -8,7 +8,9 @@ worktree `~/projects/poker-bot-worktrees/phase-16`, branch `phase/16-postflop-th
 
 Written for a reviewer who does not read code. **Every figure here was measured again while this
 packet was written**, in this worktree, from a committed file or from the repo's own dealer, and
-none was copied out of a review note, the report or a decision. Where a figure differs from an
+none was copied out of a review note, the report or a decision. One class of figure is the
+exception and is labelled where it appears: the checksums of the solved files, which live outside
+the repo, were recomputed for the reader rather than by them. Where a figure differs from an
 earlier document the difference is printed and said out loud. A hyphenated capitalised name is the
 id of a `backlog.yml` entry that carries the diagnosis; `report -> Section` names a heading in the
 report above, which is greppable.
@@ -78,9 +80,10 @@ refuses at hero's first flop action. What ships is a **flop chart** of four situ
 boards and one preflop line. As a chart it is sound on what it holds. As a bot at a table it is
 worse than the one it replaces, by the measured amount in the table above.
 
-**That trade is deliberate and it is the right one.** A refusal voids the hand instead of playing
-on, so the bot never plays out a line nobody solved, and a refusal that names the gap is better
-than a fold that hides one. It is stated here rather than discovered by whoever runs it next.
+**Decision 25 rules that trade deliberate and right**, in those words, and this packet records the
+ruling rather than arguing for it: a refusal voids the hand instead of playing on, so the bot never
+plays out a line nobody solved, and a refusal that names the gap beats a fold that hides one. It is
+stated here rather than discovered by whoever runs it next.
 
 ## The one number a reader can recompute by hand
 
@@ -108,8 +111,12 @@ table happens to be asking. If those two numbers matched a table instead of the 
 at a different pot size would silently get an answer solved for a different pot. The arithmetic
 above is the whole of that rule, and it is checkable in about a minute without opening any code.
 
-The same five numbers appear inside the situation's name, which is the `spot_key` line at the top
-of the same file: `.../BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5`.
+**Three of those numbers appear again inside the situation's own name**, which is the `spot_key`
+line at the top of the same file. In full it reads
+`f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5`, and the three are the
+`@2.5` price, the `p:5.5` pot and the `e:97.5` stack. The 0.5 and the 1 are not in the name; they
+come from `blind_structure` a few lines above it. If the key and the fields ever disagreed, the
+reader would have found a real defect, because the phase derives both from the same line.
 
 ## Pass and fail checklist for a reviewer who does not read code
 
@@ -127,10 +134,10 @@ verdict column is what this packet measured, not what an earlier document report
 | 7 | Nothing was committed between 0.3 and 1.0 percent, and nothing was rejected above 1 percent | report -> Per-spot accuracy, last two rows; both 0 | PASS |
 | 8 | Four committed situations rest on three solved runs, not four | report -> Per-spot accuracy; two rows name the run they share | PASS |
 | 9 | The solve was run twice and the two answers are identical byte for byte | report -> Determinism, "strategies compared: byte-identical" | PASS |
-| 10 | The five stored solve files are the ones the index claims | five checksums recomputed here; all five match | PASS |
+| 10 | The five stored solve files are the ones the index claims | **not checkable from the repo**: the files sit outside it and four are compressed, so this needs a terminal. Recomputed for you here; all five match | PASS, not by you |
 | 11 | The strategy returns a bet and a raise with a real chip amount on them | report -> What the strategy does: 22 bets and 3 raises of 39 spots asked | PASS |
 | 12 | Those counts add up | 22 + 3 + 4 calls + 7 checks + 3 folds = 39 | PASS |
-| 13 | The committed ranges have no weight under the 0.01 floor | report -> The committed ranges; smallest are 0.0147 and 0.7865 | PASS |
+| 13 | No **starting-range** weight is under the 0.01 floor | report -> The committed ranges; smallest are 0.0147 and 0.7865. Not the action weights inside a sample file, which are a different thing and may be anything from 0 up | PASS |
 | 14 | The bet menu is two sizes a street, the same for both seats | report -> The bet menu; flop 33 and 75 | PASS |
 | 15 | Turn and river refuse by their own reason rather than folding | report -> Refusals by code; two turn and river codes exist | PASS |
 | 16 | The committed data fits the 20 MiB budget with room left | 20,971,520 − 4,938,950 = 16,032,570 | PASS |
@@ -142,6 +149,15 @@ verdict column is what this packet measured, not what an earlier document report
 
 Rows 17 to 19 are failures that ship on purpose, each with a ruling behind it. Rows 20 and 21 are
 the honest answers to the two questions a reader most wants answered.
+
+**Two different things in this packet are called weights, and row 13 is only about one of them.** A
+**starting-range weight** says how often a seat holds a given pair of cards when the flop comes
+down; those are floored at 0.01 and row 13 is about them. An **action weight** says how often to
+take one of the offered actions with a given hand; those live in the `class_weights` block of a
+sample file and are free to be anything from 0 upwards. A reader who opens
+`monotone-connected-cbet.json` for the pot arithmetic will see 108 action weights below 0.01 and 63
+at exactly 0 in that one file. That is not a floor violation, it is the strategy saying "almost
+never" and "never".
 
 **Sixteen refusal reasons are listed in the report with a count of zero beside them and the word
 vacuous.** That is not the same as never firing. The report asks the strategy only about situations
@@ -165,9 +181,14 @@ Fifteen minutes, a text editor and a calculator.
 4. Open `reports/active/latest_postflop_betting_report.txt` and find "What the strategy does". Add
    the five action counts: they must come to the number of spots asked. They do: 39.
 5. In the same report find "Bytes". Subtract: 20,971,520 − 4,938,950 = 16,032,570, which is the
-   headroom the report prints and the same number `index.json` carries as `headroom_bytes`.
-6. In the same report find "The share of corpus flops". Add the five rows: 0 + 20 + 14 + 175 + 50 =
-   259, which is the flop count above them. No hand is counted twice and none is dropped.
+   headroom the report prints and the same number `index.json` carries as `headroom_bytes`. **Do
+   not subtract from the `committed_bytes: 100845` sitting on the line directly above it in that
+   file**: the 100,845 is this phase's own directory, while the budget is on the whole artifact
+   folder, which is mostly the preflop chart. The report prints all three figures and says which is
+   which; the index carries only two of them, side by side, and they do not belong to one sum.
+6. In the same report find "The share of corpus flops". Add the **six** rows: 0 answerable + 20 + 14
+   + 175 + 50 + 0 = 259, which is the flop count above them. No hand is counted twice and none is
+   dropped.
 
 ## The four qualifications, as qualifications and not as small print
 
@@ -274,6 +295,13 @@ iterations against 1,200, accuracy 0.2774 percent of pot against 0.0478 percent.
     bet 33% of pot     80.86%    75.84%    -0.0502
     bet 75% of pot     19.03%    24.16%    +0.0513
 
+This is the same situation as the section above, so **decision 21's pairing applies to every figure
+in that table and to the two below it**: the 80.86 and the 19.03 add to a continuation bet of 99.88
+percent, and that number does not travel without the caller's lead beside it. The big blind has
+already bet 52.68 percent of its range, taking about three quarters of its flushes and three
+quarters of its sets out of the pot, before hero is asked at all. Read the table as what hero does
+with what is left, never as what hero does on a flop.
+
 **Whether to put money in had settled. Which size to bet had not.** The two bet sizes trade range
 between them, and the hands that moved are the ones the committed strategy already had mixing: of
 152 hand groups, the 19 playing a single action moved 0.0071 on average and the 101 genuinely mixed
@@ -324,8 +352,11 @@ the contract sits at 299 of its 300-line cap.
 
 ## The backlog: five entries closed, two refused on the evidence
 
-Measured against `main` while writing this: this lane changes the status of exactly five entries,
-all from deferred to done, and files 92 new ones, all deferred.
+Measured here against the point this lane last took `main` from: it changes the status of exactly
+**five** entries, all from deferred to done, and every entry it adds is filed deferred. The added
+count was **93** at the commit that landed this packet and rises as later stages file their own, so
+a reader who recounts and gets a larger number has not found a discrepancy. The five status changes
+are the stable figure and the one worth checking.
 
 **Closed.** `V2-POSTFLOP-STRATEGY`, on capability rather than coverage, and honest only while the
 three coverage entries below stay open. `POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK`, which ships exactly
@@ -380,6 +411,16 @@ Reports worth opening: `reports/active/latest_postflop_betting_report.txt` (this
 `reports/active/latest_refusal_inventory.txt` (what the bot refuses at a simulated table),
 `reports/active/latest_postflop_fallback_report.txt` (the component this replaces),
 `reports/active/latest_verify.txt` and `reports/active/verify_results.json` (the gate).
+
+**One warning before you open the first of those.** The betting report still states "The bot bets a
+flop and then refuses every turn" as fact, and refers again to hands that "ended at the turn
+refusal". **That sentence is false and this packet supersedes it**: the turn is never reached,
+because the bot refuses at hero's first flop action, for the reasons measured at the top of this
+packet. The phase could not remove it - the report generator emits it, a frozen test this phase may
+not edit requires it, and the contract obliges this packet to state it, in a contract one line from
+its size cap. It is filed as `THE-GATE-ENFORCES-A-SEAM-SENTENCE-THIS-PHASE-MEASURED-AS-FALSE`.
+Every other figure in that report re-derives and stands; it is this one sentence, in two places,
+that a reader must discard.
 
 **The recorded gate run is the stage-7 one**: 50 commands, all passed, including `check_gate_bite`,
 which proves the committed canaries make the gate fail. The report generator changed after that
