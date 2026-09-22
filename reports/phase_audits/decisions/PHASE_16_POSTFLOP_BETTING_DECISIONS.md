@@ -2375,3 +2375,61 @@ Decision 12 carries a do-not-smooth argument and this ruling does **not** rest o
 finding that the argument was made about a range MAINT-34 replaced, so it could not be leant on as
 it stands and was not put in front of Taylor as a reason. The ruling above was taken on the
 measurement, not on the older argument, and that entry stays open on its own account.
+
+## 24. The machine the sample was solved on, against the machine the contract names
+
+**Ruled by Taylor, 2026-09-21. `runtime-reversible`**: it decides where a future run happens, not
+what any committed cell contains.
+
+**Ruling, in his words: "full time solving moves to rented computer/hardware. for this phase it was
+moreso a test but this wont work on full scale."** So the contract's scope sentence - solving moves
+to a rented NVIDIA cloud box, every timing re-derived there before a run is planned - **binds the
+campaign and not this sample**. The three-flop sample is a test of machinery rather than a
+production of coverage, and it was solved here: Apple M4, 10 cores, 34.4 GB, CPU engine, four boards
+in about 62 minutes of wall clock.
+
+**Raised by the stage-8 mechanical review** as the one blocker prose could not close, and it was
+right to raise it: the contract says what it says, no backlog entry owned the gap, and the cost
+block published 759.7, 853.0 and 248.2 seconds a class with no machine attached to them while the
+record they came from names one and warns that rows taken on battery read slow.
+
+**Two things follow and the packet states both.** Every timing and arena figure this phase publishes
+is a laptop figure and is re-derived on the rented box before a campaign is planned, which is what
+the contract's sentence is actually for. And the determinism proof is **machine-local**: it is two
+runs in two processes on this Mac, and floating-point summation order differs between machines, so
+moving hardware does not carry the proof with it and the campaign re-proves determinism on the box
+it runs on. Nothing here claims otherwise, and nothing did before - it simply had not been said.
+
+The gap between the contract's wording and this ruling is filed rather than amended:
+`A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE` carries it. The contract sits
+at 299 of 300 lines against a cap compared greater-than, and the amendment rule forbids making room
+mid-amendment, so the wording is a `contract-update` task with its own rewrite rather than a line
+squeezed in here.
+
+## 25. Phase 16 closes on machinery rather than on coverage
+
+**Ruled by Taylor, 2026-09-21. `runtime-reversible`**: closing a phase is a bookkeeping act and a
+later phase adds boards without revising anything committed here.
+
+**Ruling: close it, and say plainly what it does and does not do.** The contract only ever scoped a
+three-flop sample, so this is the phase delivering what it promised; a later phase funds the
+campaign.
+
+**What the stage-8 domain review measured, which is what the packet must carry.** Twenty thousand
+deals of the composite this repo actually builds give **zero bets, zero showdowns, 5,365 voided
+hands and two postflop decisions, both check**, against 4,543 showdowns from the fallback this
+phase replaces. Two independent causes. Three boards are 40 of the 22,100 flops, 0.181 percent, so
+the one covered preflop line meets a held board about once in fourteen thousand hands. And not one
+of the eleven nodes following the committed cells' own actions is committed or indexed, so there is
+no two-move sequence in the artifact at all and two of the four cells cannot be reached from above.
+
+**So the sentence the packet was going to carry is false and does not go in.** "The bot bets a flop
+and then refuses every turn" describes a bot this repo does not build: the turn is never reached
+because hero refuses on the flop. The packet says instead what the bot does - refuses, naming the
+cause - and prints the coverage number and the closure fact beside it.
+
+**The trade is deliberate and it is the right one.** A refusal voids the hand rather than playing
+on, so the bot never plays out a strategy it did not solve for, and a refusal that names a gap beats
+a fold that hides one. As a training chart the artifact is sound on the three boards it holds. As a
+bot at a table it is measurably worse than the one it replaces, and that is stated rather than
+discovered by whoever runs it next.

@@ -1,5 +1,33 @@
 schema_version: 1
 items:
+  - id: A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE
+    status: deferred
+    phase: contract-update
+    title: Phase 16's contract says solving moves to a rented box, and the sample it actually ships was solved on a laptop
+    reason: >-
+      `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` line 30 reads "**Solving moves to a rented
+      NVIDIA cloud box** whose specification is deliberately unruled, so every timing and arena
+      figure here is re-derived there before a run is planned". Phase 16 solved its whole three-flop
+      sample on an Apple M4 laptop, four boards in about 62 minutes, and every timing and arena
+      figure it publishes is a laptop figure.
+      Taylor ruled the substance on 2026-09-21 and decision 24 carries it: the sentence binds the
+      full campaign, the sample was a test of machinery, and the campaign re-derives its timings on
+      the box it runs on. So nothing about the committed data changes and no criterion is quietly
+      dropped - what is left is that the sentence as written reads as binding any solve at all, and
+      a reader of the contract alone would conclude the sample broke it.
+      Two things the rewrite must carry rather than only the first. That the rented box governs the
+      campaign and the sample is exempt as a machinery test. And that the determinism proof is
+      **machine-local**: it is two runs in two processes on one Mac, floating-point summation order
+      differs between machines, and moving hardware does not carry the proof with it, so the
+      campaign re-proves determinism on its own box. The second half is not in the contract at all
+      today and is the more useful half.
+      Not amended in phase 16. The contract sits at 299 of 300 lines against a cap compared
+      greater-than, an amendment only ever adds lines, and the amendment rule forbids making room
+      mid-amendment - so this is the fold-in rewrite that rule describes, as its own
+      `contract-update` task. Raised by the stage-8 mechanical review as the one blocker prose could
+      not close, and it was right: no entry owned the gap until this one.
+      Filed 2026-09-21.
+
   - id: A-MUTATION-DESCRIPTION-ARGUES-THE-DEFENCE-THAT-FAILED
     status: deferred
     phase: "16"
