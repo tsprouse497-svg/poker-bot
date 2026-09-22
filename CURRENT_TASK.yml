@@ -1,17 +1,8 @@
-task_id: MAINT-35
+task_id: null
 active_phase: null
-task_mode: contract-update
-base_commit: 1d891581619ff4b99a2ed34bc390f0398c7619c7
-approved_scope:
-- AGENTS.md
-- README.md
-- docs/ROADMAP.md
-- docs/V2_ROADMAP.md
-- docs/ARCHITECTURE.md
-- docs/phase_contracts/**
-- verification/loop_policy.yml
-- reports/phase_audits/MAINT_35_PLAY_STRENGTH_DIRECTION.md
-- reports/phase_audits/reviews/MAINT_35_PLAY_STRENGTH_DIRECTION/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
