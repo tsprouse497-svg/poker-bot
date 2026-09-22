@@ -99,33 +99,15 @@ at that commit rather than taking the lane's report, and the notes below say wha
   not: the reader decides on the headline measurement, and I re-derived every other figure in that
   report myself in the first pass and they all stand.
 
-- **[resolved] B2** at `306d2dc`. The false 92 is gone. I re-counted at three points by parsing
-  `backlog.yml` at each commit against the merge base `1d89158`, which holds 250 entries: `e336c82`
-  holds 343 and adds 93; `306d2dc` and `HEAD` hold 344 and add 94. Five status changes at all three,
-  all deferred to done, and every added entry is `deferred`. So "93 at the commit that landed this
-  packet" is true of `e336c82`, which is the commit that landed it. The hedging is honest in
-  substance: the count really can only rise within the lane, and saying so stops a reader mistaking
-  growth for a defect. One residue below, which does not hold the stage.
-
-- **[resolved] B3** at `306d2dc`. The section now prints
-  `f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5`, which I compared character
-  by character against line 3 of `monotone-connected-cbet.json`: identical. It says **three** of the
-  numbers appear in the key and names them correctly as the `@2.5` price, the `p:5.5` pot and the
-  `e:97.5` stack, and says the 0.5 and the 1 come from `blind_structure`, which is where they are.
-  The added sentence that a disagreement between key and fields would itself be a defect is true, and
-  is the right thing to hand a reader who finds one.
-
-### The three as originally filed, kept for the record
-
-- **B1. The packet strikes the sentence and then sends its reader to a document that states it as
-  fact.** `reports/active/latest_postflop_betting_report.txt:418` reads "The bot bets a flop and then
-  refuses every turn.", and line 517 of the same file says the missing hands "ended at the turn
-  refusal". The packet lists that report first under "Reports worth opening" and sources ten of its
-  twenty-one checklist rows from it, so the non-coding reviewer the packet is written for will open
-  it. The packet's headline says the turn is never reached; the report says the bot refuses every
-  turn. Nothing in the packet warns the reader, and nothing in `backlog.yml` owns it: the only entry
-  `e336c82` filed is `A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT`, which is
-  a different subject.
+  **As found, against `e336c82`.** The packet strikes the sentence and then sends its reader to a
+  document that states it as fact. `reports/active/latest_postflop_betting_report.txt:418` reads "The
+  bot bets a flop and then refuses every turn.", and line 517 of the same file says the missing hands
+  "ended at the turn refusal". The packet lists that report first under "Reports worth opening" and
+  sources ten of its twenty-one checklist rows from it, so the non-coding reviewer the packet is
+  written for will open it. The packet's headline says the turn is never reached; the report says the
+  bot refuses every turn. Nothing in the packet warns the reader, and nothing in `backlog.yml` owns
+  it: the only entry `e336c82` filed is
+  `A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT`, which is a different subject.
 
   This is not a wording slip and it cannot be fixed by editing the report, which is why it is worth
   stating exactly. Three things hold the sentence in place, and I checked each:
@@ -145,28 +127,51 @@ at that commit rather than taking the lane's report, and the notes below say wha
   generator line, the frozen test and the contract line as the three places that still assert it. The
   measurement is already in this note and in `stage-08-review-poker.md`; nothing needs re-solving.
 
-- **B2. "files 92 new ones" is wrong. It is 93.** Method B, and the count does not depend on the
-  baseline: `HEAD` holds 343 entries, `main` holds 261 and the merge base `1d89158` holds 250, and
-  the ids present at `HEAD` and absent from either one number 93. All 93 are `deferred`, as the
-  packet says, and the five status changes are exactly the five it names. The cause looks mechanical
-  and is the shape this phase has been correcting all the way through: `e336c82` itself adds one
-  entry, so 92 was true of the tree the packet was drafted against and false of the tree it shipped
-  in. The packet's own opening promises every figure was measured again while it was written, and
-  this is the one that was not measured again afterwards.
+- **[resolved] B2** at `306d2dc`. The false 92 is gone. I re-counted at three points by parsing
+  `backlog.yml` at each commit against the merge base `1d89158`, which holds 250 entries: `e336c82`
+  holds 343 and adds 93; `306d2dc` and `HEAD` hold 344 and add 94. Five status changes at all three,
+  all deferred to done, and every added entry is `deferred`. So "93 at the commit that landed this
+  packet" is true of `e336c82`, which is the commit that landed it. The hedging is honest in
+  substance: the count really can only rise within the lane, and saying so stops a reader mistaking
+  growth for a defect. One residue below, which does not hold the stage.
 
-- **B3. The one recomputable-number section quotes a `spot_key` that is not the file it names.** The
-  section names `data/artifacts/postflop/sample/monotone-connected-cbet.json` and then prints
-  "the `spot_key` line at the top of the same file: `.../BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5`".
-  That file's actual spot key is
-  `f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5`. The string `f:none` occurs
-  zero times in it; it belongs to the three big-blind-first cells. A reader doing exactly what the
-  packet says, in a text editor, finds `f:BB:check` where the packet promised `f:none` and has no way
-  to tell whether the packet or the file is wrong. This is the one section the contract requires to
-  be checkable by hand, so an unverifiable line in it costs more than its size.
+  **As found, against `e336c82`.** "files 92 new ones" is wrong. It is 93. Method B, and the count
+  does not depend on the baseline: `HEAD` holds 343 entries, `main` holds 261 and the merge base
+  `1d89158` holds 250, and the ids present at `HEAD` and absent from either one number 93. All 93 are
+  `deferred`, as the packet says, and the five status changes are exactly the five it names. The
+  cause looks mechanical and is the shape this phase has been correcting all the way through:
+  `e336c82` itself adds one entry, so 92 was true of the tree the packet was drafted against and
+  false of the tree it shipped in. The packet's own opening promises every figure was measured again
+  while it was written, and this is the one that was not measured again afterwards.
 
-  The sentence above it is loose in the same place: "the same five numbers appear inside the
+- **[resolved] B3** at `306d2dc`. The section now prints
+  `f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5`, which I compared character
+  by character against line 3 of `monotone-connected-cbet.json`: identical. It says **three** of the
+  numbers appear in the key and names them correctly as the `@2.5` price, the `p:5.5` pot and the
+  `e:97.5` stack, and says the 0.5 and the 1 come from `blind_structure`, which is where they are.
+  The added sentence that a disagreement between key and fields would itself be a defect is true, and
+  is the right thing to hand a reader who finds one.
+
+  **As found, against `e336c82`.** The one recomputable-number section quotes a `spot_key` that is
+  not the file it names. The section names
+  `data/artifacts/postflop/sample/monotone-connected-cbet.json` and then prints "the `spot_key` line
+  at the top of the same file: `.../BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5`". That file's actual
+  spot key is `f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5`. The string
+  `f:none` occurs zero times in it; it belongs to the three big-blind-first cells. A reader doing
+  exactly what the packet says, in a text editor, finds `f:BB:check` where the packet promised
+  `f:none` and has no way to tell whether the packet or the file is wrong. This is the one section
+  the contract requires to be checkable by hand, so an unverifiable line in it costs more than its
+  size. The sentence above it was loose in the same place: "the same five numbers appear inside the
   situation's name". Three of them do. The blind structure's 0.5 and 1 are not in the key, and the
   key carries `t6` and `d100`, which the four things the reader was told to find do not.
+
+**Note on shape, for whoever reads this next.** Each finding above carries its own "as found"
+paragraph inside the same bullet rather than being restated lower down, so a reader meets the
+finding and its verdict together. That is also what `loop_stage.unresolved_blockers` needs: it
+strips each line and treats every line starting `- ` inside `## Blocker` without the resolved marker
+as open, and a `###` sub-heading does not end the section, so a restated finding below a resolved
+one reads as a fourth open blocker. I confirmed that against the parser rather than assuming it. No
+word of any finding was cut in the move.
 
 ## Non-blocker
 
@@ -191,7 +196,20 @@ filing it. The two milder instances I raised beside it were style and are not wo
 packet at 492 of 500. The withdrawal leaves N5's bootstrap findings as the only live ones from that
 group.
 
-Three new items, all from the repair itself. Every one is an in-place edit that costs no net lines,
+**N6, N7 and N8 were applied at `fc14b67` and all three check out.** I re-derived each against the
+tree rather than reading the diff for agreement. The weights sentence now reads 63 at exactly 0, 108
+between 0 and 0.01 and 171 at or below, over 456 action weights in that file: measured 456, 63, 108
+and 171, all four exact. The pairing paragraph now takes the frequency from the check's 0.12 and
+warns that the two bet figures are rounded and add to 99.89: measured 100 − 0.12 = 99.88 and
+80.86 + 19.03 = 99.89, and the stored frequencies do sum to 1.0001, which is the cause. The backlog
+figure is now 94 for the tree the packet ships in: measured 94 against the merge base `1d89158` and
+94 against `main` at `7d10624`, with five status changes, and `fc14b67` touched no backlog entry, so
+94 is stable at the commit that carries the sentence. The replacement rule is also stronger than
+mine, not just different - "a reader who gets fewer has found a discrepancy" is falsifiable in the
+direction the old hedge left open, which is what the objection was about. The packet is 493 of 500
+and no gate check reads its prose, so the longer line the weights fix produced costs nothing.
+
+The three as originally filed follow. Every one is an in-place edit that costs no net lines,
 which matters at 492 of 500:
 
 - **N6. The new pairing paragraph states an addition that does not add up.** Line 299 reads "the
