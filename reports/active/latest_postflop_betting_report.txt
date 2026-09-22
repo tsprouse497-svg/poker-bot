@@ -101,11 +101,18 @@ different query from the arrival one above. This block is over flops only.
   lost to multiway, structural: 20 (7.72%)
   lost to preflop price outside the band: 14 (5.41%)
   lost to no cell for this preflop line: 175 (67.57%)
-  lost to no cell for this board, or in the index and not fetched: 50 (19.31%)
+  lost to no cell for this board: 50 (19.31%)
+  lost to in the index and not fetched on this machine: 0 (0.00%)
 
 The multiway share is structural rather than fundable. A two-range solve cannot express
 a three-handed flop at any budget, on any machine, under any menu, so no campaign closes
 that share and a report that pooled it with the others would read as though money would.
+
+The last two rows are the two table causes, counted apart here because this is the only
+place either of them is counted at all. A flop whose class the index never listed is one
+no campaign has paid for yet; a flop whose class the index lists and this clone has not
+fetched is one already paid for and one fetch away. They cost different things to close,
+so a single row over both would name a gap and hide which gap it is.
 
 Per-spot accuracy, and the spread across the committed set
 ----------------------------------------------------------
@@ -116,9 +123,14 @@ Per-spot accuracy, and the spread across the committed set
   iteration cap: 1,200
   committed spots: 4
   spots the index lists, fetched here or not: 5
+  solved trees the committed spots come out of: 3
 
   Each row is one committed hero decision node, keyed by board, preflop line, flop line,
-  pot and effective stack. The accuracy is that cell's own achieved figure.
+  pot and effective stack. The accuracy is not one measurement a row. Exploitability is a
+  property of a solved tree, so two hero nodes taken out of one solve carry one figure,
+  one iteration count and one wall clock between them. Rows that share a solve say so and
+  name the tree they share; a reader counting distinct measurements counts trees, not
+  rows.
 
   f/b:8c8d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5
       exploitability 0.284% of pot, menu-bound, at 320 iterations
@@ -126,8 +138,14 @@ Per-spot accuracy, and the spread across the committed set
       exploitability 0.277% of pot, menu-bound, at 280 iterations
   f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:BB:check,BTN:bet@33/p:5.5/e:97.5
       exploitability 0.283% of pot, menu-bound, at 340 iterations
+      out of solved tree 11be015ccaed468b, shared with 1 other committed spot:
+        f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5
+        the figure above is that tree's and is not a second measurement
   f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5
       exploitability 0.283% of pot, menu-bound, at 340 iterations
+      out of solved tree 11be015ccaed468b, shared with 1 other committed spot:
+        f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:BB:check,BTN:bet@33/p:5.5/e:97.5
+        the figure above is that tree's and is not a second measurement
 
   cells between 0.3% and 1.0% of pot: 0
 
@@ -209,6 +227,10 @@ Determinism: solved twice, and diffed rather than checksummed
     Kh7d2c  BB:check,BTN:bet@33  same bytes      342                0            0  1677.4s / 2523.9s
     8c8d3c  none                 same bytes      350                0            0  1035.9s / 1487.3s
     Ac8c3c  none                 same bytes      331                0            0  616.0s / 645.9s
+
+  Two rows carrying the same wall clocks are two hero nodes of one solve rather than two
+  solves that took the same time. The clock is the tree's, and the accuracy table above
+  names which rows share one.
 
     Ac8c3c is listed by the index and not held here, so its document was compared in object storage
 
@@ -416,22 +438,40 @@ mirror of its current over-folding. The flag is off unless a caller turns it on.
 Bytes: what the repo commits, and what is left
 ----------------------------------------------
 
-The budget covers the committed index and the committed sample. It does not cover the
-object storage the index points at, which is outside git and outside this cap.
+Three figures, because three different questions are asked of them. The 20 MiB cap is on
+`data/artifacts` whole, so that is what the headroom is measured against. The budget the
+contract draws is around the committed index and the committed sample, so that is what
+the per-spot cost divides. And the postflop tree sits between the two: it is the index
+and the sample plus the records of the campaign that produced them, which is the figure
+the committed index declares. None of the three covers the object storage the index
+points at, which is outside git and outside this cap.
 
   bytes used, whole artifact tree: 4,938,950
-  of which the postflop index and sample: 100,845
   cap: 20,971,520
   headroom left: 16,032,570
-  per spot: 25,211.2 bytes
+
+  of which data/artifacts/postflop, whole directory: 100,845
+    the committed index and sample: 56,791
+    the campaign's own records beside them: 44,054
+      the deep-convergence record, the determinism record, the solve config and the
+      objects manifest - evidence about the one campaign that ran, not the chart
+
+  per spot, index and sample: 14,197.75 bytes
+  per spot, whole postflop directory: 25,211.25 bytes
   hero class weights: 3,198 weights in 19,711 bytes
   per weight: 6.164 bytes
+
+The per-spot cost is index and sample bytes over the spot count and nothing else, and it
+is the one of the two that answers what a further spot costs. The directory figure below
+it is printed because the cap is on the tree, not because it is a per-spot price: the
+deep-convergence record is one measurement of one cell and does not grow with the next
+spot at all, so charging it to every spot overstates what the index bound affords.
 
 The per-weight rate is weight bytes over weight count and nothing else. A rate taken as
 whole-file bytes over weight count charges each spot's provenance block against every
 weight, and those scale per spot rather than per weight.
   the index declares 100,845 bytes, reconciled
-  against the postflop index and sample bytes above, not against the whole tree,
+  against the whole postflop directory above, not against the whole artifact tree,
   which is mostly the preflop chart and is not what the index declares
 
 The committed ranges, as pair weights on both sides

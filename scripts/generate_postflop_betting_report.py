@@ -144,6 +144,13 @@ _EXPLOITABILITY_FIGURE = re.compile(r"exploitability[^\n]*?\d+(?:\.\d+)?\s*%", r
 _TEXTURE = re.compile(r"\b(rainbow|two-tone|monotone)\b", re.IGNORECASE)
 _STANDALONE_INTEGER = re.compile(r"(?<!\S)(\d+)(?!\S)")
 _ROW_DATA = "Row data: "
+_POOLED_LABEL = re.compile(r"\b(?:or|either)\b", re.IGNORECASE)
+"""What a pooled cause label looks like: one row offering the reader a choice of reasons.
+
+A lexical test rather than a structural one because the defect is lexical. The counts behind a
+pooled row are correct arithmetic over the branch that produced them; what is wrong is that one
+branch stands for two causes, and the only place that is visible is the label.
+"""
 
 
 class ReportFigureError(RuntimeError):
@@ -163,10 +170,15 @@ class ReportFigureError(RuntimeError):
 def check_bytes_reconcile(*, declared: float, on_disk: float) -> bool:
     """The byte figure the index declares against the bytes actually on disk.
 
-    The index declares what the repo commits, which the contract scopes to the index and the
-    sample rather than to the whole artifact tree, so `on_disk` is the postflop tree. Handing
-    this the whole tree compares a postflop figure against a number that is mostly preflop
-    chart, and reds on a difference that is not a defect.
+    What the index declares is the whole `data/artifacts/postflop` directory - the index and the
+    sample plus the campaign's own records beside them - so `on_disk` is that directory. Handing
+    this the whole artifact tree compares a postflop figure against a number that is mostly
+    preflop chart, and reds on a difference that is not a defect.
+
+    This is not the figure the per-spot cost divides. The contract draws its budget around the
+    index and the sample, which is a smaller number;
+    `check_per_spot_cost_excludes_non_sample_bytes` owns that one, and the two are separate
+    checks because they answer separate questions.
     """
     if float(declared) != float(on_disk):
         raise ReportFigureError(
@@ -200,14 +212,98 @@ def check_rate_excludes_non_weight_bytes(
     return True
 
 
-def check_coverage_splits_by_cause(*, answerable: float, losses: Mapping[str, float]) -> bool:
-    """The answerable share plus every loss cause is the whole population, or a cause is
-    missing and the report understates the loss by exactly the cause it forgot."""
+def check_coverage_splits_by_cause(
+    *, answerable: float, losses: Mapping[str, float], required: Sequence[str] = ()
+) -> bool:
+    """The answerable share plus every loss cause is the whole population, and no one label
+    carries two causes.
+
+    The sum alone is arithmetic over whatever causes the loop chose, and a row that pools two
+    causes satisfies it exactly as well as two honest rows do - which is how the report came to
+    print one figure for "no cell for this board, or in the index and not fetched" while its own
+    refusal section asserted the two are never pooled. So two further properties:
+
+    - no label names a disjunction. A cause label carrying `or` is a row that answers two
+      questions with one number, whichever causes happen to be behind it.
+    - every cause in `required` appears, at zero if that is its count. A cause dropped because it
+      measured nothing is the same pooling defect arriving as an absence: the reader sees the
+      remaining rows and has no way to know a second cause was ever asked about.
+
+    `required` is empty by default because the property it enforces belongs to this report's own
+    cause vocabulary rather than to the arithmetic, and a caller checking an arbitrary split has
+    no vocabulary to declare.
+    """
+    for name in losses:
+        if _POOLED_LABEL.search(str(name)):
+            raise ReportFigureError(
+                f"the loss cause {name!r} names more than one cause and carries one count;"
+                " a share that answers two questions with one number is the pooling this split"
+                " exists to refuse"
+            )
+    missing = [name for name in required if name not in losses]
+    if missing:
+        raise ReportFigureError(
+            f"the loss causes {sorted(losses)} leave {missing} uncounted; a cause that prints no"
+            " row is a cause the reader cannot tell was measured at zero rather than pooled"
+        )
     total = float(answerable) + sum(float(value) for value in losses.values())
     if abs(total - 1.0) > 1e-9:
         raise ReportFigureError(
             f"an answerable share of {answerable} and losses {dict(losses)} sum to {total}"
             " rather than the whole population, so at least one loss cause is unaccounted for"
+        )
+    return True
+
+
+def check_per_spot_cost_excludes_non_sample_bytes(
+    *,
+    cost_bytes_per_spot: float,
+    index_and_sample_bytes: float,
+    tree_bytes: float,
+    tree_files_outside: int,
+    spots: int,
+) -> bool:
+    """A per-spot cost must be the index and the sample over the spot count and nothing else.
+
+    The same error as `check_rate_excludes_non_weight_bytes` on the other axis, and the one that
+    shipped: the cost was the whole `data/artifacts/postflop` tree over the spot count, so the
+    deep-convergence record, the determinism record, the solve config and the objects manifest
+    were charged to every spot. The contract draws the byte budget around the index and the
+    sample, and those four files are evidence about one campaign rather than a cost that grows
+    with the next spot - the deep-convergence record is a single measurement of one cell and does
+    not scale at all. A per-spot figure carrying them decides the wrong way on the question the
+    criterion asks it, which is whether the index or the campaign cost is the binding bound on how
+    many preflop lines the phase can cover.
+
+    Unlike the per-weight check, this one is told where its numerator came from rather than only
+    the division: `tree_files_outside` is how many files the postflop tree holds that are neither
+    the index nor the sample. A numerator as large as the tree while that count is positive is the
+    whole tree wearing the budget's label, which is the defect itself and not a rounding of it.
+    """
+    if spots < 0 or index_and_sample_bytes < 0 or tree_files_outside < 0:
+        raise ReportFigureError(
+            f"a per-spot cost cannot be built from {index_and_sample_bytes} bytes over"
+            f" {spots} spots beside {tree_files_outside} files"
+        )
+    if index_and_sample_bytes > tree_bytes:
+        raise ReportFigureError(
+            f"the index and sample measure {index_and_sample_bytes} bytes inside a postflop tree"
+            f" of {tree_bytes}; a part cannot be larger than what it was cut out of"
+        )
+    if tree_files_outside > 0 and index_and_sample_bytes >= tree_bytes:
+        raise ReportFigureError(
+            f"the per-spot numerator is {index_and_sample_bytes} bytes and the whole postflop"
+            f" tree is {tree_bytes}, while {tree_files_outside} file(s) in it are neither the"
+            " index nor the sample; that numerator is the tree under the budget's name, and the"
+            " records it carries do not grow with the next spot"
+        )
+    expected = 0.0 if spots == 0 else float(index_and_sample_bytes) / float(spots)
+    if abs(float(cost_bytes_per_spot) - expected) > 1e-9:
+        raise ReportFigureError(
+            f"a cost of {cost_bytes_per_spot} bytes a spot does not come from"
+            f" {index_and_sample_bytes} index and sample bytes over {spots} spots, which is"
+            f" {expected}; the difference is tree bytes that are neither index nor sample charged"
+            " against every spot"
         )
     return True
 
@@ -1235,7 +1331,23 @@ def opponent_lead(cell: PostflopCell, ranges: Sequence[CommittedRange]) -> Oppon
 CAUSE_MULTIWAY = "multiway, structural"
 CAUSE_PRICE = "preflop price outside the band"
 CAUSE_LINE = "no cell for this preflop line"
-CAUSE_BOARD = "no cell for this board, or in the index and not fetched"
+CAUSE_BOARD = "no cell for this board"
+CAUSE_NOT_FETCHED = "in the index and not fetched on this machine"
+
+LOSS_CAUSES = (CAUSE_MULTIWAY, CAUSE_PRICE, CAUSE_LINE, CAUSE_BOARD, CAUSE_NOT_FETCHED)
+"""Every reason a corpus flop goes unanswered, one cause to a label.
+
+The last two were one row until stage 8. A flop whose canonical class the index does not list at
+all and a flop whose class the index lists but this clone has not fetched are different questions
+with different answers - the first is bought with a bigger campaign, the second with a fetch - and
+this block is the only place in the report that puts a number on either. Counting them under one
+label left the report asserting in its refusal section that it never pools the two table causes
+while the single row that counted them did exactly that.
+
+Declared here as the closed vocabulary so that a cause whose count is zero still prints. A
+`Counter` drops a key it never saw, so the honest split would have vanished the moment the
+unfetched cause measured nothing, which is the pooling defect returning by the other door.
+"""
 
 
 @dataclass
@@ -1273,15 +1385,25 @@ def arrival_probabilities() -> dict[str, int]:
     return {str(key): int(value) for key, value in payload["arrival_ppb"].items()}
 
 
-def measure_corpus(covered_lines: frozenset[str], fetched_boards: frozenset[tuple[str, ...]]):
+def measure_corpus(
+    covered_lines: frozenset[str],
+    fetched_boards: frozenset[tuple[str, ...]],
+    indexed_boards: frozenset[tuple[str, ...]],
+):
     """Walk every committed corpus hand that saw a flop, and name the first thing in its way.
 
     Coarsest gap first, the way the strategy's own walk fails closed, so the causes partition
     the flops rather than overlapping: a three-handed flop is counted as structural and is not
     also counted as an uncovered line.
+
+    `indexed_boards` is what separates the last two causes. A flop the index lists is one the
+    campaign already paid for and this clone has not fetched; a flop it does not list was never
+    solved. Both leave the artifact silent and they are not the same gap, so they are counted
+    apart rather than added together under a label that names both.
     """
     prices = chart_prices()
     measured = CorpusMeasurement()
+    measured.causes.update({cause: 0 for cause in LOSS_CAUSES})
     for record in load_committed_sample().records:
         history = record.normalized
         measured.hands += 1
@@ -1317,8 +1439,10 @@ def measure_corpus(covered_lines: frozenset[str], fetched_boards: frozenset[tupl
             measured.causes[CAUSE_LINE] += 1
             continue
         flop = tuple(f"{card.rank}{card.suit}" for card in history.streets[1].board)
-        if canonical_board(flop) not in fetched_boards:
-            measured.causes[CAUSE_BOARD] += 1
+        board_class = canonical_board(flop)
+        if board_class not in fetched_boards:
+            listed = board_class in indexed_boards
+            measured.causes[CAUSE_NOT_FETCHED if listed else CAUSE_BOARD] += 1
             continue
         measured.servable[line] += 1
         measured.answerable += 1
@@ -1447,6 +1571,31 @@ def postflop_bytes() -> int:
     return sum(path.stat().st_size for path in POSTFLOP_DIR.rglob("*") if path.is_file())
 
 
+def index_and_sample_bytes() -> tuple[int, int]:
+    """The bytes the contract's byte budget is drawn around, and what else the tree holds.
+
+    The budget is the index plus the committed sample, cut out of the postflop tree rather than
+    measured as the tree. The tree also holds the deep-convergence record, the determinism
+    record, the solve config and the objects manifest, which are evidence about the campaign that
+    ran and are neither the index nor the sample.
+
+    Returns the count and how many tree files were left out of it, because that second number is
+    the only thing carrying the numerator's provenance downstream:
+    `check_per_spot_cost_excludes_non_sample_bytes` cannot see a file list, and a rate handed a
+    numerator it cannot place is a rate that will accept the tree total again.
+    """
+    if not POSTFLOP_DIR.is_dir():
+        return (0, 0)
+    inside = [INDEX_PATH] if INDEX_PATH.is_file() else []
+    if SAMPLE_DIR.is_dir():
+        inside += [path for path in sorted(SAMPLE_DIR.rglob("*")) if path.is_file()]
+    held = set(inside)
+    outside = [
+        path for path in POSTFLOP_DIR.rglob("*") if path.is_file() and path not in held
+    ]
+    return (sum(path.stat().st_size for path in inside), len(outside))
+
+
 def weight_bytes_and_count() -> tuple[int, int]:
     """The bytes hero's class weights occupy, and how many weights there are.
 
@@ -1502,6 +1651,14 @@ class Measured:
     unreachable: tuple[str, ...]
     artifact_bytes: int
     postflop_bytes: int
+    index_and_sample_bytes: int
+    per_spot_bytes: float | None
+    solve_digests: dict[str, str]
+    """Each committed spot key against the digest of the solved object it was read out of.
+
+    Two spots sharing a digest are two nodes of one solve, which is what the accuracy table has to
+    say rather than print one measurement on two rows as though it were two.
+    """
     weight_bytes: int
     weight_count: int
     rate_per_weight: float
@@ -1535,7 +1692,12 @@ def measure() -> Measured:
 
     covered_set = frozenset(cell.preflop_line.rendered.split("/", 3)[3] for cell in cells)
     fetched_boards = frozenset(canonical_board(cell.board) for cell in cells)
-    corpus = measure_corpus(covered_set, fetched_boards)
+    indexed_boards = (
+        frozenset(canonical_board(tuple(entry["board"])) for entry in index["entries"])
+        if index
+        else fetched_boards
+    )
+    corpus = measure_corpus(covered_set, fetched_boards, indexed_boards)
 
     strategy = PostflopBettingStrategy(library=library)
     behaviour = measure_behaviour(strategy)
@@ -1552,6 +1714,15 @@ def measure() -> Measured:
         check_bytes_reconcile(
             declared=float(index["committed_bytes"]), on_disk=float(committed_on_disk)
         )
+    budget_on_disk, tree_files_outside = index_and_sample_bytes()
+    per_spot = budget_on_disk / printed_spot_count if printed_spot_count else None
+    check_per_spot_cost_excludes_non_sample_bytes(
+        cost_bytes_per_spot=per_spot if per_spot is not None else 0.0,
+        index_and_sample_bytes=budget_on_disk,
+        tree_bytes=committed_on_disk,
+        tree_files_outside=tree_files_outside,
+        spots=printed_spot_count,
+    )
     weight_bytes, weight_count = weight_bytes_and_count()
     rate = 0.0 if weight_count == 0 else weight_bytes / weight_count
     check_rate_excludes_non_weight_bytes(
@@ -1564,6 +1735,7 @@ def measure() -> Measured:
     check_coverage_splits_by_cause(
         answerable=(corpus.answerable / corpus.flops) if corpus.flops else 1.0,
         losses=losses,
+        required=LOSS_CAUSES if corpus.flops else (),
     )
     check_servable_never_exceeds_arrivals(
         arrivals=corpus.arrivals, servable=corpus.servable, answerable=corpus.answerable
@@ -1610,6 +1782,12 @@ def measure() -> Measured:
         unreachable=unreachable_fallback_codes(strategy),
         artifact_bytes=on_disk,
         postflop_bytes=committed_on_disk,
+        index_and_sample_bytes=budget_on_disk,
+        per_spot_bytes=per_spot,
+        solve_digests={
+            str(entry["spot_key"]): str(entry["object_digest"])
+            for entry in (index["entries"] if index else ())
+        },
         weight_bytes=weight_bytes,
         weight_count=weight_count,
         rate_per_weight=rate,
@@ -1804,7 +1982,7 @@ def answerable_lines(measured: Measured) -> list[str]:
     total = corpus.flops or 1
     lines.append(f"  flop-reaching hands: {corpus.flops}")
     lines.append(f"  answerable: {corpus.answerable} ({pct(corpus.answerable / total)})")
-    for cause in (CAUSE_MULTIWAY, CAUSE_PRICE, CAUSE_LINE, CAUSE_BOARD):
+    for cause in LOSS_CAUSES:
         count = corpus.causes.get(cause, 0)
         lines.append(f"  lost to {cause}: {count} ({pct(count / total)})")
     lines += [
@@ -1812,6 +1990,12 @@ def answerable_lines(measured: Measured) -> list[str]:
         "The multiway share is structural rather than fundable. A two-range solve cannot express",
         "a three-handed flop at any budget, on any machine, under any menu, so no campaign closes",
         "that share and a report that pooled it with the others would read as though money would.",
+        "",
+        "The last two rows are the two table causes, counted apart here because this is the only",
+        "place either of them is counted at all. A flop whose class the index never listed is one",
+        "no campaign has paid for yet; a flop whose class the index lists and this clone has not",
+        "fetched is one already paid for and one fetch away. They cost different things to close,",
+        "so a single row over both would name a gap and hide which gap it is.",
     ]
     return lines
 
@@ -1820,6 +2004,20 @@ def accuracy_lines(measured: Measured) -> list[str]:
     lines = heading("Per-spot accuracy, and the spread across the committed set")
     target = EXPLOITABILITY_TARGET_PCT_OF_POT
     ceiling = EXPLOITABILITY_CEILING_PCT_OF_POT
+    # Which committed spots came out of the same solved tree, keyed off the object digest the
+    # index commits rather than off the object file, which a clone need not hold.
+    by_tree: dict[str, list[str]] = {}
+    for cell in measured.cells:
+        digest = measured.solve_digests.get(cell.spot_key)
+        if digest is not None:
+            by_tree.setdefault(digest, []).append(cell.spot_key)
+    shares_with = {
+        key: tuple(other for other in keys if other != key)
+        for keys in by_tree.values()
+        for key in keys
+        if len(keys) > 1
+    }
+    trees = len(by_tree) if by_tree else measured.printed_spot_count
     lines += [
         "",
         f"  target: exploitability {target}% of the starting pot, a bound against the same menu",
@@ -1828,9 +2026,14 @@ def accuracy_lines(measured: Measured) -> list[str]:
         f"  iteration cap: {SOLVE_ITERATION_CAP:,}",
         f"  committed spots: {measured.printed_spot_count}",
         f"  spots the index lists, fetched here or not: {measured.indexed_total}",
+        f"  solved trees the committed spots come out of: {trees}",
         "",
         "  Each row is one committed hero decision node, keyed by board, preflop line, flop line,",
-        "  pot and effective stack. The accuracy is that cell's own achieved figure.",
+        "  pot and effective stack. The accuracy is not one measurement a row. Exploitability is a",
+        "  property of a solved tree, so two hero nodes taken out of one solve carry one figure,",
+        "  one iteration count and one wall clock between them. Rows that share a solve say so and",
+        "  name the tree they share; a reader counting distinct measurements counts trees, not",
+        "  rows.",
         "",
     ]
     between = 0
@@ -1839,10 +2042,25 @@ def accuracy_lines(measured: Measured) -> list[str]:
         if target <= value <= ceiling:
             between += 1
         lines.append(f"  {cell.spot_key}")
+        shared = shares_with.get(cell.spot_key, ())
         lines.append(
             f"      exploitability {value:.3f}% of pot, menu-bound, at {cell.iterations}"
             " iterations"
         )
+        if shared:
+            digest = measured.solve_digests.get(cell.spot_key, "")
+            lines.append(
+                f"      out of solved tree {digest[:16]}, shared with {len(shared)} other"
+                f" committed spot{'' if len(shared) == 1 else 's'}:"
+            )
+            # Named by spot key rather than by sample file, because the sample names carry a
+            # board texture and `cost_rows` reads any line pairing a texture with a digit as a
+            # cost row owing a measured-or-scaled label.
+            for other in sorted(shared):
+                lines.append(f"        {other}")
+            lines.append(
+                "        the figure above is that tree's and is not a second measurement"
+            )
     if not measured.cells:
         lines.append("  (no committed cell is fetched on this machine)")
     lines += [
@@ -1979,6 +2197,22 @@ def determinism_lines(measured: Measured) -> list[str]:
             f"  {cell.combos:7d}  {cell.combos_in_only_one_run:15d}"
             f"  {cell.largest_gap:11g}  {clocks}"
         )
+    repeated = sorted(
+        {
+            cell.wall_seconds
+            for cell in record.cells
+            if sum(1 for other in record.cells if other.wall_seconds == cell.wall_seconds) > 1
+        }
+    )
+    if repeated:
+        lines += [
+            "",
+            "  Two rows carrying the same wall clocks are two hero nodes of one solve rather than"
+            " two",
+            "  solves that took the same time. The clock is the tree's, and the accuracy table"
+            " above",
+            "  names which rows share one.",
+        ]
     held = [cell for cell in record.cells if not cell.held]
     if held:
         lines.append("")
@@ -2143,24 +2377,46 @@ def behaviour_lines(measured: Measured) -> list[str]:
 def byte_lines(measured: Measured) -> list[str]:
     lines = heading("Bytes: what the repo commits, and what is left")
     headroom = ARTIFACT_BYTE_CAP - measured.artifact_bytes
-    per_spot = (
+    per_spot = measured.per_spot_bytes
+    evidence = measured.postflop_bytes - measured.index_and_sample_bytes
+    tree_per_spot = (
         measured.postflop_bytes / measured.printed_spot_count
         if measured.printed_spot_count
         else None
     )
     lines += [
         "",
-        "The budget covers the committed index and the committed sample. It does not cover the",
-        "object storage the index points at, which is outside git and outside this cap.",
+        "Three figures, because three different questions are asked of them. The 20 MiB cap is on",
+        "`data/artifacts` whole, so that is what the headroom is measured against. The budget the",
+        "contract draws is around the committed index and the committed sample, so that is what",
+        "the per-spot cost divides. And the postflop tree sits between the two: it is the index",
+        "and the sample plus the records of the campaign that produced them, which is the figure",
+        "the committed index declares. None of the three covers the object storage the index",
+        "points at, which is outside git and outside this cap.",
         "",
         f"  bytes used, whole artifact tree: {measured.artifact_bytes:,}",
-        f"  of which the postflop index and sample: {measured.postflop_bytes:,}",
         f"  cap: {ARTIFACT_BYTE_CAP:,}",
         f"  headroom left: {headroom:,}",
-        f"  per spot: {'n/a' if per_spot is None else f'{per_spot:,.1f} bytes'}",
+        "",
+        f"  of which data/artifacts/postflop, whole directory: {measured.postflop_bytes:,}",
+        f"    the committed index and sample: {measured.index_and_sample_bytes:,}",
+        f"    the campaign's own records beside them: {evidence:,}",
+        "      the deep-convergence record, the determinism record, the solve config and the",
+        "      objects manifest - evidence about the one campaign that ran, not the chart",
+        "",
+        f"  per spot, index and sample: "
+        f"{'n/a' if per_spot is None else f'{per_spot:,.2f} bytes'}",
+        f"  per spot, whole postflop directory: "
+        f"{'n/a' if tree_per_spot is None else f'{tree_per_spot:,.2f} bytes'}",
         f"  hero class weights: {measured.weight_count:,} weights in"
         f" {measured.weight_bytes:,} bytes",
         f"  per weight: {measured.rate_per_weight:.3f} bytes",
+        "",
+        "The per-spot cost is index and sample bytes over the spot count and nothing else, and it",
+        "is the one of the two that answers what a further spot costs. The directory figure below",
+        "it is printed because the cap is on the tree, not because it is a per-spot price: the",
+        "deep-convergence record is one measurement of one cell and does not grow with the next",
+        "spot at all, so charging it to every spot overstates what the index bound affords.",
         "",
         "The per-weight rate is weight bytes over weight count and nothing else. A rate taken as",
         "whole-file bytes over weight count charges each spot's provenance block against every",
@@ -2169,7 +2425,7 @@ def byte_lines(measured: Measured) -> list[str]:
     if measured.index is not None:
         lines.append(
             f"  the index declares {int(measured.index['committed_bytes']):,} bytes, reconciled"
-            "\n  against the postflop index and sample bytes above, not against the whole tree,"
+            "\n  against the whole postflop directory above, not against the whole artifact tree,"
             "\n  which is mostly the preflop chart and is not what the index declares"
         )
     else:
