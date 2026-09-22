@@ -3,6 +3,7 @@ active_phase: '16'
 task_mode: implementation
 base_commit: 5df28262e55f990ef3d87f5ccca2825492118f85
 approved_scope:
+  - docs/V2_ROADMAP.md
   - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
   - src/poker_training_bot/solver_artifacts/postflop_key.py
   - src/poker_training_bot/solver_artifacts/postflop_isomorphism.py
@@ -46,6 +47,17 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-09-22
+    reason: >-
+      `docs/V2_ROADMAP.md` joins approved_scope for one sentence. The contract closes
+      `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED` only once no live document still offers the falsified
+      ratio as a basis for reasoning, and the stage-8 mechanical reviewer swept for it: the decision
+      list is clean, the completed exec plans are snapshots and do not count, and line 216 of this
+      file still reads "only the ratio is safe to reason from: the turn is about 49 times a flop and
+      the river about 2,350 times". MAINT-26 measured a flop-rooted tree at 99.5 percent river
+      nodes, so the sentence is not a historical mention but the live instruction to reason from a
+      number that is wrong. One line, in a document at 307 of its 500-line cap, and fixing it turns
+      a restatement into a closure on the same pass. Nothing else in the file is touched.
   - date: 2026-09-21
     reason: >-
       The canary correction is committed at 5df2826 and reviewed, so the narrowing goes back on -

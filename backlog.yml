@@ -1115,6 +1115,8 @@ items:
       earlier version of this entry gave the flop as 903 runouts against 990 holdings and
       lumped the turn in with it; both figures were the river's own, shifted by a card,
       which is what kept the turn deferred for a phase longer than it needed to be.
+      **Not closed by phase 16, and the contract's list said it would be.** Ruled by the stage-8 mechanical review on 2026-09-22 after reading the code rather than the list: the work was never done. hand_cannot_lose still raises on a flop board with its cost unchanged in its own docstring. What moved is the surroundings - the composite now routes every postflop street to the betting strategy, so the fallback is no longer the bot's postflop component and the flop fold this entry was filed against no longer happens. The subject survives that move: on the 22,060 board classes with no committed cell the bot refuses where an unbeatable hand could still call. Closing it would have recorded as done a piece of work nobody did, which is the failure this repo already files under its own id.
+
   - id: FALLBACK-FAIL-CLOSED-CAN-CALL
     status: done
     phase: "11"
@@ -1153,7 +1155,7 @@ items:
       anything requires it would produce an abstraction nobody can measure against a solved
       baseline.
   - id: V2-POSTFLOP-STRATEGY
-    status: deferred
+    status: done
     phase: "16"
     title: A postflop strategy that can bet and raise
     reason: >-
@@ -1165,6 +1167,8 @@ items:
       no cell for, since mapping an unsolved rank texture onto a solved one is the heuristic
       guessing AGENTS.md forbids. Recorded with defaults in
       reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md.
+      Closed 2026-09-22 by phase 16, on capability rather than on coverage, and ruled by the stage-8 mechanical review rather than by the contract's list. Its two stated blockers were rulings and decisions 1 and 2 answer both; the strategy ships as the composite's postflop component rather than an import, and frozen tests require a committed spot to produce a bet and a raise with amounts. This is honest only while the coverage entries stay open and the packet carries decision 25's number: twenty thousand deals produce zero bets, because three boards are 40 of 22,100 flops.
+
   - id: STREET-BET-MEANING-AMBIGUOUS
     status: done
     phase: "11"
@@ -1233,7 +1237,7 @@ items:
       hand added to data/samples/ would close it, and committing sample data is a
       frozen-into-data decision that needs a human, so it is not a Phase 06 change.
   - id: POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK
-    status: deferred
+    status: done
     phase: "16"
     title: River pot-odds calling against the full unseen-deck range
     reason: >-
@@ -1252,6 +1256,8 @@ items:
       side ever bets, so the branch is unreachable, and whether a betting opponent
       exists is a Phase 07 and Phase 08 question. Superseded rather than extended by
       V2-POSTFLOP-STRATEGY, which computes equity against a modelled range.
+      Closed 2026-09-22 by phase 16. It ships exactly as specified - the equity is wins plus half the ties over 990 in river_pot_odds.py, the price is to_call over pot plus to_call, it sits behind an explicit flag and it reports the frequency it fires. The closing note the reviewer asked for: the entry's own precondition never arrived. Nothing bets at this bot, so the rule ships untested against a betting opponent and its 12 of 12 is over this repo's own river enumeration.
+
   - id: SIMULATOR-VOIDED-HAND-RECORD
     status: done
     phase: simulator
@@ -3721,7 +3727,7 @@ items:
       decision nobody has made. It stays phase: v2 here because inventing a slot is not phase 14's
       to do.
   - id: POSTFLOP-DEPTH-RATIOS-ARE-INVERTED
-    status: deferred
+    status: done
     phase: "16"
     title: The turn and river cost ratios phase 16 is planned against run the wrong way
     reason: >-
@@ -3743,13 +3749,15 @@ items:
       menu, ranges and flop lines, so a separately configured turn spot remains a different
       game. What must change is the stated compute rationale in both documents, and that is a
       contract-shaped edit phase 16 owns rather than a measurement task.
+      Closed 2026-09-22 by phase 16, on the condition the contract set: closed only once no live document still offers the falsified ratio as a basis for reasoning. The stage-8 mechanical review swept for it and found one survivor, docs/V2_ROADMAP.md line 216, which read that only the ratio is safe to reason from and gave the turn at about 49 flops and the river at about 2,350. That sentence now carries the measurement instead. The decision list was already clean; completed exec plans are snapshots and do not count.
+
   - id: SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS
     status: deferred
     phase: "16"
     title: GTOpen's tree-size guard cannot fire on this machine, so a solve script must carry its own
     reason: >-
       mem_cap_mb() in GTOpen's server reads /proc/meminfo, which does not exist on Darwin, and
-      falls through to a flat 48,000 MB constant. On this 32 GB machine that is about 1.5
+      falls through to a flat 48,000 MB constant. On this 34.4 GB machine that is about 1.5
       times physical RAM, and the arena gate compares only arena_bytes_for(storage) while
       counting no tree nodes, children or actions at all; the mid-build node budget works out
       to roughly 3.6e8 nodes, which is over 21 GB of tree structure before a single arena
@@ -3760,8 +3768,10 @@ items:
       covered. Nothing else is. scripts/extract_gtopen_preflop.py has no such ceiling, and any
       solve script phase 14 or phase 16 adds would inherit the same absent guard unless it
       carries one. Filed so the next solve script does not have to rediscover it.
+      **Restated 2026-09-22 rather than closed, and the contract expected the opposite.** The contract had it leaving the Closed list because the rented Linux box has /proc/meminfo and the premise would dissolve. Decision 24 rules the rented box binds the campaign and not this sample, so the premise did not dissolve - it holds for the machine actually used, which is Darwin. Half is discharged: the driver carries its own ceiling, now at 0.40 of physical memory. The other half is untouched and was checked rather than assumed - scripts/extract_gtopen_preflop.py contains no memory ceiling, no RAM figure and no memory handling at all. One stale figure corrected in passing: this entry said 32 GB where the machine reports 34.4.
+
   - id: SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE
-    status: deferred
+    status: done
     phase: "16"
     title: The same solver setting is a percent on one surface and a fraction on two others
     reason: >-
@@ -3778,8 +3788,10 @@ items:
       between solve-cli and the HTTP route.
       MAINT-26's driver refuses any value under 1.0 by name. That guard lives in one script,
       and any future solve script needs its own.
+      Closed 2026-09-22 by phase 16. postflop_solve_driver.py names the minimum and refuses below it, citing this entry, and the committed solve config posts 85.0. The knowledge survives the closure rather than going with it: GTOPEN_SOLVER_NOTES.md records the trap durably.
+
   - id: ISOMORPHISM-FACTORS-MISREAD-AS-SPEEDUPS
-    status: deferred
+    status: done
     phase: "16"
     title: The 1.4x and 2.2x isomorphism figures are branch counts, not solve speedups
     reason: >-
@@ -3800,6 +3812,8 @@ items:
       suit-symmetric, since a permutation is admitted only if it maps every combo to an
       equal-weight combo in the same range. A single suit-specific entry such as AhKh at 0.25
       collapses the permutation group to the identity and the saving goes to zero.
+      Closed 2026-09-22 by phase 16. Both halves are discharged in the document this entry names - the branch-count reading corrected and the suit-symmetry precondition carried with a citation - and the phase acts on it rather than only recording it, using exact per-class orbit factors which the stage-8 reviewer re-derived at 19.314, 12.000 and 4.000, under a class-level floor.
+
   - id: POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL
     status: deferred
     phase: "16"

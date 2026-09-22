@@ -213,7 +213,7 @@ A spot is self-contained in its board, both ranges, pot, stacks and sizes, so th
 What does not decouple is ranges: postflop strategy is range against range rather than a function of hero's two cards, so the same hand on the same board plays differently after `LJ open, BTN call` than after `BTN open, BB 3-bet, BTN call`, and the action summary in a spot key is a handle on a pair of ranges rather than history for its own sake.
 Generation also stays sequential even where storage does not, because villain's turn range is whatever he would bet and check with on the flop.
 A spot is keyed by the board rather than by hero's hand, so one flop spot is 49 turn spots and 48 rivers below each of those: per preflop line covered, 1,755 flops, 85,995 turns, and 4,127,760 rivers.
-No solve in this repo has been timed to a real exploitability target, so affordability at any depth is unmeasured and only the ratio is safe to reason from: the turn is about 49 times a flop and the river about 2,350 times.
+Node counts are not costs and the ratio above is not one either: MAINT-26 ported GTOpen's tree builder, validated it byte-exact against the running server, and measured a flop-rooted tree at 99.5 percent river nodes, so the turn and river multiples this paragraph used to offer as safe to reason from run the wrong way. Phase 16 has since timed real solves - see POSTFLOP-DEPTH-RATIOS-ARE-INVERTED for the measurement and the phase 16 decision list for the costs.
 Ruled flop only on 2026-08-19, with turn and river refusing the way an uncovered preflop spot refuses today, and every canonical flop against a small head of common preflop lines.
 
 The second is what the bot does on a board it holds no cell for.

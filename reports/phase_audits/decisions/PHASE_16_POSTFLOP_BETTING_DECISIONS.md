@@ -2396,9 +2396,21 @@ record they came from names one and warns that rows taken on battery read slow.
 **Two things follow and the packet states both.** Every timing and arena figure this phase publishes
 is a laptop figure and is re-derived on the rented box before a campaign is planned, which is what
 the contract's sentence is actually for. And the determinism proof is **machine-local**: it is two
-runs in two processes on this Mac, and floating-point summation order differs between machines, so
-moving hardware does not carry the proof with it and the campaign re-proves determinism on the box
-it runs on. Nothing here claims otherwise, and nothing did before - it simply had not been said.
+runs in two processes on this Mac, so it constrains this machine and nothing else, and the campaign
+re-proves determinism on the box it runs on rather than inheriting this. Nothing here claims
+otherwise, and nothing did before - it simply had not been said.
+
+**Corrected 2026-09-22 by the stage-8 mechanical review. The conclusion stands; the mechanism I gave
+for it does not.** I first wrote that floating-point summation order differs between machines. The
+reviewer read the one path it could trace - GTOpen's CFR recursion collects its parallel children
+into an ordered vector and merges them in a sequential loop over cards in fixed order - and that
+accumulation does not follow the thread count, so my claim was asserted rather than measured and the
+evidence available argues against it. What is established instead: a different instruction set can
+fuse a multiply and an add where another does not, which is a different rounding rather than a
+different order; and the rented box exists to use the CUDA backend this contract's own scope calls
+untested, and a GPU solve is not the CPU computation with its sums reordered. Naming summation order
+invited the wrong fix - pin the thread count and assume the proof travels - which is the kind of
+unmeasured mechanism this phase's reviews have spent their time removing from its documents.
 
 The gap between the contract's wording and this ruling is filed rather than amended:
 `A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE` carries it. The contract sits

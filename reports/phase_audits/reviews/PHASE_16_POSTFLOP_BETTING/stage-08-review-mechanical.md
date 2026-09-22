@@ -67,7 +67,14 @@ Everything in this block I recomputed here. All of it holds.
 
 ## Blocker
 
-- **The byte block labels the whole postflop directory as the index and the sample, and the
+Status added 2026-09-22, after `de7d1b9` and `fc9a164` answered four of the five. The findings
+below stand as first written; each carries its verdict at the head of the bullet.
+
+- **[resolved]** at `de7d1b9`, verified: three figures now carry three labels, both per-spot rates
+  are printed, and the 44,054 bytes between the directory and the index-and-sample are named as the
+  campaign's own records.
+
+  **The byte block labels the whole postflop directory as the index and the sample, and the
   per-spot cost inherits it.** `reports/active/latest_postflop_betting_report.txt` prints "of which
   the postflop index and sample: 100,845" and, lower down, "reconciled against the postflop index
   and sample bytes above". Measured here by summing file sizes: `index.json` is 2,866 bytes and
@@ -96,7 +103,10 @@ Everything in this block I recomputed here. All of it holds.
   `scripts/solve_postflop_sample.py:1754` already labels the same number honestly as "in
   data/artifacts/postflop", so only the report is wrong.
 
-- **The one place the report counts the two table causes, it pools them, and the report says it
+- **[resolved]** at `de7d1b9`, verified: the coverage split prints the two causes as separate rows
+  at 50 and 0, with a paragraph on why they cost different things to close.
+
+  **The one place the report counts the two table causes, it pools them, and the report says it
   never does.** The contract: "At the table a miss carries exactly two causes and the report never
   pools them: no cell for this board or line ... and in the index but not fetched on this machine."
   The report's coverage split prints "lost to no cell for this board, or in the index and not
@@ -117,7 +127,12 @@ Everything in this block I recomputed here. All of it holds.
   `test_the_two_table_causes_are_printed_and_never_pooled` asserts that the phrases "no cell for
   this board or line" and "not fetched" appear.
 
-- **The committed campaign ran on the laptop, the contract says it moves to a rented cloud box, and
+- **[resolved]** by decision 24 at `fc9a164`: the scope sentence binds the campaign and not this
+  sample, the wording gap is filed as
+  `A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE`, and the packet states that
+  every timing the phase publishes is a laptop figure.
+
+  **The committed campaign ran on the laptop, the contract says it moves to a rented cloud box, and
   no committed document says which machine any published cost figure came from.** The contract's
   Scope: "Solving moves to a rented NVIDIA cloud box whose specification is deliberately unruled,
   so every timing and arena figure here is re-derived there before a run is planned." The only
@@ -135,7 +150,11 @@ Everything in this block I recomputed here. All of it holds.
   about the machine the phase was ruled onto. Two fixes, both small: file it, and carry the machine
   line into the cost block beside the numbers it qualifies.
 
-- **Every backlog entry the contract says this phase closes is still open, and nothing looks.** The
+- **Open.** Ruled entry by entry in `stage-08-review.md`: four close, three do not, and the three
+  are `POSTFLOP-UNBEATABLE-EARLIER-STREETS`, `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` and
+  `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED`. The evidence per entry is there rather than here.
+
+  **Every backlog entry the contract says this phase closes is still open, and nothing looks.** The
   contract's closing section names five entries as Closed - `V2-POSTFLOP-STRATEGY`,
   `POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK`, `POSTFLOP-UNBEATABLE-EARLIER-STREETS`,
   `SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE`, `ISOMORPHISM-FACTORS-MISREAD-AS-SPEEDUPS` - and
@@ -167,7 +186,9 @@ Everything in this block I recomputed here. All of it holds.
   is **0.0535**. `deep_convergence_check.json` stores `median: 0.053` correctly rounded to three
   decimals and the report re-pads it to four, which invents a digit. The neighbouring figures are
   right: stored `mean: 0.08157` prints as 0.0816 and stored `max: 0.467` prints as 0.4670.
-- Two of the four rows in the per-spot accuracy table are one measurement printed twice. The two
+- **[resolved]** at `de7d1b9`: the table now prints "solved trees the committed spots come out of:
+  3", says the accuracy is not one measurement a row, and names the shared tree on both rows that
+  share it. Two of the four rows in the per-spot accuracy table are one measurement printed twice. The two
   `Kh7d2c` spots share an object, an `object_digest`, an exploitability of 0.283013340119407, an
   iteration count of 340 and a wall-clock pair of 1677.4s / 2523.9s, because exploitability is a
   property of the solved tree and those two spots are two nodes of one solve. The report introduces
