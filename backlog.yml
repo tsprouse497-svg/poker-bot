@@ -1822,6 +1822,15 @@ items:
       not the same as passing, and the next phase to reach closeout hits it again. Either the
       reviews directory joins standing_scope, or stage 10 stops owing a note, or the closeout
       writes its note before resetting to idle. It belongs to whoever owns loop_stage.py.
+      **Second instance, phase 16, 2026-09-22, and recorded rather than quietly passed on.** The
+      stage-10 reviewer measured it live: `check_scope` exited 0 before it wrote its note and 1
+      after, naming the note itself, because the task is idle so `base_commit` is null and the check
+      measures against HEAD. Committing the note makes it invisible and the gate green. So the
+      loophole is not that the note is permitted - it is that the only thing standing between a
+      stage-10 note and a scope failure is the order in which two commands are run, and a lane that
+      ran `check_scope` before committing would read its own required review as a violation. Phase
+      16 passed through it the same way phase 10 did.
+
   - id: STRATEGY-QUERY-STREET-BET-NAME
     status: done
     phase: "13"

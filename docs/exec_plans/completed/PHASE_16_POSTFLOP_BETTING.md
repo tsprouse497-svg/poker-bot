@@ -364,7 +364,11 @@ subagents in this one worktree; the coordinator owns every commit.
 
 ## Outcome
 
-Not yet. Stage 4 closed 2026-09-14; stage 5, the freeze, next.
+**Closed 2026-09-22, tagged `phase-16-complete`.** The bot can bet a flop on three boards and does
+not bet at a table: 20,000 deals give zero bets and two postflop decisions, both check. Taylor ruled
+on 2026-09-21 to close on machinery rather than coverage and to say so plainly, and
+`reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` is where that is said. Final gate 50 of 50 with
+`check_gate_bite` among them.
 
 ## Next Agent Bootstrap
 
@@ -375,15 +379,20 @@ end of that session. The lane is no longer halted and the sample is committed.**
   Never work in `~/projects/poker-bot`, which holds `main`.
 - Next command: `uv run python scripts/loop_stage.py --phase 16`. Several lanes have pointers here,
   so always name the phase.
-- **Stage 9 of 11, running.** `task_mode: implementation`. Stages 0 through 8 are closed: the gate
-  went green on all 50 commands with `check_gate_bite` among them, and every blocker across the five
-  review notes in `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/` is marked resolved
-  against a measurement.
-- What is left is bookkeeping and one gate run. Stage 10 is the closeout - `phase_status.yml` to
-  `completed`, the ExecPlan filed to `completed/`, the tag, `CURRENT_TASK.yml` back to idle, and the
-  gate run again on the result. Stage 11 merges the lane into `main`. The gate recorded in
-  `reports/active/verify_results.json` is the stage-7 run and `generate_postflop_betting_report.py`
-  changed after it during the stage-8 repairs, so **the closeout run is the one that counts**.
+- **Brought forward at stage 10 on 2026-09-22, because filing a plan does not make its prose true.**
+  The four bullets that stood here described stage 9 as running, the task as `implementation`, the
+  closeout as work still to do, and the recorded gate as the stage-7 one. The commit that filed this
+  plan falsified all four, and nothing can catch that: `check_execplan_delegation` validates plans in
+  `active/` and stops looking once one is filed. The stage-10 review caught it, which is the second
+  time in two sessions this section has died of being accurate when written.
+- **The phase is closed.** All eleven stages done, `phase_status.yml` reads completed, the task is
+  idle, `phase-16-complete` is tagged, and the final gate is 50 of 50 with `check_gate_bite` among
+  them - run after the tag existed, which is what the run before it failed on. Every blocker across
+  the review notes in `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/` is marked resolved
+  against a measurement rather than an assurance.
+- The gate recorded at `ce714ff` was real but stale by design: `generate_postflop_betting_report.py`
+  changed after it during the stage-8 repairs, which is exactly what the closeout's second run
+  exists to cover.
 
 ### What this phase shipped, and the sentence it is not allowed to say
 
