@@ -1,5 +1,31 @@
 schema_version: 1
 items:
+  - id: A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT
+    status: deferred
+    phase: "16"
+    title: The no-cell-for-this-board refusal fires on boards the artifact does hold, because it holds them for the other seat
+    reason: >-
+      Found 2026-09-22 by the stage-9 packet lane while tracing the only two postflop decisions a
+      20,000-hand run produced. Both fire `postflop-betting:no-cell-for-this-board` on a board the
+      committed artifact **does** hold - it holds it for the other seat, on the other side of the
+      same betting sequence. The lookup is behaving exactly as specified: it walks coarsest gap
+      first and a line's board set is per line, and a line carries hero's seat, so a board committed
+      for the big blind is not a board for the button.
+      So this is a wording hazard rather than a defect, and it is a live one because the coverage
+      split publishes "lost to no cell for this board: 50" as a headline number. A reader takes that
+      as fifty boards the artifact has never seen. Some of them are boards it has, from the wrong
+      chair, and nothing in the report says so.
+      It compounds with the seat count beside it: `covered_preflop_lines` holds
+      `t6/d100/BTN/BTN:raise@2.5,BB:call` and `t6/d100/BB/BTN:raise@2.5,BB:call`, which are one
+      betting sequence from two seats, so the report's "covered preflop lines committed: 2" counts
+      seats where decision 3's ranking counts lines. A reader meets a 2 against the corpus's twelve
+      and reads twice the coverage that exists.
+      The fix is naming rather than behaviour: say which seat a board is held for wherever a board
+      refusal is counted, and count lines and seats under different words. No committed cell changes.
+      Filed rather than fixed because `strategy/postflop_betting.py` sits at exactly 500 lines
+      against a 500 cap compared greater-than and the report's wording is the stage-8 repair's
+      territory rather than stage 9's.
+
   - id: A-CONTRACT-CLOSED-LIST-ASSERTS-A-CLOSURE-ITS-PHASE-REFUSED-ON-EVIDENCE
     status: deferred
     phase: contract-update

@@ -368,74 +368,66 @@ Not yet. Stage 4 closed 2026-09-14; stage 5, the freeze, next.
 
 ## Next Agent Bootstrap
 
-**This section is the single source for what is true now. Rewritten 2026-09-16 (second rewrite
-that day), replacing one that was accurate when written and wrong by the end of the session.**
+**Rewritten 2026-09-22 at stage 9, replacing one that was accurate on 2026-09-16 and wrong by the
+end of that session. The lane is no longer halted and the sample is committed.**
 
 - Worktree `~/projects/poker-bot-worktrees/phase-16`, branch `phase/16-postflop-that-can-bet`.
   Never work in `~/projects/poker-bot`, which holds `main`.
-- Next command: `uv run python scripts/loop_stage.py --phase 16`. Six lanes have pointers here.
-- **The lane is HALTED at stage 6 and the halt is on the pointer.** `verification/loop_runs/16.yml`
-  carries `loop: halted` with the reason. It resumes with `--resume`, not `--start`, and only once
-  the blocker below is gone. `task_mode: implementation`, HEAD `01adf9b`.
-- Suite: **28 failed, 1379 passed, 4 skipped, 22 errors.** Every single red is a data red and
-  honest - there is no committed sample, on purpose. `run_full_quality_gate.py` exits 0.
+- Next command: `uv run python scripts/loop_stage.py --phase 16`. Several lanes have pointers here,
+  so always name the phase.
+- **Stage 9 of 11, running.** `task_mode: implementation`. Stages 0 through 8 are closed: the gate
+  went green on all 50 commands with `check_gate_bite` among them, and every blocker across the five
+  review notes in `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/` is marked resolved
+  against a measurement.
+- What is left is bookkeeping and one gate run. Stage 10 is the closeout - `phase_status.yml` to
+  `completed`, the ExecPlan filed to `completed/`, the tag, `CURRENT_TASK.yml` back to idle, and the
+  gate run again on the result. Stage 11 merges the lane into `main`. The gate recorded in
+  `reports/active/verify_results.json` is the stage-7 run and `generate_postflop_betting_report.py`
+  changed after it during the stage-8 repairs, so **the closeout run is the one that counts**.
 
-### The blocker, which is the only thing standing between this phase and its gate
+### What this phase shipped, and the sentence it is not allowed to say
 
-**Taylor's decision 19: the committed preflop chart is re-solved before phase 16 commits any cell.**
+Four committed flop cells on three boards plus a fifth the index lists and this clone does not hold,
+all at full precision against the chart MAINT-34 re-solved, all converged inside the ruled 0.3% of
+pot, all re-imported clean, and all proved reproducible by re-solving in a second process against a
+restarted server.
 
-The chart's big-blind calling range is the entire out-of-position input to every flop solve, and it
-holds no set and no overpair. Every pocket pair from aces down to fives reads *exactly* 1.0000 on the 3-bet branch;
-only 44 and 33 flat. Hero's solved c-bet on `9c8c7c` came out at **99.94% of range with no combo
-checking more than 20%** - the solver correctly exploiting a broken input, not a bug in our code.
+**The bot still does not bet at a table, and the packet says so.** Twenty thousand deals give zero
+bets, zero showdowns and two postflop decisions, both check. Three boards are 40 of 22,100 flops,
+and nine of the eleven successors to the committed cells' own actions are flop nodes nobody solved,
+so there is no two-move sequence in the artifact. Decision 25 is Taylor's ruling to close on
+machinery rather than coverage and to state that plainly; the sentence "the bot bets a flop and then
+refuses every turn" is **struck** and must not reappear, because the turn is never reached.
 
-The cause is GTOpen's, in source: `crates/solver/src/preflop/mod.rs:1131-1139` prices realization as
-`class_r(h, posw)` - hand class and a static positional weight, nothing else. The SPR-aware
-`seat_mult` at `:328` is marked KEPT FOR ANALYSIS ONLY and is deliberately off the solve path.
+### The rulings a later phase must not quietly undo
 
-**The fix is one config field and it is measured.** `raise_mults_by_seat = [[],[],[],[],[5.4],[5.4]]`
-gives the blinds a 13.5bb 3-bet instead of 7.5bb: sets on `9c8c7c` go 0.00 to **7.40 combos** against
-a committed reference's 8.34, and the pair bias +0.4025 to **+0.0451**. Reproduced against a baseline
-that returned **0 bp** divergence from the committed export, and isolated by a control run that
-reproduces the 40.5bb 4-bet side effect alone and shows no gain.
+- **Decision 20**: solves run at full precision, `SOLVER_COMPRESS=0`, verified off the built tree
+  rather than assumed, with the memory ceiling at 0.40. Quantized arenas put a floor near 0.3% of
+  pot under every exploitability this phase measured.
+- **Decision 21**: the continuation-bet frequency never appears without the caller's lead frequency
+  beside it. On the monotone board that is 99.88% against a caller who has already bet 52.68% of
+  its range, and the first number alone misleads.
+- **Decision 23**: the small-pair ladder is not smoothed. We ship what the solver produced.
+- **Decision 24**: the rented box binds the campaign, not this sample. Every timing here is a laptop
+  timing, and the determinism proof constrains this machine and nothing else.
+- **Decision 25**: closed on machinery. A later phase funds the campaign.
 
-**It is not this task's to do.** `data/artifacts/preflop/**` is phases 10 and 14's committed data
-and re-solving it re-derives the export, the source card, the derived chart, the committed charts and
-every downstream report. It needs its own task in `contract-update` then implementation. Decision 19
-carries the full reasoning, the control, and the per-seat-versus-per-depth wart the adopting task
-must rule on rather than inherit.
+### What a later phase picks up first
 
-### What is done, and it is most of the phase
+1. The nine uncommitted flop successors, which are what closure costs and are cheaper than new
+   boards.
+2. A second preflop line. The stage-8 domain review argues for the small blind's open rather than
+   the cutoff's: the cutoff buys a replicate of the same positional lesson, the small blind buys the
+   only frequent single-raised pot where the raiser is out of position.
+3. Three contract sentences that read as false now the work is done, all unamendable because the
+   contract is at 299 of 300 lines: `A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE`,
+   `A-CONTRACT-CLAUSE-ASSERTS-A-GAP-ITS-OWN-PHASE-THEN-CLOSED` and
+   `A-CONTRACT-CLOSED-LIST-ASSERTS-A-CLOSURE-ITS-PHASE-REFUSED-ON-EVIDENCE`. One fold-in rewrite
+   clears all three.
+4. `NOTHING-TESTS-THE-MODULE-THAT-DECIDES-WHAT-EVERY-COMMITTED-CELL-CONTAINS` and
+   `NOTHING-CATCHES-THE-IMPORT-CHECK-THAT-REFUSES-A-BET-OFF-THE-COMMITTED-MENU`, which are the two
+   places this phase found the gate looking rather than seeing.
 
-Stages 0-5 closed. Stage 6 built and repaired everything except the data:
-
-- The spot key, the artifact schema and its strict importer, the solve driver, `postflop_transport.py`,
-  the betting strategy, the report generator, `postflop_harvest.py`, `scripts/solve_postflop_sample.py`.
-- **The pipeline is proven end to end on a real solve.** `9c8c7c` converged in 7.7 minutes at 320
-  iterations to 0.2954% of pot, harvested to 160 classes, wrote a cell that re-imports clean and
-  re-harvests byte-identical. The cell was discarded for its input, not its machinery. It is kept
-  outside the repo at the session scratchpad as `postflop-unconditioned-range-2026-09-16`.
-- Four fail-open reads in the solve driver closed and now covered by six added cases whose bite is
-  proven: with the old defaults, a missing `arena_mb`, `exploit_pct`, `iteration` or `state` each
-  returned `converged-to-target`.
-- The report's fabricated `servable` column, the composite's name (it ran the betting strategy while
-  calling itself the fallback through a completed phase's gate report), and the refusal details that
-  had stopped naming the hand.
-- Eleven frozen tests corrected across five files under the fifth re-open, plus a sixth re-open for
-  the schema. Decision 18 welded each committed action to its own size - half the ruled bet menu was
-  unreachable, 29 of 160 classes wanting the 75% bet and getting 33%.
-
-### What is open once the chart lands
-
-1. Re-derive the ranges, re-solve the four cells plus decision 18b's fourth-board index-only cell,
-   and commit. Decision 15 also owes the deep convergence check: one cell re-solved to the 1,200 cap
-   with its frequencies diffed against its 240-iteration run.
-2. The consolidated stage-6 review note at
-   `reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/stage-06-build.md`, which the driver
-   requires and which still does not exist. **Nobody who wrote any of this may write it.**
-3. Regenerate the solver export source card. Its `headroom_bytes` counts the whole artifact tree and
-   reds **six** tests once any flop artifact lands, not the one the contract budgets for by name.
-4. Stages 7-11.
 
 ### Things that will bite you
 

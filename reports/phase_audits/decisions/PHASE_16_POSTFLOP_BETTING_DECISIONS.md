@@ -2438,6 +2438,16 @@ the one covered preflop line meets a held board about once in fourteen thousand 
 of the eleven nodes following the committed cells' own actions is committed or indexed, so there is
 no two-move sequence in the artifact at all and two of the four cells cannot be reached from above.
 
+**Refined 2026-09-22 by the stage-9 packet lane, which counted them.** The four cells offer twelve
+actions; one is a fold that ends the hand, so eleven lead somewhere. **Nine of those eleven are
+still on the flop** and are the gap this phase could have closed and did not; the other two end the
+flop and lead to a turn, which decision 1 put out of scope, so they are not a shortfall against what
+the phase promised. The flop-level closure gap is nine. The same lane traced the two postflop
+decisions the whole run produced: both are the big blind checking out of a committed cell on a
+`Kh7d2c`-class board, and both hands then die because the successor - the button facing that check -
+is one of the nine, with the refusal detail naming the key it could not find. That pair is the
+clearest single piece of evidence this phase has and it is in the packet.
+
 **So the sentence the packet was going to carry is false and does not go in.** "The bot bets a flop
 and then refuses every turn" describes a bot this repo does not build: the turn is never reached
 because hero refuses on the flop. The packet says instead what the bot does - refuses, naming the
