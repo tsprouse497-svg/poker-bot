@@ -70,6 +70,53 @@ packet's replacement bullet is correct.
 
 ## Blocker
 
+All three were answered at `306d2dc` and all three are resolved. I re-measured each against the tree
+at that commit rather than taking the lane's report, and the notes below say what I measured.
+`verification/.mutation_in_progress` was absent again and no gate command was run from this worktree.
+
+- **[resolved] B1** at `306d2dc`, and the judgement the coordinator asked for is at the end of this
+  bullet. The warning paragraph sits at lines 415 to 423, immediately after the "Reports worth
+  opening" list and before the gate paragraph, which is the point of use: a reader meets it between
+  being handed the list and opening anything on it. It names the sentence, says in bold that it is
+  false and that the packet supersedes it, names both places it appears in that report, gives all
+  three reasons the phase could not remove it, and cites the id. I read
+  `THE-GATE-ENFORCES-A-SEAM-SENTENCE-THIS-PHASE-MEASURED-AS-FALSE` in `backlog.yml`: present,
+  `deferred`, scoped `contract-update`, and every factual claim in it is one I had already measured
+  myself, including that the frozen assertion accepts either wording and that `tests/**` is in
+  neither scope list. I also confirmed no gate command reads packet prose - `check_contracts.py` and
+  `quality_checks.py` check that the packet exists, not what it says - so the warning is not itself
+  at risk of being regenerated away.
+
+  **Is a warning enough, given a green gate still certifies the sentence? Yes, and I would say so
+  even if the alternative had been cheap.** The blocker I filed was that the packet sends its reader
+  to a document asserting the opposite and does not say so, and that nothing owns it. Both are now
+  false. The residue - that the gate asserts it - is real, but holding the stage does not produce
+  that fix. Removing the sentence needs a freeze re-open of `tests/**` and a contract amendment in a
+  contract with one line of headroom: a `contract-update` task with its own review, not something
+  stage 9 can do correctly in passing. Holding the stage would block a packet that now tells the
+  truth in order to wait for work that is not stage 9's. The one thing that would have changed my
+  answer is if the false sentence were load-bearing for the decision the reader makes, and it is
+  not: the reader decides on the headline measurement, and I re-derived every other figure in that
+  report myself in the first pass and they all stand.
+
+- **[resolved] B2** at `306d2dc`. The false 92 is gone. I re-counted at three points by parsing
+  `backlog.yml` at each commit against the merge base `1d89158`, which holds 250 entries: `e336c82`
+  holds 343 and adds 93; `306d2dc` and `HEAD` hold 344 and add 94. Five status changes at all three,
+  all deferred to done, and every added entry is `deferred`. So "93 at the commit that landed this
+  packet" is true of `e336c82`, which is the commit that landed it. The hedging is honest in
+  substance: the count really can only rise within the lane, and saying so stops a reader mistaking
+  growth for a defect. One residue below, which does not hold the stage.
+
+- **[resolved] B3** at `306d2dc`. The section now prints
+  `f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5`, which I compared character
+  by character against line 3 of `monotone-connected-cbet.json`: identical. It says **three** of the
+  numbers appear in the key and names them correctly as the `@2.5` price, the `p:5.5` pot and the
+  `e:97.5` stack, and says the 0.5 and the 1 come from `blind_structure`, which is where they are.
+  The added sentence that a disagreement between key and fields would itself be a defect is true, and
+  is the right thing to hand a reader who finds one.
+
+### The three as originally filed, kept for the record
+
 - **B1. The packet strikes the sentence and then sends its reader to a document that states it as
   fact.** `reports/active/latest_postflop_betting_report.txt:418` reads "The bot bets a flop and then
   refuses every turn.", and line 517 of the same file says the missing hands "ended at the turn
@@ -122,6 +169,57 @@ packet's replacement bullet is correct.
   key carries `t6` and `d100`, which the four things the reader was told to find do not.
 
 ## Non-blocker
+
+**Status at `306d2dc`.** N1 is fixed in all five places and N4 is fixed; I checked each edit rather
+than the report of it. Row 10 now reads "not checkable from the repo" with the reason and a verdict
+of "PASS, not by you", and the packet's opening paragraph now declares the checksums as the one class
+of figure recomputed for the reader rather than by them, which is the honest version. Step 5 warns
+off the `committed_bytes` line by name and says why the two figures do not belong to one sum. Step 6
+counts six rows and prints the zero addend. Row 13 is restated as "no **starting-range** weight",
+with a new paragraph separating the two senses of the word. The deep-solve section now carries the
+caller's lead beside the continuation bet, which closes N4. N2 and N5 are untouched and stand as
+written.
+
+**N3 is withdrawn, and I was wrong.** "The trade is deliberate and it is the right one" is decision
+25's own wording, verbatim - I found it in the decision list, and the packet now attributes it as
+"Decision 25 rules that trade deliberate and right, in those words". An attributed ruling is record,
+not advocacy, so the packet's closing claim that it carries exactly one unmarked poker judgement was
+right and my finding was wrong. The mistake was mine alone: I judged the sentence by how it read
+rather than checking whether the words were somebody's ruling, which is the same failure shape this
+phase has been removing all the way through, and I should have grepped the decision list before
+filing it. The two milder instances I raised beside it were style and are not worth a line of a
+packet at 492 of 500. The withdrawal leaves N5's bootstrap findings as the only live ones from that
+group.
+
+Three new items, all from the repair itself. Every one is an in-place edit that costs no net lines,
+which matters at 492 of 500:
+
+- **N6. The new pairing paragraph states an addition that does not add up.** Line 299 reads "the
+  80.86 and the 19.03 add to a continuation bet of 99.88 percent". They add to 99.89. The 99.88 is
+  correct as a frequency and comes from the other direction: hero checks 0.12 percent, so it bets
+  100 − 0.12 = 99.88. The stored frequencies are rounded to four places and sum to 1.0001, which is
+  why the two routes differ. This matters more than its size because the paragraph was added to
+  satisfy decision 21 and sits in a packet that invites the reader to check its arithmetic by hand;
+  a reader who adds the two printed numbers gets a third answer and has no way to tell which is
+  wrong. One-clause fix: say the check's 0.12 leaves a continuation bet of 99.88 percent.
+
+- **N7. The weights paragraph's 108 is right only under one reading of its own sentence.** It says a
+  reader will see "108 action weights below 0.01 and 63 at exactly 0" in
+  `monotone-connected-cbet.json`. Measured over that file's 456 action weights: 63 are exactly 0,
+  108 are strictly between 0 and 0.01, and 171 are at or below 0.01. Read as two disjoint buckets
+  the sentence is exactly right, and that is the reading I think it intends. Read the ordinary way,
+  where zero is below 0.01, the first number should be 171. One-word fix: "108 between 0 and 0.01".
+
+- **N8. The backlog figure is anchored to a commit the reader cannot name, and the hedge's stated
+  cause is not the cause of the gap that already exists.** The packet says 93 "at the commit that
+  landed this packet" and that the number "rises as later stages file their own". Both halves are
+  true in isolation, but no reader can resolve which commit landed the packet, and the one entry
+  already separating 93 from the tree in front of them was filed by this same stage's revision, not
+  by a later stage. So a reader who counts gets 94, is told in advance that a larger number is
+  expected, and can never falsify the figure. The five status changes carry the weight here and the
+  packet already says so, which is why this is not a blocker. In-place fix: give the number for the
+  tree the reader holds and let the rule cover the rest, rather than a number for a tree they cannot
+  identify.
 
 - **N1. Two of the twenty-one rows cannot be worked by the reader the table is for, and one of the
   six spot-check steps sets a trap.** I walked all twenty-one rows and all six steps as a reader with
@@ -217,18 +315,22 @@ packet's replacement bullet is correct.
 ## Alignment
 
 - `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES`. The packet makes this entry's cost
-  visible in a new way and should be read as evidence for it: checklist row 10 asks a non-coding
-  reviewer to confirm five checksums that the gate never re-derives and that the reader cannot reach.
-  I re-derived all five by hand for this note, which is now the third hand re-derivation this phase
-  has recorded. Already open, phase `contract-update`.
+  visible in a new way and should be read as evidence for it: row 10 now says out loud that five
+  checksums cannot be checked from the repo, which is the honest wording, and the reason they cannot
+  is that nothing in the gate re-derives them either. I re-derived all five by hand for this note,
+  which is now the third hand re-derivation this phase has recorded. The row 10 repair at `306d2dc`
+  makes the entry easier to read against, not less needed. Already open, phase `contract-update`.
 
-- `A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED`. The packet's one unmarked judgement (N3
-  above) argues that voiding the hand is the right trade because the bot never plays a line nobody
-  solved. This open entry, filed by this phase's own stage-6 domain review, argues that voiding
-  biases the surviving record of the bot's flop betting toward the bets that worked. Both can be
-  true, but the packet asserts the benefit and does not mention the cost, and the entry is not in the
-  packet's limitations list. The drift is long-term and belongs here rather than in a stage-9 edit.
-  Already open, phase 16.
+- `A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED`. Restated now that N3 is withdrawn, because
+  the substance survives the withdrawal and does not depend on it. Decision 25 rules that voiding is
+  the right trade, on the grounds that the bot never plays out a line nobody solved, and the packet
+  correctly records that ruling. This open entry, filed by this phase's own stage-6 domain review,
+  measures a cost on the other side: voiding erases the hands where a continuation bet got called and
+  keeps the ones where it got folded to, so the surviving record of the bot's flop betting is a
+  record of the times it worked. Both are true. The packet carries the ruling and not the entry, and
+  the entry is not in its limitations list, so a reader meets the benefit and never the cost. That is
+  long-term drift between a ruling and a measurement rather than anything stage 9 should edit into a
+  packet at 492 of 500. Already open, phase 16.
 
 - `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`. This entry and B1 above are
   the same fact seen from two sides: the entry corrects where the seam is, and B1 is the three places

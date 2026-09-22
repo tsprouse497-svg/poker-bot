@@ -155,8 +155,8 @@ the honest answers to the two questions a reader most wants answered.
 down; those are floored at 0.01 and row 13 is about them. An **action weight** says how often to
 take one of the offered actions with a given hand; those live in the `class_weights` block of a
 sample file and are free to be anything from 0 upwards. A reader who opens
-`monotone-connected-cbet.json` for the pot arithmetic will see 108 action weights below 0.01 and 63
-at exactly 0 in that one file. That is not a floor violation, it is the strategy saying "almost
+`monotone-connected-cbet.json` for the pot arithmetic will see, of its 456 action weights, 63 at
+exactly 0 and 108 between 0 and 0.01 - 171 at or below it. That is not a floor violation, it is the strategy saying "almost
 never" and "never".
 
 **Sixteen refusal reasons are listed in the report with a count of zero beside them and the word
@@ -296,8 +296,9 @@ iterations against 1,200, accuracy 0.2774 percent of pot against 0.0478 percent.
     bet 75% of pot     19.03%    24.16%    +0.0513
 
 This is the same situation as the section above, so **decision 21's pairing applies to every figure
-in that table and to the two below it**: the 80.86 and the 19.03 add to a continuation bet of 99.88
-percent, and that number does not travel without the caller's lead beside it. The big blind has
+in that table and to the two below it**: the check's 0.12 leaves a continuation bet of 99.88
+percent - take it that way round, because the two bet figures are rounded and add to 99.89 - and
+that number does not travel without the caller's lead beside it. The big blind has
 already bet 52.68 percent of its range, taking about three quarters of its flushes and three
 quarters of its sets out of the pot, before hero is asked at all. Read the table as what hero does
 with what is left, never as what hero does on a flop.
@@ -354,9 +355,9 @@ the contract sits at 299 of its 300-line cap.
 
 Measured here against the point this lane last took `main` from: it changes the status of exactly
 **five** entries, all from deferred to done, and every entry it adds is filed deferred. The added
-count was **93** at the commit that landed this packet and rises as later stages file their own, so
-a reader who recounts and gets a larger number has not found a discrepancy. The five status changes
-are the stable figure and the one worth checking.
+count is **94** in the tree this packet ships in. It can only rise, never fall, because closeout
+files and never withdraws, so a reader who recounts and gets more has not found a discrepancy and a
+reader who gets fewer has. The five status changes are the stable figure and the one worth checking.
 
 **Closed.** `V2-POSTFLOP-STRATEGY`, on capability rather than coverage, and honest only while the
 three coverage entries below stay open. `POSTFLOP-POT-ODDS-AGAINST-UNSEEN-DECK`, which ships exactly
