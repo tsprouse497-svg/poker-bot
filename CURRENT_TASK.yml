@@ -1,38 +1,8 @@
-task_id: PHASE_16_POSTFLOP_BETTING
-active_phase: '16'
-task_mode: implementation
-base_commit: 5df28262e55f990ef3d87f5ccca2825492118f85
-approved_scope:
-  - reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md
-  - docs/V2_ROADMAP.md
-  - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
-  - src/poker_training_bot/solver_artifacts/postflop_key.py
-  - src/poker_training_bot/solver_artifacts/postflop_isomorphism.py
-  - src/poker_training_bot/solver_artifacts/postflop_sizing.py
-  - src/poker_training_bot/solver_artifacts/postflop_artifact.py
-  - src/poker_training_bot/solver_artifacts/postflop_solve_driver.py
-  - src/poker_training_bot/strategy/postflop_betting.py
-  - src/poker_training_bot/strategy/refusal_detail.py
-  - src/poker_training_bot/strategy/postflop_committed.py
-  - src/poker_training_bot/strategy/postflop_spot_queries.py
-  - src/poker_training_bot/strategy/river_pot_odds.py
-  - src/poker_training_bot/strategy/contract.py
-  - src/poker_training_bot/strategy/composite.py
-  - src/poker_training_bot/strategy/postflop_fallback.py
-  - src/poker_training_bot/poker_core/positions.py
-  - src/poker_training_bot/simulator/run.py
-  - scripts/generate_postflop_betting_report.py
-  - scripts/generate_postflop_fallback_report.py
-  - reports/phase_audits/decisions/PHASE_16_POSTFLOP_BETTING_DECISIONS.md
-  - reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/**
-  - scripts/run_verify.py
-  - scripts/quality_checks.py
-  - scripts/run_full_quality_gate.py
-  - data/artifacts/postflop/**
-  - src/poker_training_bot/solver_artifacts/postflop_transport.py
-  - src/poker_training_bot/solver_artifacts/postflop_harvest.py
-  - scripts/solve_postflop_sample.py
-  - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
+task_id: null
+active_phase: null
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml

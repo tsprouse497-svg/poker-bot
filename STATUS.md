@@ -1,10 +1,10 @@
 # Status
 
 Project: `poker-training-bot`
-Current task: `PHASE_16_POSTFLOP_BETTING`
-Task mode: `implementation`
-Active phase: `16`
-Completed phases: `15`
+Current task: `none (idle)`
+Task mode: `idle`
+Active phase: `none`
+Completed phases: `16`
 
 ## Phase Snapshot
 
@@ -26,7 +26,7 @@ Completed phases: `15`
 | 13 | completed | `docs/phase_contracts/PHASE_13_TABLE_STATE.md` | `reports/phase_audits/PHASE_13_TABLE_STATE.md` |
 | 14 | completed | `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` | `reports/phase_audits/PHASE_14_CHART_CUTOVER.md` |
 | 15 | future | `docs/phase_contracts/PHASE_15_DRILL.md` | `reports/phase_audits/PHASE_15_DRILL.md` |
-| 16 | active | `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` | `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` |
+| 16 | completed | `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` | `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` |
 | 17 | future | `docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md` | `reports/phase_audits/PHASE_17_CORPUS_VERDICT.md` |
 
 ## Verification
