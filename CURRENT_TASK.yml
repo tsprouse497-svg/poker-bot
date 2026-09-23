@@ -1,12 +1,8 @@
-task_id: MAINT-36
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 40b53f6898e43ee9a11706ccb7a0b76275724a13
-approved_scope:
-- reports/phase_audits/PHASE_14_CHART_CUTOVER.md
-- reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-11-advance.md
-- reports/phase_audits/MAINT_36_PHASE_14_SIGN_OFF.md
-- reports/phase_audits/reviews/MAINT_36_PHASE_14_SIGN_OFF/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml

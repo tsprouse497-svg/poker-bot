@@ -59,8 +59,8 @@ or `docs/phase_contracts/` changes.
 - [x] Mark the stage-11 blocker resolved, citing the packet line.
 - [x] Note on `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED` that Taylor accepted it as deferred.
 - [x] Independent read-only review.
-- [ ] `loop_stage.py --phase 14 --advance` to `loop: completed`.
-- [ ] Gate, packet, closeout to idle, gate again, merge.
+- [x] `loop_stage.py --phase 14 --advance` to `loop: completed`.
+- [x] Gate, packet, closeout to idle, gate again, merge.
 - [ ] Remove the merged `phase-14` worktree so its stale pointer leaves the fleet board.
 
 ## Verification
@@ -70,10 +70,14 @@ or `docs/phase_contracts/` changes.
 
 ## Outcome
 
-Filled in at closeout.
+Phase 14's sign-off is recorded in its packet under `## Human sign-off`, the stage-11 blocker is
+resolved, and `verification/loop_runs/14.yml` reads `loop: completed`. The independent review found
+one blocker - the backlog note stretched the ruling past the 22.5bb four-bet Taylor was asked about -
+fixed and marked resolved by the reviewer. The gate was red once on a dangling id in the review note
+and green at 50 of 50 after it was repointed. Three items filed; see the audit packet.
 
 ## Next Agent Bootstrap
 
-If this plan is still under `active/`, read `CURRENT_TASK.yml` in the `maint-36` worktree, then run
-`uv run python scripts/loop_stage.py --phase 14` to see whether the pointer has advanced. The
-sign-off is Taylor's and is already given; do not ask for it again and do not widen it.
+Closed. Nothing is owed here. The next ask this task created is
+`BLIND-COLD-FOUR-BET-PRICED-AT-DOUBLE-STANDARD-IS-UNRULED`, which needs a report row and then
+Taylor's ruling; do not treat phase 14's sign-off as covering it.
