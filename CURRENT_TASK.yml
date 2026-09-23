@@ -20,6 +20,15 @@ forbidden_scope:
 scope_change_log:
   - date: 2026-09-22
     reason: >-
+      MAINT-36 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts all four on the record. Taylor signed off phase 14 on
+      2026-09-22, and the stage-11 review holds the lane until that sign-off is written where a reader
+      can find it. `docs/DEFINITION_OF_DONE.md` puts a human sign-off verdict in the phase audit packet,
+      so phase 14's packet is edited by one short section and nothing else in it moves; the stage-11
+      note's one blocker is marked resolved; and this task's own packet and review note are the other
+      two paths. No range, price, artifact or test changes.
+  - date: 2026-09-22
+    reason: >-
       The audit packet and its review directory join `approved_scope`, which is the same widening every
       task makes when it reaches closeout: `AGENTS.md` requires an audit packet and requires the
       independent review's findings to be recorded in it, and neither path is in `standing_scope`.

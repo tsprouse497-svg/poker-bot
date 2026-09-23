@@ -3694,6 +3694,9 @@ items:
       ExecPlan rather than in place. Phase 13 took the third route for the detail and the first
       eight lines in place.
       Raised by the independent stage-10 review of phase 13.
+      A second instance, 2026-09-22: MAINT-36 wrote Taylor's sign-off into phase 14's packet as a
+      four-line section at its foot, which took it to 499 of 500. The next correction to that packet
+      has no room either. Raised by MAINT-36's independent review.
   - id: DELEGATION-EXCEPTION-IS-NEVER-CHECKED
     status: deferred
     phase: contract-update
@@ -3898,6 +3901,11 @@ items:
       stage-2 reviewer showed the old ruling was made against a source where the case never arose -
       the GTO Wizard source has zero spots offering an all-in and no named raise, and the GTOpen
       export has 4,257 - so a live poker question would have gone to nobody.
+      A second instance, found 2026-09-22 by MAINT-36's independent review: phase 14's decision 36
+      carried the default `[leave-at-3.0-and-file]` with "(pending Taylor)" written beside it, and
+      `unanswered_frozen` read that as answered, so the four-bet size sat unasked for three weeks
+      until the phase 14 sign-off put it to Taylor directly. An answer line that also says pending
+      should count as unanswered.
       The recording use is legitimate and should not be removed: a decision list ought to carry a
       choice that some other document already settled, so a reader meets it in one place. What is
       missing is a distinct marker - a class or an answer form meaning "ruled elsewhere, and here
@@ -6480,6 +6488,11 @@ items:
       priced like poker, and this entry is where the difference is recorded. The figures here were
       re-derived from the committed sizings artifact and the reference's own action labels;
       everything earlier in this entry belongs to the 7.5bb solve and is history.
+      TAYLOR RULED 2026-09-22 TO LEAVE PHASE 14'S HALF DEFERRED, recorded by MAINT-36. Decision 36 was
+      ruled fixed and never done; asked again at phase 14's sign-off, Taylor accepted phase 14's 22.5bb
+      four-bet shipping as known defect 4 for now, which is what phase 14's packet records under
+      `## Human sign-off`. The question named that defect and not the MAINT-34 prices above, so the
+      40.5bb four-bet and the blind cold-four-bet at 5.4x are NOT ruled on by it and stay unruled.
 
   - id: FOUR-BET-BLUFFS-ARE-CHOSEN-WITHOUT-BLOCKERS
     status: deferred
@@ -10176,3 +10189,20 @@ items:
       it belongs in the same task as any future move of `MEMORY_CEILING_FRACTION`, because the two
       numbers multiply. Found by phase 16's stage-6 arena lane, 2026-09-20, which raised the fraction
       under decision 20 without touching the reading.
+
+  - id: BLIND-COLD-FOUR-BET-PRICED-AT-DOUBLE-STANDARD-IS-UNRULED
+    status: deferred
+    phase: charts
+    title: A blind's cold four-bet is priced at about double a standard four-bet and nobody has ruled on it
+    reason: >-
+      Since MAINT-34 the shipped chart prices four-bets three ways, measured in
+      `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED`: 22.5bb, 40.5bb, and hero's whole stack. Inside
+      the 40.5bb family, 26 spots have a BLIND cold-four-betting an in-position 7.5bb three-bet at
+      5.4x, where the raked reference answering an 8bb three-bet raises to 21.5, or 2.69x. So it is
+      roughly double a standard price. It appears in no column of any committed report and lives only
+      as a paragraph inside an entry whose title and phase 14 defect number describe the milder
+      22.5bb case. Taylor's 2026-09-22 phase 14 sign-off accepted that milder case as deferred defect
+      4 and was not asked about this one, so it is unruled rather than accepted. Without its own id it
+      is likely to keep being accepted under the smaller description. What is owed: publish it in a
+      report beside the 22.5bb rows, then put it to Taylor as its own question. Proposed by MAINT-36's
+      independent review.

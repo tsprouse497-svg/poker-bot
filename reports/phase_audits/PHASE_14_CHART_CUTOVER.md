@@ -493,3 +493,7 @@ percent or better, the textbook shape, its total three-bet frequency of 6.07 per
 any raise weight there - it is the bluff half, lower down and against the small blind, that is chosen backwards. Defence against
 a three-bet is monotone in position, 58.96 and 63.09 against the two blinds who play out of position against 57.94, 55.35 and
 52.44 against the button, cutoff and hijack.
+
+## Human sign-off
+**Taylor signed phase 14 off on 2026-09-22, as shipped**, on his 2026-09-05 publish-and-ship and 2026-09-06 opening-range
+rulings, all five accepted defects standing. Decision 36 is settled as deferred, not fixed: defect 4 (MAINT-36).
