@@ -195,6 +195,20 @@ def pointers(worktree: Path) -> list[Path]:
 LIVE_LOOPS = {"running", "halted"}
 
 
+def pointer_states(worktree: Path) -> dict[str, dict]:
+    """The pointer that speaks for each phase in one worktree.
+
+    Newest layout first, so a worktree carrying both a per-lane pointer and the
+    single-lane file it was migrated from is read from the per-lane one.
+    """
+    states: dict[str, dict] = {}
+    for pointer in pointers(worktree):
+        state = yaml.safe_load(pointer.read_text(encoding="utf-8")) or {}
+        if state.get("phase_id"):
+            states.setdefault(str(state["phase_id"]), state)
+    return states
+
+
 def lanes() -> list[Lane]:
     """Every loop this repo is currently running, across every worktree.
 
@@ -202,20 +216,34 @@ def lanes() -> list[Lane]:
     the record that a phase once ran in that worktree, not a claim that one runs
     there now, and counting it would make a finished phase look like it was
     occupying a lane forever.
+
+    A phase with a pointer on `main` is read from `main` and nowhere else. Every
+    worktree that branched after a lane merged carries a copy of its pointer frozen
+    at whatever `main` said then, so reading them all listed one finished phase as
+    a running lane once per copy, and repeated its asks as often. `main` is the only tree
+    that describes the repo, and its pointer moves only when the loop really
+    advances; `phase_status.yml` is not used instead because a phase is marked
+    `completed` there before its sign-off is given, and that would hide the ask. A
+    phase with no pointer on `main` is a lane that has not merged, and its own
+    worktree is still the only place it can be read.
     """
+    trees = worktrees()
+    integrated: dict[str, dict] = {}
+    for worktree, branch in trees:
+        if branch == INTEGRATION_REF:
+            integrated = pointer_states(worktree)
     found: dict[tuple[str, Path], Lane] = {}
-    for worktree, branch in worktrees():
-        # Newest layout first, so a worktree carrying both a per-lane pointer and
-        # the single-lane file it was migrated from reports one lane, not two.
-        for pointer in pointers(worktree):
-            state = yaml.safe_load(pointer.read_text(encoding="utf-8")) or {}
-            if state.get("loop") not in LIVE_LOOPS or not state.get("phase_id"):
+    for worktree, branch in trees:
+        on_main = branch == INTEGRATION_REF
+        for phase_id, state in pointer_states(worktree).items():
+            if phase_id in integrated and not on_main:
                 continue
-            key = (str(state["phase_id"]), worktree)
+            if state.get("loop") not in LIVE_LOOPS:
+                continue
             found.setdefault(
-                key,
+                (phase_id, worktree),
                 Lane(
-                    phase_id=str(state["phase_id"]),
+                    phase_id=phase_id,
                     worktree=worktree,
                     branch=branch,
                     stage=int(state.get("stage", 0)),

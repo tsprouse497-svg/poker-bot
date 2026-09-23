@@ -141,6 +141,63 @@ def test_only_running_and_halted_pointers_are_lanes(monkeypatch, tmp_path) -> No
     ]
 
 
+def fleet(tmp_path: Path, *names: str) -> list[tuple[Path, str]]:
+    """A `main` worktree followed by one sibling per name, each an empty directory."""
+    trees = [(tmp_path / "main", "main")]
+    trees += [(tmp_path / name.replace("/", "-"), name) for name in names]
+    for tree, _ in trees:
+        tree.mkdir()
+    return trees
+
+
+def test_a_completed_pointer_on_main_retires_every_stale_copy(monkeypatch, tmp_path) -> None:
+    """The bug this replaced: nine siblings still read `running` for a phase `main`
+    had completed, and the board listed it once per copy."""
+    trees = fleet(tmp_path, "maint/30-x", "phase/16-x")
+    write_pointer(trees[0][0], "14", stage=11, loop="completed")
+    write_pointer(trees[1][0], "14", stage=11)
+    write_pointer(trees[2][0], "14", stage=11)
+    monkeypatch.setattr(loop_fleet, "worktrees", lambda: trees)
+    assert loop_fleet.lanes() == []
+
+
+def test_a_live_pointer_on_main_is_listed_once_from_main(monkeypatch, tmp_path) -> None:
+    trees = fleet(tmp_path, "phase/16-x")
+    write_pointer(trees[0][0], "16", stage=11)
+    write_pointer(trees[1][0], "16", stage=9)
+    monkeypatch.setattr(loop_fleet, "worktrees", lambda: trees)
+    assert [(lane.phase_id, lane.worktree, lane.stage) for lane in loop_fleet.lanes()] == [
+        ("16", trees[0][0], 11)
+    ]
+
+
+def test_a_lane_with_no_pointer_on_main_is_read_from_its_own_worktree(
+    monkeypatch, tmp_path
+) -> None:
+    """An unmerged lane has nothing on `main` to defer to."""
+    trees = fleet(tmp_path, "phase/17-x")
+    write_pointer(trees[0][0], "14", stage=11, loop="completed")
+    write_pointer(trees[1][0], "14", stage=11)
+    write_pointer(trees[1][0], "17", stage=6, loop="halted", halt_reason="red twice")
+    monkeypatch.setattr(loop_fleet, "worktrees", lambda: trees)
+    assert [(lane.phase_id, lane.worktree, lane.loop) for lane in loop_fleet.lanes()] == [
+        ("17", trees[1][0], "halted")
+    ]
+
+
+def test_a_completed_legacy_pointer_on_main_retires_a_stale_legacy_copy(
+    monkeypatch, tmp_path
+) -> None:
+    trees = fleet(tmp_path, "phase/11-x")
+    for (tree, _), loop in zip(trees, ("completed", "running"), strict=True):
+        (tree / "verification").mkdir()
+        (tree / "verification" / "loop_state.yml").write_text(
+            yaml.safe_dump({"phase_id": "10", "stage": 11, "loop": loop}), encoding="utf-8"
+        )
+    monkeypatch.setattr(loop_fleet, "worktrees", lambda: trees)
+    assert loop_fleet.lanes() == []
+
+
 def test_a_lane_carries_its_stage_name() -> None:
     lane = loop_fleet.Lane("11", Path("/tmp"), "phase/11-x", 5, "running", "")
     assert lane.stage_name == "freeze"

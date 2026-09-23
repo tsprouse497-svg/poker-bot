@@ -427,6 +427,17 @@ mutations:
     must_fail:
       - pytest_loop_fleet
 
+  - id: stale-pointer-copy-outvotes-main
+    description: >-
+      Every worktree's copy of a lane pointer counts again, not only main's, so a phase main
+      has completed is listed as running once per sibling that branched before it finished,
+      and the review queue repeats each of its asks per copy.
+    file: scripts/loop_fleet.py
+    find: "            if phase_id in integrated and not on_main:"
+    replace: "            if False:"
+    must_fail:
+      - pytest_loop_fleet
+
   - id: dependency-cycle-goes-unreported
     description: >-
       A cycle in depends_on stops being detected, so a whole group of phases becomes

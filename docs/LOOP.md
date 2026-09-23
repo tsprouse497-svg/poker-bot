@@ -30,6 +30,8 @@ It also refuses while the stage owes a review, which is explained below.
 
 `scripts/loop_fleet.py` drives the board rather than a phase.
 A lane is a git worktree on its own `phase/NN-slug` branch, holding its own pointer under `verification/loop_runs/`, so two lanes never write the same file and neither can see the other's half-finished work.
+Every worktree that branched after a lane merged carries a stale copy of that lane's pointer, so when the worktree on `main` holds a pointer for a phase, that copy is the only one the board reads: completed there retires the phase everywhere, and live there lists it once, from `main`.
+A phase with no pointer on `main` has not merged and is read from its own worktree.
 
 ```
 uv run python scripts/loop_fleet.py --plan          # which phases may start now
