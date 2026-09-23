@@ -28,7 +28,10 @@ under `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED`. Put to him directly - leav
 known, deferred defect for now - he answered "yea, i'm fine with that."
 
 So the verdict is: **phase 14 signed off as shipped, all five accepted defects standing, decision 36
-settled as deferred rather than fixed.**
+settled as deferred rather than fixed.** The question named phase 14's own four-bet, 22.5bb, and
+nothing else. The two four-bet prices MAINT-34 introduced after phase 14 - 40.5bb, and a blind's
+cold four-bet at 5.4x - were not put to him and this sign-off does not rule on them; the review
+filed them as their own unruled item.
 
 ## Scope
 
@@ -47,15 +50,15 @@ or `docs/phase_contracts/` changes.
   inspect that the sign-off states no more than Taylor ruled, that the packet stays under its
   500-line cap, that the stage-11 blocker is the only thing marked resolved, that the backlog note
   on decision 36 matches the packet, and that nothing outside approved and standing scope moved.
-- Status: review planned; the note goes to `reports/phase_audits/reviews/MAINT_36_PHASE_14_SIGN_OFF/review.md`.
+- Status: review completed, one blocker found and resolved; see `reports/phase_audits/reviews/MAINT_36_PHASE_14_SIGN_OFF/review.md`.
 
 ## Slices
 
-- [ ] Activate MAINT-36 in `CURRENT_TASK.yml` with a dated scope entry.
-- [ ] Add the sign-off to phase 14's packet.
-- [ ] Mark the stage-11 blocker resolved, citing the packet line.
-- [ ] Note on `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED` that Taylor accepted it as deferred.
-- [ ] Independent read-only review.
+- [x] Activate MAINT-36 in `CURRENT_TASK.yml` with a dated scope entry.
+- [x] Add the sign-off to phase 14's packet.
+- [x] Mark the stage-11 blocker resolved, citing the packet line.
+- [x] Note on `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED` that Taylor accepted it as deferred.
+- [x] Independent read-only review.
 - [ ] `loop_stage.py --phase 14 --advance` to `loop: completed`.
 - [ ] Gate, packet, closeout to idle, gate again, merge.
 - [ ] Remove the merged `phase-14` worktree so its stale pointer leaves the fleet board.
