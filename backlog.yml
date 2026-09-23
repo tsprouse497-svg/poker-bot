@@ -1,5 +1,55 @@
 schema_version: 1
 items:
+  - id: THE-SCOPE-CHANGE-LOG-IS-NEARLY-HALF-DUPLICATES-AND-A-MERGE-PUT-THEM-THERE
+    status: deferred
+    phase: maintenance
+    title: CURRENT_TASK.yml carries 399 scope-change entries of which 221 are distinct, and one merge did it
+    reason: >-
+      Found 2026-09-22 by phase 16's stage-11 review and re-derived by the coordinator: the committed
+      `scope_change_log` holds 399 entries, 221 of them distinct, with 176 appearing more than once
+      and one appearing four times.
+      The cause is a single merge and it is this lane's. The log ran at 177 entries until `d7712d5`,
+      the first main-into-lane merge of phase 16, which resolved the conflicted log by concatenating
+      main's block onto the lane's instead of merging it by content, and jumped it to 391 with 178
+      redundant. Every merge since carried it forward. The later merge at `eb28319` deduplicated
+      correctly - 221 distinct on both sides, nothing dropped, nothing invented - so the technique is
+      known and only the damage is outstanding.
+      Nothing noticed because nothing looks. `CURRENT_TASK.yml` is under no line cap and no check
+      reads the log's contents, so the file is 4,336 lines and every task reads it at start of work.
+      The repair is a maintenance task: deduplicate by content, keeping first occurrence and the
+      original order, and confirm the distinct set is unchanged before and after. It is not phase
+      16's, and it is on `main` now rather than in a lane.
+      Filed 2026-09-22.
+
+  - id: THE-LOOP-REVIEWS-AN-INTEGRATION-ONLY-AFTER-IT-IS-IRREVERSIBLE
+    status: deferred
+    phase: maintenance
+    title: The merge is stage 10's last instruction and the review that can see it is stage 11's
+    reason: >-
+      `scripts/loop_stage.py` gives stage 10 the instruction "file the ExecPlan as completed, set the
+      phase completed, tag, reset to idle, gate again, commit, merge the branch", and gives stage 11
+      only "consult `verification/loop_policy.yml`: continue into the next phase, or halt". So the
+      merge is the last thing stage 10 does and the first independent look at how its conflicts were
+      resolved is stage 11's review, which cannot run until stage 10 is finished. **Every integration
+      resolution this repo has made has been reviewed after the merge and the tag**, and a reviewer
+      whose only available verdict is "fix it forward" is a weaker instrument than one that can hold
+      a stage.
+      Found 2026-09-22 by phase 16's stage-11 review, which was asked whether the coordinator had
+      pushed in the wrong order and answered that the order is the loop's rather than the
+      coordinator's, and that the push is the smaller half because the tag and the merge were already
+      the point of no return.
+      **File it on the structure rather than on an outcome.** In phase 16 the ordering cost nothing:
+      every resolution held, the gate ran 50 of 50 on the merged tree and again on `main`, and the
+      one defect that review found predates the merge. That it cost nothing this time is the argument
+      that will be made next time. The evidence that it is not theoretical is in the same review:
+      `THE-SCOPE-CHANGE-LOG-IS-NEARLY-HALF-DUPLICATES-AND-A-MERGE-PUT-THEM-THERE` was introduced by a
+      merge in this same lane and survived several more merges, because merge resolutions here had
+      never had an independent reader until this one.
+      `AGENTS.md` names self-certified review as the failure this machinery exists to prevent, which
+      is what makes this worth a repair rather than a note. `FLEET-AND-STAGE-DRIVERS-DISAGREE-ABOUT-INTEGRATION`
+      is adjacent and does not cover it: that entry is about tag order and lane lockout.
+      Filed 2026-09-22.
+
   - id: THE-BIG-BLIND-DEFENCE-WAS-ACCEPTED-ON-TWO-ARGUMENTS-AND-ONE-OF-THEM-HAS-EXPIRED
     status: deferred
     phase: contract-update
