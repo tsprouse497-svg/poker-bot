@@ -6480,6 +6480,10 @@ items:
       priced like poker, and this entry is where the difference is recorded. The figures here were
       re-derived from the committed sizings artifact and the reference's own action labels;
       everything earlier in this entry belongs to the 7.5bb solve and is history.
+      TAYLOR RULED 2026-09-22 TO LEAVE IT DEFERRED, recorded by MAINT-36. Decision 36 was ruled fixed and
+      never done; asked again at phase 14's sign-off, Taylor accepted the four-bet size shipping as known
+      defect 4 for now. The entry stays deferred on that ruling rather than on the stale one, and phase
+      14's packet records the same verdict under `## Human sign-off`.
 
   - id: FOUR-BET-BLUFFS-ARE-CHOSEN-WITHOUT-BLOCKERS
     status: deferred

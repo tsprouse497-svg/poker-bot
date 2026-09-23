@@ -1,0 +1,76 @@
+# MAINT-36: Record Taylor's Phase 14 Sign-Off
+
+- **Task** `MAINT_36_PHASE_14_SIGN_OFF`
+- **Mode** `maintenance`
+- **Branch** `maint/36-phase-14-sign-off`, worktree `~/projects/poker-bot-worktrees/maint-36`
+- **Base** `40b53f6898e43ee9a11706ccb7a0b76275724a13`, which is `main`
+- **Authorised by** Taylor, 2026-09-22, in session
+
+## Objective
+
+Phase 14 is merged, tagged `phase-14-complete` and `completed` in `phase_status.yml`, but its lane
+pointer `verification/loop_runs/14.yml` sits at stage 11 with `loop: running`. It is
+`auto_advance: false` in `verification/loop_policy.yml` because it commits the chart the bot plays,
+and the stage-11 review (`reports/phase_audits/reviews/PHASE_14_CHART_CUTOVER/stage-11-advance.md`)
+holds the stage on one blocker: the human sign-off is recorded nowhere.
+
+Taylor gave it on 2026-09-22. This task writes it down, releases the blocker and advances the lane
+to `loop: completed`.
+
+## The sign-off, as given
+
+Asked what was needed to sign off phase 14, Taylor said the content had already been decided. That
+is true of the record: on 2026-09-05 he ruled to publish and ship the chart rather than re-solve or
+soften it, and on 2026-09-06 he added the narrow opening ranges as the fifth accepted defect. The
+one item the packet itself says is "back with Taylor" is decision 36, the four-bet size, which he
+ruled fixed on a coordinator statement that turned out wrong and which ships as accepted defect 4
+under `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED`. Put to him directly - leave the four-bet as a
+known, deferred defect for now - he answered "yea, i'm fine with that."
+
+So the verdict is: **phase 14 signed off as shipped, all five accepted defects standing, decision 36
+settled as deferred rather than fixed.**
+
+## Scope
+
+Approved: phase 14's audit packet (one short section), the stage-11 review note (the blocker marked
+resolved), this task's packet and review directory. Standing scope covers `CURRENT_TASK.yml`,
+`backlog.yml`, `verification/loop_runs/**` and this plan. Nothing under `data/`, `src/`, `tests/`
+or `docs/phase_contracts/` changes.
+
+## Delegation Plan
+
+- No-delegation exception: the implementation is transcribing a ruling Taylor gave in this session
+  into three files, and the ruling exists only in this conversation. A lane cannot see it, so a lane
+  would be writing down what the coordinator told it, which adds a relay and no check. The check
+  that is owed is the independent review below.
+- Review handoff: one read-only reviewer that wrote none of this, with no gate runs. It must
+  inspect that the sign-off states no more than Taylor ruled, that the packet stays under its
+  500-line cap, that the stage-11 blocker is the only thing marked resolved, that the backlog note
+  on decision 36 matches the packet, and that nothing outside approved and standing scope moved.
+- Status: review planned; the note goes to `reports/phase_audits/reviews/MAINT_36_PHASE_14_SIGN_OFF/review.md`.
+
+## Slices
+
+- [ ] Activate MAINT-36 in `CURRENT_TASK.yml` with a dated scope entry.
+- [ ] Add the sign-off to phase 14's packet.
+- [ ] Mark the stage-11 blocker resolved, citing the packet line.
+- [ ] Note on `PREFLOP-FOUR-BET-SIZE-IS-A-QUARTER-OVERSIZED` that Taylor accepted it as deferred.
+- [ ] Independent read-only review.
+- [ ] `loop_stage.py --phase 14 --advance` to `loop: completed`.
+- [ ] Gate, packet, closeout to idle, gate again, merge.
+- [ ] Remove the merged `phase-14` worktree so its stale pointer leaves the fleet board.
+
+## Verification
+
+`uv run python scripts/run_verify.py` and `uv run python scripts/check_scope.py`. Then
+`scripts/loop_fleet.py` and `scripts/review_queue.py` from `main` show no phase 14 lane.
+
+## Outcome
+
+Filled in at closeout.
+
+## Next Agent Bootstrap
+
+If this plan is still under `active/`, read `CURRENT_TASK.yml` in the `maint-36` worktree, then run
+`uv run python scripts/loop_stage.py --phase 14` to see whether the pointer has advanced. The
+sign-off is Taylor's and is already given; do not ask for it again and do not widen it.
