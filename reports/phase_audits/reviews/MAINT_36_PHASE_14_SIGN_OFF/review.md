@@ -91,7 +91,7 @@ did not see the session.
   26 spots lives only as a paragraph inside a backlog entry whose title and phase 14 defect number
   describe a milder defect, appears in no committed report, and has never been put to Taylor. It is
   likely to keep being accepted under the older, smaller description unless it has its own id.
-- Proposed `A-PRE-FILLED-ANSWER-WITH-A-PENDING-NOTE-PASSES-THE-HUMAN-GATE`, or fold into whatever id
+- Proposed a new id for this (the coordinator folded it into `PRE-FILLED-ANSWER-HIDES-AN-ITEM-FROM-THE-PAUSE-BOARD`, which already carries the trap), or fold into whatever id
   already carries the answer-bracket trap if one exists: `unanswered_frozen` should treat an answer
   line that also says "pending" as unanswered.
 
