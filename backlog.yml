@@ -2579,6 +2579,9 @@ items:
       rides along: the runbook prints git -C REPO_ROOT checkout main, and REPO_ROOT is the
       worktree that owns the repository, which on a machine with a main lane already has main
       checked out elsewhere and refuses. It belongs to whoever owns the two drivers.
+      EXTENDED 2026-09-23 by MAINT-37. The board now reads a merged phase from main and from its own
+      lane branch, taking whichever copy is further along, so the order a lane merges and advances in
+      no longer changes what the board shows. What is still unruled is which order is intended.
   - id: BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE
     status: deferred
     phase: contract-update
@@ -2663,6 +2666,11 @@ items:
       for the same defect and which this lane could not see until the merge. Both are kept and
       whichever task takes the ruling should close both; see
       TWO-LANES-CAN-FILE-ONE-DEFECT-TWICE for why two exist.
+      CORRECTED 2026-09-23 by MAINT-37. "The board is unaffected" was wrong: every worktree that
+      branched or rebased after a lane merged carries a stale copy of its pointer, and lanes() listed
+      phase 14 nine times after main completed it. MAINT-37 fixed the board side - a merged phase is
+      read from main and its own lane branch only - and the root defect here, that nothing retires a
+      finished pointer, is still open.
   - id: EXECPLAN-REQUIRED-FOR-A-TASK-WITH-NO-IMPLEMENTATION
     status: deferred
     phase: contract-update

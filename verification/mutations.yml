@@ -429,11 +429,11 @@ mutations:
 
   - id: stale-pointer-copy-outvotes-main
     description: >-
-      Every worktree's copy of a lane pointer counts again, not only main's, so a phase main
-      has completed is listed as running once per sibling that branched before it finished,
-      and the review queue repeats each of its asks per copy.
+      Every worktree's copy of a lane pointer counts again, not only main's and the lane's
+      own, so a phase main has completed is listed as running once per sibling that branched
+      or rebased before it finished, and the review queue repeats each of its asks per copy.
     file: scripts/loop_fleet.py
-    find: "            if phase_id in integrated and not on_main:"
+    find: "            if phase_id not in integrated:"
     replace: "            if False:"
     must_fail:
       - pytest_loop_fleet

@@ -198,6 +198,51 @@ def test_a_completed_legacy_pointer_on_main_retires_a_stale_legacy_copy(
     assert loop_fleet.lanes() == []
 
 
+def test_a_lane_that_advanced_past_main_is_read_from_its_own_worktree(
+    monkeypatch, tmp_path
+) -> None:
+    """A lane can merge at stage 10 and then halt at 11 in its own tree; main's older
+    copy must not hide that halt or the sign-off it owes."""
+    trees = fleet(tmp_path, "maint/30-x", "phase/14-chart-cutover")
+    write_pointer(trees[0][0], "14", stage=10)
+    write_pointer(trees[1][0], "14", stage=11, loop="halted", halt_reason="stale")
+    write_pointer(trees[2][0], "14", stage=11, loop="halted", halt_reason="sign off")
+    monkeypatch.setattr(loop_fleet, "worktrees", lambda: trees)
+    assert [
+        (lane.phase_id, lane.worktree, lane.loop, lane.halt_reason) for lane in loop_fleet.lanes()
+    ] == [("14", trees[2][0], "halted", "sign off")]
+
+
+def test_a_completed_pointer_on_main_outranks_its_own_lanes_stale_copy(
+    monkeypatch, tmp_path
+) -> None:
+    trees = fleet(tmp_path, "phase/14-chart-cutover")
+    write_pointer(trees[0][0], "14", stage=11, loop="completed")
+    write_pointer(trees[1][0], "14", stage=11)
+    monkeypatch.setattr(loop_fleet, "worktrees", lambda: trees)
+    assert loop_fleet.lanes() == []
+
+
+def test_main_wins_a_tie_with_its_own_lane(monkeypatch, tmp_path) -> None:
+    trees = fleet(tmp_path, "phase/14-chart-cutover")
+    write_pointer(trees[0][0], "14", stage=11)
+    write_pointer(trees[1][0], "14", stage=11)
+    monkeypatch.setattr(loop_fleet, "worktrees", lambda: trees)
+    assert [(lane.phase_id, lane.worktree) for lane in loop_fleet.lanes()] == [
+        ("14", trees[0][0])
+    ]
+
+
+def test_a_completed_pointer_speaks_over_the_legacy_file_beside_it(monkeypatch, tmp_path) -> None:
+    """Newest layout first, within one worktree, whatever each file says."""
+    write_pointer(tmp_path, "10", stage=11, loop="completed")
+    (tmp_path / "verification" / "loop_state.yml").write_text(
+        yaml.safe_dump({"phase_id": "10", "stage": 7, "loop": "running"}), encoding="utf-8"
+    )
+    monkeypatch.setattr(loop_fleet, "worktrees", lambda: [(tmp_path, "phase/10-x")])
+    assert loop_fleet.lanes() == []
+
+
 def test_a_lane_carries_its_stage_name() -> None:
     lane = loop_fleet.Lane("11", Path("/tmp"), "phase/11-x", 5, "running", "")
     assert lane.stage_name == "freeze"
