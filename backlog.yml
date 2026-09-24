@@ -10031,6 +10031,9 @@ items:
       noted at sign-off that a button facing a human big blind never needs the big blind's cell: the
       human acts, and the `9c8c7c` c-bet cell is then reachable. The packet's "worse than the one it
       replaces" is measured with the bot in all six seats and overstates the harm at a real table.
+      It explains only the node above: after that c-bet, a call or a check-raise still reaches an
+      uncommitted node, so the bot's next decision refuses. And the cell exists on 4 of 22,100 flops,
+      about 1 in 5,525 on the one covered line, not the 40 that all three boards add up to.
 
   - id: THE-BEHAVIOUR-SECTION-ASKS-THE-STRATEGY-ONLY-ABOUT-SPOTS-IT-CHOSE
     status: deferred

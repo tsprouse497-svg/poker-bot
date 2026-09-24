@@ -21,19 +21,29 @@ the board unexamined, so each is audited first.
 ## The sign-off, as given
 
 Asked what he had to decide, Taylor was told the one ask was the sign-off, and that signing accepts a
-flop chart that in the 20,000-hand self-play run makes no flop bet and voids 4,543 hands the old
-fallback played to showdown. He asked which boards it does not bet on, and was told it is coverage
+flop chart that in the 20,000-hand self-play run makes no flop bet and voids 5,365 hands, where the
+old fallback voided 822 and played 4,543 to showdown. He asked which boards it does not bet on, and was told it is coverage
 rather than a choice: 3 boards, 40 of 22,100 flops, one preflop line, and a refusal voids the hand
 rather than checking. He then pointed out that as the button against a human big blind the bot does
 not need the big blind's cell; that is right, and it means the self-play figure overstates the harm
-at a real table, though at this coverage the bot would still bet about one flop in 550. He asked
+at a real table. He was told the bot would still bet about one flop in 550; that figure was wrong
+(see Correction below). He asked
 whether renting compute to solve more makes this fine, and was told three things more solving does
-not fix: flop only, a three-quarter ceiling on multiway flops, and a gate that cannot tell good poker
+not fix: flop only, a ceiling of about three quarters of flops, and a gate that cannot tell good poker
 from bad. He answered "yea, i think it's fine then. we can say mission accomplished for this phase
 since we've extracted and stored output", and then "ok, yes you can record signoff on phase."
 
 So the verdict is: **phase 16 signed off as shipped, on decision 25.** It rules on nothing the
 packet leaves open and on none of the eighteen blocker bullets below.
+
+## Correction owed to Taylor before advancing
+
+The independent review found the "one flop in 550" figure wrong by about ten times in the bot's
+favour. A cell is looked up by its full key, which includes hero's seat, and only the `9c8c7c` c-bet
+cell is hero on the button: 4 of 22,100 flops, about 1 in 5,525, only on the one covered preflop line
+and only after the big blind checks. The ceiling was also loosely described: of the roughly quarter
+of flops out of reach, only part is multiway. The sign-off stands only if Taylor reaffirms it on the
+corrected figure.
 
 ## Scope
 
