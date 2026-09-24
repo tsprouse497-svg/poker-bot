@@ -195,6 +195,29 @@ def pointers(worktree: Path) -> list[Path]:
 LIVE_LOOPS = {"running", "halted"}
 
 
+def pointer_states(worktree: Path) -> dict[str, dict]:
+    """The pointer that speaks for each phase in one worktree.
+
+    Newest layout first, so a worktree carrying both a per-lane pointer and the
+    single-lane file it was migrated from is read from the per-lane one.
+    """
+    states: dict[str, dict] = {}
+    for pointer in pointers(worktree):
+        state = yaml.safe_load(pointer.read_text(encoding="utf-8")) or {}
+        if state.get("phase_id"):
+            states.setdefault(str(state["phase_id"]), state)
+    return states
+
+
+# How far along a pointer is, within one stage. A loop runs before it can halt and
+# halts before it completes; `idle` or anything unrecognised ranks lowest.
+LOOP_RANK = {"running": 1, "halted": 2, "completed": 3}
+
+
+def progress(state: dict) -> tuple[int, int]:
+    return int(state.get("stage", 0)), LOOP_RANK.get(str(state.get("loop")), 0)
+
+
 def lanes() -> list[Lane]:
     """Every loop this repo is currently running, across every worktree.
 
@@ -202,27 +225,56 @@ def lanes() -> list[Lane]:
     the record that a phase once ran in that worktree, not a claim that one runs
     there now, and counting it would make a finished phase look like it was
     occupying a lane forever.
+
+    A phase with a pointer on `main` is read from two places only: `main`, and the
+    worktree on that phase's own `phase/NN-` branch. Every other worktree that
+    branched from or rebased onto `main` after the lane merged carries a copy of the
+    pointer frozen at whatever `main` said then, so reading them all listed one
+    finished phase as a running lane once per copy, and repeated its asks as often.
+    The lane's own tree still counts because a lane can merge before its last stage
+    and go on advancing, or halt, where its live pointer lives; dropping it would
+    hide that halt and the sign-off it owes. Of the two, the one furthest along
+    wins, and `main` on a tie, since a pointer only moves when the loop really
+    advances. `phase_status.yml` is not used instead because a phase is marked
+    `completed` there before its sign-off is given, and that would hide the ask. A
+    phase with no pointer on `main` is a lane that has not merged, and its own
+    worktree is still the only place it can be read.
     """
+    trees = worktrees()
+    integrated: dict[str, tuple[Path, str, dict]] = {}
+    for worktree, branch in trees:
+        if branch == INTEGRATION_REF:
+            integrated = {
+                phase_id: (worktree, branch, state)
+                for phase_id, state in pointer_states(worktree).items()
+            }
+    candidates: list[tuple[str, Path, str, dict]] = []
+    for worktree, branch in trees:
+        if branch == INTEGRATION_REF:
+            continue
+        for phase_id, state in pointer_states(worktree).items():
+            if phase_id not in integrated:
+                candidates.append((phase_id, worktree, branch, state))
+            elif branch.startswith(f"phase/{phase_id}-") and progress(state) > progress(
+                integrated[phase_id][2]
+            ):
+                integrated[phase_id] = (worktree, branch, state)
+    candidates += [(phase_id, *copy) for phase_id, copy in integrated.items()]
     found: dict[tuple[str, Path], Lane] = {}
-    for worktree, branch in worktrees():
-        # Newest layout first, so a worktree carrying both a per-lane pointer and
-        # the single-lane file it was migrated from reports one lane, not two.
-        for pointer in pointers(worktree):
-            state = yaml.safe_load(pointer.read_text(encoding="utf-8")) or {}
-            if state.get("loop") not in LIVE_LOOPS or not state.get("phase_id"):
-                continue
-            key = (str(state["phase_id"]), worktree)
-            found.setdefault(
-                key,
-                Lane(
-                    phase_id=str(state["phase_id"]),
-                    worktree=worktree,
-                    branch=branch,
-                    stage=int(state.get("stage", 0)),
-                    loop=str(state.get("loop")),
-                    halt_reason=str(state.get("halt_reason") or ""),
-                ),
-            )
+    for phase_id, worktree, branch, state in candidates:
+        if state.get("loop") not in LIVE_LOOPS:
+            continue
+        found.setdefault(
+            (phase_id, worktree),
+            Lane(
+                phase_id=phase_id,
+                worktree=worktree,
+                branch=branch,
+                stage=int(state.get("stage", 0)),
+                loop=str(state.get("loop")),
+                halt_reason=str(state.get("halt_reason") or ""),
+            ),
+        )
     return sorted(found.values(), key=lambda lane: lane.phase_id)
 
 

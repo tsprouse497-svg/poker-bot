@@ -18,6 +18,16 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-09-23
+    reason: >-
+      MAINT-37 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. Taylor asked on 2026-09-22 for the fleet
+      board to stop showing phase 14 as running after MAINT-36 completed its pointer on `main`: nine
+      sibling worktrees still hold older copies reading `running`, and `loop_fleet.lanes()` counts each
+      one. The fix is in `scripts/loop_fleet.py` with its test in `tests/test_loop_fleet.py`, which is
+      frozen, so `verification/freeze.lock` is re-written and the lock diff is the record of the test
+      change. `verification/mutations.yml` takes a canary for the new rule, `docs/LOOP.md` states it,
+      and the last two paths are this task's packet and review note.
   - date: 2026-09-22
     reason: >-
       MAINT-36 opens from idle, so every pattern in `approved_scope` reads as a widening against
