@@ -1,8 +1,8 @@
 # Status
 
 Project: `poker-playing-bot`
-Current task: `none (idle)`
-Task mode: `idle`
+Current task: `MAINT_38_PHASE_16_SIGN_OFF`
+Task mode: `maintenance`
 Active phase: `none`
 Completed phases: `16`
 

@@ -59,4 +59,6 @@ One read-only reviewer that wrote none of this, no gate runs, note at
 
 ## Gate
 
-Recorded below once run.
+First run red, 49 of 50: the ExecPlan's Delegation Plan lacked the fields `check_execplan_delegation`
+requires once a lane is used. They were added. Second run green, 50 of 50, `check_gate_bite` reporting
+79 mutations all caught.

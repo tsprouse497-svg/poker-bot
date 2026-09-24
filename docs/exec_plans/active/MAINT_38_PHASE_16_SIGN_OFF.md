@@ -57,18 +57,21 @@ Nothing under `data/`, `src/`, `tests/`, `scripts/` or `docs/phase_contracts/` c
 
 ## Delegation Plan
 
-- No-delegation exception for the sign-off: it transcribes a ruling that exists only in this
-  conversation, so a lane would be writing down what the coordinator told it.
-- Lane A, blocker audit: one read-only subagent that wrote none of phase 16 classifies each of the
-  eighteen bullets as not-a-finding, fixed-but-unmarked (with evidence), or still open, and writes
-  `reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/blocker-audit.md`. Status: completed.
-  Of the eighteen, twelve were evidence inside other findings, five fixed but unmarked, one closed
-  by Taylor's decision 21; none open. It also found twelve paragraph blockers the parser never
-  sees, all fixed with evidence in their notes.
+- Worker lanes: lane A, one read-only subagent that wrote none of phase 16, audits the eighteen
+  open-looking blocker bullets. The sign-off itself is coordinator-owned: it transcribes a ruling
+  that exists only in this conversation, so a lane would be writing down what the coordinator told it.
+- Ownership: lane A owns `reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/blocker-audit.md`;
+  the coordinator owns every other changed path.
+- Expected outputs: lane A classifies each bullet as not-a-finding, fixed-but-unmarked (with
+  evidence), or still open. The coordinator marks resolved only what the audit shows closed.
+- Status: lane A completed. Of the eighteen, twelve were evidence inside other findings, five fixed
+  but unmarked, one closed by Taylor's decision 21; none open. It also found twelve paragraph
+  blockers the parser never sees, all fixed with evidence in their notes.
+- Integration order: audit, then the markers, then review, then `--advance`, then the gate.
 - Review handoff: one read-only reviewer that wrote none of this checks that the sign-off states no
   more than Taylor ruled, that every `[resolved]` mark matches the audit's evidence, that the packet
-  stays under its 500-line cap, and that nothing outside scope moved. Status: completed, one blocker (the figure above), resolved
-  on Taylor's reaffirmation.
+  stays under its 500-line cap, and that nothing outside scope moved. Status: completed, one blocker
+  (the figure above), resolved on Taylor's reaffirmation.
 
 ## Slices
 
@@ -80,14 +83,20 @@ Nothing under `data/`, `src/`, `tests/`, `scripts/` or `docs/phase_contracts/` c
   `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN` with what this task found.
 - [x] Independent read-only review.
 - [x] `loop_stage.py --phase 16 --advance` to `loop: completed`.
-- [ ] Gate, packet, closeout to idle, gate again, merge.
+- [x] Gate, packet, closeout to idle, gate again, merge.
 
 ## Verification
 
 `uv run python scripts/run_verify.py` and `uv run python scripts/check_scope.py`. Then
 `scripts/loop_fleet.py` and `scripts/review_queue.py` from `main` show no phase 16 lane.
 
+## Outcome
+
+Taylor's sign-off is in phase 16's packet, reaffirmed on the corrected coverage figure; the eighteen
+blocker bullets are audited and marked; `verification/loop_runs/16.yml` reads `loop: completed`. Gate
+red once on this plan's missing delegation fields, then green at 50 of 50.
+
 ## Next Agent Bootstrap
 
-Read this plan, then `blocker-audit.md` in the review directory. If lane A found any blocker still
-open, the lane does not advance until Taylor rules on it.
+Closed. Nothing is owed here. `A-REFUSAL-AT-A-LIVE-TABLE-HAS-NO-DEFINED-ACTION` is phase 20's, and
+`REVIEW-QUEUE-COUNTS-EVIDENCE-BULLETS-AS-BLOCKERS` is the parser fix that would have spared this audit.
