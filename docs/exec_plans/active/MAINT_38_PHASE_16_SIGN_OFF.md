@@ -45,6 +45,9 @@ and only after the big blind checks. The ceiling was also loosely described: of 
 of flops out of reach, only part is multiway. The sign-off stands only if Taylor reaffirms it on the
 corrected figure.
 
+Given the corrected figure on 2026-09-24, and told the next decision after the bet still refuses,
+Taylor answered "yes, i still sign off."
+
 ## Scope
 
 Approved: phase 16's audit packet (one short section), phase 16's review notes (blocker bullets
@@ -64,7 +67,8 @@ Nothing under `data/`, `src/`, `tests/`, `scripts/` or `docs/phase_contracts/` c
   sees, all fixed with evidence in their notes.
 - Review handoff: one read-only reviewer that wrote none of this checks that the sign-off states no
   more than Taylor ruled, that every `[resolved]` mark matches the audit's evidence, that the packet
-  stays under its 500-line cap, and that nothing outside scope moved. Status: not started.
+  stays under its 500-line cap, and that nothing outside scope moved. Status: completed, one blocker (the figure above), resolved
+  on Taylor's reaffirmation.
 
 ## Slices
 
@@ -74,8 +78,8 @@ Nothing under `data/`, `src/`, `tests/`, `scripts/` or `docs/phase_contracts/` c
 - [x] Mark the eighteen resolved with a pointer to the audit; none went back to Taylor.
 - [x] Extend `REVIEW-QUEUE-COUNTS-EVIDENCE-BULLETS-AS-BLOCKERS` and
   `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN` with what this task found.
-- [ ] Independent read-only review.
-- [ ] `loop_stage.py --phase 16 --advance` to `loop: completed`.
+- [x] Independent read-only review.
+- [x] `loop_stage.py --phase 16 --advance` to `loop: completed`.
 - [ ] Gate, packet, closeout to idle, gate again, merge.
 
 ## Verification
