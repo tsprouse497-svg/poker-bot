@@ -1,15 +1,8 @@
-task_id: MAINT-37
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: f6dfe0175ccf7d5019e7706d9ae4cfb94c987d44
-approved_scope:
-- scripts/loop_fleet.py
-- tests/test_loop_fleet.py
-- verification/freeze.lock
-- verification/mutations.yml
-- docs/LOOP.md
-- reports/phase_audits/MAINT_37_MAIN_POINTER_WINS.md
-- reports/phase_audits/reviews/MAINT_37_MAIN_POINTER_WINS/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml

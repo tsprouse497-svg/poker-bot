@@ -43,7 +43,7 @@ Approved: `scripts/loop_fleet.py`, `tests/test_loop_fleet.py`, `verification/fre
   `backlog.yml`, this plan, the packet, integration and the gate.
 - Expected outputs: an uncommitted diff in the maint-37 worktree plus the commands it ran and what
   each printed.
-- Status: planned.
+- Status: completed; `impl` delivered in two rounds, integrated by the coordinator.
 - Integration order: coordinator reads the diff against the artifact rather than the worker's report,
   runs the fast checks, then hands to review.
 - Review handoff: one read-only reviewer that wrote none of it, no gate runs. It must check that the
@@ -53,11 +53,11 @@ Approved: `scripts/loop_fleet.py`, `tests/test_loop_fleet.py`, `verification/fre
 
 ## Slices
 
-- [ ] Activate MAINT-37.
-- [ ] `impl`: rule, tests, canary, doc, lock.
-- [ ] Coordinator integration and fast checks.
-- [ ] Independent read-only review.
-- [ ] Gate, packet, closeout, gate, merge.
+- [x] Activate MAINT-37.
+- [x] `impl`: rule, tests, canary, doc, lock.
+- [x] Coordinator integration and fast checks.
+- [x] Independent read-only review.
+- [x] Gate, packet, closeout, gate, merge.
 
 ## Verification
 
@@ -66,9 +66,13 @@ Approved: `scripts/loop_fleet.py`, `tests/test_loop_fleet.py`, `verification/fre
 
 ## Outcome
 
-Filled in at closeout.
+`lanes()` reads a merged phase from `main` and its own `phase/NN-` branch only, whichever is further
+along, `main` on a tie. The board went from 14 lanes to 3 and the queue from 246 asks to 34, losing
+only phase 14's 20. The review's one blocker - the first cut read `main` alone and hid a lane that
+advanced after merging - was fixed and marked resolved; its canary finding was fixed too. Gate green
+at 50 of 50 with 79 mutations caught. See the audit packet.
 
 ## Next Agent Bootstrap
 
-Read `CURRENT_TASK.yml` in the maint-37 worktree and the slices above; the first unchecked one is
-next. The rule is fixed by the objective; do not widen it into retiring pointers.
+Closed. What stays open is the ruling in `COMPLETED-LANE-POINTERS-ARE-NEVER-RETIRED` on what a
+finished pointer is, and the merge-order ruling in `FLEET-AND-STAGE-DRIVERS-DISAGREE-ABOUT-INTEGRATION`.
