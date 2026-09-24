@@ -42,7 +42,7 @@ Hand categories come from `poker_core.hand_eval.evaluate_best` over the five car
 
 ## Blocker
 
-- **B1. The phase ships a seam it places at the turn. On the repo's own simulator the artifact
+- [resolved] **B1. The phase ships a seam it places at the turn. On the repo's own simulator the artifact
   makes no flop bet at all, and every hand that reaches a flop is voided, so the packet obligation
   as the contract words it would state the seam in a place it does not occur.** A paragraph in the
   stage-9 packet closes this. It needs no re-solve, no contract edit and no new data.
@@ -94,6 +94,8 @@ at the turn. Writing "the bot bets a flop and then refuses every turn" without t
 about a bot the repo does not build. Closing the phase on it is the false claim the phase is
 currently set up to make, and it is the same failure shape the stage-7 note corrected in a smaller
 place.
+
+[resolved] 2026-09-24 by MAINT-38: every bullet above that lacked a marker was audited by an independent lane and marked where the fix or ruling is shown, finding by finding, in `reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/blocker-audit.md`.
 
 ## Non-blocker
 

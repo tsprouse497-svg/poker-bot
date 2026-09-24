@@ -37,7 +37,7 @@ shows only what it put in: seat 1 is 300 committed against a stack of 9750."
 
 Two things follow, both measured:
 
-- **The table is not flat and hero is not at 100bb.** `table_state/measures.py:113` defines what a
+- [resolved] **The table is not flat and hero is not at 100bb.** `table_state/measures.py:113` defines what a
   seat sat down with as `stacks[seat] + committed_total`. For every fixture above that is 9750 + 250
   = **10,000** for seat 0 and 9750 + 300 = **10,050** for seat 1. Hero sat down with 100.5bb against
   a villain at 100bb. Run through the repo's one existing depth walk,
@@ -45,7 +45,7 @@ Two things follow, both measured:
   `preflop-chart:stack-depth-not-a-whole-big-blind`; under the `seat_start` reading the answer is
   `a-live-seat-is-shorter-than-hero` instead. There is no depth derivation that reads this table as a
   flat 100bb one, because it is not one.
-- **The table is not six-handed.** `PreflopChartStrategy._chart_query` at
+- [resolved] **The table is not six-handed.** `PreflopChartStrategy._chart_query` at
   `strategy/preflop_chart.py:296-306` takes `table_size=len(query.stacks)`. Derived from these
   fixtures it gives `table_size=2`; `three_handed()` gives 3. The phase's own covered key is
   `A_COVERED_PREFLOP_KEY = "t6/d100/BB/BTN:raise@2.5"` at `tests/test_postflop_key.py:55`, and the
@@ -104,6 +104,8 @@ and 275/550 is exactly 0.50; `0.01 / 0.0027273 = 3.667` and `0.17 / 0.01 = 17`. 
 (176-187 and 407-418 on a 550 pot) and `181.5 -> 182` all check out, and the 297-chip midpoint at
 54.0% is 0.21 from both entries, which is what makes 0.17 bind. The fix here is the class and the
 stop, not the number.
+
+[resolved] 2026-09-24 by MAINT-38: every bullet above that lacked a marker was audited by an independent lane and marked where the fix or ruling is shown, finding by finding, in `reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/blocker-audit.md`.
 
 ## Non-blocker
 

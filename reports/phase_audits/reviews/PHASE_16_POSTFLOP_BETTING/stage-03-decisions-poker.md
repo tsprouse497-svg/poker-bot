@@ -94,11 +94,11 @@ is the only frozen choice here that is free to fix today and expensive to fix af
   `paired / connected / dry-low` to **`dry-high / paired / connected`**, which is legal under the
   same 3x3 arithmetic because paired-two-tone is 1,872 boards:
 
-  - **rainbow, dry high-card** - the eyeball board, 15.20% of flops, and the family the stage-2
+  - [resolved] **rainbow, dry high-card** - the eyeball board, 15.20% of flops, and the family the stage-2
     poker review named as most sensitive to the turn and river menu. `Kc7d2h` is the record's own
     `rainbow-dry-high` probe.
-  - **two-tone, paired** - keeps the paired structural gap the solver notes single out, 8.47%.
-  - **monotone, connected** - `9c8c7c`, 1.05%.
+  - [resolved] **two-tone, paired** - keeps the paired structural gap the solver notes single out, 8.47%.
+  - [resolved] **monotone, connected** - `9c8c7c`, 1.05%.
 
   That covers 24.72% of flops, keeps every suit texture, keeps paired, and adds the largest rank
   family. What it gives up is dry-low, which is the cheapest of the four to give up because the
@@ -132,6 +132,8 @@ is the only frozen choice here that is free to fix today and expensive to fix af
   round 8 of `stage-03-human-gate.md`, which read the whole rebuilt item rather than its diff.
 
 ---
+
+[resolved] 2026-09-24 by MAINT-38: every bullet above that lacked a marker was audited by an independent lane and marked where the fix or ruling is shown, finding by finding, in `reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/blocker-audit.md`.
 
 ## Non-blocker
 

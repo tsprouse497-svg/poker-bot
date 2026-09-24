@@ -8417,6 +8417,13 @@ items:
       tell a finding from its support pushes reviewers toward vaguer notes, which is the opposite
       of what the review stages exist for.
 
+      EXTENDED 2026-09-24 by MAINT-38. At phase 16's sign-off the queue showed eighteen open blockers
+      across eight of its review notes, and an independent audit found none was open work: twelve
+      were evidence bullets inside other findings, five were fixed but unmarked, one was closed by
+      decision 21. Two further shapes the indent fix alone does not cover: a `[resolved]` written on
+      the bullet's continuation line (`stage-08-review-mechanical.md`), which the parser never reads,
+      and twelve blockers written as bold paragraphs with no bullet at all, which it never sees.
+
   - id: TWO-DOCS-STILL-SAY-DATA-ARTIFACTS-HAS-NO-SIZE-CHECK
     status: deferred
     phase: contract-update
@@ -10019,6 +10026,11 @@ items:
       `THREE-SAMPLE-FILES-CANNOT-HOLD-THE-SPOTS-THE-FROZEN-TESTS-NEED` owns the file count; neither
       owns closure. Filed rather than solved because which flop lines get solved and committed is
       decision 6 item 4's to rule, and a phase that writes new committed data stops for a human.
+
+      EXTENDED 2026-09-24 by MAINT-38. Part of the closure gap is an artefact of self-play. Taylor
+      noted at sign-off that a button facing a human big blind never needs the big blind's cell: the
+      human acts, and the `9c8c7c` c-bet cell is then reachable. The packet's "worse than the one it
+      replaces" is measured with the bot in all six seats and overstates the harm at a real table.
 
   - id: THE-BEHAVIOUR-SECTION-ASKS-THE-STRATEGY-ONLY-ABOUT-SPOTS-IT-CHOSE
     status: deferred

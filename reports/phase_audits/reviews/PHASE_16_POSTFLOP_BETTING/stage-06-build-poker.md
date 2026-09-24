@@ -94,12 +94,12 @@ else. No importer, no key producer and no strategy calls it.
 Five impossible flop lines were written as cells and handed to `import_postflop_cell`. All five were
 accepted and produced distinct spot keys:
 
-- hero `BTN`, flop line empty (`f:none`) - the button acting first on a flop;
-- hero `BB`, flop line `BTN:bet@33` - the in-position seat betting before the out-of-position seat
+- [resolved] hero `BTN`, flop line empty (`f:none`) - the button acting first on a flop;
+- [resolved] hero `BB`, flop line `BTN:bet@33` - the in-position seat betting before the out-of-position seat
   has acted;
-- hero `BB`, flop line `BB:check` - hero asked to act twice in a row;
-- hero `BB`, flop line `SB:bet@33` - a seat that folded preflop betting the flop;
-- hero `BTN`, flop line `BB:check,BTN:bet@33` with hero's own bet already in - a node that is
+- [resolved] hero `BB`, flop line `BB:check` - hero asked to act twice in a row;
+- [resolved] hero `BB`, flop line `SB:bet@33` - a seat that folded preflop betting the flop;
+- [resolved] hero `BTN`, flop line `BB:check,BTN:bet@33` with hero's own bet already in - a node that is
   villain's turn, not hero's.
 
 The first is the dangerous one and it is exactly the c-bet. A real table puts the BB's check on the
@@ -119,6 +119,8 @@ every actor live, in order, hero's own turn at the end, no seat acting twice wit
 between. It is the flop analogue of the preflop walk `_closed_preflop_round` already does, and the
 contract's own criterion that "a committed size that cannot be played is refused at import rather
 than at the table" is the same principle applied to a different field.
+
+[resolved] 2026-09-24 by MAINT-38: every bullet above that lacked a marker was audited by an independent lane and marked where the fix or ruling is shown, finding by finding, in `reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/blocker-audit.md`.
 
 ## Non-blocker
 

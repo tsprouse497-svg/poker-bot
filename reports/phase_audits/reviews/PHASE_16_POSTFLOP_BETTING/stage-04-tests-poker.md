@@ -34,11 +34,11 @@ that use them can never run against any implementation.** `StrategyQuery.__post_
 (`src/poker_training_bot/strategy/contract.py:246`) requires `pot` to equal the sum of every seat's
 `committed_total`. Constructed directly, outside pytest:
 
-- `tests/test_postflop_betting.py:371-382`, the 3.5bb open that is meant to prove the 20% band
+- [resolved] `tests/test_postflop_betting.py:371-382`, the 3.5bb open that is meant to prove the 20% band
   refuses on the high side: `pot=750` against `350 + 350 = 700`. Raises
   `ValueError: pot 750 is not the 700 the seats put in`. This is the phase's only test that an
   out-of-band price refuses rather than being answered from the nearest cell.
-- `tests/test_postflop_betting.py:471-484`, the river fixture behind every test in
+- [resolved] `tests/test_postflop_betting.py:471-484`, the river fixture behind every test in
   `TestThePotOddsRiverCall`: `pot=1650` against `800 + 300 = 1100`. Same refusal. The whole
   pot-odds river rule is untested as a result.
 
@@ -89,6 +89,8 @@ no pot-type segment. At one open size and flat 100bb that arithmetic happens to 
 committed open price, a straddle or a non-flat table breaks it, and a two-range cell would then
 answer a three-handed flop with a heads-up strategy and no refusal. A test that a three-handed flop
 refuses is the thing that makes the separation a requirement instead of a coincidence.
+
+[resolved] 2026-09-24 by MAINT-38: every bullet above that lacked a marker was audited by an independent lane and marked where the fix or ruling is shown, finding by finding, in `reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/blocker-audit.md`.
 
 ## Non-blocker
 
