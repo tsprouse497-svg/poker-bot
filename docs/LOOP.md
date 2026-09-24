@@ -32,6 +32,7 @@ It also refuses while the stage owes a review, which is explained below.
 A lane is a git worktree on its own `phase/NN-slug` branch, holding its own pointer under `verification/loop_runs/`, so two lanes never write the same file and neither can see the other's half-finished work.
 Every worktree that branched from or rebased onto `main` after a lane merged carries a stale copy of that lane's pointer, so when the worktree on `main` holds a pointer for a phase, the board reads only that copy and the one in the phase's own `phase/NN-` worktree, where a lane that merged early goes on advancing or halts.
 Whichever is further along (by stage, then running, halted, completed) is the one listed, and `main` wins a tie, so a phase completed on `main` is retired everywhere; a phase with no pointer on `main` has not merged and is read from its own worktree.
+The rule needs a worktree with `main` checked out, which the primary checkout always is; without one, every copy counts again. A halt that was merged and then resumed in the lane reads as still halted until the resume is merged too, which errs toward showing an answered ask rather than hiding an open one.
 
 ```
 uv run python scripts/loop_fleet.py --plan          # which phases may start now

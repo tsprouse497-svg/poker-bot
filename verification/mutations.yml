@@ -434,7 +434,7 @@ mutations:
       or rebased before it finished, and the review queue repeats each of its asks per copy.
     file: scripts/loop_fleet.py
     find: "            if phase_id not in integrated:"
-    replace: "            if False:"
+    replace: "            if True:"
     must_fail:
       - pytest_loop_fleet
 
