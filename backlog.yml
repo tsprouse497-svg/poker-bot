@@ -10035,6 +10035,19 @@ items:
       uncommitted node, so the bot's next decision refuses. And the cell exists on 4 of 22,100 flops,
       about 1 in 5,525 on the one covered line, not the 40 that all three boards add up to.
 
+  - id: A-REFUSAL-AT-A-LIVE-TABLE-HAS-NO-DEFINED-ACTION
+    status: deferred
+    phase: '20'
+    title: A refusal voids the hand in self-play, and nothing says what the bot does when a real table keeps dealing
+    reason: >-
+      Decision 25 accepted that a refusal voids the hand rather than playing on, which is what the
+      repo's own dealer does. A real table does not void a hand because one seat has no answer: the
+      action comes back and something must be chosen, whether a check, a fold, or a named fallback.
+      Every statement about how the bot plays at a real table, including MAINT-38's note on
+      `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`, assumes some behaviour
+      after a refusal that no document defines. Phase 20 is the first phase that sits at a table, so
+      it owns this. Filed by MAINT-38's independent review, 2026-09-24.
+
   - id: THE-BEHAVIOUR-SECTION-ASKS-THE-STRATEGY-ONLY-ABOUT-SPOTS-IT-CHOSE
     status: deferred
     phase: '16'
