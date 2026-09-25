@@ -42,7 +42,8 @@ generator's prose, and this task's packet and review directory. Standing scope c
 - Review handoff: one read-only reviewer that wrote none of this, briefed with no gate runs, checks
   that nothing still points at phase 17 as live, that each re-homed entry's new label fits what it
   asks for, that every figure and claim in the retirement entry is true of the tree, and that the
-  phase 14 amendment keeps the contract inside its cap. Status: pending.
+  phase 14 amendment keeps the contract inside its cap. Status: completed, one blocker, five
+  non-blockers, two alignment items; all fixed or filed.
 
 ## Slices
 
@@ -51,7 +52,7 @@ generator's prose, and this task's packet and review directory. Standing scope c
 - [x] Amend phase 14's contract in place; fix both roadmaps; fix the derived-chart report's prose.
 - [x] Re-home the seven entries; carry four lane findings; file the retirement entry.
 - [x] Tag the lane tip `7e0dd71` as `retired/phase-17`.
-- [ ] Independent read-only review.
+- [x] Independent read-only review.
 - [ ] Gate, packet, closeout to idle, gate again, merge, push.
 - [ ] Remove the phase 17 worktree and its local branch; the tag keeps the commits.
 

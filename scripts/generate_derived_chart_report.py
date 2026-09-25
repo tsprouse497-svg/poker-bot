@@ -3558,8 +3558,8 @@ under a stated rule from a GTOpen solve of the game it is actually trained for -
 big blinds, rake-free. The old chart is deleted from the tree and is read out of git history here.
 
 Nothing below is a grade on the new chart. Two of the three things that could explain a gap
-between it and how people played are still uncontrolled, real players are not an oracle, and the
-corpus verdict belongs to a later phase. What this report can do is show that the conversion was
+between it and how people played are still uncontrolled, real players are not an oracle, and no
+phase renders a corpus verdict. What this report can do is show that the conversion was
 faithful, that the hand index survived it, what coverage was bought and sold, and what the five
 accepted defects cost - and say plainly which of its figures gate and which are published."""
 

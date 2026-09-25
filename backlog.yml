@@ -384,8 +384,8 @@ items:
       65e87d2, the last commit before this task deleted it. The lane went further than the contract:
       the branch phase/17-the-corpus-verdict-on-the-committed-char stopped at loop stage 3 with an
       ExecPlan, a 742-line decision list and two review notes, none of which reached main. Its tip
-      7e0dd71 is kept under the tag retired/phase-17 and the worktree is removed, which Taylor
-      approved on 2026-09-25. The lane pointer's last uncommitted move, stage 2 to 3, went with the
+      7e0dd71 is kept under the tag retired/phase-17, pushed to origin before the branch and its
+      worktree were removed, which Taylor approved on 2026-09-25. The lane pointer's last uncommitted move, stage 2 to 3, went with the
       worktree and is recorded here instead.
       Seven filed entries were pointed at phase 17 and moved when it went. About what the comparison
       report measures, not about a verdict, and so filed under sample-comparison:
@@ -426,6 +426,40 @@ items:
       must be read from them rather than written from memory. What would close it: restate both
       paragraphs against reports/active and phase 16's audit packet, citing the report each figure
       comes from.
+
+  - id: FROZEN-TESTS-STILL-NAME-PHASE-17-AS-OWNER-OF-THE-REPORT-TEXT
+    status: deferred
+    phase: maintenance
+    title: Two frozen tests still describe phase 17 as the phase that renders the corpus verdict
+    reason: >-
+      Filed 2026-09-25 by MAINT-39's independent review. Phase 17 is retired, and MAINT-39 does not
+      open tests, so three places in frozen tests still treat it as live.
+      tests/test_derived_chart_report_cutover.py says in the docstring of
+      test_the_corpus_measurement_is_republished_gating_nothing that phase 17 re-registers the
+      prediction's arithmetic, its failure message says the verdict is phase 17's, and its last
+      assertion requires the report's prediction section to contain the words phase 17 - so the
+      report can never stop naming a retired phase without that frozen test going red.
+      tests/test_spot_vocabulary_downstream.py says in the docstring of
+      test_no_limped_pot_is_answered_from_a_neighbouring_cell that the contract moves the limped-pot
+      entry to phase 17. The report currently satisfies the assertion by saying phase 17 is retired,
+      which is honest but is a sentence written to a test. What would close it: a maintenance task
+      that may open tests rewords the two docstrings and the message, and replaces the phase-17
+      assertion with one requiring the report to say no phase reads the band. Filed beside
+      A-VOCABULARY-ASSERTION-WENT-VACUOUS-WHEN-THE-LADDER-MOVED, the same kind of repair.
+
+  - id: THE-FLEET-BOARD-SHOWS-A-LANE-WHOSE-PHASE-WAS-RETIRED
+    status: deferred
+    phase: maintenance
+    title: The fleet board and review queue list a lane whose phase is no longer in phase_status.yml
+    reason: >-
+      Filed 2026-09-25 by MAINT-39's independent review. scripts/loop_fleet.py builds its lanes from
+      whatever worktrees hold a pointer under verification/loop_runs, and never checks that the
+      pointer's phase still exists in phase_status.yml. MAINT-35 retired phase 15 on 2026-09-21 and
+      left its worktree, so the board still shows phase 15 halted with five rulings owed to Taylor,
+      and scripts/review_queue.py still puts those asks in front of him. Phase 17 showed the same way
+      until MAINT-39 removed its worktree. Whether the phase 15 worktree is removed is Taylor's call.
+      What would close it: both tools mark, or drop, a lane whose phase is absent from
+      phase_status.yml, so a retired phase can never present a human ask.
 
   - id: THE-PACKAGING-METADATA-IS-THE-LAST-LIVE-PROSE-STATEMENT-OF-THE-RETIRED-PURPOSE
     status: deferred
@@ -2246,6 +2280,11 @@ items:
       no-limp solve will lose. AGENTS.md forbids heuristic guessing for a missing chart spot,
       so the options are an honest refusal or reloading the saved solve with limps on and
       extracting that branch. Decision 1 keeps the save for exactly this.
+      Corrected 2026-09-25 by MAINT-39 when it moved this entry to phase 19. The sentence above saying
+      today's chart answers t6/d100/BB/SB:call is false: that cell belonged to the 36-spot GTO Wizard
+      chart, which is deleted, and tests/test_spot_vocabulary_downstream.py asserts the retired 86-spot
+      chart holds no call key and that none of the 52 limped corpus decisions is answered. So the chart
+      answers no limped pot at all, and filling them is substitution work for phase 19.
   - id: SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS
     status: deferred
     phase: simulator
@@ -6210,6 +6249,9 @@ items:
       replacement chart errs the other way at the same decision - in the one seat, the big blind, that
       faces a raise most often. Under decision 21's split the corpus
       measurement that would catch it is phase 17's, which lands after phase 14 can tag.
+      Noted 2026-09-25 by MAINT-39: phase 17 is retired, so no phase will run that measurement. What
+      would catch the over-fold now is phase 18's measure of how well the bot plays, or a re-derived
+      cell against a source without the defect.
       Not fixable inside phase 14: separating it needs the cold-call branch repriced and no config
       reaches that. Phase 16's postflop solver plays flops exactly and carries no realization model, at
       which point every committed cell is re-derivable against a source without the defect.
@@ -10355,7 +10397,10 @@ items:
       stated more plainly than the paragraphs above state it.
       Carried to main 2026-09-25 by MAINT-39 from phase 17's lane, where it was filed and never
       merged. Phase 17 is retired, so the paragraphs above that name its decisions describe a lane that
-      stopped at stage 3; the defect they describe does not depend on it and stays open.
+      stopped at stage 3; the defect they describe does not depend on it and stays open. The report
+      sentence quoted in the extension was reworded by MAINT-39 when phase 17 went, but the report
+      still prints the per-opener deltas and the call-agreement move beside them, so the instance
+      stands.
 
   - id: RETIRED-CHART-PIN-DISAGREES-BETWEEN-GENERATOR-AND-RULING
     status: deferred
