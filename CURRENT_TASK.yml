@@ -1,12 +1,8 @@
-task_id: MAINT_38_PHASE_16_SIGN_OFF
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: 2d90379296f36f3e04d719a2b43cb802d0bb3584
-approved_scope:
-- reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md
-- reports/phase_audits/reviews/PHASE_16_POSTFLOP_BETTING/**
-- reports/phase_audits/MAINT_38_PHASE_16_SIGN_OFF.md
-- reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
