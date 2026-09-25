@@ -347,6 +347,9 @@ items:
       at loop stage 3 with a written and reviewed contract and decision list, checked out at
       ~/projects/poker-bot-worktrees/phase-15. Whether that branch and worktree are kept is
       Taylor's to say and MAINT-35 did not touch either.
+      Taylor said on 2026-09-25 to delete them. MAINT-39 tagged the branch tip 730dfba as
+      retired/phase-15, pushed the tag to origin, then removed the worktree and the local branch, so
+      the lane's contract and decision list are reachable from that tag and nowhere else.
       Five filed entries were pointed at phase 15 and had to move when it went, which is recorded
       here rather than five times over. Genuinely about the drill, and deferred with it:
       A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT, which asks how a drill samples a
@@ -457,7 +460,8 @@ items:
       pointer's phase still exists in phase_status.yml. MAINT-35 retired phase 15 on 2026-09-21 and
       left its worktree, so the board still shows phase 15 halted with five rulings owed to Taylor,
       and scripts/review_queue.py still puts those asks in front of him. Phase 17 showed the same way
-      until MAINT-39 removed its worktree. Whether the phase 15 worktree is removed is Taylor's call.
+      until MAINT-39 removed its worktree, and MAINT-39 removed phase 15's too on Taylor's word of
+      2026-09-25, so neither shows today; the tools would still show the next retired phase.
       What would close it: both tools mark, or drop, a lane whose phase is absent from
       phase_status.yml, so a retired phase can never present a human ask.
 
