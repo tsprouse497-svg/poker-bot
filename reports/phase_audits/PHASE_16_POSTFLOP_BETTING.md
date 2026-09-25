@@ -491,3 +491,7 @@ reference to check a frequency against, and every shape property the gate checks
 uniformly wrong strategy. The one place in this packet where a poker judgement is offered rather
 than measured is marked as such: the continuation bet on the three-club board is coherent given what
 the caller has already taken out of the pot. Everything else here is arithmetic.
+
+## Human sign-off
+**Taylor signed phase 16 off on 2026-09-24, as shipped**, on decision 25: the stored solve is the deliverable and coverage
+comes from later solving. He was first shown flop-only scope, the three-quarter ceiling and the gate's poker blindness (MAINT-38).

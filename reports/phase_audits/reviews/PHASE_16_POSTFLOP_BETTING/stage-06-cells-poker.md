@@ -38,7 +38,7 @@ hand-typed list.
 
 ## Blocker
 
-- **B1. The continuation-bet artefact this phase halted on four days ago is still in the committed
+- [resolved] **B1. The continuation-bet artefact this phase halted on four days ago is still in the committed
   artifact at very close to its old size, the cause is no longer the preflop chart, and nothing in
   the phase records either fact.** A human ruling is what closes this, not a re-solve.
 
@@ -103,6 +103,8 @@ beside it, that it state the 52.68% lead the frequency is conditioned on, and th
 whether a flop-leading caller is the opponent this training artifact wants. Closing the phase with
 the record implying the re-solve fixed the c-bet would be the false statement, and it is the one
 the phase is currently set up to make.
+
+[resolved] 2026-09-24 by MAINT-38: every blocker above that lacked a marker, bullet or bold paragraph, was audited by an independent lane, and each is shown closed by a fix or, for the c-bet cell, by Taylor's decision 21. A bullet that is evidence inside a finding is marked only because the queue reads it as a finding. Detail, finding by finding: `reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/blocker-audit.md`.
 
 ## Non-blocker
 

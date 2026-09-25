@@ -11,7 +11,7 @@ Blocker. Every figure I quote was recomputed here off the repo; the method is st
 
 ## Blocker
 
-- **`canonical_hole_cards` is not canonical. The one collapse the phase permits is applied to the
+- [resolved] **`canonical_hole_cards` is not canonical. The one collapse the phase permits is applied to the
   board and only half-applied to hero's hand, so which hand class the table produces depends on
   which dressing the dealer dealt.** `src/poker_training_bot/solver_artifacts/postflop_key.py:195`
   moves hero's cards by `board_suit_map(board)` (`:188`), one fixed permutation carrying that
@@ -63,7 +63,7 @@ Blocker. Every figure I quote was recomputed here off the repo; the method is st
   The fix is one function: minimise the hand over every permutation carrying the board to its
   representative, which is the same enumeration that reproduces the 733 figure.
 
-- **The report prints a "servable" column that is a verbatim copy of the column beside it, and a
+- [resolved] **The report prints a "servable" column that is a verbatim copy of the column beside it, and a
   paragraph asserting the two differ.** `scripts/generate_postflop_betting_report.py:619-620`
   increments `measured.arrivals[line]` and `measured.servable[line]` on the same line under the
   same condition, unconditionally. I confirmed by calling `measure_corpus` directly:
@@ -83,7 +83,7 @@ Blocker. Every figure I quote was recomputed here off the repo; the method is st
   only `says(report, "servable")` - the word. That is the second thing that passes for a reason the
   contract did not intend.
 
-- **`run_solve` reads three server fields with a default, and each default is the answer that lets
+- [resolved] **`run_solve` reads three server fields with a default, and each default is the answer that lets
   the run through.** `src/poker_training_bot/solver_artifacts/postflop_solve_driver.py:462`
   `float(built.get("arena_mb", 0.0))` - a response that omits or renames that field plans a 0-byte
   arena, `check_memory_ceiling` passes, and the contract's named guard ("The solve driver carries
@@ -95,6 +95,8 @@ Blocker. Every figure I quote was recomputed here off the repo; the method is st
   a solve that dies on memory after it has run, and a threshold posted in the wrong unit". These
   three defaults reintroduce the first one and add a new one on the accuracy gate that decides
   whether a cell is committed at all. A field the driver cannot find must refuse, not default.
+
+[resolved] 2026-09-24 by MAINT-38: every blocker above that lacked a marker, bullet or bold paragraph, was audited by an independent lane, and each is shown closed by a fix or, for the c-bet cell, by Taylor's decision 21. A bullet that is evidence inside a finding is marked only because the queue reads it as a finding. Detail, finding by finding: `reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/blocker-audit.md`.
 
 ## Non-blocker
 

@@ -150,7 +150,7 @@ below stand as first written; each carries its verdict at the head of the bullet
   about the machine the phase was ruled onto. Two fixes, both small: file it, and carry the machine
   line into the cost block beside the numbers it qualifies.
 
-- **Open.** Ruled entry by entry in `stage-08-review.md`: four close, three do not, and the three
+- [resolved] **Open.** Ruled entry by entry in `stage-08-review.md`: four close, three do not, and the three
   are `POSTFLOP-UNBEATABLE-EARLIER-STREETS`, `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` and
   `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED`. The evidence per entry is there rather than here.
   **[resolved]** at `7254a50`: the verdicts were applied exactly, both refusals stand, and the
@@ -171,6 +171,8 @@ below stand as first written; each carries its verdict at the head of the bullet
   at stage 8. What makes it worth holding the stage for is that nothing will raise it later: this
   is the shape `BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE` predicts, and that entry describes the
   gate's blindness rather than prompting the sweep.
+
+[resolved] 2026-09-24 by MAINT-38: every blocker above that lacked a marker, bullet or bold paragraph, was audited by an independent lane, and each is shown closed by a fix or, for the c-bet cell, by Taylor's decision 21. A bullet that is evidence inside a finding is marked only because the queue reads it as a finding. Detail, finding by finding: `reports/phase_audits/reviews/MAINT_38_PHASE_16_SIGN_OFF/blocker-audit.md`.
 
 ## Non-blocker
 
