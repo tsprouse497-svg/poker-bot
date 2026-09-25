@@ -347,6 +347,9 @@ items:
       at loop stage 3 with a written and reviewed contract and decision list, checked out at
       ~/projects/poker-bot-worktrees/phase-15. Whether that branch and worktree are kept is
       Taylor's to say and MAINT-35 did not touch either.
+      Taylor said on 2026-09-25 to delete them. MAINT-39 tagged the branch tip 730dfba as
+      retired/phase-15, pushed the tag to origin, then removed the worktree and the local branch, so
+      the lane's contract and decision list are reachable from that tag and nowhere else.
       Five filed entries were pointed at phase 15 and had to move when it went, which is recorded
       here rather than five times over. Genuinely about the drill, and deferred with it:
       A-SIXTH-OF-THE-COMMITTED-SET-IS-ALMOST-NEVER-DEALT, which asks how a drill samples a
@@ -359,6 +362,109 @@ items:
       substituting for refusals.
       Related: V2-TRAINING-UI, whose own deferral reason was corrected on 2026-09-21 because it
       still named phase 15 as the thing that would change the answer.
+  - id: THE-CORPUS-VERDICT-PHASE-IS-RETIRED
+    status: done
+    phase: maintenance
+    title: Phase 17 is retired from the graph, because the bot is judged by how it plays
+    reason: >-
+      Taylor ruled on 2026-09-25 that phase 17 is not worth a phase: "idc what real people do". The
+      phase was to re-run the real-hand comparison against the committed chart and say whether the
+      calling gap is rake, price, or a defect in the ranges. Agreeing with real players was never
+      playing better, which docs/CORPUS_COMPARISON_LIMITS.md argues under "Real players are not an
+      oracle", and phase 18 measures the thing that matters directly. The comparison report itself,
+      generate_sample_comparison_report, stays in the gate as a measurement; nothing reads it as a
+      grade.
+      What was retired, by MAINT-39. Phase 17 is removed from phase_status.yml and from
+      verification/loop_policy.yml, and docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md is deleted.
+      Its two command ids, pytest_corpus_verdict and generate_corpus_verdict_report, were never
+      registered in COMMANDS, so the gate loses nothing. Nothing depended on it: no contract lists
+      "17" in depends_on. Phase 14's contract, which sits at its 300-line cap, had its one live
+      pointer to phase 17 amended in place rather than by added lines; its two other mentions are the
+      record of what phase 14 did and stay as written. The derived-chart report, which told a reader
+      that phase 17 renders the verdict and re-registers the prediction band, now says the phase is
+      retired and no phase reads either.
+      Where the work is, so nobody has to rediscover it. The contract is in git history at commit
+      65e87d2, the last commit before this task deleted it. The lane went further than the contract:
+      the branch phase/17-the-corpus-verdict-on-the-committed-char stopped at loop stage 3 with an
+      ExecPlan, a 742-line decision list and two review notes, none of which reached main. Its tip
+      7e0dd71 is kept under the tag retired/phase-17, pushed to origin before the branch and its
+      worktree were removed, which Taylor approved on 2026-09-25. The lane pointer's last uncommitted move, stage 2 to 3, went with the
+      worktree and is recorded here instead.
+      Seven filed entries were pointed at phase 17 and moved when it went. About what the comparison
+      report measures, not about a verdict, and so filed under sample-comparison:
+      CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT and AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART. About
+      spots the chart refuses, which phase 19 exists to fill: CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK,
+      whose real-hand inventory is the natural work list for a substitution, and
+      CHART-CANNOT-ANSWER-A-LIMPED-POT. About the quality of ranges the chart already commits, which
+      MAINT-34's review filed against 17 and which need no verdict to be worked, and so filed under
+      charts: THE-IN-POSITION-THREE-BET-SPOTS-ARE-NOW-THE-WORST-RANGES-IN-THE-COMMITTED-CHART and
+      THE-PAIR-ORDERING-ARTEFACT-MOVED-SEAT-RATHER-THAN-DYING. And one frozen-test repair that needs a
+      task allowed to open tests, filed under maintenance:
+      A-VOCABULARY-ASSERTION-WENT-VACUOUS-WHEN-THE-LADDER-MOVED.
+      The lane had also filed five entries of its own on its branch. Four describe defects that do
+      not depend on phase 17 and are carried to main as filed, each with a dated note:
+      PREDICTION-CANNOT-BE-BLIND-TO-A-COMMITTED-MEASUREMENT,
+      RETIRED-CHART-PIN-DISAGREES-BETWEEN-GENERATOR-AND-RULING,
+      A-DECISION-LIST-CITES-A-REPORT-BY-LINE-AND-THE-LINE-MOVES, and an extension naming the two
+      reports that state rake is gone, added to the entry that says it is not. The fifth warned
+      that phase 17's new generator would compute agreement a second way beside comparison.py; that
+      generator will never exist, so the entry is left on the tagged branch and not cited here, since
+      an id no item on main declares reddens the citation check.
+      Related: THE-DRILL-IS-DEFERRED-UNTIL-THE-BOT-IS-WORTH-LEARNING-FROM, the same retirement shape
+      for phase 15.
+
+  - id: THE-ROADMAPS-STILL-SAY-THE-BOT-DOES-NOT-PLAY
+    status: deferred
+    phase: contract-update
+    title: Both roadmaps describe the postflop state from before phase 16 landed
+    reason: >-
+      Filed 2026-09-25 by MAINT-39, which found it while removing phase 17 from the same files and
+      fixed only the half it could state without a new measurement. Phase 16 is completed in
+      phase_status.yml and signed off by Taylor on 2026-09-24, but docs/ROADMAP.md still opens with
+      "The bot does not play yet" and says phase 16 is the only declared phase that changes it, and
+      the Postflop paragraph of docs/V2_ROADMAP.md says there is still no postflop strategy. Both
+      said "Phases 00 through 14" were completed; MAINT-39 corrected that line in each to include 16.
+      What it did not correct is what phase 16 actually changed, because that is a set of figures -
+      how often the flop chart bets, how many hands it voids - that belong to phase 16's reports and
+      must be read from them rather than written from memory. What would close it: restate both
+      paragraphs against reports/active and phase 16's audit packet, citing the report each figure
+      comes from.
+
+  - id: FROZEN-TESTS-STILL-NAME-PHASE-17-AS-OWNER-OF-THE-REPORT-TEXT
+    status: deferred
+    phase: maintenance
+    title: Two frozen tests still describe phase 17 as the phase that renders the corpus verdict
+    reason: >-
+      Filed 2026-09-25 by MAINT-39's independent review. Phase 17 is retired, and MAINT-39 does not
+      open tests, so three places in frozen tests still treat it as live.
+      tests/test_derived_chart_report_cutover.py says in the docstring of
+      test_the_corpus_measurement_is_republished_gating_nothing that phase 17 re-registers the
+      prediction's arithmetic, its failure message says the verdict is phase 17's, and its last
+      assertion requires the report's prediction section to contain the words phase 17 - so the
+      report can never stop naming a retired phase without that frozen test going red.
+      tests/test_spot_vocabulary_downstream.py says in the docstring of
+      test_no_limped_pot_is_answered_from_a_neighbouring_cell that the contract moves the limped-pot
+      entry to phase 17. The report currently satisfies the assertion by saying phase 17 is retired,
+      which is honest but is a sentence written to a test. What would close it: a maintenance task
+      that may open tests rewords the two docstrings and the message, and replaces the phase-17
+      assertion with one requiring the report to say no phase reads the band. Filed beside
+      A-VOCABULARY-ASSERTION-WENT-VACUOUS-WHEN-THE-LADDER-MOVED, the same kind of repair.
+
+  - id: THE-FLEET-BOARD-SHOWS-A-LANE-WHOSE-PHASE-WAS-RETIRED
+    status: deferred
+    phase: maintenance
+    title: The fleet board and review queue list a lane whose phase is no longer in phase_status.yml
+    reason: >-
+      Filed 2026-09-25 by MAINT-39's independent review. scripts/loop_fleet.py builds its lanes from
+      whatever worktrees hold a pointer under verification/loop_runs, and never checks that the
+      pointer's phase still exists in phase_status.yml. MAINT-35 retired phase 15 on 2026-09-21 and
+      left its worktree, so the board still shows phase 15 halted with five rulings owed to Taylor,
+      and scripts/review_queue.py still puts those asks in front of him. Phase 17 showed the same way
+      until MAINT-39 removed its worktree, and MAINT-39 removed phase 15's too on Taylor's word of
+      2026-09-25, so neither shows today; the tools would still show the next retired phase.
+      What would close it: both tools mark, or drop, a lane whose phase is absent from
+      phase_status.yml, so a retired phase can never present a human ask.
+
   - id: THE-PACKAGING-METADATA-IS-THE-LAST-LIVE-PROSE-STATEMENT-OF-THE-RETIRED-PURPOSE
     status: deferred
     phase: contract-update
@@ -787,7 +893,7 @@ items:
       from the four-bet side. Both are the same field being asked to carry two jobs.
   - id: THE-IN-POSITION-THREE-BET-SPOTS-ARE-NOW-THE-WORST-RANGES-IN-THE-COMMITTED-CHART
     status: deferred
-    phase: 17
+    phase: charts
     title: The chart teaches two qualities of poker depending on which seat three-bet, and nothing tells a student which half to trust
     reason: >-
       Measured by MAINT-34's independent poker review, as combo-weighted total variation distance
@@ -809,7 +915,7 @@ items:
       see, and no report says which spots sit in which tier.
   - id: THE-PAIR-ORDERING-ARTEFACT-MOVED-SEAT-RATHER-THAN-DYING
     status: deferred
-    phase: 17
+    phase: charts
     title: The small blind pure-three-bets deuces and pure-folds fours, and the big blind newly three-bets deuces against a lojack open
     reason: >-
       MAINT-34 was opened on a caricature - at a 7.5bb three-bet the big blind three-bet its whole
@@ -855,7 +961,7 @@ items:
       the price set, which is one sentence in each.
   - id: A-VOCABULARY-ASSERTION-WENT-VACUOUS-WHEN-THE-LADDER-MOVED
     status: deferred
-    phase: 17
+    phase: maintenance
     title: A frozen test proves the raise-depth clause with a key the solve can no longer emit at any depth
     reason: >-
       Found by MAINT-34's independent poker review. `tests/test_spot_vocabulary.py:508` asserts
@@ -1943,7 +2049,7 @@ items:
       replay.py in the tree.
   - id: CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT
     status: deferred
-    phase: "17"
+    phase: sample-comparison
     title: The chart defends the big blind nothing like real players do
     reason: >-
       As filed, measured over 499 real hands against the raked chart phase 14 later retired.
@@ -2066,7 +2172,7 @@ items:
       measurement of what that fix would buy, and the two should be worked together.
   - id: CORPUS-INVENTORY-SHOULD-DRIVE-CHART-WORK
     status: deferred
-    phase: "17"
+    phase: "19"
     title: Real hands find three times the coverage gap that self-play finds
     reason: >-
       78 distinct refused spots against real play versus 22 from self-play, and most of the
@@ -2167,7 +2273,7 @@ items:
       solve that does have a limp branch would ship one unremarked.
   - id: CHART-CANNOT-ANSWER-A-LIMPED-POT
     status: deferred
-    phase: "17"
+    phase: "19"
     title: A no-limp solve cannot answer any spot where an opponent limped
     reason: >-
       Hero never limping and hero never facing a limp are different things, and dropping limps
@@ -2178,6 +2284,11 @@ items:
       no-limp solve will lose. AGENTS.md forbids heuristic guessing for a missing chart spot,
       so the options are an honest refusal or reloading the saved solve with limps on and
       extracting that branch. Decision 1 keeps the save for exactly this.
+      Corrected 2026-09-25 by MAINT-39 when it moved this entry to phase 19. The sentence above saying
+      today's chart answers t6/d100/BB/SB:call is false: that cell belonged to the 36-spot GTO Wizard
+      chart, which is deleted, and tests/test_spot_vocabulary_downstream.py asserts the retired 86-spot
+      chart holds no call key and that none of the 52 limped corpus decisions is answered. So the chart
+      answers no limped pot at all, and filling them is substitution work for phase 19.
   - id: SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS
     status: deferred
     phase: simulator
@@ -5428,7 +5539,7 @@ items:
       first hypothesis to test next time rather than the last.
   - id: AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART
     status: deferred
-    phase: "17"
+    phase: sample-comparison
     title: The permissive corpus agreement rate scores menu width, not play quality
     reason: >-
       Found while re-sourcing phase 14 with `add_allin: false`, by scoring the same corpus against
@@ -5850,6 +5961,17 @@ items:
       three-explanations paragraph both need a clause saying the flop leaves keep the training rake,
       and `CORPUS-CALL-AGREEMENT-IS-THE-WEAK-SPOT` gains back part of the explanation phase 14 was
       going to strike off. Related: NO-ABSOLUTE-FREQUENCY-IS-CHECKED-AGAINST-ANYTHING-EXTERNAL.
+      INSTANCES, located 2026-09-06 by phase 17's stage-01 and stage-02 reviews. Two committed,
+      gate-generated reports make the unqualified claim, and phase 17's contract forbids exactly it.
+      The generators are `src/poker_training_bot/data_pipeline/comparison_report.py` and
+      `scripts/generate_derived_chart_report.py`; the committed text is in
+      `reports/active/latest_sample_comparison_report.txt`, which says the rake explanation "is gone"
+      and that a difference "has nothing to excuse it", and in
+      `reports/active/latest_derived_chart_report.txt`. These are phase 14's files and not phase 17's
+      to edit, so phase 17 carries the question to Taylor as decision 10 rather than fixing it.
+      Carried to main 2026-09-25 by MAINT-39 from phase 17's lane, where it was written and never
+      merged. Phase 17 is retired, so no decision 10 will be ruled and this question has no carrier;
+      it stays here until a task that may edit those generators takes it.
 
   - id: THREE-BET-SPOTS-ARE-PRICED-ON-AN-UNFITTED-TERMINAL
     status: deferred
@@ -6131,6 +6253,9 @@ items:
       replacement chart errs the other way at the same decision - in the one seat, the big blind, that
       faces a raise most often. Under decision 21's split the corpus
       measurement that would catch it is phase 17's, which lands after phase 14 can tag.
+      Noted 2026-09-25 by MAINT-39: phase 17 is retired, so no phase will run that measurement. What
+      would catch the over-fold now is phase 18's measure of how well the bot plays, or a re-derived
+      cell against a source without the defect.
       Not fixable inside phase 14: separating it needs the cold-call branch repriced and no config
       reaches that. Phase 16's postflop solver plays flops exactly and carries no realization model, at
       which point every committed cell is re-derivable against a source without the defect.
@@ -10242,3 +10367,93 @@ items:
       is likely to keep being accepted under the smaller description. What is owed: publish it in a
       report beside the 22.5bb rows, then put it to Taylor as its own question. Proposed by MAINT-36's
       independent review.
+
+  - id: PREDICTION-CANNOT-BE-BLIND-TO-A-COMMITTED-MEASUREMENT
+    status: deferred
+    phase: contract-update
+    title: A pre-registered prediction whose answer is already committed in the same tree, with nothing detecting it
+    reason: >-
+      Filed 2026-09-06 by phase 17's stage-01 independent review. The loop asks a phase to write a
+      prediction "before the measurement runs", and phase 17's contract makes that its central
+      criterion. But the measurement it predicts was already regenerated into `reports/active/` by
+      phase 14: `latest_spot_vocabulary_report.txt` prints human calls agreeing falling 60.8 to 36.2
+      percent at the cutover, `latest_sample_comparison_report.txt` prints the same rates with
+      denominators, the price-band split and the strict sampled-action rate, and `docs/BACKLOG.md`
+      publishes the purity pair under AGREEMENT-RATE-REWARDS-AN-UNCONVERGED-CHART. So "written before
+      any measurement runs" is trivially true - no *new* measurement has run - while the outcome sits
+      on disk in three committed files the author will open in the first ten minutes.
+      GENERAL FORM, larger than phase 17. Nothing in `scripts/loop_stage.py` or
+      `scripts/check_contracts.py` detects that a pre-registration's answer is already committed in the
+      same tree, so the honesty of every such criterion rests on the author not having read a file, and
+      no reviewer can discharge the check either. A repair would have to make the ordering checkable
+      rather than asserted - a prediction naming the commit it was blind to, and a check that the
+      figures it pre-registers do not appear in the tree at that commit.
+      PHASE 17 CANNOT FIX IT. It can only disclose its own instance, which its ExecPlan now does by
+      splitting the already-public figures from the genuinely unpublished ones and pre-registering only
+      the second set. That disclosure is not a fix and this entry stays open.
+      EXTENDED 2026-09-06 by phase 17's stage-02 review with a fourth file the original entry missed,
+      and it is the sharpest instance in the repo. `reports/active/latest_derived_chart_report.txt`
+      names phase 14's pre-registration, voids its numbers, and then hands phase 17 the per-opener
+      deltas its band is to be drawn on, saying so in as many words: "so that the later phase has the
+      measurement its band will be drawn on". It also publishes the per-opener call-agreement move with
+      counts, which is the outcome the pre-registration would be graded on. A pre-registration whose
+      inputs are printed for it by the very report it will be graded against is the general defect,
+      stated more plainly than the paragraphs above state it.
+      Carried to main 2026-09-25 by MAINT-39 from phase 17's lane, where it was filed and never
+      merged. Phase 17 is retired, so the paragraphs above that name its decisions describe a lane that
+      stopped at stage 3; the defect they describe does not depend on it and stays open. The report
+      sentence quoted in the extension was reworded by MAINT-39 when phase 17 went, but the report
+      still prints the per-opener deltas and the call-agreement move beside them, so the instance
+      stands.
+
+  - id: RETIRED-CHART-PIN-DISAGREES-BETWEEN-GENERATOR-AND-RULING
+    status: deferred
+    phase: contract-update
+    title: Two committed records pin the retired chart to different commits, and one asserts they agree
+    reason: >-
+      Filed 2026-09-06 by phase 17's stage-02 independent review, confirmed by the coordinator from the
+      bytes. `scripts/generate_derived_chart_report.py` pins
+      `RETIRED_CHART_COMMIT = 6f157247cf2217acf358d7cef901a550fc4aae69` and reads the 86-spot
+      `six_max_100bb_rakefree.json`, whose docstring says in as many words that the retired chart is
+      that file and "not the GTO Wizard NL25 chart". Phase 14's decision 7 pins `d046ac9` and the
+      36-key `six_max_nl25_100bb.json`, and says that pin is "what the committed derived-chart report
+      already reads the retired chart from", which is verifiably false.
+      WHY IT IS NOT COSMETIC. The two baselines are different charts with different properties, so a
+      phase measuring against "the retired chart" gets a different answer depending on which it means.
+      The 36-key chart has no key facing a four-bet and opens the small blind at 3.5bb; the 86-key
+      chart has 30 keys facing a four-bet and 15 facing a five-bet - the histogram of `raise@` tokens
+      over its 86 spot ids is {0:1, 1:10, 2:30, 3:30, 4:15} - and already opens the small blind at
+      2.5bb. So phase 17's contract criterion that the four-bet exclusion "must produce no rise at all"
+      holds by construction against one and is violated by construction against the other, and the
+      small blind's reprice its prediction is built on exists against one and not the other. The
+      per-opener defence deltas have opposite signs at four of five openers between them.
+      PHASE 17 CANNOT FIX IT: the generator is phase 14's. Phase 17 puts the choice to Taylor as its
+      decision 1 and records which baseline it measured against. This entry is the drift itself - two
+      committed records disagreeing, with a false sentence in one of them - and closes when the pin is
+      one thing.
+      Carried to main 2026-09-25 by MAINT-39 from phase 17's lane, where it was filed and never
+      merged. Phase 17 is retired, so the paragraphs above that name its decisions describe a lane that
+      stopped at stage 3; the defect they describe does not depend on it and stays open.
+
+  - id: A-DECISION-LIST-CITES-A-REPORT-BY-LINE-AND-THE-LINE-MOVES
+    status: deferred
+    phase: contract-update
+    title: Decision lists cite gate-regenerated reports by line number, and the lines move under them
+    reason: >-
+      Filed 2026-09-06 by phase 17's stage-02 independent review. Phase 17's decision list cited
+      `reports/active/latest_derived_chart_report.txt` by line number in a dozen places, and sixteen of
+      its citations were already wrong at the commit they were written against - drifting 2 to 10 lines,
+      including the quotation its decision 10 asks Taylor to rule on. Lane A re-verified all 41 explicit
+      citations and corrected them, but the next regeneration of that report moves them again and
+      nothing goes red when it does.
+      THE SHAPE. A line number into a generated file is a pointer with no owner: the generator's prose
+      is free to move, the decision list is frozen paperwork, and no check relates them. A citation by
+      section heading or by the quoted line's own text survives regeneration; a line number does not.
+      NEIGHBOURS, neither of which covers this.
+      A-GENERATED-REPORT-CAN-GO-STALE-WITH-THE-GATE-STILL-GREEN is about the report's own contents
+      going stale. HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES is about a figure copied out of
+      a set. This one is about the citation itself, in a hand-written governing document, pointing into
+      a file the gate rewrites.
+      Carried to main 2026-09-25 by MAINT-39 from phase 17's lane, where it was filed and never
+      merged. Phase 17 is retired, so the paragraphs above that name its decisions describe a lane that
+      stopped at stage 3; the defect they describe does not depend on it and stays open.

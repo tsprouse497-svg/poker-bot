@@ -23,7 +23,7 @@ every one of the 36 priced at a jam the ruled config cannot produce. Stage 6 rep
 the artifact's source checksum equals the export's - the check that would have caught it. Phase 10 captured a
 GTOpen solve of the game this bot trains for: six-handed, 100bb, rake-free. This phase derives the artifact
 from it and commits the ranges every later phase is measured against; hence `auto_advance: false` in
-`verification/loop_policy.yml`. The corpus verdict is **phase 17**.
+`verification/loop_policy.yml`. Phase 17 was to render the corpus verdict and is retired (`THE-CORPUS-VERDICT-PHASE-IS-RETIRED`).
 
 The committed export stands as solved and is **not re-solved**: `add_allin: false`, `realization: calibrated`,
 **33,969 action nodes**, solve record on the source card.

@@ -3275,9 +3275,11 @@ def corpus_section(measured: Measured) -> list[str]:
                 )
         lines.append("")
     lines += [
-        "None of this is a verdict and none of it gates. The corpus verdict is PHASE 17's, and",
-        "what this report does is republish the measurement so a reader can see what moved. A",
-        "rendered agreement rate with no label is read as a grade, so this one carries the label.",
+        "None of this is a verdict and none of it gates. The corpus verdict was PHASE 17's, and",
+        "phase 17 was retired on 2026-09-25 because the bot is judged by how it plays rather than",
+        "by how closely it copies real players, so no phase renders one. What this report does is",
+        "republish the measurement so a reader can see what moved. A rendered agreement rate",
+        "with no label is read as a grade, so this one carries the label.",
         "",
         "The refusal rate FALLS on both populations and the scored sample grows, which is the",
         "cutover buying coverage: the retired chart answered"
@@ -3306,13 +3308,12 @@ def prediction_section(measured: Measured) -> list[str]:
         "Its NUMBERS are void and are not reprinted here. They were computed on an export this",
         "phase no longer ships, and a pre-registration whose figures were fixed against data that",
         "has since moved is not a pre-registration. What travels is the FORM - a quarter to one",
-        "times that opener's own delta, written down before the numbers are seen - and PHASE 17",
-        "re-registers the arithmetic and reads it. Nothing here concludes anything and this",
-        "section gates nothing.",
+        "times that opener's own delta, written down before the numbers are seen. PHASE 17 was to",
+        "re-register the arithmetic and read it, and was retired on 2026-09-25 before it did, so",
+        "no phase reads this band. Nothing here concludes anything and this section gates nothing.",
         "",
         "What is printed instead is the delta itself, recomputed from the two committed charts, so",
-        "that the later phase has the measurement its band will be drawn on rather than a claim",
-        "about it:",
+        "that the measurement a band would be drawn on is published rather than claimed:",
         "",
     ]
     for position in OPENERS:
@@ -3557,8 +3558,8 @@ under a stated rule from a GTOpen solve of the game it is actually trained for -
 big blinds, rake-free. The old chart is deleted from the tree and is read out of git history here.
 
 Nothing below is a grade on the new chart. Two of the three things that could explain a gap
-between it and how people played are still uncontrolled, real players are not an oracle, and the
-corpus verdict belongs to a later phase. What this report can do is show that the conversion was
+between it and how people played are still uncontrolled, real players are not an oracle, and no
+phase renders a corpus verdict. What this report can do is show that the conversion was
 faithful, that the hand index survived it, what coverage was bought and sold, and what the five
 accepted defects cost - and say plainly which of its figures gate and which are published."""
 

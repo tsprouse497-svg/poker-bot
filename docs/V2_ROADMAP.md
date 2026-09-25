@@ -18,7 +18,7 @@ Two boundary movements come with the goal and are recorded under **Rulings** bel
 
 ## Where the repo actually is
 
-Phases 00 through 14 are `completed` in `phase_status.yml`.
+Phases 00 through 14, and 16, are `completed` in `phase_status.yml`.
 
 **The chart the bot plays.** `data/artifacts/preflop/six_max_100bb_rakefree.json` holds 156 spots at six-handed, 100bb, rake-free. The chart it replaced answered 36. Those 156 are what `reports/active/latest_derived_chart_report.txt` reports as committed out of the solve's 30,609 action nodes, and they carry 98.7380 percent of the preflop decisions the bot faces under the solve's own play.
 
@@ -26,7 +26,7 @@ That 98.74 is reach-weighted by the solve, which is a flattering measure, and th
 
 **What the refusals are.** Of the 75 rows in `reports/active/latest_sample_refusal_inventory.txt`, 59 are raised pots carrying 142 decision points and 16 are limped pots carrying 52. The limped rows exist because ruling 3 was narrowed after this document was written; see below. The catch-all is gone: `reports/active/latest_spot_vocabulary_report.txt` records 0 rows reading `(no expressible spot)` where the v1 vocabulary filed 19, and those 19 now arrive as an uncovered spot with a name rather than as a refusal naming nothing.
 
-**Where the chart is weak.** `reports/active/latest_sample_comparison_report.txt` puts both populations at 90.0 percent agreement overall, which is mostly a measurement of how easy it is to fold trash. Split by what the player did, folds agree at 97.6 percent for humans and 98.9 for Pluribus, and calls agree at 89 of 232 for humans, 38.4 percent, and 8 of 37 for Pluribus, 21.6 percent. Calling is the weak spot and has been since phase 08. Phase 17 is the verdict on it.
+**Where the chart is weak.** `reports/active/latest_sample_comparison_report.txt` puts both populations at 90.0 percent agreement overall, which is mostly a measurement of how easy it is to fold trash. Split by what the player did, folds agree at 97.6 percent for humans and 98.9 for Pluribus, and calls agree at 89 of 232 for humans, 38.4 percent, and 8 of 37 for Pluribus, 21.6 percent. Calling is the weak spot and has been since phase 08. No phase renders a verdict on it any more: phase 17 was that phase and is retired, below.
 
 **Postflop.** There is still no postflop strategy. `reports/active/latest_postflop_fallback_report.txt` describes a continuity device: it checks whenever checking is free, folds to a bet, and puts money in on exactly one path, a board on which no holding a villain could have beats hero whatever card is still to come. That path is open on the turn and the river and closed on the flop, so a flop bet always takes the pot from this bot, and against another copy of itself every postflop street checks through. Phase 16 is the only declared phase that changes this.
 
@@ -66,14 +66,6 @@ There is a cheap intermediate that needs no new data: call a river bet when equi
 
 `POSTFLOP-UNBEATABLE-EARLIER-STREETS` belongs here too, and is a faster evaluator rather than a new rule.
 
-### 17. The Corpus Verdict On The Committed Chart
-
-Publishes the verdict. Depends on 14.
-
-Rerun the corpus comparison against the committed chart and say what the calling gap is. Phase 08 measured it and could not attribute it, because two explanations were live at once: the reference solve was raked, and it was solved at a price real players rarely used.
-
-Rake is gone as a variable, because the committed solve takes no share and the corpus hands were played rake-free, so `reports/active/latest_sample_comparison_report.txt` no longer has that excuse to offer. Price is not gone, and ruling 8 is why: the bot answers any opening size out of the 2.5bb cell, so no sample is lost and every rate is still computed across prices the chart answers identically. This phase can attribute to rake and cannot attribute to price, and its verdict has to say so rather than reading a residual gap as a defect.
-
 ### 18. The Yardstick
 
 Depends on 14.
@@ -105,6 +97,12 @@ The drill was a training tool for a human: deal a spot, take the player's action
 Nothing depended on it. Its one outgoing edge, into phase 16, was cut on 2026-09-06 after a review found the edge had never been argued at all: it was a leftover from the straight chain the v2 contracts were first declared as, affirmed once without being traced, and it held the only phase that makes the bot play behind a training tool. `PHASE-16-WAITED-ON-PHASE-15-FOR-A-REASON-THAT-WAS-NOT-A-DEPENDENCY` carries the diagnosis and `A-DEPENDS-ON-EDGE-INHERITED-FROM-A-CHAIN-IS-NEVER-RE-EXAMINED` carries the general repair.
 
 The bounded hand-history lift of ruling 5 was scoped to this phase and now has no owner until a leak report is built on top of a bot that plays.
+
+## Retired: 17, The Corpus Verdict On The Committed Chart
+
+Phase 17 was to re-run the real-hand comparison against the committed chart and say whether the calling gap is rake, price, or a defect in the ranges. Taylor ruled on 2026-09-25 that the bot is judged by how well it plays, which phase 18 measures, and not by how closely it copies real players, so the verdict is not worth a phase. Agreeing with these players more was never playing better, which `docs/CORPUS_COMPARISON_LIMITS.md` argues under "Real players are not an oracle".
+
+Nothing depended on it. The comparison report stays in the gate as a measurement, and no phase reads it as a grade. Where the lane's work is kept and where its seven backlog entries went is `THE-CORPUS-VERDICT-PHASE-IS-RETIRED`.
 
 ## Carried forward from v1
 
