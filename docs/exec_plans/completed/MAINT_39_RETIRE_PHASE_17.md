@@ -53,8 +53,9 @@ generator's prose, and this task's packet and review directory. Standing scope c
 - [x] Re-home the seven entries; carry four lane findings; file the retirement entry.
 - [x] Tag the lane tip `7e0dd71` as `retired/phase-17`.
 - [x] Independent read-only review.
-- [ ] Gate, packet, closeout to idle, gate again, merge, push.
-- [ ] Remove the phase 17 worktree and its local branch; the tag keeps the commits.
+- [x] Gate, packet, closeout to idle, gate again, merge, push.
+- [x] Remove the phase 17 worktree and its local branch; the tag keeps the commits. Phase 15's
+  parked lane removed the same way on Taylor's word, tagged `retired/phase-15`.
 
 ## Verification
 
@@ -63,5 +64,5 @@ generator's prose, and this task's packet and review directory. Standing scope c
 
 ## Next Agent Bootstrap
 
-Read `THE-CORPUS-VERDICT-PHASE-IS-RETIRED` in `backlog.yml` for what moved and where the lane's work
-is kept. Open slices are listed above; nothing here needs Taylor.
+Closed. Nothing is owed here. `THE-CORPUS-VERDICT-PHASE-IS-RETIRED` in `backlog.yml` records what moved
+and where the lane's work is kept.
