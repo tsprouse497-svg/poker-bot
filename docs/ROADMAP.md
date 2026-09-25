@@ -12,7 +12,7 @@ The bot does not play yet. Since phase 06 every postflop street checks through i
 
 ## Done
 
-Phases 00 through 14 are `completed` in `phase_status.yml`.
+Phases 00 through 14, and 16, are `completed` in `phase_status.yml`.
 
 They produced a deterministic engine, a replayer that refuses out-of-order hands, a strategy contract that refuses rather than guesses, a fail-closed chart lookup, a self-play simulator, a public-corpus comparison, a verification gate that proves itself by breaking on purpose, a solver export with a human verdict on it, and the chart the bot plays today: 156 spots, six-handed, 100bb, rake-free, counted from `data/artifacts/preflop/six_max_100bb_rakefree.json`.
 
@@ -21,7 +21,6 @@ They produced a deterministic engine, a replayer that refuses out-of-order hands
 | Phase | Title | Depends on |
 |-------|-------|------------|
 | 16 | Postflop That Can Bet | 14 |
-| 17 | The Corpus Verdict On The Committed Chart | 14 |
 | 18 | The Yardstick | 14 |
 | 19 | Heuristics And Merged Charts | 16, 18 |
 | 20 | The Home Game | 16, 19 |
@@ -31,9 +30,7 @@ They produced a deterministic engine, a replayer that refuses out-of-order hands
 Which phases may advance unattended is `verification/loop_policy.yml`, and it is deliberately not restated here for the same reason.
 
 ```
-14 ─┬─ 17
-    │
-    ├─ 18 ──┐
+14 ─┬─ 18 ──┐
     │       ├─ 19 ──┐
     └─ 16 ──┴───────┴─ 20
 ```
@@ -46,7 +43,7 @@ The ordering rule is format before data, data before product. A chart is expensi
 
 What orders the rest is measurement before the thing being measured, and playing before anything built on top of playing.
 
-16, 17 and 18 all hang off 14 and off nothing else, so they are three independent lanes. Each reads the committed chart and none writes what another reads.
+16 and 18 both hang off 14 and off nothing else, so they are two independent lanes. Each reads the committed chart and neither writes what the other reads.
 
 19 needs 16 because a merge of solved cells with heuristics has to cover flops as well as preflop spots, and it needs 18 because a merge can otherwise only be asserted to help. Nothing in this repo measures how well the bot plays; 18 builds that instrument, and until it exists "the heuristics are an improvement" is an opinion.
 
@@ -55,6 +52,8 @@ What orders the rest is measurement before the thing being measured, and playing
 ## Retired
 
 Phase 15, The Drill. It was a training tool for a human, which is no longer what this sequence is for. It was a bare skeleton with no implementation, nothing depended on it, and its one outgoing edge into phase 16 was already cut on 2026-09-06 when it turned out to carry no content. The work is backlogged rather than deleted.
+
+Phase 17, The Corpus Verdict On The Committed Chart. It asked how closely the chart copies real players in a public set of hands, and Taylor ruled on 2026-09-25 that this is not what the bot is judged by: phase 18 measures how well it plays. Nothing depended on it. It had a contract, an ExecPlan and a decision list, and no measurement; where that work is kept, and where its seven backlog entries went, is `THE-CORPUS-VERDICT-PHASE-IS-RETIRED`. The corpus comparison report itself stays in the gate.
 
 ## Declared is not specified
 

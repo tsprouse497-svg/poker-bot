@@ -1,8 +1,8 @@
 # Status
 
 Project: `poker-playing-bot`
-Current task: `none (idle)`
-Task mode: `idle`
+Current task: `MAINT-39`
+Task mode: `contract-update`
 Active phase: `none`
 Completed phases: `16`
 
@@ -26,7 +26,6 @@ Completed phases: `16`
 | 13 | completed | `docs/phase_contracts/PHASE_13_TABLE_STATE.md` | `reports/phase_audits/PHASE_13_TABLE_STATE.md` |
 | 14 | completed | `docs/phase_contracts/PHASE_14_CHART_CUTOVER.md` | `reports/phase_audits/PHASE_14_CHART_CUTOVER.md` |
 | 16 | completed | `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` | `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` |
-| 17 | future | `docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md` | `reports/phase_audits/PHASE_17_CORPUS_VERDICT.md` |
 | 18 | future | `docs/phase_contracts/PHASE_18_YARDSTICK.md` | `reports/phase_audits/PHASE_18_YARDSTICK.md` |
 | 19 | future | `docs/phase_contracts/PHASE_19_HEURISTICS_AND_MERGED_CHARTS.md` | `reports/phase_audits/PHASE_19_HEURISTICS_AND_MERGED_CHARTS.md` |
 | 20 | future | `docs/phase_contracts/PHASE_20_HOME_GAME.md` | `reports/phase_audits/PHASE_20_HOME_GAME.md` |

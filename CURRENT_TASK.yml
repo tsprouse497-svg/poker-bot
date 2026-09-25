@@ -1,8 +1,16 @@
-task_id: null
+task_id: MAINT-39
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: contract-update
+base_commit: 65e87d28aaec6a7a19643e0864c8adbc717f7f50
+approved_scope:
+- docs/phase_contracts/PHASE_17_CORPUS_VERDICT.md
+- docs/phase_contracts/PHASE_14_CHART_CUTOVER.md
+- docs/ROADMAP.md
+- docs/V2_ROADMAP.md
+- verification/loop_policy.yml
+- scripts/generate_derived_chart_report.py
+- reports/phase_audits/MAINT_39_RETIRE_PHASE_17.md
+- reports/phase_audits/reviews/MAINT_39_RETIRE_PHASE_17/**
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -18,6 +26,16 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-09-25
+    reason: >-
+      MAINT-39 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. Taylor ruled on 2026-09-25 that phase 17
+      is retired: the bot is measured by how well it plays, which is phase 18, and not by how closely
+      it copies real players. The contract is deleted; its `phase_status.yml` and loop-policy entries go
+      with it; the roadmaps stop naming it; phase 14's contract, which sits at its 300-line cap, has
+      its one live pointer to phase 17 amended in place; and the derived-chart report stops telling a
+      reader that phase 17 renders the corpus verdict. The last two paths are this task's packet and
+      review directory. No artifact, range or test changes.
   - date: 2026-09-24
     reason: >-
       MAINT-38 opens from idle, so every pattern in `approved_scope` reads as a widening against
