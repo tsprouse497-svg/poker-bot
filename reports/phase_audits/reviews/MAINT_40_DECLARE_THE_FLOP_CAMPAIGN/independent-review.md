@@ -292,3 +292,100 @@ Questions outside the brief the coordinator could have asked:
 - Is closure (committing every flop situation reachable from a solved one) part of "get more of the
   solve", or a separate ask for Taylor (B1)? He may have meant boards and lines only. If so, he
   should be told the measured table result will not move much on boards alone.
+
+## Round 2
+
+- **Checked**: `git diff 6eb0de4..3b7771c`, the whole diff, read-only.
+- **Checks rerun**: `check_contracts`, `check_repo_consistency`, `check_scope`, `check_file_sizes`,
+  `check_execplan_delegation`, and the three generators with `--check`. All exit 0. The contract is
+  now 136 lines. This file is byte-identical to the committed version, apart from the three ids the
+  coordinator expanded. The tree was clean before I appended this section.
+- **Counts**: B1 still open (one short edit left). Of N1-N8, 6 fixed and 2 partly fixed. A1 filed.
+  Three new non-blockers.
+
+### B1 - partly fixed; not resolved
+
+What is fixed:
+
+- The framing now names both causes, in `PHASE_21...md:30-33` and `ROADMAP.md:9`.
+- Part 3 demands closure (`PHASE_21...md:54-56`).
+- The owning entry is adopted (`backlog.yml:10157`, note at the end of the entry).
+- `V2_ROADMAP.md:83` states it the strong way: "every flop decision point that follows a committed
+  one".
+
+What still lets the campaign repeat phase 16's null result is **the escape clause, which is my own
+round-1 wording, and I was wrong to offer it**. The contract (`:55`) and the adoption note both say
+closure is met when every reachable decision point is "committed **or refused by name**". Phase 16's
+sample already refuses every successor by name. The packet says "The refusal even names the key it
+could not find" (`PHASE_16_POSTFLOP_BETTING.md:75`). So a campaign that commits root cells only, as
+phase 16 did, meets the criterion as written and voids the same hands. The contract and V2 also now
+disagree: V2 has no "or refused" clause.
+
+Fix, one phrase in both places: "committed, or refused by name for a reason other than not having
+been committed - for example the exploitability ceiling or an off-menu size".
+
+### N1-N8 and A1
+
+| Finding | Status | Evidence |
+| --- | --- | --- |
+| N1 | Fixed | The reason now reads "any rule of thumb written for a flop covers only what the campaign could not solve". That holds whichever way 19's flop question is settled. See `PHASE_19...md:39-43`, `ROADMAP.md:53`, `V2_ROADMAP.md:93` and `PHASE_21...md:83-85`. |
+| N2 | Fixed | `PHASE_21...md:29-30`: "indexed but its cell document is not in git". |
+| N3 | Mostly fixed | `A-SCOPE-SENTENCE-...` is back at `contract-update`, with a note that also records the retracted mechanism (`backlog.yml:721-749`). `THE-COST-MODEL-S-RANGES-...` is back at `contract-update`, with its adoption note removed. Every adopted entry now carries its own closing condition. `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` went back to `"16"` - see R2-N3. |
+| N4 | Fixed | All seven entries I named are adopted and listed in `PHASE_21...md:67-78`, twelve in all. |
+| N5 | Fixed | The closure note explains why "The bot does not play yet" stays (`backlog.yml:448`). `V2_ROADMAP.md:55` marks 16 completed. `ROADMAP.md:55` and `V2_ROADMAP.md:101` no longer say "folds". |
+| N6 | Fixed | `PHASE_21...md:59-65`: stage 2 may reopen a ruling through its own decision, the ceiling is marked `runtime-reversible` and tied to the over-read, the CUDA clause is carried, and the 0.3% constant is flagged to ask. The cost-per-flop rule is now recorded as Taylor's (`MAINT_40...md:19-22`). I cannot verify what Taylor said in session; I note it as recorded by the coordinator. |
+| N7 | Partly fixed | The contract (`:49-54`) says decision 3 rules a method, not a list, and makes the order a stage-2 question. `V2_ROADMAP.md:83` still says "in the order phase 16's decision 3 ruled" with no such caveat. That is minor, and it is the same claim the contract now qualifies. The rank-4 limped line and the corpus-versus-MAINT-39 question are not mentioned. Both are stage-2 material, so this is acceptable. |
+| N8 | Fixed | `PHASE_21...md:37-44` and `V2_ROADMAP.md:83` give the source's reason, say the gain is unmeasured, and make the patch conditional. |
+| A1 | Filed | `PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS` (`backlog.yml:3`) is `deferred`, phase `"19"`. Its quotes match `PHASE_19...md:37`, `:56-57` and `V2_ROADMAP.md:93`, and its closing condition is concrete. It is also cited from `PHASE_19...md:42-43`. |
+
+### New findings from round 2
+
+**R2-N1 (non-blocker).** `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT` has a closing
+condition that is not the entry's own ask. The note (`backlog.yml`, end of the entry at 9334)
+closes it "when where the object storage lives, who pays for it and how a machine fetches it are
+ruled and recorded". The entry asks for the fresh-clone-versus-provisioned distinction "stated
+wherever coverage is claimed". The storage rulings could all land while every coverage figure still
+reads as the repo's. Add "and every coverage figure the campaign publishes gives both counts".
+
+**R2-N2 (non-blocker).** The `A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT`
+closing condition (`backlog.yml:691`) covers the refusal wording only. It drops the entry's second
+half: "count lines and seats under different words". That second half is the part phase 21's own
+vetting line (`PHASE_21...md`, "How many preflop lines ...") depends on.
+
+**R2-N3 (non-blocker).** `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` was re-labelled from `"21"` back
+to `"16"` (`backlog.yml:4513`). Phase 16 is completed, so this is again an entry deferred against a
+completed phase, which is what `BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE` records as a blind spot.
+Its open half is the preflop extractor, so `contract-update` or `charts` would be a truthful home.
+
+The other adoption notes' closing conditions are concrete and match their entries:
+
+- `GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT`: five against ten threads, with
+  machine and thread count on every timing.
+- `EVERY-ARENA-FIGURE-IN-THE-COST-RECORD-IS-A-QUANTIZED-ARENA-AND-FULL-PRECISION-ROUGHLY-DOUBLES-IT`:
+  f32 figures on the chosen box.
+- `THE-MEMORY-GUARD-COMPARES-AN-ARENA-FIGURE-IT-DELIBERATELY-OVER-READS-BY-FIVE-PERCENT`: "one of
+  the three repairs above". I checked that the entry does list exactly three.
+- `THE-SOLVE-DRIVER-GUARD-TESTS-PIN-A-TYPE-RATHER-THAN-A-BEHAVIOUR`
+- `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`
+- `THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY`
+- `THE-PHASE-CAN-ANSWER-AT-MOST-THREE-QUARTERS-OF-CORPUS-FLOPS`
+- `QUANTIZED-ARENAS-PUT-A-FLOOR-UNDER-EVERY-EXPLOITABILITY-THIS-PHASE-MEASURED`
+- `NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED`
+
+### What I held back in round 2
+
+- The `QUANTIZED-ARENAS-PUT-A-FLOOR-UNDER-EVERY-EXPLOITABILITY-THIS-PHASE-MEASURED` closing
+  condition ("every campaign cell records f32") is nearly free. Phase 16's own five cells already
+  record `f32` (`index.json`). The entry's real point, that the 0.3% target was set against a floored
+  record, is covered by the contract's stage-2 question on the target (`:63-65`), so I did not raise
+  it.
+- The new entry says it was "Filed ... by MAINT-40's independent review". The review found it and
+  the coordinator filed it, since I am read-only. This is trivial.
+- `ROADMAP.md:9`, "refuses one action later, because no decision point that follows a committed one
+  is committed", is true of immediate successors, which is the packet's "eleven". `Kh7d2c`'s
+  facing-a-bet cell is committed two moves below the donk cell, with an uncommitted move between
+  them, so "no committed decision point is reachable" would be false. The sentence as written is
+  fine.
+- The `THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY` closing condition also allows "or states
+  why the limit it hit stopped short". That escape is honest, not vacuous, because the campaign
+  report must name its limit anyway.

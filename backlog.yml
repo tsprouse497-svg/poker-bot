@@ -5,7 +5,7 @@ items:
     phase: "19"
     title: Phase 19's contract and the roadmaps disagree on whether its heuristics cover flops
     reason: >-
-      Filed 2026-09-26 by MAINT-40's independent review. Phase 19's contract says it depends on 16
+      Found 2026-09-26 by MAINT-40's independent review and filed by the coordinator. Phase 19's contract says it depends on 16
       "for the flop cells there are anything to merge with", and docs/V2_ROADMAP.md says it needs 16
       "so flop gaps are in scope alongside preflop ones". The same contract's non-goals say the lift it
       carries "is for missing *preflop* chart spots and reaches no further", and forbid mapping an
@@ -688,7 +688,7 @@ items:
       Filed rather than fixed because `strategy/postflop_betting.py` sits at exactly 500 lines
       against a 500 cap compared greater-than and the report's wording is the stage-8 repair's
       territory rather than stage 9's.
-      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. The campaign commits boards per line and seat, so it is where this refusal's wording either becomes true or is fixed. Closes when the refusal names the line and seat it was scoped to, or every campaign board is held for both seats.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. The campaign commits boards per line and seat, so it is where this refusal's wording either becomes true or is fixed. Closes when the refusal names the line and seat it was scoped to, or every campaign board is held for both seats, and every coverage figure counts lines and seats under different words.
 
   - id: A-CONTRACT-CLOSED-LIST-ASSERTS-A-CLOSURE-ITS-PHASE-REFUSED-ON-EVIDENCE
     status: deferred
@@ -4510,7 +4510,7 @@ items:
 
   - id: SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS
     status: deferred
-    phase: "16"
+    phase: charts
     title: GTOpen's tree-size guard cannot fire on this machine, so a solve script must carry its own
     reason: >-
       mem_cap_mb() in GTOpen's server reads /proc/meminfo, which does not exist on Darwin, and
@@ -4526,6 +4526,7 @@ items:
       solve script phase 14 or phase 16 adds would inherit the same absent guard unless it
       carries one. Filed so the next solve script does not have to rediscover it.
       **Restated 2026-09-22 rather than closed, and the contract expected the opposite.** The contract had it leaving the Closed list because the rented Linux box has /proc/meminfo and the premise would dissolve. Decision 24 rules the rented box binds the campaign and not this sample, so the premise did not dissolve - it holds for the machine actually used, which is Darwin. Half is discharged: the driver carries its own ceiling, now at 0.40 of physical memory. The other half is untouched and was checked rather than assumed - scripts/extract_gtopen_preflop.py contains no memory ceiling, no RAM figure and no memory handling at all. One stale figure corrected in passing: this entry said 32 GB where the machine reports 34.4.
+      **Re-filed 2026-09-26 by MAINT-40** from phase 16, which is completed, to `charts`: the open half is scripts/extract_gtopen_preflop.py, which solves preflop charts, while phase 21's campaign runs on a rented cloud box, which the restatement above expects to be Linux with a /proc/meminfo GTOpen's own guard can read; if it is not, phase 21's own driver ceiling still applies.
 
   - id: SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE
     status: done
@@ -9348,7 +9349,7 @@ items:
       classes a fresh clone can answer, and how many a provisioned one can.
       Proposed by phase 16's stage-3 independent review, 2026-09-10, on its verification pass, and
       filed by the coordinator the same day.
-      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from contract-update. The campaign makes the gap larger by every board it adds. Closes when where the object storage lives, who pays for it and how a machine fetches it are ruled and recorded.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from contract-update. The campaign makes the gap larger by every board it adds. Closes when where the object storage lives, who pays for it and how a machine fetches it are ruled and recorded, and every coverage figure the campaign publishes says how many flop classes a fresh clone can answer beside how many a machine that has fetched can.
 
   - id: COMMITTED-DATA-BEHIND-A-NETWORK-FETCH-BREAKS-AN-OFFLINE-GATE
     status: deferred
@@ -10185,7 +10186,7 @@ items:
       It explains only the node above: after that c-bet, a call or a check-raise still reaches an
       uncommitted node, so the bot's next decision refuses. And the cell exists on 4 of 22,100 flops,
       about 1 in 5,525 on the one covered line, not the 40 that all three boards add up to.
-      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. Phase 16's packet names missing closure as half its null table result, so a campaign that buys boards without closing them repeats it. Closes when every flop decision point reachable from a committed one is committed or refused by name.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. Phase 16's packet names missing closure as half its null table result, so a campaign that buys boards without closing them repeats it. Closes when every flop decision point reachable from a committed one is committed, or refused by name for a reason other than not having been committed, such as the exploitability ceiling or an off-menu size; phase 16's sample already refuses every next decision by name, so naming alone closes nothing.
 
   - id: A-REFUSAL-AT-A-LIVE-TABLE-HAS-NO-DEFINED-ACTION
     status: deferred
