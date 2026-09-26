@@ -60,4 +60,5 @@ One read-only reviewer that wrote none of this and ran no gate, three rounds, no
 
 ## Gate
 
-Recorded below after the run.
+Green, 50 of 50, `check_gate_bite` included, on the review fixes and this packet. The closeout
+edits are covered by the closeout gate.

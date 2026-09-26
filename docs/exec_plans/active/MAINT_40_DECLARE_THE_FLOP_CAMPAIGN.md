@@ -58,7 +58,7 @@ Nothing under `data/`, `src/`, `tests/` or `scripts/` changes.
   closes it.
 - [x] Independent read-only review: one blocker, eight non-blockers, one alignment item. All fixed,
   and the alignment item filed as `PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS`.
-- [ ] Gate, packet, closeout to idle, gate again, merge, push.
+- [x] Gate, packet, closeout to idle, gate again, merge, push.
 
 ## Verification
 
@@ -68,10 +68,10 @@ eligible, since 16 is `completed` there.
 
 ## Outcome
 
-Filled in at the gate.
+Phase 21 declared at `future`, phase 19 waits on it, twelve entries adopted, review resolved in
+three rounds, gate green 50 of 50.
 
 ## Next Agent Bootstrap
 
-The lane is `~/projects/poker-bot-worktrees/maint-40` on `maint/40-declare-the-flop-campaign`.
-After it merges, phase 21 starts from the `main` tree with
+Closed. Phase 21 starts from the `main` tree with
 `uv run python scripts/loop_fleet.py --start-lane 21`, and stage 1 replaces the skeleton.
