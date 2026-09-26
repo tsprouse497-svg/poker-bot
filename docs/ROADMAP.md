@@ -6,7 +6,7 @@ A bot that plays strong no-limit hold'em.
 
 Taylor ruled that on 2026-09-21. Training and coaching tools - a drill, a leak report, a user interface - come after and are backlogged until the bot plays well. The corollary matters more than the goal, because it reverses decisions already made: a line the solve takes is no longer refused on the grounds that a student would be misled by it, and a cost recorded as "pedagogical, not monetary" stops being a cost anybody may wave through.
 
-The bot does not play yet. Phase 16 built flop play that can bet and closed on a sample: `data/artifacts/postflop/index.json` holds five flop decision points on four boards for one preflop line, 44 of the 22,100 three-card flops, of which the committed sample carries three boards and 40 flops, and on every other flop the bot refuses. Phase 16's audit packet measured what that buys at a table: twenty thousand hands of self-play gave two postflop decisions, both a check, no bet, and 5,365 voided hands. Phase 21 is the declared phase that buys more of it.
+The bot does not play yet. Phase 16 built flop play that can bet and closed on a sample: `data/artifacts/postflop/index.json` holds five flop decision points on four boards for one preflop line, 44 of the 22,100 three-card flops, of which the committed sample carries three boards and 40 flops. On every other flop the bot refuses, and on the flops it holds it refuses one action later, because no decision point that follows a committed one is committed. Phase 16's audit packet measured what that buys at a table: twenty thousand hands of self-play gave two postflop decisions, both a check, no bet, and 5,365 voided hands. Phase 21 is the declared phase that buys more coverage, and closes each board it solves.
 
 `docs/V2_ROADMAP.md` holds the argument behind the graph below, the rulings that settle what to build, and which of them still stand.
 
@@ -50,9 +50,9 @@ What orders the rest is measurement before the thing being measured, and playing
 
 21 hangs off 16 alone, because 16 is the machinery it runs: the postflop key, the index, the object storage format and the solve driver. Taylor ruled on 2026-09-26 to trust the solve and buy more of it rather than measure the bot first, so 21 does not wait on 18. It is independent of 18 and the two can run side by side.
 
-19 needs 16 because a merge of solved cells with heuristics has to cover flops as well as preflop spots, it needs 18 because a merge can otherwise only be asserted to help, and it needs 21, ruled by Taylor on 2026-09-26, so no rule of thumb is written for a spot the campaign then solves and the merge is measured against the bot the campaign leaves. Nothing in this repo measures how well the bot plays; 18 builds that instrument, and until it exists "the heuristics are an improvement" is an opinion.
+19 needs 16 because a merge of solved cells with heuristics has to cover flops as well as preflop spots, it needs 18 because a merge can otherwise only be asserted to help, and it needs 21, ruled by Taylor on 2026-09-26, so any rule of thumb it writes for a flop covers only what the campaign could not solve, and the merge is measured against the bot the campaign leaves. Nothing in this repo measures how well the bot plays; 18 builds that instrument, and until it exists "the heuristics are an improvement" is an opinion.
 
-20 comes last, and needs 16 and 19, because a bot that folds every flop and refuses every uncovered spot should not sit down anywhere.
+20 comes last, and needs 16 and 19, because a bot that refuses every flop it holds no cell for, and voids the hand, should not sit down anywhere.
 
 ## Retired
 

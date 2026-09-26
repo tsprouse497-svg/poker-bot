@@ -24,43 +24,65 @@ Declared by MAINT-40 on 2026-09-26 from Taylor's ruling of that date: trust the 
 of it, rather than measuring the bot first. Phase 16 built the machinery - the postflop key, the
 index, the object storage format, the solve driver - and closed on a sample rather than on coverage,
 which its decision 25 states. `data/artifacts/postflop/index.json` holds five flop decision points on
-four boards for one preflop line, the button opening and the big blind calling; those four board
-classes are 44 of the 22,100 three-card flops. `data/artifacts/postflop/sample/` carries four of the
-five cells, on three boards and 40 flops, and the fifth, `Ac8c3c`, is indexed with its object held
-outside git. On every other flop the bot refuses.
+four boards for one preflop line, the button opening and the big blind calling, seen from both
+seats; those four board classes are 44 of the 22,100 three-card flops. `data/artifacts/postflop/sample/`
+carries four of the five cell documents, on three boards and 40 flops, and the fifth, `Ac8c3c`, is
+indexed but its cell document is not in git. On every other flop the bot refuses, and on the flops it
+holds it refuses one action later, because no decision point that follows a committed one is
+committed. Phase 16's packet names both causes of its null table result: too few boards, and no
+closure.
 
 Three parts, in this order, because each one prices the next:
 
-1. **Use every core.** GTOpen's server prints "solver threads: 5" on a ten-core Apple M4, so every
-   timing on record may have been taken at half the machine. Find out why, fix it, and record the
-   thread count beside every timing from here on.
-   `GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT`.
-   GTOpen is a read-only clone; a patch lives in a local clone and is recorded the way earlier
-   phases recorded theirs.
+1. **Use every core.** GTOpen's server prints "solver threads: 5" on a ten-core Apple M4. The cause
+   is in its source: it takes half of `available_parallelism()` on purpose, to skip hyperthreads on
+   what its comment calls a memory-bound workload, unless `SOLVER_THREADS` overrides it. The M4 has
+   no hyperthreads, so five is half the machine; whether ten is faster is unmeasured. Measure five
+   against ten, set the thread count explicitly on every machine, and record it beside every timing
+   from here on. `GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT`. If the setting is
+   not enough, GTOpen is a read-only clone; a patch lives in a local clone and is recorded the way
+   earlier phases recorded theirs.
 2. **Pick the cloud machine.** Phase 16's decision 24 rules that the campaign runs on a rented box
    whose specification was left open. Solve and time one flop on a few candidates, re-prove
    determinism on the one chosen, since phase 16's proof holds only on the Mac it ran on, and choose
    on cost per solved flop with the memory a solve needs as a hard limit.
-3. **Run the campaign.** Solve down the ranked list of preflop lines phase 16 defined, into the index
-   and object storage format phase 16 built, as many lines as cost and index allow, with the report
-   naming which limit applied. Nothing is re-solved or hand-edited to look better.
+3. **Run the campaign.** Solve preflop lines in the order phase 16's decision 3 ruled, by how often a
+   line is reached and can be served, into the index and object storage format phase 16 built, as
+   many lines as cost and index allow, with the report naming which limit applied. Decision 3 rules a
+   method rather than a list, and the order phase 16's report prints comes from the public corpus and
+   disagrees with the chart's own arrival order at rank 1, so which order ranks the campaign is a
+   stage-2 question. A solved board must also close: every flop decision point reachable from a
+   committed one is committed or refused by name, or the campaign buys boards the bot still cannot
+   play. `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`. Nothing is re-solved
+   or hand-edited to look better.
 
-Phase 16's rulings bind this phase and are not reopened here: full-precision f32 arenas (decision
-20), the 0.40 memory ceiling (decisions 20 and 22), an index plus object storage with no git LFS,
-and the rented box governing the campaign (decision 24).
+Phase 16's rulings carry into this phase: full-precision f32 arenas (decision 20), the 0.40 memory
+ceiling (decisions 20 and 22), an index plus object storage with no git LFS, the rented box governing
+the campaign (decision 24), and no run on GTOpen's untested CUDA path until one flop is solved and
+timed on the box. Stage 2 may reopen one only through a decision of its own; the memory ceiling is
+`runtime-reversible` and moves together with the over-read the adopted memory-guard entry names. The
+0.3%-of-pot target is already a code constant, `EXPLOITABILITY_TARGET_PCT_OF_POT`, and would become
+the campaign's target silently, so stage 2 asks rather than inherits it.
 
-Adopted from `backlog.yml`, each to be closed or carried by this phase:
-`A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE`,
-`GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT`,
+Adopted from `backlog.yml`, each to be closed or carried by this phase, and each entry's adoption
+note says what closes it: `GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT`,
 `EVERY-ARENA-FIGURE-IN-THE-COST-RECORD-IS-A-QUANTIZED-ARENA-AND-FULL-PRECISION-ROUGHLY-DOUBLES-IT`,
 `THE-MEMORY-GUARD-COMPARES-AN-ARENA-FIGURE-IT-DELIBERATELY-OVER-READS-BY-FIVE-PERCENT`,
-`SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS`,
-`THE-COST-MODEL-S-RANGES-ARE-RECORDED-ONLY-AS-DIGESTS-OF-DATA-THAT-IS-NOT-HERE` and
-`THE-SOLVE-DRIVER-GUARD-TESTS-PIN-A-TYPE-RATHER-THAN-A-BEHAVIOUR`.
+`THE-SOLVE-DRIVER-GUARD-TESTS-PIN-A-TYPE-RATHER-THAN-A-BEHAVIOUR`,
+`A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`,
+`A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT`,
+`POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`, `THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY`,
+`THE-PHASE-CAN-ANSWER-AT-MOST-THREE-QUARTERS-OF-CORPUS-FLOPS`,
+`THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`,
+`QUANTIZED-ARENAS-PUT-A-FLOOR-UNDER-EVERY-EXPLOITABILITY-THIS-PHASE-MEASURED` and
+`NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED`.
+`A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE` stays a `contract-update` task
+for phase 16's own wording; this contract carries its two terms, that the rented box governs the
+campaign and that determinism is re-proved on that box.
 
 It depends on 16 alone, because 16 is the machinery it runs. Phase 19 depends on it, ruled by Taylor
-on 2026-09-26, so that 19 writes no rule of thumb for a spot this campaign then solves, and measures
-its merge against the bot this campaign leaves.
+on 2026-09-26, so that any rule of thumb 19 writes for a flop covers only what this campaign could
+not solve, and 19 measures its merge against the bot this campaign leaves.
 
 Phase 21 is limited to the work named by this contract and the active ExecPlan.
 

@@ -17,7 +17,9 @@ contract changes, so this runs in `contract-update`.
 ## Taylor's rulings, 2026-09-26
 
 1. **Direction.** Trust the solve and get more of it, instead of measuring the bot first. Phase 21
-   has three parts in order: use every core, pick the cloud machine, run the campaign.
+   has three parts in order: use every core, pick the cloud machine, run the campaign. The machine
+   is picked on cost per solved flop with the memory a solve needs as a hard limit, and nothing is
+   re-solved or hand-edited to look better.
 2. **Numbering.** 21. Numbers 15 and 17 are retired and not reused.
 3. **Phase 19 waits on 21.** Asked in plain words, with the cost stated (19 starts later) and the
    recommendation first; he chose yes. 19's contract gains the edge and one sentence saying why.
@@ -33,7 +35,7 @@ Nothing under `data/`, `src/`, `tests/` or `scripts/` changes.
 
 - No-delegation exception: the edits are coordinator-owned because each one transcribes a ruling
   made in this conversation into files that must agree with each other - a contract skeleton, a
-  status entry, a policy entry, one edge, two roadmap paragraphs and seven backlog re-labels - and a
+  status entry, a policy entry, one edge, two roadmap paragraphs and a dozen backlog re-labels - and a
   lane would be writing down what the coordinator told it. The figures in them were computed by the
   coordinator from committed data, and the review below re-derives them independently.
 - Review handoff: one read-only reviewer that wrote none of this checks that phase 21 is declared
@@ -52,8 +54,10 @@ Nothing under `data/`, `src/`, `tests/` or `scripts/` changes.
 - [x] Phase 19 `depends_on` gains 21, on Taylor's ruling.
 - [x] Both roadmaps say where 21 sits and why; both now say what phase 16 shipped, which closes
   `THE-ROADMAPS-STILL-SAY-THE-BOT-DOES-NOT-PLAY`.
-- [x] Seven backlog entries adopted by phase 21.
-- [ ] Independent read-only review, findings fixed or filed.
+- [x] Backlog entries adopted by phase 21: twelve after the review, each with the condition that
+  closes it.
+- [x] Independent read-only review: one blocker, eight non-blockers, one alignment item. All fixed,
+  and the alignment item filed as `PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS`.
 - [ ] Gate, packet, closeout to idle, gate again, merge, push.
 
 ## Verification

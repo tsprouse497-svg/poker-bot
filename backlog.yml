@@ -1,5 +1,21 @@
 schema_version: 1
 items:
+  - id: PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS
+    status: deferred
+    phase: "19"
+    title: Phase 19's contract and the roadmaps disagree on whether its heuristics cover flops
+    reason: >-
+      Filed 2026-09-26 by MAINT-40's independent review. Phase 19's contract says it depends on 16
+      "for the flop cells there are anything to merge with", and docs/V2_ROADMAP.md says it needs 16
+      "so flop gaps are in scope alongside preflop ones". The same contract's non-goals say the lift it
+      carries "is for missing *preflop* chart spots and reaches no further", and forbid mapping an
+      unsolved board onto a solved one. A heuristic for an unsolved flop that is not a board mapping is
+      neither allowed nor forbidden by those words. MAINT-40 carried the ambiguity forward rather than
+      resolving it: its new edge from 19 to 21 is worded so it holds either way. What would close it:
+      phase 19's stage 1 states in one place whether its rules of thumb cover flops, and the roadmaps
+      follow. Whether the heuristic-guessing boundary in AGENTS.md reaches flops is part of that
+      question and a semantic change if it moves.
+
   - id: THE-SCOPE-CHANGE-LOG-IS-NEARLY-HALF-DUPLICATES-AND-A-MERGE-PUT-THEM-THERE
     status: deferred
     phase: maintenance
@@ -429,7 +445,7 @@ items:
       must be read from them rather than written from memory. What would close it: restate both
       paragraphs against reports/active and phase 16's audit packet, citing the report each figure
       comes from.
-      **Closed 2026-09-26 by MAINT-40**, which had both paragraphs open to add phase 21. The opening of docs/ROADMAP.md and the Postflop paragraph of docs/V2_ROADMAP.md now say what phase 16 shipped, counted from data/artifacts/postflop/index.json and its sample directory - five flop decision points on four boards for one preflop line, 44 of 22,100 flops, three boards and 40 flops in the committed sample - and what it measured at a table, cited to reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md: twenty thousand hands, two postflop decisions, both a check, no bet, 5,365 voided. Neither says phase 16 is the only phase that changes it; each names phase 21.
+      **Closed 2026-09-26 by MAINT-40**, which had both paragraphs open to add phase 21. The opening of docs/ROADMAP.md and the Postflop paragraph of docs/V2_ROADMAP.md now say what phase 16 shipped, counted from data/artifacts/postflop/index.json and its sample directory - five flop decision points on four boards for one preflop line, 44 of 22,100 flops, three boards and 40 flops in the committed sample - and what it measured at a table, cited to reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md: twenty thousand hands, two postflop decisions, both a check, no bet, 5,365 voided. Neither says phase 16 is the only phase that changes it; each names phase 21. docs/ROADMAP.md still opens "The bot does not play yet" on purpose: it is still true, since the bot refuses on every flop and voids the hand one action after any committed cell, and the sentences after it now say so with the figures rather than leaving it bare. docs/V2_ROADMAP.md's section on phase 16 under the phases ahead now says it is completed and kept for the argument.
 
   - id: FROZEN-TESTS-STILL-NAME-PHASE-17-AS-OWNER-OF-THE-REPORT-TEXT
     status: deferred
@@ -649,7 +665,7 @@ items:
 
   - id: A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT
     status: deferred
-    phase: "16"
+    phase: "21"
     title: The no-cell-for-this-board refusal fires on boards the artifact does hold, because it holds them for the other seat
     reason: >-
       Found 2026-09-22 by the stage-9 packet lane while tracing the only two postflop decisions a
@@ -672,6 +688,7 @@ items:
       Filed rather than fixed because `strategy/postflop_betting.py` sits at exactly 500 lines
       against a 500 cap compared greater-than and the report's wording is the stage-8 repair's
       territory rather than stage 9's.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. The campaign commits boards per line and seat, so it is where this refusal's wording either becomes true or is fixed. Closes when the refusal names the line and seat it was scoped to, or every campaign board is held for both seats.
 
   - id: A-CONTRACT-CLOSED-LIST-ASSERTS-A-CLOSURE-ITS-PHASE-REFUSED-ON-EVIDENCE
     status: deferred
@@ -704,7 +721,7 @@ items:
 
   - id: A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE
     status: deferred
-    phase: "21"
+    phase: contract-update
     title: Phase 16's contract says solving moves to a rented box, and the sample it actually ships was solved on a laptop
     reason: >-
       `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` line 30 reads "**Solving moves to a rented
@@ -729,7 +746,7 @@ items:
       `contract-update` task. Raised by the stage-8 mechanical review as the one blocker prose could
       not close, and it was right: no entry owned the gap until this one.
       Filed 2026-09-21.
-      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from `contract-update`. Phase 21 is the campaign this sentence binds, and its contract carries both halves as its own terms: the rented box governs the campaign, and determinism is re-proved on that box. What stays open is phase 16's own wording, which still needs the fold-in rewrite described above; phase 21 closes this entry only if that rewrite lands in its stage 1, and otherwise hands it back to `contract-update` at closeout.
+      **Noted 2026-09-26 by MAINT-40, and left here.** Phase 21's contract now carries both terms as its own - the rented box governs the campaign, and determinism is re-proved on that box - so the campaign is bound correctly whatever phase 16's sentence says. What this entry still owns is phase 16's wording, which is the fold-in rewrite above and its own `contract-update` task. The summation-order mechanism in the second paragraph was retracted by decision 24's 2026-09-22 correction; the conclusion that the proof is machine-local stands.
 
   - id: A-MUTATION-DESCRIPTION-ARGUES-THE-DEFENCE-THAT-FAILED
     status: deferred
@@ -1179,7 +1196,7 @@ items:
 
   - id: THE-COST-MODEL-S-RANGES-ARE-RECORDED-ONLY-AS-DIGESTS-OF-DATA-THAT-IS-NOT-HERE
     status: deferred
-    phase: "21"
+    phase: contract-update
     title: Decision 11's cost figures were measured on ranges no node of the committed export reproduces
     reason: >-
       The postflop cost report's appendix records its inputs as config.range_oop@717f36499fb4 and
@@ -1197,7 +1214,6 @@ items:
       producer's word, while these ranges have a hash and nothing to hash. The rule this wants is that
       a measurement report commits the inputs it was measured on, or states in the report that it
       cannot be reproduced. Found 2026-09-16.
-      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from `contract-update`: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
 
   - id: GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT
     status: deferred
@@ -1216,7 +1232,7 @@ items:
       Cheap to settle: record the thread count beside every timing, and measure one cell at five
       threads against one at ten before any campaign is priced. Found by phase 16's sample lane,
       2026-09-16, from a line of server startup output nobody had written down.
-      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from `contract-update`: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from contract-update. Closes when a timing at five threads and one at ten on the same cell are committed, and every campaign timing carries its machine and thread count.
 
   - id: A-REFUSAL-WITH-NO-DETAIL-AT-ALL-SURVIVES-IN-THE-PREFLOP-CHART
     status: deferred
@@ -4494,7 +4510,7 @@ items:
 
   - id: SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS
     status: deferred
-    phase: "21"
+    phase: "16"
     title: GTOpen's tree-size guard cannot fire on this machine, so a solve script must carry its own
     reason: >-
       mem_cap_mb() in GTOpen's server reads /proc/meminfo, which does not exist on Darwin, and
@@ -4510,7 +4526,6 @@ items:
       solve script phase 14 or phase 16 adds would inherit the same absent guard unless it
       carries one. Filed so the next solve script does not have to rediscover it.
       **Restated 2026-09-22 rather than closed, and the contract expected the opposite.** The contract had it leaving the Closed list because the rented Linux box has /proc/meminfo and the premise would dissolve. Decision 24 rules the rented box binds the campaign and not this sample, so the premise did not dissolve - it holds for the machine actually used, which is Darwin. Half is discharged: the driver carries its own ceiling, now at 0.40 of physical memory. The other half is untouched and was checked rather than assumed - scripts/extract_gtopen_preflop.py contains no memory ceiling, no RAM figure and no memory handling at all. One stale figure corrected in passing: this entry said 32 GB where the machine reports 34.4.
-      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
 
   - id: SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE
     status: done
@@ -4558,7 +4573,7 @@ items:
 
   - id: POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL
     status: deferred
-    phase: "16"
+    phase: "21"
     title: The measured postflop cost model covers only monotone and two-tone flops
     reason: >-
       MAINT-26 designed a twelve-cell matrix, six flop textures crossed with a deep
@@ -4583,6 +4598,7 @@ items:
       and the short-window bias MAINT-26 also found applies to that scaling: an estimate
       anchored on a thirty-iteration window under-predicts the true iteration count by a
       median of 22 percent, worse on the deeper line.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. Closes when the machine choice in part 2 is priced on a measured rainbow flop.
   - id: QUALITY-GATE-READS-LANE-NAMES-AS-BACKLOG-IDS
     status: deferred
     phase: contract-update
@@ -8910,7 +8926,7 @@ items:
 
   - id: NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED
     status: deferred
-    phase: "16"
+    phase: "21"
     title: A training chart's product is its action frequencies and nothing checks those have converged
     reason: >-
       Phase 16's decision 4 lists this as the first thing its exploitability default does not cover,
@@ -8927,6 +8943,7 @@ items:
       phase. NOTHING-MEASURES-HOW-MUCH-THE-SOLVE-MIXES is the preflop sibling.
       The stage-2 poker review made this the single condition on its verdict that the phase is worth
       committing at all. Filed 2026-09-09.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. The campaign's exploitability target is a stage-2 ruling, and this is the question it does not answer by itself. Closes when the campaign measures settling on a sample of its cells, or the ruling records that it will not.
 
   - id: A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE
     status: deferred
@@ -9258,7 +9275,7 @@ items:
 
   - id: THE-PHASE-CAN-ANSWER-AT-MOST-THREE-QUARTERS-OF-CORPUS-FLOPS
     status: deferred
-    phase: "16"
+    phase: "21"
     title: A coverage ceiling of 74.9 percent, of which multiway is structural and undocumented
     reason: >-
       Computed by phase 16's stage-3 independent poker review, 2026-09-10, over the 499-hand public
@@ -9275,6 +9292,7 @@ items:
       `THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN`. This entry exists so the ceiling is one
       number a reader can find rather than three causes in three places, and so that no report
       claims a coverage figure without stating what it is a fraction of.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. Closes when the campaign report prints the share of flops it can answer beside this ceiling, with the multiway share named as structural.
 
   - id: THE-COMMITTED-3BET-PRICE-IS-BELOW-THE-CORPUS-MEDIAN
     status: deferred
@@ -9315,7 +9333,7 @@ items:
 
   - id: THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT
     status: deferred
-    phase: contract-update
+    phase: "21"
     title: Decision 6 leaves the playable artifact outside git, so a fresh clone can bet on three flops
     reason: >-
       Phase 16's decision 6 puts the solved flop artifact in object storage and commits an index plus
@@ -9330,6 +9348,7 @@ items:
       classes a fresh clone can answer, and how many a provisioned one can.
       Proposed by phase 16's stage-3 independent review, 2026-09-10, on its verification pass, and
       filed by the coordinator the same day.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from contract-update. The campaign makes the gap larger by every board it adds. Closes when where the object storage lives, who pays for it and how a machine fetches it are ruled and recorded.
 
   - id: COMMITTED-DATA-BEHIND-A-NETWORK-FETCH-BREAKS-AN-OFFLINE-GATE
     status: deferred
@@ -9486,7 +9505,7 @@ items:
 
   - id: THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY
     status: deferred
-    phase: "16"
+    phase: "21"
     title: The three committed flops hold 34.28 percent of boards and the largest cell in the deck has no representative
     reason: >-
       Counted over all 22,100 three-card boards with the tests' own `texture` and `rank_structure`
@@ -9511,6 +9530,7 @@ items:
       so the sample cannot move without a contract amendment and a re-solve.
       Proposed by phase 16's stage-4 independent domain review, 2026-09-14, and left uncreated;
       filed the same day.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. Closes when the campaign's coverage report shows the two-tone unpaired-spread family covered, or states why the limit it hit stopped short of it.
 
   - id: NO-FIGURE-SPLITS-THE-FLOP-BET-FREQUENCY-INTO-VALUE-AND-BLUFF
     status: deferred
@@ -9757,7 +9777,7 @@ items:
       sees it. That is a sibling of `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES` and it
       matters most on the one run nobody can repeat cheaply.
       Not fixable in phase 16: all three were frozen at stage 5 and `tests/**` left approved_scope.
-      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. The first test is the one the rented box makes live. Closes when phase 21's frozen tests pin the ceiling to the machine's reported memory and tie the committed configuration to the body posted, or the phase says why not.
 
   - id: THE-BOT-MUST-EVENTUALLY-PLAY-AN-UNCOVERED-SPOT-RATHER-THAN-REFUSE-IT
     status: deferred
@@ -10136,7 +10156,7 @@ items:
 
   - id: A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN
     status: deferred
-    phase: '16'
+    phase: "21"
     title: The four ruled sample situations are not closed under the bot's own actions, so the bot refuses on the flop rather than at the turn seam the phase documents
     reason: >-
       The four situations the sample is ruled to carry are a caller first to act betting, a caller
@@ -10165,6 +10185,7 @@ items:
       It explains only the node above: after that c-bet, a call or a check-raise still reaches an
       uncommitted node, so the bot's next decision refuses. And the cell exists on 4 of 22,100 flops,
       about 1 in 5,525 on the one covered line, not the 40 that all three boards add up to.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. Phase 16's packet names missing closure as half its null table result, so a campaign that buys boards without closing them repeats it. Closes when every flop decision point reachable from a committed one is committed or refused by name.
 
   - id: A-REFUSAL-AT-A-LIVE-TABLE-HAS-NO-DEFINED-ACTION
     status: deferred
@@ -10268,7 +10289,7 @@ items:
 
   - id: QUANTIZED-ARENAS-PUT-A-FLOOR-UNDER-EVERY-EXPLOITABILITY-THIS-PHASE-MEASURED
     status: deferred
-    phase: "16"
+    phase: "21"
     title: Every solve in the phase record ran on 16-bit arenas, which floors exploitability near 0.3% of pot and is why the settling question has never had an answer
     reason: >-
       GTOpen's server defaults to quantized arenas - `storage_from_env` in
@@ -10296,6 +10317,7 @@ items:
       What is not true is that they are the numbers a full-precision solve produces, and the phase's
       own 0.3 percent target was set against a record that could not have gone much below it. Found
       by phase 16's stage-6 arena lane, 2026-09-20; the ruling it produced is decision 20.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. Decision 20 rules f32 for the campaign. Closes when every campaign cell records f32 storage and no campaign figure reuses a quantized measurement.
 
   - id: EVERY-ARENA-FIGURE-IN-THE-COST-RECORD-IS-A-QUANTIZED-ARENA-AND-FULL-PRECISION-ROUGHLY-DOUBLES-IT
     status: deferred
@@ -10328,7 +10350,7 @@ items:
       arena back before solving, so a plan that does not fit is refused rather than discovered. It is
       a claim that no published figure in this phase tells a reader what the campaign costs. Found by
       phase 16's stage-6 arena lane, 2026-09-20.
-      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. Closes when the campaign's memory and cost plan is built on f32 arena figures measured on the chosen box.
 
   - id: THE-MEMORY-GUARD-COMPARES-AN-ARENA-FIGURE-IT-DELIBERATELY-OVER-READS-BY-FIVE-PERCENT
     status: deferred
@@ -10357,7 +10379,7 @@ items:
       it belongs in the same task as any future move of `MEMORY_CEILING_FRACTION`, because the two
       numbers multiply. Found by phase 16's stage-6 arena lane, 2026-09-20, which raised the fraction
       under decision 20 without touching the reading.
-      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. Closes when phase 21 takes one of the three repairs above, in the same decision as any move of the memory ceiling on the rented box.
 
   - id: BLIND-COLD-FOUR-BET-PRICED-AT-DOUBLE-STANDARD-IS-UNRULED
     status: deferred
