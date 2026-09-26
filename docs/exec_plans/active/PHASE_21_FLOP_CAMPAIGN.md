@@ -103,6 +103,9 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   bytes a number (decision 15). It also found the record adding words he never said and crediting
   him with coordinator procedure; both corrected.
 - [ ] Before any spend: the specific AWS machine types and hourly prices go to Taylor.
+- [ ] At the campaign budget: Taylor confirms or drops the river on its measured size, harvest time
+  and monthly bill. If he drops it, the contract's river criteria become a `contract-update` in this
+  lane before the campaign starts, and decision 1 is recorded as re-ruled.
 
 ## Verification
 

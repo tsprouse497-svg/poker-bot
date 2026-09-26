@@ -306,5 +306,5 @@ precision, about 10 TB a line. The flop keeps today's format. Recommendation: tw
 
 Answer: [Ruled by Taylor, 2026-09-26] **Two bytes a number** for the turn and river. The review's
 per-line figures at one byte are 3.48, 2.57, 2.10, 1.88 and 1.62 TB for the five lines, 11.65 TB in
-all, so about 23 TB at two bytes, measured on the trial flops before the campaign budget.
+all, so about 23 TB at two bytes, measured on the trial flops before the campaign budget.]
 

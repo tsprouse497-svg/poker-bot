@@ -217,7 +217,7 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
   patch - is chosen at stage 6 on a measurement, and **the time it takes and the stored size of one
   closed flop are measured on the six trial flops and reported before the campaign budget is
   asked**, when Taylor confirms the river. Turn and river are stored at two bytes a number
-  (decision 15); the rough estimate is about 2.9 GB a flop for the river at that precision.
+  (decision 15); the rough estimate is about 2.8 GB a flop for the river at that precision.
 - **Phase 16's four boards close from the part 1 re-solve**, which must reproduce their committed
   cells; their other decision points are harvested from that same solve. A board whose re-solve does
   not reproduce its committed cells is not closed by mixing two solves, and the phase halts for
@@ -242,6 +242,8 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
 - **Settling is measured on a sample of campaign cells**, the way phase 16's deep convergence check
   measured one: one flop of each texture group solved on to the cap, printed as a finding.
   `NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED`.
+- **The campaign budget is asked with the measured river size for the five lines and its monthly
+  storage bill at AWS's price on the day**, since Taylor confirms the river then.
 - **The campaign stops at the first of two limits, the campaign budget or the fifth admitted line,
   and the report names which one.**
 - **The table result is re-run on a machine that has fetched every flop object, on phase 16's own
