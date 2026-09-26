@@ -28,7 +28,7 @@ That 98.74 is reach-weighted by the solve, which is a flattering measure, and th
 
 **Where the chart is weak.** `reports/active/latest_sample_comparison_report.txt` puts both populations at 90.0 percent agreement overall, which is mostly a measurement of how easy it is to fold trash. Split by what the player did, folds agree at 97.6 percent for humans and 98.9 for Pluribus, and calls agree at 89 of 232 for humans, 38.4 percent, and 8 of 37 for Pluribus, 21.6 percent. Calling is the weak spot and has been since phase 08. No phase renders a verdict on it any more: phase 17 was that phase and is retired, below.
 
-**Postflop.** There is still no postflop strategy. `reports/active/latest_postflop_fallback_report.txt` describes a continuity device: it checks whenever checking is free, folds to a bet, and puts money in on exactly one path, a board on which no holding a villain could have beats hero whatever card is still to come. That path is open on the turn and the river and closed on the flop, so a flop bet always takes the pot from this bot, and against another copy of itself every postflop street checks through. Phase 16 is the only declared phase that changes this.
+**Postflop.** Phase 16 gave the bot a postflop strategy that can bet, played from committed flop cells, and closed on a sample rather than on coverage, which Taylor ruled as its decision 25. `data/artifacts/postflop/index.json` holds five flop decision points on four boards for one preflop line, the button opening and the big blind calling: 44 of the 22,100 three-card flops, of which the committed sample under `data/artifacts/postflop/sample/` carries three boards and 40 flops. Everywhere else the bot refuses, and a refusal voids the hand. `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` measured what that buys: twenty thousand hands of self-play on seed 777 gave two postflop decisions, both a check, no bet, no showdown and 5,365 voided hands, where the same deals on the old fallback reached 4,543 showdowns. Phase 21 is the declared phase that buys more coverage.
 
 **The human-facing surface.** `scripts/ask_preflop_chart.py` asks the committed chart one question from a terminal and prints what it says, including a refusal's own reason code and a shouted label when ruling 8's price abstraction substituted a cell. It never decides. Everything else under `scripts/` is a report generator, a check, or loop and conversion tooling, so the repo has exactly one front door onto the strategy and it is preflop-only.
 
@@ -52,6 +52,8 @@ The rule is spent. The format work is done and the chart is committed. What orde
 
 ### 16. Postflop That Can Bet
 
+Completed, and signed off by Taylor on 2026-09-24; kept here for the argument, and the Postflop paragraph above says what it shipped.
+
 Commits a postflop solution or a rule. Depends on 14, the chart its flop solve is keyed against.
 
 The honest one, and bigger than everything before it combined. It is the phase that makes this a bot that plays rather than a bot that answers a preflop question and runs the hand out.
@@ -74,13 +76,21 @@ Nothing in this repo measures how well the bot plays. Every published number is 
 
 It comes before 19 because a merge of solved cells with heuristics can otherwise only be asserted to help.
 
+### 21. The Flop Campaign
+
+Depends on 16.
+
+Taylor ruled on 2026-09-26 to trust the solve and buy more of it rather than measure the bot first. Phase 16 built the machinery and a sample; this phase runs it at scale, in three parts that each price the next. Make GTOpen use every core: its server halves the core count on purpose unless `SOLVER_THREADS` says otherwise, so it runs five threads on a ten-core laptop, and whether ten is faster is still to be measured. Pick the rented cloud machine phase 16's decision 24 left open, by solving and timing one flop on a few candidates and re-proving determinism on the one chosen. Then solve preflop lines ranked by the method phase 16's decision 3 ruled, with which order to use left to the phase's own decisions, into the same index and object storage, as far as cost and the index allow, committing each solved board closed - every flop decision point that follows a committed one - since phase 16's sample had none and so voided every hand one action after its cells.
+
+It hangs off 16 alone and does not wait on 18. Missing preflop spots, turn and river solves, and grouping similar flops are all outside it.
+
 ### 19. Heuristics And Merged Charts
 
-Depends on 16 and 18.
+Depends on 16, 18 and 21.
 
 Fail-closed refusal was the right property for a tool that reports on hands already played, where refusing costs nothing and a guessed answer contaminates every measurement downstream. A bot at a table cannot refuse; folding is an action and it is usually the wrong one.
 
-So this phase fills the gaps by merging solved cells with heuristics, with every substitution carried on the decision rather than hidden in the lookup - the discipline `scripts/ask_preflop_chart.py` already applies to ruling 8's price abstraction, generalised. It needs 18 so the merge is shown to help rather than asserted to, and it needs 16 so flop gaps are in scope alongside preflop ones. It is the phase that lifts the heuristic-guessing boundary in `AGENTS.md`, and nothing before it may anticipate that.
+So this phase fills the gaps by merging solved cells with heuristics, with every substitution carried on the decision rather than hidden in the lookup - the discipline `scripts/ask_preflop_chart.py` already applies to ruling 8's price abstraction, generalised. It needs 18 so the merge is shown to help rather than asserted to, it needs 16 so flop gaps are in scope alongside preflop ones, and it needs 21, ruled by Taylor on 2026-09-26, so any rule of thumb it writes for a flop covers only what the campaign could not solve. It is the phase that lifts the heuristic-guessing boundary in `AGENTS.md`, and nothing before it may anticipate that.
 
 ### 20. The Home Game
 
@@ -88,7 +98,7 @@ Depends on 16 and 19.
 
 A bot that sits down in Taylor's own home games. Table automation and browser observation lift here, bounded to those games; public real-money tables stay forbidden. The terms-of-service and account-risk reasoning that kept both out of v2 is not answered by the narrowing, because it attaches to the platform and not to who is at the table; Taylor was shown that and accepted the risk knowingly, which is a different thing from the reason having gone away.
 
-Last, because a bot that folds every flop and refuses every uncovered spot should not sit anywhere.
+Last, because a bot that refuses every flop it holds no cell for, and voids the hand, should not sit anywhere.
 
 ## Retired: 15, The Drill
 

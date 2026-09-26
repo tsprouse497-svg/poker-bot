@@ -6,7 +6,7 @@ A bot that plays strong no-limit hold'em.
 
 Taylor ruled that on 2026-09-21. Training and coaching tools - a drill, a leak report, a user interface - come after and are backlogged until the bot plays well. The corollary matters more than the goal, because it reverses decisions already made: a line the solve takes is no longer refused on the grounds that a student would be misled by it, and a cost recorded as "pedagogical, not monetary" stops being a cost anybody may wave through.
 
-The bot does not play yet. Since phase 06 every postflop street checks through in self-play, so a hand is decided preflop by the committed chart and then run out to showdown; `reports/active/latest_postflop_fallback_report.txt` says exactly that about itself. Phase 16 is the only declared phase that changes it.
+The bot does not play yet. Phase 16 built flop play that can bet and closed on a sample: `data/artifacts/postflop/index.json` holds five flop decision points on four boards for one preflop line, 44 of the 22,100 three-card flops, of which the committed sample carries three boards and 40 flops. On every other flop the bot refuses, and on the flops it holds it refuses one action later, because no decision point that follows a committed one is committed. Phase 16's audit packet measured what that buys at a table: twenty thousand hands of self-play gave two postflop decisions, both a check, no bet, and 5,365 voided hands. Phase 21 is the declared phase that buys more coverage, and closes each board it solves.
 
 `docs/V2_ROADMAP.md` holds the argument behind the graph below, the rulings that settle what to build, and which of them still stand.
 
@@ -20,9 +20,9 @@ They produced a deterministic engine, a replayer that refuses out-of-order hands
 
 | Phase | Title | Depends on |
 |-------|-------|------------|
-| 16 | Postflop That Can Bet | 14 |
 | 18 | The Yardstick | 14 |
-| 19 | Heuristics And Merged Charts | 16, 18 |
+| 21 | The Flop Campaign | 16 |
+| 19 | Heuristics And Merged Charts | 16, 18, 21 |
 | 20 | The Home Game | 16, 19 |
 
 **This table is hand-typed and the contracts are the source.** `depends_on` in each contract under `docs/phase_contracts/` is the single source for the graph. Nothing compares the two: there is no generator for this table, and `check_repo_consistency` reads only contract frontmatter, so it catches an edge naming a phase that does not exist and a cycle, and nothing else. This file has already drifted from the contracts once, in this exact table, and a reviewer caught it rather than the gate. The gap is `PHASE-GRAPH-IS-WRITTEN-TWICE-AND-CHECKED-ONCE` in `backlog.yml`. When the answer matters, read the contracts.
@@ -30,10 +30,13 @@ They produced a deterministic engine, a replayer that refuses out-of-order hands
 Which phases may advance unattended is `verification/loop_policy.yml`, and it is deliberately not restated here for the same reason.
 
 ```
-14 ─┬─ 18 ──┐
-    │       ├─ 19 ──┐
-    └─ 16 ──┴───────┴─ 20
+14 ─┬─ 18 ──────────┐
+    │               ├─ 19 ──┐
+    └─ 16 ─┬─ 21 ───┘       │
+           └────────────────┴─ 20
 ```
+
+19's edge from 16 is drawn through 21, which already depends on it.
 
 This is a graph rather than a queue, and `scripts/loop_fleet.py` plans from it, so several phases can be in flight at once.
 
@@ -45,9 +48,11 @@ What orders the rest is measurement before the thing being measured, and playing
 
 16 and 18 both hang off 14 and off nothing else, so they are two independent lanes. Each reads the committed chart and neither writes what the other reads.
 
-19 needs 16 because a merge of solved cells with heuristics has to cover flops as well as preflop spots, and it needs 18 because a merge can otherwise only be asserted to help. Nothing in this repo measures how well the bot plays; 18 builds that instrument, and until it exists "the heuristics are an improvement" is an opinion.
+21 hangs off 16 alone, because 16 is the machinery it runs: the postflop key, the index, the object storage format and the solve driver. Taylor ruled on 2026-09-26 to trust the solve and buy more of it rather than measure the bot first, so 21 does not wait on 18. It is independent of 18 and the two can run side by side.
 
-20 comes last, and needs 16 and 19, because a bot that folds every flop and refuses every uncovered spot should not sit down anywhere.
+19 needs 16 because a merge of solved cells with heuristics has to cover flops as well as preflop spots, it needs 18 because a merge can otherwise only be asserted to help, and it needs 21, ruled by Taylor on 2026-09-26, so any rule of thumb it writes for a flop covers only what the campaign could not solve, and the merge is measured against the bot the campaign leaves. Nothing in this repo measures how well the bot plays; 18 builds that instrument, and until it exists "the heuristics are an improvement" is an opinion.
+
+20 comes last, and needs 16 and 19, because a bot that refuses every flop it holds no cell for, and voids the hand, should not sit down anywhere.
 
 ## Retired
 
