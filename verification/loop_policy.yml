@@ -143,3 +143,14 @@ phases:
       reading for stage 1 to confirm rather than an answer the repo already holds. Sitting in a real game is also the one thing in this repo that cannot
       be undone by an edit, so the driver halts before stage 1 rather than letting a
       session choose a venue on its own.
+  "21":
+    auto_advance: false
+    needs_human_data: false
+    reason: >-
+      Commits the flop solutions the bot plays, as index entries whose objects live outside git,
+      and every later phase is measured against them, so a campaign that solved the wrong thing or
+      solved it badly becomes the reference nobody notices. That is committed data in the sense this
+      file cares about. It also spends money: the campaign runs on a rented cloud machine, and which
+      provider, which machine and how much may be spent are Taylor's to rule, not a session's. The
+      repo holds everything the phase needs to begin, so the driver does not halt before stage 1;
+      it halts at the human gate, where those rulings are asked for.

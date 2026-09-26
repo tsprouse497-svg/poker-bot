@@ -1,8 +1,15 @@
-task_id: null
+task_id: MAINT-40
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: contract-update
+base_commit: bb1f5fff8ca3e10d7e4c9579fb30f08bfb47f389
+approved_scope:
+- docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md
+- docs/phase_contracts/PHASE_19_HEURISTICS_AND_MERGED_CHARTS.md
+- docs/ROADMAP.md
+- docs/V2_ROADMAP.md
+- verification/loop_policy.yml
+- reports/phase_audits/MAINT_40_DECLARE_THE_FLOP_CAMPAIGN.md
+- reports/phase_audits/reviews/MAINT_40_DECLARE_THE_FLOP_CAMPAIGN/**
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -18,6 +25,15 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-09-26
+    reason: >-
+      MAINT-40 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. Taylor ruled on 2026-09-26 to trust the
+      solve and buy more of it before measuring the bot, so this task declares phase 21, The Flop
+      Campaign, as a skeleton contract depending on 16, with a `phase_status.yml` entry at `future`
+      and a loop-policy entry that does not auto-advance. He ruled the same day that phase 19 waits on
+      21, so 19's contract gains the edge and one sentence saying why. Both roadmaps say where 21 sits.
+      The last two paths are this task's packet and review directory. No artifact, code or test changes.
   - date: 2026-09-25
     reason: >-
       MAINT-39 opens from idle, so every pattern in `approved_scope` reads as a widening against

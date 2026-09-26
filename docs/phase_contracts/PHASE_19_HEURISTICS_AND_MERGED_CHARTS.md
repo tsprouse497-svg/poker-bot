@@ -4,6 +4,7 @@ title: "Heuristics And Merged Charts"
 depends_on:
   - "16"
   - "18"
+  - "21"
 required_gate_commands:
   - pytest_strategy_substitution
   - generate_substitution_report
@@ -35,7 +36,9 @@ because a refusal at least announces itself.
 
 It depends on 16 for the flop cells there are anything to merge with, and on 18 because a merge is a
 claim that playing something beats playing nothing, and that claim is measured against the yardstick
-rather than asserted. A rule that measures no better than refusing does not ship.
+rather than asserted. A rule that measures no better than refusing does not ship. It depends on 21,
+ruled by Taylor on 2026-09-26, so no rule of thumb is written for a spot the campaign then solves, and
+a merge is measured against the bot the campaign leaves rather than against one about to change.
 
 Phase 19 is limited to the work named by this contract and the active ExecPlan.
 

@@ -28,7 +28,7 @@ That 98.74 is reach-weighted by the solve, which is a flattering measure, and th
 
 **Where the chart is weak.** `reports/active/latest_sample_comparison_report.txt` puts both populations at 90.0 percent agreement overall, which is mostly a measurement of how easy it is to fold trash. Split by what the player did, folds agree at 97.6 percent for humans and 98.9 for Pluribus, and calls agree at 89 of 232 for humans, 38.4 percent, and 8 of 37 for Pluribus, 21.6 percent. Calling is the weak spot and has been since phase 08. No phase renders a verdict on it any more: phase 17 was that phase and is retired, below.
 
-**Postflop.** There is still no postflop strategy. `reports/active/latest_postflop_fallback_report.txt` describes a continuity device: it checks whenever checking is free, folds to a bet, and puts money in on exactly one path, a board on which no holding a villain could have beats hero whatever card is still to come. That path is open on the turn and the river and closed on the flop, so a flop bet always takes the pot from this bot, and against another copy of itself every postflop street checks through. Phase 16 is the only declared phase that changes this.
+**Postflop.** Phase 16 gave the bot a postflop strategy that can bet, played from committed flop cells, and closed on a sample rather than on coverage, which Taylor ruled as its decision 25. `data/artifacts/postflop/index.json` holds five flop decision points on four boards for one preflop line, the button opening and the big blind calling: 44 of the 22,100 three-card flops, of which the committed sample under `data/artifacts/postflop/sample/` carries three boards and 40 flops. Everywhere else the bot refuses, and a refusal voids the hand. `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md` measured what that buys: twenty thousand hands of self-play on seed 777 gave two postflop decisions, both a check, no bet, no showdown and 5,365 voided hands, where the same deals on the old fallback reached 4,543 showdowns. Phase 21 is the declared phase that buys more coverage.
 
 **The human-facing surface.** `scripts/ask_preflop_chart.py` asks the committed chart one question from a terminal and prints what it says, including a refusal's own reason code and a shouted label when ruling 8's price abstraction substituted a cell. It never decides. Everything else under `scripts/` is a report generator, a check, or loop and conversion tooling, so the repo has exactly one front door onto the strategy and it is preflop-only.
 
@@ -74,13 +74,21 @@ Nothing in this repo measures how well the bot plays. Every published number is 
 
 It comes before 19 because a merge of solved cells with heuristics can otherwise only be asserted to help.
 
+### 21. The Flop Campaign
+
+Depends on 16.
+
+Taylor ruled on 2026-09-26 to trust the solve and buy more of it rather than measure the bot first. Phase 16 built the machinery and a sample; this phase runs it at scale, in three parts that each price the next. Make GTOpen use every core, since its server reports five solver threads on a ten-core laptop and every timing on record may be at half speed. Pick the rented cloud machine phase 16's decision 24 left open, by solving and timing one flop on a few candidates and re-proving determinism on the one chosen. Then solve down phase 16's ranked list of preflop lines into the same index and object storage, as far as cost and the index allow.
+
+It hangs off 16 alone and does not wait on 18. Missing preflop spots, turn and river solves, and grouping similar flops are all outside it.
+
 ### 19. Heuristics And Merged Charts
 
-Depends on 16 and 18.
+Depends on 16, 18 and 21.
 
 Fail-closed refusal was the right property for a tool that reports on hands already played, where refusing costs nothing and a guessed answer contaminates every measurement downstream. A bot at a table cannot refuse; folding is an action and it is usually the wrong one.
 
-So this phase fills the gaps by merging solved cells with heuristics, with every substitution carried on the decision rather than hidden in the lookup - the discipline `scripts/ask_preflop_chart.py` already applies to ruling 8's price abstraction, generalised. It needs 18 so the merge is shown to help rather than asserted to, and it needs 16 so flop gaps are in scope alongside preflop ones. It is the phase that lifts the heuristic-guessing boundary in `AGENTS.md`, and nothing before it may anticipate that.
+So this phase fills the gaps by merging solved cells with heuristics, with every substitution carried on the decision rather than hidden in the lookup - the discipline `scripts/ask_preflop_chart.py` already applies to ruling 8's price abstraction, generalised. It needs 18 so the merge is shown to help rather than asserted to, it needs 16 so flop gaps are in scope alongside preflop ones, and it needs 21, ruled by Taylor on 2026-09-26, so no rule of thumb is written for a spot the campaign then solves. It is the phase that lifts the heuristic-guessing boundary in `AGENTS.md`, and nothing before it may anticipate that.
 
 ### 20. The Home Game
 

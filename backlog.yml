@@ -414,7 +414,7 @@ items:
       for phase 15.
 
   - id: THE-ROADMAPS-STILL-SAY-THE-BOT-DOES-NOT-PLAY
-    status: deferred
+    status: done
     phase: contract-update
     title: Both roadmaps describe the postflop state from before phase 16 landed
     reason: >-
@@ -429,6 +429,7 @@ items:
       must be read from them rather than written from memory. What would close it: restate both
       paragraphs against reports/active and phase 16's audit packet, citing the report each figure
       comes from.
+      **Closed 2026-09-26 by MAINT-40**, which had both paragraphs open to add phase 21. The opening of docs/ROADMAP.md and the Postflop paragraph of docs/V2_ROADMAP.md now say what phase 16 shipped, counted from data/artifacts/postflop/index.json and its sample directory - five flop decision points on four boards for one preflop line, 44 of 22,100 flops, three boards and 40 flops in the committed sample - and what it measured at a table, cited to reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md: twenty thousand hands, two postflop decisions, both a check, no bet, 5,365 voided. Neither says phase 16 is the only phase that changes it; each names phase 21.
 
   - id: FROZEN-TESTS-STILL-NAME-PHASE-17-AS-OWNER-OF-THE-REPORT-TEXT
     status: deferred
@@ -703,7 +704,7 @@ items:
 
   - id: A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE
     status: deferred
-    phase: contract-update
+    phase: "21"
     title: Phase 16's contract says solving moves to a rented box, and the sample it actually ships was solved on a laptop
     reason: >-
       `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` line 30 reads "**Solving moves to a rented
@@ -728,6 +729,7 @@ items:
       `contract-update` task. Raised by the stage-8 mechanical review as the one blocker prose could
       not close, and it was right: no entry owned the gap until this one.
       Filed 2026-09-21.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from `contract-update`. Phase 21 is the campaign this sentence binds, and its contract carries both halves as its own terms: the rented box governs the campaign, and determinism is re-proved on that box. What stays open is phase 16's own wording, which still needs the fold-in rewrite described above; phase 21 closes this entry only if that rewrite lands in its stage 1, and otherwise hands it back to `contract-update` at closeout.
 
   - id: A-MUTATION-DESCRIPTION-ARGUES-THE-DEFENCE-THAT-FAILED
     status: deferred
@@ -1177,7 +1179,7 @@ items:
 
   - id: THE-COST-MODEL-S-RANGES-ARE-RECORDED-ONLY-AS-DIGESTS-OF-DATA-THAT-IS-NOT-HERE
     status: deferred
-    phase: contract-update
+    phase: "21"
     title: Decision 11's cost figures were measured on ranges no node of the committed export reproduces
     reason: >-
       The postflop cost report's appendix records its inputs as config.range_oop@717f36499fb4 and
@@ -1195,10 +1197,11 @@ items:
       producer's word, while these ranges have a hash and nothing to hash. The rule this wants is that
       a measurement report commits the inputs it was measured on, or states in the report that it
       cannot be reproduced. Found 2026-09-16.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from `contract-update`: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
 
   - id: GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT
     status: deferred
-    phase: contract-update
+    phase: "21"
     title: The solver prints five threads on a ten-core machine, which may be why timings transfer badly
     reason: >-
       gto-server prints "solver threads: 5" at startup on an Apple M4 with 10 cores. Nothing in
@@ -1213,6 +1216,7 @@ items:
       Cheap to settle: record the thread count beside every timing, and measure one cell at five
       threads against one at ten before any campaign is priced. Found by phase 16's sample lane,
       2026-09-16, from a line of server startup output nobody had written down.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from `contract-update`: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
 
   - id: A-REFUSAL-WITH-NO-DETAIL-AT-ALL-SURVIVES-IN-THE-PREFLOP-CHART
     status: deferred
@@ -4490,7 +4494,7 @@ items:
 
   - id: SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS
     status: deferred
-    phase: "16"
+    phase: "21"
     title: GTOpen's tree-size guard cannot fire on this machine, so a solve script must carry its own
     reason: >-
       mem_cap_mb() in GTOpen's server reads /proc/meminfo, which does not exist on Darwin, and
@@ -4506,6 +4510,7 @@ items:
       solve script phase 14 or phase 16 adds would inherit the same absent guard unless it
       carries one. Filed so the next solve script does not have to rediscover it.
       **Restated 2026-09-22 rather than closed, and the contract expected the opposite.** The contract had it leaving the Closed list because the rented Linux box has /proc/meminfo and the premise would dissolve. Decision 24 rules the rented box binds the campaign and not this sample, so the premise did not dissolve - it holds for the machine actually used, which is Darwin. Half is discharged: the driver carries its own ceiling, now at 0.40 of physical memory. The other half is untouched and was checked rather than assumed - scripts/extract_gtopen_preflop.py contains no memory ceiling, no RAM figure and no memory handling at all. One stale figure corrected in passing: this entry said 32 GB where the machine reports 34.4.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
 
   - id: SOLVER-ALLIN-THRESHOLD-UNITS-DIFFER-BY-SURFACE
     status: done
@@ -9728,7 +9733,7 @@ items:
 
   - id: THE-SOLVE-DRIVER-GUARD-TESTS-PIN-A-TYPE-RATHER-THAN-A-BEHAVIOUR
     status: deferred
-    phase: '16'
+    phase: "21"
     title: Three frozen solve-driver tests are satisfied by typing a value, not by the guard working
     reason: >-
       Found by the stage-6 solve-driver lane inside its own work, 2026-09-15, reading tests it had
@@ -9752,6 +9757,7 @@ items:
       sees it. That is a sibling of `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES` and it
       matters most on the one run nobody can repeat cheaply.
       Not fixable in phase 16: all three were frozen at stage 5 and `tests/**` left approved_scope.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
 
   - id: THE-BOT-MUST-EVENTUALLY-PLAY-AN-UNCOVERED-SPOT-RATHER-THAN-REFUSE-IT
     status: deferred
@@ -10293,7 +10299,7 @@ items:
 
   - id: EVERY-ARENA-FIGURE-IN-THE-COST-RECORD-IS-A-QUANTIZED-ARENA-AND-FULL-PRECISION-ROUGHLY-DOUBLES-IT
     status: deferred
-    phase: "16"
+    phase: "21"
     title: The phase's memory and campaign-cost reasoning is built on 16-bit arena figures, and the ruled arena costs about twice as much
     reason: >-
       Decision 11, its 2026-09-15 amendment, `docs/GTOPEN_SOLVER_NOTES.md` and every row of
@@ -10322,10 +10328,11 @@ items:
       arena back before solving, so a plan that does not fit is refused rather than discovered. It is
       a claim that no published figure in this phase tells a reader what the campaign costs. Found by
       phase 16's stage-6 arena lane, 2026-09-20.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
 
   - id: THE-MEMORY-GUARD-COMPARES-AN-ARENA-FIGURE-IT-DELIBERATELY-OVER-READS-BY-FIVE-PERCENT
     status: deferred
-    phase: "16"
+    phase: "21"
     title: arena_bytes reads the server's arena_mb as 2^20 bytes where the server means 10^6, which is what made the 0.35 ceiling refuse the campaign
     reason: >-
       `arena_bytes` in `src/poker_training_bot/solver_artifacts/postflop_transport.py` multiplies
@@ -10350,6 +10357,7 @@ items:
       it belongs in the same task as any future move of `MEMORY_CEILING_FRACTION`, because the two
       numbers multiply. Found by phase 16's stage-6 arena lane, 2026-09-20, which raised the fraction
       under decision 20 without touching the reading.
+      **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed: the flop campaign is the work this entry waits on, so the phase that runs it owns it. Nothing else here changes.
 
   - id: BLIND-COLD-FOUR-BET-PRICED-AT-DOUBLE-STANDARD-IS-UNRULED
     status: deferred
