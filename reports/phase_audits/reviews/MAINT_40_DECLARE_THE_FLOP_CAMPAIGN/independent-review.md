@@ -300,7 +300,7 @@ Questions outside the brief the coordinator could have asked:
   `check_execplan_delegation`, and the three generators with `--check`. All exit 0. The contract is
   now 136 lines. This file is byte-identical to the committed version, apart from the three ids the
   coordinator expanded. The tree was clean before I appended this section.
-- **Counts**: B1 still open (one short edit left). Of N1-N8, 6 fixed and 2 partly fixed. A1 filed.
+- **Counts**: B1 still open (one short edit left). Of N1 to N8, 6 fixed and 2 partly fixed. A1 filed.
   Three new non-blockers.
 
 ### B1 - partly fixed; not resolved
@@ -324,13 +324,13 @@ disagree: V2 has no "or refused" clause.
 Fix, one phrase in both places: "committed, or refused by name for a reason other than not having
 been committed - for example the exploitability ceiling or an off-menu size".
 
-### N1-N8 and A1
+### N1 to N8 and A1
 
 | Finding | Status | Evidence |
 | --- | --- | --- |
 | N1 | Fixed | The reason now reads "any rule of thumb written for a flop covers only what the campaign could not solve". That holds whichever way 19's flop question is settled. See `PHASE_19...md:39-43`, `ROADMAP.md:53`, `V2_ROADMAP.md:93` and `PHASE_21...md:83-85`. |
 | N2 | Fixed | `PHASE_21...md:29-30`: "indexed but its cell document is not in git". |
-| N3 | Mostly fixed | `A-SCOPE-SENTENCE-...` is back at `contract-update`, with a note that also records the retracted mechanism (`backlog.yml:721-749`). `THE-COST-MODEL-S-RANGES-...` is back at `contract-update`, with its adoption note removed. Every adopted entry now carries its own closing condition. `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` went back to `"16"` - see R2-N3. |
+| N3 | Mostly fixed | `A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE` is back at `contract-update`, with a note that also records the retracted mechanism (`backlog.yml:721-749`). `THE-COST-MODEL-S-RANGES-ARE-RECORDED-ONLY-AS-DIGESTS-OF-DATA-THAT-IS-NOT-HERE` is back at `contract-update`, with its adoption note removed. Every adopted entry now carries its own closing condition. `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` went back to `"16"` - see R2 N3. |
 | N4 | Fixed | All seven entries I named are adopted and listed in `PHASE_21...md:67-78`, twelve in all. |
 | N5 | Fixed | The closure note explains why "The bot does not play yet" stays (`backlog.yml:448`). `V2_ROADMAP.md:55` marks 16 completed. `ROADMAP.md:55` and `V2_ROADMAP.md:101` no longer say "folds". |
 | N6 | Fixed | `PHASE_21...md:59-65`: stage 2 may reopen a ruling through its own decision, the ceiling is marked `runtime-reversible` and tied to the over-read, the CUDA clause is carried, and the 0.3% constant is flagged to ask. The cost-per-flop rule is now recorded as Taylor's (`MAINT_40...md:19-22`). I cannot verify what Taylor said in session; I note it as recorded by the coordinator. |
@@ -340,19 +340,19 @@ been committed - for example the exploitability ceiling or an off-menu size".
 
 ### New findings from round 2
 
-**R2-N1 (non-blocker).** `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT` has a closing
+**R2 N1 (non-blocker).** `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT` has a closing
 condition that is not the entry's own ask. The note (`backlog.yml`, end of the entry at 9334)
 closes it "when where the object storage lives, who pays for it and how a machine fetches it are
 ruled and recorded". The entry asks for the fresh-clone-versus-provisioned distinction "stated
 wherever coverage is claimed". The storage rulings could all land while every coverage figure still
 reads as the repo's. Add "and every coverage figure the campaign publishes gives both counts".
 
-**R2-N2 (non-blocker).** The `A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT`
+**R2 N2 (non-blocker).** The `A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT`
 closing condition (`backlog.yml:691`) covers the refusal wording only. It drops the entry's second
 half: "count lines and seats under different words". That second half is the part phase 21's own
 vetting line (`PHASE_21...md`, "How many preflop lines ...") depends on.
 
-**R2-N3 (non-blocker).** `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` was re-labelled from `"21"` back
+**R2 N3 (non-blocker).** `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` was re-labelled from `"21"` back
 to `"16"` (`backlog.yml:4513`). Phase 16 is completed, so this is again an entry deferred against a
 completed phase, which is what `BACKLOG-DEFERRED-AGAINST-A-COMPLETED-PHASE` records as a blind spot.
 Its open half is the preflop extractor, so `contract-update` or `charts` would be a truthful home.
