@@ -23,6 +23,49 @@ items:
       reading it adopts - no network at decision time on a box that holds its solves locally, or
       something else - and asks Taylor if that changes the rule.
 
+  - id: PHASE-21-CONTRACT-CARRIES-THREE-MEMORY-FIGURES-ITS-OWN-TREE-RULES-CONTRADICT
+    status: deferred
+    phase: contract-update
+    title: Phase 21's contract states the small blind line's card memory and one flop share wrongly
+    reason: >-
+      Found 2026-09-26 by phase 21's stage 4 test author and confirmed by both stage 4 reviewers
+      from separate ports of GTOpen's tree rules. The contract's "about 47.2 GB" of card memory for
+      small blind against big blind reused the button line's tree and unfloored ranges; that line's
+      own tree (pot 5.0, 4,109,130 nodes) and floored chart ranges give 48,503,485,008 bytes, about
+      48.50 GB, on the deuce-trips class, with an arena of 17,674,107,736 bytes (18.53 GB as the
+      driver reads it) where decision 5 said roughly 18.0 GB and about 45 GB of RAM. And "15.8
+      percent of flops plan above 12.24 GB" holds only as "at or above": 3,484 of 22,100 at or
+      above, 3,444 (15.6 percent) strictly above, because 40 flops plan exactly the largest
+      committed arena. The frozen tests pin the re-derived figures. The card figure changes which
+      GPU qualifies: a nominal 48 GB card reports about 46,068 MiB usable, under the 46,257 MiB
+      plus GTOpen's 512 MiB margin the small blind line needs, so decision 7's "48 GB or more" has
+      to say which unit and in practice points at a larger card. Closes when a contract-update
+      folds the three corrections into phase 21's contract, which sits at its 300-line cap.
+
+  - id: THE-MACHINE-RECORD-COUNTS-PROCESSORS-GTOPEN-MAY-NOT-BE-ALLOWED-TO-USE
+    status: deferred
+    phase: "21"
+    title: The measured machine record counts every processor, while GTOpen counts the ones it may use
+    reason: >-
+      Raised 2026-09-26 by phase 21's stage 4 mechanical review. The machine record's frozen tests
+      count processors from `/proc/cpuinfo`, while GTOpen's default thread count comes from Rust's
+      `available_parallelism()`, which honours a container's or a scheduler's processor limit. On
+      a plain rented box the two agree; inside a container or a cgroup limit they differ, and the
+      thread sweep would time counts the process cannot run. Closes when the campaign's boxes are
+      recorded as run without such a limit, or the record also carries the allowed count and the
+      sweep uses it.
+
+  - id: CHECK-SCOPE-READS-A-NEW-DIRECTORY-AS-ITS-TOP-FOLDER
+    status: deferred
+    phase: maintenance
+    title: The scope check reports an untracked new directory by its top folder and fails a narrow scope
+    reason: >-
+      Found 2026-09-26 by phase 21's stage 4 test author. `scripts/check_scope.py` reads `git status
+      --porcelain` without `-uall`, so a new untracked directory such as a fixture folder is
+      reported as its top folder and fails a narrow `approved_scope` pattern that the files inside
+      it satisfy. Staging the files hides it. Closes when the check lists untracked files
+      individually and a test pins it.
+
   - id: LINE-RANKING-BY-CLOSING-DECISION-ARRIVAL-COUNTS-LINES-THE-CHART-NEVER-PLAYS
     status: deferred
     phase: "21"

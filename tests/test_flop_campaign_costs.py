@@ -106,6 +106,16 @@ class TestEveryRentedHourIsLoggedAndTheCapHolds:
 
         ledger.authorise(hours=2.0, price_per_hour_usd=4.0)
 
+    def test_a_run_that_spends_the_cap_to_the_cent_is_authorised(self, costs) -> None:
+        """Work halts at a cap rather than past it: $90 spent and a $10 run reaches $100, which
+        is at the cap and not past it. $10.01 is past it."""
+        ledger = owed(costs, "SpendLedger")(cap_usd=100.0)
+        ledger.record(machine="invented-cpu-a", hours=45.0, price_per_hour_usd=2.0, what="trial")
+
+        ledger.authorise(hours=2.5, price_per_hour_usd=4.0)
+        with pytest.raises(owed(costs, "SpendCapError")):
+            ledger.authorise(hours=1.0, price_per_hour_usd=10.01)
+
     def test_the_ledger_round_trips_through_its_committed_document(self, costs) -> None:
         ledger_type = owed(costs, "SpendLedger")
         ledger = ledger_type(cap_usd=100.0)
@@ -257,14 +267,21 @@ class TestTheBoxRerunIsComparedAsPhase16ComparedItsOwn:
         assert owed(determinism, "rerun_verdict")(document) is False
 
     def test_a_second_run_that_is_a_copy_of_the_first_is_refused(self, determinism) -> None:
-        """Phase 16's own rule: two runs whose wall clocks agree to the tenth of a second are one
-        run compared with itself, and would pass whatever the solver did."""
+        """`determinism.json`'s own rule: "a second tree whose wall clock matched the first to the
+        microsecond is refused rather than compared", because that is one run compared with
+        itself. Only a microsecond tie is pinned here; two honest runs on a quiet box can land
+        on the same tenth of a second, and phase 16's record rounds to tenths."""
         document = copy.deepcopy(load("determinism.json"))
-        first = document["cells"][1]["wall_seconds"][0]
-        document["cells"][1]["wall_seconds"] = [first, first]
+        document["cells"][1]["wall_seconds"] = [1677.388112, 1677.388112]
 
         with pytest.raises(ValueError):
             owed(determinism, "rerun_verdict")(document)
+
+    def test_two_runs_a_microsecond_apart_are_compared_not_refused(self, determinism) -> None:
+        document = copy.deepcopy(load("determinism.json"))
+        document["cells"][1]["wall_seconds"] = [1677.388112, 1677.388113]
+
+        assert owed(determinism, "rerun_verdict")(document) is True
 
     def test_the_m4_record_matches_the_committed_index(self, determinism) -> None:
         assert owed(determinism, "matches_committed")(load("determinism.json"), load("index.json"))

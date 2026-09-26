@@ -20,6 +20,7 @@ that place is the made-up number the contract forbids.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sys
 
@@ -102,6 +103,24 @@ def rewrite(path, change) -> None:
     path.write_text(json.dumps(document, indent=1) + "\n", encoding="utf-8")
 
 
+def committed_tree_without(copied):
+    """A second copy of the tree beside `copied`, with no campaign records at all."""
+    bare = copied.parent / "bare"
+    if not bare.exists():
+        shutil.copytree(POSTFLOP_DIR, bare)
+        shutil.rmtree(bare / "campaign", ignore_errors=True)
+    return bare
+
+
+def cost_row(row: str) -> bool:
+    """A row carrying the cost-per-solved-flop figure: its label, then a colon."""
+    return row.strip().lower().startswith("cost per solved flop:")
+
+
+TEN_THREAD_SPREAD = re.compile(r"(?<![\d.])7\.40?(?![\d])")
+TEN_THREADS = re.compile(r"(?<![\d.])10(?![\d.])")
+
+
 def write_record(copied, name: str, document) -> None:
     (copied / "campaign").mkdir(exist_ok=True)
     (copied / "campaign" / name).write_text(json.dumps(document, indent=1) + "\n", "utf-8")
@@ -159,6 +178,14 @@ class TestTheReportPrintsWhatTheContractNames:
         for figure in ("6,419", "1,477,056", "30,772"):
             assert figure in committed_report, figure
 
+    def test_the_small_blind_line_s_own_figures_are_printed(self, committed_report) -> None:
+        """Every per-line figure is printed per line, so the small blind's 5.0-pot tree shows
+        its own closure counts, its own bar and its own reach, not the button's repeated. The bar
+        is printed in the server's unit, bytes, so the figure does not depend on decision 14's
+        reading."""
+        for figure in ("6,566", "1,545,264", "32,193", "17,674,107,736", "5.53"):
+            assert figure in committed_report, figure
+
     def test_the_memory_bar_names_its_board_class(self, committed_report) -> None:
         assert "2c2d2h" in committed_report
 
@@ -191,8 +218,10 @@ class TestAFigureNotYetMeasuredSaysSo:
     def test_no_cost_per_solved_flop_is_printed_before_a_candidate_is_timed(
         self, generator, tree_copy
     ) -> None:
+        """Checked on the figure's own rows - lines whose label is `cost per solved flop:` - so
+        prose may use the contract's phrase freely."""
         text = owed(generator, "render_report")(tree_copy)
-        rows = [row for row in text.splitlines() if "cost per solved flop" in row.lower()]
+        rows = [row for row in text.splitlines() if cost_row(row)]
 
         assert rows, "the report must name the figure even when it has no value yet"
         assert all(owed(generator, "NOT_YET_MEASURED") in row for row in rows), rows
@@ -293,7 +322,12 @@ class TestTheCampaignRecordsAreReDerived:
         text = owed(generator, "render_report")(tree_copy)
 
         assert "Apple M4" in text
-        assert "7.4" in text, "ten threads' spread, 9.0 less 1.6"
+        rows = [row for row in text.splitlines() if TEN_THREAD_SPREAD.search(row)]
+        assert any(TEN_THREADS.search(row) for row in rows), (
+            "ten threads' spread, 9.0 less 1.6, printed on ten threads' row"
+        )
+        baseline = owed(generator, "render_report")(committed_tree_without(tree_copy))
+        assert not TEN_THREAD_SPREAD.search(baseline), "7.4 must come from the sweep record"
 
     def test_a_sweep_whose_choice_is_not_the_fastest_median_fails(
         self, generator, refusal, tree_copy
@@ -320,7 +354,9 @@ class TestTheCampaignRecordsAreReDerived:
 
         text = owed(generator, "render_report")(tree_copy)
 
-        assert "$4.00" in text and "$100.00" in text
+        assert any("$4.00" in row and "$100.00" in row for row in text.splitlines())
+        baseline = owed(generator, "render_report")(committed_tree_without(tree_copy))
+        assert "$4.00" not in baseline, "the total must come from the ledger record"
 
     def test_a_ledger_whose_total_is_not_its_entries_fails(
         self, generator, refusal, tree_copy

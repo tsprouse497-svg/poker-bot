@@ -18,15 +18,20 @@ every street after the flop, so the raiser is out of position.
 
 from __future__ import annotations
 
+import inspect
 import json
 
 import pytest
 
 from poker_training_bot.solver_artifacts import postflop_artifact as artifact
+from poker_training_bot.solver_artifacts import postflop_key as key
 from poker_training_bot.solver_artifacts import postflop_solve_driver as driver
+from poker_training_bot.solver_artifacts.schema import PreflopAction
 from poker_training_bot.strategy import contract as contract_module
 from poker_training_bot.strategy import postflop_betting as betting
 from scripts.repo_paths import REPO_ROOT
+from tests.test_postflop_betting import BUTTON_SEAT
+from tests.test_postflop_betting import HERO_SEAT as BIG_BLIND_SEAT
 from tests.test_postflop_betting import query as button_line_query
 
 CHART_PATH = REPO_ROOT / "data" / "artifacts" / "preflop" / "six_max_100bb_rakefree.json"
@@ -79,6 +84,28 @@ def chart_range(chart, spot: str, action: str) -> dict[str, float]:
     return artifact.floor_range({hand: row[action] for hand, row in weights.items()})
 
 
+SEATED = [
+    (
+        "SB:raise@2.5,BB:call",
+        ("t6/d100/SB/rfi", "raise"),
+        ("t6/d100/BB/SB:raise@2.5", "call"),
+        5.0,
+    ),
+    *(
+        (
+            f"{opener}:raise@2.5,BB:call",
+            (f"t6/d100/BB/{opener}:raise@2.5", "call"),
+            (f"t6/d100/{opener}/rfi", "raise"),
+            5.5,
+        )
+        for opener in ("BTN", "CO", "HJ", "LJ")
+    ),
+]
+"""Per line: the chart spot and action of the out-of-position range, of the in-position range,
+and the pot. Written out here from the seating rule - the small blind acts first after the flop,
+every other opener acts last - rather than read back from the code under test."""
+
+
 def gtopen_range_text(weights: dict[str, float]) -> str:
     """GTOpen's range syntax, class-level: `AKs` at full weight, `AKs:0.5` otherwise. The rule
     `scripts/solve_postflop_sample.py`'s `range_text` wrote every committed solve with."""
@@ -122,8 +149,9 @@ class TestTheAdmittedLinesAndTheirOrder:
 
     def test_a_line_the_chart_never_plays_ranks_nowhere(self, lines) -> None:
         """The hijack flatting a lojack open is asked often - 185,689,291 parts per billion on
-        arrival - and never happens, because the chart's call weight there is zero everywhere.
-        The old ranking put it first."""
+        arrival - and never happens, because the chart's hijack facing a lojack open offers only
+        fold and raise; there is no call action to weight at all. The old ranking put it
+        first."""
         never = "LJ:raise@2.5,HJ:call"
 
         assert owed(lines, "line_reach")(never) == 0.0
@@ -226,18 +254,23 @@ class TestThePlanForAnyLineIsTheRuledConfiguration:
 
         assert body["range_oop"] == gtopen_range_text(solve_config["ranges"]["oop_bb_call"])
         assert body["range_ip"] == gtopen_range_text(solve_config["ranges"]["ip_btn_open"])
-        assert body["starting_pot"] == pytest.approx(5.5)
-        assert body["effective_stack"] == pytest.approx(97.5)
         assert body["board"] == "Kh7d2c"
 
-    def test_the_small_blind_line_posts_the_raiser_s_range_out_of_position(
-        self, lines, chart
+    @pytest.mark.parametrize(("line", "oop", "ip", "pot"), SEATED)
+    def test_each_line_posts_the_chart_s_range_for_each_seat(
+        self, lines, chart, line, oop, ip, pot
     ) -> None:
-        plan = owed(lines, "plan_for")("SB:raise@2.5,BB:call", ("2c", "2d", "2h"))
+        """Both ranges, the pot and the stack, per line, against the chart directly rather than
+        through `line_ranges`. The likeliest wrong `plan_for` swaps the seats for the small blind
+        and otherwise posts `solve_config.json`'s button ranges: the cutoff's line would then be
+        solved with the button's 498-combo open, where the chart's cutoff opens 350."""
+        plan = owed(lines, "plan_for")(line, ("Kh", "7d", "2c"))
         body = driver.spot_body(plan)
 
-        assert body["range_oop"] == gtopen_range_text(chart_range(chart, "t6/d100/SB/rfi", "raise"))
-        assert body["starting_pot"] == pytest.approx(5.0)
+        assert body["range_oop"] == gtopen_range_text(chart_range(chart, *oop)), line
+        assert body["range_ip"] == gtopen_range_text(chart_range(chart, *ip)), line
+        assert body["starting_pot"] == pytest.approx(pot), line
+        assert body["effective_stack"] == pytest.approx(97.5), line
 
     def test_every_line_is_planned_on_the_ruled_configuration(self, lines) -> None:
         for line in ADMITTED:
@@ -269,17 +302,102 @@ class TestABoardRefusalSaysWhichLineAndSeat:
     button, on the other side of the same betting sequence - and nothing in the refusal says so.
 
     Either board-level code may fire, because a campaign board this machine has not fetched
-    refuses as not fetched rather than as absent; both are scoped per line and seat."""
+    refuses as not fetched rather than as absent; both are scoped per line and seat.
 
-    @pytest.fixture(scope="class")
-    def strategy(self):
-        return betting.PostflopBettingStrategy.from_repo()
+    **The strategy is built over an explicitly empty fetched folder.** A machine that has fetched
+    the campaign must answer every closed board, so a strategy reading whatever this machine
+    happens to hold would make the verdict depend on the disk rather than the tree. `from_repo`
+    takes the folder fetched objects live in as `fetched_root`; an empty one is a fresh clone."""
+
+    @pytest.fixture
+    def strategy(self, tmp_path):
+        signature = inspect.signature(betting.PostflopBettingStrategy.from_repo)
+        assert "fetched_root" in signature.parameters, (
+            "PostflopBettingStrategy.from_repo must take fetched_root, the folder fetched"
+            " objects are read from, so a test can say this machine has fetched nothing"
+        )
+        empty = tmp_path / "fetched"
+        empty.mkdir()
+        return betting.PostflopBettingStrategy.from_repo(fetched_root=empty)
 
     @pytest.mark.parametrize("board", [("9c", "8c", "7c"), ("Jd", "6s", "3c")])
-    def test_the_refusal_names_the_line_and_the_seat(self, strategy, board) -> None:
+    def test_the_big_blind_s_refusal_names_the_line_and_the_seat(self, strategy, board) -> None:
         outcome = strategy.decide(button_line_query(board=board))
 
         assert isinstance(outcome, contract_module.StrategyRefusal)
         assert outcome.code in BOARD_LEVEL, outcome.code
         assert outcome.named("hero_position") == "BB", outcome.detail
         assert "BTN:raise@2.5,BB:call" in (outcome.named("preflop_line") or ""), outcome.detail
+
+    def test_the_button_s_refusal_names_the_button(self, strategy) -> None:
+        """The same line from the other chair, facing the big blind's check. A refusal that
+        writes the big blind as a constant passes the test above and fails this one."""
+        query = button_line_query(
+            seat=BUTTON_SEAT,
+            board=("Jd", "6s", "3c"),
+            postflop_actions=(contract_module.SeatAction(BIG_BLIND_SEAT, "check"),),
+        )
+
+        outcome = strategy.decide(query)
+
+        assert isinstance(outcome, contract_module.StrategyRefusal)
+        assert outcome.code in BOARD_LEVEL, outcome.code
+        assert outcome.named("hero_position") == "BTN", outcome.detail
+        assert "BTN:raise@2.5,BB:call" in (outcome.named("preflop_line") or ""), outcome.detail
+
+
+# --------------------------------------------------------------------------- #
+# A live small blind hand maps onto the small blind's out-of-position cell
+# --------------------------------------------------------------------------- #
+
+
+class TestASmallBlindHandFindsTheSmallBlindsCell:
+    """Checked at stage 4 because the driver hardcodes the button's line: the spot key and the
+    strategy already derive the small blind's line from the seats, with the small blind first to
+    act after the flop and a 5.0 pot, so the lookup side needs nothing new. What does hardcode the
+    button is the harvest's seat map - `seat_of_player` in `scripts/solve_postflop_sample.py`
+    returns the big blind for GTOpen's out-of-position player on every line - so the map a
+    harvest uses comes from the line, here."""
+
+    def test_the_small_blind_first_to_act_keys_its_cell_on_its_own_line(self) -> None:
+        line = key.completed_preflop_line(
+            6,
+            100,
+            "SB",
+            (PreflopAction("SB", "raise", 2.5), PreflopAction("BB", "call")),
+            small_blind_bb=0.5,
+            big_blind_bb=1.0,
+            ante_bb=0.0,
+        )
+
+        spot = key.postflop_spot_key(line, ("Kh", "7d", "2c"), (), line.pot_bb, 97.5)
+
+        assert spot == "f/b:Kh7d2c/t6/d100/SB/SB:raise@2.5,BB:call/f:none/p:5/e:97.5"
+
+    def test_the_big_blind_cannot_act_first_on_the_small_blind_s_line(self) -> None:
+        line = key.completed_preflop_line(
+            6,
+            100,
+            "BB",
+            (PreflopAction("SB", "raise", 2.5), PreflopAction("BB", "call")),
+            small_blind_bb=0.5,
+            big_blind_bb=1.0,
+            ante_bb=0.0,
+        )
+
+        with pytest.raises(ValueError):
+            key.postflop_spot_key(
+                line, ("Kh", "7d", "2c"), (key.FlopAction("BB", "check"),), line.pot_bb, 97.5
+            )
+
+    @pytest.mark.parametrize(
+        ("line", "seats"),
+        [
+            ("SB:raise@2.5,BB:call", {0: "SB", 1: "BB"}),
+            ("BTN:raise@2.5,BB:call", {0: "BB", 1: "BTN"}),
+            ("LJ:raise@2.5,BB:call", {0: "BB", 1: "LJ"}),
+        ],
+    )
+    def test_the_harvest_seat_map_comes_from_the_line(self, lines, line, seats) -> None:
+        """GTOpen's player 0 is out of position and player 1 in position; the map names them."""
+        assert owed(lines, "seat_labels")(line) == seats

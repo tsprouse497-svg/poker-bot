@@ -130,6 +130,7 @@ class TestTheThreadCountsTimedFollowTheMachine:
             (7, (2, 3, 4, 5, 7)),
             (6, (2, 3, 5, 6)),
             (2, (1, 2)),
+            (1, (1,)),
         ],
     )
     def test_the_counts_timed_on_a_machine(self, threads, logical, expected) -> None:
@@ -146,6 +147,7 @@ class TestTheThreadCountsTimedFollowTheMachine:
         for logical in range(1, 97):
             assert default(logical) in counts(logical), logical
             assert logical in counts(logical), logical
+            assert min(counts(logical)) >= 1, "a quarter of one processor rounds to zero"
 
 
 # --------------------------------------------------------------------------- #
@@ -351,7 +353,11 @@ class TestTheMachineRecordIsMeasured:
 
         assert record.logical_processors == 4
         assert record.memory_bytes == MEMINFO_BYTES
-        assert record.cpu_model and "Apple" not in record.cpu_model
+        assert "Apple" not in record.cpu_model
+        assert "0xd40" in record.cpu_model or "Neoverse" in record.cpu_model, (
+            "the fixture's CPU part is 0xd40, Arm Neoverse V1; name it from what the file says"
+            f" rather than a default, got {record.cpu_model!r}"
+        )
 
     def test_a_machine_that_will_not_say_what_it_is_is_refused_rather_than_defaulted(
         self, machine

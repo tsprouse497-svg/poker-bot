@@ -271,18 +271,25 @@ class TestTheMemoryBar:
         assert round(line_bars[COMMITTED_LINE].vram_bytes / 1e9, 1) == 33.7
 
     @pytest.mark.parametrize(
-        ("line", "arena"),
+        ("line", "arena", "vram"),
         [
-            (SMALL_BLIND_LINE, 17_674_107_736),
-            ("CO:raise@2.5,BB:call", 9_983_334_872),
-            ("HJ:raise@2.5,BB:call", 9_108_225_432),
-            ("LJ:raise@2.5,BB:call", 7_271_691_528),
+            (SMALL_BLIND_LINE, 17_674_107_736, 48_503_485_008),
+            (COMMITTED_LINE, 12_274_575_976, 33_689_039_052),
+            ("CO:raise@2.5,BB:call", 9_983_334_872, 26_692_104_748),
+            ("HJ:raise@2.5,BB:call", 9_108_225_432, 24_750_371_516),
+            ("LJ:raise@2.5,BB:call", 7_271_691_528, 19_713_966_236),
         ],
     )
-    def test_each_admitted_line_has_its_own_bar(self, line_bars, line, arena) -> None:
+    def test_each_admitted_line_has_its_own_bar(self, line_bars, line, arena, vram) -> None:
         """Re-derived per line from its own tree and its own chart ranges. Every line's largest
-        flop is the deuce-trips class."""
+        flop is the deuce-trips class. The card memory is pinned to the byte because it is the
+        hard limit a GPU must hold: a port that takes the node count from the button's tree for
+        the small blind's line gives 47,119,620,540, which is within a rounding of the
+        contract's "about 47.2 GB" and wrong. The contract's 47.2 does not reproduce; the small
+        blind's own tree, 4,109,130 nodes, gives 48,503,485,008 (45.17 GiB), recomputed twice,
+        independently, on 2026-09-26."""
         assert line_bars[line].arena_bytes == arena
+        assert line_bars[line].vram_bytes == vram
         assert line_bars[line].board == DEUCE_TRIPS
 
     def test_the_campaign_bar_is_the_largest_line_bar(self, tree, line_bars) -> None:
@@ -290,16 +297,7 @@ class TestTheMemoryBar:
 
         assert bar.line == SMALL_BLIND_LINE
         assert bar.arena_bytes == max(found.arena_bytes for found in line_bars.values())
-
-    def test_the_campaign_bar_needs_more_card_memory_than_the_committed_line(
-        self, tree, line_bars
-    ) -> None:
-        """The contract ruled out a 40 GB card for the small blind's line; whatever the exact
-        estimate, the bar on the first admitted line is above both figures."""
-        bar = owed(tree, "campaign_memory_bar")()
-
-        assert bar.vram_bytes > line_bars[COMMITTED_LINE].vram_bytes
-        assert bar.vram_bytes > 40e9
+        assert bar.vram_bytes == 48_503_485_008
 
     def test_flops_planned_above_the_largest_committed_board(self, tree) -> None:
         """15.8 percent in the contract counts flops at or above `8c8d3c`'s planned arena: 3,484

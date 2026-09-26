@@ -388,6 +388,7 @@ COMMANDS = {
             "tests/test_flop_campaign_costs.py",
             "tests/test_flop_campaign_manifest.py",
             "tests/test_flop_campaign_report.py",
+            "tests/test_flop_campaign_report_records.py",
             "tests/test_postflop_solve_driver.py",
         ],
         "Run the flop campaign tests: threads, machine, tree, lines, costs, manifest and report",

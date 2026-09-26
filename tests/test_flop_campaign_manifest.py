@@ -15,7 +15,12 @@ admitted line under `data/artifacts/postflop/manifests/`:
      "boards": [{"board": ["Kh", "7d", "2c"], "status": "closed" | "refused",
                  "decision_points": {"flop": 14, "turn": 6419, "river": 1477056},
                  "achieved_exploitability_pct_of_pot": 0.283, "iterations": 340,
-                 "machine": "...", "threads": 10}]}
+                 "machine": "...", "threads": 10,
+                 "strategy_digests": {"<spot key>": "<sha256>"}}]}
+
+`strategy_digests` is carried by a board whose cells the committed `index.json` lists - phase 16's
+four - and holds the strategy digest of each of those spots from the closing solve, which is what
+ties the manifest to the committed sample offline rather than two numbers alone.
 
 and the line's full index, in object storage, lists per board the same counts and one object per
 street with its key and sha256. A board keeps every decision point of its line from its one solve,
@@ -43,6 +48,11 @@ POSTFLOP_DIR = REPO_ROOT / "data" / "artifacts" / "postflop"
 SAMPLE_DIR = POSTFLOP_DIR / "sample"
 COMMITTED_LINE = "BTN:raise@2.5,BB:call"
 CLOSED_COUNTS = {"flop": 14, "turn": 6_419, "river": 1_477_056}
+SMALL_BLIND_LINE = "SB:raise@2.5,BB:call"
+SMALL_BLIND_COUNTS = {"flop": 14, "turn": 6_566, "river": 1_545_264}
+"""The small blind's line closes on its own tree, pot 5.0: 134 decision points on each of 49
+turns and 657 on each reachable river, with 32,193 under the dealt turn card not kept. Pinned in
+`tests/test_flop_campaign_tree.py` and recomputed by two independent ports of `tree.rs`."""
 PHASE_16_BOARDS = (("9c", "8c", "7c"), ("Kh", "7d", "2c"), ("8c", "8d", "3c"), ("Ac", "8c", "3c"))
 
 SAMPLE_SHA256 = {
@@ -190,6 +200,12 @@ class TestTheCommittedManifests:
                 entry["achieved_exploitability_pct_of_pot"]
                 == recorded[board]["achieved_exploitability_pct_of_pot"]
             ), board
+            committed_spots = {
+                spot["spot_key"]: spot["strategy_digest"]
+                for spot in committed_index["entries"]
+                if tuple(spot["board"]) == board
+            }
+            assert entry["strategy_digests"] == committed_spots, board
 
     def test_every_board_names_the_machine_and_thread_count_it_was_solved_at(self, manifests):
         """Forbidden shortcut: reporting a campaign figure without its machine and thread count."""
@@ -204,11 +220,11 @@ class TestTheCommittedManifests:
 # --------------------------------------------------------------------------- #
 
 
-def closed_board(board, exploit=0.28, iterations=340):
+def closed_board(board, exploit=0.28, iterations=340, counts=None):
     return {
         "board": list(board),
         "status": "closed",
-        "decision_points": dict(CLOSED_COUNTS),
+        "decision_points": dict(counts or CLOSED_COUNTS),
         "achieved_exploitability_pct_of_pot": exploit,
         "iterations": iterations,
         "machine": "invented machine for a test",
@@ -228,17 +244,17 @@ def refused_board(board):
     }
 
 
-def a_manifest():
+def a_manifest(line=COMMITTED_LINE, counts=None):
     """Two closed boards (24 and 12 flops) and one refused: every field consistent."""
     return {
         "manifest_schema_version": 1,
-        "preflop_line": COMMITTED_LINE,
+        "preflop_line": line,
         "index": {"object_key": "postflop/btn-v-bb/index.json", "sha256": "a" * 64, "bytes": 1},
         "flops_held": 36,
         "refused_boards": 1,
         "boards": [
-            closed_board(("Kh", "7d", "2c")),
-            closed_board(("8c", "8d", "3c")),
+            closed_board(("Kh", "7d", "2c"), counts=counts),
+            closed_board(("8c", "8d", "3c"), counts=counts),
             refused_board(("Jd", "6d", "3c")),
         ],
     }
@@ -312,6 +328,74 @@ class TestTheManifestChecksRefuseAnInconsistentManifest:
         """36 is `Kh7d2c`'s 24 and `8c8d3c`'s 12; `Jd6d3c`'s 12 flops are refused, not held."""
         assert a_manifest()["flops_held"] == 24 + 12
         assert owed(manifest_module, "manifest_errors")(a_manifest()) == []
+
+
+class TestAClosedBoardIsClosedOnItsOwnLinesTree:
+    """A board closes on the decision points of the line it was solved for, not the button's.
+    The small blind's line goes first (decision 9), and a harvest that walked the 5.5 pot's tree
+    for it would write 6,419 and 1,477,056 - which a checker hardwired to one line's counts
+    accepts."""
+
+    def test_the_small_blind_line_s_own_counts_are_accepted(self, manifest_module) -> None:
+        manifest = a_manifest(SMALL_BLIND_LINE, SMALL_BLIND_COUNTS)
+
+        assert owed(manifest_module, "manifest_errors")(manifest) == []
+
+    @pytest.mark.parametrize(
+        ("why", "line", "counts"),
+        [
+            ("the button's counts on the small blind's line", SMALL_BLIND_LINE, CLOSED_COUNTS),
+            (
+                "the small blind's river with the dealt turn's river kept",
+                SMALL_BLIND_LINE,
+                {**SMALL_BLIND_COUNTS, "river": 1_577_457},
+            ),
+            (
+                "the small blind's turn with the button's river",
+                SMALL_BLIND_LINE,
+                {**SMALL_BLIND_COUNTS, "river": 1_477_056},
+            ),
+            (
+                "the small blind's counts on the cutoff's line",
+                "CO:raise@2.5,BB:call",
+                SMALL_BLIND_COUNTS,
+            ),
+        ],
+    )
+    def test_another_line_s_counts_are_refused(self, manifest_module, why, line, counts) -> None:
+        assert owed(manifest_module, "manifest_errors")(a_manifest(line, counts)), why
+
+
+class TestTheCommitRuleIsPhase16s:
+    """Decision 8 kept phase 16's rule: aim at 0.3 percent, stop at 1,200 iterations, commit a
+    cap-bound board up to 1 percent and refuse it above. The solver stops only at the target or
+    at the cap - it checks every 20 iterations - so a board above the target that stopped before
+    the cap stopped on neither condition, and `commit_verdict` refuses that."""
+
+    def with_first_board(self, **fields):
+        manifest = a_manifest()
+        manifest["boards"][0].update(fields)
+        return manifest
+
+    def test_a_cap_bound_board_between_the_target_and_the_ceiling_is_closed(
+        self, manifest_module
+    ) -> None:
+        manifest = self.with_first_board(achieved_exploitability_pct_of_pot=0.8, iterations=1200)
+
+        assert owed(manifest_module, "manifest_errors")(manifest) == []
+
+    def test_a_cap_bound_board_at_exactly_the_ceiling_is_closed(self, manifest_module) -> None:
+        """Refusal is above 1 percent, so 1.0 itself commits."""
+        manifest = self.with_first_board(achieved_exploitability_pct_of_pot=1.0, iterations=1200)
+
+        assert owed(manifest_module, "manifest_errors")(manifest) == []
+
+    def test_a_board_above_the_target_that_stopped_before_the_cap_is_refused(
+        self, manifest_module
+    ) -> None:
+        manifest = self.with_first_board(achieved_exploitability_pct_of_pot=0.8, iterations=600)
+
+        assert owed(manifest_module, "manifest_errors")(manifest)
 
 
 # --------------------------------------------------------------------------- #
@@ -507,6 +591,24 @@ class TestTheFetchChecksEverythingItFetches:
         objects = republish(index, objects)
         manifest["index"]["sha256"] = sha256(objects[INDEX_KEY])
         manifest["index"]["bytes"] = len(objects[INDEX_KEY])
+
+        with pytest.raises(owed(fetch, "FetchError")) as raised:
+            owed(fetch, "fetch_line")(manifest, DictStore(objects), tmp_path, streets=("flop",))
+
+        assert raised.value.code == owed(fetch, "DECISION_POINTS_MISMATCH")
+
+    def test_a_manifest_and_index_that_agree_but_not_with_the_tree_are_rejected(
+        self, fetch, tmp_path
+    ) -> None:
+        """Both short one river card, consistently: the fingerprint and the index-to-manifest
+        comparison pass, and only a comparison against the line's own tree can see it."""
+        manifest, index, objects = published_line()
+        index = copy.deepcopy(index)
+        index["boards"][1]["decision_points"]["river"] -= 628
+        objects = republish(index, objects)
+        manifest["index"]["sha256"] = sha256(objects[INDEX_KEY])
+        manifest["index"]["bytes"] = len(objects[INDEX_KEY])
+        manifest["boards"][1]["decision_points"]["river"] -= 628
 
         with pytest.raises(owed(fetch, "FetchError")) as raised:
             owed(fetch, "fetch_line")(manifest, DictStore(objects), tmp_path, streets=("flop",))

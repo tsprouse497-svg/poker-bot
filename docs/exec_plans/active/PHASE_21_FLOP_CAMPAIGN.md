@@ -121,7 +121,32 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   unasked precision question; he was re-asked and ruled keep the river but measure first, at two
   bytes a number (decision 15). It also found the record adding words he never said and crediting
   him with coordinator procedure; both corrected.
-- [ ] Before any spend: the specific AWS machine types and hourly prices go to Taylor.
+- [ ] Stage 4: tests authored by a lane that did not write the contract (six files, 256 tests, ten
+  canaries). Two independent reviewers, one mechanical and one on the poker, found four blockers
+  between them - report records never exercised, the small blind line's card memory unpinned,
+  closure counts tested on the button line only, and the posted ranges unchecked for three lines -
+  and both confirmed the author's two corrections to the contract's figures, filed as
+  `PHASE-21-CONTRACT-CARRIES-THREE-MEMORY-FIGURES-ITS-OWN-TREE-RULES-CONTRADICT`.
+- [ ] Stage 6 is not code only. The frozen tests need the committed button-line manifest to list
+  phase 16's four boards as closed, so the first green gate waits on the Mac sweep, the four
+  re-solves at the chosen count reproducing the committed cells, and the harvest of every turn and
+  river decision point from those solves (about 5.9 million river points across the four). From
+  phase 16's recorded first runs at five threads the four solves alone are 375.6 + 1,677.4 + 1,035.9
+  + 616.0 = 3,704.9 seconds, about an hour, in `determinism.json`; harvest time is unmeasured and is one of the things the contract measures. A
+  re-solve that does not reproduce halts the lane for Taylor; it is never worked around.
+- [ ] Before any candidate is ranked: GTOpen builds (does not solve) one small blind tree, and its
+  node count and arena are compared with the port's 4,109,130 nodes and planned arena. A difference
+  is a finding for Taylor, not a test edit. On each rented box the machine record is compared with
+  the server's printed "solver threads" line, since the record counts processors from
+  `/proc/cpuinfo` and GTOpen counts the ones it may use
+  (`THE-MACHINE-RECORD-COUNTS-PROCESSORS-GTOPEN-MAY-NOT-BE-ALLOWED-TO-USE`).
+- [ ] Before any spend: the specific AWS machine types and hourly prices go to Taylor. Read from
+  instances.vantage.sh on 2026-09-26, us-east-1 on demand, to be confirmed on AWS's own page: CPU
+  c8g.8xlarge (Graviton4, 32 vCPU, 64 GiB) $1.276/h, c7i.8xlarge (Intel Sapphire Rapids) $1.428/h,
+  c7a.8xlarge (AMD EPYC 9R14) $1.642/h; GPU g7e.2xlarge (RTX PRO 6000 Blackwell, 96 GiB card, 64 GiB
+  RAM) $3.36/h. The 48 GB L40S (g6e) is out: the small blind line needs 48.50 GB of card memory by
+  GTOpen's own estimate. A 64 GiB box holds the small blind line's 18.53 GB arena under the 0.40
+  ceiling (27.5 GB).
 - [ ] At the campaign budget: Taylor confirms or drops the river on its measured size, harvest time
   and monthly bill. If he drops it, the contract's river criteria become a `contract-update` in this
   lane before the campaign starts, and decision 1 is recorded as re-ruled.

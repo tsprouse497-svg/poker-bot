@@ -1645,7 +1645,7 @@ mutations:
   # validates and not where it renders, which is the same hole the two struck section
   # items were reaching for and could not close.
 
-  # Phase 21, stage 4, 2026-09-26: ten canaries for the flop campaign, authored before any of
+  # Phase 21, stage 4, 2026-09-26: ten canaries for the flop campaign (two re-pointed after the stage 4 review, before the freeze), authored before any of
   # the code they attack exists. Every `find` below is a line stage 6 must write verbatim, once,
   # in the file named - the builder brief lists them - and each was run against a throwaway
   # reference implementation outside the repo before it was committed here: all ten applied
@@ -1741,16 +1741,19 @@ mutations:
     must_fail:
       - pytest_flop_campaign
 
-  - id: flop-campaign-fetch-skips-the-closure-count
+  - id: flop-campaign-manifest-accepts-any-closure-count
     description: >-
-      The fetch stops comparing each board's per-street decision-point counts in the line index
-      against the manifest. An index re-published with a board short one river card - 628
-      decision points - and re-fingerprinted to match passes every digest check and lands on a
-      machine as a closed board that is not closed, which is the failure closure exists to
-      prevent.
-    file: src/poker_training_bot/solver_artifacts/postflop_fetch.py
-    find: 'if listed["decision_points"] != board["decision_points"]:'
-    replace: 'if False and listed["decision_points"] != board["decision_points"]:'
+      The manifest check stops comparing a closed board's per-street decision points with the
+      closure counts of that line's own tree. A board short one river card, one that kept the
+      30,772 unreachable river points, and a small blind board carrying the button's 6,419 and
+      1,477,056 all pass as closed, so a harvest that walked the wrong tree, or stopped part way,
+      commits a board the bot will refuse on a later street. The check lives in one place, the
+      manifest checker; the fetch may compare the same counts again against the index and the
+      tree, and that second check does not rescue this mutation, because the manifest tests call
+      the checker directly.
+    file: src/poker_training_bot/solver_artifacts/postflop_manifest.py
+    find: 'if entry["decision_points"] != expected_points:'
+    replace: 'if False and entry["decision_points"] != expected_points:'
     must_fail:
       - pytest_flop_campaign
 
@@ -1758,11 +1761,13 @@ mutations:
     description: >-
       A machine that fetched the flop but not the turn stops refusing the turn with the
       not-fetched code. The index is on disk, so only the per-object check can see the gap; with
-      it gone the machine reports coverage it does not hold, which is
-      `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT` again one street later.
+      its refusal replaced by `pass` the machine reports coverage it does not hold, which is
+      `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT` again one street later. The find
+      is the refusal itself, message included, so a fetch that also checks for a file on disk
+      elsewhere - to skip an object it already holds - does not make it occur twice.
     file: src/poker_training_bot/solver_artifacts/postflop_fetch.py
-    find: "if not local_path.is_file():"
-    replace: "if False and not local_path.is_file():"
+    find: 'raise FetchError(NOT_FETCHED, f"{street} object not fetched: {key}")'
+    replace: "pass"
     must_fail:
       - pytest_flop_campaign
 
