@@ -134,6 +134,12 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   phase 16's recorded first runs at five threads the four solves alone are 375.6 + 1,677.4 + 1,035.9
   + 616.0 = 3,704.9 seconds, about an hour, in `determinism.json`; harvest time is unmeasured and is one of the things the contract measures. A
   re-solve that does not reproduce halts the lane for Taylor; it is never worked around.
+- [ ] Stage 6 runs every solve through `postflop_lines.plan_for` and `seat_labels`, never through
+  `scripts/solve_postflop_sample.py`'s button-line code. The stage 4 poker review found four places
+  there that hardcode the button line and no frozen test covers: `seat_of_player` (big blind always
+  out of position), `conditional_ranges` (button-line export paths), `preflop_line_for`
+  (`BTN_OPEN_BB_CALL`) and `write_solve_config` (seat-named keys `oop_bb_call` and `ip_btn_open`).
+  The stage 6 review checks that no campaign solve reached them.
 - [ ] Before any candidate is ranked: GTOpen builds (does not solve) one small blind tree, and its
   node count and arena are compared with the port's 4,109,130 nodes and planned arena. A difference
   is a finding for Taylor, not a test edit. On each rented box the machine record is compared with

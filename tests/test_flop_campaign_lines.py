@@ -18,6 +18,7 @@ every street after the flop, so the raiser is out of position.
 
 from __future__ import annotations
 
+import hashlib
 import inspect
 import json
 
@@ -30,7 +31,7 @@ from poker_training_bot.solver_artifacts.schema import PreflopAction
 from poker_training_bot.strategy import contract as contract_module
 from poker_training_bot.strategy import postflop_betting as betting
 from scripts.repo_paths import REPO_ROOT
-from tests.test_postflop_betting import BUTTON_SEAT
+from tests.test_postflop_betting import BUTTON_SEAT, SB_SEAT, seated
 from tests.test_postflop_betting import HERO_SEAT as BIG_BLIND_SEAT
 from tests.test_postflop_betting import query as button_line_query
 
@@ -395,9 +396,163 @@ class TestASmallBlindHandFindsTheSmallBlindsCell:
         [
             ("SB:raise@2.5,BB:call", {0: "SB", 1: "BB"}),
             ("BTN:raise@2.5,BB:call", {0: "BB", 1: "BTN"}),
+            ("CO:raise@2.5,BB:call", {0: "BB", 1: "CO"}),
+            ("HJ:raise@2.5,BB:call", {0: "BB", 1: "HJ"}),
             ("LJ:raise@2.5,BB:call", {0: "BB", 1: "LJ"}),
         ],
     )
     def test_the_harvest_seat_map_comes_from_the_line(self, lines, line, seats) -> None:
         """GTOpen's player 0 is out of position and player 1 in position; the map names them."""
         assert owed(lines, "seat_labels")(line) == seats
+
+
+# --------------------------------------------------------------------------- #
+# A machine that has fetched a closed board answers it; one that has not refuses
+# --------------------------------------------------------------------------- #
+
+SAMPLE_DIR = REPO_ROOT / "data" / "artifacts" / "postflop" / "sample"
+INDEX_PATH = REPO_ROOT / "data" / "artifacts" / "postflop" / "index.json"
+FETCHED_INDEX_KEY = "postflop/btn-v-bb/index.json"
+FETCHED_FLOP_KEY = "postflop/btn-v-bb/Kh7d2c.flop.json"
+FACING_75_KEY = "f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:BB:check,BTN:bet@75/p:5.5/e:97.5"
+
+
+def facing_a_three_quarter_bet_cell() -> dict:
+    """The big blind facing the button's 75 percent c-bet on `Kh7d2c`: one of the board's 14
+    flop decision points, and not one the sample holds. Built from the committed cell for the
+    33 percent bet - same board, seat, line and ranges - with the bet, the key and the raise
+    size moved to the 75 percent node (4.125bb, raised 2.5x to 10.3125bb). Its frequencies are
+    the 33 percent node's, borrowed; this test proves where the strategy reads from, not what
+    the node plays."""
+    cell = json.loads((SAMPLE_DIR / "rainbow-dry-high-facing-a-bet.json").read_text("utf-8"))
+    cell["spot_key"] = FACING_75_KEY
+    cell["flop_actions"][1]["size_pct"] = 75.0
+    cell["actions"][2]["size_bb"] = 4.125 * 2.5
+    return cell
+
+
+def write(path, data: bytes) -> str:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+    return hashlib.sha256(data).hexdigest()
+
+
+@pytest.fixture
+def fetched_machine(tmp_path):
+    """A manifest folder holding one closed board for the button's line, `Kh7d2c`, and a
+    fetched folder holding that board's line index and flop object where `fetch_line` leaves
+    them - each at its object key under the folder. The flop object is a JSON document
+    `{"cells": [cell documents]}` in the committed cell schema, written uncompressed. The turn
+    and river objects are listed and not fetched, which is the flop-only machine."""
+    fetched = tmp_path / "fetched"
+    flop_digest = write(
+        fetched / FETCHED_FLOP_KEY,
+        json.dumps({"cells": [facing_a_three_quarter_bet_cell()]}, sort_keys=True).encode(),
+    )
+    streets = {"flop": {"key": FETCHED_FLOP_KEY, "sha256": flop_digest}}
+    for street in ("turn", "river"):
+        streets[street] = {"key": f"postflop/btn-v-bb/Kh7d2c.{street}.bin", "sha256": "0" * 64}
+    counts = {"flop": 14, "turn": 6_419, "river": 1_477_056}
+    index = {
+        "line_index_schema_version": 1,
+        "preflop_line": "BTN:raise@2.5,BB:call",
+        "boards": [{"board": ["Kh", "7d", "2c"], "decision_points": counts, "objects": streets}],
+    }
+    index_bytes = json.dumps(index, sort_keys=True).encode()
+    index_digest = write(fetched / FETCHED_INDEX_KEY, index_bytes)
+    committed = json.loads(INDEX_PATH.read_text(encoding="utf-8"))
+    manifest = {
+        "manifest_schema_version": 1,
+        "preflop_line": "BTN:raise@2.5,BB:call",
+        "index": {
+            "object_key": FETCHED_INDEX_KEY,
+            "sha256": index_digest,
+            "bytes": len(index_bytes),
+        },
+        "flops_held": 24,
+        "refused_boards": 0,
+        "boards": [
+            {
+                "board": ["Kh", "7d", "2c"],
+                "status": "closed",
+                "decision_points": counts,
+                "achieved_exploitability_pct_of_pot": 0.283013340119407,
+                "iterations": 340,
+                "machine": "invented machine for a test",
+                "threads": 10,
+                "strategy_digests": {
+                    entry["spot_key"]: entry["strategy_digest"]
+                    for entry in committed["entries"]
+                    if entry["board"] == ["Kh", "7d", "2c"]
+                },
+            }
+        ],
+    }
+    manifests = tmp_path / "manifests"
+    write(manifests / "btn-raise-bb-call.json", json.dumps(manifest, indent=1).encode())
+    empty = tmp_path / "nothing-fetched"
+    empty.mkdir()
+    return {"fetched": fetched, "empty": empty, "manifests": manifests}
+
+
+def facing_a_three_quarter_bet():
+    """The button bets 413 into 550, which the menu matches as 75 percent."""
+    return button_line_query(
+        legal_actions=("fold", "call", "raise"),
+        to_call=413,
+        current_bet=413,
+        min_raise_target=826,
+        **seated(
+            {BUTTON_SEAT: 663, SB_SEAT: 50, BIG_BLIND_SEAT: 250},
+            (BUTTON_SEAT, BIG_BLIND_SEAT),
+            {BUTTON_SEAT: 413},
+        ),
+        postflop_actions=(
+            contract_module.SeatAction(BIG_BLIND_SEAT, "check"),
+            contract_module.SeatAction(BUTTON_SEAT, "bet", 413),
+        ),
+    )
+
+
+class TestAFetchedClosedBoardIsPlayed:
+    """Criteria: the bot plays the flop objects a machine has fetched, and a machine that has not
+    fetched refuses with the not-fetched code.
+    `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`.
+    `from_repo` takes `fetched_root`, the folder the fetch wrote into, and `manifest_dir`, the
+    folder of manifests - the committed one by default - so a strategy that ignores either
+    argument fails one of the two tests below."""
+
+    def build(self, fetched_root, manifest_dir):
+        signature = inspect.signature(betting.PostflopBettingStrategy.from_repo)
+        assert {"fetched_root", "manifest_dir"} <= set(signature.parameters), (
+            "PostflopBettingStrategy.from_repo must take fetched_root and manifest_dir"
+        )
+        return betting.PostflopBettingStrategy.from_repo(
+            fetched_root=fetched_root, manifest_dir=manifest_dir
+        )
+
+    def test_the_fixture_s_cell_is_not_one_the_sample_holds(self) -> None:
+        held = {
+            json.loads(path.read_text(encoding="utf-8"))["spot_key"]
+            for path in SAMPLE_DIR.glob("*.json")
+        }
+        assert FACING_75_KEY not in held
+
+    def test_a_machine_that_fetched_the_board_answers_the_node(self, fetched_machine) -> None:
+        strategy = self.build(fetched_machine["fetched"], fetched_machine["manifests"])
+
+        outcome = strategy.decide(facing_a_three_quarter_bet())
+
+        assert isinstance(outcome, contract_module.StrategyDecision), outcome
+        assert outcome.action in ("fold", "call", "raise")
+
+    def test_the_same_node_on_a_machine_that_fetched_nothing_refuses_as_not_fetched(
+        self, fetched_machine
+    ) -> None:
+        strategy = self.build(fetched_machine["empty"], fetched_machine["manifests"])
+
+        outcome = strategy.decide(facing_a_three_quarter_bet())
+
+        assert isinstance(outcome, contract_module.StrategyRefusal), outcome
+        assert outcome.code == betting.REFUSE_IN_THE_INDEX_BUT_NOT_FETCHED, outcome.code
+        assert outcome.named("hero_position") == "BB", outcome.detail

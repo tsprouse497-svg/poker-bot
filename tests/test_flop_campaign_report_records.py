@@ -169,12 +169,12 @@ class TestTheCandidateRecordIsReDerived:
             render(generator, tree_copy)
 
     def test_a_bar_below_the_campaign_s_largest_arena_fails(self, generator, refusal, tree_copy):
-        """A bar low enough admits the 32 GiB box; the bar is the tree walk's, not the record's."""
+        """Only the bar changes: the ranking, the exclusion and the costs stay as the tree's bar
+        makes them, so a generator that never reads the record's own bar renders this and fails
+        the test. The bar is the tree walk's, and a record that states a smaller one is wrong
+        whatever else in it agrees."""
         record = candidates_record()
         record["memory_bar_bytes"] = 10_000_000_000
-        record["ranked"] = ["invented-small", "invented-big"]
-        record["excluded"] = {}
-        record["cost_per_solved_flop_usd"]["invented-small"] = 0.45
         write_record(tree_copy, "candidates.json", record)
 
         with pytest.raises(refusal):
@@ -197,23 +197,44 @@ class TestTheBoxDeterminismRecordIsReDerived:
     compares; whether the box matches the M4's committed digests is printed as a separate finding
     and is not a pass condition."""
 
-    def test_a_box_that_repeats_itself_and_the_m4_renders_and_names_the_box(
-        self, generator, tree_copy
+    @pytest.fixture(scope="class")
+    def words(self, generator):
+        """The generator's own words for the four findings, published like `NOT_YET_MEASURED`
+        so each can be looked for on a row rather than guessed at."""
+        found = {
+            name: owed(generator, name)
+            for name in ("BOX_REPEATED", "BOX_DID_NOT_REPEAT", "M4_MATCH", "M4_MISMATCH")
+        }
+        for first, second in (("BOX_REPEATED", "BOX_DID_NOT_REPEAT"), ("M4_MATCH", "M4_MISMATCH")):
+            assert found[first] and found[second]
+            assert found[first] not in found[second] and found[second] not in found[first]
+        return found
+
+    def test_a_box_that_repeats_itself_and_the_m4_says_both(
+        self, generator, tree_copy, words
     ) -> None:
         write_record(tree_copy, "box_determinism.json", box_record())
 
-        assert rows_with(render(generator, tree_copy), "invented box for a test")
+        text = render(generator, tree_copy)
 
-    def test_the_m4_match_is_printed_as_its_own_finding(self, generator, tree_copy) -> None:
-        """Both runs on the box agree and differ from the M4: it renders, and it renders
-        differently from the box that also matches the M4."""
-        write_record(tree_copy, "box_determinism.json", box_record())
-        matching = render(generator, tree_copy)
+        assert rows_with(text, "invented box for a test", words["BOX_REPEATED"])
+        assert rows_with(text, words["M4_MATCH"])
+        assert not rows_with(text, words["M4_MISMATCH"])
+
+    def test_the_m4_match_is_its_own_finding_and_not_a_pass_condition(
+        self, generator, tree_copy, words
+    ) -> None:
+        """Both runs on the box agree and differ from the M4: the box still repeated itself, and
+        the M4 finding flips."""
         record = box_record()
         record["cells"][0]["strategy_digest"] = ["e" * 64, "e" * 64]
         write_record(tree_copy, "box_determinism.json", record)
 
-        assert render(generator, tree_copy) != matching
+        text = render(generator, tree_copy)
+
+        assert rows_with(text, "invented box for a test", words["BOX_REPEATED"])
+        assert rows_with(text, words["M4_MISMATCH"])
+        assert not rows_with(text, words["M4_MATCH"])
 
     def test_a_flag_that_says_identical_over_cells_that_differ_fails(
         self, generator, refusal, tree_copy
@@ -226,18 +247,23 @@ class TestTheBoxDeterminismRecordIsReDerived:
         with pytest.raises(refusal):
             render(generator, tree_copy)
 
-    def test_a_box_that_did_not_repeat_itself_is_printed_rather_than_hidden(
-        self, generator, tree_copy
+    def test_a_box_that_did_not_repeat_itself_says_so_and_that_the_phase_halts(
+        self, generator, tree_copy, words
     ) -> None:
-        """The phase halts for Taylor on this; the report's job is to say it, so a record that
-        honestly says not identical renders."""
+        """The contract: if the two runs on the box differ, the phase halts and Taylor is asked.
+        The report's job is to say it, so an honest not-identical record renders, says the box
+        did not repeat, and says on that row that this is a halt."""
         record = box_record()
         record["cells"][2]["strategy_digest"][1] = "0" * 64
         record["cells"][2]["cell_document_bytes_identical"] = False
         record["identical"] = False
         write_record(tree_copy, "box_determinism.json", record)
 
-        assert render(generator, tree_copy)
+        text = render(generator, tree_copy)
+
+        rows = rows_with(text, "invented box for a test", words["BOX_DID_NOT_REPEAT"])
+        assert rows and any("halt" in row.lower() for row in rows), rows
+        assert not rows_with(text, "invented box for a test", words["BOX_REPEATED"])
 
 
 # --------------------------------------------------------------------------- #
@@ -297,6 +323,16 @@ class TestTheTextureRecordIsReDerived:
         with pytest.raises(refusal):
             render(generator, tree_copy)
 
+    def test_a_record_for_another_line_fails(self, generator, refusal, tree_copy) -> None:
+        """The six trial boards are on the first admitted line, the small blind's; a projection
+        from the cutoff's line prices the wrong tree."""
+        record = texture_record()
+        record["line"] = "CO:raise@2.5,BB:call"
+        write_record(tree_copy, "texture_trial.json", record)
+
+        with pytest.raises(refusal):
+            render(generator, tree_copy)
+
     def test_a_board_filed_under_the_wrong_group_fails(self, generator, refusal, tree_copy):
         record = texture_record()
         record["groups"]["monotone"]["board"] = ["2c", "2d", "2h"]
@@ -321,7 +357,7 @@ def table_record():
         "bets": 240,
         "showdowns": 0,
         "voided_hands": 5_100,
-        "voided_by_street": {"flop": 1_200, "turn": 3_500, "river": 400},
+        "voided_by_street": {"flop": 1_200, "turn": 3_900, "river": 0},
     }
 
 
@@ -335,13 +371,33 @@ class TestTheTableRecordIsReDerived:
         text = render(generator, tree_copy)
 
         assert "5,100" in text and "5,365" in text
-        assert "3,500" in text, "the turn's share of the voids"
+        assert "3,900" in text, "the turn's share of the voids"
 
     def test_voids_by_street_that_do_not_sum_to_the_total_fail(
         self, generator, refusal, tree_copy
     ) -> None:
         record = copy.deepcopy(table_record())
         record["voided_by_street"]["turn"] = 3_400
+        write_record(tree_copy, "table_result.json", record)
+
+        with pytest.raises(refusal):
+            render(generator, tree_copy)
+
+    def test_a_run_of_another_length_fails(self, generator, refusal, tree_copy) -> None:
+        record = table_record()
+        record["hands"] = 19_999
+        write_record(tree_copy, "table_result.json", record)
+
+        with pytest.raises(refusal):
+            render(generator, tree_copy)
+
+    def test_a_hand_voided_on_the_river_fails(self, generator, refusal, tree_copy) -> None:
+        """Every turn decision refuses this phase, so a hand reaches the river only all-in with
+        no decision left, and that is a showdown, not a void. River voids above zero mean the bot
+        played a turn, which the non-goals forbid."""
+        record = table_record()
+        record["voided_by_street"]["river"] = 400
+        record["voided_hands"] = 5_500
         write_record(tree_copy, "table_result.json", record)
 
         with pytest.raises(refusal):

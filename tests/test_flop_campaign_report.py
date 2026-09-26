@@ -183,8 +183,9 @@ class TestTheReportPrintsWhatTheContractNames:
         its own closure counts, its own bar and its own reach, not the button's repeated. The bar
         is printed in the server's unit, bytes, so the figure does not depend on decision 14's
         reading."""
-        for figure in ("6,566", "1,545,264", "32,193", "17,674,107,736", "5.53"):
+        for figure in ("6,566", "1,545,264", "32,193", "17,674,107,736"):
             assert figure in committed_report, figure
+        assert re.search(r"(?<![\d.,])5\.53(?![\d])", committed_report), "the reach, 5.53"
 
     def test_the_memory_bar_names_its_board_class(self, committed_report) -> None:
         assert "2c2d2h" in committed_report
@@ -327,7 +328,11 @@ class TestTheCampaignRecordsAreReDerived:
             "ten threads' spread, 9.0 less 1.6, printed on ten threads' row"
         )
         baseline = owed(generator, "render_report")(committed_tree_without(tree_copy))
-        assert not TEN_THREAD_SPREAD.search(baseline), "7.4 must come from the sweep record"
+        assert not [
+            row
+            for row in baseline.splitlines()
+            if TEN_THREAD_SPREAD.search(row) and TEN_THREADS.search(row)
+        ], "ten threads' 7.4 spread must come from the sweep record"
 
     def test_a_sweep_whose_choice_is_not_the_fastest_median_fails(
         self, generator, refusal, tree_copy

@@ -37,8 +37,8 @@ items:
       percent of flops plan above 12.24 GB" holds only as "at or above": 3,484 of 22,100 at or
       above, 3,444 (15.6 percent) strictly above, because 40 flops plan exactly the largest
       committed arena. The frozen tests pin the re-derived figures. The card figure changes which
-      GPU qualifies: a nominal 48 GB card reports about 46,068 MiB usable, under the 46,257 MiB
-      plus GTOpen's 512 MiB margin the small blind line needs, so decision 7's "48 GB or more" has
+      GPU qualifies: a nominal 48 GB card reports about 46,068 MiB usable (not measured here),
+      under the 46,257 MiB, GTOpen's 512 MiB margin included, that the small blind line needs, so decision 7's "48 GB or more" has
       to say which unit and in practice points at a larger card. Closes when a contract-update
       folds the three corrections into phase 21's contract, which sits at its 300-line cap.
 

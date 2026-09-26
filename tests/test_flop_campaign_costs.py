@@ -205,6 +205,27 @@ class TestCandidatesAreRankedOnCostPerSolvedFlop:
         assert set(ranking.excluded) == {"invented-small"}
         assert "memory" in ranking.excluded["invented-small"].lower()
 
+    def test_a_candidate_whose_ceiling_exactly_equals_the_bar_holds_it(self, costs) -> None:
+        """Ruled here, deliberately: the contract excludes "a candidate that cannot hold the
+        bar", and a ceiling equal to the bar holds it, so equality is admitted and only a
+        ceiling below the bar excludes. 50,000,000,000 bytes at 0.40 is 20,000,000,000 exactly
+        in floating point, so the comparison is at equality and not a rounding either side."""
+        exact = owed(costs, "Candidate")(
+            name="invented-exact",
+            memory_bytes=50_000_000_000,
+            price_per_hour_usd=1.0,
+            billed_seconds=dict(FULL_STRETCH),
+        )
+        ranking = owed(costs, "rank_candidates")(
+            [exact], memory_bar_bytes=20_000_000_000, ceiling_fraction=0.40
+        )
+
+        assert [found.name for found in ranking.ranked] == ["invented-exact"]
+        below = owed(costs, "rank_candidates")(
+            [exact], memory_bar_bytes=20_000_000_001, ceiling_fraction=0.40
+        )
+        assert set(below.excluded) == {"invented-exact"}
+
     def test_the_ranking_is_cheapest_per_solved_flop_first(self, costs) -> None:
         """A faster, dearer box can be cheaper per flop; the hourly price alone would rank it
         last."""
