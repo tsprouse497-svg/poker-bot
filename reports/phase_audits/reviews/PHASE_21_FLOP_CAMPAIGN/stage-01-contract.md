@@ -34,7 +34,7 @@ Re-derived from committed data, GTOpen source and the scratch scripts (re-run, n
 
 ## Blocker
 
-- B1. Closure as written is satisfiable without closing anything that plays. Contract line 166-168
+- [resolved] Round 2: fixed at contract line 49-50 and 187-192 at `b1dd5ac` (all of a line's flop decision points for both seats from one solve, or all refused together, with a per-board count test). B1. Closure as written is satisfiable without closing anything that plays. Contract line 166-168
   (and Scope line 49-51) define closure as "every flop decision point reachable from a committed
   one". A board whose committed set is closed downward but omits the root passes: commit only the
   four nodes that face a second raise (fold or call only, nothing after them on the flop) and the
@@ -46,7 +46,7 @@ Re-derived from committed data, GTOpen source and the scratch scripts (re-run, n
   ceiling is per solve, so it refuses all 14 or none. Fix: define closure over the line's flop root
   for both seats, so each covered board holds all 14 committed or all 14 refused under the
   whole-board ceiling, and have the test assert that count per board.
-- B2. Closing phase 16's four boards has no coherent source. The closure test walks "every
+- [resolved] Round 2: fixed at contract line 122-126 and 193-196 (the four boards close from the part 1 M4 re-solve, which must reproduce four cell documents and the fifth digest; a mismatch halts, no mixing). B2. Closing phase 16's four boards has no coherent source. The closure test walks "every
   committed board" (line 167), which includes phase 16's four; the tree is never saved (line 169),
   so their 12 or 13 missing nodes need a re-solve; each board is "solved once" and a determinism
   re-solve "never replaces a committed cell" (line 177-178); phase 16's cells stay byte-identical
@@ -59,7 +59,7 @@ Re-derived from committed data, GTOpen source and the scratch scripts (re-run, n
   re-solve, which must reproduce the committed digests), that a board whose closing solve does not
   reproduce its committed cells is not closed by mixing and halts for Taylor, and say "four cell
   documents plus the fifth's strategy digest".
-- B3. The memory bar is measured on the wrong set. Line 140-145 excludes candidates against the
+- [resolved] Round 2: fixed at contract line 145-151 and 184-186 (the bar is the largest arena over every flop of every admitted line, computed before ranking, with this line's 12.87 GB, 32.2 GB and 33.7 GB stated). B3. The memory bar is measured on the wrong set. Line 140-145 excludes candidates against the
   four committed boards' arenas (30.6 GB RAM, 30.4-32.0 GB VRAM). Over all 22,100 flops on this
   same line the largest planned arena is 12.87 GB as the guard reads it (`2d2h2s`, 365 and 483
   hands), needing 32.18 GB of RAM at 0.40 and about 33.7 GB of VRAM, and 15.8 percent of flops plan
@@ -69,6 +69,20 @@ Re-derived from committed data, GTOpen source and the scratch scripts (re-run, n
   the driver fails closed, so coverage narrows silently rather than breaking. Fix: the hard limit is
   the largest planned arena over every flop of every line stage 2 admits, computed before a
   candidate is ranked, and the report prints it.
+
+- B4. Round 2, new. The pre-cap solves contradict the spending rule and are neither costed nor
+  bounded. Contract line 99-100 and 142-144 forbid any spend before Taylor rules a spending cap, but
+  line 160-165 requires the chosen box to have solved six texture flops "before the spending cap is
+  asked", which needs an account, candidates solved (line 152-159) and a box chosen, all of it
+  money. Every rented solve before the campaign is also unpriced: per candidate a thread sweep
+  (line 114-117: at least two counts, up to every count between, three runs each) plus `Kh7d2c`; on
+  the chosen box, eight determinism solves (line 166-170) and the six texture solves. At M4 rates
+  that is roughly an hour of solving per candidate and about four more on the chosen box, which is
+  probably small in money but is not stated anywhere Taylor would see it before ruling. Fix: split
+  the cap into a benchmark cap ruled with the candidates and a campaign cap asked after the
+  projection, or one cap that names both, and state the expected count of benchmark solves beside
+  it. Also say whether the six texture flops are committed as campaign boards (line 206 "each board
+  is solved once") or are throwaway.
 
 ## Non-blocker
 
@@ -131,6 +145,18 @@ Re-derived from committed data, GTOpen source and the scratch scripts (re-run, n
   (5.5) and the arena are per line; lines with other pots (a button call of a cutoff open is 6.5)
   or 3-bet depths have different trees. Say the count and budget are re-derived per admitted line.
 
+- N11. Round 2, new. The thread sweep's bounds are the M4's. Line 115 "at least five and ten"
+  applies "on every machine" (line 114), so on a 32 or 64 core box it can pick 10 as "fastest
+  measured" while never timing 16 or 32. State the ends per machine as half and all of its reported
+  parallelism, and say whether a timing is a full solve or a fixed iteration window (the latter
+  keeps the sweep cheap).
+- N12. Round 2, new. If the fastest M4 count is five, the part 1 re-solve (line 122-126) runs at the
+  same count as phase 16 and proves nothing about a changed count. Require the determinism re-solve
+  at a count other than five whatever the sweep picks, or say the check is skipped and why.
+- N13. Round 2, new. "Fastest" over three runs with a printed spread (line 116-118) has no rule
+  for which statistic decides (median, best). Name it.
+- N14. Round 2, new, cosmetic. Line 60 and line 213 run well past the file's wrap width.
+
 ## Alignment
 
 - The four entries in N8 are existing ids and stay with this phase; the coordinator records how
@@ -138,6 +164,9 @@ Re-derived from committed data, GTOpen source and the scratch scripts (re-run, n
 - B3 and N10 generalise to every later line: the coordinator must file one, proposed id
   `THE-MEMORY-BAR-IS-THE-LARGEST-ARENA-OVER-EVERY-ADMITTED-LINE-NOT-THE-SAMPLE`, unless B3's fix
   lands in this contract.
+
+- Round 2: the proposed id above is no longer needed. B3's fix landed in the contract at line
+  145-151 and the per-line rule at line 184-186 carries it to later lines, so nothing to file.
 
 ## What I held back
 
@@ -151,3 +180,62 @@ Re-derived from committed data, GTOpen source and the scratch scripts (re-run, n
 - My view as a player: closure plus one fully covered line is worth more than many unclosed lines,
   but the bot will still void every hand that reaches a turn, so the table result after this phase
   will look almost as empty as phase 16's in showdowns. Say that to Taylor before he sets a cap.
+
+## Round 2
+
+Scope: `git diff d869636..b1dd5ac` over the contract and ExecPlan. Line numbers below are the
+contract at `b1dd5ac` (270 lines, under the 300 cap).
+
+- B1: fixed. Line 49-50 and 187-192: every flop decision point in the line, both seats, from one
+  solve, or all refused together on the shared solve's ceiling miss; a test asserts the count per
+  board. The vacuous off-menu example is gone.
+- B2: fixed. Line 122-126 re-solves the four boards on the M4 and requires four cell documents byte
+  for byte plus the fifth's digest; line 193-196 closes them from that same solve and halts rather
+  than mixing.
+- B3: fixed. Line 145-151 sets the bar over every flop of every admitted line before ranking, with
+  the figures I measured; line 184-186 re-derives per line. The claim "the campaign cannot meet a
+  board its box refuses" (line 150-151) holds for the planned-arena guard only, which is the guard
+  that exists.
+- B4: new blocker, see the Blocker section. Asked directly whether the six-texture projection and
+  the thread sweep are costed and bounded: no. Neither is priced, the sweep has no upper count on a
+  large box (N11) and no statement of full solve against an iteration window, and the projection is
+  sequenced before the cap in a contract that forbids spending before the cap.
+- N1: partly fixed. Line 114-121: fastest count, measured on every machine, three interleaved runs,
+  spread printed. New flaws in N11, N12, N13.
+- N2: fixed. Line 155-159: billed time from server start to upload; concurrency is a stage-2 ruling
+  and the bar applies to the sum.
+- N3: fixed in substance by the six-texture projection, line 160-165; weighting by class count is
+  right for a line's cost because each class is solved once. The six groups sum to 1,755 (286, 858,
+  156, 156, 286, 13). Its sequencing is B4.
+- N4: not fixed. Closure is still stated as a requirement (line 49-52, 187) with no Taylor ruling
+  cited and no stage-2 question; nothing in the ExecPlan names it for stage 2. It stays a
+  non-blocker: stage 2 should put closure against breadth to Taylor coupled with where the index
+  lives.
+- N5: fixed. Line 59-60 reopens NVIDIA at stage 2; line 62-64 and 204-206 ask the target, the cap
+  and the 1 percent ceiling together.
+- N6: fixed. Line 198-199 calls the lines an upper bound; line 201-202 sends cell documents to object
+  storage.
+- N7: fixed. Line 219-224: fetched machine, voids split by street, turn voiding stated.
+- N8: fixed. Guard tests and over-read repair line 134-138; payment and fetch line 208-211; refusal
+  scope line 212-213; settling line 214-216; corpus share beside 74.9 percent with multiway named
+  structural line 233-235.
+- N9: fixed. The rainbow sentence and "never measured to target" are gone; ExecPlan line 28 lists
+  `tree2.py`. Line 188-189 still says the walk reproduces "every committed object's" arena, and the
+  objects sit outside git, which is accurate as worded.
+- N10: fixed. Line 181-183 assigns ranges by seat position; line 184-186 re-derives tree, count,
+  pot, arena and index cost per line.
+- Alignment 1: fixed. Every entry named in N8 now has a criterion that closes it.
+- Alignment 2: no longer needed; the fix landed in the contract.
+
+New errors checked: the six texture group counts, the 12.87, 32.2 and 33.7 GB figures and the
+ExecPlan's memory-bar bullet (ExecPlan line 45-47) all match my measurement. No new unfalsifiable
+criterion, apart from line 214-216 ("unless stage 2 rules it out"), which matches the backlog
+entry's own closing condition and is acceptable.
+
+### What I held back in round 2
+
+- I did not re-run `review_maxarena.py`; the numbers copied into the contract match what I wrote in
+  round 1.
+- The hour figures in B4 are M4 rates scaled by solve count, not measured on any box.
+- I did not re-check the GPU status field or `atomicAdd`, as in round 1.
+- I did not check whether a line longer than the wrap width fails any repo check.
