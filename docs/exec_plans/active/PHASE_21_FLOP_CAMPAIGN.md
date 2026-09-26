@@ -91,7 +91,13 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   existing entries. The coordinator rewrote id-shaped tokens in both review notes mechanically -
   line labels such as "SB v BB" and two proposals the reviewers withdrew - because the citation check
   reads hyphenated capitals as backlog ids. Round 3 pending.
-- [ ] Stage 3: Taylor's rulings.
+- [x] Stage 3: Taylor ruled all ten on 2026-09-26, in plain-language questions with the
+  recommendation first. Two went against the recommendation, both after he was shown the cost:
+  keep the river as well as the turn (about 2.5 TB a line by a rough estimate), and try the GPU in
+  the trial. Asked a follow-up, he ruled that phase 21 stores the turn and river and a new phase
+  plays them, filed as `TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE`. The contract
+  is amended to the rulings in this stage, before any test is written.
+- [ ] Before any spend: the specific AWS machine types and hourly prices go to Taylor.
 
 ## Verification
 

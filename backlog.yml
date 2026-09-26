@@ -1,5 +1,20 @@
 schema_version: 1
 items:
+  - id: TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE
+    status: deferred
+    phase: contract-update
+    title: Phase 21 stores every turn and river decision point and nothing plays them yet
+    reason: >-
+      Taylor ruled on 2026-09-26, at phase 21's stage 3, that the campaign keeps the flop, turn and
+      river from every solve, and then that phase 21 stores them only: "store now, play next". So a
+      new phase right after 21 teaches the bot to look up and play the turn and river from the saved
+      solves. It needs the postflop key to carry the turn and river cards, which today it cannot,
+      the lookup and the composite strategy to route them, and tests, and it lifts phase 16's rule
+      that turn and river refuse. Until it is declared, every hand that reaches a turn is voided, as
+      phase 21's own table re-run will show. What closes this entry: the phase is declared in its
+      own `contract-update` task, depending on 21, with phase 19's and 20's edges re-examined
+      against it.
+
   - id: LINE-RANKING-BY-CLOSING-DECISION-ARRIVAL-COUNTS-LINES-THE-CHART-NEVER-PLAYS
     status: deferred
     phase: "21"

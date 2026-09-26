@@ -74,7 +74,18 @@ same 20,000 hands reached 4,543 showdowns. (d) Flop only, with no later phase pl
 Recommendation: (b), with the turn in the compact format and the flop files kept as they are today. The turn costs storage, not solving, and not keeping it
 means paying for every solve twice. Decide (c) once (b) exists and can be measured.
 
-Answer: [ ]
+Answer: [Ruled by Taylor, 2026-09-26] **Keep the flop, the turn and the river from every solve.** Asked first
+with the four options above, he asked whether the river would have to be solved again later, since
+the bot needs it to play a hand end to end. He was told it would: not whole flops, but the river parts
+from the saved turn, which is most of a solve's work, so about the campaign's machine time again; and
+that keeping it costs roughly 2.5 TB a line by a rough estimate that compression may cut. The
+coordinator recommended keeping flop and turn and deciding the river after measuring it on the six
+trial flops. He chose to keep the river too, whatever the storage costs. So the river leaves this
+phase's non-goals, and the harvest method and the measured size of a full flop's saved strategy are
+reported before the campaign budget is asked. Asked next whether phase 21 also teaches the bot to
+look up and play the turn and river, he ruled **store now, play next**: phase 21 stores them and a new
+phase right after it makes the bot play them. `TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE`
+carries that until it is declared.]
 
 ## 2. Whether every flop decision is saved, or only the first
 
@@ -89,7 +100,7 @@ up one move in.
 
 Recommendation: save all 14 (and the turn, if 1 is (b)). Decision 3 is what makes the room.
 
-Answer: [ ]
+Answer: [Ruled by Taylor, 2026-09-26] Save all 14 flop decision points, per the recommendation, and with decision 1 every turn and river decision point of the same solve.]
 
 ## 3. Where the index lives once it outgrows git
 
@@ -104,7 +115,7 @@ line.
 
 Recommendation: (a). The gate keeps running offline against the committed sample, as it does today.
 
-Answer: [ ]
+Answer: [Ruled by Taylor, 2026-09-26] (a): the full index lives in object storage beside the solves, and git holds a manifest per line - the flops held and one fingerprint of the index file.]
 
 ## 4. Where the solved data is stored, and who pays for it
 
@@ -120,7 +131,7 @@ rewrite of the index, not a re-solve, but it is still worth choosing once.
 Recommendation: a private storage bucket at the same cloud provider as the machine (decision 5), on
 your account, read by a fetch command the repo commits.
 
-Answer: [ ]
+Answer: [Ruled by Taylor, 2026-09-26] A private storage bucket at the same provider as the machine, on his account, read by a fetch command the repo commits. With decision 5, that is AWS.]
 
 ## 5. Which cloud provider, and which machines to try
 
@@ -137,7 +148,10 @@ or more, with at least one Intel or AMD and one ARM, since GTOpen's own comment 
 limited by memory speed rather than core count. The names are yours to pick; I have no prices I can
 vouch for.
 
-Answer: [ ]
+Answer: [Ruled by Taylor, 2026-09-26] **AWS.** The candidates are as recommended - three CPU machines of 64 GB
+of RAM or more, at least one Intel or AMD and one ARM - and, by decision 7, one GPU machine with a card
+of 40 GB or more. The specific machine types and their hourly prices are put to him before anything
+is rented, since that is the spend.]
 
 ## 6. The trial budget
 
@@ -159,7 +173,7 @@ of this budget too. The campaign budget is asked separately, once the six flops 
 Recommendation: an amount you would be comfortable losing on a trial, since it buys measurements
 rather than coverage. The figure is yours; I cannot price a machine you have not picked.
 
-Answer: [ ]
+Answer: [Ruled by Taylor, 2026-09-26] **$100** trial budget, covering every rented run before the campaign, the GPU trial included. The campaign budget is asked separately once the trial has priced a line.]
 
 ## 7. Whether to try GTOpen's graphics-card path
 
@@ -175,7 +189,10 @@ measured here.
 Recommendation: not now. Run on ordinary processors, and try a card only if their projected cost is
 too high; that trial would test repeatability before speed.
 
-Answer: [ ]
+Answer: [Ruled by Taylor, 2026-09-26] **Try it in the trial**, against the recommendation, out of the $100.
+Repeatability is tested first: the GPU machine solves the same flop twice and the two runs are compared
+exactly. A GPU that does not repeat itself is recorded as a finding and is not used for the campaign
+without another ruling.]
 
 ## 8. How accurate each flop must be
 
@@ -194,7 +211,7 @@ solving per flop, which buys fewer flops for the same money.
 Recommendation: (a) for this campaign, since more flops beats finer mixing on the flops you have,
 with decision 13's settling runs measuring the gap.
 
-Answer: [ ]
+Answer: [Ruled by Taylor, 2026-09-26] (a): keep 0.3 percent of the pot, the 1,200-round cap and refusal above 1 percent.]
 
 ## 9. Which preflop lines go first
 
@@ -212,7 +229,7 @@ Recommendation: rank by the chart's own figures, print the real-hand order besid
 only the five single-raised lines in this phase. Three-bet pots need new range work and their own
 bet sizes, so they are not admitted here; a later decision or phase adds them.
 
-Answer: [ ]
+Answer: [Ruled by Taylor, 2026-09-26] Rank by the chart's own line figures and admit only the five single-raised lines: small blind, button, cutoff, hijack and lojack opening against the big blind, in that order. Three-bet pots are not admitted in this phase.]
 
 ## 10. The bet sizes for lines other than the committed one
 
@@ -227,7 +244,7 @@ Recommendation: the same sizes and the same settings for every single-raised lin
 setting included, which is empty in `solve_config.json` today; it may play differently when the
 raiser acts first after the flop, as the small blind does against the big blind.
 
-Answer: [ ]
+Answer: [Ruled by Taylor, 2026-09-26] The same bet sizes and settings as `solve_config.json` for every single-raised line, the empty `donk` setting included.]
 
 ## 11. How many solves run at once on one machine
 
