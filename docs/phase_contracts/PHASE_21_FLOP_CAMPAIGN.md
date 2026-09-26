@@ -55,8 +55,9 @@ Three parts, in this order, because each one prices the next:
    committed one is committed, or refused by name for a reason other than not having been committed,
    such as the exploitability ceiling or an off-menu size. Phase 16's sample already refuses every
    next decision by name, so naming alone closes nothing, and without closure the campaign buys
-   boards the bot still cannot play. `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`. Nothing is re-solved
-   or hand-edited to look better.
+   boards the bot still cannot play.
+   `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`. Nothing is re-solved or
+   hand-edited to look better.
 
 Phase 16's rulings carry into this phase: full-precision f32 arenas (decision 20), the 0.40 memory
 ceiling (decisions 20 and 22), an index plus object storage with no git LFS, the rented box governing

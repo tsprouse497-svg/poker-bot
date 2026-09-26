@@ -303,7 +303,9 @@ Questions outside the brief the coordinator could have asked:
 - **Counts**: B1 still open (one short edit left). Of N1 to N8, 6 fixed and 2 partly fixed. A1 filed.
   Three new non-blockers.
 
-### B1 - partly fixed; not resolved
+### B1 - partly fixed in round 2
+
+[resolved] Resolved in round 3 by commit 236df43: the escape clause now requires a reason other than not having been committed, in both `PHASE_21_FLOP_CAMPAIGN.md` part 3 (lines 55-58) and the adoption note on `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`. See Round 3.
 
 What is fixed:
 
@@ -389,3 +391,59 @@ The other adoption notes' closing conditions are concrete and match their entrie
 - The `THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY` closing condition also allows "or states
   why the limit it hit stopped short". That escape is honest, not vacuous, because the campaign
   report must name its limit anyway.
+
+## Round 3
+
+- **Checked**: `git diff 1344523~2..236df43`, plus `236df43..1344523`, read-only.
+- **Checks rerun**: `check_contracts`, `check_repo_consistency`, `check_scope`, `check_file_sizes`,
+  `check_execplan_delegation`, and the three generators with `--check`. All exit 0. The contract is
+  138 lines.
+- **Quality report**: `reports/active/latest_quality_report.txt` now reads PASS for backlog
+  integrity.
+- **Commit 1344523**: its edit to this file is mechanical, as described. The wording changed and
+  the substance did not.
+
+### Status
+
+**B1: resolved.** Two places now say that naming a refusal alone closes nothing:
+
+- `PHASE_21_FLOP_CAMPAIGN.md:55-58` says closure is "committed, or refused by name for a reason
+  other than not having been committed, such as the exploitability ceiling or an off-menu size",
+  and adds that phase 16's sample already refuses by name, so naming alone closes nothing.
+- The `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN` adoption note says the
+  same.
+
+`V2_ROADMAP.md:83` states the stronger form, "every flop decision point that follows a committed
+one". That is consistent, because the contract's allowed refusals are exceptions a roadmap summary
+need not list.
+
+**N7: fixed.** `V2_ROADMAP.md:83` now reads "ranked by the method phase 16's decision 3 ruled, with
+which order to use left to the phase's own decisions", which matches `PHASE_21_FLOP_CAMPAIGN.md:49-54`.
+
+**R2 N1: fixed.** The `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT` note now also
+requires every published coverage figure to give fresh-clone and fetched-machine counts side by
+side. That is the entry's own ask.
+
+**R2 N2: fixed.** The `A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT` note now
+adds "every coverage figure counts lines and seats under different words".
+
+**R2 N3: fixed.** `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` is re-filed to `charts`, a label other
+entries already use. The note gives the reason: the open half is the preflop extractor, and the
+rented box's premise is Linux, with phase 21's own driver ceiling as the fallback.
+
+The `PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS` attribution now reads "Found ... by
+MAINT-40's independent review and filed by the coordinator", which is accurate.
+
+**New errors: none found.** Every hyphenated-capital token in this file is either a declared
+backlog id or a task id (MAINT-35, MAINT-39, MAINT-40), which the quality report passes.
+
+### What I held back in round 3
+
+- `PHASE_21_FLOP_CAMPAIGN.md:58` is 127 characters and a few other lines are 101-104. No check caps
+  line width and the contract's other lines wrap near 100. It is cosmetic.
+- The `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` re-file note asserts the rented box "is expected to
+  be Linux". That depends on the provider, which stage 2 has not ruled. The note already covers the
+  other case ("if it is not, phase 21's own driver ceiling still applies"), so it is hedged, not
+  pre-ruled.
+- Open questions for stage 2 remain for Taylor and are not defects in this task: which order ranks
+  the lines, and whether that order still uses the public corpus after MAINT-39.
