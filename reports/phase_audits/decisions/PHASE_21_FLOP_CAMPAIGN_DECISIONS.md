@@ -71,7 +71,7 @@ same 20,000 hands reached 4,543 showdowns. (d) Flop only, with no later phase pl
 (b) and (c) change the contract, which stage 3 can do in this same lane before tests are written.
 (c) also reopens phase 16's ruling that turn and river refuse, and adds play rules to a data phase.
 
-Recommendation: (b), in the compact format. The turn costs storage, not solving, and not keeping it
+Recommendation: (b), with the turn in the compact format and the flop files kept as they are today. The turn costs storage, not solving, and not keeping it
 means paying for every solve twice. Decide (c) once (b) exists and can be measured.
 
 Answer: [ ]

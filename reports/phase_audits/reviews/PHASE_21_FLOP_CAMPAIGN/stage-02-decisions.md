@@ -72,7 +72,7 @@ Two figures do not hold as stated, B4 and N2.
   so the list should say that 12 cannot change 8's answer. The recommendation may stay "keep all
   three"; the question must show the numbers.
 
-- **B3. A frozen call the contract leaves to stage 2 is missing: the solve configuration for any
+- [resolved] **B3. A frozen call the contract leaves to stage 2 is missing: the solve configuration for any
   line other than the committed one, and which lines are admitted at all.** Contract line 170-171
   has the six texture flops solved "on the first admitted line under the configuration stage 2 rules
   for it", line 154 has the memory bar taken "over every flop of every line stage 2 admits, computed
@@ -99,7 +99,7 @@ Two figures do not hold as stated, B4 and N2.
   list must say so. As written, Taylor could pick (c), "stop at about 1.3 closed lines", and get no
   complete line. Fix the two figures (lines 56-57 and 73) or state the assumption.
 
-- **B5 (round 2). The turn's storage figures, which the new recommendation 1(b) rests on, assume a
+- [resolved] **B5 (round 2). The turn's storage figures, which the new recommendation 1(b) rests on, assume a
   format the repo does not use, and are 20 to 30 times too low compressed.** Decisions file at
   `e7948f5` lines 51-53 and 107 give the turn as "about 6.6 MB a flop, about 11.6 GB a line" and
   "about 6.6 MB before compression". That is one byte a strategy weight (`street_counts.py`: 16,709
@@ -318,3 +318,61 @@ What I held back in round 2:
 - I did not re-check the 18.0 GB small blind figure beyond round 1's rough script; decision 5 now
   quotes it as "roughly", which is right.
 - I did not judge whether (b) is the better poker call than (c), only that each is fairly stated.
+
+## Round 3
+
+Re-read at `f550b47` (`git diff e7948f5..HEAD`). Line numbers are the decisions file at that commit.
+The loop's parser still reads 14 items, each class line exactly one class, every bracket `[ ]`, and
+10 unanswered frozen items.
+
+My note: the coordinator's edits are only the ones stated - the five line labels now read "SB v BB"
+and so on (lines 31 and 126-127 of this note), and the two withdrawn proposals are quoted phrases
+marked "(proposed, not filed)" (round 1 alignment and round 2 alignment). Everything else in the
+diff of this file is my own round 2 text. Nothing else changed. One id-shaped token remains,
+`MAINT-26` (round 1, B1), which is a maintenance task name rather than a backlog id; it was in the
+note when the coordinator ran the citation check, so I left it.
+
+Status:
+
+- B3: fixed. Decision 9 admits only the five single-raised lines and keeps three-bet pots out of
+  this phase (211-213), so contract line 231-232's "last line stage 2 admits" and line 154's memory
+  bar now have a defined set. Decision 10 carries the `donk` setting with the rest (226-228).
+- B5: fixed. Both formats are stated with their figures (56-60, 115-116), and the format is part of
+  decision 1's recommendation (74). My 237 to 355 GB rounds to its 240 to 350.
+- N8: fixed. "Single-raised pot", "three-bet pot" and "manifest" are defined (27-30), and 14 now
+  says 1,048,576 against 1,000,000 bytes (265-266).
+- N10: fixed (60-61). N11: fixed as a stated unknown (155-156). N12: fixed (187). N13: fixed
+  (207-209). N14: fixed (41-43).
+- Alignment: `LINE-RANKING-BY-CLOSING-DECISION-ARRIVAL-COUNTS-LINES-THE-CHART-NEVER-PLAYS` is filed
+  with figures that match `review2_linereach.py` (185,689,291 parts per billion; 5.53, 3.66, 2.75,
+  2.71, 2.42). `NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED` carries a
+  correction whose figures match `deep_convergence_check.json` (0.048, 79 of 152, 0.467, 0.042).
+  `A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE` and
+  `A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED` are moved to phase 21 with a note that a (b)
+  ruling moves the seam to the river. All four round 2 items are done.
+
+New in round 3:
+
+- N15. "(b), in the compact format" (74) does not say whether the compact format is for the turn
+  only or for the flop objects too, or what it gives up. One byte a number is steps of about 0.4
+  percent (1/255), coarser than the thousandth the committed flop documents round to, and the
+  repeat-solve check compares the full per-hand numbers inside the saved objects
+  (`scripts/solve_postflop_sample.py:984`, `1031`). If the compact format is for the turn only, say
+  so in one clause and nothing is lost; if it reaches the flop objects, the repeat check needs a
+  word. Not a blocker: the choice is still Taylor's, and either reading is safe once stated.
+- N16. Cosmetic: two lines in decision 1 and one in decision 14 now run well past the file's usual
+  100 characters (the line ending "GTOpen's node query walks through dealt cards", and the line
+  ending "state the margin in"). No check reads it.
+
+## Blocker status after round 3
+
+All five blockers are marked `[resolved]` in `## Blocker` above. No new blocker.
+
+## What I held back in round 3
+
+- I did not re-derive the compact format's 6.6 MB figure against any real encoder, because none
+  exists yet; it stays "about one byte a number" plus whatever the hand list and metadata cost.
+- I did not check that `docs/BACKLOG.md` was regenerated from the new `backlog.yml`; the diff shows
+  it changed, and the gate's own check owns that.
+- I did not judge whether the `donk` setting should stay empty for the small blind against the big
+  blind, only that decision 10 now puts it in front of Taylor.
