@@ -15,11 +15,6 @@ required_phase_audit: reports/phase_audits/PHASE_21_FLOP_CAMPAIGN.md
 # Phase 21: The Flop Campaign
 
 ## Scope
-**Skeleton.** This contract carries boilerplate acceptance criteria and nothing phase-specific yet.
-The command IDs and reports above are placeholders from the proposal, not commitments; stage 1 of the
-loop replaces this section and the criteria below in `contract-update` mode, and `check_contracts.py`
-fails the gate for any active phase whose criteria say only what a generic phase would.
-
 Declared by MAINT-40 on 2026-09-26 from Taylor's ruling of that date: trust the solve and get more
 of it, rather than measuring the bot first. Phase 16 built the machinery - the postflop key, the
 index, the object storage format, the solve driver - and closed on a sample rather than on coverage,
@@ -91,7 +86,8 @@ Phase 21 is limited to the work named by this contract and the active ExecPlan.
 
 ## Non-goals
 - Do not solve preflop spots the chart is missing - four-bets, limped pots, other stack depths. They
-  need a re-solve of the preflop chart and are a separate phase.
+  need a re-solve of the preflop chart and are a separate phase. The committed preflop chart, its
+  key and its artifact do not change here.
 - Do not commit turn or river spots. Phase 16's decision 1 rules flop only.
 - Do not group similar flops so that one solve answers several. `POSTFLOP-BOARD-ABSTRACTION` stays
   deferred in `docs/ROADMAP.md`, and suit isomorphism remains the only collapse permitted.
@@ -103,10 +99,109 @@ Phase 21 is limited to the work named by this contract and the active ExecPlan.
   provider, the machine candidates and a spending cap.
 
 ## Acceptance criteria
-- Required command IDs pass through `scripts/run_verify.py`.
-- Required reports exist and are fresh for this phase.
-- The phase audit packet includes plain-language pass/fail evidence.
-- Any deferred work is recorded in `backlog.yml`.
+
+Every figure below was measured on 2026-09-26 against the tree at this phase's base commit; the
+commands and scratch scripts are recorded in the ExecPlan. None is a target a later stage may tune.
+
+### Part 1: every core
+
+- **Every server the driver starts is given an explicit thread count through `SOLVER_THREADS`, and
+  the driver refuses to start one without it.** Today nothing in `scripts/` or `src/` sets it, so
+  every solve on record ran at GTOpen's default of half `available_parallelism()`: five threads on
+  this Apple M4, whose ten cores are four performance and six efficiency cores
+  (`hw.perflevel0.physicalcpu` 4, `hw.perflevel1.physicalcpu` 6), so ten will not be twice five.
+- **Five threads against ten is measured, not assumed**, on one committed cell's configuration,
+  unchanged, on a machine doing nothing else, and the report prints seconds per iteration at each.
+  The committed record is 1.34, 1.93, 3.24 and 4.93 seconds per iteration on `9c8c7c`, `Ac8c3c`,
+  `8c8d3c` and `Kh7d2c` at five threads, from `determinism.json` and each object's `solve` block.
+- **A changed thread count does not change the answer.** GTOpen's CPU recursion collects its
+  parallel children in order and sums in a fixed loop, so the five committed cells re-solved at the
+  new count must reproduce their committed cell documents byte for byte and their per-combo
+  strategies exactly. If they do not, the phase halts and Taylor is asked; no tolerance is set here.
+- **Every solve record carries the machine it ran on as measured, the thread count, the engine (CPU
+  or GPU, read back from `/api/status`) and the arena storage.** `MEASURING_MACHINE` in
+  `postflop_solve_driver.py` is a hardcoded "Apple M4" string written into every object today, so a
+  rented box would record the wrong machine; a test fails on a constant in its place. Peak resident
+  memory is recorded per solve: no f32 solve on record has one, only its planned arena.
+- If `SOLVER_THREADS` is not enough to use the machine, any GTOpen patch lives in a local clone and
+  is recorded by commit and diff the way `docs/GTOPEN_SOLVER_NOTES.md` records the clone today.
+
+### Part 2: the machine
+
+- **No money is spent and no account is opened before Taylor rules the provider, the candidates and
+  a spending cap.** Every rented hour is logged with its price, the running total is printed in the
+  report beside the cap, and the campaign halts at the cap rather than past it.
+- **Each candidate solves the same flop: `Kh7d2c` on the committed line and `solve_config.json`,
+  unchanged.** It is the slowest board on record, 340 iterations in 1,677.4 seconds at five threads
+  on the M4, and it is rainbow, which the cost model has never measured to target
+  (`POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`). The report prints, per candidate: machine, thread
+  count, engine, wall clock, iterations, achieved exploitability, peak memory, hourly price, and
+  **cost per solved flop, the price times the wall clock**, which is what the choice is made on.
+- **Memory is a hard limit, not a cost.** The four committed boards planned f32 arenas of 11.60 to
+  12.24 GB as the driver reads them, which is 84 to 89 percent of the 13.74 GB ceiling this 34.4 GB
+  machine gives at `MEMORY_CEILING_FRACTION` 0.40; the largest needs about 30.6 GB of RAM to pass
+  the guard. A candidate whose ceiling cannot hold the arena is excluded with that reason and never
+  ranked. On a GPU the bar is GTOpen's own VRAM estimate, 30.4 to 32.0 GB for the committed tree,
+  so a 24 GB card is excluded.
+- **Determinism is re-proved on the chosen box, not inherited.** The five committed cells are solved
+  twice there, in two processes against a restarted server, and compared as `determinism.json`
+  compares them: cell document byte for byte and per-combo strategies exactly. If the two runs on
+  the box differ, the phase halts and Taylor is asked. Whether the box's result also matches the
+  M4's committed digests is printed as a separate finding and is not a pass condition.
+- **A GPU run happens only if Taylor rules to try one**, and only after one flop is solved and timed
+  on the CPU of the same box. A GPU run that `/api/status` reports as `"gpu": false` is a silent CPU
+  fallback and its timing is discarded. The report states that GTOpen's kernels sum with
+  `atomicAdd`, whose order is not fixed, so the GPU determinism re-proof is expected to be at risk.
+
+### Part 3: the campaign
+
+- **The lines are taken in the order stage 2 rules, and the covered set is committed explicitly.**
+  A line the committed chart cannot supply ranges for is excluded by name with that reason: the
+  corpus's fourth most common flop line, `SB:call`, is a limp and the chart has no range for it.
+  The driver today hardcodes button against big blind, so the ranges for any other heads-up line
+  are derived from the committed chart by one function with a test, never typed.
+- **A solved board closes.** On the committed menu a flop in this line has 14 decision points, seven
+  for each seat, counted by walking GTOpen's `tree.rs` rules and checked against all four committed
+  planned arenas to the byte; the index holds one or two of the 14 on each committed board. Every
+  flop decision point reachable from a committed one is committed, or refused by name for a reason
+  other than not having been committed, and a test walks every committed board's flop tree and
+  fails on any reachable decision point that is neither. The driver harvests all of them from one
+  solve before the server stops, because the solved tree itself is never saved.
+- **The index budget is stated before the campaign starts, and the index does not silently
+  outgrow git.** An index entry costs about 487 bytes and the whole 20 MiB `data/artifacts` cap has
+  16,032,570 bytes of headroom, so 14 entries on each of 1,755 flops, about 12.0 MB a line, fits
+  about 1.3 fully closed lines. Where the index lives beyond that is a stage-2 ruling. The cap is not
+  raised and no git LFS is used.
+- **The commit rule is phase 16's**: solved to the target stage 2 rules, capped at the iteration
+  count it rules, committed at or under 1% of pot and refused above it, with the refused count in
+  the index header. Each board is solved once in the campaign; a determinism re-solve never
+  replaces a committed cell.
+- **Every object is stored where stage 2 rules, with its digest in the index, and a machine that
+  has not fetched it refuses with the not-fetched code.** The report prints how many flop classes
+  a fresh clone can answer beside how many a machine that has fetched can.
+  `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`.
+- **The campaign stops at the first of three limits - the spending cap, the index budget, or the
+  last line stage 2 admits - and the report names which one.**
+- **The table result is re-run on the result, on phase 16's own terms**: 20,000 hands, seed 777,
+  six seats of the composite strategy, printing postflop decisions, bets, showdowns and voided
+  hands beside phase 16's two decisions, both checks, no bets and 5,365 voided hands. It is a
+  measurement of coverage and closure, and no packet may call it a win rate.
+
+### Evidence, reports, and gate
+
+- **The report prints every figure this contract names and its generator re-derives each one from
+  committed files, exiting non-zero on one that does not reconcile**: lines covered and excluded
+  with reasons, boards and closed decision points per line, cells refused above 1% of pot, bytes
+  used and headroom left, per-candidate costs, money spent against the cap, the thread comparison,
+  both determinism results, the fresh-clone and fetched coverage, the share of the 22,100 flops the
+  bot can answer, and the table result. Rainbow unpaired is 286 of the 1,755 classes and two-tone
+  unpaired, 858 classes and 46.6 percent of all flops, has never been solved at f32 on this config;
+  the report prints its coverage by texture so neither can hide.
+- The gate passes with no GTOpen, no network and no fetched object, against the committed sample.
+- Both new command IDs carry a mutation canary authored at stage 4, one targeting this phase's own
+  new command, and `check_gate_bite` proves each bites.
+- Required reports exist and are fresh, required command IDs pass through `scripts/run_verify.py`,
+  the audit packet carries plain-language pass/fail evidence, and deferred work is in `backlog.yml`.
 
 ## Required reports
 - `reports/active/latest_flop_campaign_report.txt`
