@@ -179,7 +179,7 @@ Re-derived from committed data, GTOpen source and the scratch scripts (re-run, n
 - The four entries in N8 are existing ids and stay with this phase; the coordinator records how
   each closes before stage 4, or files a carry note in each entry.
 - B3 and N10 generalise to every later line: the coordinator must file one, proposed id
-  `THE-MEMORY-BAR-IS-THE-LARGEST-ARENA-OVER-EVERY-ADMITTED-LINE-NOT-THE-SAMPLE`, unless B3's fix
+  `"the memory bar is the largest arena over every admitted line, not the sample" (proposed, not filed)`, unless B3's fix
   lands in this contract.
 
 - Round 2: the proposed id above is no longer needed. B3's fix landed in the contract at line

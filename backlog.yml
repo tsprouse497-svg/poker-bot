@@ -1,5 +1,22 @@
 schema_version: 1
 items:
+  - id: LINE-RANKING-BY-CLOSING-DECISION-ARRIVAL-COUNTS-LINES-THE-CHART-NEVER-PLAYS
+    status: deferred
+    phase: "21"
+    title: The only line-ranking code ranks by how often a seat is asked, which puts first lines the chart never plays
+    reason: >-
+      Found 2026-09-26 by phase 21's stage 2 review. `arrival_key_for` in
+      scripts/generate_postflop_betting_report.py ranks a flop line by the committed chart's
+      arrival figure for the line's closing decision, which is how often that seat is asked the
+      question, not how often the line reaches a flop. The chart calls an open only from the big
+      blind, so lines such as the hijack calling a lojack open rank high on arrival (185,689,291
+      parts per billion) and never happen under the chart. Weighted by the chart's own action
+      probabilities instead, the five single-raised lines it plays reach a flop in 5.53, 3.66, 2.75,
+      2.71 and 2.42 percent of hands for the small blind, button, cutoff, hijack and lojack opening
+      against the big blind. Phase 21's decision 9 recommends ranking on that. Closes when the
+      campaign's ranking code weights by line probability and a test pins that a line the chart
+      never plays ranks nowhere.
+
   - id: PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS
     status: deferred
     phase: "19"
@@ -8945,10 +8962,11 @@ items:
       The stage-2 poker review made this the single condition on its verdict that the phase is worth
       committing at all. Filed 2026-09-09.
       **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. The campaign's exploitability target is a stage-2 ruling, and this is the question it does not answer by itself. Closes when the campaign measures settling on a sample of its cells, or the ruling records that it will not.
+      **Corrected 2026-09-26 by phase 21's stage 2 review.** One deep solve does exist: data/artifacts/postflop/deep_convergence_check.json ran 9c8c7c to the 1,200-iteration cap, 0.048 percent of pot, and 79 of 152 hand classes moved by more than 0.05, the largest by 0.467, while classes that were pure at the committed point moved at most 0.042. So the question is measured on one cell and unanswered for the rest. Phase 21's decision 13 measures one flop of each texture group.
 
   - id: A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE
     status: deferred
-    phase: "16"
+    phase: "21"
     title: Committed flop frequencies assume a continuation the flop-only bot refuses
     reason: >-
       At the single-raised pot's SPR of 17.7 a flop bet's value is largely the leverage it creates on
@@ -8971,6 +8989,7 @@ items:
       that would see it at all, and it compares two menus rather than testing either.
       Filed by phase 16's stage-2 independent poker review, 2026-09-09; extended by its stage-3
       review, 2026-09-10.
+      **Adopted by phase 21 on 2026-09-26**, from phase 16, which is completed. Phase 21's decision 1 asks Taylor whether to keep the turn from each flop solve. If he does, the seam this entry describes moves from the turn to the river rather than going away, and the entry is restated there; if he does not, it stands as written. Closes only when the street the bot refuses on is one it no longer reaches unanswered.
 
   - id: NO-POKER-REVIEW-HAS-SEEN-THE-RULINGS-TAKEN-AFTER-STAGE-2
     status: deferred
@@ -10125,7 +10144,7 @@ items:
 
   - id: A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED
     status: deferred
-    phase: '16'
+    phase: "21"
     title: Voiding a hand at the turn refusal erases the called c-bets and keeps the folded ones, so the surviving record of the bot's flop betting is a record of the times it worked
     reason: >-
       When the postflop strategy refuses, the composite hands the refusal back untouched and
@@ -10154,6 +10173,7 @@ items:
       simulator) is the record-contents half of voiding - which actions survive in a voided hand's
       record - and is not this. Found by phase 16's stage-6 domain review,
       2026-09-15, extending its own stage-4 predecessor rather than re-filing it.
+      **Adopted by phase 21 on 2026-09-26**, from phase 16, which is completed. Phase 21's decision 1 asks Taylor whether to keep the turn from each flop solve. If he does, the seam this entry describes moves from the turn to the river rather than going away, and the entry is restated there; if he does not, it stands as written. Closes only when the street the bot refuses on is one it no longer reaches unanswered.
 
   - id: A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN
     status: deferred

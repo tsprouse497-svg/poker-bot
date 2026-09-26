@@ -24,6 +24,10 @@ the stage 2 review's scripts, or computed here with the arithmetic shown.
 - **Index**: the list of what has been solved and where to fetch it. Today it lives in git.
 - **Object storage**: files kept outside git, fetched by a machine that needs them.
 - **Line**: the preflop action that led to the flop, such as "button opens, big blind calls".
+- **Single-raised pot**: one player raised before the flop and one called. A **three-bet pot** is
+  one where the raise was re-raised and then called.
+- **Manifest**: a short list in git of what the full index holds, with a fingerprint that proves
+  the full index has not changed.
 
 ## What is being asked
 
@@ -34,8 +38,9 @@ should be settled before any money is.
 A scale figure for the cost questions, from phase 16's four first runs on this Mac at five threads:
 the fastest flop took 375.6 seconds and the slowest 1,677.4. At those two rates 1,755 flops cost
 between 1,755 x 375.6 = 659,178 seconds, about 183 hours, and 1,755 x 1,677.4 = 2,943,837 seconds,
-about 818 hours, for one line. That is a range from the four boards on record, not a ceiling: two of
-the six board types have never been timed, and closure's harvest and the thread fix are not in it.
+about 818 hours, for one line. That is a range from the four boards on record, not a ceiling: three of
+the six board types have never been timed - two-tone unpaired, rainbow paired and trips - and
+closure's harvest and the thread fix are not in it.
 
 ## 1. What the campaign buys at a table, given that turn and river still refuse
 
@@ -48,9 +53,12 @@ almost no showdowns. The covered line was 16.88 percent of flops in phase 16's 2
 throw-outs stay where they are, on lines the campaign has not reached.
 
 Counted from GTOpen's tree rules on the committed line, one flop's solve holds 14 flop decision
-points, 6,419 turn ones and 1,507,828 river ones. Kept at about one byte a number, the turn is about
-6.6 MB a flop, about 11.6 GB a line in object storage; the river is about 1.4 GB a flop, about 2.5 TB
-a line, which is not worth keeping. GTOpen's node query walks through dealt cards
+points, 6,419 turn ones and 1,507,828 river ones. How much the turn costs to keep depends on the file
+format, which is part of this answer. In the format the repo saves today, 21 to 31 KB compressed per
+decision point, the turn is about 135 to 200 MB a flop and 240 to 350 GB a line. In a compact format
+of about one byte a number, it is about 6.6 MB a flop and 11.6 GB a line. The river is about 1.4 GB
+a flop and 2.5 TB a line even compact, which is not worth keeping. GTOpen can also save a whole
+solve to a file, but that is the full solver memory, about 11 to 12 GB a flop, not measured here. GTOpen's node query walks through dealt cards
 (`node_view` in `crates/solver/src/query.rs:490`), so the turn can be read back from the solve; that
 is 6,419 queries a flop, and how long they take is measured in the trial.
 
@@ -63,8 +71,8 @@ same 20,000 hands reached 4,543 showdowns. (d) Flop only, with no later phase pl
 (b) and (c) change the contract, which stage 3 can do in this same lane before tests are written.
 (c) also reopens phase 16's ruling that turn and river refuse, and adds play rules to a data phase.
 
-Recommendation: (b). The turn costs storage, not solving, and not keeping it means paying for every
-solve twice. Decide (c) once (b) exists and can be measured.
+Recommendation: (b), in the compact format. The turn costs storage, not solving, and not keeping it
+means paying for every solve twice. Decide (c) once (b) exists and can be measured.
 
 Answer: [ ]
 
@@ -104,7 +112,8 @@ Reversibility: frozen-into-data
 
 Today every object sits in a folder on this Mac, `~/poker-bot-solve-objects/postflop`, with no copy
 anywhere else. Each committed object is 21 to 63 KB compressed and holds one or two decision points;
-a closed flop is larger, and a flop with its turn is about 6.6 MB before compression. The location is
+a closed flop is larger, and a flop with its turn is about 6.6 MB in a compact format or 135 to 200
+MB in today's, so decision 1's format choice sets the storage bill. The location is
 written into the index, and every machine that plays has to fetch from it. Moving later is a scripted
 rewrite of the index, not a re-solve, but it is still worth choosing once.
 
@@ -143,7 +152,8 @@ types, which become the campaign's first six, and the six longer settling runs o
 this Mac's rates of 1.34 to 4.93 seconds a round, with three candidates: 3.1 to 7.6 hours of timing
 and benchmark across the three; 2.1 hours for the eight repeat solves, from their recorded times; 0.6
 to 2.8 hours for the six flops; and 2.7 to 9.9 hours of settling runs. About 8 to 22 hours in all. A
-rented machine may be faster; the trial measures that. A graphics-card trial, if 7 is yes, comes out
+rented machine may be faster; the trial measures that. Reading the turn back out of the six flops,
+6,419 queries each, is extra and unmeasured. A graphics-card trial, if 7 is yes, comes out
 of this budget too. The campaign budget is asked separately, once the six flops have priced a line.
 
 Recommendation: an amount you would be comfortable losing on a trial, since it buys measurements
@@ -174,7 +184,7 @@ Reversibility: frozen-into-data
 Phase 16 ruled a target of 0.3 percent of the pot, a cap of 1,200 rounds, and refusal of any flop
 worse than 1 percent. All four of its flops reached the target in 280 to 340 rounds. The one test of
 going further, `deep_convergence_check.json`, ran `9c8c7c` to 1,200 rounds: 0.048 percent, 4.8 times
-as long (1,812.6 seconds against 375.6). Hands that always bet or always check did not move. Hands
+as long (1,812.6 seconds against 375.6). Hands that always bet or always check barely moved, at most 0.042. Hands
 that mix did: 79 of the 152 hand groups moved by more than 0.05, the largest by 0.467. So at 0.3
 percent the bot knows what to do and is still rough on how often to mix.
 
@@ -194,11 +204,13 @@ Phase 16 ruled a method: rank lines by how often they reach a flop and can be se
 disagree. The public set of real hands ranks button-open, big-blind-call first, but real players were
 retired as a yardstick with phase 17, and its counts past sixth place are six hands or fewer. The
 committed chart only ever calls an open from the big blind, so the single-raised lines it plays are
-the five where the big blind defends, and how often each happens under the chart is: small blind
-opens 5.53 percent of hands, button 3.66, cutoff 2.75, hijack 2.71, lojack 2.42.
+the five where the big blind defends. How often each whole line happens under the chart, as a share
+of all hands: small blind opens and big blind calls 5.53 percent, button 3.66, cutoff 2.75, hijack
+2.71, lojack 2.42.
 
-Recommendation: rank by the chart's own figures, print the real-hand order beside them, and take the
-five single-raised lines first. Three-bet pots need new range work and follow them.
+Recommendation: rank by the chart's own figures, print the real-hand order beside them, and admit
+only the five single-raised lines in this phase. Three-bet pots need new range work and their own
+bet sizes, so they are not admitted here; a later decision or phase adds them.
 
 Answer: [ ]
 
@@ -211,7 +223,9 @@ pot on the flop, two thirds and one and a quarter on turn and river, raises of t
 No ruling covers any other line, and the sizes are written into every solve. Using the same sizes
 everywhere keeps every line comparable; tuning sizes per line is a research project of its own.
 
-Recommendation: the same sizes for every single-raised line.
+Recommendation: the same sizes and the same settings for every single-raised line, the `donk`
+setting included, which is empty in `solve_config.json` today; it may play differently when the
+raiser acts first after the flop, as the small blind does against the big blind.
 
 Answer: [ ]
 
@@ -248,8 +262,8 @@ Answer: [ ]
 
 Reversibility: runtime-reversible
 
-The guard reads the server's memory figure as binary megabytes where the server means decimal, which
-over-reads by 4.86 percent. Default: keep the reading and the 0.40 ceiling, and state the margin in
+The guard reads the server's memory figure in megabytes of 1,048,576 bytes where the server means
+1,000,000, which over-reads by 4.86 percent. Default: keep the reading and the 0.40 ceiling, and state the margin in
 every refusal, the third of the three repairs its backlog entry names. It stays runtime-reversible
 only if stage 4's frozen tests do not pin the reading; if they do, it is reclassified before the
 freeze.

@@ -82,7 +82,15 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   also checked the two GPU claims the reviewer could not: `atomicAdd` at
   `crates/solver/src/gpu/kernels.cu:143-148`, and GPU use switched by the `gpu` feature and
   `SOLVER_GPU` at `crates/server/src/main.rs:253-281`.
-- [ ] Stage 2 decision list.
+- [x] Stage 2 decision list: ten questions for Taylor and four defaults. Its review, round 1: four
+  blockers (every flop solve already solves the turn and the repo throws it away; decision 8 hid the
+  deep convergence result; no call covered other lines' bet sizes; the git budget left out the object
+  list), all folded in. Round 2: the turn storage figure assumed a compact format the repo does not
+  use, and three-bet pots were neither admitted nor excluded; both folded in. Alignment filed:
+  `LINE-RANKING-BY-CLOSING-DECISION-ARRIVAL-COUNTS-LINES-THE-CHART-NEVER-PLAYS`, and notes on three
+  existing entries. The coordinator rewrote id-shaped tokens in both review notes mechanically -
+  line labels such as "SB v BB" and two proposals the reviewers withdrew - because the citation check
+  reads hyphenated capitals as backlog ids. Round 3 pending.
 - [ ] Stage 3: Taylor's rulings.
 
 ## Verification
