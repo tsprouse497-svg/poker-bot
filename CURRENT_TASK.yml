@@ -1,8 +1,11 @@
-task_id: null
-active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_id: PHASE_21_FLOP_CAMPAIGN
+active_phase: '21'
+task_mode: contract-update
+base_commit: 553f6f7931996c3feb4372a710a9845448f4c499
+approved_scope:
+- docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md
+- reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md
+- reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -18,6 +21,12 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-09-26
+    reason: >-
+      Phase 21 opens its lane from idle, so every pattern in `approved_scope` reads as a widening
+      against `base_commit` and this entry puts them on the record. Stage 1 replaces the skeleton
+      contract, stage 2 writes the decision list, and each stage's review notes go in the phase's
+      review directory. No artifact, code or test changes in this mode.
   - date: 2026-09-26
     reason: >-
       MAINT-40 opens from idle, so every pattern in `approved_scope` reads as a widening against

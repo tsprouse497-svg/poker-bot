@@ -1,9 +1,9 @@
 # Status
 
 Project: `poker-playing-bot`
-Current task: `none (idle)`
-Task mode: `idle`
-Active phase: `none`
+Current task: `PHASE_21_FLOP_CAMPAIGN`
+Task mode: `contract-update`
+Active phase: `21`
 Completed phases: `16`
 
 ## Phase Snapshot
@@ -29,7 +29,7 @@ Completed phases: `16`
 | 18 | future | `docs/phase_contracts/PHASE_18_YARDSTICK.md` | `reports/phase_audits/PHASE_18_YARDSTICK.md` |
 | 19 | future | `docs/phase_contracts/PHASE_19_HEURISTICS_AND_MERGED_CHARTS.md` | `reports/phase_audits/PHASE_19_HEURISTICS_AND_MERGED_CHARTS.md` |
 | 20 | future | `docs/phase_contracts/PHASE_20_HOME_GAME.md` | `reports/phase_audits/PHASE_20_HOME_GAME.md` |
-| 21 | future | `docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md` | `reports/phase_audits/PHASE_21_FLOP_CAMPAIGN.md` |
+| 21 | active | `docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md` | `reports/phase_audits/PHASE_21_FLOP_CAMPAIGN.md` |
 
 ## Verification
 
