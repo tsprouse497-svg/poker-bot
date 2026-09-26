@@ -46,21 +46,22 @@ Three parts, in this order, because each one prices the next:
    many lines as cost and index allow, with the report naming which limit applied. Decision 3 rules a
    method rather than a list, and the order phase 16's report prints comes from the public corpus and
    disagrees with the chart's own arrival order at rank 1, so which order ranks the campaign is a
-   stage-2 question. A solved board must also close: every flop decision point reachable from a
-   committed one is committed, or refused by name for a reason other than not having been committed,
-   such as the exploitability ceiling or an off-menu size. Phase 16's sample already refuses every
-   next decision by name, so naming alone closes nothing, and without closure the campaign buys
-   boards the bot still cannot play.
+   stage-2 question. A solved board must also close: every flop decision point in its line, for both
+   seats, committed from the one solve, or all of them refused together. Phase 16's sample already
+   refuses every next decision by name, so naming alone closes nothing, and without closure the
+   campaign buys boards the bot still cannot play.
    `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`. Nothing is re-solved or
    hand-edited to look better.
 
 Phase 16's rulings carry into this phase: full-precision f32 arenas (decision 20), the 0.40 memory
 ceiling (decisions 20 and 22), an index plus object storage with no git LFS, the rented box governing
 the campaign (decision 24), and no run on GTOpen's untested CUDA path until one flop is solved and
-timed on the box. Stage 2 may reopen one only through a decision of its own; the memory ceiling is
+timed on the box. Phase 16's contract calls the rented box NVIDIA; whether the campaign needs a GPU
+at all is reopened at stage 2 rather than assumed either way. Stage 2 may reopen one only through a decision of its own; the memory ceiling is
 `runtime-reversible` and moves together with the over-read the adopted memory-guard entry names. The
-0.3%-of-pot target is already a code constant, `EXPLOITABILITY_TARGET_PCT_OF_POT`, and would become
-the campaign's target silently, so stage 2 asks rather than inherits it.
+0.3%-of-pot target, the 1,200-iteration cap and the 1% refusal ceiling are already code constants in
+`postflop_artifact.py` and would become the campaign's silently, so stage 2 asks rather than
+inherits them.
 
 Adopted from `backlog.yml`, each to be closed or carried by this phase, and each entry's adoption
 note says what closes it: `GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT`,
@@ -106,50 +107,69 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
 ### Part 1: every core
 
 - **Every server the driver starts is given an explicit thread count through `SOLVER_THREADS`, and
-  the driver refuses to start one without it.** Today nothing in `scripts/` or `src/` sets it, so
+  the driver refuses to start one without it.** Nothing in `scripts/` or `src/` sets it today, so
   every solve on record ran at GTOpen's default of half `available_parallelism()`: five threads on
   this Apple M4, whose ten cores are four performance and six efficiency cores
   (`hw.perflevel0.physicalcpu` 4, `hw.perflevel1.physicalcpu` 6), so ten will not be twice five.
-- **Five threads against ten is measured, not assumed**, on one committed cell's configuration,
-  unchanged, on a machine doing nothing else, and the report prints seconds per iteration at each.
-  The committed record is 1.34, 1.93, 3.24 and 4.93 seconds per iteration on `9c8c7c`, `Ac8c3c`,
-  `8c8d3c` and `Kh7d2c` at five threads, from `determinism.json` and each object's `solve` block.
+- **The count used is the fastest measured, and it is measured on every machine the phase solves
+  on**, never carried from another. At least five and ten, and every count between that the
+  machine offers if either end is not fastest, each timed three times interleaved on one committed
+  cell's configuration, unchanged, on a machine doing nothing else. The report prints each run's
+  seconds per iteration and the spread. One run per count is not enough: the committed runs of
+  `9c8c7c` read 1.34 and 2.16 seconds per iteration on the same configuration, because the second
+  shared the machine. The committed first-run record is 1.34, 1.93, 3.24 and 4.93 seconds per
+  iteration on `9c8c7c`, `Ac8c3c`, `8c8d3c` and `Kh7d2c`, from `determinism.json`.
 - **A changed thread count does not change the answer.** GTOpen's CPU recursion collects its
-  parallel children in order and sums in a fixed loop, so the five committed cells re-solved at the
-  new count must reproduce their committed cell documents byte for byte and their per-combo
-  strategies exactly. If they do not, the phase halts and Taylor is asked; no tolerance is set here.
-- **Every solve record carries the machine it ran on as measured, the thread count, the engine (CPU
-  or GPU, read back from `/api/status`) and the arena storage.** `MEASURING_MACHINE` in
+  parallel children into an ordered vector and sums in a fixed loop, so phase 16's four boards
+  re-solved at the chosen count on the M4 reproduce the four committed cell documents byte for byte,
+  the fifth cell's strategy digest, and every per-combo strategy exactly. If they do not, the phase
+  halts and Taylor is asked; no tolerance is set here.
+- **Every solve record carries the machine it ran on as measured, the thread count, the engine
+  (CPU or GPU, read back from the server) and the arena storage.** `MEASURING_MACHINE` in
   `postflop_solve_driver.py` is a hardcoded "Apple M4" string written into every object today, so a
   rented box would record the wrong machine; a test fails on a constant in its place. Peak resident
   memory is recorded per solve: no f32 solve on record has one, only its planned arena.
 - If `SOLVER_THREADS` is not enough to use the machine, any GTOpen patch lives in a local clone and
   is recorded by commit and diff the way `docs/GTOPEN_SOLVER_NOTES.md` records the clone today.
+- **The driver's memory guard is tested as behaviour**: a test proves the ceiling follows the
+  machine's reported memory, and one ties the committed configuration to the body the driver posts.
+  The arena over-read is repaired by one of the three routes its entry names, in the same decision
+  as any move of the ceiling. `THE-SOLVE-DRIVER-GUARD-TESTS-PIN-A-TYPE-RATHER-THAN-A-BEHAVIOUR`,
+  `THE-MEMORY-GUARD-COMPARES-AN-ARENA-FIGURE-IT-DELIBERATELY-OVER-READS-BY-FIVE-PERCENT`.
 
 ### Part 2: the machine
 
 - **No money is spent and no account is opened before Taylor rules the provider, the candidates and
   a spending cap.** Every rented hour is logged with its price, the running total is printed in the
   report beside the cap, and the campaign halts at the cap rather than past it.
+- **The memory bar is the largest planned arena over every flop of every line stage 2 admits,
+  computed before any candidate is ranked, and the report prints it.** For the committed line and
+  menu, walking GTOpen's `tree.rs` rules over all 22,100 flops, it is 12.87 GB as the driver reads
+  it, on `2d2h2s`, which needs 32.2 GB of RAM at `MEMORY_CEILING_FRACTION` 0.40, or about 33.7 GB
+  of VRAM by GTOpen's own estimate; 15.8 percent of flops plan above the largest committed board's
+  12.24 GB. A candidate that cannot hold the bar is excluded with that reason and never ranked, so
+  the campaign cannot meet a board its box refuses.
 - **Each candidate solves the same flop: `Kh7d2c` on the committed line and `solve_config.json`,
   unchanged.** It is the slowest board on record, 340 iterations in 1,677.4 seconds at five threads
-  on the M4, and it is rainbow, which the cost model has never measured to target
-  (`POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`). The report prints, per candidate: machine, thread
-  count, engine, wall clock, iterations, achieved exploitability, peak memory, hourly price, and
-  **cost per solved flop, the price times the wall clock**, which is what the choice is made on.
-- **Memory is a hard limit, not a cost.** The four committed boards planned f32 arenas of 11.60 to
-  12.24 GB as the driver reads them, which is 84 to 89 percent of the 13.74 GB ceiling this 34.4 GB
-  machine gives at `MEMORY_CEILING_FRACTION` 0.40; the largest needs about 30.6 GB of RAM to pass
-  the guard. A candidate whose ceiling cannot hold the arena is excluded with that reason and never
-  ranked. On a GPU the bar is GTOpen's own VRAM estimate, 30.4 to 32.0 GB for the committed tree,
-  so a 24 GB card is excluded.
-- **Determinism is re-proved on the chosen box, not inherited.** The five committed cells are solved
+  on the M4. The report prints, per candidate: machine, thread count, engine, wall clock,
+  iterations, achieved exploitability, peak memory, hourly price, and **cost per solved flop**: the
+  price times the billed time for one closed flop - server start, tree build, solve, harvest of every
+  flop decision point and upload - which is what the choice is made on. How many solves one box may
+  run at once is a stage-2 ruling, and a box running more than one applies the memory bar to their
+  sum.
+- **Before the spending cap is asked, the chosen box has solved one flop from each of the six
+  texture groups** - rainbow unpaired, two-tone unpaired, rainbow paired, two-tone paired, monotone,
+  trips - and the report projects the cost of one closed line from those six, weighted by how many
+  of the 1,755 classes each group holds. Two-tone unpaired is 858 classes and 46.6 percent of all
+  flops and has never been solved under the committed configuration.
+  `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`, `THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY`.
+- **Determinism is re-proved on the chosen box, not inherited.** Phase 16's four boards are solved
   twice there, in two processes against a restarted server, and compared as `determinism.json`
-  compares them: cell document byte for byte and per-combo strategies exactly. If the two runs on
-  the box differ, the phase halts and Taylor is asked. Whether the box's result also matches the
-  M4's committed digests is printed as a separate finding and is not a pass condition.
+  compares them. If the two runs on the box differ, the phase halts and Taylor is asked. Whether the
+  box's result also matches the M4's committed digests is printed as a separate finding and is not a
+  pass condition.
 - **A GPU run happens only if Taylor rules to try one**, and only after one flop is solved and timed
-  on the CPU of the same box. A GPU run that `/api/status` reports as `"gpu": false` is a silent CPU
+  on a CPU of the same provider. A GPU run the server reports as not using the GPU is a silent CPU
   fallback and its timing is discarded. The report states that GTOpen's kernels sum with
   `atomicAdd`, whose order is not fixed, so the GPU determinism re-proof is expected to be at risk.
 
@@ -157,46 +177,62 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
 
 - **The lines are taken in the order stage 2 rules, and the covered set is committed explicitly.**
   A line the committed chart cannot supply ranges for is excluded by name with that reason: the
-  corpus's fourth most common flop line, `SB:call`, is a limp and the chart has no range for it.
-  The driver today hardcodes button against big blind, so the ranges for any other heads-up line
-  are derived from the committed chart by one function with a test, never typed.
-- **A solved board closes.** On the committed menu a flop in this line has 14 decision points, seven
-  for each seat, counted by walking GTOpen's `tree.rs` rules and checked against all four committed
-  planned arenas to the byte; the index holds one or two of the 14 on each committed board. Every
-  flop decision point reachable from a committed one is committed, or refused by name for a reason
-  other than not having been committed, and a test walks every committed board's flop tree and
-  fails on any reachable decision point that is neither. The driver harvests all of them from one
-  solve before the server stops, because the solved tree itself is never saved.
-- **The index budget is stated before the campaign starts, and the index does not silently
-  outgrow git.** An index entry costs about 487 bytes and the whole 20 MiB `data/artifacts` cap has
-  16,032,570 bytes of headroom, so 14 entries on each of 1,755 flops, about 12.0 MB a line, fits
-  about 1.3 fully closed lines. Where the index lives beyond that is a stage-2 ruling. The cap is not
+  corpus's fourth most common flop line, `SB:call`, is a limp and the chart has no range for it. The
+  driver hardcodes button against big blind today, so the ranges for any other heads-up line are
+  derived from the committed chart by one tested function that assigns them by seat position after
+  the flop, not by who raised: in `SB:raise@2.5,BB:call` the raiser is out of position.
+- **Every per-line figure is re-derived for each admitted line** - its flop tree, its decision point
+  count, its pot, its largest arena and its index cost - because a line with another pot or a 3-bet
+  depth builds another tree. The report prints them per line.
+- **A solved board closes, for both seats.** On the committed line and menu a flop has 14 decision
+  points, seven for each seat, counted by walking GTOpen's `tree.rs` rules; the same walk reproduces
+  every committed object's planned arena to the byte. A covered board holds all of its line's flop
+  decision points committed, or all of them refused because the one solve they share missed the
+  exploitability ceiling, and a test asserts that count per board. The driver harvests all of them
+  from one solve before the server stops, because the solved tree itself is never saved.
+- **Phase 16's four boards close from the part 1 re-solve**, which must reproduce their committed
+  cells; their other decision points are harvested from that same solve. A board whose re-solve does
+  not reproduce its committed cells is not closed by mixing two solves, and the phase halts for
+  Taylor. `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`.
+- **The index budget is stated before the campaign starts, and the index does not silently outgrow
+  git.** A committed index entry on this line costs 486.8 bytes, measured on root and one-deep keys,
+  so deeper keys and longer 3-bet lines cost more and every figure here is an upper bound on lines.
+  The whole 20 MiB `data/artifacts` cap has 16,032,570 bytes of headroom, so 14 entries on each of
+  1,755 flops, about 12.0 MB a line, fits about 1.3 closed lines. Campaign cell documents go to
+  object storage, not git. Where the index lives beyond that is a stage-2 ruling. The cap is not
   raised and no git LFS is used.
-- **The commit rule is phase 16's**: solved to the target stage 2 rules, capped at the iteration
-  count it rules, committed at or under 1% of pot and refused above it, with the refused count in
-  the index header. Each board is solved once in the campaign; a determinism re-solve never
-  replaces a committed cell.
-- **Every object is stored where stage 2 rules, with its digest in the index, and a machine that
-  has not fetched it refuses with the not-fetched code.** The report prints how many flop classes
-  a fresh clone can answer beside how many a machine that has fetched can.
-  `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`.
+- **The commit rule is phase 16's, with every number in it ruled at stage 2**: the target, the
+  iteration cap and the ceiling above which a solve is refused, today 0.3 percent, 1,200 and 1
+  percent in `postflop_artifact.py`. The refused count is in the index header. Each board is solved
+  once in the campaign; a determinism re-solve never replaces a committed cell.
+- **Every object is stored where stage 2 rules, paid for as it rules, with its digest in the index
+  and a fetch command a fresh machine can run**; a machine that has not fetched refuses with the
+  not-fetched code. The report prints how many flop classes a fresh clone can answer beside how
+  many a fetched machine can. `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`.
+- **A board refusal says which line and seat it was scoped to, and every coverage figure counts
+  lines and seats under different words.** `A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT`.
+- **Settling is measured on a sample of campaign cells**, the way phase 16's deep convergence check
+  measured one, unless stage 2 rules it out, and the report says which.
+  `NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED`.
 - **The campaign stops at the first of three limits - the spending cap, the index budget, or the
   last line stage 2 admits - and the report names which one.**
-- **The table result is re-run on the result, on phase 16's own terms**: 20,000 hands, seed 777,
-  six seats of the composite strategy, printing postflop decisions, bets, showdowns and voided
-  hands beside phase 16's two decisions, both checks, no bets and 5,365 voided hands. It is a
-  measurement of coverage and closure, and no packet may call it a win rate.
+- **The table result is re-run on a machine that has fetched every object, on phase 16's own
+  terms**: 20,000 hands, seed 777, six seats of the composite strategy, printing postflop decisions,
+  bets, showdowns and voided hands **split by the street the hand voided on**, beside phase 16's two
+  decisions, both checks, no bets and 5,365 voided hands. Turn and river are out of scope, so a hand
+  that reaches a turn still voids; the report says so beside the figures, and it is a measurement of
+  flop coverage and closure, never a win rate.
 
 ### Evidence, reports, and gate
 
 - **The report prints every figure this contract names and its generator re-derives each one from
   committed files, exiting non-zero on one that does not reconcile**: lines covered and excluded
-  with reasons, boards and closed decision points per line, cells refused above 1% of pot, bytes
-  used and headroom left, per-candidate costs, money spent against the cap, the thread comparison,
-  both determinism results, the fresh-clone and fetched coverage, the share of the 22,100 flops the
-  bot can answer, and the table result. Rainbow unpaired is 286 of the 1,755 classes and two-tone
-  unpaired, 858 classes and 46.6 percent of all flops, has never been solved at f32 on this config;
-  the report prints its coverage by texture so neither can hide.
+  with reasons, the per-line tree figures, boards and closed decision points per line, cells refused
+  above the ceiling, bytes used and headroom left, the memory bar, per-candidate costs, money spent
+  against the cap, the thread comparison, both determinism results, the fresh-clone and fetched
+  coverage, coverage by texture group, the share of the 22,100 flops the bot can answer, the share
+  of corpus flops it can answer beside phase 16's 74.9 percent ceiling with the multiway share named
+  structural (`THE-PHASE-CAN-ANSWER-AT-MOST-THREE-QUARTERS-OF-CORPUS-FLOPS`), and the table result.
 - The gate passes with no GTOpen, no network and no fetched object, against the committed sample.
 - Both new command IDs carry a mutation canary authored at stage 4, one targeting this phase's own
   new command, and `check_gate_bite` proves each bites.

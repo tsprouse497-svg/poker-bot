@@ -1,0 +1,153 @@
+# Phase 21 stage 1 review: the contract
+
+Reviewer: independent read-only lane, wrote none of the contract or ExecPlan. Scope:
+`git diff b00f9d2a463e43c4713fdf64959390773e3eec2b` over the contract and ExecPlan, plus the whole
+contract at `d869636` (234 lines, under the 300 cap). Question: is any criterion unfalsifiable, a
+restatement of the title, or satisfiable without the work it names.
+
+**What I recomputed, and what holds.**
+
+Re-derived from committed data, GTOpen source and the scratch scripts (re-run, not quoted):
+
+- 14 flop decision points, 7 per seat: `tree.py` port read against GTOpen `crates/solver/src/tree.rs`
+  `legal_actions` (lines 432-523) and found faithful for this menu (raise `2.5x` is `PrevMult`,
+  `max_raises` 2 counts raises only, all-in snap at 0.85 of stack behind). The port's planned arenas
+  match every object's `solve.arena_bytes` to the byte: 12,041,331,798 (`9c8c7c`), 11,978,042,234
+  (`Kh7d2c`), 12,236,838,500 (`8c8d3c`), 11,598,324,830 (`Ac8c3c`). Holds.
+- Seconds per iteration from `determinism.json` first runs: 1.341, 1.925, 3.237, 4.934. Holds.
+- Ceiling 34,359,738,368 x 0.40 = 13,743,895,347; arenas 11.60-12.24 GB are 84.4-89.0 percent;
+  largest / 0.40 = 30.59 GB. Holds for the four committed boards.
+- VRAM formula matches `game.rs:365-373`; 30.37-32.00 GB on the committed boards. Holds.
+- Index: tracked `data/artifacts` 4,938,950 B, headroom 16,032,570 B; (2,866 - 432) / 5 = 486.8;
+  14 x 1,755 x 486.8 = 11.96 MB; 1.34 lines. Holds as arithmetic (see N6 on the entry size).
+- Texture: 1,755 = 286 rainbow unpaired + 858 two-tone unpaired + 286 monotone + 312 paired + 13
+  trips; two-tone unpaired is 10,296 of 22,100 flops, 46.6 percent. 44 and 40 flops hold.
+- Ranking: `rank.py` gives 259 flops, 225 heads-up over 32 lines, rank 4 `SB:call` with 21 arrivals
+  and no chart arrival key. Holds. Corpus rank 1 (`BTN:raise@2.5,BB:call`) is not the chart's
+  highest arrival among the head, so the rank-1 disagreement claim holds.
+- Thread determinism mechanism: `cfr.rs:631-633` collects `par_iter` children into an ordered
+  vector and sums in a fixed card loop afterwards. Holds as stated.
+- Phase 16 carries: decision 20 f32 and 0.40, decision 22 keeps 0.40, decision 24 rented box and
+  machine-local determinism, decision 25 table figures (20,000, seed 777, 2 checks, 0 bets, 5,365
+  voided, matching `reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md:44-49`), and the 1 percent
+  commit ceiling from decision 4. All agree.
+
+## Blocker
+
+- B1. Closure as written is satisfiable without closing anything that plays. Contract line 166-168
+  (and Scope line 49-51) define closure as "every flop decision point reachable from a committed
+  one". A board whose committed set is closed downward but omits the root passes: commit only the
+  four nodes that face a second raise (fold or call only, nothing after them on the flop) and the
+  test at line 167-168 finds zero reachable uncommitted points, yet the bot refuses its first flop
+  decision on that board. Phase 16's own `9c8c7c` holds only the button after a check
+  (`index.json` entry 1), so under this wording its closure never needs the big blind's first
+  decision. The named example reasons also cannot occur inside the tree: an off-menu size is an
+  opponent's chip bet, and no one of the 14 on-menu nodes can be refused for it; the exploitability
+  ceiling is per solve, so it refuses all 14 or none. Fix: define closure over the line's flop root
+  for both seats, so each covered board holds all 14 committed or all 14 refused under the
+  whole-board ceiling, and have the test assert that count per board.
+- B2. Closing phase 16's four boards has no coherent source. The closure test walks "every
+  committed board" (line 167), which includes phase 16's four; the tree is never saved (line 169),
+  so their 12 or 13 missing nodes need a re-solve; each board is "solved once" and a determinism
+  re-solve "never replaces a committed cell" (line 177-178); phase 16's cells stay byte-identical
+  (line 234); and the box's result is explicitly allowed not to match the M4 digests (line
+  149-150). If the closing solve differs, the board mixes cells from two different solves, which is
+  not one strategy, and the contract's own "harvests all of them from one solve" is broken. The
+  fifth cell, `Ac8c3c`, has no committed cell document at all (`objects.json` `listed_not_held`),
+  so "reproduce their committed cell documents byte for byte" for five cells (line 118-119) is
+  false for one. Fix: say where the four boards' closure comes from (for example the part 1 M4
+  re-solve, which must reproduce the committed digests), that a board whose closing solve does not
+  reproduce its committed cells is not closed by mixing and halts for Taylor, and say "four cell
+  documents plus the fifth's strategy digest".
+- B3. The memory bar is measured on the wrong set. Line 140-145 excludes candidates against the
+  four committed boards' arenas (30.6 GB RAM, 30.4-32.0 GB VRAM). Over all 22,100 flops on this
+  same line the largest planned arena is 12.87 GB as the guard reads it (`2d2h2s`, 365 and 483
+  hands), needing 32.18 GB of RAM at 0.40 and about 33.7 GB of VRAM, and 15.8 percent of flops plan
+  above the paired board's 12.24 GB (my script `review_maxarena.py` in the session scratchpad,
+  reusing `vram.py`'s node and slot counts). Other lines stage 2 may admit have other ranges and
+  pots, so other arenas. A box chosen on the stated bar can pass and then refuse boards mid-campaign;
+  the driver fails closed, so coverage narrows silently rather than breaking. Fix: the hard limit is
+  the largest planned arena over every flop of every line stage 2 admits, computed before a
+  candidate is ranked, and the report prints it.
+
+## Non-blocker
+
+- N1. Part 1 can pass without using every core. Line 108-116 requires an explicit
+  `SOLVER_THREADS` and a five-against-ten measurement, but not that the chosen count be the fastest
+  measured, and part 2 never re-measures the thread curve on the box (x86 with SMT may make half the
+  right answer there). Setting it to 5 explicitly satisfies part 1. Also a single timing at each count
+  is weak: the same config on the M4 read 1.34 and 2.16 seconds per iteration across the two
+  determinism runs (`determinism.json`), a 60 percent spread; ask for repeated, interleaved runs.
+- N2. Cost per solved flop (line 139) is price x solve wall clock, one solve per box. It omits
+  billed time outside the solve (server start, tree build, 14-node harvest, upload) and ignores that
+  a large box can run two or more solves at once; the 0.40 ceiling is per solve, so a two-solve box
+  needs its own guard rule. It prices big boxes wrongly either way. Stage 2 should put concurrency
+  to Taylor with the formula.
+- N3. `Kh7d2c` is a fair time benchmark (slowest per iteration, rainbow, and closes
+  `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`) and a poor memory benchmark (see B3). For ranking CPU
+  boxes one board is probably enough; for CPU against GPU the ratio depends on nodes x hands and may
+  not travel across textures. Taylor's spending cap needs a projected per-line cost weighted by the
+  texture mix (two-tone unpaired, never measured, is 46.6 percent), which nothing requires before
+  the cap is asked.
+- N4. Closure is not a Taylor ruling. MAINT-40's recorded rulings
+  (`docs/exec_plans/completed/MAINT_40_DECLARE_THE_FLOP_CAMPAIGN.md:17-25`) are direction,
+  numbering and the 19 edge; closure came in through the backlog adoption note and the roadmap. It
+  sets the git budget sevenfold: at 14 entries a line fits 1.3 lines, at 2 (one root per seat)
+  about 9.4. The poker strongly favours closure (decision 25: unclosed boards void one action
+  later), but stage 2 should present it to Taylor coupled with where the index lives, since an index
+  outside git removes the trade.
+- N5. Phase 16's contract says "rented NVIDIA cloud box"
+  (`docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md:30`); this contract carries decision 24 but
+  lets candidates be CPU-only (line 151). That is a reopening; stage 2 should name it. Relatedly, the
+  0.3 percent target is re-asked (line 62-63) but the 1 percent ceiling and the 1,200 cap
+  (`postflop_artifact.py:75,79`) come from the same decision 4; ask or inherit all three the same way.
+- N6. The 487 bytes per entry is measured on flop-root and one-deep keys of one single-raised line;
+  deeper keys (four actions) and 3-bet line strings are longer, so 1.3 is an upper figure. The
+  budget also assumes campaign cell documents go to object storage, not git (phase 16's sample cells
+  are 8-17 KB each); say so.
+- N7. The table re-run (line 185-188) is useful only if it splits voided hands by street. With one
+  line closed on the flop and no turn cells, hands move from voiding on the flop to voiding on the
+  turn and showdowns stay near zero, so the printed columns cannot show closure worked. Also state
+  whether it runs on a fetched machine; on a fresh clone every campaign board refuses as not
+  fetched.
+- N8. Four adopted entries have no criterion that closes them, although line 65 says each is
+  "closed or carried": `A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT`
+  (refusal wording, line and seat vocabulary),
+  `NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED` (settling on a sample),
+  `THE-PHASE-CAN-ANSWER-AT-MOST-THREE-QUARTERS-OF-CORPUS-FLOPS` (the report prints a share of 22,100
+  flops, not the corpus share beside 74.9 percent with multiway named structural),
+  `THE-SOLVE-DRIVER-GUARD-TESTS-PIN-A-TYPE-RATHER-THAN-A-BEHAVIOUR` (ceiling pinned to reported
+  memory, config tied to posted body). `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`
+  also needs "who pays" and "how a machine fetches", which line 179-182 omits, and
+  `THE-MEMORY-GUARD-COMPARES-AN-ARENA-FIGURE-IT-DELIBERATELY-OVER-READS-BY-FIVE-PERCENT` closes only
+  on a repair, which no criterion requires.
+- N9. Wording. Line 197-199 reads as if rainbow unpaired has never been solved at f32; `Kh7d2c` is
+  rainbow unpaired and was. Line 136-137 "never measured to target" is true of the MAINT-26 cost
+  report, not of the repo. Line 165 "checked against all four committed planned arenas": the arenas
+  are in objects outside git. The ExecPlan line 44 cites `tree2.py` where line 28 lists `tree.py`
+  and `nodes.py`; `tree2.py` is the per-seat count and should be listed.
+- N10. Line 162 derives other lines' ranges "by one function" but OOP and IP must follow seat, not
+  raiser: in `SB:raise@2.5,BB:call` the raiser is out of position. And the 14-point count, the pot
+  (5.5) and the arena are per line; lines with other pots (a button call of a cutoff open is 6.5)
+  or 3-bet depths have different trees. Say the count and budget are re-derived per admitted line.
+
+## Alignment
+
+- The four entries in N8 are existing ids and stay with this phase; the coordinator records how
+  each closes before stage 4, or files a carry note in each entry.
+- B3 and N10 generalise to every later line: the coordinator must file one, proposed id
+  `THE-MEMORY-BAR-IS-THE-LARGEST-ARENA-OVER-EVERY-ADMITTED-LINE-NOT-THE-SAMPLE`, unless B3's fix
+  lands in this contract.
+
+## What I held back
+
+- I did not check the claim that `/api/status` reports `"gpu"`; I only confirmed the `gpu` feature
+  in `crates/solver/Cargo.toml:22-23`. `atomicAdd` in `kernels.cu` was not re-grepped (my glob missed
+  the file); treat line 154 as unverified by me.
+- I did not compute the largest arena for any line other than button against big blind.
+- The lower sizes in N6 are reasoned, not measured; I did not build a deep key.
+- Boundaries: nothing here anticipates a lift. No browser, no runtime solver call, no ingestion;
+  the non-goals at line 96-99 hold, and the spending gate at line 131-133 is the right shape.
+- My view as a player: closure plus one fully covered line is worth more than many unclosed lines,
+  but the bot will still void every hand that reaches a turn, so the table result after this phase
+  will look almost as empty as phase 16's in showdowns. Say that to Taylor before he sets a cap.

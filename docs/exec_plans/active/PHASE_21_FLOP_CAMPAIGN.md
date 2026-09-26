@@ -25,7 +25,7 @@ turn and river cells, and everything `AGENTS.md` Boundaries forbids.
 ## Where the stage 1 numbers came from
 
 Measured 2026-09-26 by a read-only fact-finding lane that wrote nothing in the repo, re-run by the
-coordinator where marked. Scratch scripts in the session scratchpad: `tree.py` and `nodes.py`
+coordinator where marked. Scratch scripts in the session scratchpad: `tree.py`, `tree2.py` (per-seat flop count) and `nodes.py`
 (a Python port of GTOpen `crates/solver/src/tree.rs` `legal_actions`, `apply_action` and
 `street_end`, lines 432-760, validated against the August tree of 6,220,932 nodes and 2,347,996
 action nodes and against all four committed planned arenas to the byte; re-run by the coordinator),
@@ -42,6 +42,9 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   reconciles against `scripts/check_file_sizes.py:29` and the tracked bytes under `data/artifacts`,
   4,938,950. Entry cost (2,866 - 432) / 5 = 486.8 bytes.
 - Closure: 14 flop action nodes per board, seven per seat, from `tree2.py`.
+- Memory bar: `review_maxarena.py`, written by the stage 1 reviewer and re-run by the coordinator,
+  walks all 22,100 flops on the committed line: largest planned arena 12.87 GB on `2d2h2s`, 32.18 GB
+  of RAM at 0.40, 33.69 GB of VRAM, 15.8 percent of flops above 12.24 GB.
 - Canonical flops: 1,755 classes over 22,100 flops by brute force over `canonical_board`.
 - Ranking: 499 corpus hands, 259 reach a flop, 225 heads-up in band over 32 lines; fourth is
   `SB:call`, a limp.
@@ -69,7 +72,9 @@ action nodes and against all four committed planned arenas to the byte; re-run b
 - [x] Lane opened at stage 0 from `main` at `553f6f7`.
 - [x] Stage 1 facts measured.
 - [x] Stage 1 contract criteria for all three parts.
-- [ ] Stage 1 review.
+- [x] Stage 1 review: three blockers (closure could pass without the root, phase 16's boards had no
+  coherent closing solve, the memory bar was measured on four boards rather than every flop) and ten
+  non-blockers, all folded into the contract. Round 2 pending.
 - [ ] Stage 2 decision list.
 - [ ] Stage 3: Taylor's rulings.
 
