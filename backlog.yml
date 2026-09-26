@@ -14,6 +14,7 @@ items:
       phase 21's own table re-run will show. What closes this entry: the phase is declared in its
       own `contract-update` task, depending on 21, with phase 19's and 20's edges re-examined
       against it.
+      One constraint the new phase inherits, from phase 21's stage 3 review: the river is about 11.7 TB for five lines at one byte a number and about twice that at the two bytes Taylor ruled, so it fits on no machine that plays, and this is an offline-first bot. The phase has to say how a playing machine gets the river it needs - a street-by-street fetch, a per-line subset, or a smaller encoding - before it can claim the bot plays offline.
 
   - id: LINE-RANKING-BY-CLOSING-DECISION-ARRIVAL-COUNTS-LINES-THE-CHART-NEVER-PLAYS
     status: deferred
@@ -9384,6 +9385,7 @@ items:
       Proposed by phase 16's stage-3 independent review, 2026-09-10, on its verification pass, and
       filed by the coordinator the same day.
       **Adopted by phase 21 on 2026-09-26** (MAINT-40), from contract-update. The campaign makes the gap larger by every board it adds. Closes when where the object storage lives, who pays for it and how a machine fetches it are ruled and recorded, and every coverage figure the campaign publishes says how many flop classes a fresh clone can answer beside how many a machine that has fetched can.
+      Extended 2026-09-26 from phase 21's stage 3 review: with the turn and river kept, the fetch command must fetch by street, so a machine that plays only the flop does not pull terabytes of river it cannot use.
 
   - id: COMMITTED-DATA-BEHIND-A-NETWORK-FETCH-BREAKS-AN-OFFLINE-GATE
     status: deferred

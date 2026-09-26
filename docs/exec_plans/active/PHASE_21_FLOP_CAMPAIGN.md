@@ -20,7 +20,8 @@ Stage 1 and 2, `contract-update`: the contract, the decision list
 directory. Implementation scope is set when stage 4 opens, and is expected to be the solve driver and
 its transport and harvest modules, a new report generator, the postflop index and sample, the command
 registry entries and this phase's tests. Forbidden throughout: the preflop chart and its artifact,
-turn and river cells, and everything `AGENTS.md` Boundaries forbids.
+any code that plays a turn or river decision (stored here, played by the next phase), three-bet pots,
+and everything `AGENTS.md` Boundaries forbids.
 
 ## Where the stage 1 numbers came from
 
@@ -96,7 +97,11 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   keep the river as well as the turn (about 2.5 TB a line by a rough estimate), and try the GPU in
   the trial. Asked a follow-up, he ruled that phase 21 stores the turn and river and a new phase
   plays them, filed as `TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE`. The contract
-  is amended to the rulings in this stage, before any test is written.
+  is amended to the rulings in this stage, before any test is written. The stage 3 review found two
+  costs of the river ruling he had not been shown - harvest time and the five-line total - and an
+  unasked precision question; he was re-asked and ruled keep the river but measure first, at two
+  bytes a number (decision 15). It also found the record adding words he never said and crediting
+  him with coordinator procedure; both corrected.
 - [ ] Before any spend: the specific AWS machine types and hourly prices go to Taylor.
 
 ## Verification

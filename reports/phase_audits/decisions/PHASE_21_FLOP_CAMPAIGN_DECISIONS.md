@@ -80,12 +80,18 @@ the bot needs it to play a hand end to end. He was told it would: not whole flop
 from the saved turn, which is most of a solve's work, so about the campaign's machine time again; and
 that keeping it costs roughly 2.5 TB a line by a rough estimate that compression may cut. The
 coordinator recommended keeping flop and turn and deciding the river after measuring it on the six
-trial flops. He chose to keep the river too, whatever the storage costs. So the river leaves this
-phase's non-goals, and the harvest method and the measured size of a full flop's saved strategy are
-reported before the campaign budget is asked. Asked next whether phase 21 also teaches the bot to
+trial flops. He chose "Keep the river too", accepting roughly 2.5 TB a line as a rough estimate.
+The stage 3 review then found two costs he had not been shown: reading the river out of a solve is
+about 1.5 million node queries a flop and may take longer than the solve itself, and five lines come
+to about 11.7 TB at one byte a number, which the coordinator put to him as very roughly $250 a month
+at AWS's standard storage rate, from memory and to be checked. Re-asked with both, he ruled **keep the
+river, but measure first**: the trial measures the harvest time and the real stored size on the six
+trial flops, and he confirms the river together with the campaign budget. Decision 15 rules its
+precision. Asked next whether phase 21 also teaches the bot to
 look up and play the turn and river, he ruled **store now, play next**: phase 21 stores them and a new
 phase right after it makes the bot play them. `TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE`
-carries that until it is declared.]
+carries that until it is declared. The cost he accepted with it, stated in the question: phase 21's
+table re-run still shows hands stopping at the turn.]
 
 ## 2. Whether every flop decision is saved, or only the first
 
@@ -148,10 +154,10 @@ or more, with at least one Intel or AMD and one ARM, since GTOpen's own comment 
 limited by memory speed rather than core count. The names are yours to pick; I have no prices I can
 vouch for.
 
-Answer: [Ruled by Taylor, 2026-09-26] **AWS.** The candidates are as recommended - three CPU machines of 64 GB
-of RAM or more, at least one Intel or AMD and one ARM - and, by decision 7, one GPU machine with a card
-of 40 GB or more. The specific machine types and their hourly prices are put to him before anything
-is rented, since that is the spend.]
+Answer: [Ruled by Taylor, 2026-09-26] **AWS.** The question proposed three CPU machines of 64 GB of RAM or
+more, at least one Intel or AMD and one ARM, and he picked the provider on that proposal; decision 7
+adds one GPU machine. Coordinator's procedure, not his ruling: the specific machine types and their
+hourly prices go to him before anything is rented, because renting is spend.]
 
 ## 6. The trial budget
 
@@ -190,9 +196,10 @@ Recommendation: not now. Run on ordinary processors, and try a card only if thei
 too high; that trial would test repeatability before speed.
 
 Answer: [Ruled by Taylor, 2026-09-26] **Try it in the trial**, against the recommendation, out of the $100.
-Repeatability is tested first: the GPU machine solves the same flop twice and the two runs are compared
-exactly. A GPU that does not repeat itself is recorded as a finding and is not used for the campaign
-without another ruling.]
+Repeatability is tested first, as the option he chose said. Coordinator's reading, not his ruling: the
+card must hold the memory bar, about 47.2 GB by GTOpen's estimate for small blind against big blind,
+so 48 GB or more; and a GPU that does not repeat itself is recorded as a finding and goes back to him
+before it is used for the campaign.]
 
 ## 8. How accurate each flop must be
 
@@ -286,3 +293,18 @@ only if stage 4's frozen tests do not pin the reading; if they do, it is reclass
 freeze.
 
 Answer: [ ]
+
+## 15. How precisely the turn and river are stored
+
+Reversibility: frozen-into-data
+
+Raised by the stage 3 review: the storage figures Taylor ruled decision 1 on assume about one byte a
+number, which rounds every frequency to steps of about 0.4 percent, coarser than the flop files'
+thousandths, and no one had asked him. Put to him with three options: one byte, about 2.5 TB of river
+a line; two bytes, precise to about 0.002 percent, about 5 TB a line; four bytes, the solver's full
+precision, about 10 TB a line. The flop keeps today's format. Recommendation: two bytes.
+
+Answer: [Ruled by Taylor, 2026-09-26] **Two bytes a number** for the turn and river. The review's
+per-line figures at one byte are 3.48, 2.57, 2.10, 1.88 and 1.62 TB for the five lines, 11.65 TB in
+all, so about 23 TB at two bytes, measured on the trial flops before the campaign budget.
+

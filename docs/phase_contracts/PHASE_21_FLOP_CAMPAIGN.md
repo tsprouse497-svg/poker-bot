@@ -148,11 +148,12 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
   with the provider and candidates, covers every rented solve before the campaign: per candidate the
   thread sweep of at most 15 stretches of 100 iterations and one `Kh7d2c` solve; on the chosen box
   eight determinism solves, phase 16's four boards twice, and the six texture solves below. That is
-  at most 15 stretches and one solve per candidate and 14 solves on the chosen box, and the contract
-  states the count beside the cap. The GPU trial Taylor ruled, two solves of one flop, is paid from
-  the same $100. A campaign cap is asked only once the six-texture projection exists. Every rented
-  hour is logged with its price, the running total is printed beside the cap it counts against, and
-  work halts at a cap rather than past it.
+  at most 15 stretches and one solve per candidate, and on the chosen box 14 solves and six settling
+  runs, stated beside the cap. The GPU trial Taylor ruled - one CPU flop first, then two GPU solves
+  of it - comes from the same $100, which was set before the river was kept; work halts at it. A
+  campaign cap is asked only once the six-texture projection exists. Every rented hour is logged
+  with its price, the running total is printed beside the cap it counts against, and work halts at a
+  cap rather than past it.
 - **The memory bar is the largest planned arena over every flop of every admitted line,
   computed before any candidate is ranked, and the report prints it.** For the committed line and
   menu, walking GTOpen's `tree.rs` rules over all 22,100 flops, it is 12.87 GB as the driver reads
@@ -165,9 +166,9 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
   on the M4. The report prints, per candidate: machine, thread count, engine, wall clock,
   iterations, achieved exploitability, peak memory, hourly price, and **cost per solved flop**: the
   price times the billed time for one closed flop - server start, tree build, solve, harvest of
-  every flop decision point and upload - which is what the choice is made on. How many solves one
-  box may run at once is decision 11's default of one, and a box running more than one applies the
-  memory bar to their sum.
+  every flop, turn and river decision point, and upload - which is what the choice is made on. How
+  many solves one box may run at once is decision 11's default of one, and a box running more than
+  one applies the memory bar to their sum.
 - **Before the campaign cap is asked, and after the determinism re-proof below has passed on it, the
   chosen box has solved one flop from each of the six texture groups**, on the first admitted line
   under phase 16's configuration and closed, so they are the campaign's first six
@@ -182,7 +183,8 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
   compares them. If the two runs on the box differ, the phase halts and Taylor is asked. Whether the
   box's result also matches the M4's committed digests is printed as a separate finding and is not a
   pass condition.
-- **One GPU machine is tried, as Taylor ruled**, with a card of 40 GB or more, and only after one
+- **One GPU machine is tried, as Taylor ruled**, with a card that holds the memory bar - about 47.2
+  GB by GTOpen's estimate on `2c2d2h` for small blind against big blind - and only after one
   flop is solved and timed on a CPU of the same provider. Repeatability is tested first: it solves
   one flop twice, compared exactly, and a GPU that does not repeat itself is a finding, not a
   campaign machine, without another ruling. A GPU run the server reports as not using the GPU is a
@@ -205,24 +207,27 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
   count, its pot, its largest arena and its index cost - because a line with another pot or a 3-bet
   depth builds another tree. The report prints them per line.
 - **A solved board closes, for both seats, on every street.** On the committed line and menu one
-  flop's solve holds 14 flop, 6,419 turn and 1,507,828 river decision points, counted by walking
-  GTOpen's `tree.rs` rules; the same walk reproduces every committed object's planned arena to the
-  byte. A covered board keeps all of them from its one solve, or refuses all of them because that
-  solve missed the exploitability ceiling, and a test asserts the counts per board. How the driver
+  flop's solve holds 14 flop, 6,419 turn and 1,477,056 reachable river decision points, 628 for each
+  of 49 turn and 48 river cards; GTOpen's `tree.rs` also builds a river under the card the turn
+  already dealt, 30,772 more, which can never occur and are not kept. A covered board keeps all of
+  them from its one solve, or refuses all of them because that solve missed the exploitability
+  ceiling. The manifest carries each board's counts per street and a test asserts them offline; the
+  fetch command checks every fetched object against them. How the driver
   gets them out - GTOpen's node query, which walks through dealt cards, its whole-solve save, or a
   patch - is chosen at stage 6 on a measurement, and **the time it takes and the stored size of one
   closed flop are measured on the six trial flops and reported before the campaign budget is
-  asked**; the rough estimate is about 1.4 GB a flop for the river in a compact format.
+  asked**, when Taylor confirms the river. Turn and river are stored at two bytes a number
+  (decision 15); the rough estimate is about 2.9 GB a flop for the river at that precision.
 - **Phase 16's four boards close from the part 1 re-solve**, which must reproduce their committed
   cells; their other decision points are harvested from that same solve. A board whose re-solve does
   not reproduce its committed cells is not closed by mixing two solves, and the phase halts for
   Taylor. `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`.
 - **The full index lives in object storage, and git holds a manifest per line**: the flops held and
-  one fingerprint of that line's index file, which the gate checks against the manifest offline, and
-  from which the report counts coverage. Git could not hold the full index: at 830.8 bytes a flop
-  decision point with its object-list entry, 14 on each of 1,755 flops is 20.4 MB against 16,032,570
-  bytes of headroom under the 20 MiB `data/artifacts` cap. The manifest's size is printed per line.
-  The cap is not raised and no git LFS is used.
+  one fingerprint of that line's index file, which the fetch command checks and the gate checks
+  offline against the committed sample, and from which the report counts coverage. Git could not
+  hold the full index: at 830.8 bytes a flop decision point with its object-list entry, 14 on each
+  of 1,755 flops is 20.4 MB against 16,032,570 bytes of headroom under the 20 MiB `data/artifacts`
+  cap. The manifest's size is printed per line. The cap is not raised and no git LFS is used.
 - **The commit rule is phase 16's, as Taylor kept it**: a target of 0.3 percent of the pot, a
   1,200-iteration cap and refusal above 1 percent, the constants in `postflop_artifact.py`. The
   refused count is in the index header. Each board is solved once in the campaign; a determinism
@@ -237,9 +242,9 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
 - **Settling is measured on a sample of campaign cells**, the way phase 16's deep convergence check
   measured one: one flop of each texture group solved on to the cap, printed as a finding.
   `NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED`.
-- **The campaign stops at the first of two limits - the campaign budget, or the fifth admitted line
-  - and the report names which one.**
-- **The table result is re-run on a machine that has fetched every object, on phase 16's own
+- **The campaign stops at the first of two limits, the campaign budget or the fifth admitted line,
+  and the report names which one.**
+- **The table result is re-run on a machine that has fetched every flop object, on phase 16's own
   terms**: 20,000 hands, seed 777, six seats of the composite strategy, printing postflop decisions,
   bets, showdowns and voided hands **split by the street the hand voided on**, beside phase 16's two
   decisions, both checks, no bets and 5,365 voided hands. The bot does not play the turn or river
