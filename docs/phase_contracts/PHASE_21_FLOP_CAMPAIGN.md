@@ -113,8 +113,8 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
   (`hw.perflevel0.physicalcpu` 4, `hw.perflevel1.physicalcpu` 6), so ten will not be twice five.
 - **The count used is the fastest measured, and it is measured on every machine the phase solves
   on**, never carried from another. The counts timed are GTOpen's default and a quarter, half, three
-  quarters and all of the machine's reported cores, rounded, with repeats dropped - on this Mac 3,
-  5, 8 and 10 - each three times interleaved, as a fixed stretch of 100 iterations of one committed
+  quarters and all of the machine's logical processors, rounded, with repeats dropped - on this Mac
+  3, 5, 8 and 10 - each three times interleaved, as a fixed stretch of 100 iterations of one committed
   cell's configuration, unchanged, on a machine doing nothing else. The median of the three decides.
   The report prints each run's seconds per iteration and the spread. One run per count is not
   enough: the committed runs of `9c8c7c` read 1.34 and 2.16 seconds per iteration on the same
@@ -124,8 +124,8 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
 - **A changed thread count does not change the answer.** GTOpen's CPU recursion collects its
   parallel children into an ordered vector and sums in a fixed loop, so phase 16's four boards
   re-solved on the M4 at ten threads, whatever count is fastest, since five would prove nothing,
-  reproduce the four committed cell documents byte for byte,
-  the fifth cell's strategy digest, and every per-combo strategy exactly. If they do not, the phase
+  reproduce the four committed cell documents byte for byte, the fifth cell's strategy digest, and
+  every per-combo strategy exactly. If they do not, the phase
   halts and Taylor is asked; no tolerance is set here.
 - **Every solve record carries the machine it ran on as measured, the thread count, the engine
   (CPU or GPU, read back from the server) and the arena storage.** `MEASURING_MACHINE` in
@@ -147,7 +147,8 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
   thread sweep of at most 15 stretches of 100 iterations and one `Kh7d2c` solve; on the chosen box
   eight determinism solves, phase 16's four boards twice, and the six texture solves below. That is
   at most 15 stretches and one solve per candidate and 14 solves on the chosen box, and the contract
-  states the count beside the cap. A campaign cap is asked only once the six-texture projection
+  states the count beside the cap. A GPU trial, if stage 2 rules one, is counted and capped in the
+  same ruling. A campaign cap is asked only once the six-texture projection
   exists. Every rented hour is logged with its price, the running total is printed beside the cap it
   counts against, and work halts at a cap rather than past it.
 - **The memory bar is the largest planned arena over every flop of every line stage 2 admits,
@@ -165,13 +166,14 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
   every flop decision point and upload - which is what the choice is made on. How many solves one
   box may run at once is a stage-2 ruling, and a box running more than one applies the memory bar to
   their sum.
-- **Before the campaign cap is asked, the chosen box has solved one flop from each of the six
-  texture groups**, on the first admitted line under the committed configuration and closed, so they
-  are the campaign's first six boards and are never solved again - rainbow unpaired, two-tone
+- **Before the campaign cap is asked, and after the determinism re-proof below has passed on it, the
+  chosen box has solved one flop from each of the six texture groups**, on the first admitted line
+  under the configuration stage 2 rules for it and closed, so they are the campaign's first six
+  boards and are never solved again - rainbow unpaired, two-tone
   unpaired, rainbow paired, two-tone paired, monotone, trips - and the report projects the cost of
   one closed line from those six, weighted by how many of the 1,755 classes each group holds.
-  Two-tone unpaired is 858 classes and 46.6 percent of all flops and has never been solved under the
-  committed configuration. `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`,
+  Two-tone unpaired is 858 classes and 46.6 percent of all flops and has never been solved under
+  phase 16's configuration. `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`,
   `THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY`.
 - **Determinism is re-proved on the chosen box, not inherited.** Phase 16's four boards are solved
   twice there, in two processes against a restarted server, and compared as `determinism.json`

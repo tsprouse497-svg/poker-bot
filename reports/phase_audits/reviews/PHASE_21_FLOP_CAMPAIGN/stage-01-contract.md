@@ -70,7 +70,7 @@ Re-derived from committed data, GTOpen source and the scratch scripts (re-run, n
   the largest planned arena over every flop of every line stage 2 admits, computed before a
   candidate is ranked, and the report prints it.
 
-- B4. Round 2, new. The pre-cap solves contradict the spending rule and are neither costed nor
+- [resolved] Round 3: fixed at contract line 99-100 and 145-152 at `62dce5d` (a benchmark cap ruled with the provider and candidates covers every rented solve before the campaign, counted as at most 15 stretches and one solve per candidate and 14 on the chosen box; a campaign cap is asked only after the projection) and line 168-170 (the six texture flops are the campaign's first six boards, never solved again). B4. Round 2, new. The pre-cap solves contradict the spending rule and are neither costed nor
   bounded. Contract line 99-100 and 142-144 forbid any spend before Taylor rules a spending cap, but
   line 160-165 requires the chosen box to have solved six texture flops "before the spending cap is
   asked", which needs an account, candidates solved (line 152-159) and a box chosen, all of it
@@ -157,6 +157,23 @@ Re-derived from committed data, GTOpen source and the scratch scripts (re-run, n
   for which statistic decides (median, best). Name it.
 - N14. Round 2, new, cosmetic. Line 60 and line 213 run well past the file's wrap width.
 
+- N15. Round 3, new. The six texture boards (line 168-170) are committed campaign boards, but the
+  contract does not order them after the chosen box's own determinism re-proof (line 176-180). If
+  that re-proof fails and the phase halts, six committed boards came from a box shown not to
+  reproduce itself. Solve the determinism pairs first. The same bullet says "under the committed
+  configuration", while line 215-218 has stage 2 rule the target, iteration cap and ceiling, and the
+  first admitted line may not be the button against the big blind whose ranges are committed. Say
+  "under the configuration stage 2 rules for that line", so the first six boards follow the same
+  commit rule as the rest.
+- N16. Round 3, new. "All of the machine's reported cores" (line 115-116) is ambiguous on a box with
+  hyperthreads: GTOpen's default is half the logical count, so if "cores" means physical cores the
+  sweep never times the logical count. Say logical processors, as `available_parallelism()` reports.
+- N17. Round 3, new. The benchmark count (line 149) leaves out any GPU trial (line 181-184), which
+  the benchmark cap also has to cover if Taylor rules to try one. Add it to the count or say it is
+  priced separately.
+- N18. Round 3, new, cosmetic. Line 126-128 was reflowed so line 127 is a short fragment
+  ("reproduce the four committed cell documents byte for byte,").
+
 ## Alignment
 
 - The four entries in N8 are existing ids and stay with this phase; the coordinator records how
@@ -239,3 +256,39 @@ entry's own closing condition and is acceptable.
 - The hour figures in B4 are M4 rates scaled by solve count, not measured on any box.
 - I did not re-check the GPU status field or `atomicAdd`, as in round 1.
 - I did not check whether a line longer than the wrap width fails any repo check.
+
+## Round 3
+
+Scope: `git diff b1dd5ac..62dce5d` over the contract (282 lines, under the 300 cap). Line numbers
+are the contract at `62dce5d`.
+
+- Reflow check: `git diff --word-diff` shows wording changes only in the places listed below. Every
+  other hunk is whitespace. No line is longer than 100 columns.
+- B4: fixed and marked [resolved]. The benchmark and campaign caps (line 145-152) remove the
+  contradiction, and line 99-100 now agrees with them. The count adds up: at most five thread counts
+  (default, quarter, half, three quarters, all, repeats dropped) times three runs is 15 stretches.
+  On this Mac that is 3, 5, 8 and 10, so 12. Eight determinism solves plus six texture solves is 14.
+  The sweep is now bounded in iterations (100 a stretch). At the slowest committed per-iteration
+  rate, 4.93 seconds, 15 stretches is about 2.1 hours of solving at M4 speed. That is bounded but
+  not trivial per candidate. The contract states counts rather than hours, which is what Taylor
+  needs to price a cap against a quoted hourly rate.
+- N4: fixed as a deferral. Line 197 closes boards "unless stage 2's decision 2 rules otherwise".
+  I could not check the decision itself because it is not in the tree.
+- N11: fixed at line 115-117, with the counts scaled to each machine. The logical-against-physical
+  ambiguity is N16.
+- N12: fixed at line 126. The re-solve runs at ten threads whatever count wins.
+- N13: fixed at line 118. The median of three decides.
+- N14: fixed. Nothing is over 100 columns, and N18 is the one leftover wrapping fragment.
+- Other items keep their round 2 status. N1 is now fixed through N11 to N13.
+- New: N15 (order the determinism re-proof before the six committed boards, and name the
+  configuration they use), N16, N17, N18. None is a blocker.
+
+The Blocker section now holds only [resolved] bullets.
+
+### What I held back in round 3
+
+- Stage 2's decision 2 is drafted outside the tree, so I have not read what it asks Taylor about
+  closure.
+- The 2.1-hour figure scales M4 rates. No rented box was measured, and I did not check which
+  committed cell the sweep will use.
+- The GPU status field and `atomicAdd` are still unchecked, as in earlier rounds.

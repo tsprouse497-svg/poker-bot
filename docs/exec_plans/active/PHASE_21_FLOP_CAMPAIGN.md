@@ -62,7 +62,7 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   files named in their brief and nothing else.
 - Expected outputs: stage 1 contract with measured criteria; stage 2 decision list with a class on
   every call; stage 4 frozen tests and canaries; stage 6 driver, generator and campaign data.
-- Status: fact-finding completed; stage 1 contract written; review pending.
+- Status: fact-finding completed; stage 1 contract written and reviewed in three rounds.
 - Integration order: contract, decisions, human gate, tests, freeze, build, gate, review, packet.
 - Review handoff: every stage whose diff touches something a human wrote gets a read-only reviewer
   that wrote none of it, asked also what it held back.
@@ -74,7 +74,14 @@ action nodes and against all four committed planned arenas to the byte; re-run b
 - [x] Stage 1 contract criteria for all three parts.
 - [x] Stage 1 review: three blockers (closure could pass without the root, phase 16's boards had no
   coherent closing solve, the memory bar was measured on four boards rather than every flop) and ten
-  non-blockers, all folded into the contract. Round 2 pending.
+  non-blockers, all folded into the contract. Round 2 found a fourth blocker, the benchmark solves
+  unpriced and sequenced before any cap, fixed with two caps. Round 3 resolved it and raised four
+  non-blockers, which the coordinator fixed after the round: the six texture boards come after the
+  box's determinism re-proof and use the configuration stage 2 rules; the sweep counts logical
+  processors; a GPU trial is counted in its own ruling; one leftover short line. The coordinator
+  also checked the two GPU claims the reviewer could not: `atomicAdd` at
+  `crates/solver/src/gpu/kernels.cu:143-148`, and GPU use switched by the `gpu` feature and
+  `SOLVER_GPU` at `crates/server/src/main.rs:253-281`.
 - [ ] Stage 2 decision list.
 - [ ] Stage 3: Taylor's rulings.
 
