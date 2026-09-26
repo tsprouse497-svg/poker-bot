@@ -377,6 +377,25 @@ COMMANDS = {
         uv_python_command() + ["scripts/generate_postflop_betting_report.py"],
         "Generate the postflop betting report: coverage, accuracy spread, refusals and bytes",
     ),
+    "pytest_flop_campaign": CommandSpec(
+        uv_python_command()
+        + [
+            "-m",
+            "pytest",
+            "tests/test_flop_campaign_threads.py",
+            "tests/test_flop_campaign_tree.py",
+            "tests/test_flop_campaign_lines.py",
+            "tests/test_flop_campaign_costs.py",
+            "tests/test_flop_campaign_manifest.py",
+            "tests/test_flop_campaign_report.py",
+            "tests/test_postflop_solve_driver.py",
+        ],
+        "Run the flop campaign tests: threads, machine, tree, lines, costs, manifest and report",
+    ),
+    "generate_flop_campaign_report": CommandSpec(
+        uv_python_command() + ["scripts/generate_flop_campaign_report.py"],
+        "Generate the flop campaign report: threads, memory bar, lines, closure, coverage, spend",
+    ),
     "ruff_check": CommandSpec(
         ruff_command(),
         "Run ruff",

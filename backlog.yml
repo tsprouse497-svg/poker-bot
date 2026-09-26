@@ -15,6 +15,13 @@ items:
       own `contract-update` task, depending on 21, with phase 19's and 20's edges re-examined
       against it.
       One constraint the new phase inherits, from phase 21's stage 3 review: the river is about 11.7 TB for five lines at one byte a number and about twice that at the two bytes Taylor ruled, so it fits on no machine that plays, and this is an offline-first bot. The phase has to say how a playing machine gets the river it needs - a street-by-street fetch, a per-line subset, or a smaller encoding - before it can claim the bot plays offline.
+      Taylor's direction on 2026-09-26, after phase 21's stage 3: move to the cloud now. The bot will
+      eventually run on AWS next to its stored solves, so the playing machine for this phase is an
+      AWS box in the same account as the private bucket rather than a laptop, which answers the
+      question above by placement rather than by a smaller encoding. It does not yet say how that
+      squares with `AGENTS.md` calling the bot offline-first; the new phase's contract states which
+      reading it adopts - no network at decision time on a box that holds its solves locally, or
+      something else - and asks Taylor if that changes the rule.
 
   - id: LINE-RANKING-BY-CLOSING-DECISION-ARRIVAL-COUNTS-LINES-THE-CHART-NEVER-PLAYS
     status: deferred

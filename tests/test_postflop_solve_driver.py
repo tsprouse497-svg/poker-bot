@@ -2,7 +2,9 @@
 
 Split from `tests/test_postflop_artifact.py` at the 700-line cap. That file owns the committed
 index, the sample, the byte budget and the input ranges; this one owns the thing that produced
-them and the configuration it was pointed at. Both run under `pytest_postflop_betting`.
+them and the configuration it was pointed at. Both run under `pytest_postflop_betting`, and
+this one under `pytest_flop_campaign` too, since phase 21 adopted its guard tests and made three
+of them pin behaviour rather than a type.
 
 The driver never runs in the gate - the gate has no solver, no network and no Rust toolchain - so
 these are the only tests its guards will ever get. A guard nobody tested is a guard nobody has,
@@ -21,6 +23,7 @@ Reached through a fixture whose import sits in the function body; the head of
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -28,6 +31,13 @@ import pytest
 from scripts.repo_paths import REPO_ROOT
 
 SOLVE_CONFIG_PATH = REPO_ROOT / "data" / "artifacts" / "postflop" / "solve_config.json"
+
+
+def transport_module():
+    """`solver_artifacts.postflop_transport`, which owns the reading of `arena_mb`."""
+    import poker_training_bot.solver_artifacts.postflop_transport as module
+
+    return module
 
 
 def load(path: Path):
@@ -81,6 +91,38 @@ class TestTheSolveDriverRefusesBeforeItSolves:
         ceiling = owed(driver_module, "MEMORY_CEILING_BYTES")
 
         assert isinstance(ceiling, int) and ceiling > 0
+
+    def test_the_ceiling_is_the_ruled_fraction_of_this_machine_s_memory(
+        self, driver_module
+    ) -> None:
+        """Phase 21, `THE-SOLVE-DRIVER-GUARD-TESTS-PIN-A-TYPE-RATHER-THAN-A-BEHAVIOUR`: the test
+        above passes with 12,026 MB hardcoded into a rented box's driver. This one reads the
+        machine it runs on through the same C library call the driver documents, so a constant
+        in the ceiling's place fails on every machine but the one it was copied from."""
+        physical = os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")
+
+        assert owed(driver_module, "MEMORY_CEILING_IS_MEASURED") is True
+        assert owed(driver_module, "MEMORY_CEILING_BYTES") == int(
+            physical * owed(driver_module, "MEMORY_CEILING_FRACTION")
+        )
+
+    def test_a_refusal_states_how_much_of_itself_is_the_unit(self, driver_module) -> None:
+        """Phase 21, decision 14's default: every refusal states the margin its reading of
+        `arena_mb` adds.
+        `THE-MEMORY-GUARD-COMPARES-AN-ARENA-FIGURE-IT-DELIBERATELY-OVER-READS-BY-FIVE-PERCENT`.
+
+        The margin is computed here from the driver's own reader rather than written down, so
+        this holds whichever reading decision 14 lands on - 4.86% while `arena_bytes` reads the
+        server's decimal megabytes as 2^20 bytes, 0.00% if it reads them as the server means
+        them. What it pins is that the refusal says it, not what it says."""
+        margin = transport_module().arena_bytes(1_000_000.0) / 1_000_000_000_000 - 1
+
+        with pytest.raises(owed(driver_module, "SolveDriverError")) as raised:
+            owed(driver_module, "check_memory_ceiling")(
+                owed(driver_module, "MEMORY_CEILING_BYTES") + 1
+            )
+
+        assert f"{margin:.2%}" in str(raised.value), str(raised.value)
 
     def test_a_planned_solve_above_the_ceiling_is_refused_before_solving(
         self, driver_module
@@ -317,6 +359,50 @@ class TestTheSolveConfigurationIsCommittedBesideTheData:
             f"{threshold} postflop reads as {threshold}% of the remaining stack, which snaps"
             " every bet to a stack-off"
         )
+
+    def test_the_committed_configuration_is_the_one_the_driver_rules(
+        self, config, driver_module
+    ) -> None:
+        """Phase 21, `THE-SOLVE-DRIVER-GUARD-TESTS-PIN-A-TYPE-RATHER-THAN-A-BEHAVIOUR`: the
+        checks above pin the committed document in the repo's own shape, and nothing tied it to
+        what the driver holds itself to."""
+        assert owed(driver_module, "solve_config_errors")(config) == []
+
+    def test_the_committed_configuration_is_the_body_the_driver_posts(
+        self, config, driver_module
+    ) -> None:
+        """The other half of the same entry: GTOpen's wire takes `"33 75"` where the committed
+        document says `["33", "75"]`, so a document could be committed that differs from what was
+        solved and no test would see it. The wire form is re-derived here from the committed
+        document, street by street, and compared with the body `spot_body` builds from it."""
+        plan = owed(driver_module, "SolvePlan")(
+            label="Kh7d2c single-raised",
+            board="Kh7d2c",
+            preflop_line="t6/d100/BB/BTN:raise@2.5,BB:call",
+            range_oop="AA:1",
+            range_ip="AA:1",
+            starting_pot=5.5,
+            effective_stack=97.5,
+            config=config,
+        )
+
+        body = owed(driver_module, "spot_body")(plan)
+
+        for seat in ("oop", "ip"):
+            expected = [
+                {
+                    "bet": " ".join(config["seats"][seat][street]["bet"]),
+                    "raise": config["seats"][seat][street]["raise"],
+                    "donk": " ".join(config["seats"][seat][street]["donk"]),
+                }
+                for street in ("flop", "turn", "river")
+            ]
+            assert body[seat] == expected, seat
+        assert body["allin_threshold"] == config["allin_threshold"]
+        assert body["add_allin"] == config["add_allin"]
+        assert body["max_raises"] == config["max_raises"]
+        assert body["rake_pct"] == config["rake_pct"]
+        assert body["rake_cap"] == config["rake_cap"]
 
 
 # --------------------------------------------------------------------------- #

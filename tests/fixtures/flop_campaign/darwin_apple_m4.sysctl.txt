@@ -1,0 +1,6 @@
+hw.ncpu: 10
+hw.physicalcpu: 10
+hw.memsize: 34359738368
+machdep.cpu.brand_string: Apple M4
+hw.perflevel0.physicalcpu: 4
+hw.perflevel1.physicalcpu: 6

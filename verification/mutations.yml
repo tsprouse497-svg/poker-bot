@@ -1644,3 +1644,141 @@ mutations:
   # the report's twenty-six sections as text: the generator is covered where it
   # validates and not where it renders, which is the same hole the two struck section
   # items were reaching for and could not close.
+
+  # Phase 21, stage 4, 2026-09-26: ten canaries for the flop campaign, authored before any of
+  # the code they attack exists. Every `find` below is a line stage 6 must write verbatim, once,
+  # in the file named - the builder brief lists them - and each was run against a throwaway
+  # reference implementation outside the repo before it was committed here: all ten applied
+  # exactly once and every one turned its witness red. Nine are witnessed by
+  # `pytest_flop_campaign` and one by `generate_flop_campaign_report`, which is the canary the
+  # contract requires on the phase's own new command.
+
+  - id: flop-campaign-server-starts-without-a-thread-count
+    description: >-
+      The refusal to start a GTOpen server with no explicit thread count is switched off, so
+      `server_environment(None)` hands the server `SOLVER_THREADS=None`. GTOpen's `init_rayon`
+      cannot parse that and falls back to half of `available_parallelism()` - five threads on the
+      ten-core M4 - which is exactly the unrecorded default every timing phase 16 committed was
+      taken at. The contract's first criterion is that the driver refuses rather than doing this.
+    file: src/poker_training_bot/solver_artifacts/postflop_threads.py
+    find: "if threads is None or isinstance(threads, bool) or threads < 1:"
+    replace: "if False and (threads is None or isinstance(threads, bool) or threads < 1):"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: flop-campaign-inherited-thread-count-wins
+    description: >-
+      The explicit thread count stops overriding one already in the environment, so a login shell
+      that exports `SOLVER_THREADS=5` decides every solve's parallelism while the solve record
+      says whatever count the driver was asked for. The record and the run disagree and nothing
+      on the wire says so, which is the silent-mislabel shape `SOLVER_COMPRESS` already taught
+      this repo.
+    file: src/poker_training_bot/solver_artifacts/postflop_threads.py
+    find: "environment[SOLVER_THREADS_VARIABLE] = str(threads)"
+    replace: "environment.setdefault(SOLVER_THREADS_VARIABLE, str(threads))"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: flop-campaign-sweep-decides-by-mean
+    description: >-
+      The thread sweep's verdict takes the mean of the three interleaved runs instead of the
+      median. One run that shared the machine then decides the count - the committed `9c8c7c`
+      runs read 1.34 and 2.16 seconds per iteration on one configuration for that reason - and
+      the fastest count loses to a slower one whose runs happened to be quiet.
+    file: src/poker_training_bot/solver_artifacts/postflop_threads.py
+    find: "medians = {count: statistics.median(times) for count, times in by_count.items()}"
+    replace: "medians = {count: statistics.mean(times) for count, times in by_count.items()}"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: flop-campaign-caller-is-always-out-of-position
+    description: >-
+      The range function stops assigning seats by who acts first after the flop and hands the
+      caller the out-of-position seat, which is what the driver hardcodes today and is true of
+      every admitted line but the first. On `SB:raise@2.5,BB:call` the small blind's 730-combo
+      opening range is posted in position and the big blind's 470-combo defence out of position,
+      so the campaign's first line is solved as a different game and every cell it commits is
+      wrong while every shape check passes.
+    file: src/poker_training_bot/solver_artifacts/postflop_lines.py
+    find: "oop_position, ip_position = sorted((opener, caller), key=action_order.index)"
+    replace: "oop_position, ip_position = caller, opener"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: flop-campaign-keeps-the-river-under-the-dealt-turn
+    description: >-
+      Closure counts every river GTOpen builds, including the 30,772 decision points under the
+      card the turn already dealt, which can never occur. The committed line's river reads
+      1,507,828 instead of 1,477,056, so every closed board's manifest counts disagree with the
+      tree, and a harvest built to this count would store two percent of every river twice over
+      for situations no hand reaches.
+    file: src/poker_training_bot/solver_artifacts/postflop_tree_size.py
+    find: "river_kept = river_built // TURN_CARDS * RIVER_CARDS"
+    replace: "river_kept = river_built"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: flop-campaign-ranks-a-box-that-cannot-hold-the-bar
+    description: >-
+      A candidate machine whose memory cannot hold the memory bar at the 0.40 ceiling is ranked
+      instead of excluded. The cheapest box is usually the smallest, so it ranks first, and the
+      campaign is then priced on a machine that refuses the deuce-trips boards of every line
+      when it meets them.
+    file: src/poker_training_bot/solver_artifacts/postflop_campaign_costs.py
+    find: "if candidate.memory_bytes * ceiling_fraction < required_bytes:"
+    replace: "if False and candidate.memory_bytes * ceiling_fraction < required_bytes:"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: flop-campaign-spends-past-the-cap
+    description: >-
+      The ledger authorises a rented run the cap cannot pay for. Taylor ruled a $100 trial
+      budget and the contract says work halts at a cap rather than past it; this makes the cap a
+      number that is printed rather than one that stops anything.
+    file: src/poker_training_bot/solver_artifacts/postflop_campaign_costs.py
+    find: "if self.total_usd + cost > self.cap_usd:"
+    replace: "if False and self.total_usd + cost > self.cap_usd:"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: flop-campaign-fetch-skips-the-closure-count
+    description: >-
+      The fetch stops comparing each board's per-street decision-point counts in the line index
+      against the manifest. An index re-published with a board short one river card - 628
+      decision points - and re-fingerprinted to match passes every digest check and lands on a
+      machine as a closed board that is not closed, which is the failure closure exists to
+      prevent.
+    file: src/poker_training_bot/solver_artifacts/postflop_fetch.py
+    find: 'if listed["decision_points"] != board["decision_points"]:'
+    replace: 'if False and listed["decision_points"] != board["decision_points"]:'
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: flop-campaign-unfetched-street-reads-as-fetched
+    description: >-
+      A machine that fetched the flop but not the turn stops refusing the turn with the
+      not-fetched code. The index is on disk, so only the per-object check can see the gap; with
+      it gone the machine reports coverage it does not hold, which is
+      `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT` again one street later.
+    file: src/poker_training_bot/solver_artifacts/postflop_fetch.py
+    find: "if not local_path.is_file():"
+    replace: "if False and not local_path.is_file():"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: flop-campaign-report-flops-held-drifts
+    description: >-
+      The report derives one more flop held than the committed-line manifest's closed boards
+      stand for. The figure stays plausible - nobody tells 44 from 45 by eye - and it is the
+      number every coverage share is computed from.
+      This is the canary for `generate_flop_campaign_report`, shaped the way phase 16's
+      `postflop-report-spot-count-drifts` is shaped and for the same reason: disabling a
+      validator makes a generator pass, so this corrupts the generator's own re-derivation and
+      requires it to notice that what it derived disagrees with what the manifest records. It
+      bites on the committed tree as it stands when the gate first goes green, because phase 16's
+      four boards are in the committed line's manifest from then on.
+    file: scripts/generate_flop_campaign_report.py
+    find: "derived_flops_held = sum(flops_in_class(board) for board in closed_boards)"
+    replace: "derived_flops_held = sum(flops_in_class(board) for board in closed_boards) + 1"
+    must_fail:
+      - generate_flop_campaign_report

@@ -23,6 +23,25 @@ registry entries and this phase's tests. Forbidden throughout: the preflop chart
 any code that plays a turn or river decision (stored here, played by the next phase), three-bet pots,
 and everything `AGENTS.md` Boundaries forbids.
 
+## Direction from Taylor, 2026-09-26, after stage 3
+
+Move to the cloud now rather than later. The bot will eventually run on AWS next to its stored
+solves, so solving work goes to AWS as soon as the code is ready instead of being benchmarked on the
+Mac first. Rulings that stand: AWS, a private bucket on his account, the $100 trial, one GPU machine
+in the trial, and the exact machine types and hourly prices shown to him before anything is rented.
+Also recorded on `TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE`.
+
+Where it meets the contract, flagged to Taylor rather than edited, because the contract is at its
+300-line cap and wins until a `contract-update` changes it:
+
+- Part 1 times thread counts "on every machine the phase solves on", and the Mac still solves: phase
+  16's four boards are re-solved here to prove a changed thread count leaves the answer alone. So the
+  Mac's sweep (3, 5, 8 and 10 threads, three interleaved stretches of 100 iterations each) still runs
+  here. It costs about an hour of this machine and no money, and it is the only benchmark kept on
+  the Mac; every other timing is taken on AWS.
+- "Offline-first" in `AGENTS.md` against a bot that plays on AWS beside its solves: not this phase's
+  to settle, since this phase does not play the turn or river; carried on the backlog entry above.
+
 ## Where the stage 1 numbers came from
 
 Measured 2026-09-26 by a read-only fact-finding lane that wrote nothing in the repo, re-run by the
