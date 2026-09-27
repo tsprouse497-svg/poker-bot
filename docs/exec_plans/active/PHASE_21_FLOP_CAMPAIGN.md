@@ -140,6 +140,14 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   out of position), `conditional_ranges` (button-line export paths), `preflop_line_for`
   (`BTN_OPEN_BB_CALL`) and `write_solve_config` (seat-named keys `oop_bb_call` and `ip_btn_open`).
   The stage 6 review checks that no campaign solve reached them.
+- [ ] Stage 6 builder notes from the stage 4 review: every determinism record keeps wall clocks
+  unrounded, because the frozen copy rule refuses two runs tied to the microsecond and a rounded
+  clock could trip it; the frozen tests pin a flop object as uncompressed JSON `{"cells": [...]}` at
+  its object key under the fetched folder, so the flop is not compressed; and the fetch's check that
+  a turn or river object holds the decision points its counts claim is stage 6's to write and test,
+  since their two-byte format is chosen then. The stage 6 review checks the re-solve's own output
+  against the committed cells, since copying `index.json`'s digests into a manifest cannot be told
+  apart offline from reproducing them.
 - [ ] Before any candidate is ranked: GTOpen builds (does not solve) one small blind tree, and its
   node count and arena are compared with the port's 4,109,130 nodes and planned arena. A difference
   is a finding for Taylor, not a test edit. On each rented box the machine record is compared with

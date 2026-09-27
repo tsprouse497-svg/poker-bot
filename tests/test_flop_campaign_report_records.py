@@ -20,7 +20,8 @@ tree, in this shape:
     texture_trial.json    {record_schema_version, line, machine, threads,
                            groups: {group: {board, cost_usd}}, projected_line_cost_usd}
     table_result.json     {record_schema_version, machine, hands, seed, postflop_decisions,
-                           bets, showdowns, voided_hands, voided_by_street: {street: hands}}
+                           bets, showdowns, voided_hands,
+                           voided_by_street: {preflop, flop, turn, river: hands}}
 
 Every figure in these fixtures is invented, and named so; none is a measurement.
 """
@@ -356,21 +357,27 @@ def table_record():
         "postflop_decisions": 812,
         "bets": 240,
         "showdowns": 0,
-        "voided_hands": 5_100,
-        "voided_by_street": {"flop": 1_200, "turn": 3_900, "river": 0},
+        "voided_hands": 5_922,
+        "voided_by_street": {"preflop": 822, "flop": 1_200, "turn": 3_900, "river": 0},
     }
 
 
 class TestTheTableRecordIsReDerived:
     """Criterion: the table result is re-run on phase 16's own terms - 20,000 hands, seed 777 -
-    printing voided hands split by the street the hand voided on, beside phase 16's 5,365."""
+    printing voided hands split by the street the hand voided on, beside phase 16's 5,365.
+
+    Voids before the flop exist and are counted: phase 16's own table voided 5,365 hands of which
+    4,543 had reached a flop, so 822 voided preflop - the same 822 the old fallback voided, all of
+    them the preflop chart's refusals (`reports/phase_audits/PHASE_16_POSTFLOP_BETTING.md`). Phase
+    16 published one total; this record splits it by street, and `preflop` is one of the
+    streets."""
 
     def test_a_consistent_record_prints_its_voids_beside_phase_16_s(self, generator, tree_copy):
         write_record(tree_copy, "table_result.json", table_record())
 
         text = render(generator, tree_copy)
 
-        assert "5,100" in text and "5,365" in text
+        assert "5,922" in text and "5,365" in text
         assert "3,900" in text, "the turn's share of the voids"
 
     def test_voids_by_street_that_do_not_sum_to_the_total_fail(
@@ -378,6 +385,19 @@ class TestTheTableRecordIsReDerived:
     ) -> None:
         record = copy.deepcopy(table_record())
         record["voided_by_street"]["turn"] = 3_400
+        write_record(tree_copy, "table_result.json", record)
+
+        with pytest.raises(refusal):
+            render(generator, tree_copy)
+
+    def test_a_split_that_leaves_out_the_preflop_voids_fails(
+        self, generator, refusal, tree_copy
+    ) -> None:
+        """The total re-adds without the preflop entry, so only a check that every street is
+        present sees it: a split that drops 822 preflop voids reads as a bot that voids less."""
+        record = table_record()
+        del record["voided_by_street"]["preflop"]
+        record["voided_hands"] = 5_100
         write_record(tree_copy, "table_result.json", record)
 
         with pytest.raises(refusal):
@@ -397,7 +417,7 @@ class TestTheTableRecordIsReDerived:
         played a turn, which the non-goals forbid."""
         record = table_record()
         record["voided_by_street"]["river"] = 400
-        record["voided_hands"] = 5_500
+        record["voided_hands"] = 6_322
         write_record(tree_copy, "table_result.json", record)
 
         with pytest.raises(refusal):
@@ -423,6 +443,6 @@ def test_no_record_s_number_appears_before_the_record_exists(generator, tree_cop
     above, and must not print it here."""
     text = render(generator, tree_copy)
 
-    for figure in ("$3.24", "$2,626.00", "5,100", "invented box for a test"):
+    for figure in ("$3.24", "$2,626.00", "5,922", "invented box for a test"):
         assert figure not in text, figure
     assert owed(generator, "NOT_YET_MEASURED") in text

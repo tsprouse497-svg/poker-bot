@@ -546,6 +546,19 @@ class TestAFetchedClosedBoardIsPlayed:
         assert isinstance(outcome, contract_module.StrategyDecision), outcome
         assert outcome.action in ("fold", "call", "raise")
 
+    def test_an_object_on_disk_that_no_manifest_lists_is_not_played(self, fetched_machine) -> None:
+        """The fetched folder is full and the manifest folder is empty. A strategy that reads the
+        committed manifests whatever it is handed, and finds the index by looking in the fetched
+        folder, answers here; the right one refuses, because nothing it was given lists the
+        board."""
+        empty_manifests = fetched_machine["empty"].parent / "no-manifests"
+        empty_manifests.mkdir()
+        strategy = self.build(fetched_machine["fetched"], empty_manifests)
+
+        outcome = strategy.decide(facing_a_three_quarter_bet())
+
+        assert isinstance(outcome, contract_module.StrategyRefusal), outcome
+
     def test_the_same_node_on_a_machine_that_fetched_nothing_refuses_as_not_fetched(
         self, fetched_machine
     ) -> None:

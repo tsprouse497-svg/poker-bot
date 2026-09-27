@@ -146,7 +146,9 @@ harvest of every flop, turn and river decision point, and upload."""
 
 BAR = 17_674_107_736
 """A memory bar in bytes; the small blind's line's largest planned arena in the server's unit,
-from `tests/test_flop_campaign_tree.py`. The reading applied to it is the driver's business."""
+from `tests/test_flop_campaign_tree.py`. `rank_candidates` compares the bar exactly as it is
+given - the equality test below pins that - so decision 14's reading of the server's unit is
+applied where the bar is computed, before it is handed in, and never inside the ranking."""
 
 
 def candidate(costs, name: str, gib: int, price: float, stretch=None):
