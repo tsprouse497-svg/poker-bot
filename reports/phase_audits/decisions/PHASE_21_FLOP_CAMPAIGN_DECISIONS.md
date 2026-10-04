@@ -137,7 +137,14 @@ rewrite of the index, not a re-solve, but it is still worth choosing once.
 Recommendation: a private storage bucket at the same cloud provider as the machine (decision 5), on
 your account, read by a fetch command the repo commits.
 
-Answer: [Ruled by Taylor, 2026-09-26] A private storage bucket at the same provider as the machine, on his account, read by a fetch command the repo commits. With decision 5, that is AWS.]
+Answer: [Ruled by Taylor, 2026-09-26] A private storage bucket at the same provider as the machine, on his account, read by a fetch command the repo commits. With decision 5, that is AWS.
+**Amended by Taylor, 2026-10-04:** the bucket stays AWS and stays his, but the turn and river
+objects are stored in the Glacier Deep Archive class (about $22 a month for about 22 TB, against
+about $500 in the standard class), written straight from the solve machines, and the flop objects and
+index stay in the standard class. Reading a turn or river object back needs an archive restore first
+(bulk, about $55 for all of it, 12 to 48 hours); serving them to players is a later phase's design
+(`PEOPLE-ACROSS-THE-US-PLAY-AGAINST-THE-BOT-AND-NO-PHASE-OWNS-IT`). He answered "for turn/river in
+glacier deep archive that prolly works."]
 
 ## 5. Which cloud provider, and which machines to try
 
@@ -157,7 +164,14 @@ vouch for.
 Answer: [Ruled by Taylor, 2026-09-26] **AWS.** The question proposed three CPU machines of 64 GB of RAM or
 more, at least one Intel or AMD and one ARM, and he picked the provider on that proposal; decision 7
 adds one GPU machine. Coordinator's procedure, not his ruling: the specific machine types and their
-hourly prices go to him before anything is rented, because renting is spend.]
+hourly prices go to him before anything is rented, because renting is spend.
+**Re-ruled by Taylor, 2026-10-04: RunPod** for the trial, starting from a GPU large enough for the
+small blind line. AWS's new-account quota was refused (5 to 32 vCPU, appeals open since 2026-09-26),
+and a comparison of providers on what a new account can run at once put RunPod first: card-only
+sign-up, an $80 an hour default spend cap, no egress charge. Lambda Cloud is his standing backup
+account; on 2026-10-04 every Lambda type large enough was out of capacity. He has funded the RunPod
+account with $150. The specific machine type and hourly price still go to him before anything is
+rented. Whether the trial cap is $100 or $150 is unanswered.]
 
 ## 6. The trial budget
 
@@ -338,3 +352,32 @@ Recommendation: (a).
 
 Answer: [Ruled by Taylor, 2026-10-03] (a): a raise is named by its multiplier. Put to him in plain
 words, he answered "if path A is recommended here that's fine."]
+
+## 17. Whether a checked-through street clears the initiative
+
+Reversibility: frozen-into-data
+
+Found 2026-10-04 by comparing our pinned GTOpen (`4aee435`, 2026-07-23) with its upstream. At the
+pin, `tree.rs` carries the last aggressor through a street both players check, and treats an out of
+position bet into that aggressor as a donk, whose list the committed configuration leaves empty. So
+when in position bets the flop, out of position calls and the turn checks through, out of position
+can only check the river. Upstream fixed this in `85b0a692` (2026-09-03, its author's "round-2 audit
+high finding"): a checked-through street clears the initiative, so that river bet uses the normal
+sizes. Measured by a port of the tree builder that matches the Rust build to the byte: per river
+card, 6 of 94 river street starts change; button-line nodes rise 3,921,411 to 4,144,704 (+5.7%),
+river decision points 1,477,056 to 1,549,968, turn unchanged; the small blind line's worst flop
+needs 51.24 GB of GPU memory against 48.50. The 44 river starts that follow a called turn bet stay
+check-only under both rules, by design. Reach share of the changed spots is estimated at 10 to 18
+percent of hands on `Kh7d2c`, not measured.
+
+Options. (a) Keep the pin's tree. (b) Apply only upstream's tree fix to a local clone, about 40
+lines, leaving every other upstream change out. (c) Allow every OOP turn and river lead through the
+donk lists, +59% arena and 75.64 GB of GPU memory on the small blind line.
+
+Recommendation: (b), because a gap baked into every campaign solve costs the whole campaign again to
+remove.
+
+Answer: [Ruled by Taylor, 2026-10-04] (b). Shown the three options with their costs and the exact
+change, he answered "ah ok. yes" and asked for the fix to be made in every place that matters, with
+each phase and document that needs it updated, carefully and within the repo's practices. Whether to
+also take upstream's deterministic GPU fold sum is a separate question he has not answered.]
