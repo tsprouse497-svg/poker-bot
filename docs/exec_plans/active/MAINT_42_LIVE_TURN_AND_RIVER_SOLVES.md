@@ -49,7 +49,8 @@ limits on those phases, and moving them belongs to whichever task declares the o
   statements that turn and river roots were never run.
 - [x] Correct both roadmaps.
 - [x] File `LIVE-TURN-AND-RIVER-SOLVING`.
-- [ ] Independent read-only review, findings fixed or filed.
+- [x] Independent read-only review: one blocker (an unruled network condition, removed and filed as
+  a question for Taylor), eight non-blockers fixed or accepted, one alignment item already filed.
 - [ ] Gate, packet, closeout to idle, gate again, merge, push.
 
 ## Verification

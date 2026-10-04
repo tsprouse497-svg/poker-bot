@@ -169,16 +169,16 @@ See `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL` in `backlog.yml`.
 
 Measured 2026-10-04 by MAINT-42 on the same Apple M4, GTOpen `4aee435bdeb1`, full-precision arenas (`SOLVER_COMPRESS=0`), a freshly started server per solve. These timings are why `AGENTS.md` lets the turn and river be solved at the table rather than stored; the script and every row are in `reports/phase_audits/MAINT_42_LIVE_TURN_AND_RIVER_SOLVES.md`.
 
-The setup is the committed flop campaign's in every field but the board: the ruled menu, which offers 66 and 125 on the turn and river with a 2.5x raise, the button-open against big-blind-call ranges from the committed export, floored, and the 0.3%-of-pot target checked every 10 iterations. The pots assume a 33% flop bet called, and then a 66% turn bet called for the river.
+The setup is the committed flop sample's except for the board, the pot and the stack: the ruled menu, which offers 66 and 125 on the turn and river with a 2.5x raise, the button-open against big-blind-call ranges from the committed export, floored, and the 0.3%-of-pot target checked every 10 iterations. The pots assume a 33% flop bet called, and then a 66% turn bet called for the river.
 
-**The ranges are the preflop ones, not narrowed by the flop or turn betting.** A real turn or river range is smaller, and cost scales with hands, so these are ceilings rather than estimates of a table decision.
+**The ranges are the preflop ones, not narrowed by the flop or turn betting.** A real range holds fewer hands, which lowers the cost per iteration, but flop strategies are mixed so fewer hands drop out than a pure strategy would remove, and the iterations a narrower range needs were not measured. So the hand count here is a ceiling and the wall clock is not. Every solve ran on a freshly started server, which this document measures as up to 1.6x faster than a long-lived one, and server start-up was not timed.
 
 | Root | Boards | Nodes | Action nodes | Arena | Iterations | Wall clock |
 |---|---|---|---|---|---|---|
 | River | `Kh7d2c5sAd`, `8c8d3c9hQs`, `9c8c7cKd2h`, and the first after a checked turn | 39 | 14 | 0.1 MB | 60 to 80 | 24 to 26 ms |
 | Turn | `Kh7d2c5s`, `8c8d3c9h`, `9c8c7cKd` | 12,711 | 4,862 | 36 to 37 MB | 140 to 150 | 1.7 to 2.4 s |
 
-Building either tree took 1 to 3 ms. The river timing includes a 20 ms polling interval, so the solve itself may be faster. A turn tree holds roughly 325 river subgames, 12,711 nodes over 39, which is why it costs about 80 times a river.
+Building either tree took 1 to 3 ms. The river timing includes a 20 ms polling interval, so the solve itself may be faster. A turn tree is about 325 times a river tree by node count, 12,711 over 39; its wall clock is about 80 times the river's, a ratio the river's polling inflation makes too small, and neither number is a count of subgames.
 
 **What moves the turn figure**, on `Kh7d2c5s` and `9c8c7cKd`, ruled config except for the one change named:
 

@@ -11,16 +11,20 @@ path or test, and builds nothing.
 ## What shipped
 
 - `AGENTS.md`: the boundary is now "No runtime solver calls before the turn", with the ruling, the
-  figures it rests on, the two conditions a live solve keeps (local machine, same answer for the
-  same inputs), and a statement that no phase owns building it.
+  figures it rests on, the one condition a live solve keeps (the same answer for the same inputs,
+  which the existing deterministic-bot rule already requires), and a statement that no phase owns
+  building it.
 - `docs/GTOPEN_SOLVER_NOTES.md`: a new section with the turn and river rows below; the two places
   that said turn and river roots were never posted are corrected, and the "Not verified" item now
   names what is still unmeasured, which is narrowed ranges.
 - `docs/ROADMAP.md` and `docs/V2_ROADMAP.md`: each statement that called the boundary permanent or
-  said turn and river cannot exist now carries the exception.
-- `backlog.yml`: `LIVE-TURN-AND-RIVER-SOLVING`, which carries the six questions building it must
+  said turn and river cannot exist now carries the exception, and the river pot-odds rule is
+  described as a fallback rather than the plan.
+- `backlog.yml`: `LIVE-TURN-AND-RIVER-SOLVING`, which carries the ten questions building it must
   answer: an owner, the engine and its missing licence, the gate's no-GTOpen rule, the ranges
-  entering the turn, bets off the menu, and determinism.
+  entering the turn, bets off the menu, determinism, where the solve runs, pots with three or more
+  players, how a turn re-solve is anchored to the flop, and whether the river is read from the turn
+  solve or solved again.
 
 ## How to check it without code
 
@@ -191,7 +195,34 @@ for board in ("Kh7d2c5s", "9c8c7cKd"):
 
 ## Independent review
 
-Pending.
+One read-only reviewer that wrote none of this and ran no gate, note at
+`reports/phase_audits/reviews/MAINT_42_LIVE_TURN_AND_RIVER_SOLVES/independent-review.md`.
+
+- **Blocker, resolved.** The amended boundary added a condition Taylor did not rule: a live solve
+  "runs on the bot's own machine with nothing sent over a network". The determinism half follows
+  from the existing deterministic-bot rule; the network half does not, and it would have ruled out a
+  rented solve box, which is a real way to make the turn faster. The clause is removed from
+  `AGENTS.md`, and where the solve runs is now question 7 of `LIVE-TURN-AND-RIVER-SOLVING`, for
+  Taylor to rule.
+- **Non-blockers, all fixed.** The notes called about 325 a count of river subgames and the cause of
+  the 80x; it is a ratio of tree sizes, and the 80x rests on a river time the polling inflates. The
+  notes and the backlog called the timings ceilings; only the hand count is, since iterations on a
+  narrower range were not measured, mixed flop strategies remove fewer hands than a pure one would,
+  and every solve ran on a freshly started server, which the notes measure as up to 1.6x faster. The
+  owner question missed phase 21, which also forbids runtime solver calls. Three questions a builder
+  would hit were missing: pots with three or more players, which GTOpen's two-player postflop engine
+  cannot solve; anchoring a turn re-solve to the committed flop strategy; and reading the river from
+  the turn solve or solving it again. The notes said the setup differs only in the board; pot and
+  stack differ too. `docs/V2_ROADMAP.md` still offered river pot-odds as the intermediate; it is now
+  named a fallback.
+- **Non-blocker, accepted.** The timings now appear in four documents and no check reads them. They
+  are measurements dated in place, and the notes are the source the others cite.
+- **Alignment, already filed.** The boundary is lifted with no owning phase, which `AGENTS.md` calls
+  no lift for the ingestion boundary. Question 1 of `LIVE-TURN-AND-RIVER-SOLVING` carries it.
+- **Held back:** the scripts below hard-code the primary checkout's path, which was on `main` at the
+  base commit and clean, so the rows stand; each board was solved once and repeats spread about 10%;
+  the stored-spot counts are per preflop line and also multiply by flop betting lines, which
+  understates storage and so favours the ruling.
 
 ## Gate
 

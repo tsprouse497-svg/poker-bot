@@ -9,12 +9,13 @@ items:
       and MAINT-42 amended `AGENTS.md` to say so. The ground is size against speed. Stored, they are
       85,995 turn and 4,127,760 river spots per preflop line. Live, one solve measured 1.7 to 2.4
       seconds on the turn and about 25 milliseconds on the river, on preflop ranges no later betting
-      had narrowed, so both are ceilings; `docs/GTOPEN_SOLVER_NOTES.md` carries the rows. He accepted
+      had narrowed and a freshly started server; `docs/GTOPEN_SOLVER_NOTES.md` says which way each
+      of those leans and carries the rows. He accepted
       the turn at that figure and set the river's limit at one second. Preflop and the flop stay
       committed artifacts solved offline.
       The ruling permits the work and builds none of it, and today the bot still refuses on every
-      turn and river. What building it has to answer:
-      (1) An owner. Phases 18, 19 and 20 each forbid adding runtime solver calls in their non-goals,
+      turn and river. What building it has to answer, the last four added by MAINT-42's review:
+      (1) An owner. Phases 18, 19, 20 and 21 each forbid adding runtime solver calls in their non-goals,
       so none of them may build it as written, and phase 20 is the one that plays at a table. Declaring
       the owning phase, or moving one of those non-goals, is a `contract-update` task.
       (2) The engine. GTOpen has no licence - no LICENSE file and no mention in its README or
@@ -32,8 +33,18 @@ items:
       onto a menu size, which is a substitution the decision carries.
       (6) Determinism. Phase 16 measured byte-identical output for the same computation on one
       machine, so a live solve must stop by a rule that does not read the wall clock.
+      (7) Where the solve runs. The ruling does not say whether it must be the machine at the
+      table or may be a rented box reached over a network; a remote box is a real way to make the
+      turn faster, and that is Taylor's to rule.
+      (8) Pots with three or more players. GTOpen's postflop engine is two-player, so those turns
+      and rivers have no live solve and need their own answer.
+      (9) Tying the turn to the flop. A turn re-solved from estimated ranges alone, with nothing
+      holding it to what the committed flop strategy promised, can be exploited; the builder must
+      say how the re-solve is anchored.
+      (10) Reading the river. A turn solve already contains every river under it, so the river can
+      be read from the turn solve or solved again; each answer has its own cost and consistency.
       `river_pot_odds.py` stays as a fallback and stops being the river plan.
-      Closes when a phase that owns it is declared and its contract answers all six.
+      Closes when a phase that owns it is declared and its contract answers all ten.
       Filed 2026-10-04 by MAINT-42.
 
   - id: PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS
