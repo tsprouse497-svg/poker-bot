@@ -2,7 +2,7 @@ schema_version: 1
 items:
   - id: LIVE-TURN-AND-RIVER-SOLVING
     status: deferred
-    phase: contract-update
+    phase: "22"
     title: The turn and river may be solved at the table and nothing builds it
     reason: >-
       Taylor ruled on 2026-10-04 that the turn and river are solved at the table instead of stored,
@@ -46,6 +46,10 @@ items:
       `river_pot_odds.py` stays as a fallback and stops being the river plan.
       Closes when a phase that owns it is declared and its contract answers all ten.
       Filed 2026-10-04 by MAINT-42.
+      **Adopted by phase 22 on 2026-10-04** (MAINT-43). Questions 1 and 2 are answered by Taylor's
+      rulings of that date: phase 22 owns it, waiting on 21, and the engine is GTOpen, chosen knowing
+      it has no licence and kept outside the repo. The other eight are phase 22's. Closes when phase
+      22's contract answers them and the bot answers a turn and a river from a live solve.
 
   - id: PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS
     status: deferred

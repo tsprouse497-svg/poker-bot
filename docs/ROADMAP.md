@@ -23,7 +23,8 @@ They produced a deterministic engine, a replayer that refuses out-of-order hands
 | 18 | The Yardstick | 14 |
 | 21 | The Flop Campaign | 16 |
 | 19 | Heuristics And Merged Charts | 16, 18, 21 |
-| 20 | The Home Game | 16, 19 |
+| 22 | Live Turn And River | 21 |
+| 20 | The Home Game | 16, 19, 22 |
 
 **This table is hand-typed and the contracts are the source.** `depends_on` in each contract under `docs/phase_contracts/` is the single source for the graph. Nothing compares the two: there is no generator for this table, and `check_repo_consistency` reads only contract frontmatter, so it catches an edge naming a phase that does not exist and a cycle, and nothing else. This file has already drifted from the contracts once, in this exact table, and a reviewer caught it rather than the gate. The gap is `PHASE-GRAPH-IS-WRITTEN-TWICE-AND-CHECKED-ONCE` in `backlog.yml`. When the answer matters, read the contracts.
 
@@ -32,11 +33,12 @@ Which phases may advance unattended is `verification/loop_policy.yml`, and it is
 ```
 14 ─┬─ 18 ──────────┐
     │               ├─ 19 ──┐
-    └─ 16 ─┬─ 21 ───┘       │
+    └─ 16 ─┬─ 21 ───┤       │
+           │        └─ 22 ──┤
            └────────────────┴─ 20
 ```
 
-19's edge from 16 is drawn through 21, which already depends on it.
+19's edge from 16 is drawn through 21, which already depends on it. 22 depends on 21 alone, and 20 on 16, 19 and 22.
 
 This is a graph rather than a queue, and `scripts/loop_fleet.py` plans from it, so several phases can be in flight at once.
 
@@ -52,7 +54,9 @@ What orders the rest is measurement before the thing being measured, and playing
 
 19 needs 16 because a merge of solved cells with heuristics has to cover flops as well as preflop spots, it needs 18 because a merge can otherwise only be asserted to help, and it needs 21, ruled by Taylor on 2026-09-26, so any rule of thumb it writes for a flop covers only what the campaign could not solve, and the merge is measured against the bot the campaign leaves. Nothing in this repo measures how well the bot plays; 18 builds that instrument, and until it exists "the heuristics are an improvement" is an opinion.
 
-20 comes last, and needs 16 and 19, because a bot that refuses every flop it holds no cell for, and voids the hand, should not sit down anywhere.
+22 needs 21 because a turn solve starts from both players' ranges at the turn, and those come from the committed flop strategy the campaign buys. It drives GTOpen at the table rather than a solver this repo writes, ruled by Taylor on 2026-10-04 knowing GTOpen carries no licence.
+
+20 comes last, and needs 16 and 19, because a bot that refuses every flop it holds no cell for, and voids the hand, should not sit down anywhere. It needs 22, ruled by Taylor on 2026-10-04, because otherwise it refuses every turn and river.
 
 ## Retired
 
@@ -69,6 +73,6 @@ A contract skeleton carries boilerplate acceptance criteria and placeholder comm
 - A training interface, and the drill behind it. Deferred until the bot plays well, which is the reason `AGENTS.md` now gives; it used to be deferred until the drill existed, and the drill is now the thing being deferred.
 - Table automation and browser observation outside Taylor's own home games. Phase 20 lifts it for those games and for nothing else; public real-money tables stay forbidden.
 - Large corpus ingestion beyond one player's own hands. The bounded lift for a single player's own history is still owed a size bound as a number.
-- Runtime solver calls for preflop and the flop, which stay permanently out. The turn and river are the exception: Taylor ruled on 2026-10-04 that they are solved at the table instead of stored, and `AGENTS.md` states the terms. No phase owns building it yet (`LIVE-TURN-AND-RIVER-SOLVING`).
+- Runtime solver calls for preflop and the flop, which stay permanently out. The turn and river are the exception: Taylor ruled on 2026-10-04 that they are solved at the table instead of stored, and `AGENTS.md` states the terms. Phase 22 builds it.
 - Stack-depth bucketing, which stays a heuristic no matter how many depths get solved (`STACK-DEPTH-BUCKETS`).
 - Board abstraction, grouping similar flops so the bot plays them identically (`POSTFLOP-BOARD-ABSTRACTION`). Ruled later rather than never on 2026-08-19. It buys depth, not breadth: a flop-only solution covers every canonical flop and so needs none of it. There are 1,755 canonical flops, the count `docs/GTOPEN_SOLVER_NOTES.md` names for GTOpen's own batch reports and the count an enumeration up to suit isomorphism gives. A turn is 49 cards below each of those, or 85,995 spots per preflop line, and a river 48 below each turn, or 4,127,760, and neither can be stored without abstraction, which is why `AGENTS.md` has them solved at the table instead. Those are counts of spots and not compute costs; the compute ratios stated alongside them elsewhere run the other way round, and that correction is `POSTFLOP-DEPTH-RATIOS-ARE-INVERTED`.
