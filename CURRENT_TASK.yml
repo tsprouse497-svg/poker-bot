@@ -1,14 +1,8 @@
-task_id: MAINT-42
+task_id: null
 active_phase: null
-task_mode: contract-update
-base_commit: 553f6f7931996c3feb4372a710a9845448f4c499
-approved_scope:
-- AGENTS.md
-- docs/ROADMAP.md
-- docs/V2_ROADMAP.md
-- docs/GTOPEN_SOLVER_NOTES.md
-- reports/phase_audits/MAINT_42_LIVE_TURN_AND_RIVER_SOLVES.md
-- reports/phase_audits/reviews/MAINT_42_LIVE_TURN_AND_RIVER_SOLVES/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml

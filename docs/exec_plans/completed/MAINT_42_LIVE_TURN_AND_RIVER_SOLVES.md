@@ -52,7 +52,7 @@ limits on those phases, and moving them belongs to whichever task declares the o
 - [x] Independent read-only review: one blocker (an unruled network condition, removed and filed as
   a question for Taylor), ten non-blockers of which four were confirmations, one alignment item
   already filed; round 2 clear.
-- [ ] Gate, packet, closeout to idle, gate again, merge, push.
+- [x] Gate, packet, closeout to idle, gate again, merge, push.
 
 ## Verification
 
@@ -61,10 +61,12 @@ limits on those phases, and moving them belongs to whichever task declares the o
 
 ## Outcome
 
-Pending review and gate.
+The runtime-solver boundary is lifted for the turn and river only, the timings are recorded,
+both roadmaps carry the exception, and `LIVE-TURN-AND-RIVER-SOLVING` carries ten questions for the
+phase that builds it. Review resolved in two rounds, gate green 50 of 50.
 
 ## Next Agent Bootstrap
 
-Work in `~/projects/poker-bot-worktrees/maint-42`. The edits are done; the open slices are the
-review and the gate. Run the review, fix what it finds, write the packet at
-`reports/phase_audits/MAINT_42_LIVE_TURN_AND_RIVER_SOLVES.md`, then the gate.
+Closed. Building live turn and river solving needs an owning phase declared in `contract-update`;
+start from `LIVE-TURN-AND-RIVER-SOLVING` in `backlog.yml`, whose question 7 (where the solve runs)
+is Taylor's to rule.
