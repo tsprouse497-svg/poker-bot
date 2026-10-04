@@ -1,8 +1,14 @@
-task_id: null
+task_id: MAINT-42
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: contract-update
+base_commit: 553f6f7931996c3feb4372a710a9845448f4c499
+approved_scope:
+- AGENTS.md
+- docs/ROADMAP.md
+- docs/V2_ROADMAP.md
+- docs/GTOPEN_SOLVER_NOTES.md
+- reports/phase_audits/MAINT_42_LIVE_TURN_AND_RIVER_SOLVES.md
+- reports/phase_audits/reviews/MAINT_42_LIVE_TURN_AND_RIVER_SOLVES/**
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -18,6 +24,16 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-10-04
+    reason: >-
+      MAINT-42 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. Taylor ruled on 2026-10-04 to lift the
+      runtime-solver boundary for the turn and the river: preflop and the flop stay committed offline
+      artifacts, and the turn and river are solved at the table instead of stored. Moving a boundary
+      is a semantic change, so this runs in `contract-update`. It amends `AGENTS.md`, corrects the two
+      roadmaps that still call the boundary permanent, and records the turn and river timings that
+      ruling rests on in `docs/GTOPEN_SOLVER_NOTES.md`, which still says they were never run. The last
+      two paths are this task's packet and review directory. No artifact, code or test changes.
   - date: 2026-09-26
     reason: >-
       MAINT-40 opens from idle, so every pattern in `approved_scope` reads as a widening against

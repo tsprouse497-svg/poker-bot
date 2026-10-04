@@ -23,12 +23,11 @@ The postflop section sits high rather than at the end on purpose. Its absence is
 
 Recorded because the absence of this section led a later reader to conclude GTOpen is preflop-only.
 
-**Driven end to end.** Four routes, on flop boards only: `POST /api/spot` builds the tree and returns node counts and the arena size, `POST /api/solve` runs CFR in the background against an exploitability target, `GET /api/status` carries the iteration counter and the exploitability history, and `POST /api/node` reads a node back. The next section is what they cost. Postflop CFR is the tool's primary function and the Preflop Lab is the bolt-on beside it.
+**Driven end to end.** Four routes, on flop boards and, since MAINT-42, on single turn and river roots: `POST /api/spot` builds the tree and returns node counts and the arena size, `POST /api/solve` runs CFR in the background against an exploitability target, `GET /api/status` carries the iteration counter and the exploitability history, and `POST /api/node` reads a node back. The next section is what they cost. Postflop CFR is the tool's primary function and the Preflop Lab is the bolt-on beside it.
 
 **Read from the README and the route table, never executed.** Same class as "Not verified" below, and listed here only so the surface is known:
 
 - The rest of the route surface: `/api/runouts`, `/api/reports/*`, `/api/lock`, `/api/exploit`.
-- Turn and river roots. The route accepts a board of 3, 4 or 5 cards; only 3 was posted.
 - `REPORTS`, which batch-solves one spot across a weighted canonical flop subset of 47, 95, 184, or all 1,755 flops.
 - `SEND TO POSTFLOP`, said to carry both conditional ranges, the pot and the stacks out of a Preflop Lab line into a postflop setup, which would be the only coupling between the two engines.
 - Node locking and a best-response mode, which the README claims are covered by tests.
@@ -166,6 +165,32 @@ They must not be netted casually, but a reader is entitled to know which way the
 
 See `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL` in `backlog.yml`.
 
+## What a turn or river solve costs
+
+Measured 2026-10-04 by MAINT-42 on the same Apple M4, GTOpen `4aee435bdeb1`, full-precision arenas (`SOLVER_COMPRESS=0`), a freshly started server per solve. These timings are why `AGENTS.md` lets the turn and river be solved at the table rather than stored; the script and every row are in `reports/phase_audits/MAINT_42_LIVE_TURN_AND_RIVER_SOLVES.md`.
+
+The setup is the committed flop campaign's in every field but the board: the ruled menu, which offers 66 and 125 on the turn and river with a 2.5x raise, the button-open against big-blind-call ranges from the committed export, floored, and the 0.3%-of-pot target checked every 10 iterations. The pots assume a 33% flop bet called, and then a 66% turn bet called for the river.
+
+**The ranges are the preflop ones, not narrowed by the flop or turn betting.** A real turn or river range is smaller, and cost scales with hands, so these are ceilings rather than estimates of a table decision.
+
+| Root | Boards | Nodes | Action nodes | Arena | Iterations | Wall clock |
+|---|---|---|---|---|---|---|
+| River | `Kh7d2c5sAd`, `8c8d3c9hQs`, `9c8c7cKd2h`, and the first after a checked turn | 39 | 14 | 0.1 MB | 60 to 80 | 24 to 26 ms |
+| Turn | `Kh7d2c5s`, `8c8d3c9h`, `9c8c7cKd` | 12,711 | 4,862 | 36 to 37 MB | 140 to 150 | 1.7 to 2.4 s |
+
+Building either tree took 1 to 3 ms. The river timing includes a 20 ms polling interval, so the solve itself may be faster. A turn tree holds roughly 325 river subgames, 12,711 nodes over 39, which is why it costs about 80 times a river.
+
+**What moves the turn figure**, on `Kh7d2c5s` and `9c8c7cKd`, ruled config except for the one change named:
+
+| Change | Wall clock | What it costs |
+|---|---|---|
+| None | 1.8 to 2.2 s | |
+| Target 0.5% of pot | 1.3 to 1.7 s | accuracy |
+| Target 1% of pot | 0.9 to 1.1 s | accuracy |
+| One bet size, 66, on turn and river | 0.5 to 0.6 s | the 125 bet; 1,976 action nodes |
+| Each range cut to its heaviest classes, about half its combos | 0.8 to 0.9 s | nothing, if the cut matches what real play leaves; this cut is a crude stand-in |
+| One size, half the combos, and 0.5% together | about 0.18 s | all three |
+
 ## Not verified
 
 Do not repeat any of these as established.
@@ -173,7 +198,7 @@ Do not repeat any of these as established.
 - **Whether the strategy has settled at 220 to 260 iterations.** Only exploitability was targeted, and action frequencies on indifferent hands converge later than exploitability does - this document already says so for preflop and it was never checked for postflop. Nothing was solved deep and diffed against a shallower solve. The determinism result does not cover this: both runs stopped at 240. If frequencies need several times that, every cost figure here is off by the same multiple, and anything committed as chart data from a 240-iteration solve is unproven.
 - **Exploitability against an unrestricted opponent.** The 0.3% target is measured by a best response walking the same tree, so it bounds exploitability against an opponent confined to the same bet menu. It is not a bound against one who can bet any size, and the abstraction error of a two-size menu is larger. A 3.7 GB three-bet tree is comfortable on a laptop only at this menu and these ranges.
 - **Most board structures, not only rainbow.** Five cells converged, on two rank patterns. Never reached the target: rainbow-dry, rainbow-connected, paired, ace-high connected, and disconnected-low. A paired board is a structural gap rather than a suit one.
-- **Turn- and river-rooted solves.** Only flop roots were built and solved. A flop solve already contains its turn and river subgames, but a separately configured turn spot is a different game and its cost is unmeasured.
+- **Turn and river solves on narrowed ranges.** The timings under "What a turn or river solve costs" use preflop ranges. Ranges as they stand after real flop and turn betting were never posted, so a table's turn latency is bounded above, not measured.
 - **Batch reports.** `REPORTS` claims a weighted canonical subset of 47, 95, 184 or all 1,755 flops. None of the four was run, and nothing here says what the batch costs beyond one solve times a count.
 - **The solved payload's size on disk.** Never measured, and artifact size is one of the grounds the flop-only ruling rests on.
 - **Table sizes other than six-handed**, limps, and antes. The README claims 2 to 9 players with limps and cold calls. Only the six-seat, no-limp config above was built.
