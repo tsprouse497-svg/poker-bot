@@ -1,0 +1,194 @@
+{
+ "record_schema_version": 1,
+ "what_this_is": "Phase 16's four boards re-solved at the thread count named below, by scripts/solve_postflop_sample.py --all in a scratch copy of the tree, and compared with the committed cells: each held cell document byte for byte, every indexed strategy digest including the fifth cell's, and every per-combo strategy in the solver's own answer against the committed run's object. No tolerance.",
+ "machine": "Apple M4, 10 logical processors (4 performance, 6 efficiency), 34.4 GB RAM, Darwin",
+ "machine_record": {
+  "cpu_model": "Apple M4",
+  "description": "Apple M4, 10 logical processors (4 performance, 6 efficiency), 34.4 GB RAM, Darwin",
+  "efficiency_cores": 6,
+  "logical_processors": 10,
+  "memory_bytes": 34359738368,
+  "performance_cores": 4,
+  "platform": "Darwin"
+ },
+ "threads": 10,
+ "committed_runs_threads": "unrecorded at the time; GTOpen's default of half the logical processors, five on this M4",
+ "route": "the existing button-line sample path in scripts/solve_postflop_sample.py; solver_artifacts has no postflop_lines module in this tree yet",
+ "reproduced": true,
+ "errors": [],
+ "cells": [
+  {
+   "cell": "monotone-connected-cbet",
+   "spot_key": "f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5",
+   "held_in_the_repo": true,
+   "iterations": [
+    280,
+    280
+   ],
+   "achieved_exploitability_pct_of_pot": [
+    0.27735663733758104,
+    0.27735663733758104
+   ],
+   "wall_seconds": [
+    375.5712332910043,
+    300.53933999990113
+   ],
+   "threads": [
+    null,
+    10
+   ],
+   "peak_resident_bytes": [
+    null,
+    9251635200
+   ],
+   "resolved_strategy_digest": "f39ba5644e88d64a578a76c9bfd62b05f320651a34c17803a016cbf76dcd42b8",
+   "per_combo": {
+    "menu_matched": true,
+    "combos": 447,
+    "combos_in_only_one_run": 0,
+    "largest_gap": 0.0
+   }
+  },
+  {
+   "cell": "rainbow-dry-high-donk",
+   "spot_key": "f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5",
+   "held_in_the_repo": true,
+   "iterations": [
+    340,
+    340
+   ],
+   "achieved_exploitability_pct_of_pot": [
+    0.283013340119407,
+    0.283013340119407
+   ],
+   "wall_seconds": [
+    1677.3881121250015,
+    1112.0759440000402
+   ],
+   "threads": [
+    null,
+    10
+   ],
+   "peak_resident_bytes": [
+    null,
+    11699077120
+   ],
+   "resolved_strategy_digest": "3de9b6704124490649689dd5975f64b300a7f20afc255b218e48f58c9944a4e9",
+   "per_combo": {
+    "menu_matched": true,
+    "combos": 342,
+    "combos_in_only_one_run": 0,
+    "largest_gap": 0.0
+   }
+  },
+  {
+   "cell": "rainbow-dry-high-facing-a-bet",
+   "spot_key": "f/b:Kh7d2c/t6/d100/BB/BTN:raise@2.5,BB:call/f:BB:check,BTN:bet@33/p:5.5/e:97.5",
+   "held_in_the_repo": true,
+   "iterations": [
+    340,
+    340
+   ],
+   "achieved_exploitability_pct_of_pot": [
+    0.283013340119407,
+    0.283013340119407
+   ],
+   "wall_seconds": [
+    1677.3881121250015,
+    1112.0759440000402
+   ],
+   "threads": [
+    null,
+    10
+   ],
+   "peak_resident_bytes": [
+    null,
+    11699077120
+   ],
+   "resolved_strategy_digest": "d305055b3fee1afd8480b3e91fc44f35f121e4e3388396576140f5d97bb5fc25",
+   "per_combo": {
+    "menu_matched": true,
+    "combos": 342,
+    "combos_in_only_one_run": 0,
+    "largest_gap": 0.0
+   }
+  },
+  {
+   "cell": "two-tone-paired-donk",
+   "spot_key": "f/b:8c8d3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5",
+   "held_in_the_repo": true,
+   "iterations": [
+    320,
+    320
+   ],
+   "achieved_exploitability_pct_of_pot": [
+    0.28373142426273523,
+    0.28373142426273523
+   ],
+   "wall_seconds": [
+    1035.9442260419964,
+    706.2200591249857
+   ],
+   "threads": [
+    null,
+    10
+   ],
+   "peak_resident_bytes": [
+    null,
+    9872670720
+   ],
+   "resolved_strategy_digest": "32df801ee16fcd6fe29e5f0f8fd1c54c16b0ef539b38ed32dc45132586eb3819",
+   "per_combo": {
+    "menu_matched": true,
+    "combos": 350,
+    "combos_in_only_one_run": 0,
+    "largest_gap": 0.0
+   }
+  },
+  {
+   "cell": "monotone-disconnected-listed-not-held",
+   "spot_key": "f/b:Ac8c3c/t6/d100/BB/BTN:raise@2.5,BB:call/f:none/p:5.5/e:97.5",
+   "held_in_the_repo": false,
+   "iterations": [
+    320,
+    320
+   ],
+   "achieved_exploitability_pct_of_pot": [
+    0.27173729894428417,
+    0.27173729894428417
+   ],
+   "wall_seconds": [
+    616.009270040995,
+    320.53092954098247
+   ],
+   "threads": [
+    null,
+    10
+   ],
+   "peak_resident_bytes": [
+    null,
+    9245687808
+   ],
+   "resolved_strategy_digest": "2cc028773f624f4acece454d5a21478161dcc400552544925388682d4e539d94",
+   "per_combo": {
+    "menu_matched": true,
+    "combos": 331,
+    "combos_in_only_one_run": 0,
+    "largest_gap": 0.0
+   }
+  }
+ ],
+ "run_window": {
+  "started": "2026-10-04T08:20:24-0700",
+  "ended": "2026-10-04T09:01:16-0700",
+  "held_awake_by": "caffeinate -i -s around the whole re-solve",
+  "power_events_during": [],
+  "power_events_just_after": [
+   "2026-10-04 09:01:21 Sleep: Idle Sleep, five seconds after the job ended and caffeinate released",
+   "2026-10-04 09:01:30 ThermalEvent: Ignored DarkWake thermal emergency signal",
+   "2026-10-04 09:01:31 Sleep: Thermal Emergency Sleep",
+   "2026-10-04 09:06:42 Wake: DarkWake to FullWake"
+  ],
+  "note": "pmset -g log shows no sleep, wake or thermal event between start and end. The thermal emergency sleep came after the job, as the machine went to sleep hot; it is recorded here because it is the second time it has happened after a long solve on this fanless MacBook Air, not because it touched a solve. A sleep would not change the answer in any case, only the wall clocks."
+ }
+}

@@ -98,6 +98,7 @@ from poker_training_bot.solver_artifacts.postflop_transport import (  # noqa: E4
 DEFAULT_OUTPUT = POSTFLOP_DIR / "campaign" / "thread_sweep.json"
 DEFAULT_BOARD = "Kh7d2c"
 POLL_SECONDS = 0.5
+MAX_ATTEMPTS_PER_SLOT = 2
 SMOKE_ITERATIONS = 20
 
 
@@ -125,6 +126,40 @@ def busiest_processes(count: int = 3) -> list[dict[str, Any]]:
             rows.append({"cpu_pct": float(parts[0]), "pid": int(parts[1]), "command": parts[2]})
     rows.sort(key=lambda row: row["cpu_pct"], reverse=True)
     return rows[:count]
+
+
+POWER_EVENT_TYPES = ("Sleep", "Wake", "DarkWake", "ThermalEvent")
+"""`pmset -g log` event types that mean a stretch did not run on an awake, unthrottled machine.
+A run that overlaps one is discarded and its slot run again, never kept."""
+
+
+def power_events(since: str, until: str) -> list[str]:
+    """Sleep, wake and thermal lines `pmset -g log` recorded between two local timestamps
+    (`YYYY-MM-DD HH:MM:SS`), and every line mentioning thermal, whatever its type. Darwin only;
+    elsewhere there is no such log and the list is empty."""
+    if sys.platform != "darwin":
+        return []
+    text = subprocess.run(  # noqa: S603 - fixed system binary
+        ["/usr/bin/pmset", "-g", "log"], capture_output=True, text=True, check=True
+    ).stdout
+    events = []
+    for line in text.splitlines():
+        stamp = line[:19]
+        if not (since <= stamp <= until):
+            continue
+        kind = line[26:].split(None, 1)[0] if len(line) > 26 else ""
+        if kind in POWER_EVENT_TYPES or "thermal" in line.lower():
+            events.append(" ".join(line.split())[:300])
+    return events
+
+
+def thermal_state() -> str:
+    """`pmset -g therm` as printed: the CPU speed limit, if macOS has set one."""
+    if sys.platform != "darwin":
+        return ""
+    return subprocess.run(  # noqa: S603 - fixed system binary
+        ["/usr/bin/pmset", "-g", "therm"], capture_output=True, text=True, check=True
+    ).stdout.strip()
 
 
 def committed_plan(board: str) -> SolvePlan:
@@ -162,7 +197,9 @@ def one_stretch(
         "load_average_1m_before": load_average(),
         "busiest_processes_before": busiest_processes(),
         "started_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        "thermal_state_before": thermal_state(),
     }
+    since = time.strftime("%Y-%m-%d %H:%M:%S")
     server = Server(binary, log_dir, threads)
     server.start(f"sweep-{position:02d}-{threads}t")
     try:
@@ -201,8 +238,12 @@ def one_stretch(
         elapsed = numeric(status, "/api/status", "elapsed_secs")
     finally:
         server.stop()
+    events = power_events(since, time.strftime("%Y-%m-%d %H:%M:%S"))
     return {
         **before,
+        "thermal_state_after": thermal_state(),
+        "power_events_during": events,
+        "valid": not events,
         "server_elapsed_seconds": elapsed,
         "client_wall_seconds": client_seconds,
         "tree_build_seconds": build_seconds,
@@ -229,6 +270,9 @@ def main(argv: list[str] | None = None) -> int:
         help="append each finished run here as one JSON line",
     )
     parser.add_argument(
+        "--note", default=None, help="what the record should say about the sweep's conditions"
+    )
+    parser.add_argument(
         "--smoke",
         action="store_true",
         help=f"one {SMOKE_ITERATIONS}-iteration run, most threads; writes nothing",
@@ -252,10 +296,26 @@ def main(argv: list[str] | None = None) -> int:
 
     runs: list[tuple[int, float]] = []
     details: list[dict[str, Any]] = []
+    discarded: list[dict[str, Any]] = []
     for position, threads in enumerate(schedule):
-        detail = one_stretch(
-            plan, threads, iterations, Path(args.server), Path(args.log_dir), position
-        )
+        for attempt in range(1, MAX_ATTEMPTS_PER_SLOT + 1):
+            detail = one_stretch(
+                plan, threads, iterations, Path(args.server), Path(args.log_dir), position
+            )
+            detail["attempt"] = attempt
+            if detail["valid"]:
+                break
+            discarded.append({"position": position, "threads": threads, **detail})
+            print(
+                f"run {position + 1:2d} attempt {attempt} DISCARDED: a sleep, wake or thermal"
+                f" event during it: {detail['power_events_during']}",
+                flush=True,
+            )
+        else:
+            raise SystemExit(
+                f"slot {position + 1} hit a power event on {MAX_ATTEMPTS_PER_SLOT} attempts; the"
+                " machine is not awake and quiet enough for a sweep, and nothing is written"
+            )
         seconds = detail["server_elapsed_seconds"] / iterations
         runs.append((threads, seconds))
         details.append(detail)
@@ -282,6 +342,9 @@ def main(argv: list[str] | None = None) -> int:
         "the server's own elapsed_secs at the end of the stretch divided by its iterations: the"
         " solve loop alone, exploitability checks included, tree build and polling excluded"
     )
+    record["discarded_runs"] = discarded
+    if args.note:
+        record["conditions_note"] = args.note
     record["load_average_note"] = (
         "load_average_1m_before is the one-minute load average as read just before each run. It"
         " decays over minutes, so after the first run it still carries the previous stretch's own"

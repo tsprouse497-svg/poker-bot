@@ -101,6 +101,10 @@ from poker_training_bot.solver_artifacts.postflop_artifact import (  # noqa: E40
     import_postflop_cell,
     import_postflop_index,
 )
+from poker_training_bot.solver_artifacts.postflop_determinism import (  # noqa: E402
+    compare_node_payloads,
+    resolve_document,
+)
 from poker_training_bot.solver_artifacts.postflop_harvest import (  # noqa: E402
     CLASS_AGREEMENT_TOLERANCE,
     cell_document,
@@ -972,36 +976,6 @@ def second_run_objects(second_objects: Path, name: str) -> Path:
     return path
 
 
-def compare_node_payloads(one: dict[str, Any], two: dict[str, Any]) -> dict[str, Any]:
-    """Two answers for one node compared per combo, under the rounding rather than over it.
-
-    The committed rows are thousandths and the solver answers in floats, so two runs can differ
-    by a ten-thousandth and still write the same committed bytes. This looks at what the solver
-    produced, which is the only place a difference that small is visible at all.
-    """
-    if one["actions"] != two["actions"]:
-        return {"menu_matched": False, "combos_in_only_one_run": None, "largest_gap": None}
-    rows_one = {
-        str(hand["combo"]): [float(value) for value in hand["strategy"]]
-        for hand in one["players"][int(one["player"])]["hands"]
-    }
-    rows_two = {
-        str(hand["combo"]): [float(value) for value in hand["strategy"]]
-        for hand in two["players"][int(two["player"])]["hands"]
-    }
-    shared = sorted(set(rows_one) & set(rows_two))
-    gaps = [
-        max(abs(a - b) for a, b in zip(rows_one[combo], rows_two[combo], strict=True))
-        for combo in shared
-    ]
-    return {
-        "menu_matched": True,
-        "combos": len(rows_one),
-        "combos_in_only_one_run": len(set(rows_one) ^ set(rows_two)),
-        "largest_gap": max(gaps) if gaps else None,
-    }
-
-
 def determinism_document(second_tree: Path, second_objects: Path) -> dict[str, Any]:
     """Both runs of the committed configuration, compared, with nothing averaged or tolerated."""
     if second_tree.resolve() == POSTFLOP_DIR.resolve():
@@ -1132,6 +1106,50 @@ def determinism_document(second_tree: Path, second_objects: Path) -> dict[str, A
         ),
         "cells": cells,
     }
+
+
+RESOLVE_PATH = POSTFLOP_DIR / "campaign" / "mac_resolve_at_thread_count.json"
+
+
+def resolve_check(resolved_tree: Path, resolved_objects: Path, output: Path) -> int:
+    """Phase 21's re-solve check: phase 16's boards solved again at another thread count, in a
+    scratch copy of the tree so nothing committed is overwritten, compared with the committed
+    cells, digests and per-combo strategies. Exit 1 when anything differs; nothing is tolerated."""
+    manifest = json.loads(OBJECT_MANIFEST_PATH.read_text(encoding="utf-8"))
+    compared = resolve_document(resolved_tree, resolved_objects, manifest)
+    first = gzip.open(next(iter(sorted(resolved_objects.glob("srp-*.nodes.json.gz"))))).read()
+    solve = json.loads(first)["solve"]
+    document = {
+        "record_schema_version": 1,
+        "what_this_is": (
+            "Phase 16's four boards re-solved at the thread count named below, by"
+            " scripts/solve_postflop_sample.py --all in a scratch copy of the tree, and compared"
+            " with the committed cells: each held cell document byte for byte, every indexed"
+            " strategy digest including the fifth cell's, and every per-combo strategy in the"
+            " solver's own answer against the committed run's object. No tolerance."
+        ),
+        "machine": solve.get("machine"),
+        "machine_record": solve.get("machine_record"),
+        "threads": solve.get("threads"),
+        "committed_runs_threads": (
+            "unrecorded at the time; GTOpen's default of half the logical processors, five on"
+            " this M4"
+        ),
+        "route": (
+            "the existing button-line sample path in scripts/solve_postflop_sample.py;"
+            " solver_artifacts has no postflop_lines module in this tree yet"
+        ),
+        **compared,
+    }
+    write_json(output, document)
+    print(f"  reproduced         {document['reproduced']}")
+    for error in document["errors"]:
+        print(f"  DIFFERS            {error}")
+    for cell in document["cells"]:
+        print(f"  {cell['cell']:40s} iterations {cell['iterations']}, wall {cell['wall_seconds']},"
+              f" largest per-combo gap {cell['per_combo']['largest_gap']}")
+    print(f"  wrote              {output}")
+    return 0 if document["reproduced"] else 1
 
 
 def _cell_strategy(document: dict[str, Any]) -> tuple[list[str], list[list[float]]]:
@@ -1727,7 +1745,19 @@ def main(argv: list[str] | None = None) -> int:
                              f" {SOLVE_ITERATION_CAP}-iteration cap and diff its action"
                              " frequencies against the strategy the repo committed"
                              f" (default {DEEP_CHECK_CELL})")
+    parser.add_argument("--resolve-tree", default=None, metavar="DIR",
+                        help="a re-solve's data/artifacts/postflop tree; with --resolve-objects,"
+                             " compares it with the committed cells and writes"
+                             " --resolve-output")
+    parser.add_argument("--resolve-objects", default=None, metavar="DIR")
+    parser.add_argument("--resolve-output", default=str(RESOLVE_PATH), metavar="FILE")
     args = parser.parse_args(argv)
+
+    if args.resolve_tree or args.resolve_objects:
+        if not (args.resolve_tree and args.resolve_objects):
+            parser.error("--resolve-tree and --resolve-objects are used together")
+        return resolve_check(Path(args.resolve_tree), Path(args.resolve_objects),
+                             Path(args.resolve_output))
 
     if args.list:
         for cell in SAMPLE_CELLS:
