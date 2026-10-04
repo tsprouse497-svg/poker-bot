@@ -11,6 +11,7 @@ approved_scope:
 - src/poker_training_bot/solver_artifacts/**
 - scripts/measure_postflop_thread_sweep.py
 - scripts/solve_postflop_sample.py
+- scripts/measure_postflop_solve_cost.py
 - data/artifacts/postflop/campaign/thread_sweep.json
 - data/artifacts/postflop/campaign/mac_resolve_at_thread_count.json
 - docs/GTOPEN_SOLVER_NOTES.md
@@ -24,6 +25,7 @@ approved_scope:
 - tests/test_flop_campaign_lines.py
 - tests/test_flop_campaign_costs.py
 - tests/test_flop_campaign_threads.py
+- tests/test_flop_campaign_report_records.py
 - verification/mutations.yml
 - verification/freeze.lock
 standing_scope:
@@ -4531,4 +4533,18 @@ scope_change_log:
       written by a lane that writes no implementation, reviewed read-only, re-frozen with
       `scripts/freeze_tests.py` so the lock diff is the record, and the narrowing goes back on in
       the next entry.
+  - date: 2026-10-04
+    reason: >-
+      `scripts/measure_postflop_solve_cost.py` joins scope for decision 17. It labels every cost row
+      with the commit of `~/projects/gtopen`, the untouched reference clone, whatever binary actually
+      ran, and falls back to "unknown". With two trees in use that label would call a patched-build
+      measurement the pin's, so it reads the build from the running binary's own clone, as every solve
+      record now does, and refuses rather than guessing.
+  - date: 2026-10-04
+    reason: >-
+      `tests/test_flop_campaign_report_records.py` joins decision 17's freeze re-open. Its invented
+      candidates record states a memory bar of 18,600,000,000 bytes, chosen to sit at or above the
+      small blind line's bar under either reading of the server's unit on the pin's tree; on the new
+      tree that bar is 18,710,513,792 bytes, so the fixture would be refused by the rule it exists to
+      exercise. The one figure and its docstring move; nothing else in the file changes.
 

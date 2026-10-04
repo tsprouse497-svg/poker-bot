@@ -54,13 +54,16 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from solve_postflop_sample import (  # noqa: E402
     DEFAULT_SERVER,
+    SERVER_HELP,
     SOLVE_CONFIG_PATH,
     ArenaVerifiedTransport,
     Server,
     conditional_ranges,
+    describe_build,
     preflop_line_for,
     range_text,
     refuse_a_foreign_server,
+    run_solver_build,
 )
 
 from poker_training_bot.solver_artifacts.postflop_artifact import POSTFLOP_DIR  # noqa: E402
@@ -292,7 +295,7 @@ def merged_sweep_document(output: Path, record: dict[str, Any]) -> dict[str, Any
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--board", default=DEFAULT_BOARD)
-    parser.add_argument("--server", default=str(DEFAULT_SERVER), help="the gto-server binary")
+    parser.add_argument("--server", default=str(DEFAULT_SERVER), help=SERVER_HELP)
     parser.add_argument("--log-dir", default=str(Path.home() / ".cache" / "poker-bot-solves"))
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     parser.add_argument(
@@ -312,11 +315,13 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     machine: MachineRecord = measure_machine()
+    solver_build = run_solver_build(Path(args.server))
     counts = thread_counts_to_time(machine.logical_processors)
     plan = committed_plan(args.board)
     schedule = (max(counts),) if args.smoke else interleaved_schedule(counts)
     iterations = SMOKE_ITERATIONS if args.smoke else ITERATIONS_PER_STRETCH
     print(f"machine            {machine.describe()}")
+    print(f"solver build       {describe_build(solver_build)}")
     print(f"memory ceiling     {describe_memory_ceiling()}")
     print(f"board              {plan.board} on {plan.preflop_line}, solve_config.json unchanged")
     print(f"counts             {list(counts)}, schedule {list(schedule)}")
@@ -367,6 +372,7 @@ def main(argv: list[str] | None = None) -> int:
         print("smoke run: nothing written")
         return 0
     record = sweep_record(machine, runs, details)
+    record["solver_build"] = solver_build
     record["board"] = plan.board
     record["preflop_line"] = plan.preflop_line
     record["configuration"] = str(SOLVE_CONFIG_PATH.relative_to(REPO_ROOT))

@@ -106,10 +106,10 @@ STRETCH = {
 }
 """3,240 seconds in all; at $3.60 an hour that is $3.24 a closed flop."""
 
-BAR_BYTES = 18_600_000_000
-"""At or above the small blind's line's largest planned arena under either reading of the
-server's unit - 17,674,107,736 bytes as the server means it, 18,532,645,193 as the 2^20 reading
-has it - so the fixture does not decide decision 14."""
+BAR_BYTES = 19_700_000_000
+"""At or above the small blind's line's largest planned arena on the clone's tree (decision 17)
+under either reading of the server's unit - 18,710,513,792 bytes as the server means it,
+19,619,395,709 as the 2^20 reading has it - so the fixture does not decide decision 14."""
 
 
 def candidates_record():

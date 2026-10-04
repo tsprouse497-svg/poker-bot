@@ -208,8 +208,11 @@ RULED_SOLVE_CONFIG: dict[str, object] = {
 
 An empty `donk` list does **not** mean the out-of-position player never bets the flop: GTOpen gates
 the donk list on `street > root_street`, false on a flop-rooted solve, so out of position uses the
-`bet` list exactly as in position. What it removes is the probe - leading turn or river into the
-previous street's aggressor - which biases hero's flop betting upward through continuation values.
+`bet` list exactly as in position. On the patched tree a street both players check clears the
+aggressor (decision 17), so after a checked-through street out of position leads with the `bet`
+list too. What the empty list still removes is the true donk - leading turn or river straight into
+the player who bet or raised last on the previous street and was called - which biases hero's flop
+betting upward through continuation values.
 
 Nothing measured uses 66% or 125%; every row is `33 75` or `75`, so the menu is unmeasured on both
 cost and strategy and the phase's first solve runs on it."""

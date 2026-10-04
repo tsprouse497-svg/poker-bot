@@ -54,17 +54,28 @@ Usage:
     uv run python scripts/solve_postflop_sample.py --list
     uv run python scripts/solve_postflop_sample.py --cell monotone-connected-cbet
     uv run python scripts/solve_postflop_sample.py --all
+    uv run python scripts/solve_postflop_sample.py --all --export-strategies
     uv run python scripts/solve_postflop_sample.py --deep-check
+
+**`--export-strategies` keeps the whole solve, not only the flop cells.** After a board solves and
+its verdict commits it, and before its server stops, the clone's read-only bulk route writes every
+action node's average strategy to `<clone>/saves/<label>.strats`. That file is moved into
+`--object-dir` beside the object, with `<label>.strats.json` holding the route's summary, the
+file's sha256 and size, and the solver build. The object and index formats are unchanged. It is
+how a re-solve keeps its turn and river decision points for a later harvest from that same solve.
 """
 
 from __future__ import annotations
 
 import argparse
+import errno
 import gzip
 import hashlib
 import json
 import math
 import os
+import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -127,6 +138,8 @@ from poker_training_bot.solver_artifacts.postflop_machine import (  # noqa: E402
     check_engine,
     measure_machine,
     solve_record,
+    solver_build_for,
+    solver_repository,
 )
 from poker_training_bot.solver_artifacts.postflop_solve_driver import (  # noqa: E402
     CHECK_EVERY_ITERATIONS,
@@ -148,6 +161,7 @@ from poker_training_bot.solver_artifacts.postflop_threads import (  # noqa: E402
 from poker_training_bot.solver_artifacts.postflop_transport import (  # noqa: E402
     BASE_URL,
     SolveDriverError,
+    answered,
     check_arena_storage,
     http_transport,
 )
@@ -159,7 +173,11 @@ ARTIFACT_BYTE_CAP = 20 * 1024 * 1024
 SOLVE_CONFIG_PATH = POSTFLOP_DIR / "solve_config.json"
 OBJECT_MANIFEST_PATH = POSTFLOP_DIR / "objects.json"
 
-DEFAULT_SERVER = Path.home() / "projects" / "GTOpen" / "target" / "release" / "gto-server"
+DEFAULT_SERVER = Path.home() / "projects" / "gtopen-poker-bot" / "target" / "release" / "gto-server"
+SERVER_HELP = (
+    "the gto-server binary; the default is the patched clone recorded in"
+    " docs/GTOPEN_SOLVER_NOTES.md, and another build is chosen with --server"
+)
 DEFAULT_OBJECT_DIR = Path.home() / "poker-bot-solve-objects" / "postflop"
 
 TABLE_SIZE = 6
@@ -396,12 +414,13 @@ def range_text(weights: dict[str, float]) -> str:
 
 @dataclass(frozen=True)
 class RunConditions:
-    """Where and how this invocation solves: the machine as measured at start and the explicit
-    thread count. Written beside every timing, because a timing without them is not a measurement
-    (phase 21's forbidden shortcut)."""
+    """Where and how this invocation solves: the machine as measured at start, the explicit
+    thread count and the solver build the binary came from. Written beside every timing, because a
+    timing without them is not a measurement (phase 21's forbidden shortcut)."""
 
     machine: MachineRecord
     threads: int
+    solver_build: dict[str, str]
     engine: str = CPU_ENGINE
 
     def solve_block(
@@ -426,6 +445,7 @@ class RunConditions:
                 engine=engine,
                 arena_storage=arena_storage,
                 peak_resident_bytes=peak_resident_bytes,
+                solver_build=self.solver_build,
             ),
             "machine_description": self.machine.describe(),
             "memory_ceiling": outcome.memory_ceiling,
@@ -435,20 +455,38 @@ class RunConditions:
 _RUN_CONDITIONS: list[RunConditions] = []
 
 
+def describe_build(build: dict[str, str]) -> str:
+    return f"{build['repository']} on {build['branch']} at {build['commit']}"
+
+
 def run_conditions() -> RunConditions:
     if not _RUN_CONDITIONS:
         raise SystemExit("no run conditions: main measures the machine and takes --threads first")
     return _RUN_CONDITIONS[-1]
 
 
-def begin_run(threads: int | None, engine: str = CPU_ENGINE) -> RunConditions:
-    """Measure this machine and fix the thread count, once, before any server starts."""
+def run_solver_build(server: Path) -> dict[str, str]:
+    """The build a run on `server` records, read once before any server starts. A dirty clone, a
+    detached head, or a binary older than the clone's HEAD commit is refused here."""
+    try:
+        return solver_build_for(server)
+    except (OSError, ValueError) as error:
+        raise SystemExit(f"the solver build could not be read: {error}") from error
+
+
+def begin_run(threads: int | None, server: Path, engine: str = CPU_ENGINE) -> RunConditions:
+    """Measure this machine, fix the thread count and read the solver build, once, before any
+    server starts. The build is read from the clone the binary sits in, so a run on another
+    build names that build rather than the default's."""
     try:
         server_environment(threads, base={})  # the same refusal a server start would meet
     except SolveDriverError as error:
         raise SystemExit(f"--threads is required to solve: {error}") from error
     assert isinstance(threads, int)
-    conditions = RunConditions(machine=measure_machine(), threads=threads, engine=engine)
+    solver_build = run_solver_build(server)
+    conditions = RunConditions(
+        machine=measure_machine(), threads=threads, solver_build=solver_build, engine=engine
+    )
     _RUN_CONDITIONS.append(conditions)
     return conditions
 
@@ -489,7 +527,7 @@ class Server:
         self.peak_resident_bytes = None
         self.process = subprocess.Popen(  # noqa: S603 - a local binary named on the command line
             [str(self.binary)],
-            cwd=str(self.binary.resolve().parents[2]),
+            cwd=str(solver_repository(self.binary)),
             env=environment,
             stdout=log,
             stderr=subprocess.STDOUT,
@@ -725,6 +763,103 @@ def write_object(
     ) as stream:
         stream.write(raw)
     return path, hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+STRATS_MAGIC = b"GTOSTRATS1\n"
+STRATS_TRAILER = b"END\n"
+EXPORT_TIMEOUT_SECONDS = 3600.0
+"""The bulk export walks every action node of the solved tree and writes it in one request, so it
+gets far longer than a node read; a timeout is still a refusal rather than a hang."""
+EXPORT_NAME = re.compile(r"[A-Za-z0-9_-]+")
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(16 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def check_strats_file(path: Path, summary: dict[str, Any]) -> int:
+    """The export as the route says it wrote it: its byte count, the format's magic, and a trailer
+    whose record count is the route's. A file that disagrees is refused before it is moved."""
+    size = path.stat().st_size
+    reported = answered(summary, "/api/export_strategies", "bytes")
+    if size != reported:
+        raise SolveDriverError(f"{path} is {size} bytes and the export reported {reported}")
+    records = answered(summary, "/api/export_strategies", "records")
+    with path.open("rb") as handle:
+        head = handle.read(len(STRATS_MAGIC))
+        handle.seek(-(len(STRATS_TRAILER) + 8), os.SEEK_END)
+        tail = handle.read()
+    if head != STRATS_MAGIC or tail[: len(STRATS_TRAILER)] != STRATS_TRAILER:
+        raise SolveDriverError(f"{path} does not open and close as a {STRATS_MAGIC!r} export")
+    if int.from_bytes(tail[len(STRATS_TRAILER) :], "little") != records:
+        raise SolveDriverError(f"{path}'s trailer does not count the {records} records reported")
+    return size
+
+
+def move_whole(source: Path, destination: Path) -> None:
+    """`source` to `destination` with no state in which `destination` holds part of it: a rename
+    on one filesystem, otherwise a copy under a `.partial` name, renamed only once complete."""
+    try:
+        os.rename(source, destination)
+        return
+    except OSError as error:
+        if error.errno != errno.EXDEV:
+            raise
+    partial = destination.with_name(destination.name + ".partial")
+    try:
+        shutil.copyfile(source, partial)
+        with partial.open("rb") as handle:
+            os.fsync(handle.fileno())
+        os.replace(partial, destination)
+    except BaseException:
+        partial.unlink(missing_ok=True)
+        raise
+    source.unlink()
+
+
+def export_strategies(
+    label: str, repository: Path, object_dir: Path, solver_build: dict[str, str]
+) -> tuple[Path, str]:
+    """Every action node's average strategy from the live server, kept beside the object.
+
+    Called after the verdict commits the board and before its server stops, because the export
+    reads the solved tree in that server's memory. Refuses to overwrite an earlier export: the
+    file is the only copy of a solve's turn and river, and a re-run of the same label is a mistake
+    to look at rather than to resolve silently."""
+    if not EXPORT_NAME.fullmatch(label):
+        raise SolveDriverError(f"{label!r} is not a name the export route keeps unchanged")
+    destination = object_dir / f"{label}.strats"
+    sidecar = object_dir / f"{label}.strats.json"
+    for path in (destination, sidecar):
+        if path.exists():
+            raise SolveDriverError(f"{path} already exists; refused rather than overwritten")
+    source = repository / "saves" / f"{label}.strats"
+    summary = http_transport(timeout=EXPORT_TIMEOUT_SECONDS)(
+        "/api/export_strategies", {"name": label}
+    )
+    if not source.is_file():
+        raise SolveDriverError(f"the export answered and {source} does not exist")
+    size = check_strats_file(source, summary)
+    object_dir.mkdir(parents=True, exist_ok=True)
+    move_whole(source, destination)
+    digest = sha256_file(destination)
+    document = {
+        "label": label,
+        "file": destination.name,
+        "format": STRATS_MAGIC.decode("ascii").strip(),
+        "bytes": size,
+        "sha256": digest,
+        "export_summary": summary,
+        "solver_build": solver_build,
+    }
+    partial = sidecar.with_name(sidecar.name + ".partial")
+    partial.write_text(json.dumps(document, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    os.replace(partial, sidecar)
+    return sidecar, digest
 
 
 def write_solve_config(oop: dict[str, float], ip: dict[str, float]) -> None:
@@ -1751,9 +1886,10 @@ def deep_check_run(args: argparse.Namespace, object_storage: str) -> int:
         )
     oop, ip = conditional_ranges()
     oop_text, ip_text = range_text(oop), range_text(ip)
-    conditions = begin_run(args.threads, args.engine)
+    conditions = begin_run(args.threads, Path(args.server), args.engine)
     print(f"machine            {conditions.machine.describe()}")
     print(f"solver threads     {conditions.threads}, set explicitly through SOLVER_THREADS")
+    print(f"solver build       {describe_build(conditions.solver_build)}")
     print(f"memory ceiling     {describe_memory_ceiling()}")
     print(f"arena              {RULED_ARENA_STORAGE}, asked for by"
           f" {SOLVER_COMPRESS_VARIABLE}={SOLVER_COMPRESS_FULL_PRECISION!r}")
@@ -1794,7 +1930,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--cell", action="append", default=[], help="a cell name; repeatable")
     parser.add_argument("--all", action="store_true", help="every cell in the sample")
     parser.add_argument("--list", action="store_true", help="name the cells and stop")
-    parser.add_argument("--server", default=str(DEFAULT_SERVER), help="the gto-server binary")
+    parser.add_argument("--server", default=str(DEFAULT_SERVER), help=SERVER_HELP)
     parser.add_argument("--engine", choices=ENGINES, default=CPU_ENGINE,
                         help="the engine every solve must be read back as having run on")
     parser.add_argument("--threads", type=int, default=None,
@@ -1827,6 +1963,13 @@ def main(argv: list[str] | None = None) -> int:
                         help="with --all, in a scratch copy of the repo only: empty the held"
                              " cells and solve them again, for --resolve-tree to compare")
     parser.add_argument("--resolve-output", default=str(RESOLVE_PATH), metavar="FILE")
+    parser.add_argument(
+        "--export-strategies",
+        action="store_true",
+        help="after each board commits and before its server stops, keep every action node's"
+        " strategy in --object-dir through the clone's bulk export, with a sidecar naming its"
+        " sha256 and solver build",
+    )
     args = parser.parse_args(argv)
 
     if args.resolve_tree or args.resolve_objects:
@@ -1886,9 +2029,10 @@ def main(argv: list[str] | None = None) -> int:
 
     oop, ip = conditional_ranges()
     oop_text, ip_text = range_text(oop), range_text(ip)
-    conditions = begin_run(args.threads, args.engine)
+    conditions = begin_run(args.threads, Path(args.server), args.engine)
     print(f"machine            {conditions.machine.describe()}")
     print(f"solver threads     {conditions.threads}, set explicitly through SOLVER_THREADS")
+    print(f"solver build       {describe_build(conditions.solver_build)}")
     print(f"memory ceiling     {describe_memory_ceiling()}")
     print(f"solver own guard   {gtopen_memory_guard()['solver_guard_live']}")
     print(f"arena              {RULED_ARENA_STORAGE}, asked for by"
@@ -1913,12 +2057,24 @@ def main(argv: list[str] | None = None) -> int:
         label = "".join(board)
         print(f"\n=== {label} ===")
         server.start(label)
+        export_failure: Exception | None = None
         try:
             result = solve_one_board(
                 board, cells_for_board(board, wanted),
                 ArenaVerifiedTransport(http_transport(), RULED_ARENA_STORAGE),
                 oop_text, ip_text, tolerance,
             )
+            if args.export_strategies and result.committed:
+                try:
+                    sidecar, digest = export_strategies(
+                        result.outcome.label,
+                        solver_repository(Path(args.server)),
+                        Path(args.object_dir),
+                        conditions.solver_build,
+                    )
+                    print(f"  strategies         {sidecar} sha256 {digest}")
+                except (SolveDriverError, OSError, ValueError) as error:
+                    export_failure = error
         except SolveDriverError as error:
             print(f"  refused: {error}")
             manifest.setdefault(REFUSED_BOARDS, {})[label] = str(error)
@@ -1927,6 +2083,13 @@ def main(argv: list[str] | None = None) -> int:
         finally:
             server.stop()
         result.peak_resident_bytes = server.peak_resident_bytes
+        if export_failure is not None:
+            # The board's flop object is still written below; its turn and river are not kept.
+            print(
+                f"  EXPORT FAILED      {export_failure}. This board's turn and river strategies"
+                " were not kept; re-solve it with --export-strategies."
+            )
+            failures += 1
         report(result)
         if not result.committed:
             manifest["rejected_above_one_percent"] += 1

@@ -144,7 +144,7 @@ FULL_STRETCH = {
 """Seconds, invented. The five parts the contract bills: server start, tree build, solve,
 harvest of every flop, turn and river decision point, and upload."""
 
-BAR = 17_674_107_736
+BAR = 18_710_513_792
 """A memory bar in bytes; the small blind's line's largest planned arena in the server's unit,
 from `tests/test_flop_campaign_tree.py`. `rank_candidates` compares the bar exactly as it is
 given - the equality test below pins that - so decision 14's reading of the server's unit is
@@ -193,7 +193,7 @@ class TestCandidatesAreRankedOnCostPerSolvedFlop:
     def test_a_candidate_that_cannot_hold_the_bar_is_excluded_even_when_cheapest(
         self, costs
     ) -> None:
-        """32 GiB at the 0.40 ceiling is 13.7 GB, under an arena near 17.7 GB."""
+        """32 GiB at the 0.40 ceiling is 13.7 GB, under an arena near 18.7 GB."""
         ranking = rank(
             costs,
             [
@@ -246,7 +246,7 @@ class TestCandidatesAreRankedOnCostPerSolvedFlop:
         ]
 
     def test_two_solves_at_once_apply_the_bar_to_their_sum(self, costs) -> None:
-        """128 GiB at 0.40 is 55.0 GB: one 17.7 GB arena fits and so do two; 64 GiB is 27.5 GB,
+        """128 GiB at 0.40 is 55.0 GB: one 18.7 GB arena fits and so do two; 64 GiB is 27.5 GB,
         which holds one and not two."""
         machines = [
             candidate(costs, "invented-64", 64, 1.0),

@@ -59,10 +59,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import platform
 import re
 import statistics
 import subprocess
+import sys
 import threading
 import time
 import urllib.error
@@ -77,8 +79,11 @@ try:
 except ModuleNotFoundError:
     from scripts.repo_paths import REPO_ROOT
 
+sys.path.insert(0, str(REPO_ROOT / "src"))
+
+from poker_training_bot.solver_artifacts.postflop_machine import solver_build_for  # noqa: E402
+
 BASE_URL = "http://127.0.0.1:3737"
-GTOPEN_ROOT = Path.home() / "projects" / "gtopen"
 REPORT_PATH = REPO_ROOT / "reports" / "active" / "latest_postflop_solve_cost.txt"
 SERVER_PROCESS = "gto-server"
 
@@ -494,15 +499,29 @@ def digest(value: object) -> str:
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
-def gtopen_commit() -> str:
-    """Which solver build produced the timing. Two builds are not one measurement."""
+def server_binary(pid: int) -> Path:
+    """The executable the running server was started from, as the kernel names it."""
+    if platform.system() == "Linux":
+        return Path(os.readlink(f"/proc/{pid}/exe"))
+    for line in run_text(["lsof", "-a", "-p", str(pid), "-d", "txt", "-Fn"]).splitlines():
+        if line.startswith("n/"):  # the first text mapping lsof lists is the executable
+            return Path(line[1:])
+    raise SystemExit(f"could not read which binary {SERVER_PROCESS} pid {pid} was started from")
+
+
+def running_solver_build(pid: int | None) -> dict[str, str]:
+    """Which solver build produced the timing, read off the running binary's own clone. Two
+    builds are not one measurement, and since decision 17 two clones exist, so the build is never
+    guessed from a fixed path and never recorded as unknown."""
+    if pid is None:
+        raise SystemExit(
+            f"no {SERVER_PROCESS} process found by name, so nothing says which build is"
+            " answering; refused rather than recorded as unknown"
+        )
     try:
-        head = (GTOPEN_ROOT / ".git" / "HEAD").read_text(encoding="utf-8").strip()
-        if head.startswith("ref: "):
-            return (GTOPEN_ROOT / ".git" / head[5:]).read_text(encoding="utf-8").strip()
-        return head
-    except OSError:
-        return "unknown"
+        return solver_build_for(server_binary(pid))
+    except (OSError, ValueError) as error:
+        raise SystemExit(f"the running solver's build could not be read: {error}") from error
 
 
 def arena_ceiling_mb(machine: Machine, override: float | None) -> float:
@@ -605,7 +624,13 @@ def require_idle(client: SolverClient) -> dict:
     return status
 
 
-def build_row(client: SolverClient, spec: SpotSpec, machine: Machine, ceiling: float) -> dict:
+def build_row(
+    client: SolverClient,
+    spec: SpotSpec,
+    machine: Machine,
+    ceiling: float,
+    solver_build: dict[str, str],
+) -> dict:
     """Build the tree and record its geometry. The cheap half, and never skipped.
 
     The build is also the only place the arena can be refused: `/api/stop` reaches a running
@@ -635,7 +660,9 @@ def build_row(client: SolverClient, spec: SpotSpec, machine: Machine, ceiling: f
         "machine_detail": machine.to_dict(),
         "solver": {
             "url": client.base_url,
-            "commit": gtopen_commit(),
+            "commit": solver_build["commit"],
+            "branch": solver_build["branch"],
+            "repository": solver_build["repository"],
             "engine": "gpu" if status.get("gpu") else "cpu",
             "gpu_available": bool(tree.get("gpu_available")),
         },
@@ -1248,13 +1275,16 @@ def render_texture_coverage(usable: list[dict], rows: list[dict]) -> list[str]:
     return lines
 
 
-def render_report(rows: list[dict], machine: Machine, url: str) -> str:
+def render_report(
+    rows: list[dict], machine: Machine, url: str, solver_build: dict[str, str]
+) -> str:
     lines = [
         "Postflop Solve Cost Report",
         "==========================",
         "",
         f"Generated at: {datetime.now(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')}",
-        f"Solver: GTOpen at {url}, commit {gtopen_commit()[:12]}",
+        f"Solver: GTOpen at {url}, commit {solver_build['commit'][:12]}"
+        f" on {solver_build['branch']} in {solver_build['repository']}",
         f"Machine: {machine.one_line()}",
         f"Free RAM at generation: {fmt(machine.free_ram_gb, '.1f')} GB; power: {machine.power}",
         "",
@@ -1396,13 +1426,17 @@ def restore_per_unit(row: dict) -> dict:
     return row
 
 
-def write_report(new_rows: list[dict], machine: Machine, url: str, fresh: bool) -> Path:
+def write_report(
+    new_rows: list[dict], machine: Machine, url: str, fresh: bool, solver_build: dict[str, str]
+) -> Path:
     """Upsert rows by (group, label) and regenerate the file from every row it then holds."""
     existing = [] if fresh else load_rows(REPORT_PATH)
     keys = {(row["group"], row["label"]) for row in new_rows}
     kept = [row for row in existing if (row.get("group"), row.get("label")) not in keys]
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    REPORT_PATH.write_text(render_report(kept + new_rows, machine, url), encoding="utf-8")
+    REPORT_PATH.write_text(
+        render_report(kept + new_rows, machine, url, solver_build), encoding="utf-8"
+    )
     return REPORT_PATH
 
 
@@ -1540,9 +1574,10 @@ def run_one(
     pid: int | None,
     args: argparse.Namespace,
     label: str,
+    solver_build: dict[str, str],
 ) -> dict:
     before = measure_reference(client, args) if args.thermal else None
-    row = build_row(client, replace(spec, label=label), machine, ceiling)
+    row = build_row(client, replace(spec, label=label), machine, ceiling, solver_build)
     refuse_oversized(row)
     row = solve_row(client, row, args, pid)
     if args.thermal:
@@ -1559,6 +1594,7 @@ def run_determinism(
     ceiling: float,
     pid: int | None,
     args: argparse.Namespace,
+    solver_build: dict[str, str],
 ) -> list[dict]:
     """Build and solve the same config twice, and diff what came out.
 
@@ -1566,8 +1602,12 @@ def run_determinism(
     survives a stop, so re-solving without rebuilding would resume rather than repeat, and the
     second run would be a different experiment.
     """
-    first = run_one(client, spec, machine, ceiling, pid, args, f"{spec.label} (run 1)")
-    second = run_one(client, spec, machine, ceiling, pid, args, f"{spec.label} (run 2)")
+    first = run_one(
+        client, spec, machine, ceiling, pid, args, f"{spec.label} (run 1)", solver_build
+    )
+    second = run_one(
+        client, spec, machine, ceiling, pid, args, f"{spec.label} (run 2)", solver_build
+    )
     strategy_a, strategy_b = first["_root_strategy"], second["_root_strategy"]
     divergence = 0.0
     for combo, row_a in strategy_a.items():
@@ -1609,16 +1649,16 @@ def main(argv: list[str] | None = None) -> int:
     spec = spec_from_args(args)
     ceiling = arena_ceiling_mb(machine, args.arena_ceiling_mb)
     pid = find_server_pid()
+    solver_build = running_solver_build(pid)
     print(f"machine: {machine.one_line()}", flush=True)
-    if pid is None:
-        print(
-            f"  no {SERVER_PROCESS} process found by name, so memory cannot be measured;"
-            " timings still can",
-            flush=True,
-        )
+    print(
+        f"solver: {solver_build['repository']} on {solver_build['branch']}"
+        f" at {solver_build['commit']}",
+        flush=True,
+    )
 
     if args.build_only:
-        row = build_row(client, spec, machine, ceiling)
+        row = build_row(client, spec, machine, ceiling, solver_build)
         tree = row["tree"]
         over = " - OVER the ceiling, a solve would be refused" if row["arena_mb"] > ceiling else ""
         print(
@@ -1630,9 +1670,9 @@ def main(argv: list[str] | None = None) -> int:
         )
         rows = [row]
     elif args.determinism:
-        rows = run_determinism(client, spec, machine, ceiling, pid, args)
+        rows = run_determinism(client, spec, machine, ceiling, pid, args, solver_build)
     else:
-        rows = [run_one(client, spec, machine, ceiling, pid, args, spec.label)]
+        rows = [run_one(client, spec, machine, ceiling, pid, args, spec.label, solver_build)]
 
     for row in rows:
         if row["group"] == "solve":
@@ -1644,7 +1684,8 @@ def main(argv: list[str] | None = None) -> int:
                 flush=True,
             )
     if args.report:
-        print(f"wrote {write_report(rows, machine, args.url, args.fresh)}", flush=True)
+        report = write_report(rows, machine, args.url, args.fresh, solver_build)
+        print(f"wrote {report}", flush=True)
     return 0
 
 

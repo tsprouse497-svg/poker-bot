@@ -476,7 +476,7 @@ def fetched_folders(tmp_path, cells) -> dict:
     streets = {"flop": {"key": FETCHED_FLOP_KEY, "sha256": flop_digest}}
     for street in ("turn", "river"):
         streets[street] = {"key": f"postflop/btn-v-bb/Kh7d2c.{street}.bin", "sha256": "0" * 64}
-    counts = {"flop": 14, "turn": 6_419, "river": 1_477_056}
+    counts = {"flop": 14, "turn": 6_419, "river": 1_549_968}
     index = {
         "line_index_schema_version": 1,
         "preflop_line": "BTN:raise@2.5,BB:call",

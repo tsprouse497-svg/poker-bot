@@ -1707,9 +1707,9 @@ mutations:
 
   - id: flop-campaign-keeps-the-river-under-the-dealt-turn
     description: >-
-      Closure counts every river GTOpen builds, including the 30,772 decision points under the
+      Closure counts every river GTOpen builds, including the 32,291 decision points under the
       card the turn already dealt, which can never occur. The committed line's river reads
-      1,507,828 instead of 1,477,056, so every closed board's manifest counts disagree with the
+      1,582,259 instead of 1,549,968, so every closed board's manifest counts disagree with the
       tree, and a harvest built to this count would store two percent of every river twice over
       for situations no hand reaches.
     file: src/poker_training_bot/solver_artifacts/postflop_tree_size.py
@@ -1745,8 +1745,8 @@ mutations:
     description: >-
       The manifest check stops comparing a closed board's per-street decision points with the
       closure counts of that line's own tree. A board short one river card, one that kept the
-      30,772 unreachable river points, and a small blind board carrying the button's 6,419 and
-      1,477,056 all pass as closed, so a harvest that walked the wrong tree, or stopped part way,
+      32,291 unreachable river points, and a small blind board carrying the button's 6,419 and
+      1,549,968 all pass as closed, so a harvest that walked the wrong tree, or stopped part way,
       commits a board the bot will refuse on a later street. The check lives in one place, the
       manifest checker; the fetch may compare the same counts again against the index and the
       tree, and that second check does not rescue this mutation, because the manifest tests call

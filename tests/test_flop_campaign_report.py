@@ -175,7 +175,7 @@ class TestTheReportPrintsWhatTheContractNames:
         assert "limp" in committed_report.lower()
 
     def test_the_closure_counts_are_printed(self, committed_report) -> None:
-        for figure in ("6,419", "1,477,056", "30,772"):
+        for figure in ("6,419", "1,549,968", "32,291"):
             assert figure in committed_report, figure
 
     def test_the_small_blind_line_s_own_figures_are_printed(self, committed_report) -> None:
@@ -183,7 +183,7 @@ class TestTheReportPrintsWhatTheContractNames:
         its own closure counts, its own bar and its own reach, not the button's repeated. The bar
         is printed in the server's unit, bytes, so the figure does not depend on decision 14's
         reading."""
-        for figure in ("6,566", "1,545,264", "32,193", "17,674,107,736"):
+        for figure in ("6,566", "1,620,528", "33,761", "18,710,513,792"):
             assert figure in committed_report, figure
         assert re.search(r"(?<![\d.,])5\.53(?![\d])", committed_report), "the reach, 5.53"
 

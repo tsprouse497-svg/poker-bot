@@ -387,7 +387,11 @@ remove.
 Answer: [Ruled by Taylor, 2026-10-04] (b). Shown the three options with their costs and the exact
 change, he answered "ah ok. yes" and asked for the fix to be made in every place that matters, with
 each phase and document that needs it updated, carefully and within the repo's practices. Whether to
-also take upstream's deterministic GPU fold sum is a separate question he has not answered.]
+also take upstream's deterministic GPU fold sum is a separate question, ruled as decision 18.
+**What the ruling covers, from the handoff Taylor gave the session that carried it out, 2026-10-04:**
+phase 16's four committed cells, index, objects list and `determinism.json` were solved on the old
+tree and cannot reproduce on the new one, and "re-solving them is part of this ruling". True donks,
+a lead straight after calling a bet, stay out by design (option (c) declined).]
 
 ## 18. Whether to take upstream's deterministic GPU fold sum
 

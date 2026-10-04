@@ -13,7 +13,7 @@ admitted line under `data/artifacts/postflop/manifests/`:
      "flops_held": <flops the closed boards stand for, of 22,100>,
      "refused_boards": <how many boards below are refused>,
      "boards": [{"board": ["Kh", "7d", "2c"], "status": "closed" | "refused",
-                 "decision_points": {"flop": 14, "turn": 6419, "river": 1477056},
+                 "decision_points": {"flop": 14, "turn": 6419, "river": 1549968},
                  "achieved_exploitability_pct_of_pot": 0.283, "iterations": 340,
                  "machine": "...", "threads": 10,
                  "strategy_digests": {"<spot key>": "<sha256>"}}]}
@@ -47,12 +47,14 @@ from scripts.repo_paths import REPO_ROOT
 POSTFLOP_DIR = REPO_ROOT / "data" / "artifacts" / "postflop"
 SAMPLE_DIR = POSTFLOP_DIR / "sample"
 COMMITTED_LINE = "BTN:raise@2.5,BB:call"
-CLOSED_COUNTS = {"flop": 14, "turn": 6_419, "river": 1_477_056}
+CLOSED_COUNTS = {"flop": 14, "turn": 6_419, "river": 1_549_968}
 SMALL_BLIND_LINE = "SB:raise@2.5,BB:call"
-SMALL_BLIND_COUNTS = {"flop": 14, "turn": 6_566, "river": 1_545_264}
+SMALL_BLIND_COUNTS = {"flop": 14, "turn": 6_566, "river": 1_620_528}
 """The small blind's line closes on its own tree, pot 5.0: 134 decision points on each of 49
-turns and 657 on each reachable river, with 32,193 under the dealt turn card not kept. Pinned in
-`tests/test_flop_campaign_tree.py` and recomputed by two independent ports of `tree.rs`."""
+turns and 689 on each reachable river, with 33,761 under the dealt turn card not kept, on the
+clone's tree (decision 17). Pinned in `tests/test_flop_campaign_tree.py`, where the pin's 657 and
+32,193 are kept, recomputed by two independent ports of `tree.rs`, and re-derived for the clone by
+a tree counter linked against its solver crate."""
 PHASE_16_BOARDS = (("9c", "8c", "7c"), ("Kh", "7d", "2c"), ("8c", "8d", "3c"), ("Ac", "8c", "3c"))
 
 SAMPLE_SHA256 = {
@@ -280,11 +282,11 @@ class TestTheManifestChecksRefuseAnInconsistentManifest:
         [
             (
                 "a river count one short",
-                lambda m: m["boards"][0]["decision_points"].update(river=1_477_055),
+                lambda m: m["boards"][0]["decision_points"].update(river=1_549_967),
             ),
             (
                 "the unreachable river kept too",
-                lambda m: m["boards"][0]["decision_points"].update(river=1_507_828),
+                lambda m: m["boards"][0]["decision_points"].update(river=1_582_259),
             ),
             (
                 "a closed board missing its turn",
@@ -333,7 +335,7 @@ class TestTheManifestChecksRefuseAnInconsistentManifest:
 class TestAClosedBoardIsClosedOnItsOwnLinesTree:
     """A board closes on the decision points of the line it was solved for, not the button's.
     The small blind's line goes first (decision 9), and a harvest that walked the 5.5 pot's tree
-    for it would write 6,419 and 1,477,056 - which a checker hardwired to one line's counts
+    for it would write 6,419 and 1,549,968 - which a checker hardwired to one line's counts
     accepts."""
 
     def test_the_small_blind_line_s_own_counts_are_accepted(self, manifest_module) -> None:
@@ -348,12 +350,12 @@ class TestAClosedBoardIsClosedOnItsOwnLinesTree:
             (
                 "the small blind's river with the dealt turn's river kept",
                 SMALL_BLIND_LINE,
-                {**SMALL_BLIND_COUNTS, "river": 1_577_457},
+                {**SMALL_BLIND_COUNTS, "river": 1_654_289},
             ),
             (
                 "the small blind's turn with the button's river",
                 SMALL_BLIND_LINE,
-                {**SMALL_BLIND_COUNTS, "river": 1_477_056},
+                {**SMALL_BLIND_COUNTS, "river": 1_549_968},
             ),
             (
                 "the small blind's counts on the cutoff's line",
@@ -616,11 +618,11 @@ class TestTheFetchChecksEverythingItFetches:
     def test_an_object_set_whose_counts_differ_from_the_manifest_is_rejected(
         self, fetch, tmp_path
     ) -> None:
-        """The index is re-published with one board's river short by the 628 of one river card,
+        """The index is re-published with one board's river short by the 659 of one river card,
         and the manifest re-fingerprinted to match, so only the count comparison can see it."""
         manifest, index, objects = published_line()
         index = copy.deepcopy(index)
-        index["boards"][1]["decision_points"]["river"] -= 628
+        index["boards"][1]["decision_points"]["river"] -= 659
         objects = republish(index, objects)
         manifest["index"]["sha256"] = sha256(objects[INDEX_KEY])
         manifest["index"]["bytes"] = len(objects[INDEX_KEY])
@@ -637,11 +639,11 @@ class TestTheFetchChecksEverythingItFetches:
         comparison pass, and only a comparison against the line's own tree can see it."""
         manifest, index, objects = published_line()
         index = copy.deepcopy(index)
-        index["boards"][1]["decision_points"]["river"] -= 628
+        index["boards"][1]["decision_points"]["river"] -= 659
         objects = republish(index, objects)
         manifest["index"]["sha256"] = sha256(objects[INDEX_KEY])
         manifest["index"]["bytes"] = len(objects[INDEX_KEY])
-        manifest["boards"][1]["decision_points"]["river"] -= 628
+        manifest["boards"][1]["decision_points"]["river"] -= 659
 
         with pytest.raises(owed(fetch, "FetchError")) as raised:
             owed(fetch, "fetch_line")(manifest, DictStore(objects), tmp_path, streets=("flop",))

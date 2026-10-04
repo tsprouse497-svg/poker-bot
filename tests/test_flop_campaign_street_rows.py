@@ -21,7 +21,7 @@ the ruling does not describe. A decoder refuses a word above 1,000 and a row who
 to 1,000, which is what a half-precision row read as counts looks like.
 
 **An object's decision-point count is read back from the object.** The manifest and the line index
-claim 6,419 turn and 1,477,056 river decision points a board; the fetch checks a fetched flop
+claim 6,419 turn and 1,549,968 river decision points a board; the fetch checks a fetched flop
 object by its keys (`tests/test_flop_campaign_raise_key.py`), and checks a turn or river object by
 the count this module reads out of it. How an object lays out its rows, and whether it is
 compressed - the trial flops measure that - is stage 6's; these tests pin the round trip, the

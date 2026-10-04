@@ -10,7 +10,7 @@ The postflop section sits high rather than at the end on purpose. Its absence is
 
 | | |
 |---|---|
-| Location | `~/projects/gtopen`, a sibling of this repo, deliberately outside it |
+| Location | `~/projects/gtopen`, a sibling of this repo, deliberately outside it; the untouched reference, and no longer what solves run (next section) |
 | Commit | `4aee435bdeb155b25f0c8140e707a8342ce4356f`, dated 23 July 2026 |
 | Licence | None. No LICENSE file, and no mention in `README.md` or `Cargo.toml` |
 | Toolchain | Rust 1.97.1 |
@@ -20,6 +20,47 @@ The postflop section sits high rather than at the end on purpose. Its absence is
 | GPU | `/api/status` reports `"gpu": false` on this machine, so the CPU engine is what runs |
 | Threads | `init_rayon` in `crates/server/src/main.rs` takes `SOLVER_THREADS` and otherwise half of `available_parallelism()`, five on this ten-core M4. Measured 2026-10-04 on `Kh7d2c`, median of three interleaved 100-iteration runs: 10 threads 3.24 s/it against 4.87 at the default five (`data/artifacts/postflop/campaign/thread_sweep.json`); phase 16's four boards re-solved at 10 reproduce exactly (`campaign/mac_resolve_at_thread_count.json`). The driver now always sets the count. |
 | Heat | **Warning.** This is a fanless MacBook Air. Twice a long solve here was followed by a Thermal Emergency Sleep as the machine went to sleep: 2026-10-03 21:57, after the first, abandoned thread sweep (3, 5 and 8 threads from 21:18, then about six minutes at 10 from 21:44), with a lid-closed sleep logged at 21:43:29; and 2026-10-04 09:01:31, 15 seconds after 41 minutes of 10-thread solving ended. The cause is not proven. `pmset -g therm` reports nothing on Apple silicon, so throttling cannot be read here either. The campaign runs on a rented box, not on this machine. |
+
+## The local clone every solve runs
+
+`~/projects/gtopen` above is the untouched reference at the pin and is never built into a solve again.
+Every postflop solve from phase 21 on runs a local clone, because Taylor ruled two upstream fixes
+in and nothing else (phase 21 decisions 17 and 18), and GTOpen is not ours to push to.
+
+| | |
+|---|---|
+| Location | `~/projects/gtopen-poker-bot`, a clone of `~/projects/gtopen` |
+| Branch | `poker-bot/check-through-clears-initiative` |
+| Commit | `b058335eaa2e33e97001af35f2070e33555b90a8`, on the pin `4aee435` |
+| Diff | `git diff 4aee435 b058335` is 8 files, +340/-7, sha256 `b43813f1de4594b50f44d47b2df2876ca5622a805217f58e8fceb6de584021a3` |
+| Build | `cargo build --release`, Rust 1.97.1, `target/release/gto-server` |
+| Tests | `cargo test --release --workspace` on 2026-10-04: 105 pass and one preflop benchmark is ignored, as upstream marks it; the GPU test files compile to nothing without the `gpu` feature |
+| Selected by | `DEFAULT_SERVER` in `scripts/solve_postflop_sample.py`; another build is chosen with `--server`. Every solve record names the build it ran on, read from the clone's git, and a clone with uncommitted changes is refused |
+
+Two commits on the pin, each recorded by what it changes:
+
+1. `3f8bf98`, **a read-only bulk export**: `POST /api/export_strategies` writes every action node's
+   average strategy, exactly as `/api/node` reports it, to `saves/<name>.strats` in one depth-first
+   pass (`crates/solver/src/export.rs`; format in its header). It reads the arenas and changes no
+   solver arithmetic. Diff sha256 `92c84c2e0867545497eb1b4c3e18d75bf944f08f975ccab290210453a709f172`.
+2. `b058335`, **decision 17, upstream `85b0a692`'s tree fix alone**: a street both players check
+   clears the initiative. At the pin, `check_behind` in `tree.rs` passed the last aggressor through a
+   checked street, so after in position's flop bet was called and the turn checked through, an out
+   of position river bet counted as a donk, and the committed `donk` lists are empty. The commit
+   takes only that fix's hunks - `TreeConfig.carry_aggressor_through_checks`, `check_behind`, the
+   build recording `Some(false)`, both save loaders reading an older save with `Some(true)` - and
+   upstream's test `check_through_street_clears_the_initiative`, verbatim. Diff sha256
+   `150e6862332c5b377c7bca3889409a6caa081b2e8673e0733c6b73e8fdf5696c`. What it does to the tree is
+   `THE-PINNED-SOLVER-CARRIES-THE-AGGRESSOR-THROUGH-A-CHECKED-STREET` in `backlog.yml`.
+
+**Not yet in the clone: decision 18**, upstream `8ff89f42`'s fixed-order GPU fold sum, ruled in on
+2026-10-04 and prepared as an untracked patch beside the clone. It changes GPU code only, cannot be
+compiled or run on this Mac, and is first proved by the GPU trial solving one flop twice. Until it is
+committed and recorded here, no GPU solve runs.
+
+The tree figures every phase 21 document quotes were measured by a counter linked against the clone's
+solver crate, which builds a spot under either tree rule without solving it; its path and commands
+are in phase 21's ExecPlan.
 
 ## Postflop, as run
 

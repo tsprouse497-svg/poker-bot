@@ -12,6 +12,9 @@ The readers are handed in. They are a hard external boundary, and handing them i
 test feed the M4's own captured `sysctl` text, or a Linux box's `/proc` files, without either
 machine being present.
 
+The solver build is read the same way: the commit and branch of the clone the server binary was
+built in, from git rather than from a note, with a dirty clone refused.
+
 The memory ceiling lives here too, because it is a fraction of the memory this module measures:
 the driver publishes `MEMORY_CEILING_BYTES` through `memory_ceiling_bytes`, so the rule that turns
 a machine's memory into a ceiling is one function a test can call on any figure.
@@ -21,6 +24,7 @@ from __future__ import annotations
 
 import os
 import platform as platform_module
+import re
 import subprocess
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
@@ -64,6 +68,7 @@ def memory_ceiling_bytes(physical_bytes: int | None) -> int:
 
 Sysctl = Callable[[str], str]
 ReadText = Callable[[str], str]
+RunGit = Callable[[list[str]], str]
 
 
 @dataclass(frozen=True)
@@ -258,6 +263,112 @@ def check_engine(status: Mapping[str, object], wanted: str) -> str:
     return found
 
 
+# --- The solver build, read off the clone the binary was built in
+
+COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}")
+"""A full commit as `git rev-parse HEAD` prints it. An abbreviation is refused rather than
+expanded, because a short hash is a guess about which commit it means."""
+
+
+def real_run_git(repository: Path) -> RunGit:
+    """`git -C <repository>`, returning its standard output. A hard external boundary, handed in
+    to `read_solver_build` so a test can feed a clone's answers without the clone."""
+
+    def run(args: list[str]) -> str:
+        completed = subprocess.run(  # noqa: S603 - git, in a repository named on the command line
+            ["git", "-C", str(repository), *args], capture_output=True, text=True, check=False
+        )
+        if completed.returncode != 0:
+            raise ValueError(
+                f"git {' '.join(args)} in {repository} failed: {completed.stderr.strip()}"
+            )
+        return completed.stdout
+
+    return run
+
+
+def solver_repository(binary: Path) -> Path:
+    """The clone a server binary was built in: `<clone>/target/release/gto-server`. It is also the
+    server's working directory, which is where GTOpen reads its files and writes its saves."""
+    return binary.resolve().parents[2]
+
+
+def recorded_repository(repository: Path, home: Path | None = None) -> str:
+    """The clone as a record names it: home-relative when it sits under the home directory, so a
+    committed record carries no username and reads the same on a rented box."""
+    home = Path.home() if home is None else home
+    for base in dict.fromkeys((home, home.resolve())):  # the resolved form, for a symlinked home
+        if repository.is_absolute() and repository.is_relative_to(base):
+            return "~/" + repository.relative_to(base).as_posix()
+    return str(repository)
+
+
+def check_binary_is_current(binary: Path, run_git: RunGit | None = None) -> None:
+    """Refuse a server binary older than its clone's HEAD commit. A clean tree proves what git
+    holds, not what was compiled: a binary built before the commit was made may be another tree.
+    The modification time is a proxy, and it errs toward refusing."""
+    if not binary.is_file():
+        raise ValueError(f"{binary} is not a file; run `cargo build --release` in its clone")
+    repository = solver_repository(binary)
+    run_git = run_git or real_run_git(repository)
+    committed_at = int(run_git(["log", "-1", "--format=%ct"]).strip())
+    built_at = binary.resolve().stat().st_mtime
+    if built_at < committed_at:
+        raise ValueError(
+            f"{binary} was built before {repository}'s HEAD commit, so it may not be that commit."
+            f" Run `cargo build --release` in {repository}; if cargo finds nothing to do, the"
+            " sources predate the commit too, so force a relink with"
+            " `cargo clean --release -p server` first."
+        )
+
+
+def solver_build_for(binary: Path, run_git: RunGit | None = None) -> dict[str, str]:
+    """The build a run on `binary` records, after refusing a binary older than its commit."""
+    repository = solver_repository(binary)
+    run_git = run_git or real_run_git(repository)
+    check_binary_is_current(binary, run_git)
+    return read_solver_build(repository, run_git)
+
+
+def read_solver_build(repository: Path, run_git: RunGit | None = None) -> dict[str, str]:
+    """Which GTOpen a solve ran: the clone's repository, branch and commit, as git says.
+
+    Two trees exist since decision 17 - the patched clone every solve runs and the untouched
+    reference beside it - so a record that does not name its build cannot say which tree it
+    solved. A dirty tree is refused: a binary built from uncommitted changes is not the commit it
+    would name. A detached head is refused too, because "HEAD" is not a branch anyone can find."""
+    run_git = run_git or real_run_git(repository)
+    status = run_git(["status", "--porcelain", "--untracked-files=no"])
+    if status.strip():
+        raise ValueError(
+            f"the solver clone {repository} has uncommitted changes, so a binary built there is"
+            f" not the commit it would name:\n{status.rstrip()}"
+        )
+    commit = run_git(["rev-parse", "HEAD"]).strip()
+    branch = run_git(["rev-parse", "--abbrev-ref", "HEAD"]).strip()
+    if branch == "HEAD":
+        raise ValueError(f"the solver clone {repository} is on a detached head, not a branch")
+    return check_solver_build(
+        {"repository": recorded_repository(repository), "branch": branch, "commit": commit}
+    )
+
+
+def check_solver_build(build: object) -> dict[str, str]:
+    """The build a solve record carries, refused when any part of it is missing."""
+    if not isinstance(build, Mapping):
+        raise ValueError(f"a solve record needs the solver build it ran on, got {build!r}")
+    for name in ("repository", "branch"):
+        value = build.get(name)
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"a solve record needs the solver build's {name}, got {value!r}")
+    commit = build.get("commit")
+    if not isinstance(commit, str) or not COMMIT_PATTERN.fullmatch(commit):
+        raise ValueError(
+            f"a solve record needs the solver build's commit as 40 lowercase hex, got {commit!r}"
+        )
+    return {"repository": build["repository"], "branch": build["branch"], "commit": commit}
+
+
 # --- What every solve record carries
 
 
@@ -275,15 +386,18 @@ def solve_record(
     engine: str,
     arena_storage: str,
     peak_resident_bytes: int,
+    solver_build: Mapping[str, str],
 ) -> dict[str, object]:
-    """One solve as measured, with where and how it ran. Every field is required and none has a
-    default: a timing whose thread count nobody wrote down is the record this exists to stop."""
+    """One solve as measured, with where, how and on which solver build it ran. Every field is
+    required and none has a default: a timing whose thread count or build nobody wrote down is the
+    record this exists to stop."""
     if not isinstance(machine, MachineRecord):
         raise ValueError(f"a solve record needs a measured machine, got {machine!r}")
     if engine not in ENGINES:
         raise ValueError(f"engine must be one of {ENGINES} as read back, got {engine!r}")
     if not isinstance(arena_storage, str) or not arena_storage:
         raise ValueError(f"a solve record needs the arena storage read back, got {arena_storage!r}")
+    build = check_solver_build(solver_build)
     return {
         "label": outcome.label,
         "board": outcome.board,
@@ -298,4 +412,5 @@ def solve_record(
         "engine": engine,
         "arena_storage": arena_storage,
         "peak_resident_bytes": _positive_int("peak_resident_bytes", peak_resident_bytes),
+        "solver_build": build,
     }

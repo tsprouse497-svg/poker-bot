@@ -16,6 +16,16 @@ not captured, because no rented box existed when this was written; what they pin
 
 GTOpen's `init_rayon` (`crates/server/src/main.rs:2546-2563`) takes `SOLVER_THREADS` when it parses
 and otherwise `max(1, available_parallelism() / 2)`, which is why the M4 printed five threads.
+
+**Every solve record names the solver build it ran on (decision 17).** Two GTOpen trees exist from
+here on - the pin's, which carries the last aggressor through a checked-through street, and the
+clone's, which clears it - so a record that cannot say which build solved it cannot be told apart.
+`postflop_machine.solve_record` takes `solver_build`, a mapping `{"repository", "branch",
+"commit"}` with the commit as 40 lowercase hex, and carries it unchanged as
+`record["solver_build"]`. `postflop_machine.read_solver_build(repository, run_git)` reads it off
+the clone, where `run_git(args) -> str` runs git in that repository: injected, because git on a
+clone outside this repo is a hard external boundary. It refuses a dirty tree, because a binary
+built from uncommitted changes is not the commit it would name.
 """
 
 from __future__ import annotations
@@ -32,6 +42,14 @@ from scripts.repo_paths import REPO_ROOT
 
 FIXTURES = REPO_ROOT / "tests" / "fixtures" / "flop_campaign"
 GIB = 1024**3
+SOLVER_CLONE = Path.home() / "projects" / "gtopen-poker-bot"
+SOLVER_BUILD = {
+    "repository": str(SOLVER_CLONE),
+    "branch": "poker-bot/check-through-clears-initiative",
+    "commit": "0123456789abcdef0123456789abcdef01234567",
+}
+"""An invented commit on the clone's branch: the record carries what it is handed, so the value
+need only be well formed."""
 
 
 @pytest.fixture(scope="module")
@@ -483,8 +501,8 @@ def an_outcome():
 
 class TestEverySolveRecordNamesWhereAndHowItRan:
     """Criterion: every solve record carries the machine as measured, the thread count, the
-    engine and the arena storage, and peak resident memory per solve - no f32 solve on record
-    has one."""
+    engine, the arena storage and the solver build, and peak resident memory per solve - no f32
+    solve on record has one."""
 
     def xeon(self, machine):
         return owed(machine, "measure_machine")(
@@ -499,6 +517,7 @@ class TestEverySolveRecordNamesWhereAndHowItRan:
             engine="CPU",
             arena_storage="f32",
             peak_resident_bytes=30_000_000_000,
+            solver_build=dict(SOLVER_BUILD),
         )
 
         assert record["machine"]["cpu_model"] == "Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz"
@@ -513,6 +532,7 @@ class TestEverySolveRecordNamesWhereAndHowItRan:
             engine="CPU",
             arena_storage="f32",
             peak_resident_bytes=30_000_000_000,
+            solver_build=dict(SOLVER_BUILD),
         )
 
         assert record["threads"] == 4
@@ -521,6 +541,7 @@ class TestEverySolveRecordNamesWhereAndHowItRan:
         assert record["peak_resident_bytes"] == 30_000_000_000
         assert record["iterations"] == 340
         assert record["wall_seconds"] == pytest.approx(1677.4)
+        assert record["solver_build"] == SOLVER_BUILD
 
     @pytest.mark.parametrize(
         "missing",
@@ -544,11 +565,123 @@ class TestEverySolveRecordNamesWhereAndHowItRan:
             "engine": "CPU",
             "arena_storage": "f32",
             "peak_resident_bytes": 30_000_000_000,
+            "solver_build": dict(SOLVER_BUILD),
             **missing,
         }
 
         with pytest.raises((ValueError, transport.SolveDriverError)):
             owed(machine, "solve_record")(an_outcome(), **fields)
+
+
+def xeon_record(machine, **fields):
+    """A solve record on the Xeon fixture, every measurement given but those in `fields`."""
+    xeon = owed(machine, "measure_machine")(
+        platform="Linux", sysctl=no_sysctl, read_text=proc_reader(XEON_PROC)
+    )
+    measured = {"threads": 4, "engine": "CPU", "arena_storage": "f32"}
+    return owed(machine, "solve_record")(
+        an_outcome(), machine=xeon, peak_resident_bytes=30_000_000_000, **measured, **fields
+    )
+
+
+class TestEverySolveRecordNamesTheSolverBuild:
+    """Criterion: every solve record carries the solver build, the clone's commit, so a cell
+    solved on the pin's tree can never pass for one solved on the new tree; the repo's solve path
+    selects the clone's build by default, and `~/projects/gtopen` stays the untouched reference."""
+
+    def test_the_record_carries_the_build_it_was_handed_unchanged(self, machine) -> None:
+        other = {**SOLVER_BUILD, "commit": "f" * 40}
+
+        assert xeon_record(machine, solver_build=dict(SOLVER_BUILD))["solver_build"] == SOLVER_BUILD
+        assert xeon_record(machine, solver_build=dict(other))["solver_build"] == other
+
+    def test_a_record_with_no_build_argument_is_refused(self, machine) -> None:
+        """No default: a build the caller forgot is not a build the record may assume."""
+        with pytest.raises((TypeError, ValueError, transport.SolveDriverError)):
+            xeon_record(machine)
+
+    @pytest.mark.parametrize(
+        "build",
+        [
+            None,
+            {},
+            {"repository": str(SOLVER_CLONE), "branch": SOLVER_BUILD["branch"]},
+            {**SOLVER_BUILD, "branch": ""},
+            {**SOLVER_BUILD, "branch": "   "},
+            {**SOLVER_BUILD, "commit": "b058335"},
+            {**SOLVER_BUILD, "commit": SOLVER_BUILD["commit"].upper()},
+            {**SOLVER_BUILD, "commit": SOLVER_BUILD["commit"] + "8"},
+            {**SOLVER_BUILD, "commit": "g" * 40},
+            {**SOLVER_BUILD, "commit": None},
+        ],
+    )
+    def test_a_build_that_does_not_name_one_commit_is_refused(self, machine, build) -> None:
+        """A short hash is a guess about which commit it means, and a blank branch names nothing
+        anyone can find."""
+        with pytest.raises((ValueError, transport.SolveDriverError)):
+            xeon_record(machine, solver_build=build)
+
+
+def git_answering(answers: dict[tuple[str, ...], str]):
+    """git in the clone, answered from a table; a command the table lacks is an error, so a
+    reader that asks git anything else fails here rather than reading a real clone."""
+    asked: list[tuple[str, ...]] = []
+
+    def run(args: list[str]) -> str:
+        asked.append(tuple(args))
+        if tuple(args) not in answers:
+            raise AssertionError(f"git {' '.join(args)} was not expected")
+        return answers[tuple(args)]
+
+    run.asked = asked
+    return run
+
+
+CLEAN_CLONE = {
+    ("status", "--porcelain", "--untracked-files=no"): "",
+    ("rev-parse", "HEAD"): SOLVER_BUILD["commit"] + "\n",
+    ("rev-parse", "--abbrev-ref", "HEAD"): SOLVER_BUILD["branch"] + "\n",
+}
+
+
+class TestTheSolverBuildIsReadOffTheClone:
+    def test_a_clean_clone_reads_as_its_branch_and_commit_and_a_record_takes_it(
+        self, machine
+    ) -> None:
+        run_git = git_answering(CLEAN_CLONE)
+
+        build = owed(machine, "read_solver_build")(SOLVER_CLONE, run_git)
+
+        assert build["commit"] == SOLVER_BUILD["commit"]
+        assert build["branch"] == SOLVER_BUILD["branch"]
+        assert Path(build["repository"]).expanduser() == SOLVER_CLONE
+        assert ("status", "--porcelain", "--untracked-files=no") in run_git.asked
+        assert xeon_record(machine, solver_build=build)["solver_build"] == build
+
+    @pytest.mark.parametrize(
+        "answer",
+        [
+            {("status", "--porcelain", "--untracked-files=no"): " M crates/solver/src/tree.rs\n"},
+            {("rev-parse", "HEAD"): "0123456\n"},
+        ],
+    )
+    def test_a_dirty_clone_or_a_short_commit_is_refused(self, machine, answer) -> None:
+        """A binary built from a dirty tree is not the commit it names: the record would claim
+        the clone's tree while the solve ran something else. A short hash names no one commit."""
+        with pytest.raises((ValueError, transport.SolveDriverError)):
+            owed(machine, "read_solver_build")(SOLVER_CLONE, git_answering(CLEAN_CLONE | answer))
+
+
+def test_the_solve_path_selects_the_clone_s_build_by_default() -> None:
+    """The clone `docs/GTOPEN_SOLVER_NOTES.md` records, never the untouched reference clone at
+    `~/projects/gtopen`, which still builds the pin's tree."""
+    import scripts.solve_postflop_sample as solve
+
+    expected = Path.home() / "projects" / "gtopen-poker-bot" / "target" / "release" / "gto-server"
+    assert expected == solve.DEFAULT_SERVER
+    assert (Path.home() / "projects" / "gtopen") not in Path(solve.DEFAULT_SERVER).parents
+    notes = (REPO_ROOT / "docs" / "GTOPEN_SOLVER_NOTES.md").read_text(encoding="utf-8")
+    assert "~/projects/gtopen-poker-bot" in notes
 
 
 # --------------------------------------------------------------------------- #
