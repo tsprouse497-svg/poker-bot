@@ -53,7 +53,7 @@ three of which hold fourteen cells, so a count-only check fails.
 
 ## Blocker
 
-- **Nothing makes the bot play a decision point after a raise, which is the reason decision 16
+- `[resolved]` in `fb34142`, `test_a_machine_that_fetched_a_node_after_a_raise_plays_it` (round 2 below). **Nothing makes the bot play a decision point after a raise, which is the reason decision 16
   exists.** Decision 16 was ruled because "the bot cannot look up the node after its own raise".
   The frozen tests pin the key, the harvest and the fetch, and none of them asks the strategy to
   answer such a node. Concrete failing scenario: stage 6 adds `FlopAction.multiplier`, the harvest
@@ -69,7 +69,7 @@ three of which hold fourteen cells, so a count-only check fails.
   level must return a `StrategyDecision`. Use exactly 2.5 times the chips so the test needs no
   ruling on the raise tolerance.
 
-- **Decision 15's re-ruled rounding is frozen into data and nothing tests it, and stage 6 cannot
+- `[resolved]` in `fb34142`, `tests/test_flop_campaign_street_rows.py` (round 2 below). **Decision 15's re-ruled rounding is frozen into data and nothing tests it, and stage 6 cannot
   add the test.** Since 2026-10-03, turn and river frequencies are rounded to a tenth of a percent,
   with the largest entry paying the residue, and stored at two bytes. The ExecPlan
   (`docs/exec_plans/active/PHASE_21_FLOP_CAMPAIGN.md`, the stage 6 builder-notes bullet) calls the
@@ -131,9 +131,9 @@ three of which hold fourteen cells, so a count-only check fails.
   all-in. On the small blind's line it is 24 of 134 and 212 of 657. Such a size is neither 66 nor
   125 percent nor 2.5x, and almost never a hundredth of either unit. Nothing frozen here blocks a
   ruling, because `FlopAction` and `flop_line` are flop-only and no flop raise on either tree is
-  clamped. But whoever keys the turn and river meets the round 3 blocker again. This needs a new
-  backlog id, proposed title: "Turn and river sizes clamped to all-in have no name in any spot
-  key". It belongs beside `TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE`.
+  clamped. But whoever keys the turn and river meets the round 3 blocker again. Filed as
+  `TURN-AND-RIVER-SIZES-CLAMPED-TO-ALL-IN-HAVE-NO-NAME-IN-ANY-SPOT-KEY`, beside
+  `TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE`.
 - Held-back item 2, second half: at the table, how far from exactly 2.5x a faced raise may sit and
   still match is still unruled, and no test owns it.
   `THE-FLOP-RAISE-TOLERANCE-IS-BORROWED-FROM-THE-BET-MENU-RULING`.
@@ -142,3 +142,60 @@ three of which hold fourteen cells, so a count-only check fails.
   unformatted at the base commit and its new hunks did not change that. It is the existing drift,
   not a new lint failure, and `ruff check` passes.
   `THE-REPO-S-FORMATTER-IS-NOT-IN-THE-GATE-AND-THIRTY-NINE-TEST-FILES-DIVERGE`.
+
+## Round 2, 2026-10-04: the repair in `fb34142`
+
+Same reviewer, same rules: read-only, no gate run. Scope `git diff c3d2e39 fb34142`. I ran the ten
+files of `pytest_flop_campaign`, `ruff check` and `ruff format --check` on the changed files, and
+scratch checks of `postflop_harvest._rounded` on the new fixture rows, of the half-precision words
+for 0.25, 0.25 and 0.5, and of the borrowed cell's classes.
+
+- **The first blocker holds.** `test_a_machine_that_fetched_a_node_after_a_raise_plays_it`
+  (`tests/test_flop_campaign_lines.py`) fetches the button-faces-check-raise cell and asks the
+  strategy to answer a big blind check-raise to 455 over a 182 c-bet, exactly 2.5 times. The query
+  is consistent: `to_call` 273 is 455 less 182, `min_raise_target` 728 is 455 plus 273, and
+  committed totals 432, 50 and 705 give a 1,187 pot. Against the wrong implementation I described,
+  `postflop_committed.py:245` keying the raise as a percent of pot, `FlopAction` refuses, the walk
+  misses, and the test fails. It also fails if the multiplier is read as the increment over the
+  bet (1.5x), because no cell holds that key. It can pass: the borrowed classes are combo-level
+  and hold `AsQd`, hero's hand.
+- **The second blocker holds.** `tests/test_flop_campaign_street_rows.py` pins a turn or river row
+  as whole counts from 0 to 1,000 in two little-endian bytes, decoded to exactly
+  `postflop_harvest._rounded(row)`. I checked `_rounded` on every fixture row, and each docstring
+  claim is right, including (0.332, 0.334, 0.334) for the row that sums to 1.0011. A
+  half-precision encoder fails three ways. Its words for 0.25, 0.25 and 0.5 are 13,312, 13,312 and
+  14,336, which are over 1,000. The round trip is not `_rounded`'s. The decoder refuses its row.
+  The fetch now counts a turn object from its own bytes, so a turn object one decision point short
+  is refused even with every digest made to match. `HarvestError` subclasses `ValueError`, so the
+  refusal tests can pass.
+- **Non-blockers 3 and 4, as numbered in the round 1 report** (my item 1 recommendation and the
+  canary), are folded in. `test_a_fetched_object_altered_after_the_fetch_is_not_played` reverses
+  class `2d2h`'s row (0, 0, 1), so the bytes really change, and a strategy that reads the disk
+  without the digest answers and fails it. The canary
+  `flop-campaign-fetch-counts-flop-cells-instead-of-keys` swaps the key-set comparison for a
+  length comparison, and the three fourteen-cell cases in `WRONG_CONTENTS` then fetch, so it
+  reddens `pytest_flop_campaign`.
+- **The registered command still fails for the right reason.** 43 failed, 50 passed, 303 errors,
+  no `Interrupted`. Every error is a fixture-setup `ModuleNotFoundError` naming a
+  `poker_training_bot.solver_artifacts` module, `postflop_street_rows` now among them. Every
+  failure is an `AssertionError`. The new file is registered in `scripts/run_verify.py`, passes
+  `ruff check` and `ruff format`, and the lines file is at 653 of 700.
+
+### Round 2 blocker
+
+None.
+
+### Round 2 non-blocker
+
+- Little-endian is now frozen into data. It has no poker meaning and every candidate box is
+  little-endian, so it costs nothing. It is recorded in the ExecPlan as a coordinator choice and
+  not as one of Taylor's rulings, which is right.
+- `fetched_folders` lets the check-raise folder hold one cell while its manifest claims 14 and
+  carries `Kh7d2c`'s two committed strategy digests. Round 1's point about checking closure only at
+  fetch time now covers two tests rather than one. It stays defensible because the new digest test
+  ties the disk to what the fetch checked.
+- `street_object_decision_points` may read a count field that the encoder writes, and a truncated
+  object is refused only by `decode_street_object`. A fetch that counts from the field and never
+  decodes the body still catches a short body through the index digest, so nothing is lost today.
+- The object layout, whether rows are stored per combo or per class, and compression are still
+  stage 6's, as the new file says. Nothing here pins the river's size estimate.
