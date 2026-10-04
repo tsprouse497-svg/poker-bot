@@ -46,7 +46,7 @@ every committed report line printing one.
 | preflop source card `size.limit_bytes` | the cap | policy in `check_file_sizes.py` | **Goes.** A second copy of the cap; the checker owns it. |
 | preflop source card `size.bytes`, `bytes_per_node`, `bytes_per_expressible_spot` (+ note) | the export's own size, per node, per chart spot | the export and its derived chart | **Stays.** The card's own facts; none moves when an unrelated file lands. |
 | postflop `index.json` `headroom_bytes` | cap less whole tree | `data/artifacts` | **Goes.** Same defect. Scratch probe: a file under `data/artifacts/preflop/` reddens `test_the_headroom_the_index_states_is_the_cap_less_the_whole_tree`. |
-| postflop `index.json` `committed_bytes` | bytes of `data/artifacts/postflop/` | the index's own directory | **Stays.** The directory is the postflop artifact the index describes, and every file in it is written by the postflop campaign that rebuilds the index (`solve_postflop_sample.py --index-only`). Phase 16's contract requires the figure and that the generator refuse one that does not reconcile with disk. A file landing elsewhere no longer moves it. |
+| postflop `index.json` `committed_bytes` | bytes of `data/artifacts/postflop/` | the index's own directory | **Stays.** The directory is the postflop artifact the index describes, and phase 16's contract requires the figure and requires the generator to refuse one that does not reconcile with disk. A file landing elsewhere no longer moves it. A file landing inside it still does, and phase 21 writes campaign records there without rebuilding the index; that is filed as `POSTFLOP-INDEX-BYTE-COUNT-MOVES-WITH-EVERY-CAMPAIGN-RECORD`, since narrowing the figure changes phase 16's contract. |
 | postflop `determinism.json` `committed_bytes`, `second_run_bytes` | each cell file's own size | the cell | **Stays.** Owned. |
 | `preflop/equity/preflop_eq169.source.json` `bytes` | the table's own size | the table | **Stays.** Owned. |
 | `reports/active/latest_postflop_betting_report.txt` "bytes used, whole artifact tree", "headroom left" | live totals | `data/artifacts` | **Stays.** A generated report measured at generation time from `check_file_sizes`' own cap; the gate regenerates it every run. |
@@ -89,6 +89,10 @@ run. The scope check's untracked-folder bug, filed only in phase 21's lane backl
 - [x] Canaries for the card check, the index importer, the converter and the cap check. Each
       applied by hand in a scratch copy: each reddens exactly the new test meant to catch it.
 - [x] Contract amendments, backlog entry closed, generated docs.
+      Phase 16's contract stood at 299 lines, so a two-line amendment beside the false sentence
+      would make 301. The false sentence was replaced in place by the amendment, which is how
+      MAINT-39 amended phase 14 at its cap; nothing else was cut. The rewrite the cap now owes is
+      filed as `POSTFLOP-BETTING-CONTRACT-IS-AT-ITS-LINE-CAP`.
 - [ ] Independent read-only review; fold in blockers.
 - [ ] Gate, packet, closeout, gate, merge.
 

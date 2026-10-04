@@ -46,8 +46,8 @@ scope_change_log:
       importer. Two frozen test files of completed phases are in scope for this fix alone: each
       assertion that compared a stored whole-tree headroom is replaced by one that refuses the
       stored copy, every cap assertion stays as strict, and `verification/freeze.lock` is re-written
-      so the lock diff is the record. `verification/mutations.yml` takes canaries for the two
-      readers and the cap check. Two completed contracts that assert the card states the headroom
+      so the lock diff is the record. `verification/mutations.yml` takes four canaries: the two
+      readers, the converter and the cap check. Two completed contracts that assert the card states the headroom
       are amended in place. The last two paths are this task's packet and review directory. The
       committed preflop chart and its sizing table must come back byte-identical.
   - date: 2026-09-26

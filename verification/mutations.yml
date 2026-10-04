@@ -1671,9 +1671,9 @@ mutations:
 
   - id: the-card-depends-on-the-artifact-tree-again
     description: >-
-      The converter stamps a figure counted off the whole artifact tree onto the card, which
-      is the original defect in its plainest form: the card no longer reproduces from the
-      export alone.
+      The converter stamps a figure counted off the whole artifact tree onto the card. It
+      proves the new test runs the converter's check at all: the card then fails to reproduce
+      even on an unchanged tree, so it does not isolate the grown-tree case on its own.
     file: scripts/convert_preflop_export.py
     find: "    return render_card(card)"
     replace: "    size['tree_files'] = sum(1 for _ in ARTIFACTS_DIR.rglob('*')); return render_card(card)"
@@ -1683,8 +1683,8 @@ mutations:
   - id: the-artifact-cap-stops-binding
     description: >-
       The directory byte cap is computed and then ignored, so data/artifacts can grow past
-      20 MiB with the gate's own size check passing. The card and the index no longer state
-      a headroom, so this check is the only thing that holds the cap.
+      20 MiB with the gate's own size check passing. With the stored headroom gone, this
+      check and two committed-tree tests are what hold the cap.
     file: scripts/check_file_sizes.py
     find: "        if total > limit:"
     replace: "        if False and total > limit:"

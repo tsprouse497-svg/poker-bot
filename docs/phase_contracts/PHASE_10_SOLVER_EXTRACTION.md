@@ -211,11 +211,11 @@ Phase 10 is limited to the work named by this contract and the active ExecPlan.
   granted.
 - A byte limit covering `data/artifacts/**` is added and the committed export sits under
   it with stated headroom.
-  Amended by MAINT-41, `SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE`: the card no
-  longer stores the headroom; the gate measures it and the postflop betting report prints it.
   That directory is covered by no size check at all today, so a 12 MB artifact or a 40 MB
   one commits with nothing objecting. Exceeding the limit is a halt and a decision, not a
   number to raise.
+  Amended by MAINT-41, `SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE`: the card no
+  longer stores the headroom; the gate measures it and the postflop betting report prints it.
 - The export's measured bytes per node and bytes per expressible spot are reported, so
   Phase 14 sets its expectations from a measurement rather than from the roadmap's 7.1 KB
   per spot, which is measured off a different format.
