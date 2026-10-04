@@ -15,6 +15,7 @@ approved_scope:
 - docs/GTOPEN_SOLVER_NOTES.md
 - data/artifacts/postflop/index.json
 - data/artifacts/postflop/objects.json
+- data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -4480,3 +4481,13 @@ scope_change_log:
       stale when they landed and three frozen budget tests went red. They count against the
       artifact cap like any committed byte, so the index is rebuilt with `--index-only` rather than
       the records being excluded; only its byte figures may change.
+  - date: 2026-10-04
+    reason: >-
+      The solver export's source card joins approved_scope for its one `headroom_bytes` figure, as
+      phase 16 did at 7d6866f. The card states headroom as the 20 MiB cap less the whole
+      `data/artifacts` tree, so the committed `campaign/` records made it stale by construction and
+      six frozen tests went red, each the card failing to reproduce from its export
+      (`SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE`). Regenerated with
+      `scripts/convert_preflop_export.py`; the chart and the sizing table must come back
+      byte-identical, so the contract's non-goal that the committed preflop chart, its key and its
+      artifact do not change holds. The rest of `data/artifacts/preflop` stays out.
