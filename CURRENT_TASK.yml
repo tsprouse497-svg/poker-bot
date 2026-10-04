@@ -10,8 +10,8 @@ approved_scope:
 - src/poker_training_bot/solver_artifacts/**
 - scripts/measure_postflop_thread_sweep.py
 - scripts/solve_postflop_sample.py
-- data/artifacts/postflop/thread_sweep.json
-- data/artifacts/postflop/resolve_at_thread_count.json
+- data/artifacts/postflop/campaign/thread_sweep.json
+- data/artifacts/postflop/campaign/mac_resolve_at_thread_count.json
 - docs/GTOPEN_SOLVER_NOTES.md
 standing_scope:
 - CURRENT_TASK.yml
@@ -4466,3 +4466,8 @@ scope_change_log:
       `base_commit` moves to the stage-5 freeze, 49f529c, as earlier phases moved it at theirs:
       scope is the diff from `base_commit`, and leaving stage 4's tests in that diff would read as
       the builder writing tests, which is what the narrowing exists to stop.
+  - date: 2026-10-04
+    reason: >-
+      The two part 1 records move under `data/artifacts/postflop/campaign/`, because the frozen
+      report tests read `campaign/thread_sweep.json`; the scope entry above named the folder wrongly.
+      The re-solve comparison is named for the Mac it ran on. No new kind of path is added.

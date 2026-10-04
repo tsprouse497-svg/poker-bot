@@ -115,9 +115,12 @@ from poker_training_bot.solver_artifacts.postflop_key import (  # noqa: E402
     completed_preflop_line,
     postflop_spot_key,
 )
+from poker_training_bot.solver_artifacts.postflop_machine import (  # noqa: E402
+    MachineRecord,
+    measure_machine,
+)
 from poker_training_bot.solver_artifacts.postflop_solve_driver import (  # noqa: E402
     CHECK_EVERY_ITERATIONS,
-    MEASURING_MACHINE,
     RULED_ARENA_STORAGE,
     RUN_TO_THE_CAP_TARGET_PCT,
     SolvePlan,
@@ -126,6 +129,12 @@ from poker_training_bot.solver_artifacts.postflop_solve_driver import (  # noqa:
     gtopen_memory_guard,
     run_solve,
     solve_config_document,
+)
+from poker_training_bot.solver_artifacts.postflop_threads import (  # noqa: E402
+    SOLVER_COMPRESS_FULL_PRECISION,
+    SOLVER_COMPRESS_VARIABLE,
+    check_printed_threads,
+    server_environment,
 )
 from poker_training_bot.solver_artifacts.postflop_transport import (  # noqa: E402
     BASE_URL,
@@ -356,25 +365,62 @@ def range_text(weights: dict[str, float]) -> str:
 # --------------------------------------------------------------------------- #
 
 
-SOLVER_COMPRESS_VARIABLE = "SOLVER_COMPRESS"
-SOLVER_COMPRESS_FULL_PRECISION = "0"
-"""How GTOpen picks its arena, read off `crates/server/src/main.rs` rather than off the name.
+# `SOLVER_COMPRESS_VARIABLE` and its full-precision value live in `postflop_threads` beside the
+# thread count, because both ride the one environment `server_environment` builds. How GTOpen picks
+# its arena, read off `crates/server/src/main.rs` rather than off the name.
+#
+#     fn storage_from_env() -> Storage {
+#         match std::env::var("SOLVER_COMPRESS").as_deref() {
+#             Ok("0") => Storage::F32,
+#             _ => Storage::Compressed,
+#         }
+#     }
+#
+# The match is on the exact string `"0"` and everything else is the quantized arena: the variable
+# absent, `"false"`, `"no"`, `"0.0"`, `" 0"`, an unset value inherited from a login shell. There is
+# no error and no log line, so a name typed slightly wrong produces a solve that looks entirely
+# normal and measures something else. The value is read per request rather than at boot, but from
+# the server process's own environment, so it is fixed when the process starts and this is the only
+# place it can be set. `check_arena_storage` is what proves it took, because nothing the server
+# answers says so.
 
-    fn storage_from_env() -> Storage {
-        match std::env::var("SOLVER_COMPRESS").as_deref() {
-            Ok("0") => Storage::F32,
-            _ => Storage::Compressed,
+
+@dataclass(frozen=True)
+class RunConditions:
+    """Where and how this invocation solves: the machine as measured at start and the explicit
+    thread count. Written beside every timing, because a timing without them is not a measurement
+    (phase 21's forbidden shortcut)."""
+
+    machine: MachineRecord
+    threads: int
+
+    def provenance(self) -> dict[str, Any]:
+        return {
+            "machine": self.machine.describe(),
+            "machine_record": self.machine.to_document(),
+            "threads": self.threads,
         }
-    }
 
-The match is on the exact string `"0"` and everything else is the quantized arena: the variable
-absent, `"false"`, `"no"`, `"0.0"`, `" 0"`, an unset value inherited from a login shell. There is
-no error and no log line, so a name typed slightly wrong produces a solve that looks entirely
-normal and measures something else. The value is read per request rather than at boot, but from
-the server process's own environment, so it is fixed when the process starts and this is the only
-place it can be set. `check_arena_storage` is what proves it took, because nothing the server
-answers says so.
-"""
+
+_RUN_CONDITIONS: list[RunConditions] = []
+
+
+def run_conditions() -> RunConditions:
+    if not _RUN_CONDITIONS:
+        raise SystemExit("no run conditions: main measures the machine and takes --threads first")
+    return _RUN_CONDITIONS[-1]
+
+
+def begin_run(threads: int | None) -> RunConditions:
+    """Measure this machine and fix the thread count, once, before any server starts."""
+    try:
+        server_environment(threads, base={})  # the same refusal a server start would meet
+    except SolveDriverError as error:
+        raise SystemExit(f"--threads is required to solve: {error}") from error
+    assert isinstance(threads, int)
+    conditions = RunConditions(machine=measure_machine(), threads=threads)
+    _RUN_CONDITIONS.append(conditions)
+    return conditions
 
 
 class Server:
@@ -383,14 +429,22 @@ class Server:
     Restarted per plan on purpose: the server never returns freed pages, and a session carrying
     a large high-water mark measured about 1.6x slower per iteration on the identical config.
 
-    Started with the arena the campaign is configured for, so full precision is a property of the
-    committed run rather than of whoever typed the command.
+    Started with the arena the campaign is configured for and an explicit thread count, both
+    through `server_environment`, so full precision and the count are properties of the committed
+    run rather than of whoever typed the command or whatever their shell exported. The count the
+    server prints at start is read back and must be the count it was given.
+
+    `peak_resident_bytes` is the process's own high-water mark, read from the kernel when it is
+    reaped (`wait4`), so it is the peak over the whole solve rather than a sample of it.
     """
 
-    def __init__(self, binary: Path, log_dir: Path) -> None:
+    def __init__(self, binary: Path, log_dir: Path, threads: int) -> None:
         self.binary = binary
         self.log_dir = log_dir
+        self.threads = threads
         self.process: subprocess.Popen | None = None
+        self.log_path: Path | None = None
+        self.peak_resident_bytes: int | None = None
 
     def start(self, label: str) -> None:
         if not self.binary.is_file():
@@ -399,11 +453,14 @@ class Server:
                 " clone) or point --server at the binary; this script never installs one."
             )
         self.log_dir.mkdir(parents=True, exist_ok=True)
-        log = (self.log_dir / f"gto-server-{label}.log").open("wb")
+        environment = server_environment(self.threads)
+        self.log_path = self.log_dir / f"gto-server-{label}.log"
+        log = self.log_path.open("wb")
+        self.peak_resident_bytes = None
         self.process = subprocess.Popen(  # noqa: S603 - a local binary named on the command line
             [str(self.binary)],
             cwd=str(self.binary.resolve().parents[2]),
-            env={**os.environ, SOLVER_COMPRESS_VARIABLE: SOLVER_COMPRESS_FULL_PRECISION},
+            env=environment,
             stdout=log,
             stderr=subprocess.STDOUT,
             start_new_session=True,
@@ -413,9 +470,15 @@ class Server:
             try:
                 with urllib.request.urlopen(f"{BASE_URL}/api/status", timeout=2) as answer:
                     json.loads(answer.read())
-                    return
             except (urllib.error.URLError, OSError, ValueError):
                 time.sleep(0.25)
+                continue
+            try:
+                check_printed_threads(self.log_path.read_text("utf-8", "replace"), self.threads)
+            except SolveDriverError:
+                self.stop()
+                raise
+            return
         self.stop()
         raise SystemExit(f"the server did not answer /api/status within "
                          f"{SERVER_START_TIMEOUT_SECONDS:.0f}s; see {log.name}")
@@ -426,11 +489,20 @@ class Server:
         if process is None or process.poll() is not None:
             return
         os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-        try:
-            process.wait(timeout=SERVER_STOP_TIMEOUT_SECONDS)
-        except subprocess.TimeoutExpired:
-            os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-            process.wait(timeout=SERVER_STOP_TIMEOUT_SECONDS)
+        deadline = time.monotonic() + SERVER_STOP_TIMEOUT_SECONDS
+        while True:
+            pid, status, usage = os.wait4(process.pid, os.WNOHANG)
+            if pid:
+                break
+            if time.monotonic() > deadline:
+                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                pid, status, usage = os.wait4(process.pid, 0)
+                break
+            time.sleep(0.1)
+        process.returncode = os.waitstatus_to_exitcode(status)
+        # ru_maxrss is bytes on Darwin and kibibytes on Linux.
+        scale = 1 if sys.platform == "darwin" else 1024
+        self.peak_resident_bytes = usage.ru_maxrss * scale
 
 
 class ArenaVerifiedTransport:
@@ -500,6 +572,7 @@ class BoardResult:
     notes: list[str] = field(default_factory=list)
     committed: bool = True
     verdict: str = ""
+    peak_resident_bytes: int | None = None
 
 
 def preflop_line_for(hero_position: str):
@@ -604,7 +677,8 @@ def write_object(object_dir: Path, board: tuple[str, ...], result: BoardResult) 
             "wall_seconds": result.outcome.wall_seconds,
             "arena_bytes": result.outcome.arena_bytes,
             "arena_storage": result.arena_storage,
-            "machine": MEASURING_MACHINE,
+            **run_conditions().provenance(),
+            "peak_resident_bytes": result.peak_resident_bytes,
             "memory_ceiling": describe_memory_ceiling(),
         },
         "config": solve_config_document(),
@@ -1394,7 +1468,7 @@ def deep_check_document(
             "wall_seconds": round(outcome.wall_seconds, 1),
             "arena_storage": arena_storage,
             "arena_bytes": outcome.arena_bytes,
-            "machine": MEASURING_MACHINE,
+            **run_conditions().provenance(),
             "largest_in_class_divergence": divergence,
             "strategy_digest": strategy_digest(deep["hand_classes"], deep["class_weights"]),
             "stopping_rule": (
@@ -1468,7 +1542,7 @@ def write_deep_object(
             "wall_seconds": outcome.wall_seconds,
             "arena_bytes": outcome.arena_bytes,
             "arena_storage": arena_storage,
-            "machine": MEASURING_MACHINE,
+            **run_conditions().provenance(),
             "stopping_rule": f"the {SOLVE_ITERATION_CAP}-iteration cap alone",
         },
         "config": solve_config_document(),
@@ -1569,6 +1643,8 @@ def report(result: BoardResult) -> None:
           f" = {outcome.wall_seconds / 60:.1f} min")
     print(f"  planned arena      {outcome.arena_bytes / 1e9:.2f} GB, {result.arena_storage}"
           " (read back off the built tree, not assumed from the environment)")
+    if result.peak_resident_bytes is not None:
+        print(f"  peak resident      {result.peak_resident_bytes / 1e9:.2f} GB (wait4 ru_maxrss)")
     for note in result.notes:
         print(f"  {note}")
 
@@ -1591,14 +1667,16 @@ def deep_check_run(args: argparse.Namespace, object_storage: str) -> int:
         )
     oop, ip = conditional_ranges()
     oop_text, ip_text = range_text(oop), range_text(ip)
-    print(f"machine            {MEASURING_MACHINE}")
+    conditions = begin_run(args.threads)
+    print(f"machine            {conditions.machine.describe()}")
+    print(f"solver threads     {conditions.threads}, set explicitly through SOLVER_THREADS")
     print(f"memory ceiling     {describe_memory_ceiling()}")
     print(f"arena              {RULED_ARENA_STORAGE}, asked for by"
           f" {SOLVER_COMPRESS_VARIABLE}={SOLVER_COMPRESS_FULL_PRECISION!r}")
     print(f"deep check         {cell.name} on {cell.board_text}, to the"
           f" {SOLVE_ITERATION_CAP}-iteration cap")
     refuse_a_foreign_server()
-    server = Server(Path(args.server), Path(args.log_dir))
+    server = Server(Path(args.server), Path(args.log_dir), conditions.threads)
     tolerance = CLASS_AGREEMENT_TOLERANCE if args.tolerance is None else float(args.tolerance)
     transport = ArenaVerifiedTransport(http_transport(), RULED_ARENA_STORAGE)
     server.start(f"deep-{cell.board_text}")
@@ -1628,6 +1706,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--all", action="store_true", help="every cell in the sample")
     parser.add_argument("--list", action="store_true", help="name the cells and stop")
     parser.add_argument("--server", default=str(DEFAULT_SERVER), help="the gto-server binary")
+    parser.add_argument("--threads", type=int, default=None,
+                        help="SOLVER_THREADS for every server this run starts; required to solve,"
+                             " and the count this machine's thread sweep chose")
     parser.add_argument("--object-dir", default=str(DEFAULT_OBJECT_DIR))
     parser.add_argument("--log-dir", default=str(Path.home() / ".cache" / "poker-bot-solves"))
     parser.add_argument("--tolerance", type=float, default=None,
@@ -1694,7 +1775,9 @@ def main(argv: list[str] | None = None) -> int:
 
     oop, ip = conditional_ranges()
     oop_text, ip_text = range_text(oop), range_text(ip)
-    print(f"machine            {MEASURING_MACHINE}")
+    conditions = begin_run(args.threads)
+    print(f"machine            {conditions.machine.describe()}")
+    print(f"solver threads     {conditions.threads}, set explicitly through SOLVER_THREADS")
     print(f"memory ceiling     {describe_memory_ceiling()}")
     print(f"solver own guard   {gtopen_memory_guard()['solver_guard_live']}")
     print(f"arena              {RULED_ARENA_STORAGE}, asked for by"
@@ -1707,7 +1790,7 @@ def main(argv: list[str] | None = None) -> int:
     write_solve_config(oop, ip)
     manifest = load_manifest(object_storage)
     refuse_a_foreign_server()
-    server = Server(Path(args.server), Path(args.log_dir))
+    server = Server(Path(args.server), Path(args.log_dir), conditions.threads)
     tolerance = CLASS_AGREEMENT_TOLERANCE if args.tolerance is None else float(args.tolerance)
 
     boards = []
@@ -1731,6 +1814,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
         finally:
             server.stop()
+        result.peak_resident_bytes = server.peak_resident_bytes
         report(result)
         if not result.committed:
             manifest["rejected_above_one_percent"] += 1

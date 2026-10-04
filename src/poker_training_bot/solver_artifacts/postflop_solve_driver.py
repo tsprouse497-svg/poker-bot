@@ -19,10 +19,12 @@ record, kept here so nobody infers them from a field name:
   `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` was filed on that. A Linux box has the file and the
   guard goes live, so the entry is restated against the machine rather than closed; this driver
   assumes neither platform and publishes its own ceiling from the box it is running on.
-- **Every timing, arena and memory figure this phase quotes was measured on an Apple M4, 10 cores,
-  34.4 GB RAM, CPU engine**, and decision 11's machine note rules that none of them transfers to
-  the rented box. So nothing here predicts a cost elsewhere: what travels is policy - a fraction
-  of RAM, a unit, an ordering - never a number standing in for a measurement nobody took.
+- **Every timing, arena and memory figure phase 16 quotes was measured on an Apple M4, 10 cores,
+  34.4 GB RAM, CPU engine, at GTOpen's default of five threads**, and decision 11's machine note
+  rules that none of them transfers to the rented box. So nothing here predicts a cost elsewhere:
+  what travels is policy - a fraction of RAM, a unit, an ordering - never a number standing in for
+  a measurement nobody took. From phase 21 the machine is measured per run by `postflop_machine`
+  and the thread count is set explicitly by `postflop_threads.server_environment`.
 
 `scripts/measure_postflop_solve_cost.py` took the record; this is the campaign driver, and they
 share the fraction and the unit guard deliberately. What the wire is - the transport, the routes'
@@ -43,6 +45,14 @@ from poker_training_bot.solver_artifacts.postflop_artifact import (
     RANGE_WEIGHT_FLOOR,
     SOLVE_ITERATION_CAP,
 )
+from poker_training_bot.solver_artifacts.postflop_machine import (
+    FALLBACK_MEMORY_CEILING_BYTES as FALLBACK_MEMORY_CEILING_BYTES,
+)
+from poker_training_bot.solver_artifacts.postflop_machine import (
+    MEMORY_CEILING_FRACTION,
+    memory_ceiling_bytes,
+    physical_memory_bytes,
+)
 from poker_training_bot.solver_artifacts.postflop_transport import (
     FULL_PRECISION_ARENA,
     SolveDriverError,
@@ -52,59 +62,21 @@ from poker_training_bot.solver_artifacts.postflop_transport import (
     numeric,
 )
 
-# --- The machine, and the memory ceiling this driver publishes for it
+# --- The memory ceiling this driver publishes for the machine it runs on
 
-MEASURING_MACHINE = "Apple M4, 10 cores, 34.4 GB RAM, CPU engine"  # what a report must name
-
-MEMORY_CEILING_FRACTION = 0.40
-"""A policy rather than a measurement, which is why it is what travels between machines. The arena
-is faulted in lazily during the solve, so it is paid as resident memory alongside the tree, the
-ranges and whatever else the box runs, and a ceiling near the RAM figure lets a machine swap. The
-measuring script keeps the same fraction; it is the only guard that fired in the record.
-
-**It was 0.35 and Taylor moved it to 0.40 on 2026-09-20, `frozen-into-data`, to admit the flop
-campaign at full-precision arenas.** Quantized arenas cost about half as much memory, and every
-arena figure this phase recorded before that date was taken under them, so asking for full
-precision roughly doubles the planned arena on the same tree - `arena_storage` in
-`postflop_transport` derives both sizes from one `/api/spot` answer, and they differ by
-`entries * 4` less `nodes * 16`. The campaign plans an arena the 0.35 ceiling refused by a
-fraction of a percent and this one clears with room to spare. What moved is the policy rather than
-the arithmetic: 0.35 was the number meant to travel to the rented box the contract names, so this
-loosens the guard there too, which is a cost of the ruling rather than an oversight in it.
-Decision 20 carries the measurements and what was rejected."""
-
-FALLBACK_MEMORY_CEILING_BYTES = 4096 * 1024 * 1024
-"""Used only when this machine will not say how much memory it has. Deliberately small, and not
-GTOpen's own 48,000 MB fallback - about 1.5x the RAM of the box it fell back on, where the same
-solver's preflop side uses 2,000 MB, so 48,000 is an outlier rather than a ruling."""
-
-
-def _physical_memory_bytes() -> int | None:
-    """Total RAM, asking the C library rather than the platform. `SC_PHYS_PAGES` and
-    `SC_PAGE_SIZE` are answered by both Linux and Darwin, which keeps this off `/proc/meminfo` on
-    one side and `sysctl` on the other; the box is unnamed, so a platform test here would be the
-    assumption `SOLVER-MEMORY-GUARD-IS-ABSENT-ON-MACOS` priced."""
-    try:
-        pages = os.sysconf("SC_PHYS_PAGES")
-        page_size = os.sysconf("SC_PAGE_SIZE")
-    except (AttributeError, OSError, ValueError):
-        return None
-    if not isinstance(pages, int) or not isinstance(page_size, int):
-        return None
-    total = pages * page_size
-    return total if total > 0 else None
-
-
-_PHYSICAL_MEMORY_BYTES = _physical_memory_bytes()
+_PHYSICAL_MEMORY_BYTES = physical_memory_bytes()
 MEMORY_CEILING_IS_MEASURED = _PHYSICAL_MEMORY_BYTES is not None
-MEMORY_CEILING_BYTES: int = (
-    int(_PHYSICAL_MEMORY_BYTES * MEMORY_CEILING_FRACTION)
-    if _PHYSICAL_MEMORY_BYTES is not None
-    else FALLBACK_MEMORY_CEILING_BYTES
-)
-"""What a planned arena may not exceed on **this** machine, read at import. A constant here would
-be the M4's ceiling wearing the rented box's name, and the arena verdict for the single-raised tree
-- the ordinary way to see a flop - turns on exactly it."""
+MEMORY_CEILING_BYTES: int = memory_ceiling_bytes(_PHYSICAL_MEMORY_BYTES)
+"""What a planned arena may not exceed on **this** machine, read at import through
+`postflop_machine.memory_ceiling_bytes`, the one rule that turns reported memory into a ceiling.
+A constant here would be the M4's ceiling wearing the rented box's name. What machine a solve ran
+on is not this module's to say: `postflop_machine.measure_machine` reads it per run."""
+
+ARENA_READING_MARGIN = arena_bytes(1_000_000.0) / 1_000_000_000_000 - 1
+"""How much the guard's reading of `arena_mb` adds to the server's own figure: the server means
+10^6 bytes and `arena_bytes` reads 2^20, an over-read of 4.86 percent. Phase 21's decision 14
+default keeps the reading and the 0.40 ceiling and states this margin in every refusal
+(`THE-MEMORY-GUARD-COMPARES-AN-ARENA-FIGURE-IT-DELIBERATELY-OVER-READS-BY-FIVE-PERCENT`)."""
 
 
 def describe_memory_ceiling() -> str:
@@ -143,7 +115,10 @@ def check_memory_ceiling(planned_bytes: int) -> None:
     if planned_bytes > MEMORY_CEILING_BYTES:
         raise SolveDriverError(
             f"planned arena of {planned_bytes / 1e9:.2f} GB is over this driver's ceiling of "
-            f"{describe_memory_ceiling()}, so it is refused before solving. Floor the input ranges "
+            f"{describe_memory_ceiling()}, so it is refused before solving. The planned figure "
+            "reads the server's arena_mb as 2^20 bytes where the server means 10^6, so it "
+            f"carries a {ARENA_READING_MARGIN:.2%} margin over the server's own. Floor the "
+            "input ranges "
             f"at {RANGE_WEIGHT_FLOOR} class-level, which leaves the action-node count untouched, "
             "or raise the ceiling as a deliberate decision in the open."
         )
