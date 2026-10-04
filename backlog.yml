@@ -23,7 +23,9 @@ items:
       action slots 1,886,176 and 1,751,279 become 1,987,018 and 1,873,730. Small blind line: 4,109,130
       nodes become 4,339,626, reachable river 1,545,264 becomes 1,620,528, turn 6,566 unchanged. Per
       river card, 6 of 94 river street starts gain a bet (50 check-only become 44); the 44 that follow
-      a called turn bet stay check-only under both rules, by design. Memory bars, still on the
+      a turn on which in position bet or raised last and out of position called stay check-only
+      under both rules, by design. When out of position bets the turn and is called, it may lead the
+      river under both. Memory bars, still on the
       deuce-trips class for every line: button arena 12,274,575,976 bytes becomes 13,042,185,280
       (13.68 GB as the driver reads it, 34.2 GB of RAM at the 0.40 ceiling) and card memory
       33,689,039,052 becomes 35,645,460,288; small blind arena 17,674,107,736 becomes 18,710,513,792
@@ -35,6 +37,30 @@ items:
       describe a tree the campaign will not use. Closes when the clone carries the fix, the solve
       path runs it, the phase 21 contract and frozen tests state the new tree, phase 16's contract is
       amended, and phase 16's four boards are re-solved on it.
+
+  - id: PHASE-16-CONTRACT-IS-AT-ITS-LINE-CAP
+    status: deferred
+    phase: contract-update
+    title: Phase 16's contract is at the 300-line cap, so the next correction it owes needs a rewrite first
+    reason: >-
+      Phase 21's decision 17 amendment, 2026-10-04, took
+      `docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md` from 299 lines to exactly 300, and it fitted
+      only as one long line. By `AGENTS.md`'s Contract Amendments rule the next amendment cannot be
+      made until the contract is rewritten to fold its amendments into the criteria they amend, in its
+      own `contract-update` task and never to make room mid-amendment. Closes when that rewrite lands.
+
+  - id: AN-AMENDMENT-WRITTEN-AS-ONE-LONG-LINE-DEFEATS-THE-CONTRACT-LINE-CAP
+    status: deferred
+    phase: maintenance
+    title: Amendments written as one long line meet the 300-line contract cap in letter and defeat its purpose
+    reason: >-
+      Raised by phase 21's decision 17 contract-update review, 2026-10-04. Phases 10, 14 and now 16
+      each carry an amendment written as a single line of 300 to 550 characters, because
+      `check_file_sizes` counts lines and the contracts sit at or near 300. The cap exists to force a
+      rewrite before a contract becomes a stack of corrections; counting lines lets that be met by
+      writing longer lines instead. A fix is a width rule for contract prose or a character budget
+      beside the line cap, decided in a maintenance task, with the existing long lines folded by the
+      rewrites their contracts already owe.
 
   - id: PEOPLE-ACROSS-THE-US-PLAY-AGAINST-THE-BOT-AND-NO-PHASE-OWNS-IT
     status: deferred

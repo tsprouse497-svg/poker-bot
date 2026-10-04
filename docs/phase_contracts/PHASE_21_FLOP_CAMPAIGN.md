@@ -15,53 +15,41 @@ required_phase_audit: reports/phase_audits/PHASE_21_FLOP_CAMPAIGN.md
 # Phase 21: The Flop Campaign
 
 ## Scope
-Declared by MAINT-40 on 2026-09-26 from Taylor's ruling of that date: trust the solve and get more
-of it, rather than measuring the bot first. Phase 16 built the machinery - the postflop key, the
-index, the object storage format, the solve driver - and closed on a sample rather than on coverage,
-which its decision 25 states. `data/artifacts/postflop/index.json` holds five flop decision points
-on four boards for one preflop line, the button opening and the big blind calling, seen from both
-seats; those four board classes are 44 of the 22,100 three-card flops.
-`data/artifacts/postflop/sample/` carries four of the five cell documents, on three boards and 40
-flops, and the fifth, `Ac8c3c`, is indexed but its cell document is not in git. On every other flop
-the bot refuses, and on the flops it holds it refuses one action later, because no decision point
-that follows a committed one is committed. Phase 16's packet names both causes of its null table
-result: too few boards, and no closure.
+Declared by MAINT-40 on 2026-09-26 from Taylor's ruling: trust the solve and get more of it. Phase
+16 built the machinery - the postflop key, the index, object storage, the solve driver - and closed
+on a sample (its decision 25): five flop decision points on four boards, 44 of the 22,100 flops, for
+the button opening and the big blind calling. Elsewhere the bot refuses, and on those flops it
+refuses one action later, because nothing after a committed decision point is committed: too few
+boards, and no closure.
 
 Three parts, in this order, because each one prices the next:
 
-1. **Use every core.** GTOpen's server prints "solver threads: 5" on a ten-core Apple M4. The cause
-   is in its source: it takes half of `available_parallelism()` on purpose, to skip hyperthreads on
-   what its comment calls a memory-bound workload, unless `SOLVER_THREADS` overrides it. The M4 has
-   no hyperthreads, so five is half the machine; whether ten is faster is unmeasured. Measure five
-   against ten, set the thread count explicitly on every machine, and record it beside every timing
-   from here on. `GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT`. If the setting is
-   not enough, GTOpen is a read-only clone; a patch lives in a local clone and is recorded the way
-   earlier phases recorded theirs.
-2. **Pick the cloud machine.** Phase 16's decision 24 rules that the campaign runs on a rented box
-   whose specification was left open. Solve and time one flop on a few candidates, re-prove
-   determinism on the one chosen, since phase 16's proof holds only on the Mac it ran on, and choose
-   on cost per solved flop with the memory a solve needs as a hard limit.
-3. **Run the campaign.** Solve the five single-raised lines the chart plays, in the order Taylor
-   ruled at stage 3 (decisions 9 and 10), into object storage, keeping from each solve every flop,
-   turn and river decision point it holds (decisions 1 and 2), as many lines as the campaign budget
-   allows, with the report naming which limit applied. A solved board must close: every decision
-   point in its line, for both seats, kept from the one solve, or all of them refused together.
-   Phase 16's sample already refuses every next decision by name, so naming alone closes nothing,
-   and without closure the campaign buys boards the bot still cannot play.
-   `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`. Nothing is re-solved or
-   hand-edited to look better.
+1. **Use every core.** GTOpen takes half of `available_parallelism()` unless `SOLVER_THREADS`
+   overrides it, to skip hyperthreads the M4 does not have. Measure the counts, set one explicitly
+   on every machine, and record it beside every timing from here on.
+   `GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT`.
+2. **Pick the cloud machine.** Solve and time one flop on a few candidates, re-prove determinism on
+   the one chosen, and choose on cost per solved flop with the memory a solve needs as a hard limit.
+3. **Run the campaign.** Solve the five single-raised lines the chart plays into object storage, as
+   many as the campaign budget allows, each solved board closed: every flop, turn and river decision
+   point of its line, for both seats, kept from the one solve, or all refused together. Nothing is
+   re-solved or hand-edited to look better.
+   `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`.
 
-Phase 16's rulings carry into this phase: full-precision f32 arenas (decision 20), the 0.40 memory
-ceiling (decisions 20 and 22), an index plus object storage with no git LFS, the rented box
-governing the campaign (decision 24), and no run on GTOpen's untested CUDA path until one flop is
-solved and timed on the box. The memory ceiling is `runtime-reversible` and moves together with the
-over-read the adopted memory-guard entry names. Taylor's stage 3 rulings, recorded in
-`reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md` on 2026-09-26: keep the flop,
-turn and river from every solve, and store them only - a new phase right after this one makes the
-bot play the turn and river; the full index lives in object storage and git holds a manifest; a
-private AWS bucket on his account; AWS machines, three CPU and one GPU on trial; a $100 trial
-budget, the campaign budget asked once the trial has priced a line; 0.3 percent, 1,200 and 1 percent
-kept; the five single-raised lines in the chart's order; phase 16's bet sizes for every line.
+Phase 16's rulings carry over: f32 arenas (decision 20), the 0.40 memory ceiling (20 and 22,
+`runtime-reversible`, moving with the over-read the adopted guard entry names), object storage with
+no git LFS, and the rented box governing the campaign (24). Taylor's phase 21 rulings are in
+`reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md`, each cited at the criterion it
+carries; turn and river are stored here and played by a new phase (1), and the trial runs on RunPod,
+from a GPU large enough for the small blind line (5, re-ruled 2026-10-04).
+
+**The solver is a local clone.** Every solve runs GTOpen's `4aee435` plus three changes and no other
+upstream change: a read-only bulk strategy export; upstream `85b0a692`'s tree fix, so a street both
+players check clears the initiative and out of position may lead the next street with its normal
+sizes (decision 17); and upstream `8ff89f42`'s fixed-order GPU fold sum (decision 18), which changes
+GPU code only and is required before the first GPU solve. A lead straight after calling a bet stays
+out by design, as the empty `donk` setting rules.
+`THE-PINNED-SOLVER-CARRIES-THE-AGGRESSOR-THROUGH-A-CHECKED-STREET`.
 
 Adopted from `backlog.yml`, each to be closed or carried by this phase, and each entry's adoption
 note says what closes it: `GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTIONS-IT`,
@@ -73,8 +61,9 @@ note says what closes it: `GTOPEN-USES-HALF-THE-CORES-AND-NO-TIMING-RECORD-MENTI
 `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`, `THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY`,
 `THE-PHASE-CAN-ANSWER-AT-MOST-THREE-QUARTERS-OF-CORPUS-FLOPS`,
 `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`,
-`QUANTIZED-ARENAS-PUT-A-FLOOR-UNDER-EVERY-EXPLOITABILITY-THIS-PHASE-MEASURED` and
-`NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED`.
+`QUANTIZED-ARENAS-PUT-A-FLOOR-UNDER-EVERY-EXPLOITABILITY-THIS-PHASE-MEASURED`,
+`NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED` and
+`THE-PINNED-SOLVER-CARRIES-THE-AGGRESSOR-THROUGH-A-CHECKED-STREET`.
 `A-SCOPE-SENTENCE-BINDS-THE-CAMPAIGN-AND-READS-AS-BINDING-THE-SAMPLE` stays a `contract-update` task
 for phase 16's own wording; this contract carries its two terms, that the rented box governs the
 campaign and that determinism is re-proved on that box.
@@ -98,44 +87,41 @@ Phase 21 is limited to the work named by this contract and the active ExecPlan.
   committed as solved or refused by the rule phase 16 ruled, and a finding about it is a finding.
 - Do not add runtime solver calls, LLM-backed poker decisions, PokerNow automation, browser or
   platform observation, UI surfaces or large hand-history ingestion. `AGENTS.md` Boundaries.
-- Do not spend on a cloud account, or provision anything outward-facing, before Taylor has ruled the
-  provider, the machine candidates and the benchmark cap below.
+- Do not spend on a cloud account, or provision anything outward-facing, before Taylor has seen the
+  exact machine and its hourly price.
 
 ## Acceptance criteria
 
-Every figure below was measured on 2026-09-26 against the tree at this phase's base commit; the
-commands and scratch scripts are recorded in the ExecPlan. None is a target a later stage may tune.
+Tree figures were measured on 2026-10-04 by building each spot, unsolved, through the clone's solver
+crate under both tree rules; the pin's rule reproduces every figure the frozen tests pinned to the
+byte. Other figures were measured on 2026-09-26 against the base commit. Commands and scratch
+scripts are in the ExecPlan. None is a target a later stage may tune.
 
 ### Part 1: every core
 
 - **Every server the driver starts is given an explicit thread count through `SOLVER_THREADS`, and
-  the driver refuses to start one without it.** Nothing in `scripts/` or `src/` sets it today, so
-  every solve on record ran at GTOpen's default of half `available_parallelism()`: five threads on
-  this Apple M4, whose ten cores are four performance and six efficiency cores
-  (`hw.perflevel0.physicalcpu` 4, `hw.perflevel1.physicalcpu` 6), so ten will not be twice five.
+  the driver refuses to start one without it.** Every solve before this phase ran at five threads.
 - **The count used is the fastest measured, and it is measured on every machine the phase solves
   on**, never carried from another. The counts timed are GTOpen's default and a quarter, half, three
   quarters and all of the machine's logical processors, rounded, with repeats dropped - on this Mac
   3, 5, 8 and 10 - each three times interleaved, as a fixed stretch of 100 iterations of one
   committed cell's configuration, unchanged, on a machine doing nothing else. The median of the
-  three decides. The report prints each run's seconds per iteration and the spread. One run per
-  count is not enough: the committed runs of `9c8c7c` read 1.34 and 2.16 seconds per iteration on
-  the same configuration, because the second shared the machine. The committed first-run record is
-  1.34, 1.93, 3.24 and 4.93 seconds per iteration on `9c8c7c`, `Ac8c3c`, `8c8d3c` and `Kh7d2c`, from
-  `determinism.json`.
+  three decides, because one run is not enough: phase 16's two `9c8c7c` runs read 1.34 and 2.16
+  seconds per iteration on one configuration. The report prints every run and the spread.
 - **A changed thread count does not change the answer.** GTOpen's CPU recursion collects its
-  parallel children into an ordered vector and sums in a fixed loop, so phase 16's four boards
-  re-solved on the M4 at ten threads, whatever count is fastest, since five would prove nothing,
-  reproduce the four committed cell documents byte for byte, the fifth cell's strategy digest, and
-  every per-combo strategy exactly. If they do not, the phase
-  halts and Taylor is asked; no tolerance is set here.
-- **Every solve record carries the machine it ran on as measured, the thread count, the engine
-  (CPU or GPU, read back from the server) and the arena storage.** `MEASURING_MACHINE` in
-  `postflop_solve_driver.py` is a hardcoded "Apple M4" string written into every object today, so a
-  rented box would record the wrong machine; a test fails on a constant in its place. Peak resident
-  memory is recorded per solve: no f32 solve on record has one, only its planned arena.
-- If `SOLVER_THREADS` is not enough to use the machine, any GTOpen patch lives in a local clone and
-  is recorded by commit and diff the way `docs/GTOPEN_SOLVER_NOTES.md` records the clone today.
+  parallel children into an ordered vector and sums in a fixed loop. Phase 16's four boards, solved
+  again on the M4 at ten threads on the pin's tree, reproduced its committed cell documents byte for
+  byte, the fifth cell's strategy digest and every per-combo strategy, which
+  `campaign/mac_resolve_at_thread_count.json` records. Decision 17's commit changes the tree
+  builder, the save loader and the server's request, never that summation, so it is not repeated. A
+  difference halts the phase for Taylor; no tolerance is set here.
+- **Every solve record carries the machine it ran on as measured, the thread count, the engine (CPU
+  or GPU, read back from the server), the arena storage and the solver build**, the clone's commit,
+  so a cell solved on the pin's tree can never pass for one solved on the new tree. A hardcoded
+  machine name fails a test. Peak resident memory is recorded per solve.
+- **The clone is recorded by branch, commit and diff hash in `docs/GTOPEN_SOLVER_NOTES.md`**, with
+  its release build and the GTOpen tests it passed, and the repo's solve path selects that build by
+  default and says how another is chosen. `~/projects/gtopen` stays the untouched reference.
 - **The driver's memory guard is tested as behaviour**: a test proves the ceiling follows the
   machine's reported memory, and one ties the committed configuration to the body the driver posts.
   The arena over-read is repaired by one of the three routes its entry names, in the same decision
@@ -144,98 +130,108 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
 
 ### Part 2: the machine
 
-- **Two caps, each ruled by Taylor before the money it covers is spent.** A benchmark cap, ruled
-  with the provider and candidates, covers every rented solve before the campaign: per candidate the
-  thread sweep of at most 15 stretches of 100 iterations and one `Kh7d2c` solve; on the chosen box
-  eight determinism solves, phase 16's four boards twice, and the six texture solves below. That is
-  at most 15 stretches and one solve per candidate, and on the chosen box 14 solves and six settling
-  runs, stated beside the cap. The GPU trial Taylor ruled - one CPU flop first, then two GPU solves
-  of it - comes from the same $100, which was set before the river was kept; work halts at it. A
-  campaign cap is asked only once the six-texture projection exists. Every rented hour is logged
-  with its price, the running total is printed beside the cap it counts against, and work halts at a
-  cap rather than past it.
-- **The memory bar is the largest planned arena over every flop of every admitted line,
-  computed before any candidate is ranked, and the report prints it.** For the committed line and
-  menu, walking GTOpen's `tree.rs` rules over all 22,100 flops, it is 12.87 GB as the driver reads
-  it, on `2d2h2s`, which needs 32.2 GB of RAM at `MEMORY_CEILING_FRACTION` 0.40, or about 33.7 GB
-  of VRAM by GTOpen's own estimate; 15.8 percent of flops plan above the largest committed board's
-  12.24 GB. A candidate that cannot hold the bar is excluded with that reason and never ranked, so
-  the campaign cannot meet a board its box refuses.
+- **Two caps, each ruled by Taylor before the money it covers is spent.** The $100 trial cap
+  (decision 6, confirmed for RunPod) covers every rented solve before the campaign: per candidate
+  the thread sweep of at most 15 stretches of 100 iterations and one `Kh7d2c` solve; on the chosen
+  box eight determinism solves, phase 16's four boards twice, the six texture solves and the six
+  settling runs below, stated beside the cap; and the GPU trial, one CPU flop first, then two GPU
+  solves of it. A campaign cap is asked only once the six-texture projection exists. Every rented
+  hour is logged with its price, the running total is printed beside the cap it counts against, and
+  work halts at a cap rather than past it.
+- **The memory bar is the largest planned arena over every flop of every admitted line, computed
+  before any candidate is ranked, and the report prints it.** Walking the new tree over all 22,100
+  flops, every line's largest flop is the deuce-trips class. The small blind line's arena is
+  18,710,513,792 bytes, 19.62 GB as the driver reads it, about 49.0 GB of RAM at
+  `MEMORY_CEILING_FRACTION` 0.40 and 51,239,107,576 bytes of card memory by GTOpen's own estimate,
+  within 0.3 GB of a 48 GiB card before CUDA's own use, too thin to rent on. The committed line's is
+  13,042,185,280 bytes, 13.68 GB as the driver reads it and 34.2 GB of RAM, and 35,645,460,288 bytes
+  of card memory. 3,484 of the 22,100 flops plan at or above the largest committed board, 3,444
+  strictly above. A candidate that cannot hold the bar is excluded with that reason and never
+  ranked, so the campaign cannot meet a board its box refuses.
 - **Each candidate solves the same flop: `Kh7d2c` on the committed line and `solve_config.json`,
-  unchanged.** It is the slowest board on record, 340 iterations in 1,677.4 seconds at five threads
-  on the M4. The report prints, per candidate: machine, thread count, engine, wall clock,
-  iterations, achieved exploitability, peak memory, hourly price, and **cost per solved flop**: the
-  price times the billed time for one closed flop - server start, tree build, solve, harvest of
-  every flop, turn and river decision point, and upload - which is what the choice is made on. How
-  many solves one box may run at once is decision 11's default of one, and a box running more than
-  one applies the memory bar to their sum.
+  unchanged.** It is the slowest board phase 16 solved. The report prints, per candidate: machine,
+  thread count, engine, wall clock, iterations, achieved exploitability, peak memory, hourly price,
+  and **cost per solved flop**: the price times the billed time for one closed flop - server start,
+  tree build, solve, harvest of every flop, turn and river decision point, and upload - which is
+  what the choice is made on. A box runs one solve at a time unless decision 11's default is
+  changed, and a box running more than one applies the memory bar to their sum.
 - **Before the campaign cap is asked, and after the determinism re-proof below has passed on it, the
   chosen box has solved one flop from each of the six texture groups**, on the first admitted line
-  under phase 16's configuration and closed, so they are the campaign's first six
-  boards and are never solved again - rainbow unpaired, two-tone
-  unpaired, rainbow paired, two-tone paired, monotone, trips - and the report projects the cost of
-  one closed line from those six, weighted by how many of the 1,755 classes each group holds.
-  Two-tone unpaired is 858 classes and 46.6 percent of all flops and has never been solved under
-  phase 16's configuration. `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`,
+  under phase 16's configuration and closed, so they are the campaign's first six boards and are
+  never solved again - rainbow unpaired, two-tone unpaired, rainbow paired, two-tone paired,
+  monotone, trips - and the report projects one closed line's cost from them, weighted by each
+  group's share of the 1,755 classes. Two-tone unpaired, 858 classes and 46.6 percent of all flops,
+  has never been solved under phase 16's configuration. `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL`,
   `THE-COMMITTED-SAMPLE-MISSES-THE-MODAL-FLOP-FAMILY`.
 - **Determinism is re-proved on the chosen box, not inherited.** Phase 16's four boards are solved
   twice there, in two processes against a restarted server, and compared as `determinism.json`
   compares them. If the two runs on the box differ, the phase halts and Taylor is asked. Whether the
-  box's result also matches the M4's committed digests is printed as a separate finding and is not a
-  pass condition.
-- **One GPU machine is tried, as Taylor ruled**, with a card that holds the memory bar - about 47.2
-  GB by GTOpen's estimate on `2c2d2h` for small blind against big blind - and only after one
-  flop is solved and timed on a CPU of the same provider. Repeatability is tested first: it solves
-  one flop twice, compared exactly, and a GPU that does not repeat itself is a finding, not a
-  campaign machine, without another ruling. A GPU run the server reports as not using the GPU is a
-  silent CPU fallback and its timing is discarded. The report states that GTOpen's kernels sum with
-  `atomicAdd`, whose order is not fixed, so the GPU determinism re-proof is expected to be at risk.
+  box's result also matches the M4's new-tree digests, committed first, is printed as a separate
+  finding and is not a pass condition.
+- **One GPU machine is tried, as Taylor ruled (decision 7)**, with a card that holds the memory bar,
+  and only after one flop is solved and timed on a CPU of the same provider. Repeatability comes
+  first: one flop solved twice and compared exactly, the first proof of decision 18's fixed-order
+  fold. A GPU that does not repeat itself is a finding, not a campaign machine, without another
+  ruling; a run the server reports as not using the GPU is a silent CPU fallback and its timing is
+  discarded.
 
 ### Part 3: the campaign
 
 - **The lines are small blind, button, cutoff, hijack and lojack opening against the big blind, in
-  that order, and the covered set is committed explicitly.** The order is the chart's own: those
-  lines reach a flop in 5.53, 3.66, 2.75, 2.71 and 2.42 percent of hands, weighting each action by
-  its chart probability; the real-hand order is printed beside it.
-  `LINE-RANKING-BY-CLOSING-DECISION-ARRIVAL-COUNTS-LINES-THE-CHART-NEVER-PLAYS`.
-  A line the committed chart cannot supply ranges for is excluded by name with that reason: the
-  corpus's fourth most common flop line, `SB:call`, is a limp and the chart has no range for it. The
-  driver hardcodes button against big blind today, so the ranges for any other heads-up line are
-  derived from the committed chart by one tested function that assigns them by seat position after
-  the flop, not by who raised: in `SB:raise@2.5,BB:call` the raiser is out of position.
+  that order (decision 9), each on `solve_config.json`'s bet sizes (decision 10), and the covered
+  set is committed explicitly.** The order is the chart's own: those lines reach a flop in 5.53,
+  3.66, 2.75, 2.71 and 2.42 percent of hands, weighting each action by its chart probability; the
+  real-hand order is printed beside it.
+  `LINE-RANKING-BY-CLOSING-DECISION-ARRIVAL-COUNTS-LINES-THE-CHART-NEVER-PLAYS`. A line the
+  committed chart cannot supply ranges for is excluded by name with that reason: the corpus's fourth
+  most common flop line, `SB:call`, is a limp and the chart has no range for it. The ranges for any
+  heads-up line are derived from the committed chart by one tested function that assigns them by
+  seat position after the flop, not by who raised: in `SB:raise@2.5,BB:call` the raiser is out of
+  position.
 - **Every per-line figure is re-derived for each admitted line** - its flop tree, its decision point
-  count, its pot, its largest arena and its index cost - because a line with another pot or a 3-bet
-  depth builds another tree. The report prints them per line.
+  count, its pot, its largest arena and its index cost - because a line with another pot builds
+  another tree. The report prints them per line. The button, cutoff, hijack and lojack lines share
+  the 5.5 pot and one tree of 4,144,704 nodes; the small blind's 5.0 pot builds 4,339,626.
 - **A solved board closes, for both seats, on every street.** On the committed line and menu one
-  flop's solve holds 14 flop, 6,419 turn and 1,477,056 reachable river decision points, 628 for each
-  of 49 turn and 48 river cards; GTOpen's `tree.rs` also builds a river under the card the turn
-  already dealt, 30,772 more, which can never occur and are not kept. A covered board keeps all of
-  them from its one solve, or refuses all of them because that solve missed the exploitability
-  ceiling. The manifest carries each board's counts per street and a test asserts them offline; the
-  fetch command checks every fetched object against them. How the driver
-  gets them out - GTOpen's node query, which walks through dealt cards, its whole-solve save, or a
-  patch - is chosen at stage 6 on a measurement, and **the time it takes and the stored size of one
-  closed flop are measured on the six trial flops and reported before the campaign budget is
-  asked**, when Taylor confirms the river. Turn and river are stored at two bytes a number
-  (decision 15); the rough estimate is about 2.8 GB a flop for the river at that precision.
-- **Phase 16's four boards close from the part 1 re-solve**, which must reproduce their committed
-  cells; their other decision points are harvested from that same solve. A board whose re-solve does
-  not reproduce its committed cells is not closed by mixing two solves, and the phase halts for
-  Taylor. `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`.
-- **The full index lives in object storage, and git holds a manifest per line**: the flops held and
-  one fingerprint of that line's index file, which the fetch command checks and the gate checks
-  offline against the committed sample, and from which the report counts coverage. Git could not
-  hold the full index: at 830.8 bytes a flop decision point with its object-list entry, 14 on each
-  of 1,755 flops is 20.4 MB against 16,032,570 bytes of headroom under the 20 MiB `data/artifacts`
-  cap. The manifest's size is printed per line. The cap is not raised and no git LFS is used.
-- **The commit rule is phase 16's, as Taylor kept it**: a target of 0.3 percent of the pot, a
-  1,200-iteration cap and refusal above 1 percent, the constants in `postflop_artifact.py`. The
-  refused count is in the index header. Each board is solved once in the campaign; a determinism
+  flop's solve holds 14 flop, 6,419 turn and 1,549,968 reachable river decision points, 659 for each
+  of 49 turn and 48 river cards; GTOpen's tree also builds a river under the card the turn already
+  dealt, 32,291 more, which can never occur and are not kept. The small blind line holds 14, 6,566
+  and 1,620,528, with 33,761 unreachable. A covered board keeps all of them from its one solve, or
+  refuses all of them because that solve missed the exploitability ceiling (decision 2). Every
+  decision point after a raise has a key, a raise being named by its multiplier (decision 16). The
+  manifest carries each board's counts per street and a test asserts them offline. The fetch command
+  checks every fetched flop object against its board's counts and its digest. Turn and river rows
+  are two bytes a number, each frequency rounded to a tenth of a percent with the residue on the
+  largest entry so a decision sums to one, and standard compression is measured before any custom
+  format (decision 15). How the driver gets them out is chosen at stage 6 on a measurement, and
+  **the time it takes and the stored size of one closed flop are measured on the six trial flops and
+  reported before the campaign budget is asked**, when Taylor confirms or drops the river (decision
+  1).
+- **Phase 16's four boards are re-solved on the new tree, and close from that solve.** Their
+  committed cells, index entries, objects and `determinism.json` were solved on the pin's tree,
+  which the campaign does not use, so they are replaced by a solve on the clone, proved
+  deterministic by a second solve in a fresh process, and their other decision points are harvested
+  from the first. A re-solve that does not repeat itself is not closed by mixing two solves, and the
+  phase halts for Taylor. Its reason is the tree, never the numbers, and no other solve replaces a
+  committed cell. `deep_convergence_check.json` stays as the pin's record of its own solve.
+- **The full index lives in object storage, and git holds a manifest per line** (decision 3): the
+  flops held and one fingerprint of that line's index file, which the fetch command checks and the
+  gate checks offline against the committed sample, and from which the report counts coverage. Git
+  cannot hold the full index: 14 decision points on each of 1,755 flops at 830.8 bytes each,
+  object-list entry included, is 20.4 MB against about 16 MB of headroom under the 20 MiB
+  `data/artifacts` cap. The manifest's size is printed per line. The cap is not raised and no git
+  LFS is used.
+- **The commit rule is phase 16's, as Taylor kept it** (decision 8): a target of 0.3 percent of the
+  pot, a 1,200-iteration cap and refusal above 1 percent, the constants in `postflop_artifact.py`.
+  The refused count is in the index header. Each board is solved once in the campaign; a determinism
   re-solve never replaces a committed cell.
-- **Every object is stored in a private AWS bucket on Taylor's account, with its digest in the index
-  and a fetch command a fresh machine can run**; a machine that has not fetched refuses with the
-  not-fetched code. The report prints how many flop classes a fresh clone can answer beside how many
-  a fetched machine can. `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`.
+- **Every object is stored in a private AWS bucket on Taylor's account (decision 4), with its digest
+  in the index and a fetch command a fresh machine can run**; a machine that has not fetched refuses
+  with the not-fetched code. The fetch covers the flop objects and the index, in the standard class.
+  Turn and river objects go to Glacier Deep Archive from the solve machine (decision 4), so each is
+  checked against its board's counts and its digest there, before it is archived. The report prints
+  how many flop classes a fresh clone can answer beside how many a fetched machine can.
+  `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`.
 - **A board refusal says which line and seat it was scoped to, and every coverage figure counts
   lines and seats under different words.**
   `A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT`.
@@ -292,9 +288,11 @@ commands and scratch scripts are recorded in the ExecPlan. None is a target a la
 - Do not carry a laptop timing or a laptop determinism proof to the rented box as though it had been
   measured there.
 - Do not report a campaign figure without the machine and thread count it was measured at.
+- Do not solve on the pin's tree, or on any build the solver notes do not record.
 
 ## Regression expectations
 - Previously completed phase gates remain verifiable.
 - Generated human docs remain current.
 - File-size and scope checks continue to pass.
-- Every cell phase 16 committed stays byte-identical unless this contract names why it moves.
+- Every cell phase 16 committed stays byte-identical except the re-solve on the new tree that
+  decision 17 requires, and phase 16's contract is amended to say so.

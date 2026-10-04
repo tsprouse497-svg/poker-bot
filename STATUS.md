@@ -2,7 +2,7 @@
 
 Project: `poker-playing-bot`
 Current task: `PHASE_21_FLOP_CAMPAIGN`
-Task mode: `implementation`
+Task mode: `contract-update`
 Active phase: `21`
 Completed phases: `16`
 

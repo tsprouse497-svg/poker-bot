@@ -110,6 +110,7 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
   `66 125`, `raise: "2.5x"`, `donk` empty** - identically on both seats, and that config is
   committed beside the data. The report states that nothing in the record uses 66% or 125%, and that
   no line this menu offers gets all-in in a single-raised pot.
+  Amended 2026-10-04 by phase 21 (`THE-PINNED-SOLVER-CARRIES-THE-AGGRESSOR-THROUGH-A-CHECKED-STREET`): this menu was solved on GTOpen `4aee435`, whose tree keeps the initiative through a checked street, so out of position could not lead the river after in position's flop bet was called and the turn checked through; phase 21 re-solves the committed cells on a clone where a checked street clears it.
 - The cost model separates measured from scaled. Rainbow, 455 of the 1,755 classes, was never solved
   to target, so every rainbow figure is scaled from an exact orbit factor; paired, ace-high and
   disconnected boards are the same gap by rank, five converged cells covering two rank patterns.

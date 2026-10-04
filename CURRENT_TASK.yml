@@ -1,21 +1,11 @@
 task_id: PHASE_21_FLOP_CAMPAIGN
 active_phase: '21'
-task_mode: implementation
-base_commit: 49f529cb49d9d41681d16cd6c91f31b994f50775
+task_mode: contract-update
+base_commit: 05e2b16196fede835c50e44e46e0be5d2bb80fbf
 approved_scope:
 - docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md
-- reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md
+- docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
-- scripts/run_verify.py
-- src/poker_training_bot/solver_artifacts/**
-- scripts/measure_postflop_thread_sweep.py
-- scripts/solve_postflop_sample.py
-- data/artifacts/postflop/campaign/thread_sweep.json
-- data/artifacts/postflop/campaign/mac_resolve_at_thread_count.json
-- docs/GTOPEN_SOLVER_NOTES.md
-- data/artifacts/postflop/index.json
-- data/artifacts/postflop/objects.json
-- data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -4491,3 +4481,15 @@ scope_change_log:
       `scripts/convert_preflop_export.py`; the chart and the sizing table must come back
       byte-identical, so the contract's non-goal that the committed preflop chart, its key and its
       artifact do not change holds. The rest of `data/artifacts/preflop` stays out.
+  - date: 2026-10-04
+    reason: >-
+      Contract-update task inside phase 21's stage 6, for decision 17, ruled (b) by Taylor on
+      2026-10-04: take only upstream GTOpen's tree fix, so a street both players check clears the
+      initiative. The lane is halted at stage 6 for it and returns to implementation when it is
+      committed. Two contracts state the old tree. Phase 21's is at its 300-line cap, so by
+      `AGENTS.md` it is rewritten, folding its rulings into the criteria they change - decision 17's
+      figures, and the rulings of 2026-10-03 and 10-04 the contract could not take while at the cap -
+      rather than amended. Phase 16's, completed, gets an amendment of at most two lines citing
+      `THE-PINNED-SOLVER-CARRIES-THE-AGGRESSOR-THROUGH-A-CHECKED-STREET`. `base_commit` moves to the
+      commit that filed that entry, so the scope check measures this task alone; no code, test or
+      data path is in scope.

@@ -1,5 +1,8 @@
 auto_advance: false
-loop: running
+halt_reason: 'Decision 17 needs a contract-update task: phase 21''s contract is at
+  its 300-line cap and states the old tree''s figures, and phase 16''s contract needs
+  its amendment. Resume into implementation when it is committed.'
+loop: halted
 phase_id: '21'
 schema_version: 1
 stage: 6

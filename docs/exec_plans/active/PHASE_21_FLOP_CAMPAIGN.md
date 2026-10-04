@@ -186,15 +186,27 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   - [x] Figures re-derived by a tree counter linked against the patched crate, building each spot
     under either rule without solving. The old rule reproduces every frozen figure to the byte; the
     new rule gives every figure decision 17 quoted. No figure differs from the ruling, so nothing
-    goes back to Taylor on that ground.
+    goes back to Taylor on that ground. The counter is kept, untracked, at
+    `~/projects/gtopen-poker-bot/incoming-patches/tree-count/`: `cargo build --release` there, then
+    from this worktree `uv run python <dir>/jobs.py <dir>/line_ranges.json > <dir>/jobs.json`,
+    `<dir>/target/release/treecount < <dir>/jobs.json > <dir>/counts.json`, and
+    `uv run python <dir>/bars.py <dir>/counts.json` for the memory bars over all 22,100 flops.
+    `"carry": true` is the pin's rule and `null` the new one.
   - [ ] Decision 18's GPU fold patch into the same branch. Not applied: the session's permission
     check refused applying it and reading upstream to compare it, so it waits on Taylor.
-  - [ ] Contract-update task: phase 21's contract rewritten under its cap, folding its rulings and
-    the new tree; phase 16's contract amended in two lines. Reviewed read-only.
+  - [x] Contract-update task: phase 21's contract rewritten under its cap (298 lines), folding its
+    rulings and the new tree; phase 16's contract amended in one line, now at its cap
+    (`PHASE-16-CONTRACT-IS-AT-ITS-LINE-CAP`). Read-only review, three rounds: four blockers found
+    (the river confirmation, the settling runs under the cap, Glacier turn and river unchecked by
+    the fetch, and the dropped flop fetch check), all fixed and marked resolved by the reviewer.
+    Coordinator-owned, as the ExecPlan's stage 1 contract was: it transcribes rulings.
   - [ ] Implementation: frozen tests re-opened for the tree figures alone, by a lane that writes no
     code, and re-frozen; the solve path pointed at the patched build; the GTOpen notes record the
     clone; the driver's description of the empty donk list corrected. Reviewed read-only.
-  - [ ] Phase 16's four boards re-solved on the new tree: about 45 minutes of all-core solving per
+  - [ ] Open for Taylor, raised by the contract review: decision 5 starts the trial from a GPU, while
+    the contract still wants one flop solved and timed on a CPU of the same provider first. Whether the GPU pod's own processors count as that CPU is his to say before the trial.
+  - [ ] Phase 16's four boards re-solved on the new tree, on this Mac and before any rented box, so
+    the box's determinism finding compares against new-tree digests: about 45 minutes of all-core solving per
     set of four at ten threads, so it waits for a window Taylor grants (lid open, on AC), run under
     `caffeinate -i -s`, `pmset -g log` read afterwards. Then the index, the byte budget and the
     export card rebuilt and the full suite run.
