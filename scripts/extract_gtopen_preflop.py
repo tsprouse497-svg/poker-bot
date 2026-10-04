@@ -39,6 +39,9 @@ except ModuleNotFoundError:
     from scripts.repo_paths import REPO_ROOT
 
 sys.path.insert(0, str(REPO_ROOT / "src"))
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+
+import check_file_sizes  # noqa: E402
 
 from poker_training_bot.solver_artifacts.chart_derivation import census  # noqa: E402
 from poker_training_bot.solver_artifacts.gtopen_export import (  # noqa: E402
@@ -56,7 +59,13 @@ from poker_training_bot.solver_artifacts.gtopen_export import (  # noqa: E402
 BASE_URL = "http://127.0.0.1:3737"
 GTOPEN_ROOT = Path.home() / "projects" / "gtopen"
 ARTIFACTS_DIR = REPO_ROOT / "data" / "artifacts"
-BYTE_LIMIT = 20 * 1024 * 1024
+BYTE_LIMIT = dict(check_file_sizes.DIRECTORY_BYTE_LIMITS)["data/artifacts"]
+"""The cap `check_file_sizes` enforces, read out of it so a solve halts on the same number
+the gate does. It is checked here and never written onto the card: the tree total is a
+figure about every artifact, not about this export, and a card carrying it went stale the
+moment anything else was committed
+(`SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE`)."""
+WHOLE_TREE_FIGURES = ("headroom_bytes", "limit_bytes")
 
 
 def call(path: str, body: dict | None = None, timeout: float = 900.0) -> dict:
@@ -288,8 +297,6 @@ def main(argv: list[str] | None = None) -> int:
         ),
         "size": {
             "bytes": size,
-            "limit_bytes": BYTE_LIMIT,
-            "headroom_bytes": BYTE_LIMIT - total,
             "bytes_per_node": round(size / export.node_count, 2),
             # Counted off this export's own selection rule rather than typed. The literal
             # here read 36 for as long as it existed and the chart had expressed 249 since
@@ -316,22 +323,16 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def write_card(card: dict) -> None:
-    """Write the source card, with `headroom_bytes` counting the card itself.
+    """Write the source card, dropping any figure about the tree rather than the export.
 
-    The headroom is what is left in `data/artifacts` after everything committed, and the
-    card lives there too, so a figure taken before the card is written is short by the size
-    of the file stating it. Its own digits move the total, so this settles to a fixed point
-    rather than assuming one pass is enough.
+    `record_determinism` rewrites a card it read back from disk, so a card committed before
+    MAINT-41 would otherwise carry its stale headroom forward.
     """
-    for _ in range(8):
-        COMMITTED_SOURCE_CARD_PATH.write_text(
-            json.dumps(card, indent=1, sort_keys=True) + "\n", encoding="utf-8"
-        )
-        headroom = BYTE_LIMIT - directory_bytes()
-        if card["size"]["headroom_bytes"] == headroom:
-            return
-        card["size"]["headroom_bytes"] = headroom
-    raise SystemExit("the source card's headroom figure will not settle")
+    for key in WHOLE_TREE_FIGURES:
+        card["size"].pop(key, None)
+    COMMITTED_SOURCE_CARD_PATH.write_text(
+        json.dumps(card, indent=1, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def gtopen_commit() -> str:

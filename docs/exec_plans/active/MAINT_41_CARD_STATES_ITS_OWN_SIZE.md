@@ -63,7 +63,7 @@ Approved: the three writer scripts, `gtopen_source_card.py`, `postflop_artifact.
 index, `tests/test_solver_export.py`, `tests/test_postflop_artifact.py`, `verification/freeze.lock`,
 `verification/mutations.yml`, the phase 10 and phase 16 contracts, and this task's packet and review
 directory. Not the chart, not the sizing table, not any other artifact. No phase 21 work, no solver
-run. `THE-SCOPE-CHECK-READS-AN-UNTRACKED-FOLDER-AS-ONE-PATH` stays in phase 21's lane.
+run. The scope check's untracked-folder bug, filed only in phase 21's lane backlog, stays there.
 
 ## Delegation Plan
 
@@ -78,16 +78,17 @@ run. `THE-SCOPE-CHECK-READS-AN-UNTRACKED-FOLDER-AS-ONE-PATH` stays in phase 21's
 ## Slices
 
 - [x] Activate MAINT-41, reproduce the failure in a scratch copy, survey the class.
-- [ ] Card: converter and extractor stop writing `headroom_bytes` and `limit_bytes`; the card check
+- [x] Card: converter and extractor stop writing `headroom_bytes` and `limit_bytes`; the card check
       refuses either on a card. Regenerate with `convert_preflop_export.py`; chart and sizing table
       byte-identical.
-- [ ] Index: solve driver stops writing `headroom_bytes`; the index importer refuses it; schema
+- [x] Index: solve driver stops writing `headroom_bytes`; the index importer refuses it; schema
       version 2; console lines measure live.
-- [ ] Tests: replace the two stored-headroom assertions with refusals of the stored copy, keep every
+- [x] Tests: replace the two stored-headroom assertions with refusals of the stored copy, keep every
       cap assertion; add a test that copies the tree, adds an unrelated file, and shows the card
       still reproduces and the cap still fails one byte over. Re-freeze the lock.
-- [ ] Canaries for the card check, the index importer and the cap check.
-- [ ] Contract amendments, backlog entry closed, generated docs.
+- [x] Canaries for the card check, the index importer, the converter and the cap check. Each
+      applied by hand in a scratch copy: each reddens exactly the new test meant to catch it.
+- [x] Contract amendments, backlog entry closed, generated docs.
 - [ ] Independent read-only review; fold in blockers.
 - [ ] Gate, packet, closeout, gate, merge.
 

@@ -157,10 +157,9 @@ Phase 16 is limited to the work named by this contract and the active ExecPlan.
   the object storage, and includes provenance at 24 to 120 bytes a spot. Hero strategy is decision
   6's lean JSON: hoisted action names, classes as a parallel array in canonical order, three-decimal
   floats, free weights only. No figure is a per-weight rate that includes non-weight bytes, and the
-  generator exits non-zero on one that does not reconcile against the bytes on disk. The solver
-  export's source card is regenerated in the same task, since its `headroom_bytes` counts the whole
-  artifact tree and `test_the_committed_export_sits_under_the_limit_with_stated_headroom` reds the
-  moment any flop artifact lands.
+  generator exits non-zero on one that does not reconcile against the bytes on disk. Amended by
+  MAINT-41, `SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE`: neither the source card nor
+  the index stores a whole-tree headroom now, so no card restamp is owed; the gate measures the cap.
 - **The committed sample is three flops and its texture and rank splits are frozen here**: rainbow
   and dry high-card, two-tone and paired, monotone and connected. Two boards are named here and
   stage 4 picks only the third inside its split: `Kc7d2h`, which the campaign estimate extrapolates

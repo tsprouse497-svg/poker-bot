@@ -3032,7 +3032,7 @@ items:
       retired, so the numbers stay checked wherever a document a reader acts on states
       them.
   - id: SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE
-    status: deferred
+    status: done
     phase: "12"
     title: The GTOpen source card's headroom moves when any other committed artifact does
     reason: >-
@@ -3045,6 +3045,19 @@ items:
       and data/artifacts/preflop/exports/**, neither in phase 12 scope; the better fix is
       for the card to state its own size and for the directory total to be the checker's
       business.
+      Closed by MAINT-41 on 2026-10-04, which did exactly that. Phase 16 restamped the card at
+      7d6866f and phase 21's lane twice on 2026-10-04, and one unrelated file under
+      data/artifacts reproduced all six red tests in a scratch copy before the fix. The card's
+      size block keeps the export's own bytes, bytes per node and bytes per expressible spot,
+      and drops headroom_bytes and limit_bytes; the converter and the extractor stop writing
+      them and the card check refuses either. The postflop index had the same defect in its
+      own headroom_bytes and lost it too, at index schema version 2, with the importer
+      refusing the key; its committed_bytes stays, because it covers only the index's own
+      postflop directory. The cap itself is unchanged and still checked at gate time by
+      scripts/check_file_sizes.py and the frozen budget tests, and a new test copies the tree,
+      adds an unrelated file, shows the card still reproduces, and shows the cap passing at
+      exactly its limit and failing one byte over. The preflop chart and its sizing table came
+      back byte-identical.
   - id: DOCS-CARRY-STRAY-WRITE-TOOL-CLOSING-TAGS
     status: deferred
     phase: contract-update
