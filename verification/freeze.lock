@@ -69,32 +69,35 @@ files:
     sha256: a37a70f01787f099ece26466747fb9ba575eb01fcddfe0fd65b3985472cb7ed0
     test_functions: 10
   tests/test_flop_campaign_costs.py:
-    sha256: a2085a42f74f78f41d2c963f962bbc256a0722c214894cd4cc2fc076306b7bf8
+    sha256: d43f98ac88b8a9d7dd35a16517d1ec5aed88473b91c5039983ce451fc0ae97d9
     test_functions: 26
   tests/test_flop_campaign_lines.py:
-    sha256: e3292c77055a8713c3b99dc85657ec1e942ed65f86953b337aa303473ea69988
+    sha256: a4149e1ae1ec740bd144b0bd3376aaff4ada418c06b9b5a825ac0c462a8eb62b
     test_functions: 28
   tests/test_flop_campaign_manifest.py:
-    sha256: 3f88589ce93867610129b385cdc7c5b9fe2d98feebd2c4307df95f8834d71a4f
+    sha256: 7918a6e0d5409bae11e2d5a66f3099403990d94d24eac8392e7b966192fa6421
     test_functions: 34
   tests/test_flop_campaign_raise_key.py:
     sha256: d5f17c02f292e25c953acb3058a71238a5c74e7661143eb5fb6584ce06a9d126
     test_functions: 25
   tests/test_flop_campaign_report.py:
-    sha256: 20d998d95e408d98c56620395d3e2841743e8b1d51f3d07ea91967d04a7f3c8c
+    sha256: 8923e1b1783a7a934b68af68315cbc7d25a511f0c25492afbce5958dd4c298b8
     test_functions: 26
   tests/test_flop_campaign_report_records.py:
-    sha256: 79e7afc5fd5b520c602e52122d49e6f75e86184d056b801d6c39146112f146ed
+    sha256: b0ff4d77f90a3b2c6caaaac3f55f8b0fa62c55b6a1f354564bbd307fbc08b823
     test_functions: 20
+  tests/test_flop_campaign_solver_build.py:
+    sha256: ad9772a2e7403d86c5a9968c417ea0a687a93c5bcce6e540907fb3b53e8c2070
+    test_functions: 15
   tests/test_flop_campaign_street_rows.py:
-    sha256: cc61345825100b277d8893255a94e861a18c5469dce1838822bd2c37269081f1
+    sha256: 381cbdc762471bae55a2d2ecb7381d5374d30841ef404e08ed3ea80abe2b6fad
     test_functions: 14
   tests/test_flop_campaign_threads.py:
-    sha256: 4b27047c4a7240bbfa2029b19fb629569bf13f45bfe8ab4d301ae47d0d347d63
-    test_functions: 40
+    sha256: 9c5e033210832204ef417a0438540e57c0f17f32625e3a0d05c00ae189c209f7
+    test_functions: 46
   tests/test_flop_campaign_tree.py:
-    sha256: 621ccb6b8474e1fe397799d894ecb2c0580907d3b59a074f14f7a7be2a524dc8
-    test_functions: 31
+    sha256: 01332568ca7bd76f500a819b55eaad265cb19ee30ea2419f4d6df4cb27a86ab7
+    test_functions: 41
   tests/test_full_table_preflop.py:
     sha256: 7e7843b29dfdcc2a3437edc7ff4815e778deb9ccf402f247dd69dca5f7209c2b
     test_functions: 50
@@ -195,4 +198,4 @@ files:
     sha256: 33ae24d660fdee82349c639f5b27a57725138aaaf994758678006b098e8a9010
     test_functions: 20
 schema_version: 1
-test_function_floor: 1458
+test_function_floor: 1489

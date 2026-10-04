@@ -511,6 +511,39 @@ def server_binary(pid: int) -> Path:
     raise SystemExit(f"could not read which binary {SERVER_PROCESS} pid {pid} was started from")
 
 
+def process_started_at(pid: int) -> float:
+    """When `pid` started, as epoch seconds, from `ps -o lstart=` under the C locale, which both
+    Darwin and Linux procps print as `Sun Oct  4 14:24:00 2026` in local time. Whole seconds only:
+    the true start lies somewhere in the second this returns."""
+    done = subprocess.run(  # noqa: S603 - a fixed system binary and one pid
+        ["ps", "-o", "lstart=", "-p", str(pid)],
+        capture_output=True,
+        text=True,
+        check=False,
+        env={**os.environ, "LC_ALL": "C"},
+    )
+    text = " ".join(done.stdout.split())
+    try:
+        return time.mktime(time.strptime(text, "%a %b %d %H:%M:%S %Y"))
+    except ValueError as error:
+        raise SystemExit(f"could not read when pid {pid} started from ps: {text!r}") from error
+
+
+def check_binary_unchanged_since_start(pid: int, binary: Path) -> None:
+    """Refuse a binary on disk modified after the process started. The path lsof or /proc names
+    is the file now at that path, so a rebuild after the server started would put the new build's
+    name on the old process. `ps` gives whole seconds, so a binary modified within the second the
+    process started is refused too, rather than given the benefit of the doubt."""
+    started_at = process_started_at(pid)
+    modified_at = binary.resolve().stat().st_mtime
+    if modified_at >= started_at:
+        raise SystemExit(
+            f"{binary} was modified at {time.ctime(modified_at)}, after {SERVER_PROCESS} pid {pid}"
+            f" started at {time.ctime(started_at)}, so the file on disk may not be the build that"
+            " process is running. Restart the server on the current binary and run again."
+        )
+
+
 def running_solver_build(pid: int | None) -> dict[str, str]:
     """Which solver build produced the timing, read off the running binary's own clone. Two
     builds are not one measurement, and since decision 17 two clones exist, so the build is never
@@ -520,8 +553,10 @@ def running_solver_build(pid: int | None) -> dict[str, str]:
             f"no {SERVER_PROCESS} process found by name, so nothing says which build is"
             " answering; refused rather than recorded as unknown"
         )
+    binary = server_binary(pid)
     try:
-        return solver_build_for(server_binary(pid))
+        check_binary_unchanged_since_start(pid, binary)
+        return solver_build_for(binary)
     except (OSError, ValueError) as error:
         raise SystemExit(f"the running solver's build could not be read: {error}") from error
 
