@@ -73,7 +73,7 @@ run. The scope check's untracked-folder bug, filed only in phase 21's lane backl
   splitting it buys a worse check, not parallelism. The coordinator implements it.
 - Review is delegated, as it must be: one read-only reviewer that wrote none of it, briefed
   "read-only, no gate runs", asked what it held back.
-- Status: implementation complete, review pending.
+- Status: completed; implementation integrated, review done and its blockers resolved.
 
 ## Slices
 
@@ -93,8 +93,8 @@ run. The scope check's untracked-folder bug, filed only in phase 21's lane backl
       would make 301. The false sentence was replaced in place by the amendment, which is how
       MAINT-39 amended phase 14 at its cap; nothing else was cut. The rewrite the cap now owes is
       filed as `POSTFLOP-BETTING-CONTRACT-IS-AT-ITS-LINE-CAP`.
-- [ ] Independent read-only review; fold in blockers.
-- [ ] Gate, packet, closeout, gate, merge.
+- [x] Independent read-only review; fold in blockers.
+- [x] Gate, packet, closeout, gate, merge.
 
 ## Verification
 
@@ -105,10 +105,13 @@ and sha256.
 
 ## Outcome
 
-Pending.
+The card and the index state only their own size; the cap is checked at gate time exactly as
+strictly as before. The chart, sizing table and export are byte-identical. The review found two
+blockers, both resolved, and two alignment items now filed. Gate green at 50 of 50 with 83 mutations
+caught. See the audit packet.
 
 ## Next Agent Bootstrap
 
-Work in `~/projects/poker-bot-worktrees/maint-41` only. Read `CURRENT_TASK.yml`, then this plan's
-unchecked slices. The gate plants live mutations for about fifteen minutes: stage named paths, never
-`git checkout` a file. Phase 21's lane will need to rebase onto this once it merges.
+Closed. Phase 21's lane must rebase onto this; the packet lists the expected conflicts and how to
+resolve them. Still open: `POSTFLOP-INDEX-BYTE-COUNT-MOVES-WITH-EVERY-CAMPAIGN-RECORD` and
+`POSTFLOP-BETTING-CONTRACT-IS-AT-ITS-LINE-CAP`.
