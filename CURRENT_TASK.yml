@@ -17,6 +17,10 @@ approved_scope:
 - docs/GTOPEN_SOLVER_NOTES.md
 - data/artifacts/postflop/index.json
 - data/artifacts/postflop/objects.json
+- data/artifacts/postflop/sample/**
+- data/artifacts/postflop/determinism.json
+- data/artifacts/postflop/solve_config.json
+- reports/active/latest_postflop_betting_report.txt
 - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
 standing_scope:
 - CURRENT_TASK.yml
@@ -4554,4 +4558,14 @@ scope_change_log:
       the re-freezes before it. One more re-open is owed after phase 16's four boards are re-solved:
       `test_each_committed_cell_document_is_unchanged` pins the old cells' sha256, and it can only be
       restated once the re-solve's cells exist.
+  - date: 2026-10-04
+    reason: >-
+      Phase 16's committed sample, `determinism.json` and `solve_config.json` join scope for decision
+      17's re-solve, which Taylor's handoff rules part of the ruling and for which he granted a laptop
+      window on 2026-10-04. The four boards are solved again on the clone at `b058335`, run A here
+      replacing the cells, index entries and objects, run B in a scratch copy proving them
+      deterministic. `solve_config.json` is rewritten by the solve script with the same ruled
+      content, and the postflop betting report regenerates with the new cells. Nothing else under
+      `data/artifacts` changes but the index and object list already in scope and the export card's
+      headroom.
 
