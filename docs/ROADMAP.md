@@ -33,8 +33,8 @@ Which phases may advance unattended is `verification/loop_policy.yml`, and it is
 ```
 14 ─┬─ 18 ──────────┐
     │               ├─ 19 ──┐
-    └─ 16 ─┬─ 21 ───┤       │
-           │        └─ 22 ──┤
+    └─ 16 ─┬─ 21 ─┬─┘       │
+           │      └─ 22 ────┤
            └────────────────┴─ 20
 ```
 

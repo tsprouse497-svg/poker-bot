@@ -51,7 +51,8 @@ task's packet and review directory. Standing scope covers `CURRENT_TASK.yml`, `p
 - [x] Phase 20 gains the edge to 22 and stops saying every decision comes from the committed strategy.
 - [x] `AGENTS.md` and both roadmaps name phase 22 as the owner; the graph gains 22.
 - [x] `LIVE-TURN-AND-RIVER-SOLVING` adopted by 22.
-- [ ] Independent read-only review, findings fixed or filed.
+- [x] Independent read-only review: two blockers and seven non-blockers fixed, two alignment items
+  filed.
 - [ ] Gate, packet, closeout to idle, gate again, merge, push. The gate waits until phase 21's
   all-core solve on this laptop has finished; two at once have crashed the machine.
 

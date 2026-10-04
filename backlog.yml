@@ -1,9 +1,35 @@
 schema_version: 1
 items:
+  - id: THE-FLOP-CAMPAIGN-IS-NOT-TOLD-ITS-CELLS-ARE-THE-TURN-RANGE-SOURCE
+    status: deferred
+    phase: "21"
+    title: Phase 22 reads phase 21's flop strategy for the ranges entering the turn and 21 does not know
+    reason: >-
+      Found 2026-10-04 by MAINT-43's independent review and filed by the coordinator. Phase 22
+      depends on 21 because a turn solve needs both players' ranges at the turn, walked from the
+      committed flop strategy along the line played. Phase 21 is running and its contract says
+      nothing of that use. Three things decide whether it can serve: a committed cell is one decision
+      point, and the points after it are committed only if the campaign closes each board; the
+      solve objects sit in a local directory with no remote store; and whether a cell carries enough
+      to derive a range at the turn is unchecked. Best settled while 21 is still running, by its
+      own stage 2 or a note to it. Closes when 21's contract or decisions say whether its cells are
+      fit to be the turn-range source, or 22's says where else the ranges come from.
+
+  - id: NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER
+    status: deferred
+    phase: contract-update
+    title: A turn reached after phase 19 answered the flop by rule of thumb has no range source and no owner
+    reason: >-
+      Found 2026-10-04 by MAINT-43's independent review and filed by the coordinator. Phase 22
+      solves a turn from ranges walked along the committed flop strategy. A flop phase 19 answered
+      by rule of thumb has no solved strategy to walk, and 19 and 22 do not depend on each other,
+      so neither contract covers the turn that follows. Closes when one of them, or a later
+      contract, says what the bot does there.
+
   - id: LIVE-TURN-AND-RIVER-SOLVING
     status: deferred
     phase: "22"
-    title: The turn and river may be solved at the table and nothing builds it
+    title: The turn and river are solved at the table and phase 22 builds it
     reason: >-
       Taylor ruled on 2026-10-04 that the turn and river are solved at the table instead of stored,
       and MAINT-42 amended `AGENTS.md` to say so. The ground is size against speed. Stored, they are
@@ -47,8 +73,9 @@ items:
       Closes when a phase that owns it is declared and its contract answers all ten.
       Filed 2026-10-04 by MAINT-42.
       **Adopted by phase 22 on 2026-10-04** (MAINT-43). Questions 1 and 2 are answered by Taylor's
-      rulings of that date: phase 22 owns it, waiting on 21, and the engine is GTOpen, chosen knowing
-      it has no licence and kept outside the repo. The other eight are phase 22's. Closes when phase
+      rulings of that date: phase 22 owns it, waiting on 21, and the engine is GTOpen, ruled after he
+      was told it has no licence, which is carried as an accepted risk. Whether GTOpen stays outside
+      the repo was not ruled. The other eight are phase 22's, and question 7 stays Taylor's. Closes when phase
       22's contract answers them and the bot answers a turn and a river from a live solve.
 
   - id: PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS
@@ -713,6 +740,7 @@ items:
       worst of the four, because the other three are read by humans and this one is enforced by a
       check. One fold-in rewrite plus one freeze re-open clears all four.
       Filed 2026-09-22.
+      **Adopted by phase 22 on 2026-10-04** (MAINT-43): phase 22 is the phase that makes the bot answer a turn, so the sentence these places require stops being the design there.
 
   - id: A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT
     status: deferred
@@ -1165,6 +1193,7 @@ items:
       than the thing it describes - one level up: the cell knows its size but not which menu that
       size belongs to. Sits beside A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE.
       Found by phase 16's schema lane, 2026-09-16, outside its brief.
+      **Adopted by phase 22 on 2026-10-04** (MAINT-43): phase 22 is where turn and river answers first reach the bot, so the street-blind menu check meets them there, whether or not they are committed.
 
   - id: DECISION-12-S-DO-NOT-SMOOTH-ARGUMENT-DESCRIBES-A-RANGE-THAT-WAS-SUPERSEDED
     status: deferred
@@ -9022,6 +9051,7 @@ items:
       that would see it at all, and it compares two menus rather than testing either.
       Filed by phase 16's stage-2 independent poker review, 2026-09-09; extended by its stage-3
       review, 2026-09-10.
+      **Adopted by phase 22 on 2026-10-04** (MAINT-43): phase 22 gives the bot the turn the flop frequencies assume, so this is answered there or not at all.
 
   - id: NO-POKER-REVIEW-HAS-SEEN-THE-RULINGS-TAKEN-AFTER-STAGE-2
     status: deferred
@@ -10205,6 +10235,7 @@ items:
       simulator) is the record-contents half of voiding - which actions survive in a voided hand's
       record - and is not this. Found by phase 16's stage-6 domain review,
       2026-09-15, extending its own stage-4 predecessor rather than re-filing it.
+      **Adopted by phase 22 on 2026-10-04** (MAINT-43): phase 22 ends the turn refusal that voids these hands, so the selection stops there and its measurement is owed there.
 
   - id: A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN
     status: deferred
