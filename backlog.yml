@@ -1,5 +1,20 @@
 schema_version: 1
 items:
+  - id: THE-SCOPE-CHECK-READS-AN-UNTRACKED-FOLDER-AS-ONE-PATH
+    status: deferred
+    phase: maintenance
+    title: check_scope reads a new untracked folder as one path, so in-scope files inside it are refused until staged
+    reason: >-
+      `scripts/check_scope.py` lists changed files with `git status --porcelain`, which collapses
+      an untracked directory into a single `dir/` entry. Seen 2026-10-04 in phase 21's stage 6: the
+      new folder `data/artifacts/postflop/campaign/` held only files that `approved_scope` names,
+      and the check refused the folder itself until the files were staged. The error runs toward
+      refusing, so no out-of-scope file has slipped through by this route, but a builder learns to
+      stage files to quiet the check, which is the wrong habit. The fix is
+      `--untracked-files=all` on both calls, with a test that an untracked folder of in-scope files
+      passes and one holding an out-of-scope file fails. Outside phase 21's approved scope, so filed
+      for a maintenance task rather than patched in the lane.
+
   - id: TURN-AND-RIVER-SIZES-CLAMPED-TO-ALL-IN-HAVE-NO-NAME-IN-ANY-SPOT-KEY
     status: deferred
     phase: contract-update
