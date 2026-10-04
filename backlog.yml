@@ -1,5 +1,21 @@
 schema_version: 1
 items:
+  - id: PEOPLE-ACROSS-THE-US-PLAY-AGAINST-THE-BOT-AND-NO-PHASE-OWNS-IT
+    status: deferred
+    phase: contract-update
+    title: Taylor wants other people across the US to play against the bot, which no phase or boundary covers yet
+    reason: >-
+      Taylor said on 2026-10-04 that part of the plan is for other people around the US to play
+      against the bot, for no real money. Nothing in the repo serves that: the solve machines phase
+      21 rents run for a week or two and shut down, phase 20 lifts the table boundary for his own
+      home games only, and `AGENTS.md` keeps a UI package deferred. A hosted bot needs an always-on
+      server holding what the bot reads. The flop data is megabytes and fits anywhere; the turn and
+      river are about 13 to 22 TB and have to sit next to that server if the hosted bot plays those
+      streets. Taylor ruled the same day that the campaign solves now and the turn and river go to a
+      cold archive, with the serving design decided later. Needs its own phase and a boundary ruling
+      (what is served, to how many players, and whether turn and river play is in it), stated with
+      numbers before any lift.
+
   - id: THE-SCOPE-CHECK-READS-AN-UNTRACKED-FOLDER-AS-ONE-PATH
     status: deferred
     phase: maintenance
