@@ -176,6 +176,29 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   and monthly bill. If he drops it, the contract's river criteria become a `contract-update` in this
   lane before the campaign starts, and decision 1 is recorded as re-ruled.
 
+- [ ] Decision 17, ruled (b) on 2026-10-04: take only upstream `85b0a692`'s tree fix, so a street
+  both players check clears the initiative. `THE-PINNED-SOLVER-CARRIES-THE-AGGRESSOR-THROUGH-A-CHECKED-STREET`
+  carries the diagnosis and every figure. Slices, in order:
+  - [x] Solver: branch `poker-bot/check-through-clears-initiative` in `~/projects/gtopen-poker-bot`,
+    on the bulk export `3f8bf98`, commit `b058335`: the fix's hunks and upstream's regression test,
+    verbatim. Release build and the whole GTOpen test suite green (105 tests pass, one
+    preflop benchmark ignored as upstream marks it), `check_through_street_clears_the_initiative` included.
+  - [x] Figures re-derived by a tree counter linked against the patched crate, building each spot
+    under either rule without solving. The old rule reproduces every frozen figure to the byte; the
+    new rule gives every figure decision 17 quoted. No figure differs from the ruling, so nothing
+    goes back to Taylor on that ground.
+  - [ ] Decision 18's GPU fold patch into the same branch. Not applied: the session's permission
+    check refused applying it and reading upstream to compare it, so it waits on Taylor.
+  - [ ] Contract-update task: phase 21's contract rewritten under its cap, folding its rulings and
+    the new tree; phase 16's contract amended in two lines. Reviewed read-only.
+  - [ ] Implementation: frozen tests re-opened for the tree figures alone, by a lane that writes no
+    code, and re-frozen; the solve path pointed at the patched build; the GTOpen notes record the
+    clone; the driver's description of the empty donk list corrected. Reviewed read-only.
+  - [ ] Phase 16's four boards re-solved on the new tree: about 45 minutes of all-core solving per
+    set of four at ten threads, so it waits for a window Taylor grants (lid open, on AC), run under
+    `caffeinate -i -s`, `pmset -g log` read afterwards. Then the index, the byte budget and the
+    export card rebuilt and the full suite run.
+
 ## Verification
 
 Stage checks through `uv run python scripts/loop_stage.py --phase 21`. The full gate is expected red
