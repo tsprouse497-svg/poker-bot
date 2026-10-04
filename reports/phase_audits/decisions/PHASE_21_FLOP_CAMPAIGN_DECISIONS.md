@@ -91,7 +91,12 @@ precision. Asked next whether phase 21 also teaches the bot to
 look up and play the turn and river, he ruled **store now, play next**: phase 21 stores them and a new
 phase right after it makes the bot play them. `TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE`
 carries that until it is declared. The cost he accepted with it, stated in the question: phase 21's
-table re-run still shows hands stopping at the turn.]
+table re-run still shows hands stopping at the turn.
+**Restated by Taylor, 2026-10-04:** "we will need to keep the river... i think it'll be hard to play
+w/o it." Told the measured cost first (about 22 TB at decision 15's format, 13.5 TB storing one row
+per suit-isomorphic combo; the bulk export makes reading it about 43 s a flop instead of about 0.6
+to 0.9 hours), and that it goes to Glacier Deep Archive under decision 4's amendment. The campaign
+budget ask still shows the measured size and bill.]
 
 ## 2. Whether every flop decision is saved, or only the first
 
@@ -193,7 +198,9 @@ of this budget too. The campaign budget is asked separately, once the six flops 
 Recommendation: an amount you would be comfortable losing on a trial, since it buys measurements
 rather than coverage. The figure is yours; I cannot price a machine you have not picked.
 
-Answer: [Ruled by Taylor, 2026-09-26] **$100** trial budget, covering every rented run before the campaign, the GPU trial included. The campaign budget is asked separately once the trial has priced a line.]
+Answer: [Ruled by Taylor, 2026-09-26] **$100** trial budget, covering every rented run before the campaign, the GPU trial included. The campaign budget is asked separately once the trial has priced a line.
+**Confirmed for RunPod by Taylor, 2026-10-04:** the cap stays $100 although he funded the RunPod
+account with $150; "100 cap seems reasonable."]
 
 ## 7. Whether to try GTOpen's graphics-card path
 
@@ -381,3 +388,20 @@ Answer: [Ruled by Taylor, 2026-10-04] (b). Shown the three options with their co
 change, he answered "ah ok. yes" and asked for the fix to be made in every place that matters, with
 each phase and document that needs it updated, carefully and within the repo's practices. Whether to
 also take upstream's deterministic GPU fold sum is a separate question he has not answered.]
+
+## 18. Whether to take upstream's deterministic GPU fold sum
+
+Reversibility: frozen-into-data
+
+At the pin, GTOpen's postflop GPU kernel `up_fold` (`gpu/kernels.cu:143-148`) sums with float
+`atomicAdd` in shared memory, so the order is not fixed and two GPU runs will likely differ in the
+last bits; the contract makes a GPU that does not repeat itself a finding, not a campaign machine.
+Upstream `8ff89f42` (2026-09-07) replaced it with per-card sums in fixed hand order and a fixed-shape
+total, and its own test asserts two GPU runs give equal arenas on one card. The fix isolates to two
+files, about +42/-18, and does not touch the CPU engine. Untested here: it compiles only on a CUDA
+machine at run time, and nothing claims repeatability across GPU models.
+
+Recommendation: take it into the same local clone as decision 17's tree fix, and prove it on the
+first rented GPU by solving one flop twice.
+
+Answer: [Ruled by Taylor, 2026-10-04] Take it. "yea for graphics card repeat i'm fine with that."]
