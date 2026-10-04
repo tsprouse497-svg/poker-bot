@@ -68,6 +68,33 @@ files:
   tests/test_execplan_delegation.py:
     sha256: a37a70f01787f099ece26466747fb9ba575eb01fcddfe0fd65b3985472cb7ed0
     test_functions: 10
+  tests/test_flop_campaign_costs.py:
+    sha256: a2085a42f74f78f41d2c963f962bbc256a0722c214894cd4cc2fc076306b7bf8
+    test_functions: 26
+  tests/test_flop_campaign_lines.py:
+    sha256: e3292c77055a8713c3b99dc85657ec1e942ed65f86953b337aa303473ea69988
+    test_functions: 28
+  tests/test_flop_campaign_manifest.py:
+    sha256: 3f88589ce93867610129b385cdc7c5b9fe2d98feebd2c4307df95f8834d71a4f
+    test_functions: 34
+  tests/test_flop_campaign_raise_key.py:
+    sha256: d5f17c02f292e25c953acb3058a71238a5c74e7661143eb5fb6584ce06a9d126
+    test_functions: 25
+  tests/test_flop_campaign_report.py:
+    sha256: 20d998d95e408d98c56620395d3e2841743e8b1d51f3d07ea91967d04a7f3c8c
+    test_functions: 26
+  tests/test_flop_campaign_report_records.py:
+    sha256: 79e7afc5fd5b520c602e52122d49e6f75e86184d056b801d6c39146112f146ed
+    test_functions: 20
+  tests/test_flop_campaign_street_rows.py:
+    sha256: cc61345825100b277d8893255a94e861a18c5469dce1838822bd2c37269081f1
+    test_functions: 14
+  tests/test_flop_campaign_threads.py:
+    sha256: 4b27047c4a7240bbfa2029b19fb629569bf13f45bfe8ab4d301ae47d0d347d63
+    test_functions: 40
+  tests/test_flop_campaign_tree.py:
+    sha256: 621ccb6b8474e1fe397799d894ecb2c0580907d3b59a074f14f7a7be2a524dc8
+    test_functions: 31
   tests/test_full_table_preflop.py:
     sha256: 7e7843b29dfdcc2a3437edc7ff4815e778deb9ccf402f247dd69dca5f7209c2b
     test_functions: 50
@@ -111,8 +138,8 @@ files:
     sha256: 43da4e2d717db8787d997a3e12fcf1b2a2bccb4434adcabbf6f681ce65f28049
     test_functions: 21
   tests/test_postflop_solve_driver.py:
-    sha256: e5a8a54a287ea4b556eba5777790b1f1382856811d25208e780c1f2d5a87d34c
-    test_functions: 27
+    sha256: f05793d1030046057644ba0619e47968273d3608f560823b64a9d03198a21a94
+    test_functions: 31
   tests/test_preflop_artifacts.py:
     sha256: 03db513bf566a9a92da4e1e15de09ff3660eb8992bd12f3afd9018652f830f83
     test_functions: 30
@@ -168,4 +195,4 @@ files:
     sha256: 33ae24d660fdee82349c639f5b27a57725138aaaf994758678006b098e8a9010
     test_functions: 20
 schema_version: 1
-test_function_floor: 1210
+test_function_floor: 1458

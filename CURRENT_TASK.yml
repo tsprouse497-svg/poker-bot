@@ -6,10 +6,6 @@ approved_scope:
 - docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md
 - reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
-- tests/test_flop_campaign*.py
-- tests/test_postflop_solve_driver.py
-- tests/fixtures/flop_campaign/**
-- verification/mutations.yml
 - scripts/run_verify.py
 standing_scope:
 - CURRENT_TASK.yml
@@ -4446,3 +4442,9 @@ scope_change_log:
       The re-open is bounded to what the new shape reddens. The lane reports every frozen test it
       changes with the shape change that forced it, and the coordinator reviews each against the
       defect rather than against the lane's convenience.
+  - date: 2026-10-04
+    reason: >-
+      Phase 21 stage 5, the freeze. `freeze_tests.py` wrote the lock over 65 test files and 1,458
+      test functions, after the stage 4 review's two rounds left no open blocker. The phase's test
+      files, its fixture directory, the solve-driver test file and `verification/mutations.yml` leave
+      `approved_scope`, so `check_scope.py` stops stage 6 from writing any of them.
