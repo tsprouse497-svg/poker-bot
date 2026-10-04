@@ -1,0 +1,513 @@
+{
+ "record_schema_version": 1,
+ "machines": [
+  {
+   "machine": {
+    "platform": "Darwin",
+    "cpu_model": "Apple M4",
+    "logical_processors": 10,
+    "memory_bytes": 34359738368,
+    "performance_cores": 4,
+    "efficiency_cores": 6,
+    "description": "Apple M4, 10 logical processors (4 performance, 6 efficiency), 34.4 GB RAM, Darwin"
+   },
+   "counts": [
+    3,
+    5,
+    8,
+    10
+   ],
+   "gtopen_default_threads": 5,
+   "iterations_per_stretch": 100,
+   "repeats_per_count": 3,
+   "chosen_threads": 10,
+   "per_count": [
+    {
+     "threads": 3,
+     "median_seconds_per_iteration": 6.0883171025000005,
+     "spread_seconds_per_iteration": 1.4496714245800009
+    },
+    {
+     "threads": 5,
+     "median_seconds_per_iteration": 4.8672817870900005,
+     "spread_seconds_per_iteration": 1.3621119429200004
+    },
+    {
+     "threads": 8,
+     "median_seconds_per_iteration": 3.75025311583,
+     "spread_seconds_per_iteration": 0.6355370845799997
+    },
+    {
+     "threads": 10,
+     "median_seconds_per_iteration": 3.24467731917,
+     "spread_seconds_per_iteration": 0.15020420417000002
+    }
+   ],
+   "runs": [
+    {
+     "load_average_1m_before": 6.6,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 18.1,
+       "pid": 388,
+       "command": "WindowServer"
+      },
+      {
+       "cpu_pct": 11.6,
+       "pid": 609,
+       "command": "Google Chrome"
+      },
+      {
+       "cpu_pct": 6.7,
+       "pid": 89884,
+       "command": "Google Chrome Helper (Renderer)"
+      }
+     ],
+     "started_at": "2026-10-04T09:07:23-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 744.007155625,
+     "client_wall_seconds": 744.2089021670399,
+     "tree_build_seconds": 0.13675375003367662,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11671699456,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-00-3t.log",
+     "attempt": 1,
+     "threads": 3,
+     "seconds_per_iteration": 7.44007155625
+    },
+    {
+     "load_average_1m_before": 5.03,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 5.0,
+       "pid": 388,
+       "command": "WindowServer"
+      },
+      {
+       "cpu_pct": 2.7,
+       "pid": 789,
+       "command": "Notion Helper"
+      },
+      {
+       "cpu_pct": 2.4,
+       "pid": 92521,
+       "command": "Google Chrome Helper (Renderer)"
+      }
+     ],
+     "started_at": "2026-10-04T09:19:49-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 605.23170225,
+     "client_wall_seconds": 605.4523712079972,
+     "tree_build_seconds": 0.09251799993216991,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11681153024,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-01-5t.log",
+     "attempt": 1,
+     "threads": 5,
+     "seconds_per_iteration": 6.0523170225000005
+    },
+    {
+     "load_average_1m_before": 8.15,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 25.2,
+       "pid": 388,
+       "command": "WindowServer"
+      },
+      {
+       "cpu_pct": 20.0,
+       "pid": 884,
+       "command": "Google Chrome Helper"
+      },
+      {
+       "cpu_pct": 16.3,
+       "pid": 609,
+       "command": "Google Chrome"
+      }
+     ],
+     "started_at": "2026-10-04T09:29:57-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 422.751475583,
+     "client_wall_seconds": 422.7864567079814,
+     "tree_build_seconds": 0.09102004196029156,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11693391872,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-02-8t.log",
+     "attempt": 1,
+     "threads": 8,
+     "seconds_per_iteration": 4.22751475583
+    },
+    {
+     "load_average_1m_before": 10.41,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 7.9,
+       "pid": 388,
+       "command": "WindowServer"
+      },
+      {
+       "cpu_pct": 3.1,
+       "pid": 18211,
+       "command": "Google Chrome Helper (Renderer)"
+      },
+      {
+       "cpu_pct": 2.9,
+       "pid": 789,
+       "command": "Notion Helper"
+      }
+     ],
+     "started_at": "2026-10-04T09:37:02-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 337.715237958,
+     "client_wall_seconds": 337.81447004096117,
+     "tree_build_seconds": 0.09053566702641547,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11702386688,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-03-10t.log",
+     "attempt": 1,
+     "threads": 10,
+     "seconds_per_iteration": 3.37715237958
+    },
+    {
+     "load_average_1m_before": 11.34,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 4.9,
+       "pid": 18211,
+       "command": "Google Chrome Helper (Renderer)"
+      },
+      {
+       "cpu_pct": 4.8,
+       "pid": 388,
+       "command": "WindowServer"
+      },
+      {
+       "cpu_pct": 3.1,
+       "pid": 789,
+       "command": "Notion Helper"
+      }
+     ],
+     "started_at": "2026-10-04T09:42:41-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 599.040013167,
+     "client_wall_seconds": 599.1314975420246,
+     "tree_build_seconds": 0.12071275000926107,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11908071424,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-04-3t.log",
+     "attempt": 1,
+     "threads": 3,
+     "seconds_per_iteration": 5.9904001316699995
+    },
+    {
+     "load_average_1m_before": 4.14,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 4.7,
+       "pid": 18211,
+       "command": "Google Chrome Helper (Renderer)"
+      },
+      {
+       "cpu_pct": 4.6,
+       "pid": 388,
+       "command": "WindowServer"
+      },
+      {
+       "cpu_pct": 3.1,
+       "pid": 55314,
+       "command": "claude"
+      }
+     ],
+     "started_at": "2026-10-04T09:52:42-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 486.728178709,
+     "client_wall_seconds": 487.06312245794106,
+     "tree_build_seconds": 0.1053860419197008,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11943624704,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-05-5t.log",
+     "attempt": 1,
+     "threads": 5,
+     "seconds_per_iteration": 4.8672817870900005
+    },
+    {
+     "load_average_1m_before": 6.04,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 7.7,
+       "pid": 388,
+       "command": "WindowServer"
+      },
+      {
+       "cpu_pct": 4.8,
+       "pid": 18211,
+       "command": "Google Chrome Helper (Renderer)"
+      },
+      {
+       "cpu_pct": 2.6,
+       "pid": 789,
+       "command": "Notion Helper"
+      }
+     ],
+     "started_at": "2026-10-04T10:00:51-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 375.025311583,
+     "client_wall_seconds": 375.2275483330013,
+     "tree_build_seconds": 0.11597437504678965,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11931516928,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-06-8t.log",
+     "attempt": 1,
+     "threads": 8,
+     "seconds_per_iteration": 3.75025311583
+    },
+    {
+     "load_average_1m_before": 8.54,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 1.8,
+       "pid": 83856,
+       "command": "com.apple.Virtualization.VirtualMachine"
+      },
+      {
+       "cpu_pct": 1.1,
+       "pid": 405,
+       "command": "coreaudiod"
+      },
+      {
+       "cpu_pct": 1.0,
+       "pid": 394,
+       "command": "runningboardd"
+      }
+     ],
+     "started_at": "2026-10-04T10:07:08-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 322.694817541,
+     "client_wall_seconds": 323.1730878340313,
+     "tree_build_seconds": 0.1156144579872489,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11919261696,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-07-10t.log",
+     "attempt": 1,
+     "threads": 10,
+     "seconds_per_iteration": 3.22694817541
+    },
+    {
+     "load_average_1m_before": 10.15,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 4.5,
+       "pid": 32634,
+       "command": "claude"
+      },
+      {
+       "cpu_pct": 3.7,
+       "pid": 55314,
+       "command": "claude"
+      },
+      {
+       "cpu_pct": 2.7,
+       "pid": 405,
+       "command": "coreaudiod"
+      }
+     ],
+     "started_at": "2026-10-04T10:12:34-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 608.83171025,
+     "client_wall_seconds": 608.8888803330483,
+     "tree_build_seconds": 0.11847012501675636,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11918016512,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-08-3t.log",
+     "attempt": 1,
+     "threads": 3,
+     "seconds_per_iteration": 6.0883171025000005
+    },
+    {
+     "load_average_1m_before": 3.86,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 1.8,
+       "pid": 38626,
+       "command": "claude"
+      },
+      {
+       "cpu_pct": 0.9,
+       "pid": 672,
+       "command": "Finder"
+      },
+      {
+       "cpu_pct": 0.7,
+       "pid": 54157,
+       "command": "claude"
+      }
+     ],
+     "started_at": "2026-10-04T10:22:44-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 469.020507958,
+     "client_wall_seconds": 469.19840129092336,
+     "tree_build_seconds": 0.09402045898605138,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11945082880,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-09-5t.log",
+     "attempt": 1,
+     "threads": 5,
+     "seconds_per_iteration": 4.69020507958
+    },
+    {
+     "load_average_1m_before": 5.27,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 3.0,
+       "pid": 83856,
+       "command": "com.apple.Virtualization.VirtualMachine"
+      },
+      {
+       "cpu_pct": 0.9,
+       "pid": 405,
+       "command": "coreaudiod"
+      },
+      {
+       "cpu_pct": 0.5,
+       "pid": 46357,
+       "command": "PerfPowerServices"
+      }
+     ],
+     "started_at": "2026-10-04T10:30:36-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 359.197767125,
+     "client_wall_seconds": 359.28802341606934,
+     "tree_build_seconds": 0.1169579999987036,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11919081472,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-10-8t.log",
+     "attempt": 1,
+     "threads": 8,
+     "seconds_per_iteration": 3.59197767125
+    },
+    {
+     "load_average_1m_before": 8.42,
+     "busiest_processes_before": [
+      {
+       "cpu_pct": 3.1,
+       "pid": 32634,
+       "command": "claude"
+      },
+      {
+       "cpu_pct": 1.9,
+       "pid": 405,
+       "command": "coreaudiod"
+      },
+      {
+       "cpu_pct": 1.7,
+       "pid": 83856,
+       "command": "com.apple.Virtualization.VirtualMachine"
+      }
+     ],
+     "started_at": "2026-10-04T10:36:37-0700",
+     "thermal_state_before": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "thermal_state_after": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded",
+     "power_events_during": [],
+     "valid": true,
+     "server_elapsed_seconds": 324.467731917,
+     "client_wall_seconds": 324.79570100002456,
+     "tree_build_seconds": 0.11509887501597404,
+     "iterations": 100,
+     "exploit_pct_of_pot_at_end": 2.129279393490303,
+     "engine": "CPU",
+     "arena_storage": "f32",
+     "planned_arena_bytes": 11978042234,
+     "peak_resident_bytes": 11919343616,
+     "server_log": "/Users/taylorsprouse/.cache/poker-bot-solves/gto-server-sweep-11-10t.log",
+     "attempt": 1,
+     "threads": 10,
+     "seconds_per_iteration": 3.24467731917
+    }
+   ],
+   "board": "Kh7d2c",
+   "preflop_line": "t6/d100/BB/BTN:raise@2.5,BB:call",
+   "configuration": "data/artifacts/postflop/solve_config.json",
+   "seconds_per_iteration_is": "the server's own elapsed_secs at the end of the stretch divided by its iterations: the solve loop alone, exploitability checks included, tree build and polling excluded",
+   "discarded_runs": [],
+   "conditions_note": "Run on 2026-10-04 straight after the Mac re-solve of phase 16's four boards at 10 threads (08:20-09:01), so the machine started warm: a fanless MacBook Air, which went into a Thermal Emergency Sleep at 09:01:31, as it slept after that job, and was awake again from 09:06:42. The whole sweep is held awake by caffeinate -i -s. Lid open. Planned on AC, but pmset reports battery power from the 09:06:42 wake through the end of the sweep at 10:42 (corrected by the coordinator 2026-10-04 from pmset -g log; the measurement is unchanged). A run that overlaps a pmset sleep, wake or thermal event is discarded and its slot run again (discarded_runs).",
+   "load_average_note": "load_average_1m_before is the one-minute load average as read just before each run. It decays over minutes, so after the first run it still carries the previous stretch's own server; busiest_processes_before is the reading of what else was running"
+  }
+ ]
+}

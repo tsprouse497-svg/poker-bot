@@ -18,6 +18,7 @@ The postflop section sits high rather than at the end on purpose. Its absence is
 | Binary | `target/release/gto-server`, Mach-O **arm64**, native rather than under Rosetta |
 | Serves | `127.0.0.1:3737`, a JSON API and a web UI |
 | GPU | `/api/status` reports `"gpu": false` on this machine, so the CPU engine is what runs |
+| Threads | `init_rayon` in `crates/server/src/main.rs` takes `SOLVER_THREADS` and otherwise half of `available_parallelism()`, five on this ten-core M4. Measured 2026-10-04 on `Kh7d2c`, median of three interleaved 100-iteration runs: 10 threads 3.24 s/it against 4.87 at the default five (`data/artifacts/postflop/campaign/thread_sweep.json`); phase 16's four boards re-solved at 10 reproduce exactly (`campaign/mac_resolve_at_thread_count.json`). The driver now always sets the count. |
 
 ## Postflop, as run
 
