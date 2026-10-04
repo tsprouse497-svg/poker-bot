@@ -187,6 +187,10 @@ Not yet.
 
 ## Next Agent Bootstrap
 
-Worktree `~/projects/poker-bot-worktrees/phase-21`, loop at stage 1 in `contract-update` mode. Run
-`uv run python scripts/loop_stage.py --phase 21` for the next action. Nothing may be spent on a cloud
-account until stage 3 records Taylor's rulings on provider, candidates and a spending cap.
+Worktree `~/projects/poker-bot-worktrees/phase-21`, loop at stage 6 (build) in `implementation`
+mode, tests frozen at 49f529c and `base_commit` moved there. Run
+`uv run python scripts/loop_stage.py --phase 21` for the next action. The first stage 6 slice is part
+1, every core: the thread and machine code, the Mac thread sweep, and the re-solve of phase 16's four
+boards at the chosen count, which must reproduce byte for byte or the phase halts for Taylor. Nothing
+may be spent on AWS until the quotas are granted and Taylor approves the exact machines and prices;
+as of 2026-10-03 both quota appeals were still open.
