@@ -215,3 +215,21 @@ Unchanged, minor and not required: phase 20's "offline strategy" wording (line 4
 lines 44, 58-59.
 
 Round 2 verdict: one blocker left (R2-1, four `phase:` fields); fix it and this is clear.
+
+## Round 3
+
+Diff `HEAD~1..HEAD` (`b2513dc`). Read-only; only `check_contracts` run (exit 0).
+
+- R2-1 [resolved]. All four adopted entries read `phase: "22"` in `backlog.yml` (lines 713, 1184,
+  9033, 10211) and in the Phase column of `docs/BACKLOG.md`.
+- R2-2 [resolved]. `NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER` now leads with the
+  certain preflop case and keeps the flop case conditional on 19's contract.
+- R2-3 [resolved]. `THE-FLOP-CAMPAIGN-IS-NOT-TOLD-ITS-CELLS-ARE-THE-TURN-RANGE-SOURCE` points at
+  21's decision list or a note to its lane, which matches 21's pointer at stage 6.
+- R2-4 [resolved]. Phase 22's Scope cites all four adopted ids by full name.
+- Round 2 note committed unedited (no removed lines).
+
+Wording nit, not required: after the inserted list, "Two of its ten questions" (contract line ~48)
+reads as if "its" is the last id listed; "Two of `LIVE-TURN-AND-RIVER-SOLVING`'s ten" would be exact.
+
+Round 3 verdict: clear.

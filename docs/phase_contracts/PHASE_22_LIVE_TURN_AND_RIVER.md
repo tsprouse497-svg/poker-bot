@@ -45,7 +45,7 @@ adopted with it, each one a place a builder meets the turn:
 `THE-GATE-ENFORCES-A-SEAM-SENTENCE-THIS-PHASE-MEASURED-AS-FALSE`,
 `A-COMMITTED-CELL-CARRIES-NO-STREET-SO-THE-IMPORTER-CHECKS-EVERY-BET-AGAINST-THE-FLOP-MENU`,
 `A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE` and
-`A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED`. Two of its ten
+`A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED`. Two of `LIVE-TURN-AND-RIVER-SOLVING`'s ten
 questions are answered by the rulings above - the owner is this phase, and the engine is GTOpen -
 and the rest are this phase's: the gate, the ranges entering the turn, bets off the menu,
 determinism, where the solve runs, pots with three or more players, anchoring a turn re-solve to
