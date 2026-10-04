@@ -19,8 +19,8 @@ nothing tracked.
 
 ## Blocker
 
-- **No solve object records the engine, and the one function that requires it is used only by the
-  tests.** The contract: every solve record carries the machine as measured, the thread count, the
+- **[resolved] in `8436788`, verified in round 2 below.** **No solve object records the engine,
+  and the one function that requires it is used only by the tests.** The contract: every solve record carries the machine as measured, the thread count, the
   engine read back from the server, and the arena storage, plus peak resident memory per solve.
   `postflop_machine.solve_record` (`postflop_machine.py:270`) enforces all of it, and stage 4's
   tests pin it, but no writer calls it. `write_object` (`scripts/solve_postflop_sample.py:665`)
@@ -129,3 +129,106 @@ nothing tracked.
   in part 1.
 - `THE-REPO-S-FORMATTER-IS-NOT-IN-THE-GATE-AND-THIRTY-NINE-TEST-FILES-DIVERGE` covers the format
   drift in `postflop_solve_driver.py`.
+
+## Round 2, 2026-10-04: the repair in `8436788`
+
+Scope: `git diff 256c5c3 8436788`, and `7da38c6`, which only regenerates
+`reports/active/latest_postflop_betting_report.txt`. Same reviewer, same rules: no gate, server or
+solve run, nothing tracked edited. I ran one scratch script against HEAD `7da38c6`, which sent each
+fix through the failing scenario round 1 named. I also ran `ruff check` on the touched code, and
+pytest on the threads, driver, artifact, betting report and costs test files.
+
+### Blocker
+
+None. Round 1's blocker is resolved:
+
+- `write_object` and the deep check now build their `solve` block through
+  `RunConditions.solve_block`, which calls `solve_record`. The engine is read back with
+  `check_engine` from `SolveOutcome.final_status`, the last `/api/status` that `run_solve` now
+  keeps. My scratch script used scratch outcomes, no server:
+  - Asked for the GPU while the server reported `gpu: false`: refused (`SolveDriverError`).
+  - A status with no `gpu` field: refused.
+  - A peak of `None`: refused (`SystemExit`). A peak of 0: refused (`ValueError` from
+    `solve_record`).
+  - A CPU run with a real peak: accepted, with `engine`, `machine`, `threads` and
+    `peak_resident_bytes` present.
+- `Server.stop` now reaps with `wait4` even when the process has already exited. On a child that
+  had already exited it returned a peak (1,654,784 bytes) rather than `None`. Nothing else in the
+  script calls `poll` or `wait`, so nothing reaps the child first.
+- The deep check writes its object in `finish_deep_check`, after the server stops, with engine and
+  peak from the same `solve_block`.
+
+### Round 1 non-blockers, checked
+
+- **Whole-node comparison.** `compare_node_payloads` now returns `whole_node_identical`, and
+  `per_combo_identical` requires it. A 1e-9 change to the non-acting player's `reach` now fails,
+  where round 1 saw it pass.
+- **Mixed or default thread counts.** `check_resolve_threads` refuses objects that disagree (one
+  set to 8 among 10s) and objects all at 5, GTOpen's default on this machine. On the real re-solve
+  objects it returns 10.
+- **A tree that was never emptied.** `resolve_document` refuses the round 1 scratch tree, which has
+  no `resolve_run.json`. With the marker present and one held cell deleted, as `--resolve` would
+  leave a board it skipped, the cell is reported missing and `reproduced` is false. With the marker
+  and all cells present, `reproduced` is true and `threads` is 10. `prepare_resolve_tree` refuses a
+  git checkout (a worktree's `.git` file counts) and an object directory that is not empty.
+- **The sweep file keeps every machine.** `merged_sweep_document` replaces only a record with the
+  same platform, CPU model, logical processor count and memory.
+- **The field name.** `SolveOutcome.machine` is now `memory_ceiling`.
+- **Lint and tests.** `ruff check` passes. The artifact and betting report budget tests pass on
+  the rebuilt index: 205 passed. The 14 errors are still part 2's unbuilt
+  `postflop_campaign_costs` module.
+
+### Are the new record texts true, and do they add no measurement?
+
+- **The sweep note.** Every figure re-derives from `runs`:
+  - round one: 7.440, 6.052, 4.228 and 3.377 s/it
+  - rounds two and three: 5.990 to 6.088, 4.690 to 4.867, 3.592 to 3.750 and 3.227 to 3.245 s/it
+  - spreads without round one: 0.098 and 0.177
+
+  The `pmset -g therm` sentence is true. No new measurement.
+- **`checks_added_after_this_record`.** Checks (1) and (2) hold as stated: I reran both on copies
+  of the scratch objects. All five nodes are whole-identical, and all four objects ran at 10
+  threads.
+  - **One figure is misattributed.** The record says the four held cells' modification times are
+    08:39, 08:50, 08:55 and 09:01. The four held cells are at 08:39:03 (both `Kh7d2c` cells),
+    08:50:52 and 08:55:54. 09:01 is the fifth cell, which sits in object storage and is not held.
+    My round 1 note gave those four times for the objects, which is where they belong.
+  - The fix is one line: "the four held cells' modification times (08:39 for both `Kh7d2c`
+    cells, 08:50, 08:55)". It is a non-blocker, but it is a wrong figure in a committed record and
+    should be corrected before `--advance`.
+- **The heat row in `docs/GTOPEN_SOLVER_NOTES.md`.** Both dates are real Thermal Emergency Sleeps
+  in `pmset -g log` (2026-10-03 21:57:43 and 2026-10-04 09:01:31), and "the cause is not proven"
+  is honest. But the first did not follow "a long all-core solve". It followed the first, abandoned
+  sweep, which ran 3, 5 and 8 threads from 21:18, and then 10 threads from 21:44:14 for about six
+  minutes. A `Clamshell Sleep` (lid closed) was logged at 21:43:29 just before that run.
+  Non-blocker: reword to "a long solve" and mention the lid.
+
+### The lane's held-back points
+
+- **(a) An engine or peak refusal stops the whole `--all` run with a traceback.** Confirmed.
+  `write_object` runs after `server.stop()`, outside the per-board `try`. `SolveDriverError` from
+  `check_engine` and `SystemExit` from a missing peak both propagate out of `main`. The cost of
+  that is larger than a traceback: boards finished earlier have written their objects, and their
+  held cells through `record_cell`, but `objects.json` and `index.json` are written only after the
+  loop. So the tree is left with new cells and a stale manifest and index.
+  - It fails closed: nothing wrong is recorded as right. `--resolve` would report the missing
+    cells, and the gate's budget tests would catch the stale index.
+  - Its realistic trigger is the GPU trial, which solves one board. So this is a non-blocker.
+  - Recommended before part 2's multi-board runs on the box: call `check_engine` inside the
+    per-board `try`, where `final_status` already exists, so a fallback counts as one refused
+    board and the loop goes on. Keep the peak check after `stop`, inside its own `try`.
+- **(b) Two rented boxes of one instance type are one sweep entry.** Acceptable. The contract asks
+  for a sweep per machine, and an instance type is a fixed hardware specification. Part 2's budget
+  pays for one sweep per candidate, not per box.
+  - Two caveats. A second sweep of the same type silently replaces the first, so the script should
+    print that it replaced a record. And `MemTotal` can differ by a few kilobytes between kernels,
+    so the same type can also end up as two entries, which is harmless.
+  - What makes it safe is that every solve object records its own measured machine.
+- **(c) The old re-solve record cannot pass the new marker check.** Acceptable without a re-solve.
+  The marker guards only the held cell bytes. In this run those cells were provably rewritten:
+  their modification times match their objects. Every strategy check reads the fresh objects, and
+  those now pass the whole-node and thread-count checks.
+  - A second 41-minute all-core run on this Air, with its thermal record, would buy nothing
+    stronger.
+  - The record should name the code that wrote it (`055f9c8`), since the current
+    `--resolve-tree` refuses that scratch tree and cannot regenerate the record.
