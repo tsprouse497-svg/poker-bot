@@ -280,6 +280,12 @@ def merged_sweep_document(output: Path, record: dict[str, Any]) -> dict[str, Any
         for entry in machines
         if tuple(entry["machine"].get(key) for key in MACHINE_IDENTITY) != identity
     ]
+    if len(kept) != len(machines):
+        print(
+            f"replacing          the earlier sweep of {record['machine']['cpu_model']}"
+            f" ({record['machine']['logical_processors']} logical processors) in {output};"
+            f" {len(kept)} other machine(s) kept"
+        )
     return {"record_schema_version": SWEEP_RECORD_SCHEMA_VERSION, "machines": [*kept, record]}
 
 

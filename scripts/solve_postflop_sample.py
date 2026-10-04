@@ -414,7 +414,7 @@ class RunConditions:
         server moved to the CPU is refused here rather than recorded like any other."""
         engine = check_engine(outcome.final_status, self.engine)
         if peak_resident_bytes is None:
-            raise SystemExit(
+            raise SolveDriverError(
                 f"{outcome.label}: the server's peak resident memory was not read when it stopped,"
                 " so the solve record would carry none. Refused rather than written blank."
             )
@@ -649,6 +649,9 @@ def solve_one_board(
         config=solve_config_document(),
     )
     outcome = run_solve(plan, transport)
+    # Read back before anything is harvested: a solve on the wrong engine is refused here, while
+    # the server is still up, rather than harvested and then refused.
+    check_engine(outcome.final_status, run_conditions().engine)
     result = BoardResult(board=board, outcome=outcome, arena_storage=transport.arena())
     commit, verdict = commit_verdict(outcome)
     result.committed, result.verdict = commit, verdict
@@ -692,7 +695,15 @@ def write_json(path: Path, payload: Any) -> None:
     path.write_text(json.dumps(payload, indent=1, sort_keys=False) + "\n", encoding="utf-8")
 
 
-def write_object(object_dir: Path, board: tuple[str, ...], result: BoardResult) -> tuple[Path, str]:
+REFUSED_BOARDS = "refused_boards"
+"""The manifest key naming each board whose solve was refused - by a driver guard, an engine the
+server did not read back as asked, or a peak memory the server's exit did not report - with the
+reason. A refused board is recorded here and never written as a solved object."""
+
+
+def write_object(
+    object_dir: Path, board: tuple[str, ...], result: BoardResult, solve: dict[str, Any]
+) -> tuple[Path, str]:
     """The solved object: every combo of every harvested node, outside git, digested.
 
     The index authenticates this rather than the sample, which is decision 6's whole shape - the
@@ -704,9 +715,7 @@ def write_object(object_dir: Path, board: tuple[str, ...], result: BoardResult) 
     payload = {
         "board": list(board),
         "preflop_line": preflop_line_for("BB").rendered,
-        "solve": run_conditions().solve_block(
-            result.outcome, result.arena_storage, result.peak_resident_bytes
-        ),
+        "solve": solve,
         "config": solve_config_document(),
         "nodes": result.node_payloads,
     }
@@ -1636,6 +1645,7 @@ def run_deep_check(
         config=solve_config_document(),
     )
     outcome = run_solve(plan, transport, stop_only_at_the_iteration_cap=True)
+    check_engine(outcome.final_status, run_conditions().engine)
     if outcome.iterations != SOLVE_ITERATION_CAP:
         raise SystemExit(
             f"the deep run stopped at {outcome.iterations} of {SOLVE_ITERATION_CAP} iterations,"
@@ -1761,9 +1771,13 @@ def deep_check_run(args: argparse.Namespace, object_storage: str) -> int:
         return 1
     finally:
         server.stop()
-    finish_deep_check(
-        document, tuple(solved), cell, Path(args.object_dir), server.peak_resident_bytes
-    )
+    try:
+        finish_deep_check(
+            document, tuple(solved), cell, Path(args.object_dir), server.peak_resident_bytes
+        )
+    except (SolveDriverError, ValueError) as error:
+        print(f"  refused: {error}")
+        return 1
     write_json(DEEP_CHECK_PATH, document)
     report_deep_check(document)
     print(f"  wrote              {DEEP_CHECK_PATH.relative_to(REPO_ROOT)}"
@@ -1907,6 +1921,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         except SolveDriverError as error:
             print(f"  refused: {error}")
+            manifest.setdefault(REFUSED_BOARDS, {})[label] = str(error)
             failures += 1
             continue
         finally:
@@ -1917,8 +1932,17 @@ def main(argv: list[str] | None = None) -> int:
             manifest["rejected_above_one_percent"] += 1
             failures += 1
             continue
+        try:
+            solve = run_conditions().solve_block(
+                result.outcome, result.arena_storage, result.peak_resident_bytes
+            )
+        except (SolveDriverError, ValueError) as error:
+            print(f"  refused: {error}")
+            manifest.setdefault(REFUSED_BOARDS, {})[label] = str(error)
+            failures += 1
+            continue
         object_dir = Path(args.object_dir)
-        path, digest = write_object(object_dir, board, result)
+        path, digest = write_object(object_dir, board, result, solve)
         print(f"  object             {path} sha256 {digest[:16]}...")
         for built in result.cells:
             recorded = record_cell(
