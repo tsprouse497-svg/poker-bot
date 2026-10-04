@@ -1,0 +1,49 @@
+{
+ "about": "Every flop decision point one solve holds on each tree shape the admitted lines build, as the flop segment of its spot key and the seat deciding there. Derived 2026-10-03 by walking GTOpen crates/solver/src/tree.rs at 4aee435 (legal_actions, apply_action) over the committed solve_config.json: bets 33 and 75 percent of pot for both seats, raise 2.5x, max_raises 2, add_allin false, allin_threshold 85.0, 97.5bb behind. A raise goes to 2.5 times the level it faces and no flop raise on either shape is clamped to a minimum raise or to all-in, so every raise is exactly the configured 2.5x. Eight of the fourteen follow a raise: four face one, four face a re-raise, and max_raises 2 ends the tree there. The button line's tree is also the cutoff's, hijack's and lojack's, with the opener's label in the button's place.",
+ "lines": {
+  "BTN:raise@2.5,BB:call": {
+   "out_of_position": "BB",
+   "in_position": "BTN",
+   "pot_bb": "5.5",
+   "effective_stack_bb": "97.5",
+   "decision_points": [
+    {"hero": "BB", "flop": "none", "after_a_raise": false},
+    {"hero": "BTN", "flop": "BB:check", "after_a_raise": false},
+    {"hero": "BB", "flop": "BB:check,BTN:bet@33", "after_a_raise": false},
+    {"hero": "BTN", "flop": "BB:check,BTN:bet@33,BB:raise@2.5x", "after_a_raise": true},
+    {"hero": "BB", "flop": "BB:check,BTN:bet@33,BB:raise@2.5x,BTN:raise@2.5x", "after_a_raise": true},
+    {"hero": "BB", "flop": "BB:check,BTN:bet@75", "after_a_raise": false},
+    {"hero": "BTN", "flop": "BB:check,BTN:bet@75,BB:raise@2.5x", "after_a_raise": true},
+    {"hero": "BB", "flop": "BB:check,BTN:bet@75,BB:raise@2.5x,BTN:raise@2.5x", "after_a_raise": true},
+    {"hero": "BTN", "flop": "BB:bet@33", "after_a_raise": false},
+    {"hero": "BB", "flop": "BB:bet@33,BTN:raise@2.5x", "after_a_raise": true},
+    {"hero": "BTN", "flop": "BB:bet@33,BTN:raise@2.5x,BB:raise@2.5x", "after_a_raise": true},
+    {"hero": "BTN", "flop": "BB:bet@75", "after_a_raise": false},
+    {"hero": "BB", "flop": "BB:bet@75,BTN:raise@2.5x", "after_a_raise": true},
+    {"hero": "BTN", "flop": "BB:bet@75,BTN:raise@2.5x,BB:raise@2.5x", "after_a_raise": true}
+   ]
+  },
+  "SB:raise@2.5,BB:call": {
+   "out_of_position": "SB",
+   "in_position": "BB",
+   "pot_bb": "5",
+   "effective_stack_bb": "97.5",
+   "decision_points": [
+    {"hero": "SB", "flop": "none", "after_a_raise": false},
+    {"hero": "BB", "flop": "SB:check", "after_a_raise": false},
+    {"hero": "SB", "flop": "SB:check,BB:bet@33", "after_a_raise": false},
+    {"hero": "BB", "flop": "SB:check,BB:bet@33,SB:raise@2.5x", "after_a_raise": true},
+    {"hero": "SB", "flop": "SB:check,BB:bet@33,SB:raise@2.5x,BB:raise@2.5x", "after_a_raise": true},
+    {"hero": "SB", "flop": "SB:check,BB:bet@75", "after_a_raise": false},
+    {"hero": "BB", "flop": "SB:check,BB:bet@75,SB:raise@2.5x", "after_a_raise": true},
+    {"hero": "SB", "flop": "SB:check,BB:bet@75,SB:raise@2.5x,BB:raise@2.5x", "after_a_raise": true},
+    {"hero": "BB", "flop": "SB:bet@33", "after_a_raise": false},
+    {"hero": "SB", "flop": "SB:bet@33,BB:raise@2.5x", "after_a_raise": true},
+    {"hero": "BB", "flop": "SB:bet@33,BB:raise@2.5x,SB:raise@2.5x", "after_a_raise": true},
+    {"hero": "BB", "flop": "SB:bet@75", "after_a_raise": false},
+    {"hero": "SB", "flop": "SB:bet@75,BB:raise@2.5x", "after_a_raise": true},
+    {"hero": "BB", "flop": "SB:bet@75,BB:raise@2.5x,SB:raise@2.5x", "after_a_raise": true}
+   ]
+  }
+ }
+}

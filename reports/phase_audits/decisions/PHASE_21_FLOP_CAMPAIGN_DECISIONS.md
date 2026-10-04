@@ -308,3 +308,25 @@ Answer: [Ruled by Taylor, 2026-09-26] **Two bytes a number** for the turn and ri
 per-line figures at one byte are 3.48, 2.57, 2.10, 1.88 and 1.62 TB for the five lines, 11.65 TB in
 all, so about 23 TB at two bytes, measured on the trial flops before the campaign budget.]
 
+
+## 16. How a raise is named in a spot key
+
+Reversibility: frozen-into-data
+
+Raised by the stage 4 round 3 review as its one blocker: a flop object cannot be checked by its
+contents while some of its decision points have no key. The solve is configured with
+`raise: "2.5x"`, and a spot key carries every size as a percent of pot to a hundredth, refusing
+anything finer (`size_pct` in `solver_artifacts/postflop_harvest.py`, `render_size_bb` in
+`solver_artifacts/spot_key.py`). A 2.5x raise over the committed 33 percent bet is 4.5375bb into
+7.315bb, 62.030075... percent of pot, so every decision point after a raise is unnameable and the
+bot cannot look up the node after its own raise.
+`THE-KEY-CANNOT-NAME-A-RAISE-THE-COMMITTED-MENU-HOLDS` carries the diagnosis.
+
+Options. (a) Name a raise in the key by the multiplier the solve configures, such as `2.5x`, which
+is exact. Bets keep their percent of pot. (b) Round a raise's percent of pot to a hundredth, the
+rounding the repo has twice refused by name because two different sizes could share a key.
+
+Recommendation: (a).
+
+Answer: [Ruled by Taylor, 2026-10-03] (a): a raise is named by its multiplier. Put to him in plain
+words, he answered "if path A is recommended here that's fine."]

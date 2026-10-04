@@ -464,19 +464,52 @@ class DictStore:
 
 FETCH_BOARDS = (("Kh", "7d", "2c"), ("8c", "8d", "3c"))
 INDEX_KEY = "postflop/btn-v-bb/index.json"
+FLOP_DECISION_POINTS = json.loads(
+    (REPO_ROOT / "tests" / "fixtures" / "flop_campaign" / "flop_decision_points.json").read_text(
+        encoding="utf-8"
+    )
+)
+"""Every flop decision point of each tree shape, derived from GTOpen's `tree.rs`; see its note."""
+
+
+def flop_spot_keys(line: str, board) -> list[str]:
+    """The spot key of every flop decision point one solve of `line` holds on `board`."""
+    shape = FLOP_DECISION_POINTS["lines"][line]
+    tail = f"/p:{shape['pot_bb']}/e:{shape['effective_stack_bb']}"
+    return [
+        f"f/b:{''.join(board)}/t6/d100/{point['hero']}/{line}/f:{point['flop']}{tail}"
+        for point in shape["decision_points"]
+    ]
+
+
+def flop_object(keys) -> bytes:
+    """A flop object as the fetch reads it, uncompressed JSON `{"cells": [...]}`, one cell a key.
+    Every field but the key is borrowed from one committed cell: the fetch checks which decision
+    points an object holds, by key, and whether each cell is sound is the importer's check when
+    the strategy loads it."""
+    borrowed = json.loads(
+        (SAMPLE_DIR / "rainbow-dry-high-facing-a-bet.json").read_text(encoding="utf-8")
+    )
+    return json.dumps({"cells": [dict(borrowed, spot_key=key) for key in keys]}).encode()
 
 
 def published_line():
     """A line index, its objects and its manifest, all consistent, as an upload would leave
-    them. The object bytes are stand-ins; what the fetch checks is their digests."""
+    them. Each flop object holds the board's fourteen flop decision points; the turn and river
+    bytes are stand-ins, since their format is stage 6's, and what the fetch checks of them is
+    their digests."""
     objects: dict[str, bytes] = {}
     boards = []
     for board in FETCH_BOARDS:
         name = "".join(board)
         listed = {}
         for street in ("flop", "turn", "river"):
-            key = f"postflop/btn-v-bb/{name}.{street}.bin"
-            objects[key] = f"{name} {street} decision points".encode()
+            if street == "flop":
+                key = f"postflop/btn-v-bb/{name}.flop.json"
+                objects[key] = flop_object(flop_spot_keys(COMMITTED_LINE, board))
+            else:
+                key = f"postflop/btn-v-bb/{name}.{street}.bin"
+                objects[key] = f"{name} {street} decision points".encode()
             listed[street] = {"key": key, "sha256": sha256(objects[key])}
         boards.append(
             {"board": list(board), "decision_points": dict(CLOSED_COUNTS), "objects": listed}
@@ -545,9 +578,9 @@ class TestTheFetchChecksEverythingItFetches:
         owed(fetch, "fetch_line")(manifest, store, tmp_path, streets=("flop",))
 
         assert not [key for key in store.requested if key.endswith((".turn.bin", ".river.bin"))]
-        assert sorted(key for key in store.requested if key.endswith(".flop.bin")) == [
-            "postflop/btn-v-bb/8c8d3c.flop.bin",
-            "postflop/btn-v-bb/Kh7d2c.flop.bin",
+        assert sorted(key for key in store.requested if key.endswith(".flop.json")) == [
+            "postflop/btn-v-bb/8c8d3c.flop.json",
+            "postflop/btn-v-bb/Kh7d2c.flop.json",
         ]
 
     def test_a_street_that_was_not_fetched_still_refuses_as_not_fetched(self, fetch, tmp_path):
@@ -573,7 +606,7 @@ class TestTheFetchChecksEverythingItFetches:
 
     def test_an_object_whose_digest_is_not_the_index_s_is_rejected(self, fetch, tmp_path) -> None:
         manifest, _, objects = published_line()
-        objects["postflop/btn-v-bb/8c8d3c.flop.bin"] = b"a different object"
+        objects["postflop/btn-v-bb/8c8d3c.flop.json"] = b"a different object"
 
         with pytest.raises(owed(fetch, "FetchError")) as raised:
             owed(fetch, "fetch_line")(manifest, DictStore(objects), tmp_path, streets=("flop",))
