@@ -1,5 +1,21 @@
 schema_version: 1
 items:
+  - id: TURN-AND-RIVER-SIZES-CLAMPED-TO-ALL-IN-HAVE-NO-NAME-IN-ANY-SPOT-KEY
+    status: deferred
+    phase: contract-update
+    title: Turn and river sizes clamped to all-in have no name in any spot key
+    reason: >-
+      Decision 16 of phase 21, ruled by Taylor on 2026-10-03, names a flop raise in a key by its
+      configured multiplier, and no flop raise on the committed menu is clamped, so the flop is
+      covered. Later streets are not. GTOpen clamps a turn or river bet or raise to all-in when it
+      would reach the stack, and the clamped size is neither a configured percent nor a configured
+      multiplier. The stage 4 review's port of GTOpen's tree rules counts, per card, 24 of 131 turn
+      and 206 of 628 river decision points after such a clamp on the button line, and 24 of 134 and
+      212 of 657 on the small blind line. Phase 21 only stores these points, so nothing frozen there
+      blocks a ruling; the phase that plays the turn and river needs one before it can key them.
+      Raised as an alignment item by phase 21's stage 4 review, 2026-10-03. Neighbour of
+      TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE, which owns playing them at all.
+
   - id: TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE
     status: deferred
     phase: contract-update
