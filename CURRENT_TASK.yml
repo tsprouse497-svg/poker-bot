@@ -1,8 +1,23 @@
-task_id: null
+task_id: MAINT-41
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: 553f6f7931996c3feb4372a710a9845448f4c499
+approved_scope:
+- scripts/convert_preflop_export.py
+- scripts/extract_gtopen_preflop.py
+- scripts/solve_postflop_sample.py
+- src/poker_training_bot/solver_artifacts/gtopen_source_card.py
+- src/poker_training_bot/solver_artifacts/postflop_artifact.py
+- data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
+- data/artifacts/postflop/index.json
+- tests/test_solver_export.py
+- tests/test_postflop_artifact.py
+- verification/freeze.lock
+- verification/mutations.yml
+- docs/phase_contracts/PHASE_10_SOLVER_EXTRACTION.md
+- docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
+- reports/phase_audits/MAINT_41_CARD_STATES_ITS_OWN_SIZE.md
+- reports/phase_audits/reviews/MAINT_41_CARD_STATES_ITS_OWN_SIZE/**
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -18,6 +33,23 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-10-04
+    reason: >-
+      MAINT-41 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. It closes
+      SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE: the preflop export's source card
+      and the postflop index each store a headroom figure measured over all of `data/artifacts`, so
+      any file committed anywhere under it makes them stale and reddens six preflop tests and one
+      postflop test. Both records stop storing it; the cap stays enforced at check time by
+      `scripts/check_file_sizes.py` and the frozen byte-budget tests. The writers are the two
+      preflop scripts and the postflop solve driver; the readers are the card check and the index
+      importer. Two frozen test files of completed phases are in scope for this fix alone: each
+      assertion that compared a stored whole-tree headroom is replaced by one that refuses the
+      stored copy, every cap assertion stays as strict, and `verification/freeze.lock` is re-written
+      so the lock diff is the record. `verification/mutations.yml` takes canaries for the two
+      readers and the cap check. Two completed contracts that assert the card states the headroom
+      are amended in place. The last two paths are this task's packet and review directory. The
+      committed preflop chart and its sizing table must come back byte-identical.
   - date: 2026-09-26
     reason: >-
       MAINT-40 opens from idle, so every pattern in `approved_scope` reads as a widening against
