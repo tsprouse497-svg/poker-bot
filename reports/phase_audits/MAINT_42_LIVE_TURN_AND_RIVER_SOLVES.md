@@ -226,4 +226,5 @@ One read-only reviewer that wrote none of this and ran no gate, note at
 
 ## Gate
 
-Pending.
+Green, 50 of 50, `check_gate_bite` included, on the review fixes. The round-2 note, this
+section and the closeout edits are covered by the closeout gate.

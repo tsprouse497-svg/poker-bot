@@ -50,7 +50,8 @@ limits on those phases, and moving them belongs to whichever task declares the o
 - [x] Correct both roadmaps.
 - [x] File `LIVE-TURN-AND-RIVER-SOLVING`.
 - [x] Independent read-only review: one blocker (an unruled network condition, removed and filed as
-  a question for Taylor), eight non-blockers fixed or accepted, one alignment item already filed.
+  a question for Taylor), ten non-blockers of which four were confirmations, one alignment item
+  already filed; round 2 clear.
 - [ ] Gate, packet, closeout to idle, gate again, merge, push.
 
 ## Verification

@@ -63,3 +63,18 @@ Outside the brief, noticed and not pursued:
 - The packet's "Independent review" and "Gate" sections still read "Pending", which is expected at this stage.
 
 **Verdict:** the figures are sound and the river ruling is well supported; one blocker, the unruled local-machine and no-network clause in `AGENTS.md:147`, needs Taylor's yes or removal before the gate.
+
+## Round 2
+
+Reviewed `git diff 6c99f73..7364fca`, read-only. No gate was run. The read-only checks were rerun and all exit 0: the three generated-doc freshness checks, `check_contracts`, `check_scope`, `check_execplan_delegation`, `check_repo_consistency`, `check_file_sizes`, and the backlog citation scan.
+
+1. **Blocker resolved.** `AGENTS.md:147` no longer says anything about a machine or a network; only the determinism sentence remains, tied to the deterministic-bot rule. Where the solve runs is now question (7) of `LIVE-TURN-AND-RIVER-SOLVING` and is left to Taylor to rule.
+2. **Ratio wording fixed and true.** `docs/GTOPEN_SOLVER_NOTES.md:181` now gives 325 as a node ratio and 80x as a wall-clock ratio. It says the polling makes the 80x too small, which is correct because the river time is inflated, and that neither number counts subgames.
+3. **Ceiling wording fixed and true.** `docs/GTOPEN_SOLVER_NOTES.md:174` now says the hand count is a ceiling and the wall clock is not, because iterations on narrower ranges were not measured, mixed flop strategies remove fewer hands, solves ran on a fresh server (up to 1.6x faster, as measured at `:142-145`), and start-up was not timed. `backlog.yml:11-13` now points to that passage.
+4. **Owner list fixed.** Question (1) names phases 18 to 21, which matches `PHASE_21_FLOP_CAMPAIGN.md:100`.
+5. **Missing questions added.** Questions (8) to (10) are accurate as stated. GTOpen's postflop engine is two-player (`README.md:3-4`). The entry now closes on "all ten".
+6. **Setup sentence fixed.** `GTOPEN_SOLVER_NOTES.md:172` now says the setup is the flop sample's except for the board, the pot and the stack.
+7. **River pot-odds fixed.** `docs/V2_ROADMAP.md:67` now calls river pot-odds a fallback, which matches `backlog.yml`'s line that `river_pot_odds.py` stays as a fallback.
+8. **[non-blocker] Small miscount.** The packet's review section reports the findings faithfully, including the blocker, its reason and its resolution, the alignment item, and the held-back points. The ExecPlan line "eight non-blockers fixed or accepted" miscounts: the note tagged ten. Four of them (4, 8, 9 and 12) were confirmations that needed no change, and the packet rightly does not list them as fixes. Cosmetic only.
+
+No new false claim found. **Verdict: clear.**
