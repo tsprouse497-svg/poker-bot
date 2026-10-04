@@ -264,9 +264,9 @@ class TestThePinSTreeIsKeptAsTheRuleItWas:
         assert closure(new)["turn"] == closure(old)["turn"]
         assert closure(new)["river"] > closure(old)["river"]
 
-    def test_each_river_card_gains_the_same_thirty_one_decision_points(self, tree) -> None:
-        """628 a river card on the pin's committed tree, 659 on the clone's; 657 and 689 on the
-        small blind's."""
+    def test_each_river_card_gains_the_same_count_on_every_card(self, tree) -> None:
+        """628 a river card on the pin's committed tree, 659 on the clone's, 31 more; 657 and
+        689 on the small blind's, 32 more."""
         closure = owed(tree, "closure_counts")
         build = owed(tree, "line_tree_figures")
 

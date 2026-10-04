@@ -58,6 +58,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import ipaddress
 import json
 import os
 import platform
@@ -68,6 +69,7 @@ import sys
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from collections import Counter
 from dataclasses import dataclass, replace
@@ -1553,7 +1555,7 @@ ARGUMENTS = (
                               "help": "skip the drift probe; it rebuilds and discards the solve"}),
     ("--poll-interval", {"type": float, "default": 0.25}),
     ("--sample-interval", {"type": float, "default": 0.25}),
-    ("--url", {"default": BASE_URL}),
+    ("--url", {"default": BASE_URL, "help": "a server on this machine; its build is read locally"}),
     ("--no-report", {"dest": "report", "action": "store_false"}),
     ("--fresh", {"action": "store_true", "help": "discard rows already in the report"}),
 )
@@ -1563,7 +1565,26 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     for flag, options in ARGUMENTS:
         parser.add_argument(flag, **options)
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if not is_local_url(args.url):
+        parser.error(
+            f"--url {args.url} is not this machine. The solver build is read from the local"
+            f" {SERVER_PROCESS} process, so a remote server's rows would carry another build."
+        )
+    return args
+
+
+def is_local_url(url: str) -> bool:
+    """A loopback host: `localhost`, or an address in 127.0.0.0/8 or ::1."""
+    host = urllib.parse.urlsplit(url).hostname
+    if host is None:
+        return False
+    if host == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
 
 
 def run_one(

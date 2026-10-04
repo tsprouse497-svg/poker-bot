@@ -26,6 +26,7 @@ approved_scope:
 - tests/test_flop_campaign_costs.py
 - tests/test_flop_campaign_threads.py
 - tests/test_flop_campaign_report_records.py
+- tests/test_flop_campaign_solver_build.py
 - verification/mutations.yml
 - verification/freeze.lock
 standing_scope:
@@ -4547,4 +4548,12 @@ scope_change_log:
       small blind line's bar under either reading of the server's unit on the pin's tree; on the new
       tree that bar is 18,710,513,792 bytes, so the fixture would be refused by the rule it exists to
       exercise. The one figure and its docstring move; nothing else in the file changes.
+  - date: 2026-10-04
+    reason: >-
+      One new test file, `tests/test_flop_campaign_solver_build.py`, joins decision 17's re-open. The
+      read-only review of 7ff2a4b found that the stale-binary check passes a binary built on a newer
+      commit after the clone is checked out to an older one, so a record could name the pin while the
+      binary builds the new tree, and that none of the new solve-path refusals had a test or a
+      mutation. `tests/test_flop_campaign_threads.py` is at 699 of its 700 lines, so the tests go in
+      their own file, written by the test lane as before.
 

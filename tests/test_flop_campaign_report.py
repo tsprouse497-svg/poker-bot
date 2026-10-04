@@ -239,7 +239,7 @@ class TestTheGeneratorRefusesAFigureThatDoesNotReconcile:
     ) -> None:
         rewrite(
             committed_manifest_path(tree_copy),
-            lambda m: m["boards"][0]["decision_points"].update(river=1_477_055),
+            lambda m: m["boards"][0]["decision_points"].update(river=1_549_967),
         )
 
         with pytest.raises(refusal):

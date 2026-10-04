@@ -1805,3 +1805,72 @@ mutations:
     replace: "if len(held_keys) != len(expected_keys):"
     must_fail:
       - pytest_flop_campaign
+
+  - id: solver-build-accepts-a-dirty-clone
+    description: >-
+      Reading the solver build stops refusing a clone with uncommitted changes to tracked files.
+      A binary built from a dirty tree then records the clone's commit while it ran something
+      else, so a cell solved on an edited tree passes for one solved on the commit it names - the
+      thing decision 17's solver build field exists to rule out.
+    file: src/poker_training_bot/solver_artifacts/postflop_machine.py
+    find: "if status.strip():"
+    replace: "if False and status.strip():"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: solver-build-accepts-a-short-or-uppercase-commit
+    description: >-
+      The solver build's commit check accepts any seven to forty-one hex characters in either
+      case instead of the forty lowercase ones `git rev-parse HEAD` prints. A short hash is a
+      guess about which commit it means, so two records naming the pin's tree and the clone's
+      could carry commits nobody can tell apart.
+    file: src/poker_training_bot/solver_artifacts/postflop_machine.py
+    find: 'COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}")'
+    replace: 'COMMIT_PATTERN = re.compile(r"[0-9a-fA-F]{7,41}")'
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: solver-build-accepts-a-binary-older-than-its-commit
+    description: >-
+      The binary check stops comparing the server binary's time with HEAD's commit time. A
+      binary built before the commit was made is recorded as that commit, so a solve on the
+      pin's tree, built before the clone took decision 17's fix, carries the fixed commit.
+    file: src/poker_training_bot/solver_artifacts/postflop_machine.py
+    find: "if built_at < committed_at:"
+    replace: "if False and built_at < committed_at:"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: solver-build-ignores-a-checkout-after-the-build
+    description: >-
+      The binary check stops comparing tracked build inputs with the binary's time. A binary
+      built on a later commit, then a checkout of an earlier one, leaves a clean tree on a branch
+      whose HEAD is older than the binary, and the record names the earlier commit while the
+      later one ran - the case the decision 17 review found.
+    file: src/poker_training_bot/solver_artifacts/postflop_machine.py
+    find: "    newer = [name for name in tracked if name and _mtime(repository / name) > built_at]"
+    replace: "    newer = []"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: strategy-export-size-goes-unchecked
+    description: >-
+      The bulk strategy export is kept without comparing its size on disk with the byte count the
+      export route reported, so a file the server was still writing, or one truncated in a move,
+      is kept as a whole export as long as its tail happens to read right.
+    file: scripts/solve_postflop_sample.py
+    find: "if size != reported:"
+    replace: "if False and size != reported:"
+    must_fail:
+      - pytest_flop_campaign
+
+  - id: strategy-export-trailer-count-goes-unchecked
+    description: >-
+      The bulk strategy export is kept without comparing the record count in its trailer with
+      the count the export route reported, so an export that lost or repeated records is kept as
+      the solve's strategy for every action node.
+    file: scripts/solve_postflop_sample.py
+    find: 'if int.from_bytes(tail[len(STRATS_TRAILER) :], "little") != records:'
+    replace: 'if False and int.from_bytes(tail[len(STRATS_TRAILER) :], "little") != records:'
+    must_fail:
+      - pytest_flop_campaign

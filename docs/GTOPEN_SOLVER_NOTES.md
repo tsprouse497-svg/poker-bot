@@ -41,8 +41,8 @@ Two commits on the pin, each recorded by what it changes:
 
 1. `3f8bf98`, **a read-only bulk export**: `POST /api/export_strategies` writes every action node's
    average strategy, exactly as `/api/node` reports it, to `saves/<name>.strats` in one depth-first
-   pass (`crates/solver/src/export.rs`; format in its header). It reads the arenas and changes no
-   solver arithmetic. Diff sha256 `92c84c2e0867545497eb1b4c3e18d75bf944f08f975ccab290210453a709f172`.
+   pass (`crates/solver/src/export.rs`; format in its header). Before reading it does what
+   `/api/node` does, `ensure_symmetric`, and it changes no solved value or solver arithmetic. Diff sha256 `92c84c2e0867545497eb1b4c3e18d75bf944f08f975ccab290210453a709f172`.
 2. `b058335`, **decision 17, upstream `85b0a692`'s tree fix alone**: a street both players check
    clears the initiative. At the pin, `check_behind` in `tree.rs` passed the last aggressor through a
    checked street, so after in position's flop bet was called and the turn checked through, an out

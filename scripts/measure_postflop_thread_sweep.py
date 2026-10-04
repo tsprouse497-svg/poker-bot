@@ -193,7 +193,13 @@ def committed_plan(board: str) -> SolvePlan:
 
 
 def one_stretch(
-    plan: SolvePlan, threads: int, iterations: int, binary: Path, log_dir: Path, position: int
+    plan: SolvePlan,
+    threads: int,
+    iterations: int,
+    binary: Path,
+    log_dir: Path,
+    position: int,
+    solver_build: dict[str, str],
 ) -> dict[str, Any]:
     """One fresh server at `threads`, one tree, `iterations` iterations, stopped."""
     before = {
@@ -203,7 +209,7 @@ def one_stretch(
         "thermal_state_before": thermal_state(),
     }
     since = time.strftime("%Y-%m-%d %H:%M:%S")
-    server = Server(binary, log_dir, threads)
+    server = Server(binary, log_dir, threads, solver_build)
     server.start(f"sweep-{position:02d}-{threads}t")
     try:
         transport = ArenaVerifiedTransport(http_transport(), RULED_ARENA_STORAGE)
@@ -337,7 +343,13 @@ def main(argv: list[str] | None = None) -> int:
     for position, threads in enumerate(schedule):
         for attempt in range(1, MAX_ATTEMPTS_PER_SLOT + 1):
             detail = one_stretch(
-                plan, threads, iterations, Path(args.server), Path(args.log_dir), position
+                plan,
+                threads,
+                iterations,
+                Path(args.server),
+                Path(args.log_dir),
+                position,
+                solver_build,
             )
             detail["attempt"] = attempt
             if detail["valid"]:

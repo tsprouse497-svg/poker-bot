@@ -504,12 +504,19 @@ class Server:
 
     `peak_resident_bytes` is the process's own high-water mark, read from the kernel when it is
     reaped (`wait4`), so it is the peak over the whole solve rather than a sample of it.
+
+    `solver_build` is the build the run read before any server started. Every start reads and
+    checks it again and refuses a difference, so a rebuild or checkout mid-run cannot put another
+    build's solves under the first one's name.
     """
 
-    def __init__(self, binary: Path, log_dir: Path, threads: int) -> None:
+    def __init__(
+        self, binary: Path, log_dir: Path, threads: int, solver_build: dict[str, str]
+    ) -> None:
         self.binary = binary
         self.log_dir = log_dir
         self.threads = threads
+        self.solver_build = solver_build
         self.process: subprocess.Popen | None = None
         self.log_path: Path | None = None
         self.peak_resident_bytes: int | None = None
@@ -519,6 +526,13 @@ class Server:
             raise SystemExit(
                 f"{self.binary} is not a file. Build GTOpen first (`cargo build --release` in the"
                 " clone) or point --server at the binary; this script never installs one."
+            )
+        current = run_solver_build(self.binary)
+        if current != self.solver_build:
+            raise SystemExit(
+                f"the solver build changed mid-run: {describe_build(self.solver_build)} when the"
+                f" run began, {describe_build(current)} now. Refused rather than recorded under"
+                " the first build's name."
             )
         self.log_dir.mkdir(parents=True, exist_ok=True)
         environment = server_environment(self.threads)
@@ -1896,7 +1910,9 @@ def deep_check_run(args: argparse.Namespace, object_storage: str) -> int:
     print(f"deep check         {cell.name} on {cell.board_text}, to the"
           f" {SOLVE_ITERATION_CAP}-iteration cap")
     refuse_a_foreign_server()
-    server = Server(Path(args.server), Path(args.log_dir), conditions.threads)
+    server = Server(
+        Path(args.server), Path(args.log_dir), conditions.threads, conditions.solver_build
+    )
     tolerance = CLASS_AGREEMENT_TOLERANCE if args.tolerance is None else float(args.tolerance)
     transport = ArenaVerifiedTransport(http_transport(), RULED_ARENA_STORAGE)
     server.start(f"deep-{cell.board_text}")
@@ -2045,7 +2061,9 @@ def main(argv: list[str] | None = None) -> int:
     write_solve_config(oop, ip)
     manifest = load_manifest(object_storage)
     refuse_a_foreign_server()
-    server = Server(Path(args.server), Path(args.log_dir), conditions.threads)
+    server = Server(
+        Path(args.server), Path(args.log_dir), conditions.threads, conditions.solver_build
+    )
     tolerance = CLASS_AGREEMENT_TOLERANCE if args.tolerance is None else float(args.tolerance)
 
     boards = []

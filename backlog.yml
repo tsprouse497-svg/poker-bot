@@ -62,6 +62,30 @@ items:
       beside the line cap, decided in a maintenance task, with the existing long lines folded by the
       rewrites their contracts already owe.
 
+  - id: THE-SOLVE-DRIVER-NEVER-CHECKS-THAT-THE-SERVER-BUILT-THE-TREE-THE-PORT-PLANS
+    status: deferred
+    phase: "21"
+    title: The solve driver never checks that the server built the tree the port plans
+    reason: >-
+      Raised by phase 21's decision 17 build review, 2026-10-04. The solver build in a record is read
+      from the clone's git and the binary's file times, which a checkout or a rebuild can make lie.
+      The tree itself cannot: `/api/spot` reports the arena it built, and the tree-size port computes
+      the arena the ruled tree should plan for that line and board to the byte. Comparing the two
+      before `/api/solve`, and refusing on any difference, catches a wrong binary whatever git says,
+      including a build of the pin's tree. Closes when the driver makes that comparison and a test
+      proves a pin-tree arena is refused; it needs `postflop_tree_size`, which stage 6 builds.
+
+  - id: DECISION-17-SOLVE-PATH-REFUSALS-NEED-MUTATION-CANARIES
+    status: deferred
+    phase: "21"
+    title: Decision 17's new solve-path refusals carry no mutation canary unless one is added for each
+    reason: >-
+      Raised by phase 21's decision 17 build review, 2026-10-04: the dirty-clone refusal, the 40-hex
+      commit check, the stale-binary refusals and the bulk export's size and trailer checks were added
+      at stage 6 after the stage 4 canaries were written, so `check_gate_bite` proves nothing about
+      them. The test lane adds canaries for them in the same re-open; this closes when each is in
+      `verification/mutations.yml` and the stage 7 sweep shows it bites.
+
   - id: PEOPLE-ACROSS-THE-US-PLAY-AGAINST-THE-BOT-AND-NO-PHASE-OWNS-IT
     status: deferred
     phase: contract-update
@@ -133,7 +157,7 @@ items:
       something else - and asks Taylor if that changes the rule.
 
   - id: PHASE-21-CONTRACT-CARRIES-THREE-MEMORY-FIGURES-ITS-OWN-TREE-RULES-CONTRADICT
-    status: deferred
+    status: done
     phase: contract-update
     title: Phase 21's contract states the small blind line's card memory and one flop share wrongly
     reason: >-
@@ -150,6 +174,10 @@ items:
       under the 46,257 MiB, GTOpen's 512 MiB margin included, that the small blind line needs, so decision 7's "48 GB or more" has
       to say which unit and in practice points at a larger card. Closes when a contract-update
       folds the three corrections into phase 21's contract, which sits at its 300-line cap.
+      Closed 2026-10-04 by phase 21's decision 17 contract rewrite (b2457a1): the contract now states
+      the small blind line's own card memory, the at-or-above and strictly-above flop counts, and no
+      longer the 47.2 GB figure; on the new tree the card memory is 51,239,107,576 bytes, not the
+      48,503,485,008 this entry measured on the pin's tree.
 
   - id: THE-MACHINE-RECORD-COUNTS-PROCESSORS-GTOPEN-MAY-NOT-BE-ALLOWED-TO-USE
     status: deferred

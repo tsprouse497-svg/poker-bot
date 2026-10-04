@@ -303,27 +303,51 @@ def recorded_repository(repository: Path, home: Path | None = None) -> str:
     return str(repository)
 
 
+BUILD_INPUTS = ("crates", "Cargo.lock", "Cargo.toml")
+"""What GTOpen compiles from, as git tracks it: the two crates, the lock and the workspace manifest
+that carries the release profile. Nothing else in the clone is compiled in."""
+
+
 def check_binary_is_current(binary: Path, run_git: RunGit | None = None) -> None:
-    """Refuse a server binary older than its clone's HEAD commit. A clean tree proves what git
-    holds, not what was compiled: a binary built before the commit was made may be another tree.
-    The modification time is a proxy, and it errs toward refusing."""
+    """Refuse a server binary that file times say was not built from the clone's checked-out tree.
+
+    Three refusals: (a) no binary; (b) a binary older than HEAD's commit time, built before the
+    commit existed; (c) a tracked build input newer than the binary, which is what a checkout of
+    another commit leaves, since git rewrites every file it changes and a clean tree alone cannot
+    see it. It compares times and never the compiled bytes, so it does not catch a binary copied in
+    from elsewhere or given a fresh time, inputs whose times were set back, or a build with other
+    flags, features or toolchain. The clean-tree check is `read_solver_build`'s."""
     if not binary.is_file():
         raise ValueError(f"{binary} is not a file; run `cargo build --release` in its clone")
     repository = solver_repository(binary)
     run_git = run_git or real_run_git(repository)
-    committed_at = int(run_git(["log", "-1", "--format=%ct"]).strip())
+    rebuild = (
+        f" Run `cargo build --release` in {repository}; if cargo finds nothing to do, force a"
+        " relink with `cargo clean --release -p server` first."
+    )
     built_at = binary.resolve().stat().st_mtime
+    committed_at = int(run_git(["log", "-1", "--format=%ct"]).strip())
     if built_at < committed_at:
+        raise ValueError(f"{binary} was built before {repository}'s HEAD commit." + rebuild)
+    tracked = run_git(["ls-files", "-z", *BUILD_INPUTS]).split("\0")
+    newer = [name for name in tracked if name and _mtime(repository / name) > built_at]
+    if newer:
         raise ValueError(
-            f"{binary} was built before {repository}'s HEAD commit, so it may not be that commit."
-            f" Run `cargo build --release` in {repository}; if cargo finds nothing to do, the"
-            " sources predate the commit too, so force a relink with"
-            " `cargo clean --release -p server` first."
+            f"{len(newer)} tracked build input(s) in {repository} changed after {binary} was"
+            f" built, as a checkout of another commit leaves them, e.g. {newer[0]}." + rebuild
         )
 
 
+def _mtime(path: Path) -> float:
+    """A tracked file's time; one missing from the tree is a dirty tree, refused elsewhere."""
+    try:
+        return path.stat().st_mtime
+    except FileNotFoundError:
+        return float("-inf")
+
+
 def solver_build_for(binary: Path, run_git: RunGit | None = None) -> dict[str, str]:
-    """The build a run on `binary` records, after refusing a binary older than its commit."""
+    """The build a run on `binary` records, after `check_binary_is_current` accepts the binary."""
     repository = solver_repository(binary)
     run_git = run_git or real_run_git(repository)
     check_binary_is_current(binary, run_git)

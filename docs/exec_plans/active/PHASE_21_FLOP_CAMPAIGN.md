@@ -169,9 +169,9 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   instances.vantage.sh on 2026-09-26, us-east-1 on demand, to be confirmed on AWS's own page: CPU
   c8g.8xlarge (Graviton4, 32 vCPU, 64 GiB) $1.276/h, c7i.8xlarge (Intel Sapphire Rapids) $1.428/h,
   c7a.8xlarge (AMD EPYC 9R14) $1.642/h; GPU g7e.2xlarge (RTX PRO 6000 Blackwell, 96 GiB card, 64 GiB
-  RAM) $3.36/h. The 48 GB L40S (g6e) is out: the small blind line needs 48.50 GB of card memory by
-  GTOpen's own estimate. A 64 GiB box holds the small blind line's 18.53 GB arena under the 0.40
-  ceiling (27.5 GB).
+  RAM) $3.36/h. The 48 GB L40S (g6e) is out: the small blind line needs 51.24 GB of card memory by
+  GTOpen's own estimate on the tree decision 17 rules (48.50 on the pin's). A 64 GiB box holds the
+  small blind line's 19.62 GB arena, as the driver reads it, under the 0.40 ceiling (27.5 GB).
 - [ ] At the campaign budget: Taylor confirms or drops the river on its measured size, harvest time
   and monthly bill. If he drops it, the contract's river criteria become a `contract-update` in this
   lane before the campaign starts, and decision 1 is recorded as re-ruled.
@@ -200,9 +200,18 @@ action nodes and against all four committed planned arenas to the byte; re-run b
     (the river confirmation, the settling runs under the cap, Glacier turn and river unchecked by
     the fetch, and the dropped flop fetch check), all fixed and marked resolved by the reviewer.
     Coordinator-owned, as the ExecPlan's stage 1 contract was: it transcribes rulings.
-  - [ ] Implementation: frozen tests re-opened for the tree figures alone, by a lane that writes no
-    code, and re-frozen; the solve path pointed at the patched build; the GTOpen notes record the
-    clone; the driver's description of the empty donk list corrected. Reviewed read-only.
+  - [x] Implementation, commit 7ff2a4b. A test lane that wrote no code moved every old-tree pin in
+    eight frozen test files and the mutation descriptions, keeping the pin's figures as tests of the
+    old rule (`carry_aggressor_through_checks=True`), and added solver-build record tests. A build
+    lane that wrote no test made every solve record name its build, read from the binary's own clone,
+    refusing a dirty clone or a binary older than its commit; pointed the default server at the
+    clone; stopped the cost script labelling runs with the reference clone; corrected the driver's
+    note on the empty donk list; and added `--export-strategies`, which keeps every strategy of a
+    solve beside its object for the later harvest. The binary was rebuilt from the committed clone
+    at 15:01 and hashes the same as the 14:24 build. The coordinator wrote the solver notes' clone
+    section and decision 17's scope line.
+  - [ ] Read-only review of 7ff2a4b, then the re-freeze with `scripts/freeze_tests.py` and the
+    narrowing put back on.
   - [ ] Open for Taylor, raised by the contract review: decision 5 starts the trial from a GPU, while
     the contract still wants one flop solved and timed on a CPU of the same provider first. Whether the GPU pod's own processors count as that CPU is his to say before the trial.
   - [ ] Phase 16's four boards re-solved on the new tree, on this Mac and before any rented box, so
@@ -223,9 +232,10 @@ Not yet.
 ## Next Agent Bootstrap
 
 Worktree `~/projects/poker-bot-worktrees/phase-21`, loop at stage 6 (build) in `implementation`
-mode, tests frozen at 49f529c and `base_commit` moved there. Run
-`uv run python scripts/loop_stage.py --phase 21` for the next action. The first stage 6 slice is part
-1, every core: the thread and machine code, the Mac thread sweep, and the re-solve of phase 16's four
-boards at the chosen count, which must reproduce byte for byte or the phase halts for Taylor. Nothing
-may be spent on AWS until the quotas are granted and Taylor approves the exact machines and prices;
-as of 2026-10-03 both quota appeals were still open.
+mode, `base_commit` 49f529c. Run `uv run python scripts/loop_stage.py --phase 21` for the next action.
+Part 1 is built. Decision 17 is mid-way: read its slices above, in order. The solver clone is
+`~/projects/gtopen-poker-bot` at `b058335`; `~/projects/gtopen` stays untouched. Decision 18's GPU
+fold patch is not applied: this session's permission check refused it, so it waits on Taylor. The
+re-solve of phase 16's four boards needs a window Taylor grants (lid open, on AC, about 1.5 hours)
+and no other gate running on the machine. Nothing may be rented before Taylor sees the machine and
+price, and the decision 5 versus CPU-first question is answered.
