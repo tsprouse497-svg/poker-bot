@@ -190,5 +190,6 @@
    "2026-10-04 09:06:42 Wake: DarkWake to FullWake"
   ],
   "note": "pmset -g log shows no sleep, wake or thermal event between start and end. The thermal emergency sleep came after the job, as the machine went to sleep hot; it is recorded here because it is the second time it has happened after a long solve on this fanless MacBook Air, not because it touched a solve. A sleep would not change the answer in any case, only the wall clocks."
- }
+ },
+ "checks_added_after_this_record": "Written before three checks existed, added after the stage 6 review of 2026-10-04: (1) the comparison of whole node payloads, not only the acting player's strategy rows; (2) a refusal of objects that disagree on thread count or ran at GTOpen's default; (3) a marker proving the scratch tree's held cells were emptied before the re-solve (solve_postflop_sample.py --resolve). (1) and (2) were run afterwards on a copy of this re-solve's own scratch objects, solving nothing: every one of the five nodes is identical whole and all four objects ran at 10 threads. (3) cannot be shown after the fact; the independent review found the four held cells' modification times (08:39, 08:50, 08:55, 09:01) agree with their being rewritten by this re-solve, and the per-combo and whole-node checks read the fresh objects regardless."
 }

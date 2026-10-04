@@ -13,6 +13,8 @@ approved_scope:
 - data/artifacts/postflop/campaign/thread_sweep.json
 - data/artifacts/postflop/campaign/mac_resolve_at_thread_count.json
 - docs/GTOPEN_SOLVER_NOTES.md
+- data/artifacts/postflop/index.json
+- data/artifacts/postflop/objects.json
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -4471,3 +4473,10 @@ scope_change_log:
       The two part 1 records move under `data/artifacts/postflop/campaign/`, because the frozen
       report tests read `campaign/thread_sweep.json`; the scope entry above named the folder wrongly.
       The re-solve comparison is named for the Mac it ran on. No new kind of path is added.
+  - date: 2026-10-04
+    reason: >-
+      The postflop index and object list join scope for one regeneration. The committed `campaign/`
+      records are part of the postflop tree, so the index's declared byte count and headroom went
+      stale when they landed and three frozen budget tests went red. They count against the
+      artifact cap like any committed byte, so the index is rebuilt with `--index-only` rather than
+      the records being excluded; only its byte figures may change.

@@ -102,6 +102,7 @@ from poker_training_bot.solver_artifacts.postflop_artifact import (  # noqa: E40
     import_postflop_index,
 )
 from poker_training_bot.solver_artifacts.postflop_determinism import (  # noqa: E402
+    RESOLVE_MARKER,
     compare_node_payloads,
     resolve_document,
 )
@@ -120,8 +121,12 @@ from poker_training_bot.solver_artifacts.postflop_key import (  # noqa: E402
     postflop_spot_key,
 )
 from poker_training_bot.solver_artifacts.postflop_machine import (  # noqa: E402
+    CPU_ENGINE,
+    ENGINES,
     MachineRecord,
+    check_engine,
     measure_machine,
+    solve_record,
 )
 from poker_training_bot.solver_artifacts.postflop_solve_driver import (  # noqa: E402
     CHECK_EVERY_ITERATIONS,
@@ -397,12 +402,33 @@ class RunConditions:
 
     machine: MachineRecord
     threads: int
+    engine: str = CPU_ENGINE
 
-    def provenance(self) -> dict[str, Any]:
+    def solve_block(
+        self, outcome: Any, arena_storage: str, peak_resident_bytes: int | None
+    ) -> dict[str, Any]:
+        """What every solve object records about its solve, through `solve_record`, which refuses
+        a missing measurement - a peak the server's exit did not report, an engine the server did
+        not read back - rather than writing it down as blank. The engine is read off the final
+        `/api/status` the solve ended on and must be the one this run asked for, so a GPU run the
+        server moved to the CPU is refused here rather than recorded like any other."""
+        engine = check_engine(outcome.final_status, self.engine)
+        if peak_resident_bytes is None:
+            raise SystemExit(
+                f"{outcome.label}: the server's peak resident memory was not read when it stopped,"
+                " so the solve record would carry none. Refused rather than written blank."
+            )
         return {
-            "machine": self.machine.describe(),
-            "machine_record": self.machine.to_document(),
-            "threads": self.threads,
+            **solve_record(
+                outcome,
+                machine=self.machine,
+                threads=self.threads,
+                engine=engine,
+                arena_storage=arena_storage,
+                peak_resident_bytes=peak_resident_bytes,
+            ),
+            "machine_description": self.machine.describe(),
+            "memory_ceiling": outcome.memory_ceiling,
         }
 
 
@@ -415,14 +441,14 @@ def run_conditions() -> RunConditions:
     return _RUN_CONDITIONS[-1]
 
 
-def begin_run(threads: int | None) -> RunConditions:
+def begin_run(threads: int | None, engine: str = CPU_ENGINE) -> RunConditions:
     """Measure this machine and fix the thread count, once, before any server starts."""
     try:
         server_environment(threads, base={})  # the same refusal a server start would meet
     except SolveDriverError as error:
         raise SystemExit(f"--threads is required to solve: {error}") from error
     assert isinstance(threads, int)
-    conditions = RunConditions(machine=measure_machine(), threads=threads)
+    conditions = RunConditions(machine=measure_machine(), threads=threads, engine=engine)
     _RUN_CONDITIONS.append(conditions)
     return conditions
 
@@ -490,19 +516,23 @@ class Server:
     def stop(self) -> None:
         process = self.process
         self.process = None
-        if process is None or process.poll() is not None:
+        if process is None:
             return
-        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-        deadline = time.monotonic() + SERVER_STOP_TIMEOUT_SECONDS
-        while True:
-            pid, status, usage = os.wait4(process.pid, os.WNOHANG)
-            if pid:
-                break
-            if time.monotonic() > deadline:
-                os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-                pid, status, usage = os.wait4(process.pid, 0)
-                break
-            time.sleep(0.1)
+        # Reaped with wait4 whether or not it has already exited - never with `poll`, which would
+        # reap it first and lose the resource usage the peak is read from.
+        pid, status, usage = os.wait4(process.pid, os.WNOHANG)
+        if not pid:
+            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+            deadline = time.monotonic() + SERVER_STOP_TIMEOUT_SECONDS
+            while True:
+                pid, status, usage = os.wait4(process.pid, os.WNOHANG)
+                if pid:
+                    break
+                if time.monotonic() > deadline:
+                    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                    pid, status, usage = os.wait4(process.pid, 0)
+                    break
+                time.sleep(0.1)
         process.returncode = os.waitstatus_to_exitcode(status)
         # ru_maxrss is bytes on Darwin and kibibytes on Linux.
         scale = 1 if sys.platform == "darwin" else 1024
@@ -674,17 +704,9 @@ def write_object(object_dir: Path, board: tuple[str, ...], result: BoardResult) 
     payload = {
         "board": list(board),
         "preflop_line": preflop_line_for("BB").rendered,
-        "solve": {
-            "outcome": result.outcome.outcome,
-            "exploit_pct_of_pot": result.outcome.exploit_pct_of_pot,
-            "iterations": result.outcome.iterations,
-            "wall_seconds": result.outcome.wall_seconds,
-            "arena_bytes": result.outcome.arena_bytes,
-            "arena_storage": result.arena_storage,
-            **run_conditions().provenance(),
-            "peak_resident_bytes": result.peak_resident_bytes,
-            "memory_ceiling": describe_memory_ceiling(),
-        },
+        "solve": run_conditions().solve_block(
+            result.outcome, result.arena_storage, result.peak_resident_bytes
+        ),
         "config": solve_config_document(),
         "nodes": result.node_payloads,
     }
@@ -1111,12 +1133,39 @@ def determinism_document(second_tree: Path, second_objects: Path) -> dict[str, A
 RESOLVE_PATH = POSTFLOP_DIR / "campaign" / "mac_resolve_at_thread_count.json"
 
 
+def prepare_resolve_tree(object_dir: Path) -> None:
+    """Make this copy's held cells something only the re-solve can have written.
+
+    Refused in a git checkout, because this deletes the held cells and a re-solve never
+    overwrites what git holds; refused into an object directory that already holds anything, for
+    the same reason as the cells. Then every held cell is removed and `RESOLVE_MARKER` is written,
+    which `resolve_document` requires: a cell the re-solve skipped is then missing, never passed."""
+    if (REPO_ROOT / ".git").exists():
+        raise SystemExit(
+            f"{REPO_ROOT} is a git checkout. --resolve empties the held cells, so it runs only in a"
+            " scratch copy of the repo (one without .git); the committed cells are compared, never"
+            " overwritten."
+        )
+    if object_dir.exists() and any(object_dir.iterdir()):
+        raise SystemExit(f"{object_dir} is not empty; a re-solve writes into an empty directory")
+    emptied = sorted(path.name for path in SAMPLE_DIR.glob("*.json"))
+    for name in emptied:
+        (SAMPLE_DIR / name).unlink()
+    write_json(
+        POSTFLOP_DIR / RESOLVE_MARKER,
+        {"emptied_before_solving": emptied, "at": time.strftime("%Y-%m-%dT%H:%M:%S%z")},
+    )
+
+
 def resolve_check(resolved_tree: Path, resolved_objects: Path, output: Path) -> int:
     """Phase 21's re-solve check: phase 16's boards solved again at another thread count, in a
     scratch copy of the tree so nothing committed is overwritten, compared with the committed
     cells, digests and per-combo strategies. Exit 1 when anything differs; nothing is tolerated."""
     manifest = json.loads(OBJECT_MANIFEST_PATH.read_text(encoding="utf-8"))
-    compared = resolve_document(resolved_tree, resolved_objects, manifest)
+    try:
+        compared = resolve_document(resolved_tree, resolved_objects, manifest)
+    except ValueError as error:
+        raise SystemExit(f"refused: {error}") from error
     first = gzip.open(next(iter(sorted(resolved_objects.glob("srp-*.nodes.json.gz"))))).read()
     solve = json.loads(first)["solve"]
     document = {
@@ -1128,9 +1177,10 @@ def resolve_check(resolved_tree: Path, resolved_objects: Path, output: Path) -> 
             " strategy digest including the fifth cell's, and every per-combo strategy in the"
             " solver's own answer against the committed run's object. No tolerance."
         ),
-        "machine": solve.get("machine"),
-        "machine_record": solve.get("machine_record"),
-        "threads": solve.get("threads"),
+        # Objects written through `solve_record` carry the record as `machine` and the text as
+        # `machine_description`; the earlier re-solve's objects carry text and `machine_record`.
+        "machine": solve.get("machine_description") or solve.get("machine"),
+        "machine_record": solve.get("machine_record") or solve.get("machine"),
         "committed_runs_threads": (
             "unrecorded at the time; GTOpen's default of half the logical processors, five on"
             " this M4"
@@ -1486,7 +1536,6 @@ def deep_check_document(
             "wall_seconds": round(outcome.wall_seconds, 1),
             "arena_storage": arena_storage,
             "arena_bytes": outcome.arena_bytes,
-            **run_conditions().provenance(),
             "largest_in_class_divergence": divergence,
             "strategy_digest": strategy_digest(deep["hand_classes"], deep["class_weights"]),
             "stopping_rule": (
@@ -1538,7 +1587,7 @@ DEEP_CHECK_CELL_REASON = (
 
 
 def write_deep_object(
-    object_dir: Path, cell: SampleCell, outcome: Any, arena_storage: str, node: dict[str, Any]
+    object_dir: Path, cell: SampleCell, solve: dict[str, Any], node: dict[str, Any]
 ) -> tuple[Path, str]:
     """The deep run's whole node payload, outside git and digested, on the campaign's own shape.
 
@@ -1553,16 +1602,7 @@ def write_deep_object(
         "board": list(cell.board),
         "cell": cell.name,
         "preflop_line": preflop_line_for("BB").rendered,
-        "solve": {
-            "outcome": outcome.outcome,
-            "exploit_pct_of_pot": outcome.exploit_pct_of_pot,
-            "iterations": outcome.iterations,
-            "wall_seconds": outcome.wall_seconds,
-            "arena_bytes": outcome.arena_bytes,
-            "arena_storage": arena_storage,
-            **run_conditions().provenance(),
-            "stopping_rule": f"the {SOLVE_ITERATION_CAP}-iteration cap alone",
-        },
+        "solve": {**solve, "stopping_rule": f"the {SOLVE_ITERATION_CAP}-iteration cap alone"},
         "config": solve_config_document(),
         "nodes": {cell.name: node},
     }
@@ -1580,9 +1620,9 @@ def run_deep_check(
     oop_text: str,
     ip_text: str,
     tolerance: float,
-    object_dir: Path,
-) -> dict[str, Any]:
-    """Re-solve one committed cell to the iteration cap and diff its frequencies."""
+) -> tuple[dict[str, Any], Any, str, dict[str, Any]]:
+    """Re-solve one committed cell to the iteration cap and diff its frequencies. The object is
+    written by `finish_deep_check` once the server has stopped and its peak is known."""
     committed = json.loads(committed_cell_path(cell.name).read_text(encoding="utf-8"))
     line = preflop_line_for("BB")
     plan = SolvePlan(
@@ -1619,10 +1659,26 @@ def run_deep_check(
     document = deep_check_document(
         cell, committed, deep, outcome, arena_storage, node, harvested.class_divergence
     )
-    path, digest = write_deep_object(object_dir, cell, outcome, arena_storage, node)
+    return document, outcome, arena_storage, node
+
+
+def finish_deep_check(
+    document: dict[str, Any],
+    solved: tuple[Any, str, dict[str, Any]],
+    cell: SampleCell,
+    object_dir: Path,
+    peak_resident_bytes: int | None,
+) -> None:
+    """Once the server has stopped and its peak is known: the solve record on the committed diff
+    and on the deep object, both through `solve_record`, and the object written and digested."""
+    outcome, arena_storage, node = solved
+    solve = run_conditions().solve_block(outcome, arena_storage, peak_resident_bytes)
+    document["deep_run"].update(
+        {key: solve[key] for key in ("machine", "threads", "engine", "peak_resident_bytes")}
+    )
+    path, digest = write_deep_object(object_dir, cell, solve, node)
     document["deep_run"]["object_path"] = str(path)
     document["deep_run"]["object_digest"] = digest
-    return document
 
 
 def report_deep_check(document: dict[str, Any]) -> None:
@@ -1685,7 +1741,7 @@ def deep_check_run(args: argparse.Namespace, object_storage: str) -> int:
         )
     oop, ip = conditional_ranges()
     oop_text, ip_text = range_text(oop), range_text(ip)
-    conditions = begin_run(args.threads)
+    conditions = begin_run(args.threads, args.engine)
     print(f"machine            {conditions.machine.describe()}")
     print(f"solver threads     {conditions.threads}, set explicitly through SOLVER_THREADS")
     print(f"memory ceiling     {describe_memory_ceiling()}")
@@ -1699,14 +1755,15 @@ def deep_check_run(args: argparse.Namespace, object_storage: str) -> int:
     transport = ArenaVerifiedTransport(http_transport(), RULED_ARENA_STORAGE)
     server.start(f"deep-{cell.board_text}")
     try:
-        document = run_deep_check(
-            cell, transport, oop_text, ip_text, tolerance, Path(args.object_dir)
-        )
+        document, *solved = run_deep_check(cell, transport, oop_text, ip_text, tolerance)
     except SolveDriverError as error:
         print(f"  refused: {error}")
         return 1
     finally:
         server.stop()
+    finish_deep_check(
+        document, tuple(solved), cell, Path(args.object_dir), server.peak_resident_bytes
+    )
     write_json(DEEP_CHECK_PATH, document)
     report_deep_check(document)
     print(f"  wrote              {DEEP_CHECK_PATH.relative_to(REPO_ROOT)}"
@@ -1724,6 +1781,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--all", action="store_true", help="every cell in the sample")
     parser.add_argument("--list", action="store_true", help="name the cells and stop")
     parser.add_argument("--server", default=str(DEFAULT_SERVER), help="the gto-server binary")
+    parser.add_argument("--engine", choices=ENGINES, default=CPU_ENGINE,
+                        help="the engine every solve must be read back as having run on")
     parser.add_argument("--threads", type=int, default=None,
                         help="SOLVER_THREADS for every server this run starts; required to solve,"
                              " and the count this machine's thread sweep chose")
@@ -1750,6 +1809,9 @@ def main(argv: list[str] | None = None) -> int:
                              " compares it with the committed cells and writes"
                              " --resolve-output")
     parser.add_argument("--resolve-objects", default=None, metavar="DIR")
+    parser.add_argument("--resolve", action="store_true",
+                        help="with --all, in a scratch copy of the repo only: empty the held"
+                             " cells and solve them again, for --resolve-tree to compare")
     parser.add_argument("--resolve-output", default=str(RESOLVE_PATH), metavar="FILE")
     args = parser.parse_args(argv)
 
@@ -1794,6 +1856,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.deep_check is not None:
         return deep_check_run(args, object_storage)
 
+    if args.resolve:
+        if not args.all:
+            parser.error("--resolve re-solves the whole sample, so it needs --all")
+        prepare_resolve_tree(Path(args.object_dir))
+
     wanted = SAMPLE_CELLS if args.all else tuple(
         cell for cell in SAMPLE_CELLS if cell.name in set(args.cell)
     )
@@ -1805,7 +1872,7 @@ def main(argv: list[str] | None = None) -> int:
 
     oop, ip = conditional_ranges()
     oop_text, ip_text = range_text(oop), range_text(ip)
-    conditions = begin_run(args.threads)
+    conditions = begin_run(args.threads, args.engine)
     print(f"machine            {conditions.machine.describe()}")
     print(f"solver threads     {conditions.threads}, set explicitly through SOLVER_THREADS")
     print(f"memory ceiling     {describe_memory_ceiling()}")

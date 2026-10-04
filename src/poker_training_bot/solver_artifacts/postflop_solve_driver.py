@@ -355,7 +355,10 @@ class SolveOutcome:
     wall_seconds: float
     arena_bytes: int
     iteration_bracket: int = CHECK_EVERY_ITERATIONS
-    machine: str = ""
+    memory_ceiling: str = ""
+    final_status: Mapping[str, object] = field(default_factory=dict)
+    """The last `/api/status` answer, kept whole so a writer can read the engine back from it
+    (`postflop_machine.check_engine`) rather than assume the one it asked for."""
 
 
 def classify_outcome(exploit_pct: float, iterations: int) -> str:
@@ -471,5 +474,6 @@ def run_solve(
         iterations=iterations,
         wall_seconds=now() - started,
         arena_bytes=planned,
-        machine=describe_memory_ceiling(),
+        memory_ceiling=describe_memory_ceiling(),
+        final_status=dict(status),
     )

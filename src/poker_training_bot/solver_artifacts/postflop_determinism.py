@@ -27,19 +27,33 @@ from typing import Any
 
 from poker_training_bot.solver_artifacts.postflop_artifact import INDEX_PATH, SAMPLE_DIR
 from poker_training_bot.solver_artifacts.postflop_harvest import strategy_digest
+from poker_training_bot.solver_artifacts.postflop_threads import gtopen_default_threads
+
+RESOLVE_MARKER = "resolve_run.json"
+"""Written into a scratch tree by `solve_postflop_sample.py --resolve` after it has emptied that
+tree's held cells and before it solves anything. Its presence is what proves every held cell the
+comparison reads was written by the re-solve rather than left over from the copy."""
 
 # --- One node's per-combo strategies, compared exactly
 
 
 def compare_node_payloads(one: Mapping[str, Any], two: Mapping[str, Any]) -> dict[str, Any]:
-    """Two answers for one node compared per combo, under the rounding rather than over it.
+    """Two answers for one node compared whole, and per combo to say by how much.
 
     The committed rows are thousandths and the solver answers in floats, so two runs can differ
     by a ten-thousandth and still write the same committed bytes. This looks at what the solver
     produced, which is the only place a difference that small is visible at all.
+    `whole_node_identical` is the verdict: every field of the node, both players' strategy, reach,
+    EV and equity alike, and not only the acting player's strategy rows the gap is measured on.
     """
+    whole = one == two
     if one["actions"] != two["actions"]:
-        return {"menu_matched": False, "combos_in_only_one_run": None, "largest_gap": None}
+        return {
+            "whole_node_identical": whole,
+            "menu_matched": False,
+            "combos_in_only_one_run": None,
+            "largest_gap": None,
+        }
     rows_one = {
         str(hand["combo"]): [float(value) for value in hand["strategy"]]
         for hand in one["players"][int(one["player"])]["hands"]
@@ -54,6 +68,7 @@ def compare_node_payloads(one: Mapping[str, Any], two: Mapping[str, Any]) -> dic
         for combo in shared
     ]
     return {
+        "whole_node_identical": whole,
         "menu_matched": True,
         "combos": len(rows_one),
         "combos_in_only_one_run": len(set(rows_one) ^ set(rows_two)),
@@ -62,8 +77,12 @@ def compare_node_payloads(one: Mapping[str, Any], two: Mapping[str, Any]) -> dic
 
 
 def per_combo_identical(comparison: Mapping[str, Any]) -> bool:
+    """True when two answers for a node agree exactly. A record written before the whole-node
+    comparison existed (phase 16's `determinism.json`) carries only the per-combo fields, and is
+    read on those; anything newer must also say the whole node matched."""
     return (
-        comparison.get("menu_matched") is True
+        comparison.get("whole_node_identical", True) is True
+        and comparison.get("menu_matched") is True
         and comparison.get("combos_in_only_one_run") == 0
         and comparison.get("largest_gap") == 0.0
     )
@@ -191,6 +210,12 @@ def resolve_document(
         raise ValueError(
             "the re-solved tree is the committed one; that compares a file with itself"
         )
+    if not (resolved_tree / RESOLVE_MARKER).is_file():
+        raise ValueError(
+            f"{resolved_tree} carries no {RESOLVE_MARKER}, so nothing shows its held cells were"
+            " emptied before the re-solve; a cell it never rewrote would read as reproduced."
+            " Re-solve with solve_postflop_sample.py --resolve."
+        )
     held = {
         name: (resolved_tree / "sample" / f"{name}.json").read_bytes()
         for name in committed_cells(sample_dir)
@@ -212,7 +237,11 @@ def resolve_document(
         )
     digests: dict[str, str] = {}
     cells: list[dict[str, Any]] = []
+    missing: list[str] = []
     for name, spot_key, in_repo, committed_object, resolved_cell in pairs:
+        if not resolved_cell.is_file():
+            missing.append(f"{name}: the re-solve wrote no cell document at {resolved_cell}")
+            continue
         resolved_document = json.loads(resolved_cell.read_text(encoding="utf-8"))
         digests[resolved_document["spot_key"]] = _cell_digest(resolved_document)
         one = _load_object(committed_object)
@@ -234,7 +263,10 @@ def resolve_document(
                 "per_combo": compare_node_payloads(one["nodes"][name], two["nodes"][name]),
             }
         )
-    errors = reproduction_errors(held, digests, sample_dir=sample_dir, index_path=index_path)
+    threads = check_resolve_threads(resolved_objects)
+    errors = missing + reproduction_errors(
+        held, digests, sample_dir=sample_dir, index_path=index_path
+    )
     for cell in cells:
         if cell["iterations"][0] != cell["iterations"][1]:
             errors.append(f"{cell['cell']}: iterations {cell['iterations']}")
@@ -242,7 +274,39 @@ def resolve_document(
         if pct[0] != pct[1]:
             errors.append(f"{cell['cell']}: exploitability {pct}")
         if not per_combo_identical(cell["per_combo"]):
-            errors.append(f"{cell['cell']}: per-combo strategies differ {cell['per_combo']}")
+            errors.append(f"{cell['cell']}: solver answers differ {cell['per_combo']}")
         if cell["wall_seconds"][0] == cell["wall_seconds"][1]:
             errors.append(f"{cell['cell']}: identical wall clocks, so this is a copy, not a solve")
-    return {"reproduced": not errors, "errors": errors, "cells": cells}
+    return {"reproduced": not errors, "threads": threads, "errors": errors, "cells": cells}
+
+
+def check_resolve_threads(resolved_objects: Path) -> int:
+    """The one thread count every re-solved object ran at, read from every object, or a refusal.
+
+    A re-solve at GTOpen's own default proves nothing, since the committed runs were taken at it,
+    and objects at two different counts are not one re-solve at a count."""
+    counts: dict[str, object] = {}
+    defaults: set[int] = set()
+    for path in sorted(resolved_objects.glob("srp-*.nodes.json.gz")):
+        solve = _load_object(path)["solve"]
+        counts[path.name] = solve.get("threads")
+        record = solve.get("machine_record") or (
+            solve["machine"] if isinstance(solve.get("machine"), Mapping) else None
+        )
+        if not record:
+            raise ValueError(f"{path.name} records no measured machine")
+        defaults.add(gtopen_default_threads(int(record["logical_processors"])))
+    if not counts:
+        raise ValueError(f"{resolved_objects} holds no re-solved objects")
+    found = set(counts.values())
+    if len(found) != 1 or not all(isinstance(count, int) for count in found):
+        raise ValueError(
+            f"the re-solved objects disagree on, or omit, their thread count: {counts}"
+        )
+    (threads,) = found
+    if threads in defaults:
+        raise ValueError(
+            f"every object ran at {threads} threads, GTOpen's default on this machine, which is"
+            " what the committed runs used; a re-solve there proves nothing about thread count"
+        )
+    return threads

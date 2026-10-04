@@ -19,6 +19,7 @@ The postflop section sits high rather than at the end on purpose. Its absence is
 | Serves | `127.0.0.1:3737`, a JSON API and a web UI |
 | GPU | `/api/status` reports `"gpu": false` on this machine, so the CPU engine is what runs |
 | Threads | `init_rayon` in `crates/server/src/main.rs` takes `SOLVER_THREADS` and otherwise half of `available_parallelism()`, five on this ten-core M4. Measured 2026-10-04 on `Kh7d2c`, median of three interleaved 100-iteration runs: 10 threads 3.24 s/it against 4.87 at the default five (`data/artifacts/postflop/campaign/thread_sweep.json`); phase 16's four boards re-solved at 10 reproduce exactly (`campaign/mac_resolve_at_thread_count.json`). The driver now always sets the count. |
+| Heat | **Warning.** This is a fanless MacBook Air. Twice a long all-core solve here was followed by a Thermal Emergency Sleep as the machine went to sleep: 2026-10-03 21:57 and 2026-10-04 09:01:31, the second 15 seconds after 41 minutes of 10-thread solving ended. The cause is not proven. `pmset -g therm` reports nothing on Apple silicon, so throttling cannot be read here either. The campaign runs on a rented box, not on this machine. |
 
 ## Postflop, as run
 

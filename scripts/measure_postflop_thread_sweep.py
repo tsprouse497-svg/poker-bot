@@ -257,6 +257,32 @@ def one_stretch(
     }
 
 
+MACHINE_IDENTITY = ("platform", "cpu_model", "logical_processors", "memory_bytes")
+"""What makes two sweep records the same machine. Two rented boxes of one instance type read
+alike and are one machine here, which is what a sweep per machine type means."""
+
+
+def merged_sweep_document(output: Path, record: dict[str, Any]) -> dict[str, Any]:
+    """The sweep file with this machine's record put in, replacing only an earlier record of the
+    same machine, so a rented box's sweep keeps the Mac's and every other machine's."""
+    machines: list[dict[str, Any]] = []
+    if output.is_file():
+        existing = json.loads(output.read_text(encoding="utf-8"))
+        if existing.get("record_schema_version") != SWEEP_RECORD_SCHEMA_VERSION:
+            raise SystemExit(
+                f"{output} is schema {existing.get('record_schema_version')!r}, not"
+                f" {SWEEP_RECORD_SCHEMA_VERSION}; refused rather than merged"
+            )
+        machines = list(existing.get("machines", []))
+    identity = tuple(record["machine"][key] for key in MACHINE_IDENTITY)
+    kept = [
+        entry
+        for entry in machines
+        if tuple(entry["machine"].get(key) for key in MACHINE_IDENTITY) != identity
+    ]
+    return {"record_schema_version": SWEEP_RECORD_SCHEMA_VERSION, "machines": [*kept, record]}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--board", default=DEFAULT_BOARD)
@@ -350,8 +376,8 @@ def main(argv: list[str] | None = None) -> int:
         " decays over minutes, so after the first run it still carries the previous stretch's own"
         " server; busiest_processes_before is the reading of what else was running"
     )
-    document = {"record_schema_version": SWEEP_RECORD_SCHEMA_VERSION, "machines": [record]}
     output = Path(args.output)
+    document = merged_sweep_document(output, record)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(document, indent=1) + "\n", encoding="utf-8")
     for row in record["per_count"]:
