@@ -55,6 +55,10 @@ One read-only reviewer that wrote none of this and ran no gate, note at
   a builder will meet are adopted, and the adopted entry's title is no longer stale.
 - **Alignment, filed.** `THE-FLOP-CAMPAIGN-IS-NOT-TOLD-ITS-CELLS-ARE-THE-TURN-RANGE-SOURCE`, owned by
   21 since it is best settled while 21 runs, and `NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER`.
+- **Round 2:** one blocker - the four adopted entries kept their old owner field - fixed by moving
+  each to 22. Three non-blockers fixed: the heuristic alignment item now covers a preflop spot 19
+  fills, which is the certain case; the campaign item points at 21's decision list rather than a
+  stage 2 it has passed; and 22's contract lists the four adopted ids.
 - **Held back:** the turn timings were probably taken on five of ten cores, which phase 21 is
   measuring; GTOpen's server never frees memory, so a long table session slows; whether running
   unlicensed code is itself a legal problem; duplicate entries in the scope-change log; and

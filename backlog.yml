@@ -11,18 +11,20 @@ items:
       nothing of that use. Three things decide whether it can serve: a committed cell is one decision
       point, and the points after it are committed only if the campaign closes each board; the
       solve objects sit in a local directory with no remote store; and whether a cell carries enough
-      to derive a range at the turn is unchecked. Best settled while 21 is still running, by its
-      own stage 2 or a note to it. Closes when 21's contract or decisions say whether its cells are
+      to derive a range at the turn is unchecked. Best settled while 21 is still running, through a
+      decision in its decision list or a note to its lane, since its contract is frozen at stage 6. Closes when 21's contract or decisions say whether its cells are
       fit to be the turn-range source, or 22's says where else the ranges come from.
 
   - id: NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER
     status: deferred
     phase: contract-update
-    title: A turn reached after phase 19 answered the flop by rule of thumb has no range source and no owner
+    title: A turn reached after phase 19 answered an earlier street by rule of thumb has no range source and no owner
     reason: >-
       Found 2026-10-04 by MAINT-43's independent review and filed by the coordinator. Phase 22
-      solves a turn from ranges walked along the committed flop strategy. A flop phase 19 answered
-      by rule of thumb has no solved strategy to walk, and 19 and 22 do not depend on each other,
+      solves a turn from ranges walked along the committed flop strategy. A preflop spot phase 19
+      fills by rule of thumb leaves no solved flop line behind it, which is certain since 19's lift
+      covers preflop; a flop 19 answers that way, if its contract lets it, is the same. Either way
+      there is no solved strategy to walk, and 19 and 22 do not depend on each other,
       so neither contract covers the turn that follows. Closes when one of them, or a later
       contract, says what the bot does there.
 
@@ -708,7 +710,7 @@ items:
       MITIGATIONS-ORDERING-AND-BOUND-CLAIMS-FALSE, which is already filed against this same file.
   - id: THE-GATE-ENFORCES-A-SEAM-SENTENCE-THIS-PHASE-MEASURED-AS-FALSE
     status: deferred
-    phase: contract-update
+    phase: "22"
     title: Three places require the claim that the bot bets a flop and then refuses every turn, and it never reaches a turn
     reason: >-
       Decision 25, ruled by Taylor on 2026-09-21, strikes the sentence "the bot bets a flop and then
@@ -1179,7 +1181,7 @@ items:
 
   - id: A-COMMITTED-CELL-CARRIES-NO-STREET-SO-THE-IMPORTER-CHECKS-EVERY-BET-AGAINST-THE-FLOP-MENU
     status: deferred
-    phase: contract-update
+    phase: "22"
     title: The menu check hardcodes the flop sizes and a turn or river cell would be refused as off-menu
     reason: >-
       The strict importer prices every committed bet against FLOP_BET_MENU = (0.33, 0.75). Decision
@@ -9028,7 +9030,7 @@ items:
 
   - id: A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE
     status: deferred
-    phase: "16"
+    phase: "22"
     title: Committed flop frequencies assume a continuation the flop-only bot refuses
     reason: >-
       At the single-raised pot's SPR of 17.7 a flop bet's value is largely the leverage it creates on
@@ -10206,7 +10208,7 @@ items:
 
   - id: A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED
     status: deferred
-    phase: '16'
+    phase: "22"
     title: Voiding a hand at the turn refusal erases the called c-bets and keeps the folded ones, so the surviving record of the bot's flop betting is a record of the times it worked
     reason: >-
       When the postflop strategy refuses, the composite hands the refusal back untouched and

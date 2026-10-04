@@ -40,7 +40,12 @@ Taylor's rulings that shape it:
 3. **Phase 20 waits on it.** A bot that refuses every turn and river should not sit down at
    Taylor's table, so 20 depends on this phase.
 
-What it has to answer is `LIVE-TURN-AND-RIVER-SOLVING` in `backlog.yml`, adopted here. Two of its ten
+What it has to answer is `LIVE-TURN-AND-RIVER-SOLVING` in `backlog.yml`, adopted here. Four more are
+adopted with it, each one a place a builder meets the turn:
+`THE-GATE-ENFORCES-A-SEAM-SENTENCE-THIS-PHASE-MEASURED-AS-FALSE`,
+`A-COMMITTED-CELL-CARRIES-NO-STREET-SO-THE-IMPORTER-CHECKS-EVERY-BET-AGAINST-THE-FLOP-MENU`,
+`A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE` and
+`A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED`. Two of its ten
 questions are answered by the rulings above - the owner is this phase, and the engine is GTOpen -
 and the rest are this phase's: the gate, the ranges entering the turn, bets off the menu,
 determinism, where the solve runs, pots with three or more players, anchoring a turn re-solve to

@@ -163,3 +163,55 @@
 
 Two blockers, both in the phase 22 non-goals (storage clause, phase-19 heuristic clause); fix
 those and the declaration is sound.
+
+## Round 2
+
+Diff `88c68a6..HEAD` (`f3f7fc4`). Read-only; no gate or pytest run.
+
+Resolved:
+
+- Blocker 1 [resolved]. Storage non-goal now forbids only "a strategy artifact the bot answers
+  from" and exempts test fixtures (`PHASE_22_LIVE_TURN_AND_RIVER.md:73-75`); cache clause gone.
+- Blocker 2 [resolved]. Phase-19 sentence struck; the no-live-solve case (multiway, missing server,
+  long solve) is now an open human-gate question (`:66-68`).
+- Non-blockers 3-6 fixed correctly: latency line says accepted vs set and measured-not-timed;
+  licence recorded as accepted risk, vendoring left open, copy-in non-goal removed; "stage 1 drafts,
+  human gate asks" now matches loop policy; question 7 marked Taylor's; graph redrawn and reads
+  right (22 off 21 only, 19 off 18 and 21). Finding 7's record contents are now in 22's contract.
+  No new false claim or pre-ruling found in these edits. The record-contents sentence is a mild
+  lean on question 6 but is what finding 7 asked for.
+- Packet reports blockers, fixes, alignment items and held-back list faithfully.
+- My note is committed byte-for-byte as written (165 lines, no edits).
+
+Remaining:
+
+R2-1. **[blocker] The four adoptions are notes only; the `phase:` field was not moved.**
+`backlog.yml:711` (`THE-GATE-ENFORCES-A-SEAM-SENTENCE-THIS-PHASE-MEASURED-AS-FALSE`) and `:1182`
+(`A-COMMITTED-CELL-CARRIES-NO-STREET-SO-THE-IMPORTER-CHECKS-EVERY-BET-AGAINST-THE-FLOP-MENU`) still
+say `contract-update`; `:9031` (`A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE`)
+and `:10209` (`A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED`) still say 16. Each entry now
+says "Adopted by phase 22" while its owner field says otherwise, and `docs/BACKLOG.md` shows the
+old owner. MAINT-40 moved the field to "21" for every entry it adopted (`git show 6eb0de4 --
+backlog.yml`), and `LIVE-TURN-AND-RIVER-SOLVING` here was moved to "22". Set all four to "22" and
+regenerate `docs/BACKLOG.md`. The packet's "adopted by 22" is true only once this is done.
+
+R2-2. **[non-blocker] `NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER` names only the
+uncertain case.** It speaks of "a flop phase 19 answered by rule of thumb", but whether 19 fills
+flops at all is open (`PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS`). The certain case
+is a preflop spot 19 substitutes: no solved flop line follows it, so no turn range either. Add
+preflop.
+
+R2-3. **[non-blocker] `THE-FLOP-CAMPAIGN-IS-NOT-TOLD-ITS-CELLS-ARE-THE-TURN-RANGE-SOURCE` says
+"by its own stage 2".** Phase 21's pointer reads `stage: 6` (`phase-21/verification/loop_runs/21.yml`),
+and its contract is frozen in implementation mode. Reword to its decision list (it is at decision
+17) or a note to the lane's coordinator.
+
+R2-4. **[non-blocker] Phase 22's contract does not cite the four adopted ids.** Phase 21's skeleton
+lists its adoptions by id (`PHASE_21_FLOP_CAMPAIGN.md:70-76`); 22 cites only
+`LIVE-TURN-AND-RIVER-SOLVING`. This is `A-CONTRACT-NAMES-SOME-OF-ITS-PHASE-ITEMS-AND-NOTHING-CHECKS-THE-REST`
+again. One line in Scope fixes it.
+
+Unchanged, minor and not required: phase 20's "offline strategy" wording (line 45) and over-wide
+lines 44, 58-59.
+
+Round 2 verdict: one blocker left (R2-1, four `phase:` fields); fix it and this is clear.
