@@ -1,11 +1,31 @@
 task_id: PHASE_21_FLOP_CAMPAIGN
 active_phase: '21'
-task_mode: contract-update
-base_commit: 05e2b16196fede835c50e44e46e0be5d2bb80fbf
+task_mode: implementation
+base_commit: 49f529cb49d9d41681d16cd6c91f31b994f50775
 approved_scope:
 - docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md
 - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
+- reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
+- scripts/run_verify.py
+- src/poker_training_bot/solver_artifacts/**
+- scripts/measure_postflop_thread_sweep.py
+- scripts/solve_postflop_sample.py
+- data/artifacts/postflop/campaign/thread_sweep.json
+- data/artifacts/postflop/campaign/mac_resolve_at_thread_count.json
+- docs/GTOPEN_SOLVER_NOTES.md
+- data/artifacts/postflop/index.json
+- data/artifacts/postflop/objects.json
+- data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
+- tests/test_flop_campaign_tree.py
+- tests/test_flop_campaign_manifest.py
+- tests/test_flop_campaign_report.py
+- tests/test_flop_campaign_street_rows.py
+- tests/test_flop_campaign_lines.py
+- tests/test_flop_campaign_costs.py
+- tests/test_flop_campaign_threads.py
+- verification/mutations.yml
+- verification/freeze.lock
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -4493,3 +4513,22 @@ scope_change_log:
       `THE-PINNED-SOLVER-CARRIES-THE-AGGRESSOR-THROUGH-A-CHECKED-STREET`. `base_commit` moves to the
       commit that filed that entry, so the scope check measures this task alone; no code, test or
       data path is in scope.
+  - date: 2026-10-04
+    reason: >-
+      Back to implementation after decision 17's contract-update, committed at b2457a1, and
+      `base_commit` back to the stage-5 freeze, 49f529c, so the scope check again measures all of
+      stage 6. The approved scope is stage 6's as it stood, plus phase 16's contract (changed since
+      49f529c by that task, never edited in this mode) and the freeze re-open below.
+      The seventh freeze re-open, for decision 17 alone, on the precedent of the phase 16 re-opens
+      of 2026-09-15. Seven frozen test files, `verification/mutations.yml` and
+      `verification/freeze.lock` open for the figures and record fields the new tree changes and
+      nothing else: the tree, closure and memory-bar figures, which now follow the rewritten
+      contract; the descriptions of mutations that quote old figures; and the solver build every
+      solve record must carry, a criterion the rewrite added because two trees now exist and a
+      record that cannot say which one it ran on cannot be told apart. No assertion is weakened:
+      each changed pin is re-derived by the tree counter linked against the patched solver, and the
+      checks the pin's tree passed are kept against that tree as historical records. The tests are
+      written by a lane that writes no implementation, reviewed read-only, re-frozen with
+      `scripts/freeze_tests.py` so the lock diff is the record, and the narrowing goes back on in
+      the next entry.
+
