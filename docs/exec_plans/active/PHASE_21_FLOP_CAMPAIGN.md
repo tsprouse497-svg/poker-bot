@@ -210,15 +210,27 @@ action nodes and against all four committed planned arenas to the byte; re-run b
     solve beside its object for the later harvest. The binary was rebuilt from the committed clone
     at 15:01 and hashes the same as the 14:24 build. The coordinator wrote the solver notes' clone
     section and decision 17's scope line.
-  - [ ] Read-only review of 7ff2a4b, then the re-freeze with `scripts/freeze_tests.py` and the
-    narrowing put back on.
+  - [x] Read-only review of 7ff2a4b, two rounds: two blockers (a binary built on a newer commit
+    passed after the clone was checked out to an older one; one report test still pinned the pin's
+    river) and one later gap in the cost script, all fixed at 2d6c034 and c32ee78, with a new test
+    file on a real git repository and six canaries, each seen to bite by hand. Re-frozen at c32ee78
+    (66 files, 1,489 tests), narrowed at 6d1eb66. The suite outside the unbuilt flop campaign tests
+    passes but one test, `test_every_mutation_applies_exactly_once_to_its_file`, red because stage 4's
+    canaries name modules stage 6 has not built yet, as before this work.
+  - [ ] One more re-open after the re-solve, for `test_each_committed_cell_document_is_unchanged`,
+    which pins the old cells' sha256.
   - [ ] Open for Taylor, raised by the contract review: decision 5 starts the trial from a GPU, while
     the contract still wants one flop solved and timed on a CPU of the same provider first. Whether the GPU pod's own processors count as that CPU is his to say before the trial.
   - [ ] Phase 16's four boards re-solved on the new tree, on this Mac and before any rented box, so
     the box's determinism finding compares against new-tree digests: about 45 minutes of all-core solving per
     set of four at ten threads, so it waits for a window Taylor grants (lid open, on AC), run under
     `caffeinate -i -s`, `pmset -g log` read afterwards. Then the index, the byte budget and the
-    export card rebuilt and the full suite run.
+    export card rebuilt and the full suite run. Plan: copy the pin's objects aside to
+    `~/poker-bot-solve-objects/postflop-pin-4aee435`; run A in this worktree,
+    `scripts/solve_postflop_sample.py --all --threads 10 --export-strategies` (about 45 minutes and
+    about 24 GB of exports); run B in a scratch copy without `.git`, `--all --threads 10` into an empty
+    object folder; then `--determinism-tree` and `--determinism-objects` on run B to write
+    `determinism.json`. The sample, `determinism.json` and `solve_config.json` join scope first.
 
 ## Verification
 
