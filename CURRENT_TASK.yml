@@ -7,6 +7,12 @@ approved_scope:
 - reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
 - scripts/run_verify.py
+- src/poker_training_bot/solver_artifacts/**
+- scripts/measure_postflop_thread_sweep.py
+- scripts/solve_postflop_sample.py
+- data/artifacts/postflop/thread_sweep.json
+- data/artifacts/postflop/resolve_at_thread_count.json
+- docs/GTOPEN_SOLVER_NOTES.md
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -4448,3 +4454,12 @@ scope_change_log:
       test functions, after the stage 4 review's two rounds left no open blocker. The phase's test
       files, its fixture directory, the solve-driver test file and `verification/mutations.yml` leave
       `approved_scope`, so `check_scope.py` stops stage 6 from writing any of them.
+  - date: 2026-10-04
+    reason: >-
+      Phase 21 stage 6, first slice: part 1, every core. Taylor asked on 2026-10-04 to go through the
+      freeze and start step 1. The build lane needs the solver-artifact modules the frozen thread,
+      machine and driver tests import, one new script that runs the Mac thread sweep, the existing
+      sample solve script whose server start must carry a thread count, the two records the sweep
+      and the re-solve at the chosen count write, and the GTOpen notes in case a clone patch is
+      needed. Committed phase 16 cells and `determinism.json` stay out of scope: the re-solve is
+      compared against them, never written over them. Later slices widen again for their own files.
