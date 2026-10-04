@@ -437,17 +437,41 @@ def write(path, data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-@pytest.fixture
-def fetched_machine(tmp_path):
+CHECK_RAISED_KEY = (
+    "f/b:Kh7d2c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check,BTN:bet@33,BB:raise@2.5x/p:5.5/e:97.5"
+)
+BET_33_BB = 0.33 * 5.5
+
+
+def facing_a_check_raise_cell() -> dict:
+    """The button facing the big blind's 2.5x check-raise over its 33 percent c-bet on `Kh7d2c`:
+    one of the eight flop decision points that follow a raise, which decision 16 made nameable.
+    Built from the committed 33 percent cell - same board, line and ranges - with the seat, the
+    key and the menu moved to the node: the button has 1.815bb out, the big blind raised to
+    4.5375bb, and the button's own re-raise goes 2.5x that, to 11.34375bb. The raise is recorded
+    by its multiplier, the cell field decision 16 freezes. Its frequencies are borrowed; this
+    proves the node is played, not what it plays."""
+    cell = json.loads((SAMPLE_DIR / "rainbow-dry-high-facing-a-bet.json").read_text("utf-8"))
+    cell["spot_key"] = CHECK_RAISED_KEY
+    cell["preflop_line"] = "t6/d100/BTN/BTN:raise@2.5,BB:call"
+    cell["hero_position"] = "BTN"
+    cell["flop_actions"].append({"position": "BB", "action": "raise", "multiplier": 2.5})
+    cell["hero_street_bet_bb"] = BET_33_BB
+    cell["actions"][2]["size_bb"] = 2.5 * 2.5 * BET_33_BB
+    return cell
+
+
+def fetched_folders(tmp_path, cells) -> dict:
     """A manifest folder holding one closed board for the button's line, `Kh7d2c`, and a
     fetched folder holding that board's line index and flop object where `fetch_line` leaves
     them - each at its object key under the folder. The flop object is a JSON document
-    `{"cells": [cell documents]}` in the committed cell schema, written uncompressed. The turn
-    and river objects are listed and not fetched, which is the flop-only machine."""
+    `{"cells": [cell documents]}` in the committed cell schema, written uncompressed, holding
+    `cells`. The turn and river objects are listed and not fetched, which is the flop-only
+    machine. The object holds fewer than the board's fourteen cells: the fetch checks which
+    decision points an object holds, and this folder is written as if it had passed."""
     fetched = tmp_path / "fetched"
     flop_digest = write(
-        fetched / FETCHED_FLOP_KEY,
-        json.dumps({"cells": [facing_a_three_quarter_bet_cell()]}, sort_keys=True).encode(),
+        fetched / FETCHED_FLOP_KEY, json.dumps({"cells": list(cells)}, sort_keys=True).encode()
     )
     streets = {"flop": {"key": FETCHED_FLOP_KEY, "sha256": flop_digest}}
     for street in ("turn", "river"):
@@ -495,6 +519,12 @@ def fetched_machine(tmp_path):
     return {"fetched": fetched, "empty": empty, "manifests": manifests}
 
 
+@pytest.fixture
+def fetched_machine(tmp_path):
+    """The fetched folders holding the 75 percent node and nothing else."""
+    return fetched_folders(tmp_path, [facing_a_three_quarter_bet_cell()])
+
+
 def facing_a_three_quarter_bet():
     """The button bets 413 into 550, which the menu matches as 75 percent."""
     return button_line_query(
@@ -510,6 +540,29 @@ def facing_a_three_quarter_bet():
         postflop_actions=(
             contract_module.SeatAction(BIG_BLIND_SEAT, "check"),
             contract_module.SeatAction(BUTTON_SEAT, "bet", 413),
+        ),
+    )
+
+
+def facing_a_check_raise():
+    """The button c-bets 182 into 550, which the menu matches as 33 percent, and the big blind
+    check-raises to 455, exactly 2.5 times 182, so matching it needs no ruling on how far a real
+    raise may sit from the menu's 2.5x."""
+    return button_line_query(
+        seat=BUTTON_SEAT,
+        legal_actions=("fold", "call", "raise"),
+        to_call=273,
+        current_bet=455,
+        min_raise_target=728,
+        **seated(
+            {BUTTON_SEAT: 432, SB_SEAT: 50, BIG_BLIND_SEAT: 705},
+            (BUTTON_SEAT, BIG_BLIND_SEAT),
+            {BUTTON_SEAT: 182, BIG_BLIND_SEAT: 455},
+        ),
+        postflop_actions=(
+            contract_module.SeatAction(BIG_BLIND_SEAT, "check"),
+            contract_module.SeatAction(BUTTON_SEAT, "bet", 182),
+            contract_module.SeatAction(BIG_BLIND_SEAT, "raise", 455),
         ),
     )
 
@@ -569,3 +622,32 @@ class TestAFetchedClosedBoardIsPlayed:
         assert isinstance(outcome, contract_module.StrategyRefusal), outcome
         assert outcome.code == betting.REFUSE_IN_THE_INDEX_BUT_NOT_FETCHED, outcome.code
         assert outcome.named("hero_position") == "BB", outcome.detail
+
+    def test_a_machine_that_fetched_a_node_after_a_raise_plays_it(self, tmp_path) -> None:
+        """Decision 16's purpose: the bot answers a node after a raise rather than missing it.
+        A table walk that keys the faced raise as a percent of pot - 455 into 732 is 62.16
+        percent, matched onto a raise fraction off some cell's menu - builds a key no cell holds,
+        or one `FlopAction` refuses, and misses here while every key and fetch test passes."""
+        folders = fetched_folders(tmp_path, [facing_a_check_raise_cell()])
+        strategy = self.build(folders["fetched"], folders["manifests"])
+
+        outcome = strategy.decide(facing_a_check_raise())
+
+        assert isinstance(outcome, contract_module.StrategyDecision), outcome
+        assert outcome.action in ("fold", "call", "raise")
+
+    def test_a_fetched_object_altered_after_the_fetch_is_not_played(self, fetched_machine) -> None:
+        """The fetch checked the object's digest; the strategy reads the disk later. One class's
+        row is reordered in place, so the object is still valid JSON in the cell schema and its
+        bytes are no longer the ones the line index lists. A strategy that reads whatever sits
+        at the object key answers here."""
+        path = fetched_machine["fetched"] / FETCHED_FLOP_KEY
+        document = json.loads(path.read_bytes())
+        row = document["cells"][0]["class_weights"][0]
+        document["cells"][0]["class_weights"][0] = row[::-1]
+        path.write_bytes(json.dumps(document, sort_keys=True).encode())
+        strategy = self.build(fetched_machine["fetched"], fetched_machine["manifests"])
+
+        outcome = strategy.decide(facing_a_three_quarter_bet())
+
+        assert isinstance(outcome, contract_module.StrategyRefusal), outcome

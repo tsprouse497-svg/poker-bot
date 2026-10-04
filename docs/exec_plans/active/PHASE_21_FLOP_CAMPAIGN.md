@@ -121,8 +121,9 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   unasked precision question; he was re-asked and ruled keep the river but measure first, at two
   bytes a number (decision 15). It also found the record adding words he never said and crediting
   him with coordinator procedure; both corrected.
-- [ ] Stage 4: tests authored by a lane that did not write the contract (six files, 256 tests, ten
-  canaries). Two independent reviewers, one mechanical and one on the poker, found four blockers
+- [ ] Stage 4: tests authored by a lane that did not write the contract (nine files, 365 tests at
+  2026-10-04, eleven canaries; counted with `pytest --collect-only` and the `flop-campaign` ids in
+  `verification/mutations.yml`). Two independent reviewers, one mechanical and one on the poker, found four blockers
   between them - report records never exercised, the small blind line's card memory unpinned,
   closure counts tested on the button line only, and the posted ranges unchecked for three lines -
   and both confirmed the author's two corrections to the contract's figures, filed as
@@ -134,6 +135,14 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   phase 16's recorded first runs at five threads the four solves alone are 375.6 + 1,677.4 + 1,035.9
   + 616.0 = 3,704.9 seconds, about an hour, in `determinism.json`; harvest time is unmeasured and is one of the things the contract measures. A
   re-solve that does not reproduce halts the lane for Taylor; it is never worked around.
+- [ ] Stage 4 round 4 (2026-10-03/04), after decisions 16 and 15's re-ruling: the independent review
+  raised two blockers, both folded in by the test lane - a fetched point after a raise is played,
+  and the turn and river row format is pinned (`postflop_street_rows`, whole counts 0 to 1000 in two
+  bytes, little-endian). Little-endian is a coordinator choice with no poker meaning: every
+  candidate box (x86 and Graviton) is little-endian, so no reader byte-swaps. Stage 6 builder note:
+  the canary `flop-campaign-fetch-counts-flop-cells-instead-of-keys` finds the line
+  `if sorted(held_keys) != sorted(expected_keys):` in the fetch, so the fetch must contain it
+  verbatim.
 - [ ] Stage 6 runs every solve through `postflop_lines.plan_for` and `seat_labels`, never through
   `scripts/solve_postflop_sample.py`'s button-line code. The stage 4 poker review found four places
   there that hardcode the button line and no frozen test covers: `seat_of_player` (big blind always

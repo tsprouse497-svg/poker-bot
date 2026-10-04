@@ -1787,3 +1787,21 @@ mutations:
     replace: "derived_flops_held = sum(flops_in_class(board) for board in closed_boards) + 1"
     must_fail:
       - generate_flop_campaign_report
+
+  # Phase 21, stage 4, 2026-10-04: an eleventh canary, added after the stage 4 review and before
+  # the freeze, on the round 3 blocker's own subject. Its `find` is a line stage 6 must write
+  # verbatim, once, in the fetch; it was run against a throwaway reference implementation outside
+  # the repo and turned `pytest_flop_campaign` red.
+
+  - id: flop-campaign-fetch-counts-flop-cells-instead-of-keys
+    description: >-
+      The fetch stops comparing a fetched flop object's cell keys with the line's flop decision
+      points on that board and compares only how many cells there are. An object holding fourteen
+      cells with one decision point twice and another missing, a raise keyed as a percent of pot,
+      or another line's fourteen then lands as a closed board, and the bot refuses the decision
+      point the object was meant to hold - the round 3 blocker, back by a count.
+    file: src/poker_training_bot/solver_artifacts/postflop_fetch.py
+    find: "if sorted(held_keys) != sorted(expected_keys):"
+    replace: "if len(held_keys) != len(expected_keys):"
+    must_fail:
+      - pytest_flop_campaign
