@@ -145,7 +145,9 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   clock could trip it; the frozen tests pin a flop object as uncompressed JSON `{"cells": [...]}` at
   its object key under the fetched folder, so the flop is not compressed; and the fetch's check that
   a turn or river object holds the decision points its counts claim is stage 6's to write and test,
-  since their two-byte format is chosen then. The stage 6 review checks the re-solve's own output
+  since their two-byte format is chosen then. Decision 15 was re-ruled 2026-10-03: turn and river
+  frequencies are rounded to a tenth of a percent (the flop's thousandths, residue to the largest
+  entry) and still stored at two bytes; the trial flops measure what standard compression saves. The stage 6 review checks the re-solve's own output
   against the committed cells, since copying `index.json`'s digests into a manifest cannot be told
   apart offline from reproducing them.
 - [ ] Before any candidate is ranked: GTOpen builds (does not solve) one small blind tree, and its

@@ -306,7 +306,15 @@ precision, about 10 TB a line. The flop keeps today's format. Recommendation: tw
 
 Answer: [Ruled by Taylor, 2026-09-26] **Two bytes a number** for the turn and river. The review's
 per-line figures at one byte are 3.48, 2.57, 2.10, 1.88 and 1.62 TB for the five lines, 11.65 TB in
-all, so about 23 TB at two bytes, measured on the trial flops before the campaign budget.]
+all, so about 23 TB at two bytes, measured on the trial flops before the campaign budget.
+**Re-ruled by Taylor, 2026-10-03:** every turn and river frequency is rounded to a tenth of a
+percent, which is the flop's thousandths, with the flop's rule that the largest entry pays the
+rounding residue so a decision still sums to one. Storage stays two bytes a number. He proposed the
+tenth himself and asked for it to be evaluated; he was told the solve's own noise is far coarser
+(decision 8's deep convergence moved a mixing group by up to 0.467), that 1,001 levels do not fit
+one byte so the saving comes only from compression or a custom packing of about 10 bits (roughly 14
+TB against 23 TB for the five lines), and was recommended to keep two bytes and measure standard
+compression on the trial flops before any custom format. He answered "yes".]
 
 
 ## 16. How a raise is named in a spot key
