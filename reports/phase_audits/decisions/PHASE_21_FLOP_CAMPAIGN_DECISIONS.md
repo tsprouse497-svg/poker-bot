@@ -176,7 +176,10 @@ and a comparison of providers on what a new account can run at once put RunPod f
 sign-up, an $80 an hour default spend cap, no egress charge. Lambda Cloud is his standing backup
 account; on 2026-10-04 every Lambda type large enough was out of capacity. He has funded the RunPod
 account with $150. The specific machine type and hourly price still go to him before anything is
-rented. Whether the trial cap is $100 or $150 is unanswered.]
+rented. Whether the trial cap is $100 or $150 is unanswered.
+**Ruled by Taylor, 2026-10-04:** the contract's "one flop solved and timed on a CPU of the same
+provider first" is met by the GPU machine's own processors; no separate CPU machine is rented for it.
+Asked whether that counts, recommended yes, he answered "sure".]
 
 ## 6. The trial budget
 
