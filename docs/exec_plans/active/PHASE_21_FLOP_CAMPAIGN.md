@@ -262,8 +262,11 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   - [x] Decision 4 re-ruled: every object in the standard class ("we can do standard on glacier",
     read as standard instead of Glacier, as recommended; confirmed "what you recommended").
     Contract's storage criterion changed; reviewed read-only, no blocker.
-  - [ ] Implementation: re-open the closure and street-row tests (manifest, report, street rows, and
-    tree only if `closure_counts` drops the river) for the flop and turn closure, by the test lane.
+  - [x] Implementation: the closure, manifest, fetch, report and street-row tests re-opened by the
+    test lane for a flop and turn closure (7af4337), every river figure kept as a tree fact; reviewed
+    read-only with no blocker; re-frozen at 6649062. Left for the stage 6 build:
+    `THE-BULK-STRATEGY-EXPORT-KEEPS-THE-RIVER-THE-RULING-SAYS-NOTHING-KEEPS` and
+    `TWO-FLOP-CAMPAIGN-TEST-FILES-SIT-AT-THE-700-LINE-TEST-CAP`.
 
 ## Verification
 

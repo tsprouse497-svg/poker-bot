@@ -1,17 +1,9 @@
 task_id: PHASE_21_FLOP_CAMPAIGN
 active_phase: '21'
 task_mode: implementation
-base_commit: 44d3b0866ee947109c8b25f422b8aa318bf0c005
+base_commit: 6649062095a58fafca68966703ff9d3f3deada72
 approved_scope:
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
-- tests/test_flop_campaign_manifest.py
-- tests/test_flop_campaign_report.py
-- tests/test_flop_campaign_street_rows.py
-- tests/test_flop_campaign_tree.py
-- tests/test_flop_campaign_lines.py
-- tests/test_flop_campaign_costs.py
-- verification/mutations.yml
-- verification/freeze.lock
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -4646,4 +4638,10 @@ scope_change_log:
       `tests/test_flop_campaign_costs.py` joins the river re-open for one docstring: its invented
       timing fixture says the harvest covers every flop, turn and river decision point, and the
       contract now bills the flop and the turn only. No assertion changes.
+  - date: 2026-10-04
+    reason: >-
+      Puts the freeze narrowing back on after the river re-open: the six test files,
+      `verification/mutations.yml` and the lock leave approved_scope; `scripts/freeze_tests.py`
+      re-locked 66 files and 1,496 test functions at 6649062 after the read-only review found no
+      blocker; `base_commit` moves there as at every re-freeze.
 
