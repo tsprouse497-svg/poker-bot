@@ -29,7 +29,7 @@ items:
       there is no solved strategy to walk, and 19 and 22 do not depend on each other,
       so neither contract covers the turn that follows. Closes when one of them, or a later
       contract, says what the bot does there. Since the 2026-10-04 re-ruling the turn is stored rather
-      solved, which changes nothing here: a line phase 19 answered by rule of thumb has no stored turn
+      than solved, which changes nothing here: a line phase 19 answered by rule of thumb has no stored turn
       and no stored strategy to walk to the river.
 
   - id: LIVE-TURN-AND-RIVER-SOLVING
@@ -88,7 +88,8 @@ items:
       the turn's figures above are history, and the questions read for the river: (4) is the ranges
       entering the river, walked from the stored flop and turn strategy; (9) is anchoring a river
       re-solve to the stored turn strategy; and (10) falls away, since nothing stores the river
-      under a turn. Phase 22 plays the stored turn as well, by assignment. Closes when phase 22's
+      under a turn; and (8) now reads for the river, since a pot with three or more players reaches
+      the turn with no stored turn either. Phase 22 plays the stored turn as well, by assignment. Closes when phase 22's
       contract answers the open questions and the bot answers a turn from stored strategy and a
       river from a live solve.
 
