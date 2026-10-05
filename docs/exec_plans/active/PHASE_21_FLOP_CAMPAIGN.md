@@ -192,8 +192,10 @@ action nodes and against all four committed planned arenas to the byte; re-run b
     `<dir>/target/release/treecount < <dir>/jobs.json > <dir>/counts.json`, and
     `uv run python <dir>/bars.py <dir>/counts.json` for the memory bars over all 22,100 flops.
     `"carry": true` is the pin's rule and `null` the new one.
-  - [ ] Decision 18's GPU fold patch into the same branch. Not applied: the session's permission
-    check refused applying it and reading upstream to compare it, so it waits on Taylor.
+  - [x] Decision 18's GPU fold patch into the same branch: applied as `c48f437` on Taylor's direct
+    approval, 2026-10-04, after the permission check had refused it on the relayed ruling. GPU code
+    only; type-checks with the `gpu` feature; the CPU server rebuilt after it is byte-identical. First
+    proved by the GPU trial.
   - [x] Contract-update task: phase 21's contract rewritten under its cap (298 lines), folding its
     rulings and the new tree; phase 16's contract amended in one line, now at its cap
     (`PHASE-16-CONTRACT-IS-AT-ITS-LINE-CAP`). Read-only review, three rounds: four blockers found
@@ -263,12 +265,12 @@ Not yet.
 ## Next Agent Bootstrap
 
 Worktree `~/projects/poker-bot-worktrees/phase-21`, loop at stage 6 (build) in `implementation`
-mode, `base_commit` 45ff860. Run `uv run python scripts/loop_stage.py --phase 21` for the next action.
-Part 1 is built. Decision 17 is done except decision 18: the clone at `b058335` carries the tree fix,
-the contract and tests state the new tree, and phase 16's four boards are re-solved on it (45ff860).
-Decision 18's GPU fold patch is not applied; this session's permission check refused it, so it waits
-on Taylor's direct approval.  Taylor ruled on 2026-10-04 (AGENTS.md on `main`, MAINT-42) that the turn and river are
-solved live at the table; phase 21's turn and river storage criteria, decisions 1, 4 and 15 and the
-closure and street-row tests describe the stored plan and wait on his ruling of how phase 21 changes,
-which another session is asking. Do not rewrite them before he answers. The stage 6 review note
-`stage-06-build.md` is still owed for the whole stage, beside the three decision 17 notes.
+mode, `base_commit` at the merge of `main` (fd1bb89). Run `uv run python scripts/loop_stage.py --phase
+21` for the next action. Part 1 is built. Decisions 17 and 18 are done: the clone at `c48f437`
+carries both fixes, the contract and tests state the new tree, phase 16's four boards are re-solved on
+it, and its objects live in `~/poker-bot-solve-objects/postflop-clone-b058335`, never the shared
+`postflop` folder every lane reads. Taylor re-ruled decision 1 on 2026-10-04: the turn is stored and
+only the river is solved at the table. Phase 21's contract, river criteria and closure and street-row
+tests still describe a stored river, and `AGENTS.md` on `main` says both turn and river are solved
+live; both need a `contract-update` and a test re-open before stage 6 builds the harvest. The stage 6
+review note `stage-06-build.md` is still owed for the whole stage, beside the decision 17 notes.

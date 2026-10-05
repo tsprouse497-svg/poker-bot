@@ -96,7 +96,10 @@ table re-run still shows hands stopping at the turn.
 w/o it." Told the measured cost first (about 22 TB at decision 15's format, 13.5 TB storing one row
 per suit-isomorphic combo; the bulk export makes reading it about 43 s a flop instead of about 0.6
 to 0.9 hours), and that it goes to Glacier Deep Archive under decision 4's amendment. The campaign
-budget ask still shows the measured size and bill.]
+budget ask still shows the measured size and bill.
+**Re-ruled by Taylor, 2026-10-04, later the same day:** "for the turn we'll save it. only the river will be
+solved in real time." The campaign keeps the flop and the turn from every solve; the river is not
+stored and is solved at the table instead.]
 
 ## 2. Whether every flop decision is saved, or only the first
 
@@ -412,4 +415,7 @@ machine at run time, and nothing claims repeatability across GPU models.
 Recommendation: take it into the same local clone as decision 17's tree fix, and prove it on the
 first rented GPU by solving one flop twice.
 
-Answer: [Ruled by Taylor, 2026-10-04] Take it. "yea for graphics card repeat i'm fine with that."]
+Answer: [Ruled by Taylor, 2026-10-04] Take it. "yea for graphics card repeat i'm fine with that." Asked
+the drawbacks again later that day (untested on any GPU here, extracted from a larger upstream commit
+and not compared line by line, possibly slower), he answered "apply it"; applied as `c48f437` in the
+clone.]

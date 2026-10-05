@@ -31,13 +31,13 @@ in and nothing else (phase 21 decisions 17 and 18), and GTOpen is not ours to pu
 |---|---|
 | Location | `~/projects/gtopen-poker-bot`, a clone of `~/projects/gtopen` |
 | Branch | `poker-bot/check-through-clears-initiative` |
-| Commit | `b058335eaa2e33e97001af35f2070e33555b90a8`, on the pin `4aee435` |
-| Diff | `git diff 4aee435 b058335` is 8 files, +340/-7, sha256 `b43813f1de4594b50f44d47b2df2876ca5622a805217f58e8fceb6de584021a3` |
+| Commit | `c48f4370656704c102da365a0f39b9aea4b1f23d`, on the pin `4aee435` |
+| Diff | `git diff 4aee435 c48f437` is 10 files, +382/-25, sha256 `505f2624a1c51b1f7d77592c79fd8c70a47c772d421fcd3dc50bb33dfb9e780f` |
 | Build | `cargo build --release`, Rust 1.97.1, `target/release/gto-server` |
 | Tests | `cargo test --release --workspace` on 2026-10-04: 105 pass and one preflop benchmark is ignored, as upstream marks it; the GPU test files compile to nothing without the `gpu` feature |
 | Selected by | `DEFAULT_SERVER` in `scripts/solve_postflop_sample.py`; another build is chosen with `--server`. Every solve record names the build it ran on, read from the clone's git, and a clone with uncommitted changes is refused |
 
-Two commits on the pin, each recorded by what it changes:
+Three commits on the pin, each recorded by what it changes:
 
 1. `3f8bf98`, **a read-only bulk export**: `POST /api/export_strategies` writes every action node's
    average strategy, exactly as `/api/node` reports it, to `saves/<name>.strats` in one depth-first
@@ -53,10 +53,17 @@ Two commits on the pin, each recorded by what it changes:
    `150e6862332c5b377c7bca3889409a6caa081b2e8673e0733c6b73e8fdf5696c`. What it does to the tree is
    `THE-PINNED-SOLVER-CARRIES-THE-AGGRESSOR-THROUGH-A-CHECKED-STREET` in `backlog.yml`.
 
-**Not yet in the clone: decision 18**, upstream `8ff89f42`'s fixed-order GPU fold sum, ruled in on
-2026-10-04 and prepared as an untracked patch beside the clone. It changes GPU code only, cannot be
-compiled or run on this Mac, and is first proved by the GPU trial solving one flop twice. Until it is
-committed and recorded here, no GPU solve runs.
+3. `c48f437`, **decision 18, upstream `8ff89f42`'s fixed-order GPU fold sum alone**, applied
+   2026-10-04 on Taylor's direct approval. The `up_fold` kernel summed opponent reach per card with
+   float `atomicAdd`, so two GPU runs of one flop could differ in the last bits; it now sums each
+   card in fixed hand order over a per-card hand list and takes a fixed-shape total (`gpu/kernels.cu`,
+   `gpu/mod.rs`). GPU code only. It type-checks with `cargo check --features gpu` and its reduction
+   fits the kernel's 128-thread blocks, but it cannot be compiled or run on this Mac; it is first
+   proved by the GPU trial solving one flop twice. It was taken from the prepared patch file and not
+   compared line by line with upstream here. Diff sha256
+   `a5e0f1b162eaa63e18812eb52cd17244d1754d3f6f741a3c70542d9b2bc44dac`. The CPU server built after it
+   is byte-identical to the one built at `b058335` (sha256 `a440eef0...`), so phase 16's re-solved
+   cells, which record `b058335`, came from the same CPU binary.
 
 The tree figures every phase 21 document quotes were measured by a counter linked against the clone's
 solver crate, which builds a spot under either tree rule without solving it; its path and commands
