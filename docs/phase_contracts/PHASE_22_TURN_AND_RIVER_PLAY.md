@@ -1,18 +1,18 @@
 ---
 phase_id: "22"
-title: "Live Turn And River"
+title: "Turn And River Play"
 depends_on:
   - "21"
 required_gate_commands:
-  - pytest_live_turn_river_solve
-  - generate_live_solve_report
+  - pytest_turn_and_river_play
+  - generate_turn_and_river_play_report
 required_reports:
-  - reports/active/latest_live_solve_report.txt
+  - reports/active/latest_turn_and_river_play_report.txt
   - reports/active/latest_verify.txt
-required_phase_audit: reports/phase_audits/PHASE_22_LIVE_TURN_AND_RIVER.md
+required_phase_audit: reports/phase_audits/PHASE_22_TURN_AND_RIVER_PLAY.md
 ---
 
-# Phase 22: Live Turn And River
+# Phase 22: Turn And River Play
 
 ## Scope
 **Skeleton.** This contract carries boilerplate acceptance criteria and nothing phase-specific yet.
@@ -20,37 +20,39 @@ The command IDs and reports above are placeholders from the proposal, not commit
 loop replaces this section and the criteria below in `contract-update` mode, and `check_contracts.py`
 fails the gate for any active phase whose criteria say only what a generic phase would.
 
-Declared by MAINT-43 on 2026-10-04 from Taylor's rulings of that date. MAINT-42 lifted the
-runtime-solver boundary in `AGENTS.md` for the turn and the river: they are solved at the table
-instead of stored, because storing them is 85,995 turn and 4,127,760 river spots per preflop line
-while one live solve measured 1.7 to 2.4 seconds on the turn and about 25 milliseconds on the river.
-Taylor accepted the turn at that figure and set the river's limit at one second. Today the bot
-refuses on every turn and river. This phase makes it answer them.
+Declared by MAINT-43 on 2026-10-04 as Live Turn And River, and re-scoped by MAINT-44 the same day.
+Taylor first ruled that the turn and river are both solved at the table. He then re-ruled: the turn
+is stored like the flop, and only the river is solved at the table, because storing the river is
+4,127,760 spots per preflop line while one live river solve measured about 25 milliseconds. He set the
+river's limit at one second. `AGENTS.md` states the boundary. Phase 21 now solves and stores the turn
+beside the flop and leaves playing it to a later phase; today the bot refuses on every turn and river.
+This phase makes it answer both: the turn from phase 21's stored strategy, the river by a live solve.
 
 Taylor's rulings that shape it:
 
-1. **The engine is GTOpen.** This repo does not write a solver of its own. He ruled it after being
-   told that GTOpen carries no licence - no LICENSE file and no mention in its README or
+1. **The engine for the river is GTOpen.** This repo does not write a solver of its own. He ruled it
+   after being told that GTOpen carries no licence - no LICENSE file and no mention in its README or
    `Cargo.toml` - so the missing licence is recorded here as an accepted risk, not a resolved one,
    the way phase 20 records its platform risk. Whether GTOpen stays a sibling clone outside this
    repo, as it is for the offline solves, was not ruled; stage 1 drafts it and the human gate asks.
-2. **It waits for the flop campaign.** A turn solve needs both players' ranges at the turn, and
-   those come from the committed flop strategy walked along the line actually played. Phase 21 is
-   what commits that strategy at scale, so this phase depends on 21.
+2. **It waits for the flop campaign.** The turn it plays is the one phase 21 stores, and a river
+   solve needs both players' ranges at the river, walked from the stored flop and turn strategy
+   along the line actually played. So this phase depends on 21.
 3. **Phase 20 waits on it.** A bot that refuses every turn and river should not sit down at
    Taylor's table, so 20 depends on this phase.
 
-What it has to answer is `LIVE-TURN-AND-RIVER-SOLVING` in `backlog.yml`, adopted here. Four more are
-adopted with it, each one a place a builder meets the turn:
+Playing the stored turn is this phase's by assignment rather than by ruling: phase 21's contract says
+a later phase plays it, and this is the phase that already owned making the bot answer a turn.
+
+What it has to answer is `LIVE-TURN-AND-RIVER-SOLVING` in `backlog.yml`, adopted here; its id predates
+the re-ruling. Four more are adopted with it, each one a place a builder meets the turn:
 `THE-GATE-ENFORCES-A-SEAM-SENTENCE-THIS-PHASE-MEASURED-AS-FALSE`,
 `A-COMMITTED-CELL-CARRIES-NO-STREET-SO-THE-IMPORTER-CHECKS-EVERY-BET-AGAINST-THE-FLOP-MENU`,
 `A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE` and
-`A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED`. Two of `LIVE-TURN-AND-RIVER-SOLVING`'s ten
-questions are answered by the rulings above - the owner is this phase, and the engine is GTOpen -
-and the rest are this phase's: the gate, the ranges entering the turn, bets off the menu,
-determinism, where the solve runs, pots with three or more players, anchoring a turn re-solve to
-the committed flop strategy, and whether the river is read from the turn solve or solved again.
-Where the solve runs is Taylor's to rule, as the backlog entry says.
+`A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED`. The backlog entry's questions that the rulings
+leave open are this phase's: the gate, the ranges entering the river, bets off the menu,
+determinism, where the solve runs, pots with three or more players, and anchoring a river re-solve
+to the stored turn strategy. Where the solve runs is Taylor's to rule, as the backlog entry says.
 
 A live answer must also stay reproducible from a record, which phase 20 requires of every hand. For a
 live solve that record has to carry what produced it: the GTOpen commit, the config, the iteration
@@ -68,17 +70,19 @@ asks Taylor, as `verification/loop_policy.yml` says:
   in progress, so a bot that solves while another solve is running on the same server loses one.
 
 `river_pot_odds.py` stays as a fallback for a river the live solve cannot answer. What the bot does
-on a turn the live solve cannot answer - a pot with three or more players, a missing server, a solve
-that runs too long - is not ruled, and is a human-gate question rather than something a stage chooses.
+on a turn or river it cannot answer - a turn phase 21 did not store, a pot with three or more
+players, a missing server, a solve that runs too long - is not ruled, and is a human-gate question
+rather than something a stage chooses.
 
 Phase 22 is limited to the work named by this contract and the active ExecPlan.
 
 ## Non-goals
 - Do not write a solver. Ruling 1 chose GTOpen.
-- Do not commit turn or river solutions as a strategy artifact the bot answers from. The boundary in
-  `AGENTS.md` chose live solving over storage. Recorded solver replies committed as test fixtures
-  are not that.
-- Do not solve preflop or the flop at the table. That half of the boundary holds permanently.
+- Do not commit river solutions as a strategy artifact the bot answers from. The boundary in
+  `AGENTS.md` chose live solving over storage for the river. Recorded solver replies committed as
+  test fixtures are not that.
+- Do not solve preflop, the flop or the turn at the table. That half of the boundary holds.
+- Do not solve or store turns phase 21 did not. Coverage of the turn is phase 21's.
 - Do not add PokerNow automation, browser or platform observation, UI surfaces, large hand-history
   ingestion or LLM-backed poker decisions. `AGENTS.md` Boundaries.
 
@@ -89,22 +93,21 @@ Phase 22 is limited to the work named by this contract and the active ExecPlan.
 - Any deferred work is recorded in `backlog.yml`.
 
 ## Required reports
-- `reports/active/latest_live_solve_report.txt`
+- `reports/active/latest_turn_and_river_play_report.txt`
 - `reports/active/latest_verify.txt`
 
 ## Required command IDs
-- `pytest_live_turn_river_solve`
-- `generate_live_solve_report`
+- `pytest_turn_and_river_play`
+- `generate_turn_and_river_play_report`
 
 ## Human vetting packet requirements
 - Plain-language summary of what changed.
 - Pass/fail checklist for a non-coding reviewer.
 - Command summary with links to committed reports.
 - Known limitations and deferred items.
-- How long a turn and a river decision take at the table, on which machine and thread count, beside
-  what Taylor ruled: he accepted the turn at the measured 1.7 to 2.4 seconds and set the river's limit
-  at one second. The solve stops by a rule that does not read the clock, so the river limit is shown
-  by measurement rather than enforced by a timer.
+- How long a river decision takes at the table, on which machine and thread count, beside the
+  one-second limit Taylor set. The solve stops by a rule that does not read the clock, so the limit
+  is shown by measurement rather than enforced by a timer.
 - What share of turns and rivers the bot now answers, and what it does with the rest.
 
 ## Forbidden shortcuts
@@ -119,4 +122,4 @@ Phase 22 is limited to the work named by this contract and the active ExecPlan.
 - Generated human docs remain current.
 - File-size and scope checks continue to pass.
 - The gate still passes on a machine with no GTOpen, no Rust toolchain and no network.
-- Every committed preflop and flop answer is unchanged.
+- Every committed preflop, flop and turn answer is unchanged.

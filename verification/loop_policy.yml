@@ -158,7 +158,7 @@ phases:
     auto_advance: false
     needs_human_data: false
     reason: >-
-      Puts a solver call on the path of every turn and river decision the bot makes, through
+      Puts a solver call on the path of every river decision the bot makes, through
       GTOpen, an external binary with no licence that this repo neither owns nor installs, and the
       gate has to stay green on a machine without it. How that is tested, where the solve runs and
       what the bot does when the server is missing or slow are rulings with no precedent here, and

@@ -41,7 +41,7 @@ those words on the same day and he ruled proceed, risk accepted. It is recorded 
 risk rather than a resolved one, so no stage reads the narrowing as having disposed of it.
 
 Reading a table and acting at one are the two halves of it, and neither is poker. The decision still
-comes from the committed strategy, or on the turn and river from phase 22's live solve, exactly as it does offline, and a hand played at a table is still
+comes from the committed strategy, or on the river from phase 22's live solve, exactly as it does offline, and a hand played at a table is still
 reproducible from a record afterwards. A seat this phase adds that could take an action the offline
 strategy would not have taken is a defect in this phase, not a feature of it.
 
@@ -55,7 +55,7 @@ Phase 20 is limited to the work named by this contract and the active ExecPlan.
 - Do not play a public real-money table, a ring game the house runs, or any table Taylor has not
   named as his own home game. The lifted boundary is that narrow and a stage may not widen it.
 - Do not let observation become a second strategy. What is read from the table becomes a query
-  against the committed strategy, or phase 22's live solve on the turn and river; a table-side rule that changes an action is out of scope.
+  against the committed strategy, or phase 22's live solve on the river; a table-side rule that changes an action is out of scope.
 - Do not add runtime solver calls beyond the ones phase 22 builds, or LLM-backed poker decisions. Runtime poker decisions never rely
   on model reasoning and this phase does not become the exception.
 - Do not add a UI package, and do not add a UI surface of any size. The `No UI package` boundary in

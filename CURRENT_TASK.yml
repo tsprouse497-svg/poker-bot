@@ -1,8 +1,18 @@
-task_id: null
+task_id: MAINT-44
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: contract-update
+base_commit: 0f46d46236eaa9fe07e1e6469399fdc4b9d161c5
+approved_scope:
+- AGENTS.md
+- docs/phase_contracts/PHASE_22_LIVE_TURN_AND_RIVER.md
+- docs/phase_contracts/PHASE_22_TURN_AND_RIVER_PLAY.md
+- docs/phase_contracts/PHASE_20_HOME_GAME.md
+- docs/ROADMAP.md
+- docs/V2_ROADMAP.md
+- docs/GTOPEN_SOLVER_NOTES.md
+- verification/loop_policy.yml
+- reports/phase_audits/MAINT_44_STORE_THE_TURN.md
+- reports/phase_audits/reviews/MAINT_44_STORE_THE_TURN/**
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -18,6 +28,18 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-10-05
+    reason: >-
+      MAINT-44 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. Taylor re-ruled on 2026-10-04, after
+      MAINT-42 and MAINT-43 merged: the turn is stored like the flop, and only the river is solved at
+      the table. He said it in phase 21's session and confirmed it in this one. This task corrects
+      main to match: the boundary in `AGENTS.md`, phase 22's contract, which is renamed Turn And River
+      Play and moves to `PHASE_22_TURN_AND_RIVER_PLAY.md` since phase 21 stores the turn and leaves
+      playing it to a later phase, phase 20's two references to a live turn, both
+      roadmaps, the GTOpen notes' sentence on why the timings matter, and the loop-policy reason.
+      The last two paths are this task's packet and review directory. No artifact, code or test
+      changes, and phase 21's contract is left to phase 21's lane, which already carries the turn.
   - date: 2026-10-04
     reason: >-
       MAINT-43 merged main at 3af0e87, which carries MAINT-41, before its closeout gate.
