@@ -1,9 +1,23 @@
 schema_version: 1
 items:
+  - id: MAIN-STILL-HOLDS-THE-PHASE-21-CONTRACT-THAT-FORBIDS-STORING-THE-TURN
+    status: deferred
+    phase: "21"
+    title: Main's copy of phase 21's contract forbids the stored turn that AGENTS.md now says phase 21 provides
+    reason: >-
+      Found 2026-10-05 by MAINT-44's independent review and filed by the coordinator. MAINT-44
+      corrected main to Taylor's re-ruling that the turn is stored and only the river solved live.
+      `AGENTS.md`, both roadmaps and phase 22's contract now say phase 21 stores the turn, while
+      main's `docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md` still says "Do not commit turn or river
+      spots". Phase 21's lane carries the amendment at `82422cb`, but the phase is mid-build and
+      merges to main only at its own integration, so main disagrees with itself until then. Left
+      unedited on main because a second copy of the same amendment would conflict with the lane's.
+      Closes when phase 21 merges to main.
+
   - id: THE-FLOP-CAMPAIGN-IS-NOT-TOLD-ITS-CELLS-ARE-THE-TURN-RANGE-SOURCE
     status: deferred
     phase: "21"
-    title: Phase 22 reads phase 21's flop strategy for the ranges entering the turn and 21 does not know
+    title: Phase 22 reads phase 21's stored strategy for the ranges entering the river and 21 does not know
     reason: >-
       Found 2026-10-04 by MAINT-43's independent review and filed by the coordinator. Phase 22
       depends on 21 because a turn solve needs both players' ranges at the turn, walked from the
@@ -12,13 +26,15 @@ items:
       point, and the points after it are committed only if the campaign closes each board; the
       solve objects sit in a local directory with no remote store; and whether a cell carries enough
       to derive a range at the turn is unchecked. Best settled while 21 is still running, through a
-      decision in its decision list or a note to its lane, since its contract is frozen at stage 6. Closes when 21's contract or decisions say whether its cells are
+      decision in its decision list or a note to its lane, since its contract is frozen at stage 6.
+      Since the 2026-10-04 re-ruling 21 stores the turn as well and closes each board on the flop and
+      the turn, so the source is the stored flop and turn strategy and the point is the river. Closes when 21's contract or decisions say whether its cells are
       fit to be the turn-range source, or 22's says where else the ranges come from.
 
   - id: NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER
     status: deferred
     phase: contract-update
-    title: A turn reached after phase 19 answered an earlier street by rule of thumb has no range source and no owner
+    title: A turn or river reached after phase 19 answered an earlier street by rule of thumb has no stored strategy and no owner
     reason: >-
       Found 2026-10-04 by MAINT-43's independent review and filed by the coordinator. Phase 22
       solves a turn from ranges walked along the committed flop strategy. A preflop spot phase 19
@@ -26,12 +42,14 @@ items:
       covers preflop; a flop 19 answers that way, if its contract lets it, is the same. Either way
       there is no solved strategy to walk, and 19 and 22 do not depend on each other,
       so neither contract covers the turn that follows. Closes when one of them, or a later
-      contract, says what the bot does there.
+      contract, says what the bot does there. Since the 2026-10-04 re-ruling the turn is stored rather
+      than solved, which changes nothing here: a line phase 19 answered by rule of thumb has no stored turn
+      and no stored strategy to walk to the river.
 
   - id: LIVE-TURN-AND-RIVER-SOLVING
     status: deferred
     phase: "22"
-    title: The turn and river are solved at the table and phase 22 builds it
+    title: The river is solved at the table, the turn is stored, and phase 22 plays both
     reason: >-
       Taylor ruled on 2026-10-04 that the turn and river are solved at the table instead of stored,
       and MAINT-42 amended `AGENTS.md` to say so. The ground is size against speed. Stored, they are
@@ -79,6 +97,15 @@ items:
       was told it has no licence, which is carried as an accepted risk. Whether GTOpen stays outside
       the repo was not ruled. The other eight are phase 22's, and question 7 stays Taylor's. Closes when phase
       22's contract answers them and the bot answers a turn and a river from a live solve.
+      **Re-ruled 2026-10-04 by Taylor, recorded by MAINT-44.** The turn is stored like the flop,
+      which phase 21 now does, and only the river is solved at the table; the id predates that. So
+      the turn's figures above are history, and the questions read for the river: (4) is the ranges
+      entering the river, walked from the stored flop and turn strategy; (9) is anchoring a river
+      re-solve to the stored turn strategy; and (10) falls away, since nothing stores the river
+      under a turn; and (8) now reads for the river, since a pot with three or more players reaches
+      the turn with no stored turn either. Phase 22 plays the stored turn as well, by assignment. Closes when phase 22's
+      contract answers the open questions and the bot answers a turn from stored strategy and a
+      river from a live solve.
 
   - id: PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS
     status: deferred

@@ -60,7 +60,7 @@ The honest one, and bigger than everything before it combined. It is the phase t
 
 A committed postflop artifact does not have to be a joint solved tree. A spot is self-contained in its board, both ranges, pot, stacks and sizes, so the artifact can be a library of independent per-street spots keyed the way the preflop chart already is. What does not decouple is ranges: postflop strategy is range against range rather than a function of hero's two cards, so the same hand on the same board plays differently after `LJ open, BTN call` than after `BTN open, BB 3-bet, BTN call`, and the action summary in a spot key is a handle on a pair of ranges rather than history for its own sake.
 
-Ruled flop only on 2026-08-19, over every canonical flop against a small head of common preflop lines, with turn and river refusing the way an uncovered preflop spot refuses today. They still refuse, but the plan changed on 2026-10-04: Taylor ruled that the turn and river are solved at the table rather than stored or refused, and `AGENTS.md` states the terms. Phase 22 builds it. Flop-only is what dissolves the board-texture question rather than answering it: mapping an unsolved `K72r` onto a solved `Q83r` was the heuristic guessing `AGENTS.md` forbade, and covering all 1,755 canonical flops means never needing the map. Suit isomorphism is exact and GTOpen exploits it internally; rank texture is not.
+Ruled flop only on 2026-08-19, over every canonical flop against a small head of common preflop lines, with turn and river refusing the way an uncovered preflop spot refuses today. They still refuse, but the plan changed on 2026-10-04: Taylor ruled that the turn is stored like the flop, which phase 21 does, and the river is solved at the table, and `AGENTS.md` states the terms. Phase 22 plays both. Flop-only is what dissolves the board-texture question rather than answering it: mapping an unsolved `K72r` onto a solved `Q83r` was the heuristic guessing `AGENTS.md` forbade, and covering all 1,755 canonical flops means never needing the map. Suit isomorphism is exact and GTOpen exploits it internally; rank texture is not.
 
 An earlier draft of this section said no solve in this repo had been timed to a real exploitability target. That is no longer true and the correction is `ROADMAP-CLAIMS-NO-SOLVE-WAS-EVER-TIMED`. `reports/active/latest_postflop_solve_cost.txt` measures 30 solve rows, of which 7 reached their target and are pooled: every pooled row targets 0.3 percent of the starting pot, and the pooled per-unit costs are a median 1.37873 seconds per iteration and a peak resident set between 3,951.1 and 10,864.9 MB. Twenty-three rows are excluded as cap-bound, which is a floor rather than a cost, and the pooled rows are six monotone and one two-tone with rainbow unmeasured at that target, so a rainbow figure taken from that block is scaled rather than measured. The affordability question is now a measured one, which is the point.
 
@@ -84,11 +84,11 @@ Taylor ruled on 2026-09-26 to trust the solve and buy more of it rather than mea
 
 It hangs off 16 alone and does not wait on 18. Missing preflop spots, turn and river solves, and grouping similar flops are all outside it.
 
-### 22. Live Turn And River
+### 22. Turn And River Play
 
 Depends on 21.
 
-Taylor ruled on 2026-10-04 that the turn and river are solved at the table instead of stored, and that this phase builds it by driving GTOpen rather than a solver of the repo's own, knowing GTOpen carries no licence. It waits for 21 because a turn solve needs both players' ranges at the turn, which come from the committed flop strategy. What it must answer is `LIVE-TURN-AND-RIVER-SOLVING` in `backlog.yml`, and the hardest of it is the gate, which must pass on a machine with no GTOpen.
+Taylor ruled on 2026-10-04 that the turn is stored and the river solved at the table, and that the river is solved by driving GTOpen rather than a solver of the repo's own, knowing GTOpen carries no licence. This phase plays the turn from the strategy phase 21 stores and solves the river live, so it waits for 21; a river solve needs both players' ranges at the river, walked from the stored flop and turn strategy. What it must answer is `LIVE-TURN-AND-RIVER-SOLVING` in `backlog.yml`, and the hardest of it is the gate, which must pass on a machine with no GTOpen.
 
 ### 19. Heuristics And Merged Charts
 
@@ -149,7 +149,7 @@ Seven questions were open when this document was written and none was answerable
 
 **No heuristic guessing for missing chart spots** was ruled here as holding permanently, on the grounds that it is the property that makes every number in this repo mean something. **Superseded 2026-09-21.** It lifts at phase 19. The permanent framing was written for a tool that reports on hands already played, where refusing costs nothing; a bot that has to act at a table cannot refuse, and a fold is not a null answer. Until phase 19 lands it holds exactly as written, and `AGENTS.md` is the authority on that.
 
-**No runtime solver calls** was the other permanent row. **Superseded 2026-10-04 for the turn and river only.** Storing them is millions of spots per preflop line, while one live solve measured about two seconds on the turn and about 25 milliseconds on the river, so Taylor ruled that they are solved at the table. Preflop and the flop stay committed artifacts solved offline, permanently, and `AGENTS.md` is the authority on the terms.
+**No runtime solver calls** was the other permanent row. **Superseded 2026-10-04 for the river only.** Storing it is millions of spots per preflop line, while one live river solve measured about 25 milliseconds, so Taylor ruled that it is solved at the table. He first ruled the turn live as well and re-ruled the same day to store it. Preflop, the flop and the turn stay artifacts solved offline, permanently, and `AGENTS.md` is the authority on the terms.
 
 ### Spot counts this document used to state
 
