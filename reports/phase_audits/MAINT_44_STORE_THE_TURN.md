@@ -20,7 +20,8 @@ artifact, code path or test.
 - Phase 20, both roadmaps, the GTOpen notes, the loop-policy reason, `phase_status.yml` and three
   backlog entries follow.
 - Phase 21's contract on `main` still says it commits no turn spots. Its lane carries the amendment
-  (`82422cb`), and the two agree once it merges, which it will only do after this.
+  (`82422cb`), but phase 21 is mid-build and merges only at its own integration, so `main` disagrees
+  with itself until then; filed as `MAIN-STILL-HOLDS-THE-PHASE-21-CONTRACT-THAT-FORBIDS-STORING-THE-TURN`.
 
 ## How to check it without code
 
@@ -37,8 +38,11 @@ wrote none of this, completed. Note at
 - **Non-blockers, fixed.** A missing "than" in `NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER`;
   question 8 of `LIVE-TURN-AND-RIVER-SOLVING`, pots with three or more players, still read for the
   turn and now reads for the river.
-- **Alignment, resolved by sequencing.** Phase 21's contract on `main` contradicts the stored turn
-  until phase 21 merges; its branch carries the amendment, confirmed by reading it.
+- **Alignment, filed.** Phase 21's contract on `main` contradicts the stored turn until phase 21
+  merges, which is at its own integration and not soon; its branch carries the amendment, confirmed
+  by reading it. Filed as `MAIN-STILL-HOLDS-THE-PHASE-21-CONTRACT-THAT-FORBIDS-STORING-THE-TURN`.
+- The coordinator spelled out abbreviated backlog ids in the review note, because the citation
+  check reads them as ids.
 - **Held back by the reviewer:** the unedited entries
   `A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE` and
   `A-VOIDED-TURN-SELECTS-FOR-THE-FLOP-BETS-THAT-WORKED`, the phase 21 lane itself, and generated-doc

@@ -1,5 +1,19 @@
 schema_version: 1
 items:
+  - id: MAIN-STILL-HOLDS-THE-PHASE-21-CONTRACT-THAT-FORBIDS-STORING-THE-TURN
+    status: deferred
+    phase: "21"
+    title: Main's copy of phase 21's contract forbids the stored turn that AGENTS.md now says phase 21 provides
+    reason: >-
+      Found 2026-10-05 by MAINT-44's independent review and filed by the coordinator. MAINT-44
+      corrected main to Taylor's re-ruling that the turn is stored and only the river solved live.
+      `AGENTS.md`, both roadmaps and phase 22's contract now say phase 21 stores the turn, while
+      main's `docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md` still says "Do not commit turn or river
+      spots". Phase 21's lane carries the amendment at `82422cb`, but the phase is mid-build and
+      merges to main only at its own integration, so main disagrees with itself until then. Left
+      unedited on main because a second copy of the same amendment would conflict with the lane's.
+      Closes when phase 21 merges to main.
+
   - id: THE-FLOP-CAMPAIGN-IS-NOT-TOLD-ITS-CELLS-ARE-THE-TURN-RANGE-SOURCE
     status: deferred
     phase: "21"
