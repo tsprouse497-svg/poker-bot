@@ -158,7 +158,9 @@ glacier deep archive that prolly works."
 **Re-ruled by Taylor, 2026-10-04, after decision 1's re-ruling dropped the river:** turn only is about
 116 GB for five lines, a few dollars a month in the standard class with no 12 to 48 hour restore,
 against under a dollar in Glacier Deep Archive. Recommended the standard class; he answered "we can
-do standard on glacier", read as the standard class for every object.]
+do standard on glacier", read as the standard class for every object. Asked to confirm between the
+standard class and Glacier's standard retrieval tier, he answered "what you recommended": the standard
+class.]
 
 ## 5. Which cloud provider, and which machines to try
 

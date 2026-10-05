@@ -260,7 +260,7 @@ action nodes and against all four committed planned arenas to the byte; re-run b
     solved live. Owned by the session declaring phase 22 (MAINT-43); Taylor asked to give it his
     ruling. `AGENTS.md` wins over a contract, so this lane does not merge until `main` agrees.
   - [x] Decision 4 re-ruled: every object in the standard class ("we can do standard on glacier",
-    read as standard instead of Glacier, as recommended; a one-line confirmation is put to him).
+    read as standard instead of Glacier, as recommended; confirmed "what you recommended").
     Contract's storage criterion changed; reviewed read-only, no blocker.
   - [ ] Implementation: re-open the closure and street-row tests (manifest, report, street rows, and
     tree only if `closure_counts` drops the river) for the flop and turn closure, by the test lane.
