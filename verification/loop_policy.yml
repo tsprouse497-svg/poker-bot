@@ -114,13 +114,14 @@ phases:
     needs_human_data: false
     reason: >-
       Nothing in this repo measures how well the bot plays, and this phase builds the
-      thing that would. It commits an opponent pool - strategies, not stubs - and every
-      later strength claim is read against them, so a pool that is weak in a way nobody
-      noticed becomes a flattering number every phase after it inherits. That is committed
-      data in the sense this file cares about. The second reason is that a head-to-head
-      result and an exploitability figure are only as good as their error bars, and what
-      counts as enough hands to call a difference real is a judgement a human makes once
-      and the repo then lives with.
+      thing that would. Taylor narrowed it on 2026-10-05 to what the bot's departures from
+      the solve cost, taking the solve as good play. It commits the opponents that cost is
+      read against, and every later strength claim inherits them, so an opponent that is
+      weak in a way nobody noticed becomes a flattering number every phase after it. That is
+      committed data in the sense this file cares about. The second reason is that a
+      head-to-head result is only as good as its error bars, and what counts as enough hands
+      to call a difference real is a judgement a human makes once and the repo then lives
+      with.
   "19":
     auto_advance: false
     needs_human_data: false

@@ -74,6 +74,8 @@ Depends on 14.
 
 Nothing in this repo measures how well the bot plays. Every published number is agreement with somebody else's decisions, or coverage of a decision space, and a bot can score well on both while losing money. The other kind of number needs an opponent with a strategy, and this repo does not have one.
 
+Taylor narrowed it on 2026-10-05. The solve is taken as good play, so this phase measures only what the bot's departures from it cost, in chips per 100 hands with error bars: refused spots and the check-fold behind them, off-size opens answered from the 2.5bb cell, bets matched to the nearest menu size, and later phase 19's rules of thumb. Nothing in it measures whether the solve is right.
+
 It comes before 19 because a merge of solved cells with heuristics can otherwise only be asserted to help.
 
 ### 21. The Flop Campaign

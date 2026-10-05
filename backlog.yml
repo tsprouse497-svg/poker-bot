@@ -282,6 +282,11 @@ items:
       the same question from the count side and prices it in how often the bot is dealt the wrong
       side rather than in chips won. Also REALIZATION-MODEL-UNDERPRICES-POSITION and
       REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH, which are the mechanism.
+      Narrowed 2026-10-05 by MAINT-45. Taylor ruled that phase 18 takes the solve as good play and
+      measures only what the bot's departures from it cost. The inversions are the solve's own
+      play rather than a departure, so that ruling reads them as the first case above, free by the
+      solve's own reckoning, and phase 18 does not price them. Left against phase 18 for its stage 1
+      to confirm and close, rather than closed here.
   - id: THE-MULTIWAY-THRESHOLD-WAS-MOVED-FOR-A-STUDENT-AND-MEASURED-ON-A-CIRCULAR-QUANTITY
     status: deferred
     phase: contract-update
