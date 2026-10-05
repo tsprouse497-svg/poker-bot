@@ -42,5 +42,5 @@ Two rounds by read-only reviewers that wrote none of this. Notes in
 
 ## Gate
 
-Green on the first commit's tree with the fixes in progress. The run on the final tree is recorded
-in the ExecPlan.
+Green, 50 of 50, `check_gate_bite` included, on the review fixes and this packet. The closeout
+edits are covered by the closeout gate.

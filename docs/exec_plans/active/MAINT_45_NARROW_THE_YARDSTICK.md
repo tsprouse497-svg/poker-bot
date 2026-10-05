@@ -65,7 +65,7 @@ Nothing under `data/`, `src/`, `tests/` or `scripts/` changes.
   departure list corrected and widened, the lean's limits stated, two more backlog entries noted.
 - [x] Second review round on the fixes and the phase 20 change: no blocker, three wording fixes
   folded in, the queue gap filed as THE-REVIEW-QUEUE-LISTS-A-PHASE-WHOSE-DEPENDENCIES-ARE-NOT-MET-AS-WAITING-ON-YOU.
-- [ ] Gate, packet, closeout to idle, gate again, merge, push.
+- [x] Gate, packet, closeout to idle, gate again, merge, push.
 
 ## Verification
 
@@ -74,8 +74,9 @@ verdict rather than its exit code.
 
 ## Outcome
 
-Not yet.
+Phase 18 now measures only what the bot's departures from the solve cost; phase 20 says it is
+left open on purpose. The review queue's count still lists phase 20, filed. Gate green 50 of 50.
 
 ## Next Agent Bootstrap
 
-Worktree `~/projects/poker-bot-worktrees/maint-45`. Next: the independent review, then the gate.
+Closed. Phase 18's stage 1 builds its contract on the narrowed Scope.
