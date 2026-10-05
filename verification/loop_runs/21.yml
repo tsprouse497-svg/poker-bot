@@ -1,8 +1,5 @@
 auto_advance: false
-halt_reason: 'Taylor re-ruled decision 1 on 2026-10-04: the turn is stored and only
-  the river is solved at the table. Phase 21''s river storage and closure criteria
-  need a contract-update, then a test re-open.'
-loop: halted
+loop: running
 phase_id: '21'
 schema_version: 1
 stage: 6

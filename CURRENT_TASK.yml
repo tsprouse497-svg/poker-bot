@@ -1,11 +1,16 @@
 task_id: PHASE_21_FLOP_CAMPAIGN
 active_phase: '21'
-task_mode: contract-update
-base_commit: 515d10742c197d9462e9aa3d8e80d0fabad6882f
+task_mode: implementation
+base_commit: 44d3b0866ee947109c8b25f422b8aa318bf0c005
 approved_scope:
-- docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
-- reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md
+- tests/test_flop_campaign_manifest.py
+- tests/test_flop_campaign_report.py
+- tests/test_flop_campaign_street_rows.py
+- tests/test_flop_campaign_tree.py
+- tests/test_flop_campaign_lines.py
+- verification/mutations.yml
+- verification/freeze.lock
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -4625,4 +4630,14 @@ scope_change_log:
       he confirmed the stored turn and live river after `main` declared phase 22 with a live turn,
       and he moved every object to the standard storage class now that only the turn is stored
       (decision 4). The contract's storage criterion follows.
+  - date: 2026-10-04
+    reason: >-
+      Back to implementation after the river contract-update, and the ninth freeze re-open, for
+      Taylor's re-ruling of decision 1 alone: a board closes on the flop and the turn and the river is
+      never stored. Five frozen test files, `verification/mutations.yml` and the lock open for the
+      closure counts, the manifest and fetch checks, and the street-row format, which pin a stored
+      river. No assertion is weakened: every river count stays pinned where it is a fact about the
+      tree the solve builds; it leaves only the obligations to keep it. Written by the test lane,
+      reviewed read-only, re-frozen, and narrowed again in the next entry. `base_commit` moves to
+      44d3b08.
 
