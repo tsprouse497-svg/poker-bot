@@ -9,6 +9,7 @@ approved_scope:
 - tests/test_flop_campaign_street_rows.py
 - tests/test_flop_campaign_tree.py
 - tests/test_flop_campaign_lines.py
+- tests/test_flop_campaign_costs.py
 - verification/mutations.yml
 - verification/freeze.lock
 standing_scope:
@@ -4640,4 +4641,9 @@ scope_change_log:
       tree the solve builds; it leaves only the obligations to keep it. Written by the test lane,
       reviewed read-only, re-frozen, and narrowed again in the next entry. `base_commit` moves to
       44d3b08.
+  - date: 2026-10-04
+    reason: >-
+      `tests/test_flop_campaign_costs.py` joins the river re-open for one docstring: its invented
+      timing fixture says the harvest covers every flop, turn and river decision point, and the
+      contract now bills the flop and the turn only. No assertion changes.
 

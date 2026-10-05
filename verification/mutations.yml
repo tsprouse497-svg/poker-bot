@@ -1707,11 +1707,11 @@ mutations:
 
   - id: flop-campaign-keeps-the-river-under-the-dealt-turn
     description: >-
-      Closure counts every river GTOpen builds, including the 32,291 decision points under the
-      card the turn already dealt, which can never occur. The committed line's river reads
-      1,582,259 instead of 1,549,968, so every closed board's manifest counts disagree with the
-      tree, and a harvest built to this count would store two percent of every river twice over
-      for situations no hand reaches.
+      The reachable river the tree counts takes in every river GTOpen builds, including the
+      32,291 decision points under the card the turn already dealt, which can never occur. The
+      river is never stored (decision 1, re-ruled), but it is the tree figure the report prints
+      and the later phase that solves the river at the table sizes against: the committed line's
+      reads 1,582,259 instead of 1,549,968, two percent of situations no hand reaches.
     file: src/poker_training_bot/solver_artifacts/postflop_tree_size.py
     find: "river_kept = river_built // TURN_CARDS * RIVER_CARDS"
     replace: "river_kept = river_built"
@@ -1744,10 +1744,11 @@ mutations:
   - id: flop-campaign-manifest-accepts-any-closure-count
     description: >-
       The manifest check stops comparing a closed board's per-street decision points with the
-      closure counts of that line's own tree. A board short one river card, one that kept the
-      32,291 unreachable river points, and a small blind board carrying the button's 6,419 and
-      1,549,968 all pass as closed, so a harvest that walked the wrong tree, or stopped part way,
-      commits a board the bot will refuse on a later street. The check lives in one place, the
+      closure counts of that line's own tree, the flop and the turn. A board one turn decision
+      point or one turn card short, one carrying a river count the store never holds, and a small
+      blind board carrying the button's 6,419 turn decision points all pass as closed, so a harvest
+      that walked the wrong tree, or stopped part way, commits a board the bot will refuse on the
+      turn. The check lives in one place, the
       manifest checker; the fetch may compare the same counts again against the index and the
       tree, and that second check does not rescue this mutation, because the manifest tests call
       the checker directly.

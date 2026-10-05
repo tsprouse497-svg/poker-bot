@@ -13,7 +13,7 @@ admitted line under `data/artifacts/postflop/manifests/`:
      "flops_held": <flops the closed boards stand for, of 22,100>,
      "refused_boards": <how many boards below are refused>,
      "boards": [{"board": ["Kh", "7d", "2c"], "status": "closed" | "refused",
-                 "decision_points": {"flop": 14, "turn": 6419, "river": 1549968},
+                 "decision_points": {"flop": 14, "turn": 6419},
                  "achieved_exploitability_pct_of_pot": 0.283, "iterations": 340,
                  "machine": "...", "threads": 10,
                  "strategy_digests": {"<spot key>": "<sha256>"}}]}
@@ -23,8 +23,11 @@ four - and holds the strategy digest of each of those spots from the closing sol
 ties the manifest to the committed sample offline rather than two numbers alone.
 
 and the line's full index, in object storage, lists per board the same counts and one object per
-street with its key and sha256. A board keeps every decision point of its line from its one solve,
-or refuses all of them: a refused board carries zero on every street.
+stored street with its key and sha256. A board keeps every flop and turn decision point of its line
+from its one solve, or refuses all of them: a refused board carries zero on every stored street.
+**The river is never stored** (decision 1, re-ruled 2026-10-04: it is solved at the table by a
+later phase), so no manifest, index or object carries a river count or a river object; the river
+the solve builds is a tree figure, pinned in `tests/test_flop_campaign_tree.py`.
 
 **The fetch is tested against an injected store**, because AWS is a hard external boundary. The
 store is a dict of key to bytes with a `get` method; nothing here opens a socket or needs a
@@ -47,14 +50,12 @@ from scripts.repo_paths import REPO_ROOT
 POSTFLOP_DIR = REPO_ROOT / "data" / "artifacts" / "postflop"
 SAMPLE_DIR = POSTFLOP_DIR / "sample"
 COMMITTED_LINE = "BTN:raise@2.5,BB:call"
-CLOSED_COUNTS = {"flop": 14, "turn": 6_419, "river": 1_549_968}
+CLOSED_COUNTS = {"flop": 14, "turn": 6_419}
 SMALL_BLIND_LINE = "SB:raise@2.5,BB:call"
-SMALL_BLIND_COUNTS = {"flop": 14, "turn": 6_566, "river": 1_620_528}
+SMALL_BLIND_COUNTS = {"flop": 14, "turn": 6_566}
 """The small blind's line closes on its own tree, pot 5.0: 134 decision points on each of 49
-turns and 689 on each reachable river, with 33,761 under the dealt turn card not kept, on the
-clone's tree (decision 17). Pinned in `tests/test_flop_campaign_tree.py`, where the pin's 657 and
-32,193 are kept, recomputed by two independent ports of `tree.rs`, and re-derived for the clone by
-a tree counter linked against its solver crate."""
+turns, against the button's 131, on the clone's tree (decision 17) and the pin's alike. Pinned in
+`tests/test_flop_campaign_tree.py`, with the river each line's solve builds and does not store."""
 PHASE_16_BOARDS = (("9c", "8c", "7c"), ("Kh", "7d", "2c"), ("8c", "8d", "3c"), ("Ac", "8c", "3c"))
 
 SAMPLE_SHA256 = {
@@ -242,7 +243,7 @@ def refused_board(board):
     return {
         "board": list(board),
         "status": "refused",
-        "decision_points": {"flop": 0, "turn": 0, "river": 0},
+        "decision_points": {"flop": 0, "turn": 0},
         "achieved_exploitability_pct_of_pot": 1.37,
         "iterations": 1200,
         "machine": "invented machine for a test",
@@ -285,12 +286,12 @@ class TestTheManifestChecksRefuseAnInconsistentManifest:
         ("why", "change"),
         [
             (
-                "a river count one short",
-                lambda m: m["boards"][0]["decision_points"].update(river=1_549_967),
+                "a turn count one short",
+                lambda m: m["boards"][0]["decision_points"].update(turn=6_418),
             ),
             (
-                "the unreachable river kept too",
-                lambda m: m["boards"][0]["decision_points"].update(river=1_582_259),
+                "a turn short of one turn card's 131",
+                lambda m: m["boards"][0]["decision_points"].update(turn=6_288),
             ),
             (
                 "a closed board missing its turn",
@@ -330,6 +331,23 @@ class TestTheManifestChecksRefuseAnInconsistentManifest:
     def test_an_inconsistent_manifest_is_refused(self, manifest_module, why, change) -> None:
         assert owed(manifest_module, "manifest_errors")(spoil(change)), why
 
+    @pytest.mark.parametrize(
+        ("line", "counts", "river"),
+        [
+            (COMMITTED_LINE, CLOSED_COUNTS, 1_549_968),
+            (COMMITTED_LINE, CLOSED_COUNTS, 1_582_259),
+            (COMMITTED_LINE, CLOSED_COUNTS, 0),
+        ],
+    )
+    def test_a_closed_board_carrying_any_river_count_is_refused(
+        self, manifest_module, line, counts, river
+    ) -> None:
+        """Decision 1, re-ruled: a river count - reachable, as built, or zero - claims a store
+        that does not exist. The small blind's case is in the next class."""
+        manifest = a_manifest(line, {**counts, "river": river})
+
+        assert owed(manifest_module, "manifest_errors")(manifest), river
+
     def test_a_refused_board_does_not_count_toward_the_flops_held(self, manifest_module) -> None:
         """36 is `Kh7d2c`'s 24 and `8c8d3c`'s 12; `Jd6d3c`'s 12 flops are refused, not held."""
         assert a_manifest()["flops_held"] == 24 + 12
@@ -339,7 +357,7 @@ class TestTheManifestChecksRefuseAnInconsistentManifest:
 class TestAClosedBoardIsClosedOnItsOwnLinesTree:
     """A board closes on the decision points of the line it was solved for, not the button's.
     The small blind's line goes first (decision 9), and a harvest that walked the 5.5 pot's tree
-    for it would write 6,419 and 1,549,968 - which a checker hardwired to one line's counts
+    for it would write 6,419 turn decision points - which a checker hardwired to one line's counts
     accepts."""
 
     def test_the_small_blind_line_s_own_counts_are_accepted(self, manifest_module) -> None:
@@ -352,14 +370,14 @@ class TestAClosedBoardIsClosedOnItsOwnLinesTree:
         [
             ("the button's counts on the small blind's line", SMALL_BLIND_LINE, CLOSED_COUNTS),
             (
-                "the small blind's river with the dealt turn's river kept",
+                "the small blind's turn short of one turn card's 134",
                 SMALL_BLIND_LINE,
-                {**SMALL_BLIND_COUNTS, "river": 1_654_289},
+                {**SMALL_BLIND_COUNTS, "turn": 6_432},
             ),
             (
-                "the small blind's turn with the button's river",
+                "the small blind's flop and turn with its own river kept",
                 SMALL_BLIND_LINE,
-                {**SMALL_BLIND_COUNTS, "river": 1_549_968},
+                {**SMALL_BLIND_COUNTS, "river": 1_620_528},
             ),
             (
                 "the small blind's counts on the cutoff's line",
@@ -501,15 +519,15 @@ def flop_object(keys) -> bytes:
 
 def published_line():
     """A line index, its objects and its manifest, all consistent, as an upload would leave
-    them. Each flop object holds the board's fourteen flop decision points; the turn and river
-    bytes are stand-ins, since their format is stage 6's, and what the fetch checks of them is
-    their digests."""
+    them. Each flop object holds the board's fourteen flop decision points; the turn bytes are
+    stand-ins, since their format is stage 6's, and what the fetch checks of them is their
+    digests. There is no river object: the river is never stored."""
     objects: dict[str, bytes] = {}
     boards = []
     for board in FETCH_BOARDS:
         name = "".join(board)
         listed = {}
-        for street in ("flop", "turn", "river"):
+        for street in ("flop", "turn"):
             if street == "flop":
                 key = f"postflop/btn-v-bb/{name}.flop.json"
                 objects[key] = flop_object(flop_spot_keys(COMMITTED_LINE, board))
@@ -547,7 +565,8 @@ class TestTheFetchChecksEverythingItFetches:
     """Criteria: every object is stored with its digest in the index, and a fetch command a fresh
     machine can run; a machine that has not fetched refuses with the not-fetched code; the fetch
     checks every fetched object against the counts, and the index against the manifest's
-    fingerprint. With the river kept, a machine that plays only the flop fetches by street."""
+    fingerprint. A machine that plays only the flop fetches by street; the turn is fetched by the
+    phase that plays it, and there is no river object to fetch."""
 
     def test_the_failure_codes_are_four_distinct_names(self, fetch) -> None:
         codes = {
@@ -577,7 +596,7 @@ class TestTheFetchChecksEverythingItFetches:
 
         owed(fetch, "require_fetched")(manifest, tmp_path, street="flop")
 
-    def test_a_flop_fetch_does_not_pull_the_turn_or_the_river(self, fetch, tmp_path) -> None:
+    def test_a_flop_fetch_does_not_pull_the_turn(self, fetch, tmp_path) -> None:
         manifest, _, objects = published_line()
         store = DictStore(objects)
 
@@ -622,11 +641,11 @@ class TestTheFetchChecksEverythingItFetches:
     def test_an_object_set_whose_counts_differ_from_the_manifest_is_rejected(
         self, fetch, tmp_path
     ) -> None:
-        """The index is re-published with one board's river short by the 659 of one river card,
-        and the manifest re-fingerprinted to match, so only the count comparison can see it."""
+        """The index is re-published with one board's turn short by the 131 of one turn card, and
+        the manifest re-fingerprinted to match, so only the count comparison can see it."""
         manifest, index, objects = published_line()
         index = copy.deepcopy(index)
-        index["boards"][1]["decision_points"]["river"] -= 659
+        index["boards"][1]["decision_points"]["turn"] -= 131
         objects = republish(index, objects)
         manifest["index"]["sha256"] = sha256(objects[INDEX_KEY])
         manifest["index"]["bytes"] = len(objects[INDEX_KEY])
@@ -639,20 +658,40 @@ class TestTheFetchChecksEverythingItFetches:
     def test_a_manifest_and_index_that_agree_but_not_with_the_tree_are_rejected(
         self, fetch, tmp_path
     ) -> None:
-        """Both short one river card, consistently: the fingerprint and the index-to-manifest
+        """Both short one turn card, consistently: the fingerprint and the index-to-manifest
         comparison pass, and only a comparison against the line's own tree can see it."""
         manifest, index, objects = published_line()
         index = copy.deepcopy(index)
-        index["boards"][1]["decision_points"]["river"] -= 659
+        index["boards"][1]["decision_points"]["turn"] -= 131
         objects = republish(index, objects)
         manifest["index"]["sha256"] = sha256(objects[INDEX_KEY])
         manifest["index"]["bytes"] = len(objects[INDEX_KEY])
-        manifest["boards"][1]["decision_points"]["river"] -= 659
+        manifest["boards"][1]["decision_points"]["turn"] -= 131
 
         with pytest.raises(owed(fetch, "FetchError")) as raised:
             owed(fetch, "fetch_line")(manifest, DictStore(objects), tmp_path, streets=("flop",))
 
         assert raised.value.code == owed(fetch, "DECISION_POINTS_MISMATCH")
+
+    def test_a_manifest_and_index_that_both_carry_a_river_are_rejected(self, fetch, tmp_path):
+        """Consistent and fingerprinted, and still a river count no stored closure has."""
+        manifest, index, objects = published_line()
+        index = copy.deepcopy(index)
+        index["boards"][1]["decision_points"]["river"] = 1_549_968
+        objects = republish(index, objects)
+        manifest["index"]["sha256"] = sha256(objects[INDEX_KEY])
+        manifest["index"]["bytes"] = len(objects[INDEX_KEY])
+        manifest["boards"][1]["decision_points"]["river"] = 1_549_968
+
+        with pytest.raises(owed(fetch, "FetchError")) as raised:
+            owed(fetch, "fetch_line")(manifest, DictStore(objects), tmp_path, streets=("flop",))
+
+        assert raised.value.code == owed(fetch, "DECISION_POINTS_MISMATCH")
+
+    def test_a_fetch_that_asks_for_the_river_is_refused(self, fetch, tmp_path) -> None:
+        manifest, _, objects = published_line()
+        with pytest.raises((ValueError, owed(fetch, "FetchError"))):
+            owed(fetch, "fetch_line")(manifest, DictStore(objects), tmp_path, streets=("river",))
 
     def test_every_published_board_is_its_class_s_canonical_dressing(self) -> None:
         """A guard on this file's own fixture: the boards it publishes are ones the manifest

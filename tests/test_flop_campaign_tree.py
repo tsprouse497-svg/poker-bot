@@ -24,6 +24,12 @@ figures were measured on 2026-10-04 by a tree counter linked against the clone's
 building each spot unsolved under both rules; the old rule reproduced every figure this file pinned
 before, to the byte (the ExecPlan's decision 17 slice has the commands).
 
+**What closes is what is stored (decision 1, re-ruled 2026-10-04): the flop and the turn.**
+`closure_counts(figures)` returns `{"flop": ..., "turn": ...}` and no river key. The river the solve
+still builds is a tree figure, kept apart: `river_tree_points(figures)` is the reachable river, the
+48 river cards under each of the 49 turn cards, and `unreachable_river_points(figures)` the river
+`tree.rs` also builds under the turn card already dealt.
+
 **The four planned arenas phase 16 recorded are the check the port has to pass to the byte, on the
 pin's tree, which is the tree phase 16 solved.** Each object's `solve.arena_bytes` was written
 through `arena_bytes` in `postflop_transport`, which reads the server's decimal `arena_mb` as
@@ -228,20 +234,14 @@ class TestThePinSTreeIsKeptAsTheRuleItWas:
         self, tree, pinned_committed_tree, pinned_small_blind_tree
     ) -> None:
         closure = owed(tree, "closure_counts")
+        river = owed(tree, "river_tree_points")
         unreachable = owed(tree, "unreachable_river_points")
 
-        assert dict(closure(pinned_committed_tree)) == {
-            "flop": 14,
-            "turn": 6_419,
-            "river": 1_477_056,
-        }
-        assert closure(pinned_committed_tree)["river"] == 628 * 49 * 48
+        assert dict(closure(pinned_committed_tree)) == {"flop": 14, "turn": 6_419}
+        assert river(pinned_committed_tree) == 1_477_056 == 628 * 49 * 48
         assert unreachable(pinned_committed_tree) == 30_772 == 628 * 49
-        assert dict(closure(pinned_small_blind_tree)) == {
-            "flop": 14,
-            "turn": 6_566,
-            "river": 1_545_264,
-        }
+        assert dict(closure(pinned_small_blind_tree)) == {"flop": 14, "turn": 6_566}
+        assert river(pinned_small_blind_tree) == 1_545_264
         assert unreachable(pinned_small_blind_tree) == 32_193
 
     @pytest.mark.parametrize("line", [SMALL_BLIND_LINE, COMMITTED_LINE])
@@ -253,6 +253,7 @@ class TestThePinSTreeIsKeptAsTheRuleItWas:
         build = owed(tree, "line_tree_figures")
         new, old = build(line), build(line, **PIN)
         closure = owed(tree, "closure_counts")
+        river = owed(tree, "river_tree_points")
 
         assert tuple(new.action_nodes["flop"]) == tuple(old.action_nodes["flop"])
         assert tuple(new.action_nodes["turn"]) == tuple(old.action_nodes["turn"])
@@ -262,18 +263,18 @@ class TestThePinSTreeIsKeptAsTheRuleItWas:
         assert new.nodes > old.nodes
         assert closure(new)["flop"] == closure(old)["flop"] == 14
         assert closure(new)["turn"] == closure(old)["turn"]
-        assert closure(new)["river"] > closure(old)["river"]
+        assert river(new) > river(old)
 
     def test_each_river_card_gains_the_same_count_on_every_card(self, tree) -> None:
         """628 a river card on the pin's committed tree, 659 on the clone's, 31 more; 657 and
         689 on the small blind's, 32 more."""
-        closure = owed(tree, "closure_counts")
+        river = owed(tree, "river_tree_points")
         build = owed(tree, "line_tree_figures")
 
-        assert closure(build(COMMITTED_LINE, **PIN))["river"] == 628 * 49 * 48
-        assert closure(build(COMMITTED_LINE))["river"] == 659 * 49 * 48
-        assert closure(build(SMALL_BLIND_LINE, **PIN))["river"] == 657 * 49 * 48
-        assert closure(build(SMALL_BLIND_LINE))["river"] == 689 * 49 * 48
+        assert river(build(COMMITTED_LINE, **PIN)) == 628 * 49 * 48
+        assert river(build(COMMITTED_LINE)) == 659 * 49 * 48
+        assert river(build(SMALL_BLIND_LINE, **PIN)) == 657 * 49 * 48
+        assert river(build(SMALL_BLIND_LINE)) == 689 * 49 * 48
 
 
 # --------------------------------------------------------------------------- #
@@ -281,36 +282,45 @@ class TestThePinSTreeIsKeptAsTheRuleItWas:
 # --------------------------------------------------------------------------- #
 
 
-class TestOneSolveClosesEveryStreetForBothSeats:
-    """Criterion: on the committed line one flop's solve holds 14 flop, 6,419 turn and 1,549,968
-    reachable river decision points, 659 for each of 49 turn and 48 river cards; `tree.rs` also
-    builds a river under the card the turn already dealt, 32,291 more, which can never occur and
-    are not kept. `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`."""
+class TestOneSolveClosesTheFlopAndTheTurnForBothSeats:
+    """Criterion: a solved board closes, for both seats, on the flop and the turn: on the committed
+    line one flop's solve holds 14 flop and 6,419 turn decision points, 131 for each of 49 turn
+    cards. The river is not stored (decision 1, re-ruled 2026-10-04) but the solve still builds and
+    holds it: 1,549,968 reachable river decision points, 659 for each of 49 turn and 48 river cards,
+    and 32,291 more under the card the turn already dealt, which can never occur. Those stay pinned
+    as tree figures. `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`."""
 
     def test_the_committed_line_closes_on_these_counts(self, tree, committed_tree) -> None:
         counts = owed(tree, "closure_counts")(committed_tree)
 
-        assert dict(counts) == {"flop": 14, "turn": 6_419, "river": 1_549_968}
+        assert dict(counts) == {"flop": 14, "turn": 6_419}
+
+    def test_the_closure_holds_no_river(self, tree, committed_tree, small_blind_tree) -> None:
+        """What is stored is what closes; a closure with a river key is a river someone keeps."""
+        for figures in (committed_tree, small_blind_tree):
+            assert "river" not in owed(tree, "closure_counts")(figures)
 
     def test_the_counts_are_per_card_figures_times_the_cards(self, tree, committed_tree) -> None:
         counts = owed(tree, "closure_counts")(committed_tree)
 
         assert counts["turn"] == 131 * 49
-        assert counts["river"] == 659 * 49 * 48
+        assert owed(tree, "river_tree_points")(committed_tree) == 1_549_968 == 659 * 49 * 48
 
-    def test_the_river_under_the_dealt_turn_card_is_counted_and_not_kept(
+    def test_the_river_under_the_dealt_turn_card_is_counted_apart(
         self, tree, committed_tree
     ) -> None:
         unreachable = owed(tree, "unreachable_river_points")(committed_tree)
-        counts = owed(tree, "closure_counts")(committed_tree)
+        river = owed(tree, "river_tree_points")(committed_tree)
 
         assert unreachable == 32_291 == 659 * 49
-        assert counts["river"] + unreachable == sum(committed_tree.action_nodes["river"])
+        assert river + unreachable == sum(committed_tree.action_nodes["river"])
 
     def test_the_small_blind_line_closes_on_its_own_counts(self, tree, small_blind_tree) -> None:
         counts = owed(tree, "closure_counts")(small_blind_tree)
 
-        assert dict(counts) == {"flop": 14, "turn": 6_566, "river": 1_620_528}
+        assert dict(counts) == {"flop": 14, "turn": 6_566}
+        assert counts["turn"] == 134 * 49
+        assert owed(tree, "river_tree_points")(small_blind_tree) == 1_620_528 == 689 * 49 * 48
         assert owed(tree, "unreachable_river_points")(small_blind_tree) == 33_761 == 689 * 49
 
 

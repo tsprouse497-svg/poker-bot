@@ -1,31 +1,32 @@
-"""Phase 21, stage 4: how a turn or river frequency is stored, and how an object is counted.
+"""Phase 21, stage 4: how a turn frequency is stored, and how an object is counted.
 
 Authored before any implementation exists, from decision 15 of
 `reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md` as Taylor re-ruled it on
-2026-10-03: **every turn and river frequency is rounded to a tenth of a percent, which is the flop's
+2026-10-03: **every turn frequency is rounded to a tenth of a percent, which is the flop's
 thousandths, with the flop's rule that the largest entry pays the rounding residue so a decision
 still sums to one; storage stays two bytes a number.** Stage 6 writes the format and cannot write
 its tests, because stage 5 takes `tests/**` out of scope, so the format is pinned here or nowhere.
 
 **The rounding is the flop's own, not a second copy of it.** `postflop_harvest._rounded` already
-makes a flop cell's row: thousandths, summed in integers, residue to the largest entry. A turn or
-river row encoded and decoded must equal exactly what that function makes of the same solver row,
+makes a flop cell's row: thousandths, summed in integers, residue to the largest entry. A turn row
+encoded and decoded must equal exactly what that function makes of the same solver row,
 so one rule rounds every street and a later change to it cannot leave two streets disagreeing.
 
 **Two bytes a number means a whole count, not a half-precision float.** Each stored number is the
 row entry in thousandths, an unsigned integer from 0 to 1,000, little-endian - both x86 and
 Graviton are little-endian, so a reader maps the words with no byte swap. IEEE half precision is
 also two bytes and is the plausible wrong reading: near 1.0 it steps in about 0.0005, so its rows
-are neither thousandths nor exactly one in sum, and 23 TB of river would be committed in a format
+are neither thousandths nor exactly one in sum, and every turn object would be written in a format
 the ruling does not describe. A decoder refuses a word above 1,000 and a row whose words do not sum
 to 1,000, which is what a half-precision row read as counts looks like.
 
 **An object's decision-point count is read back from the object.** The manifest and the line index
-claim 6,419 turn and 1,549,968 river decision points a board; the fetch checks a fetched flop
-object by its keys (`tests/test_flop_campaign_raise_key.py`), and checks a turn or river object by
-the count this module reads out of it. How an object lays out its rows, and whether it is
-compressed - the trial flops measure that - is stage 6's; these tests pin the round trip, the
-words and the count, not the layout.
+claim 14 flop and 6,419 turn decision points a board; the fetch checks a fetched flop object by its
+keys (`tests/test_flop_campaign_raise_key.py`), and checks a turn object by the count this module
+reads out of it. **The river is never stored** (decision 1, re-ruled 2026-10-04): the two-byte
+format is the turn's alone, and there is no river object to encode, count or fetch. How an
+object lays out its rows, and whether it is compressed - the trial flops measure that - is stage
+6's; these tests pin the round trip, the words and the count, not the layout.
 
 `solver_artifacts.postflop_street_rows` is the module, named the way its siblings are: it is the
 store of one street's rows, as `postflop_harvest` is the harvest and `postflop_fetch` the fetch.
@@ -50,7 +51,7 @@ from tests.test_flop_campaign_manifest import (
 
 @pytest.fixture(scope="module")
 def rows():
-    """`solver_artifacts.postflop_street_rows`: the turn and river row format."""
+    """`solver_artifacts.postflop_street_rows`: the turn row format."""
     import poker_training_bot.solver_artifacts.postflop_street_rows as module
 
     return module

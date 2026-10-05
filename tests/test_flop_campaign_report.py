@@ -175,8 +175,16 @@ class TestTheReportPrintsWhatTheContractNames:
         assert "limp" in committed_report.lower()
 
     def test_the_closure_counts_are_printed(self, committed_report) -> None:
-        for figure in ("6,419", "1,549,968", "32,291"):
-            assert figure in committed_report, figure
+        """The stored closure: 14 flop and 6,419 turn decision points on the committed line."""
+        assert "6,419" in committed_report
+
+    def test_the_river_is_printed_only_as_a_tree_figure_not_stored(self, committed_report):
+        """Decision 1, re-ruled: the solve still builds the river, so its counts are printed, and
+        every row that prints one says it is not stored."""
+        for figure in ("1,549,968", "32,291", "1,620,528", "33,761"):
+            rows = [row for row in committed_report.splitlines() if figure in row]
+            assert rows, figure
+            assert all("not stored" in row.lower() for row in rows), (figure, rows)
 
     def test_the_small_blind_line_s_own_figures_are_printed(self, committed_report) -> None:
         """Every per-line figure is printed per line, so the small blind's 5.0-pot tree shows
@@ -195,9 +203,6 @@ class TestTheReportPrintsWhatTheContractNames:
     ) -> None:
         assert "22,100" in committed_report
         assert "74.9" in committed_report
-
-    def test_the_river_under_the_dealt_turn_is_said_not_to_be_kept(self, committed_report):
-        assert "not kept" in committed_report.lower()
 
 
 # --------------------------------------------------------------------------- #
@@ -234,12 +239,23 @@ class TestAFigureNotYetMeasuredSaysSo:
 
 
 class TestTheGeneratorRefusesAFigureThatDoesNotReconcile:
-    def test_a_closed_board_short_of_one_river_decision_point_fails(
+    def test_a_closed_board_short_of_one_turn_decision_point_fails(
         self, generator, refusal, tree_copy
     ) -> None:
         rewrite(
             committed_manifest_path(tree_copy),
-            lambda m: m["boards"][0]["decision_points"].update(river=1_549_967),
+            lambda m: m["boards"][0]["decision_points"].update(turn=6_418),
+        )
+
+        with pytest.raises(refusal):
+            owed(generator, "render_report")(tree_copy)
+
+    def test_a_closed_board_carrying_a_river_count_fails(
+        self, generator, refusal, tree_copy
+    ) -> None:
+        rewrite(
+            committed_manifest_path(tree_copy),
+            lambda m: m["boards"][0]["decision_points"].update(river=1_549_968),
         )
 
         with pytest.raises(refusal):

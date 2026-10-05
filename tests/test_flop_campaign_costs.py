@@ -142,7 +142,7 @@ FULL_STRETCH = {
     "upload": 150.0,
 }
 """Seconds, invented. The five parts the contract bills: server start, tree build, solve,
-harvest of every flop, turn and river decision point, and upload."""
+harvest of every flop and turn decision point, and upload."""
 
 BAR = 18_710_513_792
 """A memory bar in bytes; the small blind's line's largest planned arena in the server's unit,

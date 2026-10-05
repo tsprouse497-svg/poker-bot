@@ -466,17 +466,17 @@ def fetched_folders(tmp_path, cells) -> dict:
     fetched folder holding that board's line index and flop object where `fetch_line` leaves
     them - each at its object key under the folder. The flop object is a JSON document
     `{"cells": [cell documents]}` in the committed cell schema, written uncompressed, holding
-    `cells`. The turn and river objects are listed and not fetched, which is the flop-only
-    machine. The object holds fewer than the board's fourteen cells: the fetch checks which
-    decision points an object holds, and this folder is written as if it had passed."""
+    `cells`. The turn object is listed and not fetched, which is the flop-only machine, and
+    there is no river object: the river is never stored. The object holds fewer than the board's
+    fourteen cells: the fetch checks which decision points an object holds, and this folder is
+    written as if it had passed."""
     fetched = tmp_path / "fetched"
     flop_digest = write(
         fetched / FETCHED_FLOP_KEY, json.dumps({"cells": list(cells)}, sort_keys=True).encode()
     )
     streets = {"flop": {"key": FETCHED_FLOP_KEY, "sha256": flop_digest}}
-    for street in ("turn", "river"):
-        streets[street] = {"key": f"postflop/btn-v-bb/Kh7d2c.{street}.bin", "sha256": "0" * 64}
-    counts = {"flop": 14, "turn": 6_419, "river": 1_549_968}
+    streets["turn"] = {"key": "postflop/btn-v-bb/Kh7d2c.turn.bin", "sha256": "0" * 64}
+    counts = {"flop": 14, "turn": 6_419}
     index = {
         "line_index_schema_version": 1,
         "preflop_line": "BTN:raise@2.5,BB:call",
