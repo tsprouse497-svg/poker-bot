@@ -1,14 +1,14 @@
 {
  "index_schema_version": 1,
- "object_storage": "local directory /Users/taylorsprouse/poker-bot-solve-objects/postflop (no remote store is provisioned yet)",
+ "object_storage": "local directory /Users/taylorsprouse/poker-bot-solve-objects/postflop-clone-b058335 (no remote store is provisioned yet)",
  "covered_preflop_lines": [
   "t6/d100/BTN/BTN:raise@2.5,BB:call",
   "t6/d100/BB/BTN:raise@2.5,BB:call"
  ],
  "line_count_bound_by": "campaign-cost",
  "cells_solved_and_rejected_above_one_percent": 0,
- "committed_bytes": 127687,
- "headroom_bytes": 16005728,
+ "committed_bytes": 127785,
+ "headroom_bytes": 16005630,
  "entries": [
   {
    "spot_key": "f/b:9c8c7c/t6/d100/BTN/BTN:raise@2.5,BB:call/f:BB:check/p:5.5/e:97.5",

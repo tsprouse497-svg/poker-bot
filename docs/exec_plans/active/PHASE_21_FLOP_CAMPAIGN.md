@@ -240,7 +240,7 @@ action nodes and against all four committed planned arenas to the byte; re-run b
     a round against the sweep's 3.24, so no cost figure is taken from it. The flop strategies moved
     the way the fix predicts: the button bets `9c8c7c` about 54 percent where it bet nearly all of it,
     and the big blind's lead on `8c8d3c` fell from about 30 percent to under 1. The 24 GB of exports
-    sit only in `~/poker-bot-solve-objects/postflop`; the pin's objects are kept beside them in
+    sit only in `~/poker-bot-solve-objects/postflop-clone-b058335` (moved there from the shared folder, which every lane reads, after the first copy turned main red); the pin's objects are back in the shared folder and also in
     `postflop-pin-4aee435`. The re-solve review found the betting report still describing the pin's
     cell as current, which a build lane is fixing.
 
