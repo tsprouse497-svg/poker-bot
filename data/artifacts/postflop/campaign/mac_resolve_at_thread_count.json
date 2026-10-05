@@ -1,6 +1,6 @@
 {
  "record_schema_version": 1,
- "what_this_is": "Phase 16's four boards re-solved at the thread count named below, by scripts/solve_postflop_sample.py --all in a scratch copy of the tree, and compared with the committed cells: each held cell document byte for byte, every indexed strategy digest including the fifth cell's, and every per-combo strategy in the solver's own answer against the committed run's object. No tolerance.",
+ "what_this_is": "Phase 16's four boards re-solved at the thread count named below, by scripts/solve_postflop_sample.py --all in a scratch copy of the tree, and compared with phase 16's cells as committed at 479aaf2, solved on GTOpen 4aee435's tree: each held cell document byte for byte, every indexed strategy digest including the fifth cell's, and every per-combo strategy in the solver's own answer against the committed run's object. No tolerance. Those cells were re-solved on the clone's tree under decision 17 at 45ff860, so the digests here are the pin's.",
  "machine": "Apple M4, 10 logical processors (4 performance, 6 efficiency), 34.4 GB RAM, Darwin",
  "machine_record": {
   "cpu_model": "Apple M4",

@@ -1271,10 +1271,9 @@ def determinism_document(second_tree: Path, second_objects: Path) -> dict[str, A
         "what_this_is": DETERMINISM_NOTE,
         "configuration": "data/artifacts/postflop/solve_config.json, unchanged between the runs",
         "the_two_runs_are_distinct": (
-            "Each cell carries both wall clocks, and they differ: the second run shared the"
-            " machine with other work. A second tree whose wall clock matched the first to the"
-            " microsecond is refused rather than compared, because that is a copy of the first"
-            " run and would pass whatever the solver did."
+            "Each cell carries both runs' wall clocks, and they differ. A second tree whose wall"
+            " clock matched the first to the microsecond is refused rather than compared, because"
+            " that is a copy of the first run and would pass whatever the solver did."
         ),
         "identical": identical,
         "cells_compared": len(cells),

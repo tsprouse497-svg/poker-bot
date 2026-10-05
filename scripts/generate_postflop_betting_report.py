@@ -32,6 +32,7 @@ import json
 import re
 import statistics
 import sys
+import textwrap
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -1825,8 +1826,8 @@ def header_lines() -> list[str]:
         f"{ALL_BOARDS:,} three-card boards; the cost model comes from",
         "reports/active/latest_postflop_solve_cost.txt, which is a separate campaign measured in",
         "August; everything about the cells this repo commits - their accuracy, the two runs that",
-        "prove them, the ranges they were solved against and the deep solve one of them was",
-        "diffed against - comes from data/artifacts/postflop/, out of index.json,",
+        "prove them and the ranges they were solved against - and the one deep solve on record",
+        "come from data/artifacts/postflop/, out of index.json,",
         "solve_config.json, determinism.json and deep_convergence_check.json by those names;",
         "the corpus figures are counted off data/samples/public_corpus; the behaviour figures",
         "come from asking the strategy about the spots this machine holds; and the one block",
@@ -2084,17 +2085,79 @@ def accuracy_lines(measured: Measured) -> list[str]:
         "are not proven to have converged and are not reported as settled accuracy. No single",
         "accuracy figure is published for the artifact as a whole - the per-cell figures are the",
         "evidence, and one number over the set would be a claim nothing measured.",
-        "",
-        "One of the committed cells has now been re-solved to the cap and diffed against the",
-        "strategy the repo holds, which is the next section. It does not make the set settled: it",
-        "measures how far one cell moved, and the answer is that the decision between betting and",
-        "checking had settled and the split between the two bet sizes had not.",
     ]
+    lines += deep_check_standing(measured)
     return lines
 
 
+def deep_check_cell(measured: Measured):
+    """The cell the repo holds now for the deep check's spot, when this checkout fetches it."""
+    if measured.deep is None:
+        return None
+    found = [cell for cell in measured.cells if cell.spot_key == measured.deep.spot_key]
+    return found[0] if found else None
+
+
+def deep_check_is_the_held_cell(measured: Measured) -> bool:
+    """Whether the run the deep check diffed against is the cell the repo holds now, decided by
+    the iteration count and the exploitability both records carry rather than by a date."""
+    check, held = measured.deep, deep_check_cell(measured)
+    return (
+        check is not None
+        and held is not None
+        and held.iterations == check.iterations[0]
+        and held.achieved_exploitability_pct_of_pot == check.exploitability[0]
+    )
+
+
+def prose(text: str) -> list[str]:
+    """A paragraph assembled from figures, wrapped to the report's prose width."""
+    return textwrap.wrap(text, width=91)
+
+
+def paragraph(text: str, indent: str = "") -> list[str]:
+    """`prose` after a blank line, each line indented by `indent`."""
+    return ["", *(indent + line for line in prose(text))]
+
+
+def deep_check_standing(measured: Measured) -> list[str]:
+    """What the deep check is evidence about, said from the records rather than assumed."""
+    check, held = measured.deep, deep_check_cell(measured)
+    if check is None:
+        return []
+    if deep_check_is_the_held_cell(measured):
+        return paragraph(
+            f"One committed cell, {check.cell}, was re-solved to the cap and diffed against the"
+            " strategy the repo holds, which is the next section. It measures how far one cell"
+            " moved and does not make the set settled."
+        )
+    pin = (
+        f"The deep check in the next section diffs {check.cell} as it was solved on the pinned"
+        f" tree, at {check.iterations[0]} iterations and {check.exploitability[0]:.4f}% of pot."
+        " That is the pin's cell"
+    )
+    if held is None:
+        return paragraph(
+            pin + ", and no cell for its spot is fetched here, so nothing on this machine says"
+            " whether the repo still holds it."
+        )
+    return paragraph(
+        pin + ", not the one the repo holds: that was re-solved on the clone's tree (decision"
+        f" 17), at {held.iterations} iterations and"
+        f" {held.achieved_exploitability_pct_of_pot:.4f}% of pot, and no committed cell has a"
+        " deep-convergence diff of its own. Nothing in the next section carries to them."
+    )
+
+
 def deep_check_lines(measured: Measured) -> list[str]:
-    lines = heading("The deep solve, diffed against the committed one")
+    held = deep_check_is_the_held_cell(measured)
+    reference = "committed" if held else "pin's cell"
+    against = "the committed ones" if held else "the pin's cell"
+    lines = heading(
+        "The deep solve, diffed against the committed one"
+        if held
+        else "The deep solve, diffed against the pin's cell"
+    )
     check = measured.deep
     if check is None:
         lines += [
@@ -2109,17 +2172,17 @@ def deep_check_lines(measured: Measured) -> list[str]:
         "Exploitability says what a perfect opponent wins against a strategy. It does not say the",
         "strategy has stopped moving. So one cell was re-solved on the same tree, the same menu,",
         "the same ranges and the same arena, with the iteration cap as its only stopping rule, and",
-        "its frequencies diffed against the committed ones hand class by hand class.",
+        f"its frequencies diffed against {against} hand class by hand class.",
         "",
         f"  cell: board {check.board}, {check.spot_key.split('/')[4]} to act",
-        f"  committed run: {shallow} iterations, exploitability"
+        f"  {reference} run: {shallow} iterations, exploitability"
         f" {check.exploitability[0]:.4f}% of pot, menu-bound",
         f"  deep run: {deep:,} iterations, exploitability"
         f" {check.exploitability[1]:.4f}% of pot, menu-bound",
         "",
         "  what the whole range does, weighted by how often hero's own line brings it here:",
         "",
-        "    action                committed      deep      moved",
+        f"    action              {reference:>11}      deep      moved",
     ]
     for index, label in enumerate(check.labels):
         first = check.committed_frequencies[index]
@@ -2139,25 +2202,34 @@ def deep_check_lines(measured: Measured) -> list[str]:
         f"    classes moving more than 0.05: {check.moving_past(0.05)}",
         f"    classes that changed which action they prefer: {len(check.top_action_changed)}",
         "",
-        "  and split by how mixed the committed strategy already was:",
+        f"  and split by how mixed the {reference} strategy already was:",
         "",
     ]
     for shape in ("pure", "lightly-mixed", "mixed"):
         count, mean = check.shape_mean(shape)
         if count:
             lines.append(f"    {shape:15s} {count:4d} classes   mean movement {mean:.4f}")
-    lines += [
-        "",
-        "Read it this way. Whether to put money in had settled: the check goes from a frequency",
-        "already near zero to zero, so both solves bet essentially the whole range here. Which",
-        "size to bet had not: the two sizes trade range between them, as the table above shows,",
-        "and the classes that moved are the ones the committed strategy already had mixing. The",
-        "classes it had playing one action barely moved at all.",
-        "",
-        "So a reader may take the bet-or-check answer from this cell and may not take the size",
-        "split from it. That is narrower than the contract's blanket qualification and it is what",
-        "was measured; the qualification stands for every cell nothing was re-solved for.",
+    moves = [
+        (abs(second - first), label)
+        for label, first, second in zip(
+            check.labels, check.committed_frequencies, check.deep_frequencies, strict=True
+        )
     ]
+    largest, largest_label = max(moves)
+    standing = (
+        "The contract's qualification stands for every cell nothing was re-solved for."
+        if held
+        else "That is the pin's cell as the pin solved it. The cells the repo now holds were"
+        " re-solved on the clone's tree and none has a deep-convergence diff, so the contract's"
+        " qualification stands for all of them."
+    )
+    lines += paragraph(
+        f"Read it this way. Across the range the largest move is {largest_label}, by"
+        f" {100 * largest:.2f} points, and {check.labels[0]} goes from"
+        f" {pct(check.committed_frequencies[0])} to {pct(check.deep_frequencies[0])}."
+        " The shape split above says which classes moved."
+        f" {standing}"
+    )
     return lines
 
 
@@ -2177,8 +2249,8 @@ def determinism_lines(measured: Measured) -> list[str]:
         f"  cells re-solved: {len(record.cells)}, at starting pot {pots}",
         f"  iterations: {low} to {high}, the same count in both runs of every cell",
         f"  arena precision: {arenas}, which is what the committed campaign was ruled to",
-        "  runs: two processes against a restarted server, the second sharing the machine with",
-        "    other work, so no cell reports the same wall clock twice",
+        "  runs: two processes against a restarted server. Each cell carries both wall clocks and",
+        "    they differ; a second tree matching the first to the microsecond is refused as a copy",
         f"  strategies compared: {verdict}",
         "",
         "  Two comparisons a cell. The committed document byte for byte, which is what the repo",
@@ -2402,7 +2474,7 @@ def byte_lines(measured: Measured) -> list[str]:
         f"    the committed index and sample: {measured.index_and_sample_bytes:,}",
         f"    the campaign's own records beside them: {evidence:,}",
         "      the deep-convergence record, the determinism record, the solve config and the",
-        "      objects manifest - evidence about the one campaign that ran, not the chart",
+        "      objects manifest - evidence about the campaigns that ran, not the chart",
         "",
         f"  per spot, index and sample: "
         f"{'n/a' if per_spot is None else f'{per_spot:,.2f} bytes'}",
@@ -2567,21 +2639,33 @@ def conditioning_lines(measured: Measured) -> list[str]:
                 f" {pct(category.share_before):>14} {pct(category.share_after):>13}"
                 f" {pct(category.otherwise):>16}"
             )
-    lines += [
-        "",
-        "Read the two blocks together and never apart. On the three-club board the button's own",
-        "frequency says it bets nearly its whole range. The block under it says why that is not",
-        "the sentence 'the raiser bets every flop': half the caller's range, and three quarters of",
-        "its best hands, has already bet and is not in front of the button at all. What reaches",
-        "the button is a range with the flushes and the sets thinned out of it, and against that",
-        "range the button's answer is a reasonable one.",
-        "",
-        "A student drilled on the first number alone would learn to bet every flop in position.",
-        "A student shown both would learn something narrower and true: against a caller who leads",
-        "half its flops, what is left to bet into is weak. Whether a caller who leads half its",
-        "flops is the opponent worth drilling against is the ruling above, not a measurement, and",
-        "it is recorded here so nobody has to reconstruct it from the data.",
-    ]
+    lines += paragraph(
+        "Read the two blocks together and never apart. Each hero frequency above is over the"
+        " part of the other seat's range that took the line before it, and none of the rest:"
+    )
+    for lead in measured.leads:
+        answers = [
+            found
+            for found in measured.frequencies
+            if found.board == lead.board and found.seat != lead.seat and found.flop_line != "none"
+        ]
+        for found in answers:
+            shares = ", ".join(
+                f"{label} {pct(share)}"
+                for label, share in zip(found.labels, found.range_weighted, strict=True)
+            )
+            lines += paragraph(
+                f"{lead.board}: the {lead.seat} plays '{lead.line}'"
+                f" {pct(lead.takes_the_line)} of the time and something else"
+                f" {pct(lead.otherwise)}; the {found.seat} then, after"
+                f" {found.flop_line}, plays {shares}.",
+                indent="    ",
+            )
+    lines += paragraph(
+        "A frequency read without the line before it describes a range the other seat has"
+        " already filtered. Whether that opponent is the one worth drilling against is the ruling"
+        " above, not a measurement."
+    )
     return lines
 
 

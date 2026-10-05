@@ -129,12 +129,12 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   and both confirmed the author's two corrections to the contract's figures, filed as
   `PHASE-21-CONTRACT-CARRIES-THREE-MEMORY-FIGURES-ITS-OWN-TREE-RULES-CONTRADICT`.
 - [ ] Stage 6 is not code only. The frozen tests need the committed button-line manifest to list
-  phase 16's four boards as closed, so the first green gate waits on the Mac sweep, the four
-  re-solves at the chosen count reproducing the committed cells, and the harvest of every turn and
-  river decision point from those solves (about 5.9 million river points across the four). From
-  phase 16's recorded first runs at five threads the four solves alone are 375.6 + 1,677.4 + 1,035.9
-  + 616.0 = 3,704.9 seconds, about an hour, in `determinism.json`; harvest time is unmeasured and is one of the things the contract measures. A
-  re-solve that does not reproduce halts the lane for Taylor; it is never worked around.
+  phase 16's four boards as closed, so the first green gate waits on the Mac sweep, the re-solve
+  of the four boards, and the harvest of every turn and river decision point from that solve. Since
+  decision 17 that solve is the new-tree one at 45ff860, not the pin's: its four boards took 360.6 +
+  1,804.9 + 821.0 + 330.4 = 3,316.9 seconds at ten threads (run A in `determinism.json`), and each
+  kept its whole strategy export, 6 GB a board, from which the harvest reads. A re-solve that does
+  not reproduce halts the lane for Taylor; it is never worked around.
 - [ ] Stage 4 round 4 (2026-10-03/04), after decisions 16 and 15's re-ruling: the independent review
   raised two blockers, both folded in by the test lane - a fetched point after a raise is played,
   and the turn and river row format is pinned (`postflop_street_rows`, whole counts 0 to 1000 in two
@@ -221,7 +221,7 @@ action nodes and against all four committed planned arenas to the byte; re-run b
     which pins the old cells' sha256.
   - [ ] Open for Taylor, raised by the contract review: decision 5 starts the trial from a GPU, while
     the contract still wants one flop solved and timed on a CPU of the same provider first. Whether the GPU pod's own processors count as that CPU is his to say before the trial.
-  - [ ] Phase 16's four boards re-solved on the new tree, on this Mac and before any rented box, so
+  - [x] Phase 16's four boards re-solved on the new tree, on this Mac and before any rented box, so
     the box's determinism finding compares against new-tree digests: about 45 minutes of all-core solving per
     set of four at ten threads, so it waits for a window Taylor grants (lid open, on AC), run under
     `caffeinate -i -s`, `pmset -g log` read afterwards. Then the index, the byte budget and the
@@ -231,6 +231,16 @@ action nodes and against all four committed planned arenas to the byte; re-run b
     about 24 GB of exports); run B in a scratch copy without `.git`, `--all --threads 10` into an empty
     object folder; then `--determinism-tree` and `--determinism-objects` on run B to write
     `determinism.json`. The sample, `determinism.json` and `solve_config.json` join scope first.
+    Done 2026-10-04, 15:50 to 17:32, at 45ff860: every cell passes the commit rule, run B equals run
+    A byte for byte with a per-combo gap of 0.0, every recorded arena equals the new tree's planned
+    arena, and every export counts 14, 6,419 and 1,549,968. No thermal sleep in `pmset -g log`; the
+    Mac went to idle sleep at 17:32 after caffeinate ended. Run A's `Kh7d2c` ran at about 5.3 seconds
+    a round against the sweep's 3.24, so no cost figure is taken from it. The flop strategies moved
+    the way the fix predicts: the button bets `9c8c7c` about 54 percent where it bet nearly all of it,
+    and the big blind's lead on `8c8d3c` fell from about 30 percent to under 1. The 24 GB of exports
+    sit only in `~/poker-bot-solve-objects/postflop`; the pin's objects are kept beside them in
+    `postflop-pin-4aee435`. The re-solve review found the betting report still describing the pin's
+    cell as current, which a build lane is fixing.
 
 - [ ] Rebase note from MAINT-41, 2026-10-04: it removes the whole-tree `headroom_bytes` from the
   preflop source card and the postflop index (index schema 2). When it merges, this lane's rebase

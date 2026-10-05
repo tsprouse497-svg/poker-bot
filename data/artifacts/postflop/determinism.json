@@ -2,7 +2,7 @@
  "check_schema_version": 1,
  "what_this_is": "Determinism proved by re-solving and diffing rather than by checksumming one run, on the configuration actually committed, in two processes against a restarted server. No tolerance is set anywhere here: the contract rules that if the two runs are not byte-identical the phase halts and a human is asked, so this records identical or not and never how close.",
  "configuration": "data/artifacts/postflop/solve_config.json, unchanged between the runs",
- "the_two_runs_are_distinct": "Each cell carries both wall clocks, and they differ: the second run shared the machine with other work. A second tree whose wall clock matched the first to the microsecond is refused rather than compared, because that is a copy of the first run and would pass whatever the solver did.",
+ "the_two_runs_are_distinct": "Each cell carries both runs' wall clocks, and they differ. A second tree whose wall clock matched the first to the microsecond is refused rather than compared, because that is a copy of the first run and would pass whatever the solver did.",
  "identical": true,
  "cells_compared": 5,
  "how": "Two comparisons per cell. The committed cell document byte for byte, which is what the repo holds; and the solver's own per-combo strategies inside the two runs' objects, which is the stronger of the two because a committed row is rounded to a thousandth and two runs could differ under that and still write the same bytes.",

@@ -86,6 +86,34 @@ items:
       them. The test lane adds canaries for them in the same re-open; this closes when each is in
       `verification/mutations.yml` and the stage 7 sweep shows it bites.
 
+  - id: THE-BETTING-REPORT-NARRATES-POKER-NO-FIGURE-CHECKS
+    status: deferred
+    phase: maintenance
+    title: The postflop betting report carried a hard-coded poker narrative that went false when the cells moved
+    reason: >-
+      Found by phase 21's decision 17 re-solve review, 2026-10-04. After phase 16's cells were
+      re-solved on the corrected tree, `scripts/generate_postflop_betting_report.py` still printed a
+      fixed paragraph saying the button bets nearly its whole range on `9c8c7c` against a caller who
+      leads half its flops, beside its own tables showing the opposite, and the gate stayed green.
+      Phase 21's build lane removes or derives that paragraph; what stays open is the general rule,
+      the same as `A-GENERATED-REPORT-CAN-GO-STALE-WITH-THE-GATE-STILL-GREEN` and
+      `AN-EDIT-THAT-SUPERSEDES-PROSE-OWES-A-RE-READ-AND-NOTHING-ASKS-FOR-ONE`: a generator states no
+      claim about the data it does not compute from that data. Closes with a check that finds
+      figure-free poker claims in generators, or a sweep that removes them.
+
+  - id: NO-CELL-ON-THE-CORRECTED-TREE-HAS-A-DEEP-CONVERGENCE-DIFF
+    status: deferred
+    phase: "21"
+    title: The only deep-convergence measurement is of the pin's tree, and the re-solved cells are far more mixed
+    reason: >-
+      Found by phase 21's decision 17 re-solve review, 2026-10-04. `deep_convergence_check.json` ran
+      the pin's `9c8c7c` cell to the 1,200-iteration cap; that cell bet almost every hand. The cell
+      re-solved on the clone's tree checks about 46 percent, and a mixed strategy is exactly where
+      decision 8 found frequencies still moving at 0.3 percent of pot. So nothing measures how far the
+      committed cells are from settled. Phase 21's settling criterion (one flop per texture group run
+      to the cap on the rented box) covers this once it runs; closes when one of those runs is on the
+      clone's tree and committed.
+
   - id: PEOPLE-ACROSS-THE-US-PLAY-AGAINST-THE-BOT-AND-NO-PHASE-OWNS-IT
     status: deferred
     phase: contract-update
@@ -1026,8 +1054,8 @@ items:
       with "frequencies on indifferent hands settle later and nothing here has diffed a deep solve
       against a shallow one". Decision 15 then ruled that the diff is run and committed beside the
       sample, and on 2026-09-21 it was: `data/artifacts/postflop/deep_convergence_check.json` holds
-      one cell re-solved to the 1,200-iteration cap at 0.0478 percent of pot against the committed
-      0.2774, with 79 of 152 hand classes moving past 0.05, 16 changing which action they prefer and
+      one cell re-solved to the 1,200-iteration cap at 0.0478 percent of pot against the pin's cell at
+      0.2774 (phase 21's decision 17 has since re-solved that cell on a corrected tree), with 79 of 152 hand classes moving past 0.05, 16 changing which action they prefer and
       none unmoved.
       **The criterion itself is untouched and still right.** It requires the packet to state that a
       solve at the committed iteration count is not proven to have converged, and the deep run is
