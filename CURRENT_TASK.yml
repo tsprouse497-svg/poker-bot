@@ -20,6 +20,22 @@ forbidden_scope:
 scope_change_log:
   - date: 2026-10-04
     reason: >-
+      MAINT-43 merged main at 3af0e87, which carries MAINT-41, before its closeout gate.
+      base_commit moves to 3af0e87 so that changed files are measured against the tree this task
+      merges into; approved_scope is unchanged, and MAINT-41's own files are main's, not this task's.
+  - date: 2026-10-04
+    reason: >-
+      MAINT-43 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. Taylor ruled on 2026-10-04 that live
+      turn and river solving gets its own phase, that it waits for the flop campaign (phase 21),
+      that it drives GTOpen rather than a solver this repo writes, and that phase 20 waits on it.
+      Declaring a phase and adding `depends_on` edges are semantic contract changes, so this runs
+      in `contract-update`. It declares phase 22 as a skeleton, adds 22 to phase 20's edges with the
+      sentences in 20 that say every decision comes from the committed strategy, updates the
+      boundary in `AGENTS.md` and both roadmaps to name the owner, and adds a loop-policy entry. The
+      last two paths are this task's packet and review directory. No artifact, code or test changes.
+  - date: 2026-10-04
+    reason: >-
       MAINT-41 opens from idle, so every pattern in `approved_scope` reads as a widening against
       `base_commit` and this entry puts them on the record. It closes
       SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE: the preflop export's source card
