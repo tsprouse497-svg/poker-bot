@@ -5,6 +5,7 @@ base_commit: 515d10742c197d9462e9aa3d8e80d0fabad6882f
 approved_scope:
 - docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
+- reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -4618,4 +4619,10 @@ scope_change_log:
       a later phase. The lane is halted for it and returns to implementation, where the closure and
       street-row tests are re-opened. `base_commit` moves to 515d107 so the scope check measures
       this task alone.
+  - date: 2026-10-04
+    reason: >-
+      The decision list joins this contract-update task to record two rulings Taylor gave in session:
+      he confirmed the stored turn and live river after `main` declared phase 22 with a live turn,
+      and he moved every object to the standard storage class now that only the turn is stored
+      (decision 4). The contract's storage criterion follows.
 

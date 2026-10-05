@@ -259,9 +259,9 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   - [ ] Precondition before this lane merges: `AGENTS.md` and phase 22 on `main` still say the turn is
     solved live. Owned by the session declaring phase 22 (MAINT-43); Taylor asked to give it his
     ruling. `AGENTS.md` wins over a contract, so this lane does not merge until `main` agrees.
-  - [ ] Open for Taylor: decision 4 sent turn and river to Glacier Deep Archive on about 22 TB, mostly
-    river. Turn only is about 116 GB for five lines, a few dollars a month in the standard class with
-    no 12 to 48 hour restore. Keep the archive or not.
+  - [x] Decision 4 re-ruled: every object in the standard class ("we can do standard on glacier",
+    read as standard instead of Glacier, as recommended; a one-line confirmation is put to him).
+    Contract's storage criterion changed; reviewed read-only, no blocker.
   - [ ] Implementation: re-open the closure and street-row tests (manifest, report, street rows, and
     tree only if `closure_counts` drops the river) for the flop and turn closure, by the test lane.
 

@@ -98,7 +98,9 @@ per suit-isomorphic combo; the bulk export makes reading it about 43 s a flop in
 to 0.9 hours), and that it goes to Glacier Deep Archive under decision 4's amendment. The campaign
 budget ask still shows the measured size and bill.
 **Re-ruled by Taylor, 2026-10-04, later the same day:** "for the turn we'll save it. only the river will be
-solved in real time." The campaign keeps the flop and the turn from every solve; the river is not
+solved in real time." Asked again once `main` had declared phase 22 with a live turn, he
+confirmed: "keep saving turn and solve only river line in real time ... idea is to store flop and
+turn and then dynamically solve the river." The campaign keeps the flop and the turn from every solve; the river is not
 stored and is solved at the table instead.]
 
 ## 2. Whether every flop decision is saved, or only the first
@@ -152,7 +154,11 @@ about $500 in the standard class), written straight from the solve machines, and
 index stay in the standard class. Reading a turn or river object back needs an archive restore first
 (bulk, about $55 for all of it, 12 to 48 hours); serving them to players is a later phase's design
 (`PEOPLE-ACROSS-THE-US-PLAY-AGAINST-THE-BOT-AND-NO-PHASE-OWNS-IT`). He answered "for turn/river in
-glacier deep archive that prolly works."]
+glacier deep archive that prolly works."
+**Re-ruled by Taylor, 2026-10-04, after decision 1's re-ruling dropped the river:** turn only is about
+116 GB for five lines, a few dollars a month in the standard class with no 12 to 48 hour restore,
+against under a dollar in Glacier Deep Archive. Recommended the standard class; he answered "we can
+do standard on glacier", read as the standard class for every object.]
 
 ## 5. Which cloud provider, and which machines to try
 

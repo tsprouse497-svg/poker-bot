@@ -147,6 +147,9 @@ items:
       (what is served, to how many players, and whether turn and river play is in it), stated with
       numbers before any lift.
 
+      Corrected 2026-10-04 by phase 21: the river is no longer stored but solved at the table, and
+      the turn alone is about 116 GB for five lines, kept in the standard storage class, not an
+      archive, so the 13 to 22 TB and the cold archive above no longer hold.
   - id: THE-SCOPE-CHECK-READS-AN-UNTRACKED-FOLDER-AS-ONE-PATH
     status: deferred
     phase: maintenance

@@ -227,10 +227,11 @@ scripts are in the ExecPlan. None is a target a later stage may tune.
   re-solve never replaces a committed cell.
 - **Every object is stored in a private AWS bucket on Taylor's account (decision 4), with its digest
   in the index and a fetch command a fresh machine can run**; a machine that has not fetched refuses
-  with the not-fetched code. The fetch covers the flop objects and the index, in the standard class.
-  Turn objects go to Glacier Deep Archive from the solve machine (decision 4), so each is checked
-  against its board's counts and its digest there, before it is archived. The report prints how many
-  flop classes a fresh clone can answer beside how many a fetched machine can.
+  with the not-fetched code. Every object is in the standard class (decision 4, re-ruled 2026-10-04
+  once the river was dropped). The fetch covers the flop objects and the index; turn objects are
+  written from the solve machine, each checked against its board's counts and its digest there
+  before upload, and fetched by the phase that plays the turn. The report prints how many flop
+  classes a fresh clone can answer beside how many a fetched machine can.
   `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`.
 - **A board refusal says which line and seat it was scoped to, and every coverage figure counts
   lines and seats under different words.**
