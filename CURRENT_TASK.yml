@@ -1,16 +1,8 @@
-task_id: MAINT-45
+task_id: null
 active_phase: null
-task_mode: contract-update
-base_commit: 22280ec64b90e53e3aea72afada22d58e2f2a17c
-approved_scope:
-- docs/phase_contracts/PHASE_18_YARDSTICK.md
-- docs/phase_contracts/PHASE_19_HEURISTICS_AND_MERGED_CHARTS.md
-- docs/phase_contracts/PHASE_20_HOME_GAME.md
-- docs/ROADMAP.md
-- docs/V2_ROADMAP.md
-- verification/loop_policy.yml
-- reports/phase_audits/MAINT_45_NARROW_THE_YARDSTICK.md
-- reports/phase_audits/reviews/MAINT_45_NARROW_THE_YARDSTICK/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
