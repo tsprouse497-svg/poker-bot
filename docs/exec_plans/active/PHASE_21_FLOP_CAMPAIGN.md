@@ -256,9 +256,10 @@ action nodes and against all four committed planned arenas to the byte; re-run b
 - [ ] Decision 1 re-ruled 2026-10-04: the turn is stored, only the river is solved at the table.
   - [x] Contract-update: closure is the flop and the turn, the river never stored; reviewed read-only,
     no blocker in the text.
-  - [ ] Precondition before this lane merges: `AGENTS.md` and phase 22 on `main` still say the turn is
-    solved live. Owned by the session declaring phase 22 (MAINT-43); Taylor asked to give it his
-    ruling. `AGENTS.md` wins over a contract, so this lane does not merge until `main` agrees.
+  - [x] Precondition met: MAINT-44 corrected `main` (22280ec) to a stored turn and live river, phase
+    22 renamed Turn And River Play, and `main` was merged into this lane at 79651fc. Main's own copy
+    of this contract still forbids the stored turn until this lane merges
+    (`MAIN-STILL-HOLDS-THE-PHASE-21-CONTRACT-THAT-FORBIDS-STORING-THE-TURN`).
   - [x] Decision 4 re-ruled: every object in the standard class ("we can do standard on glacier",
     read as standard instead of Glacier, as recommended; confirmed "what you recommended").
     Contract's storage criterion changed; reviewed read-only, no blocker.
@@ -285,7 +286,6 @@ mode, `base_commit` at the merge of `main` (fd1bb89). Run `uv run python scripts
 carries both fixes, the contract and tests state the new tree, phase 16's four boards are re-solved on
 it, and its objects live in `~/poker-bot-solve-objects/postflop-clone-b058335`, never the shared
 `postflop` folder every lane reads. Taylor re-ruled decision 1 on 2026-10-04: the turn is stored and
-only the river is solved at the table. Phase 21's contract, river criteria and closure and street-row
-tests still describe a stored river, and `AGENTS.md` on `main` says both turn and river are solved
-live; both need a `contract-update` and a test re-open before stage 6 builds the harvest. The stage 6
+only the river is solved at the table. The contract and frozen tests now store the flop and turn
+and never the river, and `main` agrees since MAINT-44, merged in at 79651fc. The stage 6
 review note `stage-06-build.md` is still owed for the whole stage, beside the decision 17 notes.
