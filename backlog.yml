@@ -131,6 +131,31 @@ items:
       write one path; phase 21's object storage criterion, objects named by digest in a bucket, is the
       lasting form of the same fix.
 
+  - id: THE-BULK-STRATEGY-EXPORT-KEEPS-THE-RIVER-THE-RULING-SAYS-NOTHING-KEEPS
+    status: deferred
+    phase: "21"
+    title: The bulk strategy export keeps every river strategy, which the ruling says nothing keeps
+    reason: >-
+      Found by phase 21's river tests review, 2026-10-04. Taylor re-ruled decision 1 that the river
+      is never stored. `--export-strategies` in `scripts/solve_postflop_sample.py` keeps the clone's
+      whole export beside each object, about 6 GB a board, almost all of it river (1,549,968 of
+      1,556,401 decision points on the committed line), and its docstring and failure message still
+      say "turn and river". The four boards re-solved for decision 17 hold about 24 GB of such
+      exports in `~/poker-bot-solve-objects/postflop-clone-b058335`. Closes when the export keeps the
+      flop and turn only (a filter in the clone's export, or a harvest that discards the rest) and
+      the prose says so; the existing exports are kept until their turn is harvested.
+
+  - id: TWO-FLOP-CAMPAIGN-TEST-FILES-SIT-AT-THE-700-LINE-TEST-CAP
+    status: deferred
+    phase: "21"
+    title: Two flop campaign test files sit at the 700-line test cap, so the next test either owes needs a split first
+    reason: >-
+      Found by phase 21's river tests review, 2026-10-04. `tests/test_flop_campaign_manifest.py` is
+      at 700 lines and `tests/test_flop_campaign_threads.py` at 699, against `check_file_sizes`'s
+      cap. The review named two small gaps that belong in the first (a refused board carrying a river
+      key, and a river fetch refused with a pinned code rather than any `ValueError`). Closes when
+      each file is split along a real seam in a freeze re-open and the two gaps are tested.
+
   - id: PEOPLE-ACROSS-THE-US-PLAY-AGAINST-THE-BOT-AND-NO-PHASE-OWNS-IT
     status: deferred
     phase: contract-update
