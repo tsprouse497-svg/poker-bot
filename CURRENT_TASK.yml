@@ -1,28 +1,10 @@
 task_id: PHASE_21_FLOP_CAMPAIGN
 active_phase: '21'
-task_mode: implementation
-base_commit: fd1bb896b9cee4bc1600a51914f9de6b6ae7fd15
+task_mode: contract-update
+base_commit: 515d10742c197d9462e9aa3d8e80d0fabad6882f
 approved_scope:
 - docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md
-- docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
-- reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
-- scripts/run_verify.py
-- scripts/generate_postflop_betting_report.py
-- src/poker_training_bot/solver_artifacts/**
-- scripts/measure_postflop_thread_sweep.py
-- scripts/solve_postflop_sample.py
-- scripts/measure_postflop_solve_cost.py
-- data/artifacts/postflop/campaign/thread_sweep.json
-- data/artifacts/postflop/campaign/mac_resolve_at_thread_count.json
-- docs/GTOPEN_SOLVER_NOTES.md
-- data/artifacts/postflop/index.json
-- data/artifacts/postflop/objects.json
-- data/artifacts/postflop/sample/**
-- data/artifacts/postflop/determinism.json
-- data/artifacts/postflop/solve_config.json
-- reports/active/latest_postflop_betting_report.txt
-- data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -4626,4 +4608,14 @@ scope_change_log:
       index under main's schema 2, the betting report, both sides' mutations and backlog entries, and
       the freeze lock re-locked over the merged suite. `base_commit` moves to the merge so the scope
       check measures this lane's work from here and not main's.
+  - date: 2026-10-04
+    reason: >-
+      Contract-update task inside phase 21's stage 6, for Taylor's re-ruling of decision 1 on
+      2026-10-04: "for the turn we'll save it. only the river will be solved in real time." The
+      contract's criteria still store the river - a closed board keeps every river decision point,
+      turn and river objects go to Glacier together, the river's size and bill are asked with the
+      campaign budget. They change to a flop and turn store, with the river solved at the table by
+      a later phase. The lane is halted for it and returns to implementation, where the closure and
+      street-row tests are re-opened. `base_commit` moves to 515d107 so the scope check measures
+      this task alone.
 

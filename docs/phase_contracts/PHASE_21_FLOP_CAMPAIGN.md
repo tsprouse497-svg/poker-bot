@@ -31,17 +31,18 @@ Three parts, in this order, because each one prices the next:
 2. **Pick the cloud machine.** Solve and time one flop on a few candidates, re-prove determinism on
    the one chosen, and choose on cost per solved flop with the memory a solve needs as a hard limit.
 3. **Run the campaign.** Solve the five single-raised lines the chart plays into object storage, as
-   many as the campaign budget allows, each solved board closed: every flop, turn and river decision
-   point of its line, for both seats, kept from the one solve, or all refused together. Nothing is
-   re-solved or hand-edited to look better.
-   `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`.
+   many as the campaign budget allows, each solved board closed: every flop and turn decision point
+   of its line, for both seats, kept from the one solve, or all refused together; the river is not
+   stored but solved at the table by a later phase. Nothing is re-solved or hand-edited to look
+   better. `A-SAMPLE-WHOSE-SITUATIONS-DO-NOT-CLOSE-VOIDS-THE-FLOP-NOT-THE-TURN`.
 
 Phase 16's rulings carry over: f32 arenas (decision 20), the 0.40 memory ceiling (20 and 22,
 `runtime-reversible`, moving with the over-read the adopted guard entry names), object storage with
 no git LFS, and the rented box governing the campaign (24). Taylor's phase 21 rulings are in
 `reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md`, each cited at the criterion it
-carries; turn and river are stored here and played by a new phase (1), and the trial runs on RunPod,
-from a GPU large enough for the small blind line (5, re-ruled 2026-10-04).
+carries: the turn is stored and played by a later phase, the river solved at the table, never stored
+(1, re-ruled 2026-10-04), and the trial runs on RunPod, from a GPU large enough for the small blind
+line (5, re-ruled 2026-10-04).
 
 **The solver is a local clone.** Every solve runs GTOpen's `4aee435` plus three changes and no other
 upstream change: a read-only bulk strategy export; upstream `85b0a692`'s tree fix, so a street both
@@ -78,8 +79,8 @@ Phase 21 is limited to the work named by this contract and the active ExecPlan.
 - Do not solve preflop spots the chart is missing - four-bets, limped pots, other stack depths. They
   need a re-solve of the preflop chart and are a separate phase. The committed preflop chart, its
   key and its artifact do not change here.
-- Do not make the bot play the turn or the river. Their decision points are stored here and played
-  by the next phase, so turn and river still refuse at the table when this phase ends.
+- Do not make the bot play the turn or the river, and do not store the river. Both still refuse at
+  the table when this phase ends.
 - Do not solve three-bet pots. Decision 9 admits only the five single-raised lines.
 - Do not group similar flops so that one solve answers several. `POSTFLOP-BOARD-ABSTRACTION` stays
   deferred in `docs/ROADMAP.md`, and suit isomorphism remains the only collapse permitted.
@@ -152,9 +153,9 @@ scripts are in the ExecPlan. None is a target a later stage may tune.
   unchanged.** It is the slowest board phase 16 solved. The report prints, per candidate: machine,
   thread count, engine, wall clock, iterations, achieved exploitability, peak memory, hourly price,
   and **cost per solved flop**: the price times the billed time for one closed flop - server start,
-  tree build, solve, harvest of every flop, turn and river decision point, and upload - which is
-  what the choice is made on. A box runs one solve at a time unless decision 11's default is
-  changed, and a box running more than one applies the memory bar to their sum.
+  tree build, solve, harvest of every flop and turn decision point, and upload - which is what the
+  choice is made on. A box runs one solve at a time unless decision 11's default is changed, and a
+  box running more than one applies the memory bar to their sum.
 - **Before the campaign cap is asked, and after the determinism re-proof below has passed on it, the
   chosen box has solved one flop from each of the six texture groups**, on the first admitted line
   under phase 16's configuration and closed, so they are the campaign's first six boards and are
@@ -192,25 +193,24 @@ scripts are in the ExecPlan. None is a target a later stage may tune.
   count, its pot, its largest arena and its index cost - because a line with another pot builds
   another tree. The report prints them per line. The button, cutoff, hijack and lojack lines share
   the 5.5 pot and one tree of 4,144,704 nodes; the small blind's 5.0 pot builds 4,339,626.
-- **A solved board closes, for both seats, on every street.** On the committed line and menu one
-  flop's solve holds 14 flop, 6,419 turn and 1,549,968 reachable river decision points, 659 for each
-  of 49 turn and 48 river cards; GTOpen's tree also builds a river under the card the turn already
-  dealt, 32,291 more, which can never occur and are not kept. The small blind line holds 14, 6,566
-  and 1,620,528, with 33,761 unreachable. A covered board keeps all of them from its one solve, or
-  refuses all of them because that solve missed the exploitability ceiling (decision 2). Every
-  decision point after a raise has a key, a raise being named by its multiplier (decision 16). The
-  manifest carries each board's counts per street and a test asserts them offline. The fetch command
-  checks every fetched flop object against its board's counts and its digest. Turn and river rows
-  are two bytes a number, each frequency rounded to a tenth of a percent with the residue on the
-  largest entry so a decision sums to one, and standard compression is measured before any custom
-  format (decision 15). How the driver gets them out is chosen at stage 6 on a measurement, and
-  **the time it takes and the stored size of one closed flop are measured on the six trial flops and
-  reported before the campaign budget is asked**, when Taylor confirms or drops the river (decision
-  1).
+- **A solved board closes, for both seats, on the flop and the turn.** On the committed line and
+  menu one flop's solve holds 14 flop and 6,419 turn decision points, 131 for each of 49 turn cards,
+  and the small blind line's 14 and 6,566. A covered board keeps all of them from its one solve, or
+  refuses all of them because that solve missed the exploitability ceiling (decision 2). The river
+  is not stored (decision 1, re-ruled 2026-10-04): the solve still holds it, 1,549,968 reachable
+  river decision points on the committed line and 1,620,528 on the small blind's, and the counts are
+  printed as tree figures, but nothing keeps them. Every decision point after a raise has a key, a
+  raise being named by its multiplier (decision 16). The manifest carries each board's flop and turn
+  counts and a test asserts them offline. The fetch command checks every fetched flop object against
+  its board's counts and its digest. Turn rows are two bytes a number, each frequency rounded to a
+  tenth of a percent with the residue on the largest entry so a decision sums to one, and standard
+  compression is measured before any custom format (decision 15). How the driver gets them out is
+  chosen at stage 6 on a measurement, and **the time it takes and the stored size of one closed flop
+  are measured on the six trial flops and reported before the campaign budget is asked**.
 - **Phase 16's four boards are re-solved on the new tree, and close from that solve.** Their
   committed cells, index entries, objects and `determinism.json` were solved on the pin's tree,
   which the campaign does not use, so they are replaced by a solve on the clone, proved
-  deterministic by a second solve in a fresh process, and their other decision points are harvested
+  deterministic by a second solve in a fresh process, and their turn decision points are harvested
   from the first. A re-solve that does not repeat itself is not closed by mixing two solves, and the
   phase halts for Taylor. Its reason is the tree, never the numbers, and no other solve replaces a
   committed cell. `deep_convergence_check.json` stays as the pin's record of its own solve.
@@ -228,9 +228,9 @@ scripts are in the ExecPlan. None is a target a later stage may tune.
 - **Every object is stored in a private AWS bucket on Taylor's account (decision 4), with its digest
   in the index and a fetch command a fresh machine can run**; a machine that has not fetched refuses
   with the not-fetched code. The fetch covers the flop objects and the index, in the standard class.
-  Turn and river objects go to Glacier Deep Archive from the solve machine (decision 4), so each is
-  checked against its board's counts and its digest there, before it is archived. The report prints
-  how many flop classes a fresh clone can answer beside how many a fetched machine can.
+  Turn objects go to Glacier Deep Archive from the solve machine (decision 4), so each is checked
+  against its board's counts and its digest there, before it is archived. The report prints how many
+  flop classes a fresh clone can answer beside how many a fetched machine can.
   `THE-BOT-PLAYS-DATA-THAT-IS-NOT-IN-THE-REPO-THAT-SHIPS-IT`.
 - **A board refusal says which line and seat it was scoped to, and every coverage figure counts
   lines and seats under different words.**
@@ -238,16 +238,16 @@ scripts are in the ExecPlan. None is a target a later stage may tune.
 - **Settling is measured on a sample of campaign cells**, the way phase 16's deep convergence check
   measured one: one flop of each texture group solved on to the cap, printed as a finding.
   `NOTHING-MEASURES-WHETHER-THE-COMMITTED-POSTFLOP-FREQUENCIES-HAVE-SETTLED`.
-- **The campaign budget is asked with the measured river size for the five lines and its monthly
-  storage bill at AWS's price on the day**, since Taylor confirms the river then.
+- **The campaign budget is asked with the measured turn size for the five lines and its monthly
+  storage bill at AWS's price on the day.**
 - **The campaign stops at the first of two limits, the campaign budget or the fifth admitted line,
   and the report names which one.**
 - **The table result is re-run on a machine that has fetched every flop object, on phase 16's own
   terms**: 20,000 hands, seed 777, six seats of the composite strategy, printing postflop decisions,
   bets, showdowns and voided hands **split by the street the hand voided on**, beside phase 16's two
-  decisions, both checks, no bets and 5,365 voided hands. The bot does not play the turn or river
-  until the next phase, so a hand that reaches a turn still voids; the report says so beside the
-  figures, and it is a measurement of flop coverage and closure, never a win rate.
+  decisions, both checks, no bets and 5,365 voided hands. The bot does not play the turn or river in
+  this phase, so a hand that reaches a turn still voids; the report says so beside the figures, and
+  it is a measurement of flop coverage and closure, never a win rate.
 
 ### Evidence, reports, and gate
 

@@ -181,7 +181,7 @@ items:
   - id: TURN-AND-RIVER-PLAY-FROM-THE-SAVED-SOLVES-NEEDS-ITS-OWN-PHASE
     status: deferred
     phase: contract-update
-    title: Phase 21 stores every turn and river decision point and nothing plays them yet
+    title: Phase 21 stores every turn decision point and nothing plays it yet; the river is solved at the table instead
     reason: >-
       Taylor ruled on 2026-09-26, at phase 21's stage 3, that the campaign keeps the flop, turn and
       river from every solve, and then that phase 21 stores them only: "store now, play next". So a
@@ -201,6 +201,10 @@ items:
       reading it adopts - no network at decision time on a box that holds its solves locally, or
       something else - and asks Taylor if that changes the rule.
 
+      Re-ruled by Taylor 2026-10-04: "for the turn we'll save it. only the river will be solved in
+      real time." So phase 21 stores the flop and the turn only, and the phase this entry asks for
+      plays the stored turn; the river belongs to the live solving `LIVE-TURN-AND-RIVER-SOLVING`
+      carries, which on `main` still names the turn too and is corrected with `AGENTS.md`.
   - id: PHASE-21-CONTRACT-CARRIES-THREE-MEMORY-FIGURES-ITS-OWN-TREE-RULES-CONTRADICT
     status: done
     phase: contract-update

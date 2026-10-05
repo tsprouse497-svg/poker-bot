@@ -253,6 +253,18 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   MAINT-41's card, rebuild the index with `solve_postflop_sample.py --index-only`, regenerate the
   report, keep both sides' mutations, re-freeze.
 
+- [ ] Decision 1 re-ruled 2026-10-04: the turn is stored, only the river is solved at the table.
+  - [x] Contract-update: closure is the flop and the turn, the river never stored; reviewed read-only,
+    no blocker in the text.
+  - [ ] Precondition before this lane merges: `AGENTS.md` and phase 22 on `main` still say the turn is
+    solved live. Owned by the session declaring phase 22 (MAINT-43); Taylor asked to give it his
+    ruling. `AGENTS.md` wins over a contract, so this lane does not merge until `main` agrees.
+  - [ ] Open for Taylor: decision 4 sent turn and river to Glacier Deep Archive on about 22 TB, mostly
+    river. Turn only is about 116 GB for five lines, a few dollars a month in the standard class with
+    no 12 to 48 hour restore. Keep the archive or not.
+  - [ ] Implementation: re-open the closure and street-row tests (manifest, report, street rows, and
+    tree only if `closure_counts` drops the river) for the flop and turn closure, by the test lane.
+
 ## Verification
 
 Stage checks through `uv run python scripts/loop_stage.py --phase 21`. The full gate is expected red
