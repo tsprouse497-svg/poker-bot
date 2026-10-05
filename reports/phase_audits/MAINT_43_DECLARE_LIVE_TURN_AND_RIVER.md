@@ -68,4 +68,7 @@ One read-only reviewer that wrote none of this and ran no gate, note at
 
 ## Gate
 
-Pending, and held until phase 21's all-core solve on this laptop finishes.
+Green, 50 of 50, `check_gate_bite` included, on the review fixes merged with `main` at `3af0e87`,
+which carries MAINT-41. An earlier run went red on this task's own review note, whose round-numbered
+labels the citation check read as backlog ids; they were spelled out. The closeout edits are
+covered by the closeout gate.
