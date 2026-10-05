@@ -39,13 +39,16 @@ _REQUIRED_BLOCKS: dict[str, tuple[str, ...]] = {
     "conditioning": ("payload", "discriminator"),
     "size": (
         "bytes",
-        "limit_bytes",
-        "headroom_bytes",
         "bytes_per_node",
         "bytes_per_expressible_spot",
     ),
     "saved_solve": ("path", "bytes", "sha256"),
 }
+_WHOLE_TREE_FIGURES = ("headroom_bytes", "limit_bytes")
+"""Figures about `data/artifacts` as a whole rather than about this export. A card carrying one
+goes stale whenever any other artifact is committed, so the tree total and the cap are measured by
+`scripts/check_file_sizes.py` when the gate runs and never stored here
+(`SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE`)."""
 _REQUIRED_TEXT = ("licence", "model")
 _MUST_BE_POSITIVE = {
     ("solve", "wall_clock_seconds"),
@@ -91,6 +94,10 @@ def source_card_errors(card: dict) -> list[str]:
                 errors.append(f"{block}.{key} is missing or left at a placeholder")
             elif (block, key) in _MUST_BE_POSITIVE and not values[key] > 0:
                 errors.append(f"{block}.{key} is {values[key]}, which is a placeholder")
+    size = card.get("size")
+    for key in _WHOLE_TREE_FIGURES:
+        if isinstance(size, dict) and key in size:
+            errors.append(f"size.{key} is about the whole artifact tree, not this export")
     if _is_placeholder(card.get("export_sha256")):
         errors.append("export_sha256 is missing or left at a placeholder")
     if isinstance(card.get("config_posted"), dict):

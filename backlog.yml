@@ -39,7 +39,7 @@ items:
       amended, and phase 16's four boards are re-solved on it.
 
   - id: PHASE-16-CONTRACT-IS-AT-ITS-LINE-CAP
-    status: deferred
+    status: done
     phase: contract-update
     title: Phase 16's contract is at the 300-line cap, so the next correction it owes needs a rewrite first
     reason: >-
@@ -48,6 +48,8 @@ items:
       only as one long line. By `AGENTS.md`'s Contract Amendments rule the next amendment cannot be
       made until the contract is rewritten to fold its amendments into the criteria they amend, in its
       own `contract-update` task and never to make room mid-amendment. Closes when that rewrite lands.
+      Closed 2026-10-04 as a duplicate when phase 21's lane merged `main`: MAINT-41 filed the same
+      need as `POSTFLOP-BETTING-CONTRACT-IS-AT-ITS-LINE-CAP`, which carries it from here.
 
   - id: AN-AMENDMENT-WRITTEN-AS-ONE-LONG-LINE-DEFEATS-THE-CONTRACT-LINE-CAP
     status: deferred
@@ -262,6 +264,53 @@ items:
       against the big blind. Phase 21's decision 9 recommends ranking on that. Closes when the
       campaign's ranking code weights by line probability and a test pins that a line the chart
       never plays ranks nowhere.
+
+  - id: LIVE-TURN-AND-RIVER-SOLVING
+    status: deferred
+    phase: contract-update
+    title: The turn and river may be solved at the table and nothing builds it
+    reason: >-
+      Taylor ruled on 2026-10-04 that the turn and river are solved at the table instead of stored,
+      and MAINT-42 amended `AGENTS.md` to say so. The ground is size against speed. Stored, they are
+      85,995 turn and 4,127,760 river spots per preflop line. Live, one solve measured 1.7 to 2.4
+      seconds on the turn and about 25 milliseconds on the river, on preflop ranges no later betting
+      had narrowed and a freshly started server; `docs/GTOPEN_SOLVER_NOTES.md` says which way each
+      of those leans and carries the rows. He accepted
+      the turn at that figure and set the river's limit at one second. Preflop and the flop stay
+      committed artifacts solved offline.
+      The ruling permits the work and builds none of it, and today the bot still refuses on every
+      turn and river. What building it has to answer, the last four added by MAINT-42's review:
+      (1) An owner. Phases 18, 19, 20 and 21 each forbid adding runtime solver calls in their non-goals,
+      so none of them may build it as written, and phase 20 is the one that plays at a table. Declaring
+      the owning phase, or moving one of those non-goals, is a `contract-update` task.
+      (2) The engine. GTOpen has no licence - no LICENSE file and no mention in its README or
+      Cargo.toml - so nothing grants the bot the right to ship it. It also serves one global session,
+      and posting a new spot drops the one in progress. The choices are a licence from its author,
+      or a solver this repo owns.
+      (3) The gate. Phase 10's contract requires the gate to pass on a machine with no GTOpen, no
+      Rust toolchain and no network. A live path tested only against a GTOpen server cannot be tested
+      there, which is a second reason to own the solver.
+      (4) The ranges entering the turn. A live solve needs both players' ranges at that point, which
+      come from the committed flop strategy walked along the line actually played. Whether a
+      committed flop cell carries enough to derive them is unchecked.
+      (5) A bet off the menu. The tree offers 66 and 125 percent of pot on the turn and river. A size
+      outside that must be re-solved with the size added, which the river's cost allows, or mapped
+      onto a menu size, which is a substitution the decision carries.
+      (6) Determinism. Phase 16 measured byte-identical output for the same computation on one
+      machine, so a live solve must stop by a rule that does not read the wall clock.
+      (7) Where the solve runs. The ruling does not say whether it must be the machine at the
+      table or may be a rented box reached over a network; a remote box is a real way to make the
+      turn faster, and that is Taylor's to rule.
+      (8) Pots with three or more players. GTOpen's postflop engine is two-player, so those turns
+      and rivers have no live solve and need their own answer.
+      (9) Tying the turn to the flop. A turn re-solved from estimated ranges alone, with nothing
+      holding it to what the committed flop strategy promised, can be exploited; the builder must
+      say how the re-solve is anchored.
+      (10) Reading the river. A turn solve already contains every river under it, so the river can
+      be read from the turn solve or solved again; each answer has its own cost and consistency.
+      `river_pot_odds.py` stays as a fallback and stops being the river plan.
+      Closes when a phase that owns it is declared and its contract answers all ten.
+      Filed 2026-10-04 by MAINT-42.
 
   - id: PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS
     status: deferred
@@ -3295,7 +3344,7 @@ items:
       retired, so the numbers stay checked wherever a document a reader acts on states
       them.
   - id: SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE
-    status: deferred
+    status: done
     phase: "12"
     title: The GTOpen source card's headroom moves when any other committed artifact does
     reason: >-
@@ -3308,6 +3357,47 @@ items:
       and data/artifacts/preflop/exports/**, neither in phase 12 scope; the better fix is
       for the card to state its own size and for the directory total to be the checker's
       business.
+      Closed by MAINT-41 on 2026-10-04, which did exactly that. Phase 16 restamped the card at
+      7d6866f and phase 21's lane twice on 2026-10-04, and one unrelated file under
+      data/artifacts reproduced all six red tests in a scratch copy before the fix. The card's
+      size block keeps the export's own bytes, bytes per node and bytes per expressible spot,
+      and drops headroom_bytes and limit_bytes; the converter and the extractor stop writing
+      them and the card check refuses either. The postflop index had the same defect in its
+      own headroom_bytes and lost it too, at index schema version 2, with the importer
+      refusing the key; its committed_bytes stays, because it covers only the index's own
+      postflop directory. The cap itself is unchanged and still checked at gate time by
+      scripts/check_file_sizes.py and the frozen budget tests, and a new test copies the tree,
+      adds an unrelated file, shows the card still reproduces, and shows the cap passing at
+      exactly its limit and failing one byte over. The preflop chart and its sizing table came
+      back byte-identical.
+  - id: POSTFLOP-INDEX-BYTE-COUNT-MOVES-WITH-EVERY-CAMPAIGN-RECORD
+    status: deferred
+    phase: "21"
+    title: Any record committed under data/artifacts/postflop makes the postflop index stale
+    reason: >-
+      Found by the MAINT-41 review. The index's committed_bytes is the byte total of the whole
+      data/artifacts/postflop directory, and phase 16's contract requires it and requires the
+      report generator to refuse one that does not reconcile with disk. MAINT-41 kept it, because
+      it covers only the index's own directory. But phase 21 writes campaign records there
+      (scripts/measure_postflop_thread_sweep.py) without rebuilding the index, and its commit
+      8436788 records budget tests going red for exactly that. On a copy of MAINT-41's head one
+      new file under data/artifacts/postflop still reddens two tests. Either every writer into
+      that directory rebuilds the index in the same run, or campaign records live outside the
+      directory the index counts, or the figure narrows to the index and sample it describes.
+      The last is a semantic change to phase 16's contract and needs contract-update.
+  - id: POSTFLOP-BETTING-CONTRACT-IS-AT-ITS-LINE-CAP
+    status: deferred
+    phase: contract-update
+    title: Phase 16's contract sits two lines under the 300-line cap and cannot take a plain amendment
+    reason: >-
+      MAINT-41 had to amend phase 16's contract, which stood at 299 lines. A two-line amendment
+      beside the false sentence would have made 301, so the false sentence was replaced in place
+      by the amendment, as MAINT-39 did for phase 14 at its cap. The contract is now 298 lines.
+      Its next amendment cannot follow AGENTS.md's form at all, so it is due for the rewrite
+      AGENTS.md describes, folding its amendments into the criteria they amend, as its own
+      contract-update task.
+      Phase 21's decision 17 amendment, merged with this one on 2026-10-04, took it to 299 lines as
+      one long line (`AN-AMENDMENT-WRITTEN-AS-ONE-LONG-LINE-DEFEATS-THE-CONTRACT-LINE-CAP`).
   - id: DOCS-CARRY-STRAY-WRITE-TOOL-CLOSING-TAGS
     status: deferred
     phase: contract-update
@@ -7372,7 +7462,7 @@ items:
       BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS stays deferred and holds the
       case that the constants are what should have moved.
   - id: THE-CHARTS-REPRODUCE-CHECK-IS-COUPLED-TO-EVERY-OTHER-ARTIFACT
-    status: deferred
+    status: done
     phase: "14"
     title: Adding any file under data/artifacts turns the chart's own byte-for-byte check red
     reason: >-
@@ -7392,6 +7482,9 @@ items:
       the headroom figure moves off the card the chart's `--check` compares, or the check learns to say
       which of the two disagreements it found - a chart that no longer reproduces, or a tree that grew.
       The first is a defect and the second is Tuesday, and today they are the same red.
+      Closed by MAINT-41 on 2026-10-04 with the first option: the headroom figure is off the card, so
+      the chart's check no longer reads the tree. The same defect is filed as
+      SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE, which carries what changed.
 
   - id: HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES
     status: deferred
