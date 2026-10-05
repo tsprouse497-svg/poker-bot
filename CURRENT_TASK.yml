@@ -4,6 +4,8 @@ task_mode: contract-update
 base_commit: 22280ec64b90e53e3aea72afada22d58e2f2a17c
 approved_scope:
 - docs/phase_contracts/PHASE_18_YARDSTICK.md
+- docs/phase_contracts/PHASE_19_HEURISTICS_AND_MERGED_CHARTS.md
+- docs/phase_contracts/PHASE_20_HOME_GAME.md
 - docs/ROADMAP.md
 - docs/V2_ROADMAP.md
 - verification/loop_policy.yml
@@ -24,6 +26,16 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-10-05
+    reason: >-
+      Widened mid-task to phase 19's contract. The independent review's one blocker: phase 19 gates a
+      substitution rule on "the phase 18 pool", which the narrowed phase 18 drops. One phrase changes
+      to "the phase 18 measurement"; phase 19's dependency on 18 is unchanged.
+  - date: 2026-10-05
+    reason: >-
+      Widened mid-task to phase 20's contract. Taylor asked in this session that phase 20 be shown as
+      intentionally left open, committing to nothing, after the review queue listed it as waiting on
+      him. The contract and the loop-policy reason now say so.
   - date: 2026-10-05
     reason: >-
       MAINT-45 opens from idle, so every pattern in `approved_scope` reads as a widening against

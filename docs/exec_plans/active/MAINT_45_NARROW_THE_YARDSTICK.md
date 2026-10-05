@@ -20,6 +20,10 @@ recorded phase 22's rulings.
 1. **Phase 18 stays, narrower.** Offered as "Keep it, but narrower (my recommendation). Drop anything
    that second-guesses the solver, and measure only what the bot's departures from solver play cost,
    in chips." He answered "1".
+2. **Phase 20 is intentionally left open.** His words: "for phase 20 we just need to keep this open
+   ended now and not commit to anything", then "for the phase 20 stuff can you make it clear it's
+   intentionally left open?" Recorded in phase 20's contract and its loop-policy reason, which the
+   review queue prints.
 
 ## Coordinator's reading, not a ruling
 
@@ -37,8 +41,8 @@ stage 1 rewrites, and nothing is committed into data.
 
 ## Scope
 
-Approved: phase 18's contract, both roadmaps, `verification/loop_policy.yml`, and this task's packet
-and review directory; `backlog.yml` through standing scope. Phase 19's dependency on 18 is unchanged.
+Approved: phase 18's, 19's and 20's contracts, both roadmaps, `verification/loop_policy.yml`, and this task's packet
+and review directory; `backlog.yml` through standing scope. Phase 19's dependency on 18 is unchanged; one phrase in its contract that named the dropped pool changes.
 Nothing under `data/`, `src/`, `tests/` or `scripts/` changes.
 
 ## Delegation Plan
@@ -56,7 +60,11 @@ Nothing under `data/`, `src/`, `tests/` or `scripts/` changes.
 - [x] Activate MAINT-45 with a dated scope entry.
 - [x] Record the ruling in phase 18's contract, both roadmaps, the loop-policy reason and one backlog
   entry.
-- [ ] Independent read-only review.
+- [x] Mark phase 20 intentionally open, widened by a dated scope entry.
+- [x] Independent read-only review: one blocker (phase 19 named the dropped pool), fixed; the
+  departure list corrected and widened, the lean's limits stated, two more backlog entries noted.
+- [x] Second review round on the fixes and the phase 20 change: no blocker, three wording fixes
+  folded in, the queue gap filed as THE-REVIEW-QUEUE-LISTS-A-PHASE-WHOSE-DEPENDENCIES-ARE-NOT-MET-AS-WAITING-ON-YOU.
 - [ ] Gate, packet, closeout to idle, gate again, merge, push.
 
 ## Verification

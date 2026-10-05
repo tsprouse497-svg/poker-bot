@@ -136,14 +136,15 @@ phases:
     auto_advance: false
     needs_human_data: true
     reason: >-
-      The bot sits down and plays in Taylor's own home games, which the repo cannot
-      begin without things only he has: which game, on which platform, under whose house
-      rules, and his standing answer on what the bot may do unattended at a table with his
-      friends at it. He ruled on 2026-09-21 that the bot is handed the game's URL and joins
-      the table, and that the question may stay open for now, so the platform is a working
-      reading for stage 1 to confirm rather than an answer the repo already holds. Sitting in a real game is also the one thing in this repo that cannot
-      be undone by an edit, so the driver halts before stage 1 rather than letting a
-      session choose a venue on its own.
+      Intentionally left open. Taylor said on 2026-10-05 to keep this phase open-ended and
+      commit to nothing yet, so there is nothing for him to answer today, and it cannot
+      start before 19 and 22 are complete in any case. When it does start, the repo needs
+      things only he has: which game, on which platform, under whose house rules, and his
+      standing answer on what the bot may do unattended at a table with his friends at it.
+      His 2026-09-21 answer, that the bot is handed the game's URL and joins the table, is a
+      working reading for stage 1 to confirm, not a commitment. Sitting in a real game is
+      also the one thing in this repo that cannot be undone by an edit, so the driver halts
+      before stage 1 rather than letting a session choose a venue on its own.
   "21":
     auto_advance: false
     needs_human_data: false

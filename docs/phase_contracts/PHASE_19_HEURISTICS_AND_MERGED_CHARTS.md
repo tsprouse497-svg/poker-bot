@@ -47,7 +47,7 @@ Phase 19 is limited to the work named by this contract and the active ExecPlan.
 ## Non-goals
 - Do not overwrite a solved cell with a heuristic. Substitution fills what the solve does not answer;
   where the solve answers, the solve wins.
-- Do not ship a substitution rule whose measured result against the phase 18 pool is no better than
+- Do not ship a substitution rule whose measured result on the phase 18 measurement is no better than
   refusing. Filling a gap with a worse answer is not filling it.
 - Do not emit a substituted answer that reads identically to a solved one. Every substitution names
   itself on the decision, with what it stood in for.

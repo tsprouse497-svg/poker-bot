@@ -32,7 +32,9 @@ What "plays" means was put to Taylor on 2026-09-21, because an online table the 
 in-person game it advises across are different phases with different work in them. He answered that
 the bot is handed the game's URL, joins the table and plays, and said the question may stay open for
 now. So the working reading is an online table joined by link, and stage 1 confirms it rather than
-inheriting it. Nothing here commits to a platform.
+inheriting it. Nothing here commits to a platform. Taylor said on 2026-10-05 that the phase
+stays open-ended on purpose and commits to nothing yet; there is nothing for him to answer until it
+can start, which is after 19 and 22.
 
 The terms-of-service and account-risk reasoning behind the 2026-08-15 ruling is not answered by
 naming a private game, because it attaches to the platform and not to the guest list: a private club
