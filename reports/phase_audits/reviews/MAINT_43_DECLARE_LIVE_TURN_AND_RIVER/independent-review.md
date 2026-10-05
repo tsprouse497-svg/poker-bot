@@ -185,7 +185,7 @@ Resolved:
 
 Remaining:
 
-R2-1. **[blocker] The four adoptions are notes only; the `phase:` field was not moved.**
+round-2 finding 1. **[blocker] The four adoptions are notes only; the `phase:` field was not moved.**
 `backlog.yml:711` (`THE-GATE-ENFORCES-A-SEAM-SENTENCE-THIS-PHASE-MEASURED-AS-FALSE`) and `:1182`
 (`A-COMMITTED-CELL-CARRIES-NO-STREET-SO-THE-IMPORTER-CHECKS-EVERY-BET-AGAINST-THE-FLOP-MENU`) still
 say `contract-update`; `:9031` (`A-FLOP-ONLY-STRATEGY-IS-SOLVED-ABOVE-A-TURN-THE-BOT-DOES-NOT-HAVE`)
@@ -195,18 +195,18 @@ old owner. MAINT-40 moved the field to "21" for every entry it adopted (`git sho
 backlog.yml`), and `LIVE-TURN-AND-RIVER-SOLVING` here was moved to "22". Set all four to "22" and
 regenerate `docs/BACKLOG.md`. The packet's "adopted by 22" is true only once this is done.
 
-R2-2. **[non-blocker] `NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER` names only the
+round-2 finding 2. **[non-blocker] `NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER` names only the
 uncertain case.** It speaks of "a flop phase 19 answered by rule of thumb", but whether 19 fills
 flops at all is open (`PHASE-19-IS-TOLD-THREE-WAYS-WHETHER-IT-FILLS-FLOP-GAPS`). The certain case
 is a preflop spot 19 substitutes: no solved flop line follows it, so no turn range either. Add
 preflop.
 
-R2-3. **[non-blocker] `THE-FLOP-CAMPAIGN-IS-NOT-TOLD-ITS-CELLS-ARE-THE-TURN-RANGE-SOURCE` says
+round-2 finding 3. **[non-blocker] `THE-FLOP-CAMPAIGN-IS-NOT-TOLD-ITS-CELLS-ARE-THE-TURN-RANGE-SOURCE` says
 "by its own stage 2".** Phase 21's pointer reads `stage: 6` (`phase-21/verification/loop_runs/21.yml`),
 and its contract is frozen in implementation mode. Reword to its decision list (it is at decision
 17) or a note to the lane's coordinator.
 
-R2-4. **[non-blocker] Phase 22's contract does not cite the four adopted ids.** Phase 21's skeleton
+round-2 finding 4. **[non-blocker] Phase 22's contract does not cite the four adopted ids.** Phase 21's skeleton
 lists its adoptions by id (`PHASE_21_FLOP_CAMPAIGN.md:70-76`); 22 cites only
 `LIVE-TURN-AND-RIVER-SOLVING`. This is `A-CONTRACT-NAMES-SOME-OF-ITS-PHASE-ITEMS-AND-NOTHING-CHECKS-THE-REST`
 again. One line in Scope fixes it.
@@ -214,19 +214,19 @@ again. One line in Scope fixes it.
 Unchanged, minor and not required: phase 20's "offline strategy" wording (line 45) and over-wide
 lines 44, 58-59.
 
-Round 2 verdict: one blocker left (R2-1, four `phase:` fields); fix it and this is clear.
+Round 2 verdict: one blocker left (round-2 finding 1, four `phase:` fields); fix it and this is clear.
 
 ## Round 3
 
 Diff `HEAD~1..HEAD` (`b2513dc`). Read-only; only `check_contracts` run (exit 0).
 
-- R2-1 [resolved]. All four adopted entries read `phase: "22"` in `backlog.yml` (lines 713, 1184,
+- round-2 finding 1 [resolved]. All four adopted entries read `phase: "22"` in `backlog.yml` (lines 713, 1184,
   9033, 10211) and in the Phase column of `docs/BACKLOG.md`.
-- R2-2 [resolved]. `NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER` now leads with the
+- round-2 finding 2 [resolved]. `NO-PHASE-OWNS-A-TURN-REACHED-AFTER-A-HEURISTIC-ANSWER` now leads with the
   certain preflop case and keeps the flop case conditional on 19's contract.
-- R2-3 [resolved]. `THE-FLOP-CAMPAIGN-IS-NOT-TOLD-ITS-CELLS-ARE-THE-TURN-RANGE-SOURCE` points at
+- round-2 finding 3 [resolved]. `THE-FLOP-CAMPAIGN-IS-NOT-TOLD-ITS-CELLS-ARE-THE-TURN-RANGE-SOURCE` points at
   21's decision list or a note to its lane, which matches 21's pointer at stage 6.
-- R2-4 [resolved]. Phase 22's Scope cites all four adopted ids by full name.
+- round-2 finding 4 [resolved]. Phase 22's Scope cites all four adopted ids by full name.
 - Round 2 note committed unedited (no removed lines).
 
 Wording nit, not required: after the inserted list, "Two of its ten questions" (contract line ~48)
