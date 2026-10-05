@@ -217,8 +217,10 @@ action nodes and against all four committed planned arenas to the byte; re-run b
     (66 files, 1,489 tests), narrowed at 6d1eb66. The suite outside the unbuilt flop campaign tests
     passes but one test, `test_every_mutation_applies_exactly_once_to_its_file`, red because stage 4's
     canaries name modules stage 6 has not built yet, as before this work.
-  - [ ] One more re-open after the re-solve, for `test_each_committed_cell_document_is_unchanged`,
-    which pins the old cells' sha256.
+  - [x] One more re-open after the re-solve, for `test_each_committed_cell_document_is_unchanged`,
+    which pins the old cells' sha256: moved to the re-solve's hashes and re-frozen at 45ff860. The
+    re-solve review's one blocker, the betting report still calling the pin's cell current, fixed at
+    0bbb940 and marked resolved by the reviewer.
   - [ ] Open for Taylor, raised by the contract review: decision 5 starts the trial from a GPU, while
     the contract still wants one flop solved and timed on a CPU of the same provider first. Whether the GPU pod's own processors count as that CPU is his to say before the trial.
   - [x] Phase 16's four boards re-solved on the new tree, on this Mac and before any rented box, so
@@ -260,10 +262,13 @@ Not yet.
 ## Next Agent Bootstrap
 
 Worktree `~/projects/poker-bot-worktrees/phase-21`, loop at stage 6 (build) in `implementation`
-mode, `base_commit` 49f529c. Run `uv run python scripts/loop_stage.py --phase 21` for the next action.
-Part 1 is built. Decision 17 is mid-way: read its slices above, in order. The solver clone is
-`~/projects/gtopen-poker-bot` at `b058335`; `~/projects/gtopen` stays untouched. Decision 18's GPU
-fold patch is not applied: this session's permission check refused it, so it waits on Taylor. The
-re-solve of phase 16's four boards needs a window Taylor grants (lid open, on AC, about 1.5 hours)
-and no other gate running on the machine. Nothing may be rented before Taylor sees the machine and
-price, and the decision 5 versus CPU-first question is answered.
+mode, `base_commit` 45ff860. Run `uv run python scripts/loop_stage.py --phase 21` for the next action.
+Part 1 is built. Decision 17 is done except decision 18: the clone at `b058335` carries the tree fix,
+the contract and tests state the new tree, and phase 16's four boards are re-solved on it (45ff860).
+Decision 18's GPU fold patch is not applied; this session's permission check refused it, so it waits
+on Taylor's direct approval. Open for Taylor before any rental: the decision 5 versus CPU-first
+question. Taylor ruled on 2026-10-04 (AGENTS.md on `main`, MAINT-42) that the turn and river are
+solved live at the table; phase 21's turn and river storage criteria, decisions 1, 4 and 15 and the
+closure and street-row tests describe the stored plan and wait on his ruling of how phase 21 changes,
+which another session is asking. Do not rewrite them before he answers. The stage 6 review note
+`stage-06-build.md` is still owed for the whole stage, beside the three decision 17 notes.
