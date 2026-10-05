@@ -50,4 +50,6 @@ wrote none of this, completed. Note at
 
 ## Gate
 
-Pending.
+Green, 50 of 50, `check_gate_bite` included, on the review fixes and this packet. An earlier run
+went red on the review note's abbreviated backlog ids; they were spelled out. The closeout edits are
+covered by the closeout gate.
