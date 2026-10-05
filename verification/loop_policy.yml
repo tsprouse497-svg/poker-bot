@@ -114,13 +114,14 @@ phases:
     needs_human_data: false
     reason: >-
       Nothing in this repo measures how well the bot plays, and this phase builds the
-      thing that would. It commits an opponent pool - strategies, not stubs - and every
-      later strength claim is read against them, so a pool that is weak in a way nobody
-      noticed becomes a flattering number every phase after it inherits. That is committed
-      data in the sense this file cares about. The second reason is that a head-to-head
-      result and an exploitability figure are only as good as their error bars, and what
-      counts as enough hands to call a difference real is a judgement a human makes once
-      and the repo then lives with.
+      thing that would. Taylor narrowed it on 2026-10-05 to what the bot's departures from
+      the solve cost, taking the solve as good play. It commits the opponents that cost is
+      read against, and every later strength claim inherits them, so an opponent that is
+      weak in a way nobody noticed becomes a flattering number every phase after it. That is
+      committed data in the sense this file cares about. The second reason is that a
+      head-to-head result is only as good as its error bars, and what counts as enough hands
+      to call a difference real is a judgement a human makes once and the repo then lives
+      with.
   "19":
     auto_advance: false
     needs_human_data: false
@@ -135,14 +136,15 @@ phases:
     auto_advance: false
     needs_human_data: true
     reason: >-
-      The bot sits down and plays in Taylor's own home games, which the repo cannot
-      begin without things only he has: which game, on which platform, under whose house
-      rules, and his standing answer on what the bot may do unattended at a table with his
-      friends at it. He ruled on 2026-09-21 that the bot is handed the game's URL and joins
-      the table, and that the question may stay open for now, so the platform is a working
-      reading for stage 1 to confirm rather than an answer the repo already holds. Sitting in a real game is also the one thing in this repo that cannot
-      be undone by an edit, so the driver halts before stage 1 rather than letting a
-      session choose a venue on its own.
+      Intentionally left open. Taylor said on 2026-10-05 to keep this phase open-ended and
+      commit to nothing yet, so there is nothing for him to answer today, and it cannot
+      start before 19 and 22 are complete in any case. When it does start, the repo needs
+      things only he has: which game, on which platform, under whose house rules, and his
+      standing answer on what the bot may do unattended at a table with his friends at it.
+      His 2026-09-21 answer, that the bot is handed the game's URL and joins the table, is a
+      working reading for stage 1 to confirm, not a commitment. Sitting in a real game is
+      also the one thing in this repo that cannot be undone by an edit, so the driver halts
+      before stage 1 rather than letting a session choose a venue on its own.
   "21":
     auto_advance: false
     needs_human_data: false

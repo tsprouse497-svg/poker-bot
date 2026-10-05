@@ -282,6 +282,14 @@ items:
       the same question from the count side and prices it in how often the bot is dealt the wrong
       side rather than in chips won. Also REALIZATION-MODEL-UNDERPRICES-POSITION and
       REALIZATION-FIT-TABLE-IS-NON-MONOTONE-IN-HAND-STRENGTH, which are the mechanism.
+      Narrowed 2026-10-05 by MAINT-45. Taylor ruled that phase 18 takes the solve as good play and
+      measures only what the bot's departures from it cost. The inversions are the solve's own
+      play rather than a departure, so that ruling reads them as the first case above, free by the
+      solve's own reckoning, and phase 18 does not price them. Left against phase 18 for its stage 1
+      to confirm and close, rather than closed here. Before closing, stage 1 checks the raise-weight
+      pair-ladder violations against the unmerged export: every seat but the big blind facing one
+      raise merges the cold call into the raise (phase 14's decision 45), so some of them may be the
+      merge's and not the solve's.
   - id: THE-MULTIWAY-THRESHOLD-WAS-MOVED-FOR-A-STUDENT-AND-MEASURED-ON-A-CIRCULAR-QUANTITY
     status: deferred
     phase: contract-update
@@ -387,6 +395,11 @@ items:
       instead of it. Related: COVERAGE-IS-DECISION-MASS-AND-A-TRAINEE-MEETS-A-PER-SEAT-RATE,
       ARRIVING-REACH-IS-NOT-A-TRAINED-NESS-MEASURE, SELF-PLAY-COVERAGE-PREMISE-RESTS-ON-THE-REACH-FLOOR,
       SELF-PLAY-NO-LONGER-FINDS-COVERAGE-GAPS.
+      Narrowed 2026-10-05 by MAINT-45. Phase 18 now measures only what the bot's departures from
+      the solve cost and drops the skeleton's opponent pool, so the settling test above, coverage
+      re-measured against a pool that does not play this chart, has no pool to run on. Whether
+      phase 18 still needs opponents that do not play the solve is its stage 1 and human-gate
+      question; this entry is settled by that answer or moves to a new owner with it.
   - id: THE-FIVE-BET-JAMS-WERE-WITHHELD-ON-TWO-ARGUMENTS-AND-THE-TRAINEE-ONE-HAS-EXPIRED
     status: deferred
     phase: "16"
@@ -574,6 +587,23 @@ items:
       assertion with one requiring the report to say no phase reads the band. Filed beside
       A-VOCABULARY-ASSERTION-WENT-VACUOUS-WHEN-THE-LADDER-MOVED, the same kind of repair.
 
+  - id: THE-REVIEW-QUEUE-LISTS-A-PHASE-WHOSE-DEPENDENCIES-ARE-NOT-MET-AS-WAITING-ON-YOU
+    status: deferred
+    phase: maintenance
+    title: The review queue counts a phase that cannot start yet as an ask waiting on Taylor
+    reason: >-
+      Filed 2026-10-05 by MAINT-45's second review round. scripts/review_queue.py's gated_phases
+      lists every phase that is not completed and has needs_human_data set, whether or not its
+      depends_on is met, and render prints it under "N item(s) waiting on you" with "the phase
+      cannot start". Phase 20 waits on 19 and 22 and Taylor said on 2026-10-05 to keep it open and
+      commit to nothing, so the board reports an ask that is not owed; a scan that day reported it to
+      him as waiting on him. MAINT-45 put "Intentionally left open" at the head of the printed
+      reason, which fixes the words and not the count. The repair is to apply loop_fleet.py's own
+      eligibility rule: a gated phase whose dependencies are not all completed on main is shown under
+      a separate "not yet startable" heading, or not at all, and the count covers only real asks.
+      needs_human_data stays true on phase 20, because the inputs are owed once it can start.
+      Sibling of THE-FLEET-BOARD-SHOWS-A-LANE-WHOSE-PHASE-WAS-RETIRED.
+
   - id: THE-FLEET-BOARD-SHOWS-A-LANE-WHOSE-PHASE-WAS-RETIRED
     status: deferred
     phase: maintenance
@@ -645,6 +675,10 @@ items:
       and when. Restating them before the measurement exists would replace one unpriced claim with
       another. Related: LADDER-INVERSIONS-ARE-PUBLISHED-AS-COUNTS-AND-THE-COUNT-IS-NOT-THE-COST,
       which is the same complaint about a different unit.
+      Narrowed 2026-10-05 by MAINT-45. Phase 18 takes the solve as good play and prices only the
+      bot's departures from it, so a cost that is the solve's own play is no longer priced in
+      chips. The pass this entry plans restates in chips only the entries that are departures; an
+      entry whose cost is the solve's own play is restated as accepted by that ruling instead.
   - id: THE-AGENTS-FILE-IS-ONE-LINE-UNDER-ITS-CAP-AND-THE-NEXT-CORRECTION-PAYS-FOR-IT
     status: deferred
     phase: contract-update
