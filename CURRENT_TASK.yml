@@ -1,18 +1,8 @@
-task_id: MAINT-44
+task_id: null
 active_phase: null
-task_mode: contract-update
-base_commit: 0f46d46236eaa9fe07e1e6469399fdc4b9d161c5
-approved_scope:
-- AGENTS.md
-- docs/phase_contracts/PHASE_22_LIVE_TURN_AND_RIVER.md
-- docs/phase_contracts/PHASE_22_TURN_AND_RIVER_PLAY.md
-- docs/phase_contracts/PHASE_20_HOME_GAME.md
-- docs/ROADMAP.md
-- docs/V2_ROADMAP.md
-- docs/GTOPEN_SOLVER_NOTES.md
-- verification/loop_policy.yml
-- reports/phase_audits/MAINT_44_STORE_THE_TURN.md
-- reports/phase_audits/reviews/MAINT_44_STORE_THE_TURN/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml

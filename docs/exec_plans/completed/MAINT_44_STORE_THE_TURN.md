@@ -55,7 +55,7 @@ review directory. Phase 21's contract is left to phase 21's lane. Nothing under 
 - [x] Correct the three backlog entries that assumed a live turn.
 - [x] Independent read-only review: no blocker, two non-blockers fixed, one alignment item resolved by
   merging before phase 21. Three earlier reviewer runs stalled with no output.
-- [ ] Gate, packet, closeout to idle, gate again, merge, push, and tell phase 21's lane.
+- [x] Gate, packet, closeout to idle, gate again, merge, push, and tell phase 21's lane.
 
 ## Verification
 
@@ -64,9 +64,9 @@ verdict rather than its exit code.
 
 ## Outcome
 
-Pending review and gate.
+`main` now says the turn is stored and only the river is live; phase 22 is Turn And River Play.
+Phase 21's contract on `main` disagrees until phase 21 merges, filed. Gate green 50 of 50.
 
 ## Next Agent Bootstrap
 
-Work in `~/projects/poker-bot-worktrees/maint-44`. Edits are done; review and gate are open. Ask the
-other lanes before running the gate.
+Closed. Phase 21's lane merges `main` into itself to pick this up.
