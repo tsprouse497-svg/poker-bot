@@ -8,6 +8,7 @@ approved_scope:
 - reports/phase_audits/decisions/PHASE_21_FLOP_CAMPAIGN_DECISIONS.md
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
 - scripts/run_verify.py
+- scripts/generate_postflop_betting_report.py
 - src/poker_training_bot/solver_artifacts/**
 - scripts/measure_postflop_thread_sweep.py
 - scripts/solve_postflop_sample.py
@@ -21,6 +22,8 @@ approved_scope:
 - data/artifacts/postflop/determinism.json
 - data/artifacts/postflop/solve_config.json
 - reports/active/latest_postflop_betting_report.txt
+- tests/test_flop_campaign_manifest.py
+- verification/freeze.lock
 - data/artifacts/preflop/exports/gtopen_six_max_100bb_rakefree.source.json
 standing_scope:
 - CURRENT_TASK.yml
@@ -4568,4 +4571,25 @@ scope_change_log:
       content, and the postflop betting report regenerates with the new cells. Nothing else under
       `data/artifacts` changes but the index and object list already in scope and the export card's
       headroom.
+  - date: 2026-10-04
+    reason: >-
+      The eighth freeze re-open, the one the last narrowing said was owed, for one pin alone.
+      Phase 16's four boards were re-solved on the clone at b058335 in the window Taylor granted:
+      run A in this worktree replaced the sample cells, index entries and objects, and run B in a
+      scratch copy reproduced every cell document byte for byte and every per-combo strategy with a
+      gap of 0.0, written to `determinism.json`. `TestPhase16StaysByteIdentical` in
+      `tests/test_flop_campaign_manifest.py` pins the old cells' sha256, which the rewritten
+      contract's regression line excepts for exactly this re-solve. The four hashes move to the
+      re-solve's cells and the docstring says why; nothing else in the file changes. Written by the
+      test lane, re-frozen, and narrowed again in the next entry.
+  - date: 2026-10-04
+    reason: >-
+      Puts the freeze narrowing back on after the hash re-open; the test file and the lock leave
+      approved_scope and `scripts/freeze_tests.py` re-locked the suite. And
+      `scripts/generate_postflop_betting_report.py` joins scope, on the re-solve review's one blocker:
+      the regenerated report calls `deep_convergence_check.json`'s run "the strategy the repo holds"
+      and carries a hard-coded paragraph saying the button bets nearly its whole range on `9c8c7c`,
+      both true of the pin's cell and false of the re-solved one, which now checks 46 percent. The
+      generator's framing names the pin's cell, and the paragraph is derived from the committed data
+      or removed.
 

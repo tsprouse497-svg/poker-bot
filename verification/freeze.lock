@@ -75,7 +75,7 @@ files:
     sha256: a4149e1ae1ec740bd144b0bd3376aaff4ada418c06b9b5a825ac0c462a8eb62b
     test_functions: 28
   tests/test_flop_campaign_manifest.py:
-    sha256: 7918a6e0d5409bae11e2d5a66f3099403990d94d24eac8392e7b966192fa6421
+    sha256: cac780ed029873d8747aa2e8b65eafe23b911f6702d5e8c7ab95561ebb5f4cd7
     test_functions: 34
   tests/test_flop_campaign_raise_key.py:
     sha256: d5f17c02f292e25c953acb3058a71238a5c74e7661143eb5fb6584ce06a9d126

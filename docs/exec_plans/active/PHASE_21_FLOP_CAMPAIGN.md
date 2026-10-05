@@ -232,6 +232,12 @@ action nodes and against all four committed planned arenas to the byte; re-run b
     object folder; then `--determinism-tree` and `--determinism-objects` on run B to write
     `determinism.json`. The sample, `determinism.json` and `solve_config.json` join scope first.
 
+- [ ] Rebase note from MAINT-41, 2026-10-04: it removes the whole-tree `headroom_bytes` from the
+  preflop source card and the postflop index (index schema 2). When it merges, this lane's rebase
+  conflicts on the card, `index.json`, the betting report, `freeze.lock` and `mutations.yml`: take
+  MAINT-41's card, rebuild the index with `solve_postflop_sample.py --index-only`, regenerate the
+  report, keep both sides' mutations, re-freeze.
+
 ## Verification
 
 Stage checks through `uv run python scripts/loop_stage.py --phase 21`. The full gate is expected red

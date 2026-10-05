@@ -59,19 +59,20 @@ PHASE_16_BOARDS = (("9c", "8c", "7c"), ("Kh", "7d", "2c"), ("8c", "8d", "3c"), (
 
 SAMPLE_SHA256 = {
     "monotone-connected-cbet.json": (
-        "5aa01d6802458b81effd579c506c889d3f778ae5dbb104215503dcbe351104ed"
+        "3a374f80750253be2cbd418782849bb3d024997889b3c8ce1d07cb870cf35585"
     ),
     "rainbow-dry-high-donk.json": (
-        "d8a6b8c44a71bffd7c5d4d71d7d212186a3a3029d8840674b083eca76b0432a6"
+        "f0f7172f6e41d17de3204cebbebdbb3d6933ee2d9f00406e4bf47e26231e6ab6"
     ),
     "rainbow-dry-high-facing-a-bet.json": (
-        "5dd593d95e47c4f6a3635a6182682fbdc03b76abd4eecd57a80175a66f3832d3"
+        "1384fc479bdc57ff91ab2617148904da7b6709b4e9c7e138de90bf507c838cab"
     ),
     "two-tone-paired-donk.json": (
-        "0d53acd682cbf5cd1710ff9b81ab09df59dc3ce678c62795d1e5d7349facba58"
+        "161eb1fe09780972d4e2ec4a4c61e06a1b019f67a8c3d612d0ebcb0c00d1d8c2"
     ),
 }
-"""The four cell documents phase 16 committed at `479aaf2`, hashed 2026-09-26."""
+"""The four cell documents decision 17's re-solve wrote on the clone at `b058335`, hashed
+2026-10-04; phase 16's own, committed at `479aaf2`, were solved on the pin's tree."""
 
 
 @pytest.fixture(scope="module")
@@ -119,8 +120,11 @@ def committed_index():
 
 
 class TestPhase16StaysByteIdentical:
-    """Regression: every cell phase 16 committed stays byte-identical, the commit rule is phase
-    16's constants as Taylor kept them (decision 8), and no git LFS is used or cap raised."""
+    """Regression: every cell phase 16 committed stays byte-identical except that decision 17
+    re-solved its four boards once on the clone's tree, and these hashes are that re-solve's
+    bytes, reproduced byte for byte by a second run (`determinism.json`). The commit rule is
+    phase 16's constants as Taylor kept them (decision 8), and no git LFS is used or cap
+    raised."""
 
     @pytest.mark.parametrize("name", sorted(SAMPLE_SHA256))
     def test_each_committed_cell_document_is_unchanged(self, name) -> None:
