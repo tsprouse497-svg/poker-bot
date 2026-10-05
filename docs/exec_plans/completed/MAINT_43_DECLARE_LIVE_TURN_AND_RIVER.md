@@ -53,8 +53,8 @@ task's packet and review directory. Standing scope covers `CURRENT_TASK.yml`, `p
 - [x] `LIVE-TURN-AND-RIVER-SOLVING` adopted by 22.
 - [x] Independent read-only review: two blockers and seven non-blockers fixed, two alignment items
   filed.
-- [ ] Gate, packet, closeout to idle, gate again, merge, push. The gate waits until phase 21's
-  all-core solve on this laptop has finished; two at once have crashed the machine.
+- [x] Gate, packet, closeout to idle, gate again, merge, push. Gates were sequenced with phase 21's
+  laptop solve and MAINT-41's gate, and main was merged in at `3af0e87` before the gate.
 
 ## Verification
 
@@ -64,9 +64,10 @@ not yet eligible, since 21 is not `completed`.
 
 ## Outcome
 
-Pending review and gate.
+Phase 22 declared at `future`, depending on 21; phase 20 waits on it; five entries adopted and two
+alignment items filed. Review resolved in three rounds, gate green 50 of 50.
 
 ## Next Agent Bootstrap
 
-Work in `~/projects/poker-bot-worktrees/maint-43`. Edits are done; the review and gate are open.
-Before running the gate, confirm with the phase 21 lane that its laptop solve has finished.
+Closed. Phase 22 becomes eligible once 21 is `completed` on `main`; it starts from the `main` tree
+with `uv run python scripts/loop_fleet.py --start-lane 22`, and stage 1 replaces the skeleton.

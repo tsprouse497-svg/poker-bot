@@ -1,16 +1,8 @@
-task_id: MAINT-43
+task_id: null
 active_phase: null
-task_mode: contract-update
-base_commit: 3af0e87f268bda496faeb69803d9021a431d2ced
-approved_scope:
-- AGENTS.md
-- docs/phase_contracts/PHASE_22_LIVE_TURN_AND_RIVER.md
-- docs/phase_contracts/PHASE_20_HOME_GAME.md
-- docs/ROADMAP.md
-- docs/V2_ROADMAP.md
-- verification/loop_policy.yml
-- reports/phase_audits/MAINT_43_DECLARE_LIVE_TURN_AND_RIVER.md
-- reports/phase_audits/reviews/MAINT_43_DECLARE_LIVE_TURN_AND_RIVER/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
