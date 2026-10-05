@@ -1,7 +1,7 @@
 task_id: PHASE_21_FLOP_CAMPAIGN
 active_phase: '21'
 task_mode: implementation
-base_commit: 6649062095a58fafca68966703ff9d3f3deada72
+base_commit: 79651fc2170af8a8ce3a2ade87ef0195b4f23d18
 approved_scope:
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
 standing_scope:
@@ -4672,4 +4672,11 @@ scope_change_log:
       `verification/mutations.yml` and the lock leave approved_scope; `scripts/freeze_tests.py`
       re-locked 66 files and 1,496 test functions at 6649062 after the read-only review found no
       blocker; `base_commit` moves there as at every re-freeze.
+  - date: 2026-10-05
+    reason: >-
+      `main` (MAINT-44) merged into the lane at 79651fc: `AGENTS.md` and phase 22 now say the turn
+      is stored and only the river solved at the table, which is what this lane's contract already
+      says, so the precondition the river contract review set is met. Backlog conflicts kept both
+      sides' new entries and took main's phase 22 adoptions; generated docs rebuilt. `base_commit`
+      moves to the merge.
 
