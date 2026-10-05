@@ -608,11 +608,11 @@ class TestTheByteBudget:
             f"the index says it costs {declared} bytes and the postflop tree holds {on_disk}"
         )
 
-    def test_the_headroom_the_index_states_is_the_cap_less_the_whole_tree(self, index) -> None:
-        declared = index.get("headroom_bytes")
-        assert isinstance(declared, int) and not isinstance(declared, bool)
-
-        assert declared == ARTIFACT_BYTE_CAP - self.measured()
+    def test_an_index_stating_headroom_is_refused(self, artifact_module, tmp_path) -> None:
+        importer, stale = artifact_module.import_postflop_index, tmp_path / "index.json"
+        stale.write_text(json.dumps({**importer(INDEX_PATH), "headroom_bytes": 1}))
+        with pytest.raises(artifact_module.PostflopArtifactError, match="headroom_bytes"):
+            importer(stale)
 
 
 # --------------------------------------------------------------------------- #

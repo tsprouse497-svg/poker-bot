@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -435,8 +437,6 @@ def complete_card() -> dict:
         ),
         "size": {
             "bytes": 1,
-            "limit_bytes": 20 * 1024 * 1024,
-            "headroom_bytes": 1,
             "bytes_per_node": 1.0,
             "bytes_per_expressible_spot": 1.0,
         },
@@ -601,7 +601,14 @@ def test_the_committed_solve_reached_the_target_it_declared() -> None:
     assert solve["target_gap_bb"] == SOLVE_TARGET_GAP_BB
 
 
-def test_the_committed_export_sits_under_the_limit_with_stated_headroom() -> None:
+WHOLE_TREE_FIGURES = ("headroom_bytes", "limit_bytes")
+"""What the card stored about `data/artifacts` as a whole until MAINT-41. A stored copy went
+stale whenever any other artifact was committed and reddened six tests that had nothing to do
+with it (`SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE`); the tree is measured
+here instead."""
+
+
+def test_the_committed_export_sits_under_the_limit_and_the_card_states_only_its_own_size() -> None:
     assert COMMITTED_EXPORT_PATH.exists(), "the export has not been committed yet"
     card = load_source_card(COMMITTED_SOURCE_CARD_PATH)
     limit = dict(DIRECTORY_BYTE_LIMITS)["data/artifacts"]
@@ -609,8 +616,61 @@ def test_the_committed_export_sits_under_the_limit_with_stated_headroom() -> Non
 
     assert COMMITTED_EXPORT_PATH.stat().st_size == card["size"]["bytes"]
     assert total < limit
-    assert card["size"]["headroom_bytes"] == limit - total
+    assert not set(WHOLE_TREE_FIGURES) & set(card["size"])
     assert card["size"]["bytes_per_node"] > 0
+
+
+@pytest.mark.parametrize("figure", WHOLE_TREE_FIGURES)
+def test_a_card_stating_a_whole_tree_figure_is_refused(figure: str) -> None:
+    card = complete_card()
+    card["size"][figure] = 1
+
+    assert any(f"size.{figure}" in error for error in source_card_errors(card))
+
+
+def run_copied_script(root: Path, script: str, *args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, str(root / "scripts" / script), *args],
+        cwd=root,
+        capture_output=True,
+        text=True,
+    )
+
+
+def test_an_unrelated_artifact_leaves_the_card_reproducible_and_the_cap_still_binds(
+    tmp_path: Path,
+) -> None:
+    """In a copy of the tree, so nothing a parallel test measures moves.
+
+    The first half is the defect: a file committed elsewhere under `data/artifacts` made the
+    converter's `--check` report the card stale. The second half is what the stored figure was
+    for: the cap still holds at exactly its limit and still fails one byte over, enforced by the
+    gate's own check rather than by a number on a card.
+    """
+    root = tmp_path / "repo"
+    for part in ("scripts", "src", "data/artifacts"):
+        shutil.copytree(
+            REPO_ROOT / part, root / part, ignore=shutil.ignore_patterns("__pycache__")
+        )
+    artifacts = root / "data" / "artifacts"
+    (artifacts / "postflop" / "an_unrelated_record.json").write_text("{}\n", encoding="utf-8")
+
+    converted = run_copied_script(root, "convert_preflop_export.py", "--check")
+    assert converted.returncode == 0, converted.stderr
+
+    limit = dict(DIRECTORY_BYTE_LIMITS)["data/artifacts"]
+    total = sum(path.stat().st_size for path in artifacts.rglob("*") if path.is_file())
+    padding = artifacts / "padding.bin"
+    with padding.open("wb") as handle:
+        handle.truncate(limit - total)
+    at_the_cap = run_copied_script(root, "check_file_sizes.py")
+    assert at_the_cap.returncode == 0, at_the_cap.stderr
+
+    with padding.open("r+b") as handle:
+        handle.truncate(limit - total + 1)
+    over_the_cap = run_copied_script(root, "check_file_sizes.py")
+    assert over_the_cap.returncode == 1
+    assert f"data/artifacts totals {limit + 1} bytes" in over_the_cap.stderr
 
 
 # --------------------------------------------------------------------------- #
