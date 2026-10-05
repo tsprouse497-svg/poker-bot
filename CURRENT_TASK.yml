@@ -1,7 +1,7 @@
 task_id: PHASE_21_FLOP_CAMPAIGN
 active_phase: '21'
 task_mode: implementation
-base_commit: 45ff860f07cc48babda9b4acb094d4707a32d162
+base_commit: fd1bb896b9cee4bc1600a51914f9de6b6ae7fd15
 approved_scope:
 - docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md
 - docs/phase_contracts/PHASE_16_POSTFLOP_BETTING.md
@@ -4618,4 +4618,12 @@ scope_change_log:
       both true of the pin's cell and false of the re-solved one, which now checks 46 percent. The
       generator's framing names the pin's cell, and the paragraph is derived from the committed data
       or removed.
+  - date: 2026-10-04
+    reason: >-
+      `main` (MAINT-41 to 43) merged into the lane at fd1bb89, as `docs/LOOP.md` requires of a live
+      lane after a sibling merges; merged rather than rebased because the branch is published. The
+      conflicts were generated files and were rebuilt rather than hand-edited: main's export card, the
+      index under main's schema 2, the betting report, both sides' mutations and backlog entries, and
+      the freeze lock re-locked over the merged suite. `base_commit` moves to the merge so the scope
+      check measures this lane's work from here and not main's.
 
