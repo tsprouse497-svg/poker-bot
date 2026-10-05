@@ -1644,3 +1644,49 @@ mutations:
   # the report's twenty-six sections as text: the generator is covered where it
   # validates and not where it renders, which is the same hole the two struck section
   # items were reaching for and could not close.
+
+  # MAINT-41: a committed record states only its own size. The preflop source card and the
+  # postflop index stopped storing a headroom figure measured over the whole `data/artifacts`
+  # tree, and the cap moved entirely to the check that measures it when the gate runs.
+  - id: a-card-may-carry-the-whole-tree-headroom-again
+    description: >-
+      The source card check stops refusing a `headroom_bytes` or `limit_bytes` in the card's
+      size block, so a writer could put the stale whole-tree figure back and every preflop
+      reproduce test would go red the next time anything else under data/artifacts landed.
+    file: src/poker_training_bot/solver_artifacts/gtopen_source_card.py
+    find: "        if isinstance(size, dict) and key in size:"
+    replace: "        if False and isinstance(size, dict) and key in size:"
+    must_fail:
+      - pytest_solver_export
+
+  - id: the-postflop-index-may-carry-the-whole-tree-headroom-again
+    description: >-
+      The index importer accepts a `headroom_bytes` key as optional, so a stored copy of the
+      whole-tree headroom can return to the index and go stale on the next unrelated commit.
+    file: src/poker_training_bot/solver_artifacts/postflop_artifact.py
+    find: '{"digest_authenticates"})'
+    replace: '{"digest_authenticates", "headroom_bytes"})'
+    must_fail:
+      - pytest_postflop_betting
+
+  - id: the-card-depends-on-the-artifact-tree-again
+    description: >-
+      The converter stamps a figure counted off the whole artifact tree onto the card. It
+      proves the new test runs the converter's check at all: the card then fails to reproduce
+      even on an unchanged tree, so it does not isolate the grown-tree case on its own.
+    file: scripts/convert_preflop_export.py
+    find: "    return render_card(card)"
+    replace: "    size['tree_files'] = sum(1 for _ in ARTIFACTS_DIR.rglob('*')); return render_card(card)"
+    must_fail:
+      - pytest_solver_export
+
+  - id: the-artifact-cap-stops-binding
+    description: >-
+      The directory byte cap is computed and then ignored, so data/artifacts can grow past
+      20 MiB with the gate's own size check passing. With the stored headroom gone, this
+      check and two committed-tree tests are what hold the cap.
+    file: scripts/check_file_sizes.py
+    find: "        if total > limit:"
+    replace: "        if False and total > limit:"
+    must_fail:
+      - pytest_solver_export

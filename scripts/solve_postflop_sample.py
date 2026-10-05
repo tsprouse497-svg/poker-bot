@@ -81,6 +81,9 @@ except ModuleNotFoundError:
     from scripts.repo_paths import REPO_ROOT
 
 sys.path.insert(0, str(REPO_ROOT / "src"))
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+
+import check_file_sizes  # noqa: E402
 
 from poker_training_bot.solver_artifacts.gtopen_export import (  # noqa: E402
     COMMITTED_EXPORT_PATH,
@@ -137,7 +140,10 @@ from poker_training_bot.solver_artifacts.schema import PreflopAction  # noqa: E4
 from poker_training_bot.solver_artifacts.solve_conditions import BlindStructure  # noqa: E402
 
 ARTIFACT_ROOT = REPO_ROOT / "data" / "artifacts"
-ARTIFACT_BYTE_CAP = 20 * 1024 * 1024
+ARTIFACT_BYTE_CAP = dict(check_file_sizes.DIRECTORY_BYTE_LIMITS)["data/artifacts"]
+"""Read out of `check_file_sizes`, and used only to print the headroom live. The index stores no
+headroom: that figure is about every artifact, so a stored copy went stale whenever anything else
+was committed (`SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE`)."""
 SOLVE_CONFIG_PATH = POSTFLOP_DIR / "solve_config.json"
 OBJECT_MANIFEST_PATH = POSTFLOP_DIR / "objects.json"
 
@@ -646,6 +652,11 @@ def tree_bytes(root: Path) -> int:
     return sum(path.stat().st_size for path in root.rglob("*") if path.is_file())
 
 
+def headroom_bytes() -> int:
+    """What is left under the `data/artifacts` cap, measured now rather than read off a record."""
+    return ARTIFACT_BYTE_CAP - tree_bytes(ARTIFACT_ROOT)
+
+
 LISTED_NOT_HELD = "listed_not_held"
 """The manifest key under which a solved cell the repo does not keep records its figures.
 
@@ -734,9 +745,9 @@ def rebuild_index(manifest: dict[str, Any]) -> dict[str, Any]:
     storage and commits an index plus three flops - so it is built from two sources: the sample
     files, and the manifest's record of cells solved and stored without being kept.
 
-    `committed_bytes` and `headroom_bytes` are self-referential - writing them changes the file
-    they are written into - so the write is iterated to a fixed point rather than computed once
-    and left one digit wrong.
+    `committed_bytes` is self-referential - writing it changes the file it is written into - so
+    the write is iterated to a fixed point rather than computed once and left one digit wrong. It
+    covers this directory only; the headroom under the whole-tree cap is not the index's to state.
     """
     entries: list[dict[str, Any]] = []
     lines: list[str] = []
@@ -788,16 +799,14 @@ def rebuild_index(manifest: dict[str, Any]) -> dict[str, Any]:
         "line_count_bound_by": "campaign-cost",
         "cells_solved_and_rejected_above_one_percent": int(manifest["rejected_above_one_percent"]),
         "committed_bytes": 0,
-        "headroom_bytes": 0,
         "entries": entries,
     }
     for _ in range(8):
         write_json(INDEX_PATH, index)
         committed = tree_bytes(POSTFLOP_DIR)
-        headroom = ARTIFACT_BYTE_CAP - tree_bytes(ARTIFACT_ROOT)
-        if (index["committed_bytes"], index["headroom_bytes"]) == (committed, headroom):
+        if index["committed_bytes"] == committed:
             return index
-        index["committed_bytes"], index["headroom_bytes"] = committed, headroom
+        index["committed_bytes"] = committed
     raise SystemExit("the index's own byte figures did not settle, which they must in one step")
 
 
@@ -1618,7 +1627,7 @@ def deep_check_run(args: argparse.Namespace, object_storage: str) -> int:
     index = rebuild_index(load_manifest(object_storage))
     import_postflop_index(INDEX_PATH)
     print(f"  index             {index['committed_bytes']} bytes committed,"
-          f" {index['headroom_bytes']} of headroom")
+          f" {headroom_bytes()} of headroom")
     return 0
 
 
@@ -1661,7 +1670,7 @@ def main(argv: list[str] | None = None) -> int:
         index = rebuild_index(load_manifest(object_storage))
         print(f"index rebuilt: {len(index['entries'])} entries,"
               f" {index['committed_bytes']} bytes committed,"
-              f" {index['headroom_bytes']} bytes of headroom")
+              f" {headroom_bytes()} bytes of headroom")
         return 0
 
     if args.determinism_tree or args.determinism_objects:
@@ -1677,7 +1686,7 @@ def main(argv: list[str] | None = None) -> int:
         index = rebuild_index(load_manifest(object_storage))
         import_postflop_index(INDEX_PATH)
         print(f"  index              {index['committed_bytes']} bytes committed,"
-              f" {index['headroom_bytes']} of headroom")
+              f" {headroom_bytes()} of headroom")
         return 0 if document["identical"] else 1
 
     if args.deep_check is not None:
@@ -1752,7 +1761,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\nindex              {len(index['entries'])} entries,"
           f" {len(manifest[LISTED_NOT_HELD])} listed and not held")
     print(f"committed bytes    {index['committed_bytes']} in data/artifacts/postflop")
-    print(f"artifact headroom  {index['headroom_bytes']} of {ARTIFACT_BYTE_CAP}")
+    print(f"artifact headroom  {headroom_bytes()} of {ARTIFACT_BYTE_CAP}")
     return 1 if failures else 0
 
 

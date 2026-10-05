@@ -3079,7 +3079,7 @@ items:
       retired, so the numbers stay checked wherever a document a reader acts on states
       them.
   - id: SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE
-    status: deferred
+    status: done
     phase: "12"
     title: The GTOpen source card's headroom moves when any other committed artifact does
     reason: >-
@@ -3092,6 +3092,45 @@ items:
       and data/artifacts/preflop/exports/**, neither in phase 12 scope; the better fix is
       for the card to state its own size and for the directory total to be the checker's
       business.
+      Closed by MAINT-41 on 2026-10-04, which did exactly that. Phase 16 restamped the card at
+      7d6866f and phase 21's lane twice on 2026-10-04, and one unrelated file under
+      data/artifacts reproduced all six red tests in a scratch copy before the fix. The card's
+      size block keeps the export's own bytes, bytes per node and bytes per expressible spot,
+      and drops headroom_bytes and limit_bytes; the converter and the extractor stop writing
+      them and the card check refuses either. The postflop index had the same defect in its
+      own headroom_bytes and lost it too, at index schema version 2, with the importer
+      refusing the key; its committed_bytes stays, because it covers only the index's own
+      postflop directory. The cap itself is unchanged and still checked at gate time by
+      scripts/check_file_sizes.py and the frozen budget tests, and a new test copies the tree,
+      adds an unrelated file, shows the card still reproduces, and shows the cap passing at
+      exactly its limit and failing one byte over. The preflop chart and its sizing table came
+      back byte-identical.
+  - id: POSTFLOP-INDEX-BYTE-COUNT-MOVES-WITH-EVERY-CAMPAIGN-RECORD
+    status: deferred
+    phase: "21"
+    title: Any record committed under data/artifacts/postflop makes the postflop index stale
+    reason: >-
+      Found by the MAINT-41 review. The index's committed_bytes is the byte total of the whole
+      data/artifacts/postflop directory, and phase 16's contract requires it and requires the
+      report generator to refuse one that does not reconcile with disk. MAINT-41 kept it, because
+      it covers only the index's own directory. But phase 21 writes campaign records there
+      (scripts/measure_postflop_thread_sweep.py) without rebuilding the index, and its commit
+      8436788 records budget tests going red for exactly that. On a copy of MAINT-41's head one
+      new file under data/artifacts/postflop still reddens two tests. Either every writer into
+      that directory rebuilds the index in the same run, or campaign records live outside the
+      directory the index counts, or the figure narrows to the index and sample it describes.
+      The last is a semantic change to phase 16's contract and needs contract-update.
+  - id: POSTFLOP-BETTING-CONTRACT-IS-AT-ITS-LINE-CAP
+    status: deferred
+    phase: contract-update
+    title: Phase 16's contract sits two lines under the 300-line cap and cannot take a plain amendment
+    reason: >-
+      MAINT-41 had to amend phase 16's contract, which stood at 299 lines. A two-line amendment
+      beside the false sentence would have made 301, so the false sentence was replaced in place
+      by the amendment, as MAINT-39 did for phase 14 at its cap. The contract is now 298 lines.
+      Its next amendment cannot follow AGENTS.md's form at all, so it is due for the rewrite
+      AGENTS.md describes, folding its amendments into the criteria they amend, as its own
+      contract-update task.
   - id: DOCS-CARRY-STRAY-WRITE-TOOL-CLOSING-TAGS
     status: deferred
     phase: contract-update
@@ -7156,7 +7195,7 @@ items:
       BACKLOG-VOCABULARY-IN-USE-IS-NOT-THE-VOCABULARY-THE-GATE-ALLOWS stays deferred and holds the
       case that the constants are what should have moved.
   - id: THE-CHARTS-REPRODUCE-CHECK-IS-COUPLED-TO-EVERY-OTHER-ARTIFACT
-    status: deferred
+    status: done
     phase: "14"
     title: Adding any file under data/artifacts turns the chart's own byte-for-byte check red
     reason: >-
@@ -7176,6 +7215,9 @@ items:
       the headroom figure moves off the card the chart's `--check` compares, or the check learns to say
       which of the two disagreements it found - a chart that no longer reproduces, or a tree that grew.
       The first is a defect and the second is Tuesday, and today they are the same red.
+      Closed by MAINT-41 on 2026-10-04 with the first option: the headroom figure is off the card, so
+      the chart's check no longer reads the tree. The same defect is filed as
+      SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE, which carries what changed.
 
   - id: HAND-TYPED-COUNTS-GO-STALE-EVERY-TIME-THE-SET-MOVES
     status: deferred

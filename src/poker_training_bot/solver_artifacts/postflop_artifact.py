@@ -66,7 +66,7 @@ from poker_training_bot.solver_artifacts.strict_json import (
 )
 
 CELL_SCHEMA_VERSION = 1
-INDEX_SCHEMA_VERSION = 1
+INDEX_SCHEMA_VERSION = 2
 
 EXPLOITABILITY_TARGET_PCT_OF_POT = 0.3
 """What the campaign solves for, as a percent of the starting pot - never in big blinds, because
@@ -119,7 +119,7 @@ _CELL_KEYS = set(
 )
 _INDEX_KEYS = set(
     "index_schema_version object_storage covered_preflop_lines line_count_bound_by"
-    " cells_solved_and_rejected_above_one_percent committed_bytes headroom_bytes entries".split()
+    " cells_solved_and_rejected_above_one_percent committed_bytes entries".split()
 )
 _ACTION_KEYS = frozenset({"position", "action"})
 _SUBSTITUTION_KEYS = {"position", "actual_bb", "solved_bb"}

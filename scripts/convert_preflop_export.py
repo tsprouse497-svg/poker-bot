@@ -18,11 +18,12 @@ Three files come out and one that used to is now excluded on purpose.
   36 spots became 249 at the phase 14 cutover and then 156 over MAINT-34, whose re-solve also
   took the tree from 33,969 nodes to 30,609 - and a literal here is a number nothing recomputes.
 - `sizings/six_max_100bb_rakefree.json`, every price a spot offers hero per hand class.
-- the export's own source card, whose `size` block is restamped. Deleting the retired chart
-  and writing a smaller one both move the `data/artifacts` total, so the card's headroom is
-  stale the moment this runs. `headroom_bytes` counts the card itself, so it settles to a
-  fixed point rather than assuming one pass is enough - the same loop
-  `scripts/extract_gtopen_preflop.py` uses, and for the same reason.
+- the export's own source card, whose `size` block is restamped with the export's own size
+  and the per-node and per-spot costs, and nothing else. The card used to carry the headroom
+  left under the `data/artifacts` cap, which is a figure about every file in the tree, so any
+  artifact committed anywhere made the card stale and this script's `--check` red
+  (`SOLVER-EXPORT-CARD-HEADROOM-COUNTS-THE-WHOLE-ARTIFACT-TREE`). The tree total and the cap
+  are `scripts/check_file_sizes.py`'s business, measured when the gate runs.
 
 What this must **not** write is `expectations/six_max_nl25_100bb.json`. It holds the only
 numbers in this phase that this repo did not produce, which is what catches a range that is
@@ -58,13 +59,9 @@ PREFLOP_DIR = ARTIFACTS_DIR / "preflop"
 ARTIFACT = PREFLOP_DIR / "six_max_100bb_rakefree.json"
 SIZINGS = PREFLOP_DIR / "sizings" / "six_max_100bb_rakefree.json"
 
-BYTE_LIMIT = 20 * 1024 * 1024
-"""Phase 10's ruled cap on `data/artifacts`, enforced by `scripts/check_file_sizes.py`.
-The export is still the bulk of `data/artifacts` and the cap does not bind, and it stays a
-halt and a decision rather than a number to raise - which is what the card's headroom
-figure is for."""
-
-SETTLING_PASSES = 8
+WHOLE_TREE_FIGURES = ("headroom_bytes", "limit_bytes")
+"""Keys a card once carried about the tree rather than the export, dropped on restamp so a
+card committed before MAINT-41 comes back without them."""
 
 EXPRESSIBLE_SPOT_NOTE = (
     "the whole export divided by the {count} spots the committed chart expresses today, so"
@@ -84,24 +81,7 @@ def render_card(card: dict) -> str:
     return json.dumps(card, indent=1, sort_keys=True) + "\n"
 
 
-def directory_bytes(overrides: dict[Path, str]) -> int:
-    """What `data/artifacts` would total with these files holding this text.
-
-    Measured against the text rather than against the disk, so `--check` computes the same
-    headroom a write pass would produce without writing anything. Reading the disk for the
-    files this script owns would make `--check` agree with whatever is already committed.
-    """
-    total = sum(
-        path.stat().st_size
-        for path in ARTIFACTS_DIR.rglob("*")
-        if path.is_file() and path not in overrides
-    )
-    return total + sum(len(text.encode("utf-8")) for text in overrides.values())
-
-
-def build_source_card(
-    spot_count: int, node_count: int, artifact_text: str, sizing_text: str
-) -> str:
+def build_source_card(spot_count: int, node_count: int) -> str:
     """The committed card with its `size` block recomputed, and nothing else touched.
 
     Every other field on the card belongs to whoever ran the solver. This script never has a
@@ -113,21 +93,14 @@ def build_source_card(
     """
     card = json.loads(COMMITTED_SOURCE_CARD_PATH.read_text(encoding="utf-8"))
     size = card["size"]
+    for key in WHOLE_TREE_FIGURES:
+        size.pop(key, None)
     export_bytes = COMMITTED_EXPORT_PATH.stat().st_size
     size["bytes"] = export_bytes
-    size["limit_bytes"] = BYTE_LIMIT
     size["bytes_per_node"] = round(export_bytes / node_count, 2)
     size["bytes_per_expressible_spot"] = round(export_bytes / spot_count, 2)
     size["bytes_per_expressible_spot_note"] = EXPRESSIBLE_SPOT_NOTE.format(count=spot_count)
-    for _ in range(SETTLING_PASSES):
-        text = render_card(card)
-        headroom = BYTE_LIMIT - directory_bytes(
-            {ARTIFACT: artifact_text, SIZINGS: sizing_text, COMMITTED_SOURCE_CARD_PATH: text}
-        )
-        if size["headroom_bytes"] == headroom:
-            return text
-        size["headroom_bytes"] = headroom
-    raise SystemExit("the source card's headroom figure will not settle")
+    return render_card(card)
 
 
 def outputs() -> list[tuple[Path, str]]:
@@ -136,9 +109,7 @@ def outputs() -> list[tuple[Path, str]]:
     chart = derive_chart(export)
     artifact_text = render(chart.artifact_payload)
     sizing_text = render(chart.sizing_payload)
-    card_text = build_source_card(
-        len(chart.artifact_payload["spots"]), export.node_count, artifact_text, sizing_text
-    )
+    card_text = build_source_card(len(chart.artifact_payload["spots"]), export.node_count)
     return [
         (ARTIFACT, artifact_text),
         (SIZINGS, sizing_text),
