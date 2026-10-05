@@ -154,3 +154,13 @@ phases:
       provider, which machine and how much may be spent are Taylor's to rule, not a session's. The
       repo holds everything the phase needs to begin, so the driver does not halt before stage 1;
       it halts at the human gate, where those rulings are asked for.
+  "22":
+    auto_advance: false
+    needs_human_data: false
+    reason: >-
+      Puts a solver call on the path of every river decision the bot makes, through
+      GTOpen, an external binary with no licence that this repo neither owns nor installs, and the
+      gate has to stay green on a machine without it. How that is tested, where the solve runs and
+      what the bot does when the server is missing or slow are rulings with no precedent here, and
+      a wrong default would play every hand. The repo holds what the phase needs to begin, so the
+      driver does not halt before stage 1; it halts at the human gate, where those are asked.

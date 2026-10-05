@@ -217,7 +217,7 @@ See `POSTFLOP-COST-MODEL-HAS-NO-RAINBOW-CELL` in `backlog.yml`.
 
 ## What a turn or river solve costs
 
-Measured 2026-10-04 by MAINT-42 on the same Apple M4, GTOpen `4aee435bdeb1`, full-precision arenas (`SOLVER_COMPRESS=0`), a freshly started server per solve. These timings are why `AGENTS.md` lets the turn and river be solved at the table rather than stored; the script and every row are in `reports/phase_audits/MAINT_42_LIVE_TURN_AND_RIVER_SOLVES.md`.
+Measured 2026-10-04 by MAINT-42 on the same Apple M4, GTOpen `4aee435bdeb1`, full-precision arenas (`SOLVER_COMPRESS=0`), a freshly started server per solve. The river timings are why `AGENTS.md` has the river solved at the table rather than stored; the turn was ruled live on these figures and then re-ruled the same day to be stored, so its rows are kept as measurements rather than as a plan; the script and every row are in `reports/phase_audits/MAINT_42_LIVE_TURN_AND_RIVER_SOLVES.md`.
 
 The setup is the committed flop sample's except for the board, the pot and the stack: the ruled menu, which offers 66 and 125 on the turn and river with a 2.5x raise, the button-open against big-blind-call ranges from the committed export, floored, and the 0.3%-of-pot target checked every 10 iterations. The pots assume a 33% flop bet called, and then a 66% turn bet called for the river.
 

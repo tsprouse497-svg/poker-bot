@@ -102,3 +102,8 @@ phases:
     status: active
     contract: docs/phase_contracts/PHASE_21_FLOP_CAMPAIGN.md
     audit_packet: reports/phase_audits/PHASE_21_FLOP_CAMPAIGN.md
+  - phase_id: "22"
+    title: "Turn And River Play"
+    status: future
+    contract: docs/phase_contracts/PHASE_22_TURN_AND_RIVER_PLAY.md
+    audit_packet: reports/phase_audits/PHASE_22_TURN_AND_RIVER_PLAY.md
