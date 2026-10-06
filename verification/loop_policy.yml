@@ -11,6 +11,11 @@ schema_version: 1
 # `needs_human_data` means the phase cannot even start until Taylor supplies
 # something the repo does not have. The driver halts before stage 1 in that case
 # rather than letting a session invent the input.
+#
+# `on_hold`, when present, is Taylor's reason for parking the phase. `--start` and
+# `--resume` refuse it, and the fleet board and review queue show it apart without
+# counting its asks. `main`'s copy is the one that holds; lifting a hold is deleting
+# the field there.
 
 phases:
   "05":

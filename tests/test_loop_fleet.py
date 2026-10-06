@@ -504,7 +504,7 @@ def test_status_shows_a_held_lane_as_on_hold_and_not_waiting(monkeypatch, capsys
     assert "waiting" not in out
 
 
-def driver(monkeypatch, tmp_path, policy: dict, integrated: str = "") -> Path:
+def driver(monkeypatch, tmp_path, policy: dict, integrated: str = "phases: {}\n") -> Path:
     """The stage driver against a scratch policy, pointer directory and `main` copy."""
     (tmp_path / "loop_policy.yml").write_text(yaml.safe_dump({"phases": policy}), encoding="utf-8")
     monkeypatch.setattr(loop_stage, "POLICY_PATH", tmp_path / "loop_policy.yml")
@@ -542,6 +542,39 @@ def test_a_hold_on_main_alone_stops_a_lane_that_branched_before_it(monkeypatch, 
     pointer = driver(monkeypatch, tmp_path, {}, yaml.safe_dump({"phases": HOLD}))
     assert run_driver(monkeypatch, "--start", "11") == 1
     assert not pointer.exists()
+
+
+def test_resume_is_refused_by_a_hold_on_main_alone(monkeypatch, tmp_path) -> None:
+    pointer = driver(monkeypatch, tmp_path, {}, yaml.safe_dump({"phases": HOLD}))
+    pointer.parent.mkdir()
+    pointer.write_text(
+        yaml.safe_dump({"phase_id": "11", "stage": 3, "loop": "halted"}), encoding="utf-8"
+    )
+    assert run_driver(monkeypatch, "--phase", "11", "--resume") == 1
+    assert yaml.safe_load(pointer.read_text(encoding="utf-8"))["loop"] == "halted"
+
+
+def test_an_unreadable_main_policy_refuses_rather_than_trusting_the_lane(
+    monkeypatch, capsys, tmp_path
+) -> None:
+    """The lane's own copy may predate the hold, so it is never the fallback."""
+    pointer = driver(monkeypatch, tmp_path, {}, "")
+    assert run_driver(monkeypatch, "--start", "11") == 1
+    assert "cannot read verification/loop_policy.yml" in capsys.readouterr().err
+    assert not pointer.exists()
+
+
+def test_a_blank_hold_is_no_hold() -> None:
+    assert loop_stage.hold_on({"on_hold": "   "}) == ""
+    assert loop_stage.hold_on({}) == ""
+
+
+def test_policy_entries_use_only_known_keys() -> None:
+    """A misspelt `on_hold` would hold nothing and say nothing."""
+    policy = yaml.safe_load(loop_stage.POLICY_PATH.read_text(encoding="utf-8"))["phases"]
+    known = {"auto_advance", "needs_human_data", "reason", "on_hold"}
+    for phase_id, entry in policy.items():
+        assert set(entry) <= known, (phase_id, set(entry) - known)
 
 
 def test_start_still_works_for_a_phase_that_is_not_held(monkeypatch, tmp_path) -> None:

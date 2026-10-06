@@ -709,6 +709,9 @@ def policy_for(phase_id: str) -> dict:
     return (load_yaml(POLICY_PATH).get("phases") or {}).get(phase_id) or {}
 
 
+INTEGRATION_REF = "main"
+
+
 def hold_on(entry: dict) -> str:
     """Why one policy entry puts its phase on hold, or "" when it does not.
 
@@ -724,9 +727,17 @@ def hold_refusal(phase_id: str) -> str:
     A hold is placed on `main`, and a lane that branched before it carries a policy
     without it until it rebases, so reading only this worktree's copy would let the
     very lane the hold was for resume. Either copy holding is a hold. Lifting one is
-    an edit to the policy file, which leaves it visible in a diff.
+    an edit to the policy file, which leaves it visible in a diff. A `main` copy that
+    cannot be read refuses rather than falls back to this worktree's, because the
+    fallback is exactly the copy that may predate the hold.
     """
-    integrated = yaml.safe_load(git("show", "main:verification/loop_policy.yml") or "{}")
+    shown = git("show", f"{INTEGRATION_REF}:verification/loop_policy.yml")
+    if not shown:
+        return (
+            f"cannot read verification/loop_policy.yml on {INTEGRATION_REF}, so whether phase "
+            f"{phase_id} is on hold is unknown; fetch {INTEGRATION_REF} and retry"
+        )
+    integrated = yaml.safe_load(shown)
     entries = [policy_for(phase_id), ((integrated or {}).get("phases") or {}).get(phase_id) or {}]
     reason = next((hold_on(entry) for entry in entries if hold_on(entry)), "")
     if not reason:

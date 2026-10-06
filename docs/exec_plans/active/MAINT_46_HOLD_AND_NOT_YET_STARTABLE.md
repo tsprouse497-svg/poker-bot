@@ -40,21 +40,23 @@ nothing yet.
 
 ## Delegation Plan
 
-- Worker lane W: the three scripts, their tests in `tests/test_loop_fleet.py` and
-  `tests/test_loop_machinery.py`, and the re-frozen lock. Expected output: the diff, the targeted
+- Worker lane W: the three scripts, their tests in `tests/test_loop_fleet.py` (where they went,
+  since `tests/test_loop_machinery.py` sits at 698 of 700 lines), and the re-frozen lock. Expected output: the diff, the targeted
   test commands run and their result. Status: assigned.
 - Coordinator: the policy entry, the docs, the backlog closure, integration, the gate.
 - Review handoff: one read-only reviewer that wrote none of it checks the design against Taylor's
   ruling, that a real ask can never be hidden by the new rules (only `on_hold` and unmet dependencies
   hide anything), that the tests would fail on the old behaviour, and that the lock diff is only the
-  two test files. Asked also what it held back. No gate runs by the reviewer: the machine is shared.
+  test file that changed. Asked also what it held back. No gate runs by the reviewer: the machine is shared.
 
 ## Slices
 
 - [x] Activate MAINT-46 with a dated scope entry.
-- [ ] Worker lane W: scripts, tests, lock.
-- [ ] Policy entry, docs, backlog.
-- [ ] Independent read-only review.
+- [x] Worker lane W: scripts, tests, lock; 12 tests, each failing on the old code.
+- [x] Policy entry, docs, backlog.
+- [x] Independent read-only review: no blocker. Fixed after it: an unreadable `main` policy now
+  refuses instead of trusting the lane's copy, the branch name lives once, four more tests, an
+  unknown-key check on the policy, and the docs name the field and the refusal.
 - [ ] Gate, packet, closeout to idle, gate again, merge, push.
 
 ## Verification

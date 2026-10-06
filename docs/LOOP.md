@@ -144,6 +144,7 @@ Every judgment call in a decision list declares one of two classes.
 `verification/loop_policy.yml` applies the same rule at phase granularity.
 A phase may auto-advance when it writes no new committed data.
 `needs_human_data` marks a phase that cannot start at all until Taylor supplies an input the repo does not have, and the driver refuses `--start` for it rather than letting a session invent the input.
+`on_hold` carries Taylor's reason for parking a phase; the driver refuses `--start` and `--resume` while `main`'s copy carries it, and refuses too when `main`'s copy cannot be read.
 
 ## Halt conditions
 

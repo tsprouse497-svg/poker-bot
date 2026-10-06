@@ -46,7 +46,7 @@ sys.path.insert(0, str(REPO_ROOT / "scripts"))
 import loop_stage  # noqa: E402
 from check_repo_consistency import cyclic_phases  # noqa: E402
 
-INTEGRATION_REF = "main"
+INTEGRATION_REF = loop_stage.INTEGRATION_REF
 FINISHED = "completed"
 
 
