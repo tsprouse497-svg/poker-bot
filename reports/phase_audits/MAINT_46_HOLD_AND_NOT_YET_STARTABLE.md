@@ -31,4 +31,5 @@ Held back: no gate run, and a pre-existing crash in `loop_fleet.policy()` when `
 
 ## Gate
 
-Recorded in the ExecPlan.
+Green, 50 of 50, `check_gate_bite` included. An earlier run went red on the ExecPlan's delegation
+fields, which were spelled out. The closeout edits are covered by the closeout gate.

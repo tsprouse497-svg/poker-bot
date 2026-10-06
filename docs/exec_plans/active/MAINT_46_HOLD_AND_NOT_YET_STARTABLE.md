@@ -63,7 +63,7 @@ nothing yet.
 - [x] Independent read-only review: no blocker. Fixed after it: an unreadable `main` policy now
   refuses instead of trusting the lane's copy, the branch name lives once, four more tests, an
   unknown-key check on the policy, and the docs name the field and the refusal.
-- [ ] Gate, packet, closeout to idle, gate again, merge, push.
+- [x] Gate, packet, closeout to idle, gate again, merge, push.
 
 ## Verification
 
@@ -71,8 +71,9 @@ nothing yet.
 
 ## Outcome
 
-Not yet.
+Phase 18 is held on `main`; the board counts only real asks and shows a held phase and a phase not
+yet startable apart. Gate green 50 of 50.
 
 ## Next Agent Bootstrap
 
-Worktree `~/projects/poker-bot-worktrees/maint-46`. Next: worker lane W.
+Closed. Phase 18's lane picks up the hold by merging `main`.
