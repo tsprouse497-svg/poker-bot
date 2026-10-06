@@ -40,14 +40,20 @@ nothing yet.
 
 ## Delegation Plan
 
-- Worker lane W: the three scripts, their tests in `tests/test_loop_fleet.py` (where they went,
-  since `tests/test_loop_machinery.py` sits at 698 of 700 lines), and the re-frozen lock. Expected output: the diff, the targeted
-  test commands run and their result. Status: assigned.
-- Coordinator: the policy entry, the docs, the backlog closure, integration, the gate.
+- Worker lanes: lane W, one general-purpose worker, for the three scripts, their tests and the lock.
+- Ownership: W owns `scripts/review_queue.py`, `scripts/loop_fleet.py`, `scripts/loop_stage.py`,
+  `tests/test_loop_fleet.py` (where the tests went, since `tests/test_loop_machinery.py` sits at 698
+  of 700 lines) and `verification/freeze.lock`. The coordinator owns the policy entry, the docs, the
+  backlog, the review fixes, integration and the gate.
+- Expected outputs: from W, an uncommitted diff, the targeted test and lint commands run with their
+  results, and the lock diff; from the coordinator, the docs and the commits.
+- Status: W completed and integrated at `69bdc3b`; review fixes by the coordinator at `7a6eef5`.
+- Integration order: W's diff first, then the coordinator's docs, committed together; then the review
+  fixes; then the gate.
 - Review handoff: one read-only reviewer that wrote none of it checks the design against Taylor's
   ruling, that a real ask can never be hidden by the new rules (only `on_hold` and unmet dependencies
   hide anything), that the tests would fail on the old behaviour, and that the lock diff is only the
-  test file that changed. Asked also what it held back. No gate runs by the reviewer: the machine is shared.
+  test file that changed. Asked also what it held back. No gate runs by the reviewer.
 
 ## Slices
 
