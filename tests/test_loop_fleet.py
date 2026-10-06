@@ -319,7 +319,7 @@ def test_an_unanswered_frozen_decision_reaches_the_board(tmp_path) -> None:
         "## 2 Report units\nReversibility: runtime-reversible\nAnswer:\n",
         encoding="utf-8",
     )
-    asks = review_queue.entries([lane_for(worktree)])
+    asks = review_queue.entries([lane_for(worktree)], {})
     assert [(ask.kind, ask.question) for ask in asks] == [
         ("decision", "rule on: 1 Which rake basis")
     ]
@@ -333,7 +333,7 @@ def test_an_answered_frozen_decision_leaves_the_board(tmp_path) -> None:
         "## 1 Which rake basis\nReversibility: frozen-into-data\nAnswer: rake-free\n",
         encoding="utf-8",
     )
-    assert review_queue.entries([lane_for(worktree)]) == []
+    assert review_queue.entries([lane_for(worktree)], {}) == []
 
 
 def test_an_open_blocker_reaches_the_board_and_a_resolved_one_does_not(tmp_path) -> None:
@@ -345,7 +345,7 @@ def test_an_open_blocker_reaches_the_board_and_a_resolved_one_does_not(tmp_path)
         "- an earlier one [resolved]\n## Non-blocker\nNone.\n## Alignment\nNone.\n",
         encoding="utf-8",
     )
-    asks = review_queue.entries([lane_for(worktree)])
+    asks = review_queue.entries([lane_for(worktree)], {})
     assert [ask.question for ask in asks] == ["the all-in bound test asserts on rebuilt state"]
     assert asks[0].answer_in.endswith("stage-04-tests.md")
 
@@ -355,7 +355,7 @@ def test_a_halted_lane_reports_the_reason_it_halted(tmp_path) -> None:
     lane = loop_fleet.Lane(
         "11", worktree, "phase/11-x", 6, "halted", "second failure on one command"
     )
-    asks = review_queue.entries([lane])
+    asks = review_queue.entries([lane], {})
     assert [(ask.kind, ask.question) for ask in asks] == [
         ("halted", "second failure on one command")
     ]
@@ -367,8 +367,8 @@ def test_a_phase_that_cannot_auto_advance_asks_for_sign_off_at_stage_eleven(tmp_
     (worktree / "verification" / "loop_policy.yml").write_text(
         yaml.safe_dump({"phases": {"11": {"auto_advance": False}}}), encoding="utf-8"
     )
-    assert review_queue.entries([lane_for(worktree, stage=10)]) == []
-    asks = review_queue.entries([lane_for(worktree, stage=11)])
+    assert review_queue.entries([lane_for(worktree, stage=10)], {}) == []
+    asks = review_queue.entries([lane_for(worktree, stage=11)], {})
     assert [ask.kind for ask in asks] == ["policy"]
 
 
@@ -378,7 +378,7 @@ def test_a_phase_that_may_auto_advance_asks_for_nothing(tmp_path) -> None:
     (worktree / "verification" / "loop_policy.yml").write_text(
         yaml.safe_dump({"phases": {"11": {"auto_advance": True}}}), encoding="utf-8"
     )
-    assert review_queue.entries([lane_for(worktree, stage=11)]) == []
+    assert review_queue.entries([lane_for(worktree, stage=11)], {}) == []
 
 
 def test_a_declared_execplan_pause_reaches_the_board(tmp_path) -> None:
@@ -388,7 +388,7 @@ def test_a_declared_execplan_pause_reaches_the_board(tmp_path) -> None:
     (plans / f"{STEM}.md").write_text(
         "## Delegation Plan\n\n- Paused: waiting on the rake ruling\n", encoding="utf-8"
     )
-    asks = review_queue.entries([lane_for(worktree)])
+    asks = review_queue.entries([lane_for(worktree)], {})
     assert [(ask.kind, ask.question) for ask in asks] == [
         ("paused", "waiting on the rake ruling")
     ]
@@ -398,18 +398,156 @@ def test_a_phase_gated_on_human_data_is_listed_before_it_can_start() -> None:
     asks = review_queue.gated_phases(
         [{"phase_id": "16", "status": "future"}],
         {"16": {"needs_human_data": True, "reason": "no postflop source exists"}},
+        {"16": []},
+        {},
     )
     assert [(ask.phase_id, ask.question) for ask in asks] == [("16", "no postflop source exists")]
 
 
 def test_a_completed_phase_is_never_listed_as_gated() -> None:
     assert review_queue.gated_phases(
-        [{"phase_id": "16", "status": "completed"}], {"16": {"needs_human_data": True}}
+        [{"phase_id": "16", "status": "completed"}],
+        {"16": {"needs_human_data": True}},
+        {"16": []},
+        {},
     ) == []
 
 
 def test_an_empty_board_says_so_rather_than_printing_a_header() -> None:
     assert review_queue.render([]) == "nothing is waiting on you."
+
+
+# --------------------------------------------------------------------------- #
+# on hold, and not yet startable
+# --------------------------------------------------------------------------- #
+
+HOLD = {"11": {"auto_advance": False, "on_hold": "parked by Taylor"}}
+
+
+def test_a_policy_hold_when_present_is_a_reason() -> None:
+    policy = yaml.safe_load(loop_stage.POLICY_PATH.read_text(encoding="utf-8"))["phases"]
+    for phase_id, entry in policy.items():
+        if "on_hold" in entry:
+            assert isinstance(entry["on_hold"], str) and entry["on_hold"].strip(), phase_id
+
+
+def with_frozen_decision(tmp_path: Path) -> Path:
+    worktree = build_worktree(tmp_path)
+    decisions = worktree / "reports" / "phase_audits" / "decisions"
+    decisions.mkdir(parents=True)
+    (decisions / f"{STEM}_DECISIONS.md").write_text(
+        "## 1 Which rake basis\nReversibility: frozen-into-data\nAnswer:\n", encoding="utf-8"
+    )
+    return worktree
+
+
+def test_a_held_lane_owes_nothing_and_is_listed_once_with_its_reason(tmp_path) -> None:
+    lane = loop_fleet.Lane("11", with_frozen_decision(tmp_path), "phase/11-x", 3, "halted", "held")
+    out = review_queue.board([lane], [phase("11", "active")], HOLD, {"11": []})
+    assert out.splitlines()[0] == "nothing is waiting on you."
+    assert "rule on" not in out and "halted" not in out
+    assert out.count("phase 11") == 1
+    assert "on hold (not counted):\n  phase 11  parked by Taylor" in out
+
+
+def test_the_same_lane_without_a_hold_still_asks(tmp_path) -> None:
+    """The hold is what silences the lane, not anything else about it."""
+    lane = loop_fleet.Lane("11", with_frozen_decision(tmp_path), "phase/11-x", 3, "halted", "held")
+    out = review_queue.board([lane], [phase("11", "active")], {}, {"11": []})
+    assert out.splitlines()[0] == "2 item(s) waiting on you"
+    assert "on hold" not in out
+
+
+GATED = {"20": {"needs_human_data": True, "reason": "which game, on which platform"}}
+
+
+def test_a_gated_phase_with_unmet_dependencies_is_not_yet_startable() -> None:
+    phases = [phase("19"), phase("20")]
+    out = review_queue.board([], phases, GATED, {"19": [], "20": ["19"]})
+    assert out.splitlines()[0] == "nothing is waiting on you."
+    assert "not yet startable (not counted):\n  phase 20  waits on 19" in out
+    assert "which game" not in out
+
+
+def test_a_gated_phase_whose_dependencies_landed_is_a_real_ask() -> None:
+    """A real ask is never hidden as not yet startable."""
+    phases = [phase("19", "completed"), phase("20")]
+    out = review_queue.board([], phases, GATED, {"19": [], "20": ["19"]})
+    assert out.splitlines()[0] == "1 item(s) waiting on you"
+    assert "phase 20  ·  input" in out and "not yet startable" not in out
+
+
+def test_a_held_gated_phase_is_on_hold_rather_than_not_yet_startable() -> None:
+    policy = {"20": dict(GATED["20"], on_hold="open on purpose")}
+    out = review_queue.board([], [phase("19"), phase("20")], policy, {"19": [], "20": ["19"]})
+    assert "on hold (not counted):\n  phase 20  open on purpose" in out
+    assert "not yet startable" not in out
+
+
+def test_the_plan_never_offers_a_held_phase(monkeypatch, capsys) -> None:
+    monkeypatch.setattr(loop_fleet, "policy", lambda: HOLD)
+    monkeypatch.setattr(loop_fleet, "lanes", list)
+    phases = [phase("09", "completed"), phase("11")]
+    assert loop_fleet.board(GRAPH, phases) == ([], {"11": ["on hold: parked by Taylor"]})
+    loop_fleet.print_plan(GRAPH, phases)
+    out = capsys.readouterr().out
+    assert "may start now:" not in out and "11  on hold: parked by Taylor" in out
+
+
+def test_status_shows_a_held_lane_as_on_hold_and_not_waiting(monkeypatch, capsys, tmp_path) -> None:
+    lane = loop_fleet.Lane("11", with_frozen_decision(tmp_path), "phase/11-x", 3, "halted", "held")
+    monkeypatch.setattr(loop_fleet, "policy", lambda: HOLD)
+    monkeypatch.setattr(loop_fleet, "lanes", lambda: [lane])
+    loop_fleet.print_status()
+    out = capsys.readouterr().out
+    assert "  on hold   parked by Taylor" in out
+    assert "waiting" not in out
+
+
+def driver(monkeypatch, tmp_path, policy: dict, integrated: str = "") -> Path:
+    """The stage driver against a scratch policy, pointer directory and `main` copy."""
+    (tmp_path / "loop_policy.yml").write_text(yaml.safe_dump({"phases": policy}), encoding="utf-8")
+    monkeypatch.setattr(loop_stage, "POLICY_PATH", tmp_path / "loop_policy.yml")
+    monkeypatch.setattr(loop_stage, "RUNS_DIR", tmp_path / "loop_runs")
+    monkeypatch.setattr(loop_stage, "LEGACY_STATE_PATH", tmp_path / "loop_state.yml")
+    monkeypatch.setattr(loop_stage, "git", lambda *args: integrated if args[0] == "show" else "")
+    return tmp_path / "loop_runs" / "11.yml"
+
+
+def run_driver(monkeypatch, *argv: str) -> int:
+    monkeypatch.setattr("sys.argv", ["loop_stage.py", *argv])
+    return loop_stage.main()
+
+
+def test_start_refuses_a_held_phase_and_says_how_to_lift_it(monkeypatch, capsys, tmp_path) -> None:
+    pointer = driver(monkeypatch, tmp_path, HOLD)
+    assert run_driver(monkeypatch, "--start", "11") == 1
+    assert "removing on_hold from verification/loop_policy.yml" in capsys.readouterr().err
+    assert not pointer.exists()
+
+
+def test_resume_refuses_a_held_phase(monkeypatch, capsys, tmp_path) -> None:
+    pointer = driver(monkeypatch, tmp_path, HOLD)
+    pointer.parent.mkdir()
+    pointer.write_text(
+        yaml.safe_dump({"phase_id": "11", "stage": 3, "loop": "halted"}), encoding="utf-8"
+    )
+    assert run_driver(monkeypatch, "--phase", "11", "--resume") == 1
+    assert "parked by Taylor" in capsys.readouterr().err
+    assert yaml.safe_load(pointer.read_text(encoding="utf-8"))["loop"] == "halted"
+
+
+def test_a_hold_on_main_alone_stops_a_lane_that_branched_before_it(monkeypatch, tmp_path) -> None:
+    """The lane's own policy predates the hold; `main`'s copy carries it."""
+    pointer = driver(monkeypatch, tmp_path, {}, yaml.safe_dump({"phases": HOLD}))
+    assert run_driver(monkeypatch, "--start", "11") == 1
+    assert not pointer.exists()
+
+
+def test_start_still_works_for_a_phase_that_is_not_held(monkeypatch, tmp_path) -> None:
+    pointer = driver(monkeypatch, tmp_path, {"11": {"auto_advance": False}})
+    assert run_driver(monkeypatch, "--start", "11") == 0
+    assert yaml.safe_load(pointer.read_text(encoding="utf-8"))["loop"] == "running"
 
 
 def test_a_branch_slug_never_ends_in_a_separator() -> None:

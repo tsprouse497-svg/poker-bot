@@ -76,6 +76,8 @@ Nothing in this repo measures how well the bot plays. Every published number is 
 
 Taylor narrowed it on 2026-10-05. The solve is taken as good play, so this phase measures only what the bot's departures from it cost, in chips per 100 hands with error bars: refused spots, the check-fold postflop fallback, raises at sizes the tree does not hold answered from the solved price, the chart's merge of a cold call into the raise, and later phase 19's rules of thumb. Nothing in it measures whether the solve is right.
 
+On hold since 2026-10-05, by Taylor, with its lane halted at stage 3 and its contract and decision list written; phase 19 waits on it.
+
 It comes before 19 because a merge of solved cells with heuristics can otherwise only be asserted to help.
 
 ### 21. The Flop Campaign

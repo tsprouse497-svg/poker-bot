@@ -287,6 +287,27 @@ def policy() -> dict:
     return yaml.safe_load(show("verification/loop_policy.yml")).get("phases") or {}
 
 
+def holds(entries: dict) -> dict[str, str]:
+    """Every phase a policy puts on hold, with the reason it gives."""
+    return {
+        str(phase_id): loop_stage.hold_on(entry or {})
+        for phase_id, entry in entries.items()
+        if loop_stage.hold_on(entry or {})
+    }
+
+
+def unmet_dependencies(
+    phase_id: str, graph: dict[str, list[str]], status: dict[str, str]
+) -> list[str]:
+    """The dependencies of a phase not yet completed on the integration branch.
+
+    The review queue asks the same question to tell a phase that cannot start yet
+    from one that is genuinely waiting on Taylor, and asks it here rather than
+    keeping a copy of the rule.
+    """
+    return [dep for dep in graph.get(phase_id, []) if status.get(dep) != FINISHED]
+
+
 def blockers(
     phase: dict, graph: dict[str, list[str]], status: dict[str, str], running: set[str]
 ) -> list[str]:
@@ -296,11 +317,14 @@ def blockers(
         reasons.append("already completed")
     if phase_id in running:
         reasons.append("already running")
-    unmet = [dep for dep in graph.get(phase_id, []) if status.get(dep) != FINISHED]
+    unmet = unmet_dependencies(phase_id, graph, status)
     if unmet:
         reasons.append(f"waits on {', '.join(unmet)}")
-    if (policy().get(phase_id) or {}).get("needs_human_data"):
+    entry = policy().get(phase_id) or {}
+    if entry.get("needs_human_data"):
         reasons.append("needs an input the repo does not have")
+    if loop_stage.hold_on(entry):
+        reasons.append(f"on hold: {loop_stage.hold_on(entry)}")
     return reasons
 
 
@@ -333,12 +357,16 @@ def board(
 # --------------------------------------------------------------------------- #
 
 
-def waiting_on_human(live: list[Lane]) -> dict[str, list[str]]:
-    """One line per lane that has stopped for Taylor, from the pause board."""
+def waiting_on_human(live: list[Lane], held: dict[str, str]) -> dict[str, list[str]]:
+    """One line per lane that has stopped for Taylor, from the pause board.
+
+    A lane on hold owes nothing while it holds, so the board leaves its asks out
+    rather than listing questions nobody is meant to answer yet.
+    """
     import review_queue
 
     grouped: dict[str, list[str]] = {}
-    for entry in review_queue.entries(live):
+    for entry in review_queue.entries(live, held):
         grouped.setdefault(entry.phase_id, []).append(entry.question)
     return grouped
 
@@ -348,7 +376,8 @@ def print_status() -> None:
     if not live:
         print("no lanes running")
         return
-    asks = waiting_on_human(live)
+    held = holds(policy())
+    asks = waiting_on_human(live, held)
     print(f"{len(live)} lane(s)")
     for lane in live:
         here = "  <- this worktree" if lane.is_here else ""
@@ -361,6 +390,8 @@ def print_status() -> None:
         print(f"  worktree  {lane.worktree}")
         if lane.halt_reason:
             print(f"  halted    {lane.halt_reason}")
+        if lane.phase_id in held:
+            print(f"  on hold   {held[lane.phase_id]}")
         for question in asks.get(lane.phase_id, []):
             print(f"  waiting   {question}")
     if asks:

@@ -709,6 +709,34 @@ def policy_for(phase_id: str) -> dict:
     return (load_yaml(POLICY_PATH).get("phases") or {}).get(phase_id) or {}
 
 
+def hold_on(entry: dict) -> str:
+    """Why one policy entry puts its phase on hold, or "" when it does not.
+
+    The one reading of `on_hold`, shared by this driver, the fleet board and the
+    review queue, so the three cannot disagree about which phases are held.
+    """
+    return str(entry.get("on_hold") or "").strip()
+
+
+def hold_refusal(phase_id: str) -> str:
+    """Why this phase may not start or resume, when a hold stops it.
+
+    A hold is placed on `main`, and a lane that branched before it carries a policy
+    without it until it rebases, so reading only this worktree's copy would let the
+    very lane the hold was for resume. Either copy holding is a hold. Lifting one is
+    an edit to the policy file, which leaves it visible in a diff.
+    """
+    integrated = yaml.safe_load(git("show", "main:verification/loop_policy.yml") or "{}")
+    entries = [policy_for(phase_id), ((integrated or {}).get("phases") or {}).get(phase_id) or {}]
+    reason = next((hold_on(entry) for entry in entries if hold_on(entry)), "")
+    if not reason:
+        return ""
+    return (
+        f"phase {phase_id} is on hold: {reason}\n"
+        "the hold is lifted by removing on_hold from verification/loop_policy.yml"
+    )
+
+
 def review_brief(ctx: Context, stage: Stage) -> list[str]:
     """What to hand a reviewer, printed by the driver so it is not improvised.
 
@@ -769,6 +797,10 @@ def main() -> int:
 
     if args.start:
         policy = policy_for(args.start)
+        refusal = hold_refusal(args.start)
+        if refusal:
+            print(refusal, file=sys.stderr)
+            return 1
         if policy.get("needs_human_data"):
             print(f"phase {args.start} cannot start: {policy.get('reason')}", file=sys.stderr)
             return 1
@@ -799,6 +831,10 @@ def main() -> int:
         path = RUNS_DIR / f"{state['phase_id']}.yml"
 
     if args.resume:
+        refusal = hold_refusal(str(state.get("phase_id"))) if state.get("phase_id") else ""
+        if refusal:
+            print(refusal, file=sys.stderr)
+            return 1
         try:
             state = resumed(state)
         except ValueError as error:

@@ -588,7 +588,7 @@ items:
       A-VOCABULARY-ASSERTION-WENT-VACUOUS-WHEN-THE-LADDER-MOVED, the same kind of repair.
 
   - id: THE-REVIEW-QUEUE-LISTS-A-PHASE-WHOSE-DEPENDENCIES-ARE-NOT-MET-AS-WAITING-ON-YOU
-    status: deferred
+    status: done
     phase: maintenance
     title: The review queue counts a phase that cannot start yet as an ask waiting on Taylor
     reason: >-
@@ -603,6 +603,10 @@ items:
       a separate "not yet startable" heading, or not at all, and the count covers only real asks.
       needs_human_data stays true on phase 20, because the inputs are owed once it can start.
       Sibling of THE-FLEET-BOARD-SHOWS-A-LANE-WHOSE-PHASE-WAS-RETIRED.
+      Done 2026-10-05 by MAINT-46: the review queue lists a needs_human_data phase whose
+      dependencies are not all completed on main under "not yet startable" and does not count it, by
+      loop_fleet.py's own eligibility rule, and a phase put on hold in the loop policy is shown apart
+      the same way. The retired-phase sibling is not fixed here.
 
   - id: THE-FLEET-BOARD-SHOWS-A-LANE-WHOSE-PHASE-WAS-RETIRED
     status: deferred
