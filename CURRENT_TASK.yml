@@ -20,6 +20,14 @@ forbidden_scope:
 scope_change_log:
   - date: 2026-10-05
     reason: >-
+      MAINT-46 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. Taylor put phase 18 on hold on 2026-10-05
+      and asked for the repo to account for it. Main records the hold in the loop policy, the fleet
+      board and review queue show a held phase and a phase that cannot start yet apart from real asks,
+      and the docs that describe the board and the roadmap say so. The test files change and are
+      re-frozen, which the lock diff records.
+  - date: 2026-10-05
+    reason: >-
       Widened mid-task to phase 19's contract. The independent review's one blocker: phase 19 gates a
       substitution rule on "the phase 18 pool", which the narrowed phase 18 drops. One phrase changes
       to "the phase 18 measurement"; phase 19's dependency on 18 is unchanged.

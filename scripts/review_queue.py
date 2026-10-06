@@ -13,6 +13,15 @@ file and the entry disappears because the next run re-derives.
     active ExecPlan    a declared `- Paused:` reason
     lane pointer       `loop: halted`, with the reason recorded at the halt
 
+Two kinds of phase are shown but never counted as waiting on anyone. A phase whose
+policy carries `on_hold` owes nothing while it holds, so none of its asks above are
+listed and it appears once under "on hold" with its reason. A `needs_human_data`
+phase whose `depends_on` are not all completed on `main` cannot start whatever
+anyone answers, so it appears under "not yet startable" with what it waits on.
+Both read `main`'s policy and graph through `loop_fleet`, the same rule its own
+plan applies. Counting either made the heading say there was work for Taylor
+when there was none.
+
 Nothing here is committed. The board depends on which worktrees exist on this
 machine, so a checked-in copy would differ between machines and could never be
 verified by the gate. Its shape is covered by tests instead.
@@ -25,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -37,6 +47,7 @@ except ModuleNotFoundError:
 
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
+import loop_fleet  # noqa: E402
 import loop_stage  # noqa: E402
 from check_execplan_delegation import pause_declaration  # noqa: E402
 
@@ -50,6 +61,14 @@ class Ask:
     question: str
     answer_in: str
     blocks: str
+
+
+@dataclass(frozen=True)
+class Parked:
+    """A phase shown on the board that is not waiting on anyone."""
+
+    phase_id: str
+    why: str
 
 
 def load(path: Path) -> dict:
@@ -139,10 +158,12 @@ def pause_asks(worktree: Path, phase_id: str, stem: str) -> list[Ask]:
     ]
 
 
-def entries(lanes) -> list[Ask]:
-    """Every ask the running lanes are stopped on."""
+def entries(lanes, held: dict[str, str]) -> list[Ask]:
+    """Every ask the running lanes are stopped on, except a held lane's."""
     found: list[Ask] = []
     for lane in lanes:
+        if lane.phase_id in held:
+            continue
         stem = contract_stem(lane.worktree, lane.phase_id)
         if lane.loop == "halted":
             found.append(
@@ -163,8 +184,21 @@ def entries(lanes) -> list[Ask]:
     return found
 
 
-def gated_phases(phases: list[dict], policy: dict) -> list[Ask]:
-    """Phases that cannot start at all until a human supplies something."""
+def waiting(phase: dict, policy: dict, held: dict[str, str]) -> bool:
+    """A phase that is unfinished, needs human data, and is not on hold."""
+    phase_id = str(phase["phase_id"])
+    return (
+        str(phase["status"]) != loop_fleet.FINISHED
+        and bool((policy.get(phase_id) or {}).get("needs_human_data"))
+        and phase_id not in held
+    )
+
+
+def gated_phases(
+    phases: list[dict], policy: dict, graph: dict[str, list[str]], held: dict[str, str]
+) -> list[Ask]:
+    """Phases whose only obstacle to starting is something a human must supply."""
+    status = {str(p["phase_id"]): str(p["status"]) for p in phases}
     return [
         Ask(
             phase_id=str(phase["phase_id"]),
@@ -174,22 +208,57 @@ def gated_phases(phases: list[dict], policy: dict) -> list[Ask]:
             blocks="the phase cannot start; a session must not invent the input",
         )
         for phase in phases
-        if str(phase["status"]) != "completed"
-        and (policy.get(str(phase["phase_id"])) or {}).get("needs_human_data")
+        if waiting(phase, policy, held)
+        and not loop_fleet.unmet_dependencies(str(phase["phase_id"]), graph, status)
     ]
 
 
-def render(asks: list[Ask]) -> str:
-    if not asks:
-        return "nothing is waiting on you."
-    lines = [f"{len(asks)} item(s) waiting on you", ""]
+def not_yet_startable(
+    phases: list[dict], policy: dict, graph: dict[str, list[str]], held: dict[str, str]
+) -> list[Parked]:
+    """Phases needing human data that could not start even once it was supplied."""
+    status = {str(p["phase_id"]): str(p["status"]) for p in phases}
+    found = []
+    for phase in phases:
+        unmet = loop_fleet.unmet_dependencies(str(phase["phase_id"]), graph, status)
+        if waiting(phase, policy, held) and unmet:
+            found.append(Parked(str(phase["phase_id"]), f"waits on {', '.join(unmet)}"))
+    return found
+
+
+def on_hold(phases: list[dict], lanes, held: dict[str, str]) -> list[Parked]:
+    """Held phases still in play: unfinished on `main`, or with a live lane."""
+    live = {lane.phase_id for lane in lanes}
+    unfinished = {str(p["phase_id"]) for p in phases if str(p["status"]) != loop_fleet.FINISHED}
+    return [
+        Parked(phase_id, reason)
+        for phase_id, reason in sorted(held.items())
+        if phase_id in live or phase_id in unfinished
+    ]
+
+
+def render(asks: list[Ask], held: Sequence[Parked] = (), unstartable: Sequence[Parked] = ()) -> str:
+    lines = [f"{len(asks)} item(s) waiting on you" if asks else "nothing is waiting on you."]
     for ask in asks:
+        lines.append("")
         lines.append(f"phase {ask.phase_id}  ·  {ask.kind}")
         lines.append(f"  {ask.question}")
         lines.append(f"  answer in  {ask.answer_in}")
         lines.append(f"  blocks     {ask.blocks}")
-        lines.append("")
-    return "\n".join(lines).rstrip()
+    for heading, parked in (("on hold", held), ("not yet startable", unstartable)):
+        if parked:
+            lines += ["", f"{heading} (not counted):"]
+            lines += [f"  phase {item.phase_id}  {item.why}" for item in parked]
+    return "\n".join(lines)
+
+
+def board(lanes, phases: list[dict], policy: dict, graph: dict[str, list[str]]) -> str:
+    """The whole board, rendered from the lanes and `main`'s phases, policy and graph."""
+    held = loop_fleet.holds(policy)
+    asks = entries(lanes, held) + gated_phases(phases, policy, graph, held)
+    return render(
+        asks, on_hold(phases, lanes, held), not_yet_startable(phases, policy, graph, held)
+    )
 
 
 def main() -> int:
@@ -197,11 +266,9 @@ def main() -> int:
     parser.add_argument("--list", action="store_true", help="print the board")
     parser.parse_args()
 
-    import loop_fleet
-
     phases = loop_fleet.integrated_phases()
-    asks = entries(loop_fleet.lanes()) + gated_phases(phases, loop_fleet.policy())
-    print(render(asks))
+    graph = loop_fleet.dependencies(phases)
+    print(board(loop_fleet.lanes(), phases, loop_fleet.policy(), graph))
     return 0
 
 

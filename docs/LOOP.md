@@ -66,6 +66,10 @@ A second file listing the open questions would be a second source of truth about
 So the queue reads the six places a human ask already lives: an unanswered `frozen-into-data` item in a decision list, an open `## Blocker` bullet in any stage's review notes, an `auto_advance: false` phase that has reached stage 11, a `needs_human_data` phase that cannot start at all, a `- Paused:` reason declared in an active ExecPlan, and a lane pointer sitting at `loop: halted`.
 Answering happens in the real file and the entry disappears, because the next run re-derives.
 
+Two kinds of phase owe nothing yet and are shown apart, never counted as waiting.
+A phase whose loop-policy entry carries `on_hold` is listed once, with its reason, and none of its asks are counted; `--start` and `--resume` refuse it, so lifting a hold is deleting the field, visible in a diff.
+A `needs_human_data` phase whose `depends_on` are not all completed on `main` is listed as not yet startable, because its input is owed only once it can start.
+
 Nothing about the board is committed.
 It depends on which worktrees exist on this machine, so a checked-in copy would differ between machines and could never be verified by the gate.
 Its shape is covered by `tests/test_loop_fleet.py` instead.
@@ -140,6 +144,7 @@ Every judgment call in a decision list declares one of two classes.
 `verification/loop_policy.yml` applies the same rule at phase granularity.
 A phase may auto-advance when it writes no new committed data.
 `needs_human_data` marks a phase that cannot start at all until Taylor supplies an input the repo does not have, and the driver refuses `--start` for it rather than letting a session invent the input.
+`on_hold` carries Taylor's reason for parking a phase; the driver refuses `--start` and `--resume` while `main`'s copy carries it, and refuses too when `main`'s copy cannot be read.
 
 ## Halt conditions
 

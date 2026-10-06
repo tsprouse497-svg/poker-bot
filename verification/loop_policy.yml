@@ -11,6 +11,11 @@ schema_version: 1
 # `needs_human_data` means the phase cannot even start until Taylor supplies
 # something the repo does not have. The driver halts before stage 1 in that case
 # rather than letting a session invent the input.
+#
+# `on_hold`, when present, is Taylor's reason for parking the phase. `--start` and
+# `--resume` refuse it, and the fleet board and review queue show it apart without
+# counting its asks. `main`'s copy is the one that holds; lifting a hold is deleting
+# the field there.
 
 phases:
   "05":
@@ -112,6 +117,11 @@ phases:
   "18":
     auto_advance: false
     needs_human_data: false
+    on_hold: >-
+      Put on hold by Taylor on 2026-10-05, with its lane halted at stage 3. The contract and the
+      decision list are written and reviewed in the lane; its three questions are not asked while
+      the hold stands. Phase 19 waits on this phase, so it waits on the hold too. Lifted by
+      deleting this field.
     reason: >-
       Nothing in this repo measures how well the bot plays, and this phase builds the
       thing that would. Taylor narrowed it on 2026-10-05 to what the bot's departures from
