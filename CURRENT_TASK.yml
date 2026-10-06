@@ -1,21 +1,8 @@
-task_id: MAINT-46
+task_id: null
 active_phase: null
-task_mode: maintenance
-base_commit: e1cdb32223cf4ae8607e5fcd6dbe647bcd948cf8
-approved_scope:
-- scripts/review_queue.py
-- scripts/loop_fleet.py
-- scripts/loop_stage.py
-- tests/test_loop_fleet.py
-- tests/test_loop_machinery.py
-- verification/freeze.lock
-- verification/loop_policy.yml
-- AGENTS.md
-- docs/LOOP.md
-- docs/ROADMAP.md
-- docs/V2_ROADMAP.md
-- reports/phase_audits/MAINT_46_HOLD_AND_NOT_YET_STARTABLE.md
-- reports/phase_audits/reviews/MAINT_46_HOLD_AND_NOT_YET_STARTABLE/**
+task_mode: idle
+base_commit: null
+approved_scope: []
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
