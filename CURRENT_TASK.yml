@@ -1,8 +1,21 @@
-task_id: null
+task_id: MAINT-46
 active_phase: null
-task_mode: idle
-base_commit: null
-approved_scope: []
+task_mode: maintenance
+base_commit: e1cdb32223cf4ae8607e5fcd6dbe647bcd948cf8
+approved_scope:
+- scripts/review_queue.py
+- scripts/loop_fleet.py
+- scripts/loop_stage.py
+- tests/test_loop_fleet.py
+- tests/test_loop_machinery.py
+- verification/freeze.lock
+- verification/loop_policy.yml
+- AGENTS.md
+- docs/LOOP.md
+- docs/ROADMAP.md
+- docs/V2_ROADMAP.md
+- reports/phase_audits/MAINT_46_HOLD_AND_NOT_YET_STARTABLE.md
+- reports/phase_audits/reviews/MAINT_46_HOLD_AND_NOT_YET_STARTABLE/**
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -18,6 +31,14 @@ forbidden_scope:
 - data/raw/**
 - data/processed/**
 scope_change_log:
+  - date: 2026-10-05
+    reason: >-
+      MAINT-46 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. Taylor put phase 18 on hold on 2026-10-05
+      and asked for the repo to account for it. Main records the hold in the loop policy, the fleet
+      board and review queue show a held phase and a phase that cannot start yet apart from real asks,
+      and the docs that describe the board and the roadmap say so. The test files change and are
+      re-frozen, which the lock diff records.
   - date: 2026-10-05
     reason: >-
       Widened mid-task to phase 19's contract. The independent review's one blocker: phase 19 gates a

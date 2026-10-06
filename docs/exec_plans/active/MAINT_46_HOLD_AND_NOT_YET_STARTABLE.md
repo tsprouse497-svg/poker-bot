@@ -1,0 +1,70 @@
+# MAINT-46: A Phase On Hold, And A Phase Not Yet Startable
+
+- **Task** `MAINT-46`
+- **Mode** `maintenance`
+- **Branch** `maint/46-hold-and-not-yet-startable`, worktree `~/projects/poker-bot-worktrees/maint-46`
+- **Base** `e1cdb32`, which is `main` after MAINT-45
+- **Authorised by** Taylor, 2026-10-05 in this session
+
+## Objective
+
+Taylor put phase 18 on hold on 2026-10-05, after its lane reached stage 3 with three questions for
+him, and asked for the repo to account for it. Its lane is halted with the reason, but `main` does not
+know, and the fleet board and review queue still list the three questions as waiting on him. The
+same board counts phase 20, which Taylor left open on purpose and which cannot start before 19 and
+22, as waiting on him (THE-REVIEW-QUEUE-LISTS-A-PHASE-WHOSE-DEPENDENCIES-ARE-NOT-MET-AS-WAITING-ON-YOU).
+This task records the hold on `main` and makes both tools tell a real ask from a phase that owes
+nothing yet.
+
+## Taylor's rulings
+
+1. **Phase 18 is on hold.** His words: "can we just put this on hold?", then "please update the repo
+   to account for this."
+
+## Design
+
+- `verification/loop_policy.yml` gains an optional `on_hold` field per phase: a non-empty reason
+  string. Phase 18 carries it. Absent means not on hold.
+- `scripts/review_queue.py`: the heading counts only real asks. A phase with `on_hold` set has none
+  of its asks counted (halt, decisions, blockers, pause, gate) and is listed once under an "on hold"
+  heading with its reason. A `needs_human_data` phase whose `depends_on` are not all completed on
+  `main` is listed under a "not yet startable" heading, using `loop_fleet.py`'s own eligibility rule,
+  and is not counted.
+- `scripts/loop_fleet.py`: `--plan` never offers an on-hold phase as "may start now" and names the
+  hold; `--status` shows a held lane as on hold with its reason, and not its asks as waiting.
+- `scripts/loop_stage.py`: `--resume` and `--start` refuse a phase whose policy carries `on_hold`, so
+  lifting a hold is an edit to the policy file and is visible in a diff.
+- Docs that describe the board (`docs/LOOP.md`, the review-queue line in `AGENTS.md`) and phase 18's
+  place in both roadmaps follow. Phase 18's own contract on `main` is unchanged; its lane carries the
+  stage 1 contract.
+
+## Delegation Plan
+
+- Worker lane W: the three scripts, their tests in `tests/test_loop_fleet.py` and
+  `tests/test_loop_machinery.py`, and the re-frozen lock. Expected output: the diff, the targeted
+  test commands run and their result. Status: assigned.
+- Coordinator: the policy entry, the docs, the backlog closure, integration, the gate.
+- Review handoff: one read-only reviewer that wrote none of it checks the design against Taylor's
+  ruling, that a real ask can never be hidden by the new rules (only `on_hold` and unmet dependencies
+  hide anything), that the tests would fail on the old behaviour, and that the lock diff is only the
+  two test files. Asked also what it held back. No gate runs by the reviewer: the machine is shared.
+
+## Slices
+
+- [x] Activate MAINT-46 with a dated scope entry.
+- [ ] Worker lane W: scripts, tests, lock.
+- [ ] Policy entry, docs, backlog.
+- [ ] Independent read-only review.
+- [ ] Gate, packet, closeout to idle, gate again, merge, push.
+
+## Verification
+
+`uv run python scripts/run_verify.py`, read for its verdict rather than its exit code.
+
+## Outcome
+
+Not yet.
+
+## Next Agent Bootstrap
+
+Worktree `~/projects/poker-bot-worktrees/maint-46`. Next: worker lane W.
