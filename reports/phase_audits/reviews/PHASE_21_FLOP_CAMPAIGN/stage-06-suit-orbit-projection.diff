@@ -1,0 +1,189 @@
+diff --git a/crates/solver/src/cfr.rs b/crates/solver/src/cfr.rs
+index 3268d26..f3568ca 100644
+--- a/crates/solver/src/cfr.rs
++++ b/crates/solver/src/cfr.rs
+@@ -85,6 +85,10 @@ pub struct Solver {
+     pub use_isomorphism: bool,
+     /// Non-representative branches hold stale data until symmetrize() runs.
+     sym_dirty: bool,
++    /// For each subgroup of `spot.suit_perms` that fixes some set of dealt
++    /// cards (keyed by its bit mask over `suit_perms`), each player's
++    /// hand -> lowest-index hand of its orbit. See `project_onto_suit_orbits`.
++    orbit_canon: Vec<(u32, [Vec<u16>; 2])>,
+ }
+ 
+ #[derive(Debug, Clone, Serialize)]
+@@ -142,7 +146,45 @@ impl Solver {
+             lock_labels: std::collections::HashMap::new(),
+             use_isomorphism: true,
+             sym_dirty: false,
++            orbit_canon: Vec::new(),
+         }
++        .with_orbit_canon()
++    }
++
++    /// Precompute `orbit_canon` for every stabilizer a traversal can meet:
++    /// those of no dealt card, of one, and of two.
++    fn with_orbit_canon(mut self) -> Solver {
++        let spot = self.spot.clone();
++        let np = spot.suit_perms.len();
++        if np < 2 {
++            return self;
++        }
++        let mut dealts = vec![Dealt::default()];
++        for a in 0..52u8 {
++            if spot.board_mask & (1u64 << a) != 0 {
++                continue;
++            }
++            dealts.push(Dealt::default().push(a));
++            for b in (a + 1)..52u8 {
++                if spot.board_mask & (1u64 << b) == 0 {
++                    dealts.push(Dealt::default().push(a).push(b));
++                }
++            }
++        }
++        for d in &dealts {
++            let valid = spot.perms_fixing(d);
++            let mask = valid.iter().fold(0u32, |m, &k| m | (1u32 << k));
++            if valid.len() < 2 || self.orbit_canon.iter().any(|(m, _)| *m == mask) {
++                continue;
++            }
++            let canon = [0, 1].map(|p| {
++                (0..spot.hands[p].len())
++                    .map(|i| valid.iter().map(|&k| spot.hand_perm[p][k][i]).min().unwrap())
++                    .collect::<Vec<u16>>()
++            });
++            self.orbit_canon.push((mask, canon));
++        }
++        self
+     }
+ 
+     /// Actual bytes held by the solver data arenas.
+@@ -465,6 +507,7 @@ impl Solver {
+                 self.chance_node(node, p, reach_p, reach_o, dealt, out, |s, c, rp, ro, d, o| {
+                     s.cfr(c, p, rp, ro, d, disc, o)
+                 });
++                self.project_onto_suit_orbits(p, &dealt, out);
+             }
+             KIND_ACTION => {
+                 let na = node.num_children as usize;
+@@ -663,6 +706,51 @@ impl Solver {
+         }
+     }
+ 
++    /// Keep CFR exactly suit-symmetric: give every hand the chance-node value
++    /// of the lowest-index hand in its orbit under the suit permutations that
++    /// fix the board and the cards dealt so far.
++    ///
++    /// Those hands are the same hand, so in exact arithmetic this changes
++    /// nothing. In f32 it does: `chance_node` adds each hand's per-card values
++    /// in card order, which is a different order for each member of an orbit,
++    /// so members come back a few ulps apart. Regret accumulates that gap every
++    /// iteration, and near-indifferent hands turn it into visibly different
++    /// strategies. With isomorphism on, the gap also lines up with suit order
++    /// (the orbit representative is always the lowest card); with it off the
++    /// gap is just as large but unordered. Measured on monotone boards: suit
++    /// variants up to 1.5e-2 apart on a turn root and 1.4e-3 on a flop root at
++    /// 300 iterations, not settling as iterations rise. Copying one member's
++    /// value onto the rest makes the members bitwise equal, so the gap is
++    /// never created. Summing the cards in f64 also removes it in practice,
++    /// but only this copy guarantees it.
++    ///
++    /// Only the CFR traversal is projected; best response keeps its own values
++    /// and so still measures the strategy honestly. Skipped when node locks are
++    /// set, since a lock can make suit-variant hands genuinely different.
++    fn project_onto_suit_orbits(&self, p: usize, dealt: &Dealt, out: &mut [f32]) {
++        if self.orbit_canon.is_empty() || !self.locks.is_empty() {
++            return;
++        }
++        let spot = &*self.spot;
++        let mut mask = 0u32;
++        for (k, pm) in spot.suit_perms.iter().enumerate() {
++            if (0..dealt.len as usize)
++                .all(|i| crate::cards::permute_card(dealt.cards[i], pm) == dealt.cards[i])
++            {
++                mask |= 1u32 << k;
++            }
++        }
++        // A stabilizer of one element (only the identity) has no table.
++        let Some((_, canon)) = self.orbit_canon.iter().find(|(m, _)| *m == mask) else {
++            return;
++        };
++        // The canonical member is the orbit's lowest index and maps to
++        // itself, so it is never overwritten before it is read.
++        for (i, &j) in canon[p].iter().enumerate() {
++            out[i] = out[j as usize];
++        }
++    }
++
+     /// Average strategy (normalized cumulative strategy) for a node, written
+     /// into `sigma` (na*nh). Locked nodes return the locked strategy.
+     pub fn average_strategy_into(&self, node_idx: u32, node: &Node, sigma: &mut [f32]) {
+diff --git a/crates/solver/tests/convergence.rs b/crates/solver/tests/convergence.rs
+index 038b91f..b981a3c 100644
+--- a/crates/solver/tests/convergence.rs
++++ b/crates/solver/tests/convergence.rs
+@@ -986,3 +986,63 @@ fn check_through_street_clears_the_initiative() {
+         "legacy trees keep the old shape so pre-fix saves still load, got {kinds:?}"
+     );
+ }
++
++/// Hands that the board's suit group maps onto each other are the same hand,
++/// so CFR must give them bitwise-identical strategies. On a monotone turn the
++/// group swaps the three other suits; before the orbit projection in
++/// `Solver::cfr`, f32 summation order at the river chance node seeded a gap
++/// and the orbit-representative synthesis grew it along suit order.
++#[test]
++fn suit_variants_get_identical_strategies() {
++    let config = SpotConfig {
++        board: "9c8c7c2c".to_string(),
++        range_oop: "TT-55,AJs-A2s,KTs+,QTs+,JTs,T9s,65s,54s,AJo+,KQo".to_string(),
++        range_ip: "AA-22,A2s+,K9s+,Q9s+,J9s+,T8s+,97s+,86s+,75s+,64s+,ATo+,KJo+,QJo".to_string(),
++        tree: TreeConfig {
++            starting_pot: 10.0,
++            effective_stack: 95.0,
++            oop: [sizing("33", "2.5x"), sizing("66", "2.5x"), sizing("66", "2.5x")],
++            ip: [sizing("33", "2.5x"), sizing("66", "2.5x"), sizing("66", "2.5x")],
++            max_raises: 2,
++            ..Default::default()
++        },
++    };
++    let spot = Spot::new(config).unwrap();
++    assert_eq!(spot.suit_perms.len(), 6, "a monotone board admits all three-suit swaps");
++    let mut solver = Solver::new(Arc::new(spot));
++    for _ in 0..150 {
++        solver.iterate();
++    }
++    let spot = solver.spot.clone();
++    // Every turn action node above the river deal.
++    let mut stack = vec![0u32];
++    let mut checked = 0usize;
++    while let Some(idx) = stack.pop() {
++        let node = &spot.tree.nodes[idx as usize];
++        if node.kind != solver::tree::KIND_ACTION {
++            continue;
++        }
++        for a in 0..node.num_children as usize {
++            stack.push(spot.tree.children[node.children_start as usize + a]);
++        }
++        let p = node.player as usize;
++        let nh = spot.hands[p].len();
++        let sigma = solver.average_strategy(idx, node);
++        for i in 0..nh {
++            for k in 0..spot.suit_perms.len() {
++                let j = spot.hand_perm[p][k][i] as usize;
++                for a in 0..node.num_children as usize {
++                    assert_eq!(
++                        sigma[a * nh + i].to_bits(),
++                        sigma[a * nh + j].to_bits(),
++                        "node {idx} action {a}: suit variants {i} and {j} differ ({} vs {})",
++                        sigma[a * nh + i],
++                        sigma[a * nh + j]
++                    );
++                }
++            }
++        }
++        checked += 1;
++    }
++    assert!(checked > 5, "expected several turn action nodes, checked {checked}");
++}
