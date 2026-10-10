@@ -448,7 +448,7 @@ def campaign_sections(postflop_dir: Path, index: Mapping[str, Any]) -> list[str]
         raise ReportFigureError(
             f"campaign/ holds {unread}, which this report neither prints nor re-derives"
         )
-    bar = tree_size.campaign_memory_bar().arena_bytes
+    bar = tree_size.campaign_memory_bar()
 
     def at(name: str) -> Path:
         return campaign / name

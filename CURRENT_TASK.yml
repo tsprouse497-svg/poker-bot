@@ -4,7 +4,20 @@ task_mode: implementation
 base_commit: 5e33c8a72eae274ae5955c694afb4be8e3cd9480
 approved_scope:
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
-- src/poker_training_bot/solver_artifacts/**
+- src/poker_training_bot/solver_artifacts/postflop_lines.py
+- src/poker_training_bot/solver_artifacts/postflop_manifest.py
+- src/poker_training_bot/solver_artifacts/postflop_fetch.py
+- src/poker_training_bot/solver_artifacts/postflop_street_rows.py
+- src/poker_training_bot/solver_artifacts/postflop_campaign_costs.py
+- src/poker_training_bot/solver_artifacts/postflop_textures.py
+- src/poker_training_bot/solver_artifacts/postflop_tree_size.py
+- src/poker_training_bot/solver_artifacts/postflop_tree_rule.py
+- src/poker_training_bot/solver_artifacts/flop_campaign_report_records.py
+- src/poker_training_bot/solver_artifacts/postflop_key.py
+- src/poker_training_bot/solver_artifacts/postflop_harvest.py
+- src/poker_training_bot/solver_artifacts/postflop_determinism.py
+- src/poker_training_bot/solver_artifacts/postflop_artifact.py
+- src/poker_training_bot/solver_artifacts/postflop_sizing.py
 - src/poker_training_bot/strategy/postflop_betting.py
 - src/poker_training_bot/strategy/postflop_committed.py
 - src/poker_training_bot/strategy/postflop_spot_queries.py
@@ -4738,3 +4751,9 @@ scope_change_log:
       importer's action parser, `postflop_sizing.pot_before_hero_bb` (both already in scope under
       `solver_artifacts/**`) and the strategy's flop street in chips, which this entry adds. Two
       frozen raise-key tests wait on it; no committed cell carries a raise today.
+  - date: 2026-10-10
+    reason: >-
+      Narrowed after the stage 6 review: `solver_artifacts/**` also admitted the preflop chart's
+      modules, which this phase forbids. It is replaced by the fourteen postflop modules the build
+      created or changes, the importer and `postflop_sizing` among them for the raise arithmetic
+      held for Taylor.

@@ -17,8 +17,21 @@ pricing the solve alone is the cheapest-looking figure available and on a closed
 may cost more than the solve. Before any candidate is priced, one that cannot hold the memory bar
 at the ruled ceiling is excluded with that reason and never ranked, so the campaign cannot meet a
 board its machine refuses. A machine running more than one solve at once (decision 11's default
-is one) applies the bar to their sum. The bar is compared exactly as it is handed in: whichever
-reading of the server's arena unit applies is settled where the bar is computed, not here.
+is one) applies the bar to their sum.
+
+**The bar is the one the driver's guard reads.** The server states an arena in 10^6 bytes and the
+solve driver's guard reads that figure as 2^20 bytes on purpose, about five percent high (decision
+14). A bar in the server's unit would rank a machine whose memory sits inside that five percent and
+then see the driver refuse the line's largest flop on it. So `guard_memory_bar_bytes` turns the
+server's figure into the driver's, through the driver's own reading function, and `rank_candidates`
+refuses a bar below that reading whenever it is handed the server's figure. The comparison itself
+uses the bar exactly as given, and admits a ceiling equal to it, as the driver does.
+
+**A graphics card is checked against its own bar.** A candidate solving on the card names the GPU
+engine and carries its card memory; it is excluded with its own reason when GTOpen's own card
+budget, free memory less the solver's fixed headroom, cannot hold the card bar (GTOpen's
+`vram_estimate_bytes` for the line's largest flop). The host bar still applies to it, because the
+driver's guard checks host memory whatever the engine.
 """
 
 from __future__ import annotations
@@ -28,7 +41,9 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
+from poker_training_bot.solver_artifacts.postflop_machine import CPU_ENGINE, ENGINES, GPU_ENGINE
 from poker_training_bot.solver_artifacts.postflop_solve_driver import MEMORY_CEILING_FRACTION
+from poker_training_bot.solver_artifacts.postflop_transport import arena_bytes
 
 BENCHMARK_CAP_USD = 100.0
 """Decision 6, confirmed for RunPod on 2026-10-04: the trial cap in dollars."""
@@ -39,6 +54,15 @@ the flop solved, every flop and turn decision point harvested, and the result up
 
 DEFAULT_CONCURRENT_SOLVES = 1
 """Decision 11's default: one solve at a time on one machine."""
+
+SERVER_ARENA_UNIT_BYTES = 1_000_000
+"""What the server means by one of `arena_mb`'s megabytes: `spot.arena_bytes_for(storage) as f64 /
+1e6` in GTOpen's `/api/spot`. The driver's guard reads the same field through `arena_bytes`."""
+
+GTOPEN_GPU_MARGIN_BYTES = 512 * SERVER_ARENA_UNIT_BYTES
+"""GTOpen's `GPU_MARGIN_MB` of 512 (`crates/server/src/main.rs:263`), kept free on the card on top
+of its estimate. `gpu_budget` takes the card's free memory in whole 10^6-byte megabytes less this,
+and a solve whose estimate is above the budget does not run on the card."""
 
 SECONDS_PER_HOUR = 3600.0
 CANDIDATES_RECORD_SCHEMA_VERSION = 1
@@ -60,18 +84,51 @@ def _named(value: object, what: str) -> str:
     return value
 
 
+def _whole_bytes(value: object, what: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ValueError(f"{what} must be a whole number of bytes above zero, got {value!r}")
+    return value
+
+
+# --- The bars, as the guards that refuse a solve read them
+
+
+def guard_memory_bar_bytes(server_arena_bytes: int) -> int:
+    """A planned arena in the server's own bytes, as the solve driver's guard reads it: the server
+    reports it as `arena_mb` in 10^6 bytes, and the driver reads that through `arena_bytes`, the
+    same arithmetic `postflop_solve_driver` runs before it calls `check_memory_ceiling`."""
+    server = _whole_bytes(server_arena_bytes, "the server's arena")
+    return arena_bytes(server / SERVER_ARENA_UNIT_BYTES)
+
+
+def gtopen_card_budget_bytes(card_memory_bytes: int) -> int:
+    """What GTOpen lets a solve use on a card with `card_memory_bytes` free, ported from
+    `gpu_budget`: free memory in whole 10^6-byte megabytes, less the fixed headroom, never below
+    zero."""
+    card = _whole_bytes(card_memory_bytes, "the card's memory")
+    whole_megabytes = card // SERVER_ARENA_UNIT_BYTES * SERVER_ARENA_UNIT_BYTES
+    return max(0, whole_megabytes - GTOPEN_GPU_MARGIN_BYTES)
+
+
 # --- The candidate machines
 
 
 @dataclass(frozen=True)
 class Candidate:
-    """One machine offered for the campaign: its memory, its hourly price, and the seconds each
-    billed part of one closed flop took on it."""
+    """One machine offered for the campaign: its memory, its hourly price, the seconds each billed
+    part of one closed flop took on it, and the engine it solves on.
+
+    `card_memory_bytes` is the card's free memory as CUDA reports it before a solve, which is what
+    GTOpen budgets from; a provider's headline figure overstates it by CUDA's own use. A GPU
+    candidate must carry it and a CPU candidate must not, so a card is never left unchecked by
+    omission and a figure nothing reads is never recorded as if it were checked."""
 
     name: str
     memory_bytes: int
     price_per_hour_usd: float
     billed_seconds: Mapping[str, float] = field(default_factory=dict)
+    engine: str = CPU_ENGINE
+    card_memory_bytes: int | None = None
 
     def to_document(self) -> dict[str, Any]:
         return {
@@ -79,15 +136,36 @@ class Candidate:
             "memory_bytes": self.memory_bytes,
             "price_per_hour_usd": self.price_per_hour_usd,
             "billed_seconds": dict(self.billed_seconds),
+            "engine": self.engine,
+            "card_memory_bytes": self.card_memory_bytes,
         }
 
     @classmethod
     def from_document(cls, document: Mapping[str, Any]) -> Candidate:
+        """A record written before candidates named their engine reads as a CPU candidate."""
         return cls(
             name=document["name"],
             memory_bytes=document["memory_bytes"],
             price_per_hour_usd=document["price_per_hour_usd"],
             billed_seconds=dict(document["billed_seconds"]),
+            engine=document.get("engine", CPU_ENGINE),
+            card_memory_bytes=document.get("card_memory_bytes"),
+        )
+
+
+def _check_engine(candidate: Candidate) -> None:
+    if candidate.engine not in ENGINES:
+        raise ValueError(
+            f"{candidate.name}: engine must be one of {ENGINES}, got {candidate.engine!r}"
+        )
+    if candidate.engine == GPU_ENGINE:
+        _whole_bytes(
+            candidate.card_memory_bytes, f"{candidate.name}: a GPU candidate's card memory"
+        )
+    elif candidate.card_memory_bytes is not None:
+        raise ValueError(
+            f"{candidate.name}: a CPU candidate carries card memory nothing would check; name the"
+            f" {GPU_ENGINE} engine or drop the figure"
         )
 
 
@@ -139,6 +217,29 @@ def memory_exclusion(
     return None
 
 
+def card_exclusion(
+    candidate: Candidate,
+    *,
+    card_bar_bytes: int,
+    concurrent_solves: int = DEFAULT_CONCURRENT_SOLVES,
+) -> str | None:
+    """Why a GPU candidate's card cannot hold the card bar, or None when it can or the candidate
+    solves on the CPU. GTOpen refuses the card only when its estimate is above the budget, so a
+    budget equal to the bar holds it."""
+    _check_engine(candidate)
+    if candidate.engine != GPU_ENGINE or candidate.card_memory_bytes is None:
+        return None
+    budget = gtopen_card_budget_bytes(candidate.card_memory_bytes)
+    required = card_bar_bytes * concurrent_solves
+    if budget < required:
+        return (
+            f"its card cannot hold the card memory bar: GTOpen budgets {budget:,} bytes of the"
+            f" {candidate.card_memory_bytes:,} free, {required:,} bytes needed for"
+            f" {concurrent_solves} solve{'s' if concurrent_solves > 1 else ''}"
+        )
+    return None
+
+
 @dataclass(frozen=True)
 class Ranking:
     """Every candidate offered, the ones that hold the bar cheapest per solved flop first, and the
@@ -151,6 +252,7 @@ class Ranking:
     memory_bar_bytes: int
     ceiling_fraction: float
     concurrent_solves: int
+    card_bar_bytes: int | None = None
 
     def to_document(self) -> dict[str, Any]:
         """The committed `campaign/candidates.json` record."""
@@ -159,6 +261,7 @@ class Ranking:
             "memory_bar_bytes": self.memory_bar_bytes,
             "ceiling_fraction": self.ceiling_fraction,
             "concurrent_solves": self.concurrent_solves,
+            "card_memory_bar_bytes": self.card_bar_bytes,
             "candidates": [candidate.to_document() for candidate in self.candidates],
             "ranked": [candidate.name for candidate in self.ranked],
             "excluded": dict(self.excluded),
@@ -172,12 +275,17 @@ def rank_candidates(
     memory_bar_bytes: int,
     ceiling_fraction: float = MEMORY_CEILING_FRACTION,
     concurrent_solves: int = DEFAULT_CONCURRENT_SOLVES,
+    server_arena_bytes: int | None = None,
+    card_bar_bytes: int | None = None,
 ) -> Ranking:
     """Exclude every candidate that cannot hold the bar, then rank the rest on cost per solved
     flop, cheapest first, ties broken by name so the order never depends on the input's.
 
-    An excluded candidate is never priced: whether it was timed at all does not matter, because
-    it can never be chosen."""
+    `server_arena_bytes`, when given, is the campaign's largest planned arena in the server's
+    unit, and a `memory_bar_bytes` below the guard's reading of it is refused: ranked against it,
+    a machine could rank and then be refused by the driver. `card_bar_bytes` is required as soon
+    as any candidate solves on a card. An excluded candidate is never priced: whether it was timed
+    at all does not matter, because it can never be chosen."""
     if isinstance(memory_bar_bytes, bool) or not isinstance(memory_bar_bytes, int):
         raise ValueError(f"the memory bar is a whole number of bytes, got {memory_bar_bytes!r}")
     if memory_bar_bytes <= 0:
@@ -193,6 +301,20 @@ def rank_candidates(
     duplicated = sorted({name for name in names if names.count(name) > 1})
     if duplicated:
         raise ValueError(f"candidate names must be unique; offered twice: {duplicated}")
+    if server_arena_bytes is not None:
+        guard_bar = guard_memory_bar_bytes(server_arena_bytes)
+        if memory_bar_bytes < guard_bar:
+            raise ValueError(
+                f"a memory bar of {memory_bar_bytes:,} bytes is below {guard_bar:,}, the driver's"
+                f" guard's reading of the {server_arena_bytes:,}-byte arena it must hold"
+            )
+    for candidate in candidates:
+        _check_engine(candidate)
+    on_cards = [candidate.name for candidate in candidates if candidate.engine == GPU_ENGINE]
+    if card_bar_bytes is not None:
+        _whole_bytes(card_bar_bytes, "the card memory bar")
+    elif on_cards:
+        raise ValueError(f"{on_cards} solve on a card, and no card memory bar was given")
 
     excluded: dict[str, str] = {}
     costs: dict[str, float] = {}
@@ -204,6 +326,10 @@ def rank_candidates(
             ceiling_fraction=fraction,
             concurrent_solves=concurrent_solves,
         )
+        if reason is None and card_bar_bytes is not None:
+            reason = card_exclusion(
+                candidate, card_bar_bytes=card_bar_bytes, concurrent_solves=concurrent_solves
+            )
         if reason is not None:
             excluded[candidate.name] = reason
             continue
@@ -218,6 +344,7 @@ def rank_candidates(
         memory_bar_bytes=memory_bar_bytes,
         ceiling_fraction=fraction,
         concurrent_solves=concurrent_solves,
+        card_bar_bytes=card_bar_bytes,
     )
 
 

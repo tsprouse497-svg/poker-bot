@@ -30,6 +30,7 @@ from poker_training_bot.solver_artifacts import postflop_determinism as determin
 from poker_training_bot.solver_artifacts import postflop_lines as lines
 from poker_training_bot.solver_artifacts import postflop_textures as textures
 from poker_training_bot.solver_artifacts import postflop_threads as threads
+from poker_training_bot.solver_artifacts import postflop_tree_size as tree_size
 from poker_training_bot.solver_artifacts.postflop_machine import MachineRecord
 
 NOT_YET_MEASURED = "not yet measured"
@@ -310,23 +311,27 @@ def box_determinism_rows(document: Mapping[str, Any], index: Mapping[str, Any]) 
 # --- The candidate machines
 
 
-def candidate_rows(document: Mapping[str, Any], campaign_bar_bytes: int) -> list[str]:
-    """The candidates re-ranked from their own fields against the record's bar, which may not sit
-    below the largest arena the tree walk found over every admitted line."""
+def candidate_rows(document: Mapping[str, Any], campaign_bar: tree_size.MemoryBar) -> list[str]:
+    """The candidates re-ranked from their own fields. The record's bar may not sit below the
+    driver's guard's reading of the largest arena the tree walk found over every admitted line,
+    and a candidate on a card must hold that flop's card memory too."""
     bar = document["memory_bar_bytes"]
-    if not isinstance(bar, int) or bar < campaign_bar_bytes:
+    card_bar = document.get("card_memory_bar_bytes")
+    if card_bar is not None and card_bar < campaign_bar.vram_bytes:
         raise refuse(
             CANDIDATES_RECORD,
-            f"ranks against a memory bar of {bar!r} bytes, below the campaign's largest planned"
-            f" arena of {campaign_bar_bytes:,} bytes",
+            f"ranks cards against {card_bar!r} bytes, below the campaign's card memory bar of"
+            f" {campaign_bar.vram_bytes:,} bytes",
         )
-    offered = [costs.Candidate.from_document(entry) for entry in document["candidates"]]
     try:
+        offered = [costs.Candidate.from_document(entry) for entry in document["candidates"]]
         ranking = costs.rank_candidates(
             offered,
             memory_bar_bytes=bar,
             ceiling_fraction=document["ceiling_fraction"],
             concurrent_solves=document["concurrent_solves"],
+            server_arena_bytes=campaign_bar.arena_bytes,
+            card_bar_bytes=campaign_bar.vram_bytes,
         )
     except ValueError as error:
         raise refuse(CANDIDATES_RECORD, str(error)) from error
@@ -355,7 +360,8 @@ def candidate_rows(document: Mapping[str, Any], campaign_bar_bytes: int) -> list
     for position, candidate in enumerate(ranking.ranked, start=1):
         rows.append(
             f"  cost per solved flop: {money(ranking.cost_per_solved_flop_usd[candidate.name])} on"
-            f" {candidate.name}, rank {position}, {money(candidate.price_per_hour_usd)} an hour"
+            f" {candidate.name} ({candidate.engine}), rank {position},"
+            f" {money(candidate.price_per_hour_usd)} an hour"
             f" for {costs.billed_seconds_per_flop(candidate):,.0f} billed seconds"
         )
     for name, reason in ranking.excluded.items():

@@ -176,18 +176,66 @@ items:
       `CLASS_AGREEMENT_TOLERANCE` (5e-4): five on 9c8c7c (gaps 0.000541 to 0.001408), one on 8c8d3c
       (0.000734) and four on Ac8c3c (0.000622 to 0.001440), one to three classes over in each.
       Kh7d2c, rainbow with every class one combo, closes. Example: Ac8c3c, after check, bet 33 and
-      a raise, class 6dAd calls 0.52283, 0.52352 and 0.52419 across its three combos, a smooth drift
-      across suits that reads as the solve's own unconvergence, not a misread. Nothing the frozen
+      a raise, class 6dAd calls 0.52283, 0.52352 and 0.52419 across its three combos. The stage 6
+      review re-derived all ten from the exports with its own reader and corrected the cause: the
+      drift is ordered by suit, not noise. Of the classes with three members and a spread above
+      1e-5, the action that moves most is monotone in GTOpen's hand order (diamonds, hearts, spades)
+      in 497 of 502 on 9c8c7c and 317 of 317 on Ac8c3c, where chance would give about one in three,
+      and phase 16's own f32 arena rows show the in-class gap growing with iterations, 7.15e-05 at
+      320 to 1.40e-04 at 640. So it is a deterministic asymmetry in the solve that more solving
+      will not remove, which is what phase 16 said the check exists to catch
+      (THE-SOLVE-DRIFTS-BY-SUIT-INSIDE-A-CLASS-AND-THE-DRIFT-GROWS-WITH-ITERATIONS). Its poker size:
+      the widest gap is 0.144 percentage points of one action's frequency, and every refused point
+      is a deep one, after a raise or facing the big blind's lead, never a first decision. Nothing the frozen
       tests or the contract allow resolves it: phase 16's decision list rejected raising the
       tolerance, the contract forbids re-solving to look better, its closure rule refuses a board
       only for missing the exploitability ceiling, and the frozen manifest test needs all four
       boards closed. So no manifest is committed and `pytest_flop_campaign` stays red on it. It
-      changes what is stored, so it is Taylor's: another collapse rule (for example the member
-      nearest the others, which THE-COMMITTED-ROW-IS-ONE-COMBO-RATHER-THAN-AN-AGREED-ANSWER
-      discusses), a different tolerance, or a contract rule for a board whose solve meets the
-      ceiling but not the agreement bound. The same rule can meet any board whose classes hold more
-      than one combo, which is every texture group but rainbow unpaired; two-tone unpaired alone is
-      46.6 percent of all flops by the contract's count.
+      changes what is stored, so it is Taylor's. Options: first diagnose the suit asymmetry in the
+      local solver clone, the route decisions 17 and 18 took, after which a re-solve has the solver
+      as its reason and not the numbers; or another collapse rule (for example the member nearest
+      the others, which THE-COMMITTED-ROW-IS-ONE-COMBO-RATHER-THAN-AN-AGREED-ANSWER discusses); or a
+      different tolerance; or a contract rule for a board whose solve meets the ceiling but not the
+      agreement bound. The two halts are coupled: the committed harvest stops on the importer's
+      refusal of a raise's multiplier key before it reaches the class check, so a ruling here
+      closes nothing until the raise patch the permission check held back is allowed. The same rule can meet any board whose classes hold more
+      than one combo, which is every texture group but rainbow unpaired: 1,469 of the 1,755 classes,
+      68.9 percent of flops, by the stage 6 review's count. It matters before any campaign money is
+      spent.
+
+  - id: THE-SOLVE-DRIFTS-BY-SUIT-INSIDE-A-CLASS-AND-THE-DRIFT-GROWS-WITH-ITERATIONS
+    status: deferred
+    phase: "21"
+    title: Combos of one hand class drift apart in GTOpen's suit order, and the gap grows with solving
+    reason: >-
+      Found 2026-10-10 by phase 21's stage 6 independent review, re-deriving the class-agreement
+      refusals from the four boards' strategy exports. Within a class whose combos the board's suit
+      symmetry makes the same hand, the most-moving action is monotone in GTOpen's hand order
+      (diamonds, hearts, spades) in 497 of 502 qualifying classes on 9c8c7c and 317 of 317 on
+      Ac8c3c, and phase 16's f32 rows show the gap growing from 7.15e-05 at 320 iterations to
+      1.40e-04 at 640. That is a systematic asymmetry in the solve, not slow convergence, and the
+      mechanism has not been located: GTOpen's CFR and suit-symmetry code in the local clone is
+      where it would be diagnosed. Turn rows are stored per combo with no agreement check, so they
+      carry the same drift unmeasured. Related:
+      THE-CLASS-AGREEMENT-RULE-REFUSES-TEN-OF-THE-FOUR-BOARDS-FIFTY-SIX-FLOP-DECISION-POINTS, which
+      it causes, and THE-COMMITTED-ROW-IS-ONE-COMBO-RATHER-THAN-AN-AGREED-ANSWER, which any collapse
+      ruling would touch.
+
+  - id: THE-TURN-OBJECT-NAMES-NOTHING-AND-ITS-ORDER-LIVES-IN-A-DOCSTRING
+    status: deferred
+    phase: "21"
+    title: A stored turn object holds only shapes and counts, so its rows' meaning is rebuilt from the tree port, the menu and the ranges
+    reason: >-
+      Found 2026-10-10 by phase 21's stage 6 independent review. `postflop_street_rows` writes each
+      turn decision point as an action count, a row count and two-byte counts, with no names: which
+      decision point, which actions, which combo each row is. The order is written only in
+      `scripts/harvest_postflop_closure.py`'s docstring (depth-first, turn cards in GTOpen card-code
+      order skipping the board, rows in ascending combo index over the posted range's live combos).
+      A reader has to rebuild each row's meaning from the tree port, `solve_config.json`, the chart
+      and the range floor, so a later change to any of them that keeps a point's row count would
+      relabel rows without any check noticing. What would close it: the line index or the object
+      carries a fingerprint of what fixes the order (menu, ranges, tree rule), checked on read by
+      the phase that plays the turn.
 
   - id: PEOPLE-ACROSS-THE-US-PLAY-AGAINST-THE-BOT-AND-NO-PHASE-OWNS-IT
     status: deferred
@@ -10543,6 +10591,16 @@ items:
       bot's own raise is matched. The tolerance this entry is really about is untouched and still
       owed a ruling, and repairing the source exposed a second wall, filed as
       `THE-KEY-CANNOT-NAME-A-RAISE-THE-COMMITTED-MENU-HOLDS`.
+      2026-10-10, phase 21's stage 6 review, after decision 16 named a raise by its multiplier: the
+      bot still sizes its own raise as a share of the pot (`_amount` in
+      `strategy/postflop_betting.py`, `menu_size_chips` on the cell's fraction) while the next
+      decision names a raise by multiple of the bet faced. With a pot of 550 chips and a faced bet of
+      160 (29.1 percent, matched as the 33 bet), the bot raises to round(0.6203 x 710) = 440 chips
+      where 2.5 times the 160 is 400; 40 chips over a 710-chip pot is 0.056, outside the 0.05
+      tolerance, so the next decision refuses the bot's own raise. It misses whenever the faced bet is 28 to 29.55 or 36.63 to 38 percent of the pot;
+      self-play bets exact fractions, so only a human opponent hits it. Fix: raise to the menu
+      multiplier times the faced level. Held with the raise arithmetic patch the session's
+      permission check refused, since it is the same arithmetic.
 
   - id: THE-KEY-CANNOT-NAME-A-RAISE-THE-COMMITTED-MENU-HOLDS
     status: deferred
@@ -10906,6 +10964,14 @@ items:
       numbers multiply. Found by phase 16's stage-6 arena lane, 2026-09-20, which raised the fraction
       under decision 20 without touching the reading.
       **Adopted by phase 21 on 2026-09-26** (MAINT-40), from phase 16, which is completed. Closes when phase 21 takes one of the three repairs above, in the same decision as any move of the memory ceiling on the rented box.
+      2026-10-10, phase 21's stage 6 review: the new candidate ranking in
+      `postflop_campaign_costs.py` compared the raw memory bar, so a box of about 46.78 to 49.05 GB
+      would rank and then be refused by the driver on the small blind line's deuce-trips flop, and a
+      GPU candidate was ranked on host memory with no card check. Fixed in the same stage: the ranking
+      takes the bar through the driver's own arena reading (19,619,395,709 bytes for the small blind
+      line) and refuses a record ranked on the raw bar, and a GPU candidate carries its card memory
+      and is excluded when GTOpen's own budget cannot hold the 51,239,107,576-byte card bar. The
+      over-read itself, which this entry is about, is untouched.
 
   - id: BLIND-COLD-FOUR-BET-PRICED-AT-DOUBLE-STANDARD-IS-UNRULED
     status: deferred

@@ -97,7 +97,8 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   results, and anything it found outside its brief, or evidence that its slice cannot be done.
 - Status: fact-finding, stage 1 to 5 and part 1 completed. Stage 6, 2026-10-09: lanes C, T and S
   completed; L completed, its raise follow-up refused by the permission check; H completed, halted
-  on the class-agreement finding; R assigned.
+  on the class-agreement finding; R completed, its generator refusing until a manifest exists; C
+  re-opened for the review's memory finding.
 - Integration order: contract, decisions, human gate, tests, freeze, build, gate, review, packet.
   Within stage 6: T, L, S and C in parallel on disjoint files; then H, which needs S's row format
   and L's lines, with R building alongside and waiting on H's manifest; then the full gate.
@@ -177,7 +178,8 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   against the committed cells, since copying `index.json`'s digests into a manifest cannot be told
   apart offline from reproducing them.
 - [ ] Before any candidate is ranked: GTOpen builds (does not solve) one small blind tree, and its
-  node count and arena are compared with the port's 4,109,130 nodes and planned arena. A difference
+  node count and arena are compared with the port's 4,339,626 nodes on the clone's tree (4,109,130
+  was the pin's) and planned arena. A difference
   is a finding for Taylor, not a test edit. On each rented box the machine record is compared with
   the server's printed "solver threads" line, since the record counts processors from
   `/proc/cpuinfo` and GTOpen counts the ones it may use
@@ -301,10 +303,19 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   Lane H built the harvest and found the second halt: phase 16's class-agreement rule refuses 10 of
   the 56 flop decision points on 9c8c7c, 8c8d3c and Ac8c3c, so only Kh7d2c can close and no manifest
   is committed (`THE-CLASS-AGREEMENT-RULE-REFUSES-TEN-OF-THE-FOUR-BOARDS-FIFTY-SIX-FLOP-DECISION-POINTS`).
-  It changes what is stored, so it is Taylor's. The five committed spots' digests re-derive from the
-  exports exactly. Measured on this Mac, not committed: about 10 seconds a board to harvest, one
-  closed flop 13.3 MB (Kh7d2c: flop object 144,769 bytes, turn object 13,175,620), and lzma saves
-  67 to 89 percent of a turn object, gzip 53 to 83.
+  The stage 6 review re-derived the ten independently and corrected the cause: the combos of a class
+  drift apart in GTOpen's suit order and the gap grows with iterations, an asymmetry in the solve
+  rather than slow convergence (`THE-SOLVE-DRIFTS-BY-SUIT-INSIDE-A-CLASS-AND-THE-DRIFT-GROWS-WITH-ITERATIONS`);
+  the widest gap is 0.144 percentage points and every refused point is a deep one. It changes what
+  is stored, so it is Taylor's, and diagnosing the asymmetry in the clone is one of his options.
+  The halts are coupled: the harvest stops on the importer's refusal of a raise's multiplier key
+  before the class check, so the raise patch has to land first either way. The five committed
+  spots' digests re-derive from the exports exactly. Measured on this Mac, not committed: about 10
+  seconds a board to harvest, one closed flop 13.3 MB (Kh7d2c: flop object 144,769 bytes, turn
+  object 13,175,620), and lzma saves 67 to 89 percent of a turn object, gzip 53 to 83.
+  Full gate at 1c054ce: 48 of 52 commands pass; the four red are `pytest_flop_campaign`,
+  `generate_flop_campaign_report`, `pytest` and `check_gate_bite`, every failure one of the two
+  halts (38 tests).
 
 ## Verification
 
@@ -324,5 +335,10 @@ carries both fixes, the contract and tests state the new tree, phase 16's four b
 it, and its objects live in `~/poker-bot-solve-objects/postflop-clone-b058335`, never the shared
 `postflop` folder every lane reads. Taylor re-ruled decision 1 on 2026-10-04: the turn is stored and
 only the river is solved at the table. The contract and frozen tests now store the flop and turn
-and never the river, and `main` agrees since MAINT-44, merged in at 79651fc. The stage 6
-review note `stage-06-build.md` is still owed for the whole stage, beside the decision 17 notes.
+and never the river, and `main` agrees since MAINT-44. The stage 6 build is committed (seven
+modules, the harvest, the report generator, by six lanes) and reviewed in `stage-06-build.md`, but
+stage 6 cannot advance on two halts for Taylor, both in the stage 6 build slice: allow the raise
+arithmetic patch committed at `reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/stage-06-raise-arithmetic.diff` (the permission check refused
+it), and rule on the class-agreement refusal. Then the harvest
+(`uv run python scripts/harvest_postflop_closure.py`) writes the closure objects outside git and the
+button-line manifest, the index is rebuilt with `--index-only`, and the gate is run again.
