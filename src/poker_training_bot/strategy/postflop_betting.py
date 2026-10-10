@@ -19,9 +19,11 @@ line, the flop sizes, the board, the spot, then hero's own hand class. Nothing i
 onto a nearest value at any step - a preflop price is answered only inside decision 10's band and
 a faced bet matched to the menu only inside decision 14's tolerance.
 
-**No refusal detail names a seat or a chip count.** `refusal_inventory` groups on the code plus
-the whole detail tuple, so a per-seat figure shatters the work list into one row per hand.
-`REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL`.
+**No refusal detail names a seat number or a chip count**, which would shatter the work list
+`refusal_inventory` groups on code and detail. `REFUSAL-INVENTORY-FRAGMENTS-ON-PER-SEAT-DETAIL`.
+A board refusal names hero's **position** and the committed line it was scoped to, because a board
+held for one chair of a betting sequence is not held for the other.
+`A-BOARD-REFUSAL-READS-AS-BOARDWIDE-AND-IS-SCOPED-PER-LINE-AND-SEAT`.
 
 **Every refusal names the table size and hero's hand**, on top of whatever the gap itself is,
 from `refusal_detail.asked_by` rather than from a copy kept here - the preflop chart refuses into
@@ -33,6 +35,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from hashlib import sha256
+from pathlib import Path
 
 from poker_training_bot.poker_core.positions import position_for_seat
 from poker_training_bot.solver_artifacts.postflop_artifact import PostflopCell
@@ -45,6 +48,7 @@ from poker_training_bot.solver_artifacts.postflop_key import (
     postflop_spot_key,
     price_within_band,
 )
+from poker_training_bot.solver_artifacts.postflop_manifest import MANIFEST_DIR
 from poker_training_bot.solver_artifacts.postflop_sizing import CellAction
 from poker_training_bot.solver_artifacts.schema import PreflopAction
 from poker_training_bot.strategy.contract import (
@@ -152,14 +156,11 @@ def collapse(
     `bet` and a name would hand the caller back the ambiguity the record exists to remove.
 
     **Not the highest weight.** A solver mixes where it has driven a hand to indifference, so an
-    argmax makes every indifferent class pure: a class solved to bet 0.51 and check 0.49 bets
-    every time, an opponent reads the frequency off in a single orbit, and the bet frequency a
-    report then prints is the bot's rather than the artifact's with nothing saying which.
+    argmax bets a class solved to bet 0.51 every time and an opponent reads it in one orbit.
 
     The same mechanism as `PreflopChartStrategy.collapse`, written again rather than imported off
-    a strategy that reads preflop artifacts; two copies of one rule is a finding for the
-    coordinator rather than a licence for them to differ. Weights arrive in the cell's own fixed
-    action order, so the cumulative walk is stable.
+    a preflop strategy (`THE-WEIGHTED-DRAW-IS-WRITTEN-TWICE`). Weights arrive in the cell's own
+    fixed action order, so the cumulative walk is stable.
     """
     positive = [(action, weight) for action, weight in weights if weight > 0.0]
     if not positive:
@@ -190,10 +191,17 @@ class PostflopBettingStrategy:
     strategy_version: int = 1
 
     @classmethod
-    def from_repo(cls, pot_odds_river_call: bool = False) -> PostflopBettingStrategy:
-        """Build from committed data. The flag is explicit and off, decision 5: the pot-odds
-        river call is a rule this repo evaluates rather than a solution it committed."""
-        return cls(library=load_library(), pot_odds_river_call=pot_odds_river_call)
+    def from_repo(
+        cls,
+        pot_odds_river_call: bool = False,
+        *,
+        fetched_root: Path | None = None,
+        manifest_dir: Path = MANIFEST_DIR,
+    ) -> PostflopBettingStrategy:
+        """Build from committed data plus what `fetched_root` holds of the boards `manifest_dir`'s
+        manifests list; `None` is a clone that fetched nothing. The flag is explicit and off,
+        decision 5: the pot-odds river call is a rule this repo evaluates, not a solution."""
+        return cls(load_library(fetched_root, manifest_dir), pot_odds_river_call)
 
     # -- entry point ------------------------------------------------------- #
 
@@ -257,7 +265,7 @@ class PostflopBettingStrategy:
         line = self._covered_line(query, table_size, depth_bb, hero_position, actual)
         if line is None:
             return StrategyRefusal(REFUSE_NO_CELL_FOR_THIS_LINE, named)
-        flop_line, miss = flop_action_line(query, self.library.raise_fractions)
+        flop_line, miss = flop_action_line(query)
         if flop_line is None:
             return StrategyRefusal(REFUSE_FLOP_SIZE_OFF_THE_MENU, about + miss)
         spot = postflop_spot_key(
@@ -266,7 +274,8 @@ class PostflopBettingStrategy:
         cell = self.library.cell_for(spot)
         if cell is not None:
             return cell
-        detail = about + (("board", board), ("spot_key", spot))
+        scope = (("hero_position", hero_position), ("preflop_line", line.preflop_line.rendered))
+        detail = about + scope + (("board", board), ("spot_key", spot))
         if spot in self.library.listed:
             return StrategyRefusal(REFUSE_IN_THE_INDEX_BUT_NOT_FETCHED, detail)
         if canonical_board(query.board) not in line.boards:
@@ -306,12 +315,9 @@ class PostflopBettingStrategy:
         Folds and the big blind's check drop out, which is `spot_key`'s own vocabulary, and a
         raise-to in chips becomes a raise-to in big blinds exactly or the line refuses.
 
-        Nothing is dropped from the end. An earlier draft dropped whichever seat closed the
-        betting, on the reading that a cell keys the line at the decision that ended it - and
-        that reading is what left the preflop raiser with no expressible cell and the bot unable
-        to continuation-bet at all. Decision 8's 2026-09-15 amendment: the key carries the
-        completed line, hero's own closing call included, and hero's position in it is what
-        makes the raiser's flop and the caller's flop two spots rather than one.
+        Nothing is dropped from the end: dropping the seat that closed the betting left the raiser
+        no expressible cell and the bot unable to continuation-bet. Decision 8's 2026-09-15
+        amendment keys the completed line, hero's own closing call included.
         """
         seats = tuple(seat for seat, _ in query.stacks)
         _, big_blind = query.blinds
@@ -464,26 +470,20 @@ class PostflopBettingStrategy:
     def _amount(query: StrategyQuery, drawn: CellAction) -> tuple[int | None, str | None]:
         """Chips to put the level at, or the code saying why there are none.
 
-        **The size comes off the entry that was drawn**, which is the whole of the 2026-09-16
-        schema repair. This looked the fraction up by name - `sized.index(action)` over the cell's
-        action list - and decision 11's menu offers two entries both called `bet`, so the answer
-        was index 0 every time: 33% of pot on all ten committed bets, while 29 of that cell's 160
-        classes weighted the 75% bet above 0.8.
+        **The size comes off the entry that was drawn**, the 2026-09-16 schema repair: looked up by
+        name, decision 11's two `bet` entries answered index 0 every time, 33% of pot on all ten
+        committed bets while 29 of that cell's 160 classes weighted the 75% bet above 0.8.
 
-        **The size is a fraction of the pot, converted against the pot in front of hero**, not a
-        chip count copied out of the cell. The cell's big blinds are a *nominal* size against the
-        nominal pot its key names, and decision 10's band deliberately admits a real pot 20%
-        either side of that, so a 1.815bb c-bet played as a flat 182 chips is 33.1% of a 5.5bb pot
-        and 40.4% of the 4.5bb pot a 2.0bb open leaves. Decision 14 then matches a faced bet by
-        **real** pot fraction inside 0.05, so the bot made a bet its own lookup went on to refuse,
-        on 46 of the corpus's 174 heads-up single-raised flops - and the refusal code blamed the
-        other seat's sizing. `menu_size_chips` is decision 14's own conversion and the one the
-        importer priced each entry's `fraction` with, so the two ends of the trip cannot drift.
+        **The size is a fraction of the pot, converted against the pot in front of hero**, never a
+        chip count copied out of the cell. Decision 10's band admits a real pot 20% either side of
+        the nominal one a key names, so a 1.815bb c-bet played as a flat 182 chips is 40.4% of the
+        4.5bb pot a 2.0bb open leaves, and decision 14's matcher then refused the bot's own bet on
+        46 of the corpus's 174 heads-up single-raised flops. `menu_size_chips` is decision 14's own
+        conversion, the one the importer priced each entry's `fraction` with.
 
-        `query.pot` is the pot as it stands, which is what `flop_action_line` measures every other
-        seat's fraction against. Capping at all-in is not a guess - you cannot bet more than you
-        hold - and hero's ceiling is hero's **own** street contribution plus the stack behind it,
-        read off `seat_states`, the same ceiling `DecisionAuditRecord` proves the answer against.
+        `query.pot` is the pot as it stands, what `flop_action_line` measures every other seat
+        against. Hero's ceiling is hero's **own** street contribution plus the stack behind it,
+        the ceiling `DecisionAuditRecord` proves the answer against.
         `A-COMMITTED-SIZE-IS-CLAMPED-TO-ALL-IN-RATHER-THAN-REFUSED` owns the cap itself.
         """
         hero = next(state for state in query.seat_states if state.seat == query.seat)

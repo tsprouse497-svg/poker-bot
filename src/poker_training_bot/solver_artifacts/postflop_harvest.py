@@ -1,40 +1,31 @@
 """What a solved GTOpen node becomes once hero's suits are collapsed: one committed cell.
 
-The produce side of `postflop_artifact`, which is the consume side. That module says what a
-committed cell must survive; this one builds a payload that survives it, out of what
-`POST /api/node` answers after a solve. Nothing here opens a socket, starts a server or decides
-what to solve: a caller hands it a node payload that has already come back, and
-`scripts/solve_postflop_sample.py` is the caller that has one.
+The produce side of `postflop_artifact`, which is the consume side: a payload that survives the
+importer, built out of what `POST /api/node` answers after a solve. Nothing here opens a socket or
+decides what to solve; a caller hands it a node payload that has already come back.
 
 **The collapse is the whole of the work, and it is hero's hand rather than the board.** GTOpen
-answers per *combo* - 272 of them for a floored big-blind range on `9c8c7c` - and a committed
-cell is keyed by *class*, because the board's own stabiliser makes `AhKh` and `AdKd` the same
-hand against the same board. `postflop_isomorphism.canonical_hole_cards` is the one producer of
-that label here, exactly as it is at the table, so a cell cannot be written under labels the
-lookup will never ask for.
+answers per *combo* and a committed cell is keyed by *class*, because the board's own stabiliser
+makes `AhKh` and `AdKd` one hand against it. `postflop_isomorphism.canonical_hole_cards` is the one
+producer of that label, here as at the table, so no cell is written under labels nobody asks for.
 
 **Two combos of one class are checked against each other rather than averaged.** Nothing in the
-solver makes them agree: `Solver::ensure_symmetric` transports solved data between *chance*
-branches, and `symmetrize_node`'s action arm only walks its children and writes nothing into an
-action node's own per-hand arrays, so the flop node this module harvests - which sits above every
-chance node - is never touched by it. The combos of one class agree because the game is symmetric
-under the board's own suit map and the solve converges toward that, which is an empirical fact
-about a particular run rather than a guarantee. So the check measures how far this run got, and a
-disagreement above `CLASS_AGREEMENT_TOLERANCE` refuses the cell, because the collapse then has to
-pick one of several answers that are not the same answer. The largest divergence actually seen
-travels back on the result so a run reports it rather than assuming it was zero.
+solver makes them agree: `ensure_symmetric` transports data between chance branches and writes
+nothing into the flop action node harvested here. They agree because the game is symmetric under
+the board's suit map and the solve converges toward that - a fact about one run, not a guarantee -
+so a disagreement above `CLASS_AGREEMENT_TOLERANCE` refuses the cell, and the largest divergence
+seen travels back on the result.
 
-**Weights are rounded once, in thousandths, and the residue is paid by the largest entry.**
-Decision 6's lean JSON is three-decimal floats; the importer needs every row to sum to one
-inside `WEIGHT_SUM_TOLERANCE`, which is 1e-6 and far tighter than a third decimal. Rounding each
-entry independently misses that by up to half a thousandth per action, so the rounding is done
-in integers and the difference from 1,000 is taken off whichever entry can afford it.
+**Weights are rounded once, in thousandths, and the residue is paid by the largest entry**, so a
+row of decision 6's three-decimal floats sums to one inside the importer's `WEIGHT_SUM_TOLERANCE`.
 
-**What this module will not do.** It does not invent a class hero's range does not hold: a cell
-carries the classes the solve actually answered for, and a board's full class count - 344 on
-`9c8c7c`, 721 on `8c8d3c`, 1,176 on `Kh7d2c` - is what the *deck* collapses to, not what a
-floored range reaches. It does not name the preflop line, pick a board, or choose which node is
-worth committing; those are the campaign's and they arrive as arguments.
+**A raise is named by its multiplier and a bet by its percent of pot** (decision 16), and a raise
+off the configured `FLOP_RAISE_MENU` is refused here, where the solver's own number arrives.
+
+**What this module will not do.** It does not invent a class hero's range does not hold - a board's
+full class count, 1,176 on `Kh7d2c`, is what the deck collapses to, not what a floored range
+reaches - and it does not name the preflop line, pick a board, or choose which node to commit;
+those arrive as arguments.
 """
 
 from __future__ import annotations
@@ -55,9 +46,11 @@ from poker_training_bot.solver_artifacts.postflop_isomorphism import (
     canonical_hole_cards,
 )
 from poker_training_bot.solver_artifacts.postflop_key import (
+    FLOP_RAISE_MENU,
     FlopAction,
     PreflopLine,
     postflop_spot_key,
+    render_size_bb,
 )
 from poker_training_bot.solver_artifacts.postflop_sizing import CellAction
 from poker_training_bot.solver_artifacts.schema import PreflopAction
@@ -70,22 +63,15 @@ lets the residue be paid once rather than accumulate one half-thousandth per act
 CLASS_AGREEMENT_TOLERANCE = 5e-4
 """How far two combos of one suit-isomorphism class may disagree before the cell is refused.
 
-**What it catches is a run whose combos have not converged onto each other.** The game is
-symmetric under the board's own suit map, so the true strategies of two combos of one class are
-equal and a solve approaching equilibrium drives their difference toward zero. Nothing enforces
-it: `ensure_symmetric` transports data between chance branches and writes nothing into a flop
-action node, which is the node harvested here. A gap above this is therefore a measurement - the
-run is far enough from equilibrium, or the arena is coarse enough, that the combos of one hand
-disagree more than a thousandth-place cell can hide - and it is also what a genuine mismatch
-between the solver's suit group and this repo's would look like, which is the other thing worth
-refusing over.
+**What it catches is a run whose combos have not converged onto each other**, since nothing in the
+solver forces two dresses of one hand to agree (see the module docstring): a gap above this is a
+measurement of a run far from equilibrium or an arena too coarse, and it is also what a mismatch
+between the solver's suit group and this repo's would look like.
 
-**What it does not promise is that a tolerated gap leaves the committed number alone.** A
-committed row is rounded to thousandths, and two values astride a thousandth boundary round apart
-at any separation at all: 0.7724 and 0.7726 differ by 2e-4, well inside this tolerance, and round
-to 0.772 and 0.773. So the collapse's choice of which combo to commit can move a committed digit
-anywhere below this bound, and half a thousandth is a bound on how often rather than on whether.
-`THE-COMMITTED-ROW-IS-ONE-COMBO-RATHER-THAN-AN-AGREED-ANSWER` owns that."""
+**What it does not promise is that a tolerated gap leaves the committed number alone.** Two values
+astride a thousandth boundary round apart at any separation - 0.7724 and 0.7726 round to 0.772 and
+0.773 - so the choice of which combo to commit can move a committed digit anywhere below this
+bound. `THE-COMMITTED-ROW-IS-ONE-COMBO-RATHER-THAN-AN-AGREED-ANSWER` owns that."""
 
 OOP_PLAYER = 0
 IP_PLAYER = 1
@@ -105,12 +91,10 @@ _HOLE_CARDS = 2
 
 SIZE_PCT_DECIMALS = 2
 FLOAT_NOISE = 1e-9
-"""A key renders a size to a hundredth and `render_size_bb` refuses anything finer rather than
-rounding it into a neighbouring cell. The solver's own bet is a configured percent of the pot -
-33% of 5.5 is 1.8150000000000002 in binary - so the percent read back off it comes to
-`33.00000000000001`, which is the hundredth it was configured as wearing a float's tail. It is
-recovered rather than rounded: the value is taken to a hundredth and refused unless the
-difference is inside `FLOAT_NOISE`, which a genuinely off-menu size is not."""
+"""How far a size read back off the solver may sit from the exact number it was configured as. A
+33% bet into 5.5 is 1.8150000000000002 in binary, so its percent reads `33.00000000000001`: it is
+recovered to the hundredth a key renders, and a raise to its menu multiplier, only inside this
+noise. A genuinely off-menu size is refused rather than rounded into a neighbouring cell."""
 
 
 class HarvestError(ValueError):
@@ -163,9 +147,8 @@ def combo_cards(combo: str) -> tuple[str, str]:
 def node_actions(node: Mapping[str, Any]) -> tuple[CellAction, ...]:
     """The node's action menu, each entry carrying its own raise-to level in big blinds.
 
-    **A record per entry rather than names beside a parallel array of sizes.** Decision 11's flop
-    menu puts two entries called `bet` on hero's node, and a list of names cannot say which is
-    which; the 2026-09-16 schema repair carries the measurement.
+    **A record per entry**, because decision 11's flop menu puts two entries called `bet` on hero's
+    node and a list of names cannot say which is which (the 2026-09-16 schema repair).
 
     `amount` on a `Bet` or a `Raise` is the level the acting seat's street contribution goes
     **to**, not what it adds - read off `action_views` in `crates/solver/src/query.rs` and
@@ -188,14 +171,11 @@ def node_actions(node: Mapping[str, Any]) -> tuple[CellAction, ...]:
 
 
 def size_pct(added_bb: float, pot_bb: float) -> float:
-    """One flop size as the percent of pot a key can name, or a refusal.
+    """One flop bet as the percent of pot a key can name, or a refusal naming the solver's number.
 
-    Taken to a hundredth and checked back against what was read, so a configured 33% arriving as
-    `33.00000000000001` is recovered and a size that is genuinely not a hundredth of a percent -
-    a jam, say, or a menu nobody committed - is refused here rather than rounded into the cell
-    next door. `render_size_bb` makes the same refusal one layer down and this one names the
-    solver's own number, which is what a reader needs to see.
-    """
+    Taken to a hundredth and checked back inside `FLOAT_NOISE`, so a configured 33% is recovered
+    and a size that is genuinely not a hundredth of a percent - a jam, say - is refused here rather
+    than rounded into the cell next door, as `render_size_bb` refuses it one layer down."""
     raw = 100.0 * added_bb / pot_bb
     snapped = round(raw, SIZE_PCT_DECIMALS)
     if abs(snapped - raw) > FLOAT_NOISE:
@@ -207,15 +187,36 @@ def size_pct(added_bb: float, pot_bb: float) -> float:
     return snapped
 
 
+def raise_multiplier(raise_to_bb: float, faced_bb: float) -> float:
+    """A raise as the multiplier the solve configured, or a refusal naming the menu.
+
+    Decision 16: a raise is keyed by its multiplier, and GTOpen raises **to** the multiplier times
+    the level it faces, so the multiplier is the raise-to over that level - a re-raise included.
+    The solver's own number is where the menu is enforced: a raise more than `FLOAT_NOISE` from
+    every entry - one GTOpen clamped to a minimum raise or to all-in, say - is refused rather than
+    snapped onto the nearest entry, which would file it under a cell that never faced it."""
+    if not faced_bb > 0:
+        raise HarvestError(f"a raise to {raise_to_bb} faces no bet, so it multiplies nothing")
+    raw = raise_to_bb / faced_bb
+    for entry in FLOP_RAISE_MENU:
+        if abs(raw - entry) <= FLOAT_NOISE:
+            return entry
+    menu = ",".join(f"{render_size_bb(entry)}x" for entry in FLOP_RAISE_MENU)
+    raise HarvestError(
+        f"a raise to {raise_to_bb} over a level of {faced_bb} is {raw}x, which is not on the"
+        f" configured raise menu {menu}. Refused rather than snapped onto it"
+    )
+
+
 def flop_line(
     node: Mapping[str, Any], seat_of_player: Mapping[int, str], starting_pot_bb: float
 ) -> tuple[tuple[FlopAction, ...], float]:
     """The flop as it stands at this node, and what hero already has out on the street.
 
     Built from the node's own `history` rather than from the path the caller asked for, so the
-    committed line is what the server says happened. A flop size is a percent of the pot **as it
-    stood when it went in**, which is the unit `postflop_key` renders and `postflop_sizing` walks
-    forward, so each percent is taken against that step's own pot.
+    committed line is what the server says happened. A bet is a percent of the pot **as it stood
+    when it went in**, taken against that step's own pot; a raise is its multiplier over the level
+    it faced, `raise_multiplier`, never a percent (decision 16).
 
     `put` counts the whole hand, blinds included, and the solver splits the starting pot evenly
     between the two seats, so a seat's street contribution is its `put` less half that pot.
@@ -238,7 +239,14 @@ def flop_line(
         entry = menu[chosen]
         kind = str(_field(entry, "kind", "/api/node history"))
         standing = street.get(player, 0.0)
-        if kind in SIZED_ACTIONS:
+        if kind == "raise":
+            level = float(_field(entry, "amount", "/api/node history"))
+            faced = max((bet for seat, bet in street.items() if seat != player), default=0.0)
+            built.append(
+                FlopAction(seat_of_player[player], kind, multiplier=raise_multiplier(level, faced))
+            )
+            street[player] = level
+        elif kind == "bet":
             level = float(_field(entry, "amount", "/api/node history"))
             if pot <= 0:
                 raise HarvestError("a flop action priced against a pot of zero is no percent")
@@ -330,12 +338,8 @@ def collapse_hero_strategy(
 
 
 def _widest_gap(rows: Sequence[Sequence[float]]) -> float:
-    """The largest disagreement between any two rows of one class, over every pair.
-
-    Every pair rather than every row against the first: a fixed reference under-reports by up to
-    half, and the number this returns is the one a run publishes as evidence that the collapse
-    held. A class has at most six members - the largest stabiliser a flop has - so the pairs are
-    free."""
+    """The largest disagreement between any two rows of one class, over every pair: a fixed
+    reference under-reports by up to half, and a class has at most six members: pairs are free."""
     widest = 0.0
     for index, one in enumerate(rows):
         for two in rows[index + 1 :]:
@@ -388,13 +392,9 @@ def harvest_node(
 def strategy_digest(
     hand_classes: Sequence[str], class_weights: Sequence[Sequence[float]]
 ) -> str:
-    """A sha256 over hero's committed strategy alone, taken on the rounded numbers.
-
-    On the rounded ones deliberately: the digest authenticates the bytes a reader can recompute
-    it from, so a digest over the solver's f32 tail would be a claim about something the repo
-    does not hold. `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES` owns the fact that
-    nothing in the gate re-derives it; this at least makes it re-derivable by hand.
-    """
+    """A sha256 over hero's committed strategy alone, on the rounded numbers a reader can recompute
+    it from rather than the solver's f32 tail the repo does not hold.
+    `A-COMMITTED-SOLVE-DIGEST-IS-A-CLAIM-NO-GATE-RE-DERIVES` owns that no gate re-derives it."""
     payload = json.dumps(
         [list(hand_classes), [list(row) for row in class_weights]],
         separators=(",", ":"),
@@ -431,6 +431,8 @@ def _flop_entries(entries: Sequence[FlopAction]) -> list[dict[str, Any]]:
         item: dict[str, Any] = {"position": entry.position, "action": entry.action}
         if entry.size_pct is not None:
             item["size_pct"] = float(entry.size_pct)
+        if entry.multiplier is not None:
+            item["multiplier"] = float(entry.multiplier)
         built.append(item)
     return built
 

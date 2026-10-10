@@ -7,6 +7,7 @@ approved_scope:
 - src/poker_training_bot/solver_artifacts/**
 - src/poker_training_bot/strategy/postflop_betting.py
 - src/poker_training_bot/strategy/postflop_committed.py
+- src/poker_training_bot/strategy/postflop_spot_queries.py
 - scripts/generate_flop_campaign_report.py
 - scripts/solve_postflop_sample.py
 - scripts/harvest_postflop_closure.py
@@ -4730,3 +4731,10 @@ scope_change_log:
       (`THE-BULK-STRATEGY-EXPORT-KEEPS-THE-RIVER-THE-RULING-SAYS-NOTHING-KEEPS`); the per-line
       manifests git holds and the index whose byte count moves with every file under the postflop
       folder; and the solver notes, for the export's prose. Tests stay out: they are frozen.
+  - date: 2026-10-09
+    reason: >-
+      Widened mid-task to `strategy/postflop_spot_queries.py`. Build lane L found that a raise named
+      by its multiplier (decision 16) is read as adding nothing to the pot in three places: the
+      importer's action parser, `postflop_sizing.pot_before_hero_bb` (both already in scope under
+      `solver_artifacts/**`) and the strategy's flop street in chips, which this entry adds. Two
+      frozen raise-key tests wait on it; no committed cell carries a raise today.

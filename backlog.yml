@@ -132,7 +132,7 @@ items:
       lasting form of the same fix.
 
   - id: THE-BULK-STRATEGY-EXPORT-KEEPS-THE-RIVER-THE-RULING-SAYS-NOTHING-KEEPS
-    status: deferred
+    status: done
     phase: "21"
     title: The bulk strategy export keeps every river strategy, which the ruling says nothing keeps
     reason: >-
@@ -144,6 +144,12 @@ items:
       exports in `~/poker-bot-solve-objects/postflop-clone-b058335`. Closes when the export keeps the
       flop and turn only (a filter in the clone's export, or a harvest that discards the rest) and
       the prose says so; the existing exports are kept until their turn is harvested.
+      Closed 2026-10-09 by phase 21's stage 6 build: `scripts/harvest_postflop_closure.py` reads past
+      the river records and writes none, and the export's docstrings, help text and failure message
+      in `scripts/solve_postflop_sample.py` and the solver notes say the flop and turn are harvested
+      and the river never stored. The clone's export still writes the river into the sidecar file it
+      keeps; the four boards' 24 GB stay in place until their turn is harvested into objects, which
+      waits on THE-CLASS-AGREEMENT-RULE-REFUSES-TEN-OF-THE-FOUR-BOARDS-FIFTY-SIX-FLOP-DECISION-POINTS.
 
   - id: TWO-FLOP-CAMPAIGN-TEST-FILES-SIT-AT-THE-700-LINE-TEST-CAP
     status: deferred
@@ -155,6 +161,33 @@ items:
       cap. The review named two small gaps that belong in the first (a refused board carrying a river
       key, and a river fetch refused with a pinned code rather than any `ValueError`). Closes when
       each file is split along a real seam in a freeze re-open and the two gaps are tested.
+
+  - id: THE-CLASS-AGREEMENT-RULE-REFUSES-TEN-OF-THE-FOUR-BOARDS-FIFTY-SIX-FLOP-DECISION-POINTS
+    status: deferred
+    phase: "21"
+    title: Phase 16's class-agreement rule refuses 10 of the 56 flop decision points on its own four boards, so three of them cannot close
+    reason: >-
+      Found 2026-10-09 by phase 21's stage 6 harvest lane, reading the four boards' kept strategy
+      exports from decision 17's re-solve. Closure keeps every flop and turn decision point of a
+      board from its one solve, 14 flop points a board on the committed line. Phase 16 harvested
+      five of them and all five pass (largest gap 2.84e-4); the harvest re-derives their strategy
+      digests from the export exactly. Of the other nine a board, `collapse_hero_strategy` in
+      `postflop_harvest.py` refuses ten, because two combos of one class differ by more than
+      `CLASS_AGREEMENT_TOLERANCE` (5e-4): five on 9c8c7c (gaps 0.000541 to 0.001408), one on 8c8d3c
+      (0.000734) and four on Ac8c3c (0.000622 to 0.001440), one to three classes over in each.
+      Kh7d2c, rainbow with every class one combo, closes. Example: Ac8c3c, after check, bet 33 and
+      a raise, class 6dAd calls 0.52283, 0.52352 and 0.52419 across its three combos, a smooth drift
+      across suits that reads as the solve's own unconvergence, not a misread. Nothing the frozen
+      tests or the contract allow resolves it: phase 16's decision list rejected raising the
+      tolerance, the contract forbids re-solving to look better, its closure rule refuses a board
+      only for missing the exploitability ceiling, and the frozen manifest test needs all four
+      boards closed. So no manifest is committed and `pytest_flop_campaign` stays red on it. It
+      changes what is stored, so it is Taylor's: another collapse rule (for example the member
+      nearest the others, which THE-COMMITTED-ROW-IS-ONE-COMBO-RATHER-THAN-AN-AGREED-ANSWER
+      discusses), a different tolerance, or a contract rule for a board whose solve meets the
+      ceiling but not the agreement bound. The same rule can meet any board whose classes hold more
+      than one combo, which is every texture group but rainbow unpaired; two-tone unpaired alone is
+      46.6 percent of all flops by the contract's count.
 
   - id: PEOPLE-ACROSS-THE-US-PLAY-AGAINST-THE-BOT-AND-NO-PHASE-OWNS-IT
     status: deferred

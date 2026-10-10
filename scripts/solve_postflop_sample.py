@@ -57,12 +57,18 @@ Usage:
     uv run python scripts/solve_postflop_sample.py --all --export-strategies
     uv run python scripts/solve_postflop_sample.py --deep-check
 
-**`--export-strategies` keeps the whole solve, not only the flop cells.** After a board solves and
-its verdict commits it, and before its server stops, the clone's read-only bulk route writes every
-action node's average strategy to `<clone>/saves/<label>.strats`. That file is moved into
-`--object-dir` beside the object, with `<label>.strats.json` holding the route's summary, the
-file's sha256 and size, and the solver build. The object and index formats are unchanged. It is
-how a re-solve keeps its turn and river decision points for a later harvest from that same solve.
+**`--export-strategies` keeps the whole solve for the closure harvest, not only the flop cells.**
+After a board solves and its verdict commits it, and before its server stops, the clone's read-only
+bulk route writes every action node's average strategy to `<clone>/saves/<label>.strats`. That file
+is moved into `--object-dir` beside the object, with `<label>.strats.json` holding the route's
+summary, the file's sha256 and size, and the solver build. The object and index formats are
+unchanged. It is how a board's flop and turn decision points are closed from that same solve:
+`scripts/harvest_postflop_closure.py` reads the flop and the turn out of the file and writes the
+board's flop and turn objects. The clone's route writes the whole tree, so the file also holds every
+river decision point, about 99.6 percent of its records on the committed line; nothing keeps them
+(decision 1, re-ruled 2026-10-04: the river is solved at the table, never stored). The harvest reads
+past every river record and writes it nowhere, and the file is the harvest's input, not a stored
+object.
 """
 
 from __future__ import annotations
@@ -847,9 +853,10 @@ def export_strategies(
     """Every action node's average strategy from the live server, kept beside the object.
 
     Called after the verdict commits the board and before its server stops, because the export
-    reads the solved tree in that server's memory. Refuses to overwrite an earlier export: the
-    file is the only copy of a solve's turn and river, and a re-run of the same label is a mistake
-    to look at rather than to resolve silently."""
+    reads the solved tree in that server's memory. Refuses to overwrite an earlier export: until
+    the closure harvest has read it, the file is the only copy of the solve's turn, and a re-run of
+    the same label is a mistake to look at rather than to resolve silently. It also holds the
+    river, which the harvest discards; nothing stores it."""
     if not EXPORT_NAME.fullmatch(label):
         raise SolveDriverError(f"{label!r} is not a name the export route keeps unchanged")
     destination = object_dir / f"{label}.strats"
@@ -1992,7 +1999,8 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="after each board commits and before its server stops, keep every action node's"
         " strategy in --object-dir through the clone's bulk export, with a sidecar naming its"
-        " sha256 and solver build",
+        " sha256 and solver build, for scripts/harvest_postflop_closure.py to close the board's"
+        " flop and turn from; the river it also holds is never stored",
     )
     args = parser.parse_args(argv)
 
@@ -2110,10 +2118,10 @@ def main(argv: list[str] | None = None) -> int:
             server.stop()
         result.peak_resident_bytes = server.peak_resident_bytes
         if export_failure is not None:
-            # The board's flop object is still written below; its turn and river are not kept.
+            # The board's flop object is still written below; its turn cannot be harvested.
             print(
-                f"  EXPORT FAILED      {export_failure}. This board's turn and river strategies"
-                " were not kept; re-solve it with --export-strategies."
+                f"  EXPORT FAILED      {export_failure}. This board's turn strategies were not"
+                " kept, so the board cannot close; re-solve it with --export-strategies."
             )
             failures += 1
         report(result)

@@ -85,7 +85,8 @@ action nodes and against all four committed planned arenas to the byte; re-run b
 - Ownership: coordinator owns the contract, decision list, ExecPlan, `CURRENT_TASK.yml` and
   integration. Lanes own the files named in their brief and nothing else: T owns
   `postflop_tree_size.py` and `postflop_textures.py`; L owns `postflop_lines.py`, `postflop_key.py`,
-  `postflop_harvest.py` and the two strategy modules; S owns `postflop_street_rows.py`,
+  `postflop_harvest.py`, the two strategy modules, and from its own finding the raise arithmetic in
+  `postflop_artifact.py`, `postflop_sizing.py` and `strategy/postflop_spot_queries.py`; S owns `postflop_street_rows.py`,
   `postflop_manifest.py` and `postflop_fetch.py`; C owns `postflop_campaign_costs.py` and
   `postflop_determinism.py`; H owns `scripts/harvest_postflop_closure.py`, the manifests folder,
   `index.json` and the export prose; R owns `scripts/generate_flop_campaign_report.py`. No code is
@@ -94,11 +95,12 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   every call; stage 4 frozen tests and canaries; stage 6 the seven modules and the generator, each
   lane returning an uncommitted diff, the exact test and `ruff --no-cache` commands it ran with their
   results, and anything it found outside its brief, or evidence that its slice cannot be done.
-- Status: fact-finding, stage 1 to 5 and part 1 completed; stage 6 lanes T, L, S and C assigned
-  2026-10-09, H and R wait on them.
+- Status: fact-finding, stage 1 to 5 and part 1 completed. Stage 6, 2026-10-09: lanes C, T and S
+  completed; L completed, its raise follow-up refused by the permission check; H completed, halted
+  on the class-agreement finding; R assigned.
 - Integration order: contract, decisions, human gate, tests, freeze, build, gate, review, packet.
   Within stage 6: T, L, S and C in parallel on disjoint files; then H, which needs S's row format
-  and L's lines; then R, which reads everything; then the full gate.
+  and L's lines, with R building alongside and waiting on H's manifest; then the full gate.
 - Review handoff: every stage whose diff touches something a human wrote gets a read-only reviewer
   that wrote none of it, asked also what it held back. No gate runs by the reviewer.
 
@@ -292,6 +294,17 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   stay Taylor's open questions, so every campaign figure the report prints stays not yet measured.
   `TWO-FLOP-CAMPAIGN-TEST-FILES-SIT-AT-THE-700-LINE-TEST-CAP` needs a freeze re-open and is not this
   build's to close.
+  Lane L's raise follow-up waits on Taylor: the session's permission check refused the lane
+  applying its own prepared patch (the importer, `pot_before_hero_bb` and the strategy's flop street
+  read a raise named by its multiplier as adding nothing), so it is not applied by anyone else
+  either. Two frozen raise-key tests stay red until he allows it.
+  Lane H built the harvest and found the second halt: phase 16's class-agreement rule refuses 10 of
+  the 56 flop decision points on 9c8c7c, 8c8d3c and Ac8c3c, so only Kh7d2c can close and no manifest
+  is committed (`THE-CLASS-AGREEMENT-RULE-REFUSES-TEN-OF-THE-FOUR-BOARDS-FIFTY-SIX-FLOP-DECISION-POINTS`).
+  It changes what is stored, so it is Taylor's. The five committed spots' digests re-derive from the
+  exports exactly. Measured on this Mac, not committed: about 10 seconds a board to harvest, one
+  closed flop 13.3 MB (Kh7d2c: flop object 144,769 bytes, turn object 13,175,620), and lzma saves
+  67 to 89 percent of a turn object, gzip 53 to 83.
 
 ## Verification
 
