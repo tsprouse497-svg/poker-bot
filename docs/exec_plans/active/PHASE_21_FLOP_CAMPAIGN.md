@@ -306,10 +306,10 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   The stage 6 review re-derived the ten independently and corrected the cause: the combos of a class
   drift apart in GTOpen's suit order and the gap grows with iterations, an asymmetry in the solve
   rather than slow convergence (`THE-SOLVE-DRIFTS-BY-SUIT-INSIDE-A-CLASS-AND-THE-DRIFT-GROWS-WITH-ITERATIONS`);
-  the widest gap is 0.144 percentage points and every refused point is a deep one. It changes what
+  the widest gap is 0.144 percentage points and every refused point follows a raise or the big blind's lead. It changes what
   is stored, so it is Taylor's, and diagnosing the asymmetry in the clone is one of his options.
   The halts are coupled: the harvest stops on the importer's refusal of a raise's multiplier key
-  before the class check, so the raise patch has to land first either way. The five committed
+  before it reports what the class check found, so the raise patch has to land first either way. The five committed
   spots' digests re-derive from the exports exactly. Measured on this Mac, not committed: about 10
   seconds a board to harvest, one closed flop 13.3 MB (Kh7d2c: flop object 144,769 bytes, turn
   object 13,175,620), and lzma saves 67 to 89 percent of a turn object, gzip 53 to 83.

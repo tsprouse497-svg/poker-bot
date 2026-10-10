@@ -186,7 +186,8 @@ items:
       will not remove, which is what phase 16 said the check exists to catch
       (THE-SOLVE-DRIFTS-BY-SUIT-INSIDE-A-CLASS-AND-THE-DRIFT-GROWS-WITH-ITERATIONS). Its poker size:
       the widest gap is 0.144 percentage points of one action's frequency, and every refused point
-      is a deep one, after a raise or facing the big blind's lead, never a first decision. Nothing the frozen
+      follows a raise or the big blind's lead, and none is the root or the first decision after a
+      check. Nothing the frozen
       tests or the contract allow resolves it: phase 16's decision list rejected raising the
       tolerance, the contract forbids re-solving to look better, its closure rule refuses a board
       only for missing the exploitability ceiling, and the frozen manifest test needs all four
@@ -197,7 +198,7 @@ items:
       the others, which THE-COMMITTED-ROW-IS-ONE-COMBO-RATHER-THAN-AN-AGREED-ANSWER discusses); or a
       different tolerance; or a contract rule for a board whose solve meets the ceiling but not the
       agreement bound. The two halts are coupled: the committed harvest stops on the importer's
-      refusal of a raise's multiplier key before it reaches the class check, so a ruling here
+      refusal of a raise's multiplier key before it reports what the class check found, so a ruling here
       closes nothing until the raise patch the permission check held back is allowed. The same rule can meet any board whose classes hold more
       than one combo, which is every texture group but rainbow unpaired: 1,469 of the 1,755 classes,
       68.9 percent of flops, by the stage 6 review's count. It matters before any campaign money is
@@ -236,6 +237,21 @@ items:
       relabel rows without any check noticing. What would close it: the line index or the object
       carries a fingerprint of what fixes the order (menu, ranges, tree rule), checked on read by
       the phase that plays the turn.
+
+  - id: THE-MEMORY-GUARD-READS-HOST-MEMORY-NOT-A-CONTAINER-LIMIT
+    status: deferred
+    phase: "21"
+    title: The machine record reads the host's memory, which inside a rented pod is usually not the pod's limit
+    reason: >-
+      Found 2026-10-10 by phase 21's stage 6 independent review, round 2, and not yet seen on a pod,
+      since none has run. `postflop_machine.py` reads memory from `/proc/meminfo` MemTotal or
+      `SC_PHYS_PAGES`; inside a container, which a RunPod pod is, both usually report the host's
+      memory rather than the container's limit. The solve driver's memory guard and the new
+      candidate ranking both trust that figure, so a pod that cannot hold the memory bar could rank
+      and then be killed mid-solve rather than refused. What would close it: the record reads the
+      container's own limit (the cgroup memory limit) when there is one, and the report prints which
+      figure it used. The memory twin of
+      THE-MACHINE-RECORD-COUNTS-PROCESSORS-GTOPEN-MAY-NOT-BE-ALLOWED-TO-USE.
 
   - id: PEOPLE-ACROSS-THE-US-PLAY-AGAINST-THE-BOT-AND-NO-PHASE-OWNS-IT
     status: deferred

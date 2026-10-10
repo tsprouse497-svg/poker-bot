@@ -9,8 +9,12 @@ full gate was planting mutations there. Nothing was run in the worktree: the cod
 the tree port against GTOpen's `tree.rs` at `c48f437`. Findings are kept as written; the
 coordinator's response follows each, and only the reviewer marks a blocker resolved.
 
+Round 2, 2026-10-10, same reviewer and rules, of `git diff 1c054ce 999ce2f`, read through git at
+999ce2f and run from a fresh archive copy. The blocker is resolved; no new blocker. Round 2 findings
+are the bullets marked "Round 2" under each section.
+
 ## Blocker
-- **The halt put to Taylor misdiagnoses the cause, and so misses an option.** The class-agreement
+- [resolved] **The halt put to Taylor misdiagnoses the cause, and so misses an option.** The class-agreement
   finding itself is real: an independent reader written from `export.rs`'s format, grouping combos
   by the board's own suit stabiliser rather than through `postflop_harvest`, gives the same ten
   refused points with the same gaps - five on 9c8c7c (0.000541 to 0.001408), one on 8c8d3c
@@ -120,6 +124,40 @@ coordinator's response follows each, and only the reviewer marks a blocker resol
   assigned, though its generator is in 1c054ce; the rented-box slice compares GTOpen's small blind
   tree with "the port's 4,109,130 nodes", the pin's rule, where the clone's is 4,339,626; and Next
   Agent Bootstrap does not mention either halt.
+- Round 2: **the blocker's fix holds, and every figure written into it re-derives.** 1,469 of 1,755
+  classes is all but rainbow unpaired's 286, and 22,100 less its 6,864 flops is 15,236, 68.94
+  percent. 0.144 percentage points is the widest gap, 0.001440 on Ac8c3c. The raise example: 0.6203
+  x 710 = 440.4, so 440 chips against 2.5 x 160 = 400, and 40 / 710 = 0.056; the window 28 to 29.55
+  and 36.63 to 38 percent follows from 2.5b / (1 + b) lying within 0.05 of 0.6203. 19,619,395,709
+  bytes is 18,710,513,792 x 2^20 / 10^6, truncated. The paragraphs sit on the entries they name
+  (raise tolerance, memory guard). `stage-06-raise-arithmetic.diff` is byte-identical to lane L's
+  patch.
+- Round 2: **two wordings put to Taylor are slightly off, both mine first.** "Never a first
+  decision" is wrong for two of the ten: the in-position seat facing the big blind's lead on 9c8c7c
+  and Ac8c3c is that seat's first flop decision. Accurate: every refused point follows a raise or
+  the big blind's lead, and none is the root or the first decision after a check. And "the harvest
+  stops ... before it reaches the class check" is loose: the class check runs (`flop_cells` comes
+  before `_rederive`) and the script dies before it reports what it found. The coupling holds either
+  way. Fix both phrases in the class-agreement entry and the ExecPlan before Taylor reads them.
+- Round 2: **the candidate ranking fix is correct.** `guard_memory_bar_bytes` goes through the
+  driver's own `arena_bytes`, so the two cannot drift; `rank_candidates` refuses a bar below it
+  whenever it is given the server's arena, and `candidate_rows` always gives it, so a record ranked
+  on the raw bar is refused (seen: 18,710,513,792 refused against 19,619,395,709). The card check
+  ports GTOpen exactly: `gpu_budget` is free memory in whole 10^6-byte megabytes less 512, and the
+  solve refuses the card when `estimate_vram`, which is `vram_estimate_bytes`, the figure
+  `postflop_tree_size` mirrors, is above it (`main.rs:269-278`, `656-658`, `gpu/mod.rs:965-977`).
+  Exercised on a synthetic record: a 48 GB box excluded, 49.049 GB ranked, an 80 GB card ranked, a
+  51.7 GB card excluded at a 51,188,000,000-byte budget, and the record re-derives through
+  `candidate_rows`. The flop campaign tests are unchanged at 732 passed, 20 failed and 18 errors, the
+  same two halts.
+- Round 2: **`candidate_rows` uses two bars inconsistently.** It re-ranks against the record's own
+  host bar, which may sit above the campaign's, but always against the campaign's card bar, though
+  the record may carry a higher `card_memory_bar_bytes`. A record ranked at a higher card bar, with a
+  card whose budget falls between the two, would be refused for an excluded set that differs, under
+  a message that does not say why. Re-rank with the record's card bar when it is present, as for the
+  host bar.
+- Round 2: **the narrowed scope covers every source file changed since `base_commit`**, and no
+  preflop module.
 
 ## Alignment
 - `THE-CLASS-AGREEMENT-RULE-REFUSES-TEN-OF-THE-FOUR-BOARDS-FIFTY-SIX-FLOP-DECISION-POINTS`: carry
@@ -141,6 +179,15 @@ coordinator's response follows each, and only the reviewer marks a blocker resol
   fixed in this stage.
 - `THE-FLOP-RAISE-TOLERANCE-IS-BORROWED-FROM-THE-BET-MENU-RULING`: the bot's own raise sizing above
   is the same seam from the other side; note it there if it is not fixed in this stage.
+- Round 2, proposed new id: `THE-MEMORY-GUARD-READS-HOST-MEMORY-NOT-A-CONTAINER-LIMIT`. The fixed
+  ranking and the driver's guard both trust a machine's memory figure, and the machine record reads
+  it from `/proc/meminfo` `MemTotal` or `SC_PHYS_PAGES` (`postflop_machine.py:182`, `227`). Inside
+  a container, which is what a RunPod pod is (decision 5), both usually report the host's memory and
+  not the pod's limit, so the 0.40 ceiling can sit above what the solve may use, and a candidate's
+  `memory_bytes` copied from the host figure would rank a pod that cannot hold the bar. It is the
+  memory twin of `THE-MACHINE-RECORD-COUNTS-PROCESSORS-GTOPEN-MAY-NOT-BE-ALLOWED-TO-USE`. Closes when
+  the record also reads the cgroup memory limit, the guard and the ranking use the smaller figure,
+  and a test proves it. Not verified on a pod: no rented machine has run.
 
 ## Coordinator response, 2026-10-10
 - Blocker: the class-agreement entry now carries the suit-ordered cause, the iteration growth, the
@@ -164,3 +211,11 @@ coordinator's response follows each, and only the reviewer marks a blocker resol
   Bootstrap, corrected.
 - Alignment: both proposed ids filed; notes added to the memory guard and raise tolerance entries.
 
+
+## Coordinator response, round 2, 2026-10-10
+- Both phrases corrected in the class-agreement entry and the ExecPlan: every refused point follows
+  a raise or the big blind's lead, none the root or the first decision after a check; and the
+  harvest dies before it reports what the class check found.
+- Card bar: lane R's `candidate_rows` now ranks against the record's own card bar when it states
+  one, falling back to the campaign's, and still refuses one below the campaign's.
+- Filed `THE-MEMORY-GUARD-READS-HOST-MEMORY-NOT-A-CONTAINER-LIMIT`.

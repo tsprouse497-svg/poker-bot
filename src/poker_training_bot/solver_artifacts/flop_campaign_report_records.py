@@ -314,7 +314,8 @@ def box_determinism_rows(document: Mapping[str, Any], index: Mapping[str, Any]) 
 def candidate_rows(document: Mapping[str, Any], campaign_bar: tree_size.MemoryBar) -> list[str]:
     """The candidates re-ranked from their own fields. The record's bar may not sit below the
     driver's guard's reading of the largest arena the tree walk found over every admitted line,
-    and a candidate on a card must hold that flop's card memory too."""
+    and a candidate on a card must hold the record's card bar, or that flop's card memory when
+    the record states none; a stated card bar below the tree's is refused first."""
     bar = document["memory_bar_bytes"]
     card_bar = document.get("card_memory_bar_bytes")
     if card_bar is not None and card_bar < campaign_bar.vram_bytes:
@@ -331,7 +332,7 @@ def candidate_rows(document: Mapping[str, Any], campaign_bar: tree_size.MemoryBa
             ceiling_fraction=document["ceiling_fraction"],
             concurrent_solves=document["concurrent_solves"],
             server_arena_bytes=campaign_bar.arena_bytes,
-            card_bar_bytes=campaign_bar.vram_bytes,
+            card_bar_bytes=campaign_bar.vram_bytes if card_bar is None else card_bar,
         )
     except ValueError as error:
         raise refuse(CANDIDATES_RECORD, str(error)) from error
