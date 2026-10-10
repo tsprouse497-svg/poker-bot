@@ -94,7 +94,11 @@ def _flop_street(
         seat = seat_of[entry.position]
         standing = street_bet.get(seat, 0)
         if entry.action in SIZED_ACTIONS:
-            added = menu_size_chips(float(entry.size_pct or 0.0) / 100.0, pot_chips)
+            if entry.multiplier is not None:
+                # A raise goes to its multiplier times the level it faced (decision 16).
+                added = round(float(entry.multiplier) * level) - standing
+            else:
+                added = menu_size_chips(float(entry.size_pct or 0.0) / 100.0, pot_chips)
             target = standing + added
             history.append(SeatAction(seat, entry.action, target))
             pot_chips += added

@@ -222,7 +222,11 @@ class PostflopCell:
 
 
 def _entries(
-    raw: list[Any], origin: str, label: str, size_key: str, keys: frozenset[str] = _ACTION_KEYS
+    raw: list[Any],
+    origin: str,
+    label: str,
+    sizes: Sequence[str],
+    keys: frozenset[str] = _ACTION_KEYS,
 ) -> list[dict[str, Any]]:
     """One recorded action list, shape-checked before anything poker-specific reads it.
 
@@ -234,22 +238,22 @@ def _entries(
         path = f"cell.{label}[{index}]"
         payload = _require_object(item, origin, path)
         _require_unique_keys(payload, origin, path, INVALID_VALUE)
-        _require_keys(payload, origin, path, set(keys), {size_key})
-        size = None if size_key not in payload else _number(payload, origin, size_key, path)
+        _require_keys(payload, origin, path, set(keys), set(sizes))
+        sized = {key: _number(payload, origin, key, path) for key in sizes if key in payload}
         seat = "" if "position" not in keys else _require_str(payload, origin, path, "position")
         parsed.append({
-            "path": path, "size": size, "position": seat,
+            "path": path, "size": sized.get(sizes[0]), "sized": sized, "position": seat,
             "action": _require_str(payload, origin, path, "action"),
         })
     return parsed
 
 
-def _parse_actions(raw: list[Any], origin: str, label: str, size_key: str, factory: Any) -> tuple:
+def _parse_actions(raw: list[Any], origin: str, label: str, sizes: tuple, factory: Any) -> tuple:
     """Build one street's recorded actions, letting the vocabulary itself do the refusing."""
     built = []
-    for entry in _entries(raw, origin, label, size_key):
+    for entry in _entries(raw, origin, label, sizes):
         try:
-            built.append(factory(entry["position"], entry["action"], entry["size"]))
+            built.append(factory(entry["position"], entry["action"], **entry["sized"]))
         except ValueError as error:
             raise _bad(origin, f"{entry['path']}: {error}") from error
     return tuple(built)
@@ -346,7 +350,7 @@ def _build_cell(raw: Any, origin: str) -> PostflopCell:
     blinds = parse_blind_structure(payload, origin)
     preflop_actions = _parse_actions(
         _require_list(payload, origin, "cell", "preflop_actions"),
-        origin, "preflop_actions", "size_bb", PreflopAction,
+        origin, "preflop_actions", ("size_bb",), PreflopAction,
     )
     try:
         line = completed_preflop_line(
@@ -385,7 +389,7 @@ def _build_cell(raw: Any, origin: str) -> PostflopCell:
             " dressing of one class is a second cell for a class that already has one")
     flop_actions = _parse_actions(
         _require_list(payload, origin, "cell", "flop_actions"),
-        origin, "flop_actions", "size_pct", FlopAction,
+        origin, "flop_actions", ("size_pct", "multiplier"), FlopAction,
     )
     try:
         derived_key = postflop_spot_key(line, board, flop_actions, pot_bb, effective_stack_bb)
@@ -407,7 +411,7 @@ def _build_cell(raw: Any, origin: str) -> PostflopCell:
     if not 0.0 <= hero_street_bet <= effective_stack_bb:
         raise _bad(origin, f"cell.hero_street_bet_bb is {hero_street_bet} of {effective_stack_bb}")
     raw_menu = _require_list(payload, origin, "cell", "actions")
-    menu = _entries(raw_menu, origin, "actions", "size_bb", frozenset({"action"}))
+    menu = _entries(raw_menu, origin, "actions", ("size_bb",), frozenset({"action"}))
     behind = effective_stack_bb - hero_street_bet
     for entry in menu:
         if (entry["size"] is None) == (entry["action"] in SIZED_ACTIONS):

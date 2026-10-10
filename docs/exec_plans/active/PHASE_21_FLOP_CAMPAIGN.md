@@ -337,8 +337,8 @@ it, and its objects live in `~/poker-bot-solve-objects/postflop-clone-b058335`, 
 only the river is solved at the table. The contract and frozen tests now store the flop and turn
 and never the river, and `main` agrees since MAINT-44. The stage 6 build is committed (seven
 modules, the harvest, the report generator, by six lanes) and reviewed in `stage-06-build.md`, but
-stage 6 cannot advance on two halts for Taylor, both in the stage 6 build slice: allow the raise
-arithmetic patch committed at `reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/stage-06-raise-arithmetic.diff` (the permission check refused
-it), and rule on the class-agreement refusal. Then the harvest
+stage 6 cannot advance on one halt. Taylor allowed the raise arithmetic patch
+(`reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/stage-06-raise-arithmetic.diff`) on 2026-10-10 and it is applied; he sent the
+class-agreement refusal to an investigation of its cause in the GTOpen clone the same day. Then the harvest
 (`uv run python scripts/harvest_postflop_closure.py`) writes the closure objects outside git and the
 button-line manifest, the index is rebuilt with `--index-only`, and the gate is run again.

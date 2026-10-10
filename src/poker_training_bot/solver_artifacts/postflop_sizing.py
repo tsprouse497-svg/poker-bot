@@ -110,7 +110,12 @@ def pot_before_hero_bb(pot_bb: float, flop_actions: Sequence[FlopAction]) -> flo
     for entry in flop_actions:
         standing = street.get(entry.position, 0.0)
         if entry.action in SIZED_ACTIONS:
-            added = pot * float(entry.size_pct or 0.0) / 100.0
+            # A bet is a percent of the pot as it stood; a raise goes to its multiplier times
+            # the level it faced (decision 16), so what it adds is that less its own standing.
+            if entry.multiplier is not None:
+                added = float(entry.multiplier) * level - standing
+            else:
+                added = pot * float(entry.size_pct or 0.0) / 100.0
             pot += added
             level = standing + added
             street[entry.position] = level

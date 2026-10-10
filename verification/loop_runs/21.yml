@@ -1,8 +1,8 @@
 auto_advance: false
-halt_reason: 'Stage 6 build committed and reviewed; two frozen-test commands stay
-  red on two asks for Taylor: (1) allow the raise arithmetic patch at reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/stage-06-raise-arithmetic.diff,
-  which the session permission check refused; (2) rule on THE-CLASS-AGREEMENT-RULE-REFUSES-TEN-OF-THE-FOUR-BOARDS-FIFTY-SIX-FLOP-DECISION-POINTS.
-  Then run the harvest, rebuild the index, re-gate, --resume.'
+halt_reason: 'Stage 6 build committed and reviewed; the raise arithmetic patch was
+  allowed by Taylor and applied on 2026-10-10. One ask remains: the cause of THE-CLASS-AGREEMENT-RULE-REFUSES-TEN-OF-THE-FOUR-BOARDS-FIFTY-SIX-FLOP-DECISION-POINTS,
+  which Taylor sent to investigation in the GTOpen clone on 2026-10-10. Then run the
+  harvest, rebuild the index, re-gate, --resume.'
 loop: halted
 phase_id: '21'
 schema_version: 1
