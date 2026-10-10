@@ -313,7 +313,7 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   spots' digests re-derive from the exports exactly. Measured on this Mac, not committed: about 10
   seconds a board to harvest, one closed flop 13.3 MB (Kh7d2c: flop object 144,769 bytes, turn
   object 13,175,620), and lzma saves 67 to 89 percent of a turn object, gzip 53 to 83.
-  Full gate at 1c054ce: 48 of 52 commands pass; the four red are `pytest_flop_campaign`,
+  Full gate at 1c054ce and again at 1298729 after the review: 48 of 52 commands pass; the four red are `pytest_flop_campaign`,
   `generate_flop_campaign_report`, `pytest` and `check_gate_bite`, every failure one of the two
   halts (38 tests).
 
