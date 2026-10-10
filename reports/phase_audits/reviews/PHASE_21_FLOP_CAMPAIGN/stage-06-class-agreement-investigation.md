@@ -66,8 +66,9 @@ one in three chance gives. With exactly symmetric values (the f64 row) the isomo
 non-representative branches stays exactly symmetric, gap 0 with it on or off.
 
 **4. Rounding in the card sum is the seed.** Summing the same f32 values, with the same weights and
-the same card order, into an f64 accumulator before one rounding makes the gap exactly 0. Nothing
-else changed, so the card or turn weighting (`divisor`, the same 1/44 or 1/45 for every card) is not
+the same card order, into an f64 accumulator before one rounding makes the gap exactly 0. The only
+other change in that switch is dividing by the card count in f64 instead of multiplying by an f32
+reciprocal, so the card or turn weighting (`divisor`, the same 1/44 or 1/45 for every card) is not
 the cause; the order-dependent f32 sum is.
 
 **5. Reduced-precision storage is not the cause here.** These four boards were solved with f32
@@ -99,15 +100,24 @@ checkpoints.
 
 What it does: after `chance_node` returns inside the CFR traversal, every hand takes the value of the
 lowest-index hand in its orbit under the suit permutations that fix the board and the cards dealt so
-far. Those hands are the same hand, so in exact arithmetic this changes nothing; in f32 it makes them
-bitwise equal, and by induction every strategy above stays bitwise symmetric. The orbit tables are
+far. Those hands are the same hand, so in exact arithmetic this changes nothing; in f32 it makes their
+chance values bitwise equal. Fold and showdown values are still added in a per-hand order (in f64,
+then rounded to f32); they came out exactly equal in every run here, but the diff does not guarantee
+that, so the symmetry it gives is measured exact, not proven exact. The orbit tables are
 built once when the solver is created. Best response is left alone, so exploitability still measures
 the strategy honestly, and the copy is skipped when node locks are set, since a lock can make suit
-variants genuinely different. The diff also adds a GTOpen test, `suit_variants_get_identical_strategies`,
+variants genuinely different; any one lock switches the copy off for the whole tree, which no
+poker-bot solve uses. The diff also adds a GTOpen test, `suit_variants_get_identical_strategies`,
 which fails on `c48f437` (suit variants 0.20725185 against 0.20725127 at the turn root) and passes
-with the fix. Summing the cards in f64 also gave 0 in every run, but only the copy guarantees it.
+with the fix. That test covers a turn root only, the stabilizer with nothing dealt; a small flop-root
+case would also cover the path with a turn card dealt, which the independent check below measured
+by hand. Summing the cards in f64 also gave 0 in every run, but the copy is the stronger rule.
 
-Measured effect, before and after, same configs:
+Measured effect, before and after, same configs. Builds: the turn rows and the flop row at 300 ran the
+proposed diff (full-menu flop with an earlier, logically equivalent form that searched the orbit on
+every call); the reduced-menu flop rows at 640 and 1,280 ran the scratch copy's `SYMFIX=1` switch,
+the same rule, which gives the proposed diff's exact numbers on every turn root and on the reduced
+flop at 320 iterations (0.1594%, gap 0).
 
 | Spot | Iterations | Worst gap before | After | Exploitability before | After |
 |---|---|---|---|---|---|
@@ -118,8 +128,12 @@ Measured effect, before and after, same configs:
 | Turn `Ac8c3c2c` | 800 | 1.238e-3 | 0 | 0.0373% | 0.0259% |
 | Turn `8c8d3c2c` (group of two) | 800 | 1.532e-3 | 0 | 0.0190% | 0.0191% |
 
-Exploitability is the same or better everywhere. Cost: interleaved runs put it inside this fanless
-Mac's heat drift, which adds 1 to 1.5 seconds to whichever run goes second; turn root 800 iterations
+No measurable exploitability loss: two rows are a hair worse (0.2892% to 0.2897%, 0.0190% to
+0.0191%) and the larger moves either way, such as 0.0373% to 0.0259%, are best read as how sensitive
+these solves are rather than as a benefit. Cost: the full-menu flop pair reads 353.9 s before and
+406.3 s after at 300 iterations, 15 percent slower, but the fix ran second, after twelve minutes of
+solving on a fanless Mac. Interleaved runs put the cost inside the heat drift, which adds 1 to 1.5
+seconds to whichever run goes second; turn root 800 iterations
 4.4 to 4.8 s before against 4.6 to 4.8 s after, reduced flop 80 iterations 28.2, 30.4, 32.6 s before
 against 26.7, 29.2, 31.7 s after with the fix run first. GTOpen's whole suite passes with the fix:
 `cargo test --release --workspace`, 106 pass (105 before, per `docs/GTOPEN_SOLVER_NOTES.md`, plus the new test) and the
@@ -148,12 +162,51 @@ the evidence of their turn roots, but only 9c8c7c's flop was re-solved here.
 3. Index and byte budget rebuilt, then the harvest. In-class agreement is then exact by
    construction, so the class rule should refuse nothing; that is expected, not yet run through
    `harvest_postflop_closure.py`.
-4. The stored turn rows benefit too: they sit under the turn card, where the fix keeps the remaining
-   suit swaps exact (turn-root runs above).
+4. The stored turn rows need this more than the flop does (see the independent check's turn
+   figures below): they sit under the turn card, where the fix keeps the remaining suit swaps exact
+   (turn-root runs above, and the reviewer's own turn-card measurement).
 
 The contract forbids re-solving to make numbers look better; this re-solve's reason would be a
 solver defect with a measured fix, which is Taylor's ruling to make (frozen into data).
 
 ## Independent check
 
-Pending: a read-only subagent that wrote none of this checks the conclusion against the evidence.
+A read-only subagent that wrote none of this checked the note and the diff on 2026-10-10. It re-ran
+the turn-root table (all four rows exact), the other two turn boards, the river roots with the
+isomorphism on and off, the 16-bit rows, the fix and the f64 sum with the isomorphism off, and the
+new GTOpen test on both builds, and confirmed the scratch fix copy is byte-identical to the saved
+diff. It read the touched code: `perms_fixing` is a group, the tables are looked up by the exact
+stabilizer of the dealt cards so genuinely different hands are never merged, the canonical hand maps
+to itself so the in-place copy is safe, save loading builds the tables through `with_storage`, and
+best response is untouched. With its own reader of the shipped exports it re-derived 9c8c7c's worst
+gap 0.001408 and all ten refused points (Ac8c3c 4, 8c8d3c 1, Kh7d2c 0). Verdict: the conclusion
+holds, no blocker.
+
+Its non-blockers were folded into the text above: the exploitability wording (it was "same or better
+everywhere", false on two rows), which build produced which row, the undisclosed 15 percent slower
+full-menu pair, "bitwise by construction" overstated because fold and showdown sums are not
+projected, the f64 switch also changing a division, one lock disabling the fix tree-wide, and the
+GTOpen test covering only a turn root. It also measured the turn-card path the note had not: on the
+reduced-menu flop at 80 iterations, 1,012 of 1,081 turn decision points have an in-class gap before
+the fix (worst 4.555e-2) and none after.
+
+What it raised outside the brief, recorded as its figures and not re-derived here: the stored turn
+rows in the shipped exports drift far more than the flop rows, grouping by the suit swaps that fix
+board and turn card.
+
+| Board | Worst turn gap | Turn decision points with a class over 5e-4 |
+|---|---|---|
+| 9c8c7c | 0.136 | 2,007 of 6,419 |
+| Ac8c3c | 0.104 | 1,492 of 6,419 |
+| 8c8d3c | 0.031 | 692 of 6,419 |
+| Kh7d2c | 0 | 0 |
+
+They are not weighted by how often a hand reaches the point, so the worst may sit on rarely reached
+hands. `THE-SOLVE-DRIFTS-BY-SUIT-INSIDE-A-CLASS-AND-THE-DRIFT-GROWS-WITH-ITERATIONS` calls the turn
+drift unmeasured and should carry these figures; they strengthen the case for re-solving, because no
+agreement check guards turn rows at all.
+
+Alignment items it named: the GPU path is still unfixed (it did not verify this note's reading of
+`kernels.cu`), and the value queries in `query.rs` that also go through `chance_node` are not
+projected, so any stored values other than strategies keep tiny in-class gaps. It could not verify
+the 106-test suite count or the clippy count, which it did not run, nor the harvest script itself.
