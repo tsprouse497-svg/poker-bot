@@ -76,16 +76,31 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   stage 2's decision list are coordinator-owned, because each criterion transcribes a ruling Taylor
   made in session or a number the lane measured, and the decisions are questions for him that must
   be written by whoever will put them to him. From stage 4: a test-author lane that did not write
-  the contract; at stage 6, separate build lanes for the driver (threads, machine record, ranges for
-  any line, closure harvest), the report generator, and the campaign runs themselves.
-- Ownership: coordinator owns the contract, decision list, ExecPlan and integration. Lanes own the
-  files named in their brief and nothing else.
+  the contract. Stage 6 build, from 2026-10-09, six general-purpose lanes, none of which writes a
+  test: lane T, the tree counter and texture groups; lane L, the lines, the raise key and the
+  strategy's fetched folder; lane S, the street rows, the manifest and the fetch; lane C, campaign
+  costs and the determinism verdicts; then lane H, the harvest of phase 16's four boards into a
+  committed manifest; then lane R, the report generator. The campaign runs themselves are not this
+  session's: they spend, and the trial cap and machine are Taylor's open questions.
+- Ownership: coordinator owns the contract, decision list, ExecPlan, `CURRENT_TASK.yml` and
+  integration. Lanes own the files named in their brief and nothing else: T owns
+  `postflop_tree_size.py` and `postflop_textures.py`; L owns `postflop_lines.py`, `postflop_key.py`,
+  `postflop_harvest.py` and the two strategy modules; S owns `postflop_street_rows.py`,
+  `postflop_manifest.py` and `postflop_fetch.py`; C owns `postflop_campaign_costs.py` and
+  `postflop_determinism.py`; H owns `scripts/harvest_postflop_closure.py`, the manifests folder,
+  `index.json` and the export prose; R owns `scripts/generate_flop_campaign_report.py`. No code is
+  coordinator-owned.
 - Expected outputs: stage 1 contract with measured criteria; stage 2 decision list with a class on
-  every call; stage 4 frozen tests and canaries; stage 6 driver, generator and campaign data.
-- Status: fact-finding completed; stage 1 contract written and reviewed in three rounds.
+  every call; stage 4 frozen tests and canaries; stage 6 the seven modules and the generator, each
+  lane returning an uncommitted diff, the exact test and `ruff --no-cache` commands it ran with their
+  results, and anything it found outside its brief, or evidence that its slice cannot be done.
+- Status: fact-finding, stage 1 to 5 and part 1 completed; stage 6 lanes T, L, S and C assigned
+  2026-10-09, H and R wait on them.
 - Integration order: contract, decisions, human gate, tests, freeze, build, gate, review, packet.
+  Within stage 6: T, L, S and C in parallel on disjoint files; then H, which needs S's row format
+  and L's lines; then R, which reads everything; then the full gate.
 - Review handoff: every stage whose diff touches something a human wrote gets a read-only reviewer
-  that wrote none of it, asked also what it held back.
+  that wrote none of it, asked also what it held back. No gate runs by the reviewer.
 
 ## Slices
 
@@ -165,13 +180,14 @@ action nodes and against all four committed planned arenas to the byte; re-run b
   the server's printed "solver threads" line, since the record counts processors from
   `/proc/cpuinfo` and GTOpen counts the ones it may use
   (`THE-MACHINE-RECORD-COUNTS-PROCESSORS-GTOPEN-MAY-NOT-BE-ALLOWED-TO-USE`).
-- [ ] Before any spend: the specific AWS machine types and hourly prices go to Taylor. Read from
-  instances.vantage.sh on 2026-09-26, us-east-1 on demand, to be confirmed on AWS's own page: CPU
-  c8g.8xlarge (Graviton4, 32 vCPU, 64 GiB) $1.276/h, c7i.8xlarge (Intel Sapphire Rapids) $1.428/h,
-  c7a.8xlarge (AMD EPYC 9R14) $1.642/h; GPU g7e.2xlarge (RTX PRO 6000 Blackwell, 96 GiB card, 64 GiB
-  RAM) $3.36/h. The 48 GB L40S (g6e) is out: the small blind line needs 51.24 GB of card memory by
-  GTOpen's own estimate on the tree decision 17 rules (48.50 on the pin's). A 64 GiB box holds the
-  small blind line's 19.62 GB arena, as the driver reads it, under the 0.40 ceiling (27.5 GB).
+- [ ] Before any spend: the specific machine types and hourly prices go to Taylor. **Superseded
+  2026-10-04**: decision 5 was re-ruled to RunPod, so the AWS types and prices read from
+  instances.vantage.sh on 2026-09-26 no longer describe any candidate and are not repeated here;
+  RunPod's machines and prices are read on the day and shown to him before anything is rented. Two
+  facts survive the move because they are memory, not price: the 48 GB card is out, since the small
+  blind line needs 51.24 GB of card memory by GTOpen's own estimate on the tree decision 17 rules,
+  and the small blind line's 19.62 GB arena, as the driver reads it, needs about 49.0 GB of RAM
+  under the 0.40 ceiling.
 - [ ] At the campaign budget: Taylor confirms or drops the river on its measured size, harvest time
   and monthly bill. If he drops it, the contract's river criteria become a `contract-update` in this
   lane before the campaign starts, and decision 1 is recorded as re-ruled.
@@ -269,6 +285,14 @@ action nodes and against all four committed planned arenas to the byte; re-run b
     `THE-BULK-STRATEGY-EXPORT-KEEPS-THE-RIVER-THE-RULING-SAYS-NOTHING-KEEPS` and
     `TWO-FLOP-CAMPAIGN-TEST-FILES-SIT-AT-THE-700-LINE-TEST-CAP`.
 
+- [ ] Stage 6 build, 2026-10-09. `main` merged at 5e33c8a (MAINT-45, MAINT-46); only the freeze lock
+  conflicted, re-locked over main's re-frozen `tests/test_loop_fleet.py`. Scope widened for the
+  seven modules, the generator, the harvest and the manifests. Lanes T, L, S and C in parallel, then
+  H, then R, per the Delegation Plan. No rented machine and no spend: the trial cap and the machine
+  stay Taylor's open questions, so every campaign figure the report prints stays not yet measured.
+  `TWO-FLOP-CAMPAIGN-TEST-FILES-SIT-AT-THE-700-LINE-TEST-CAP` needs a freeze re-open and is not this
+  build's to close.
+
 ## Verification
 
 Stage checks through `uv run python scripts/loop_stage.py --phase 21`. The full gate is expected red
@@ -281,7 +305,7 @@ Not yet.
 ## Next Agent Bootstrap
 
 Worktree `~/projects/poker-bot-worktrees/phase-21`, loop at stage 6 (build) in `implementation`
-mode, `base_commit` at the merge of `main` (fd1bb89). Run `uv run python scripts/loop_stage.py --phase
+mode, `base_commit` at the merge of `main` (5e33c8a, MAINT-45 and MAINT-46). Run `uv run python scripts/loop_stage.py --phase
 21` for the next action. Part 1 is built. Decisions 17 and 18 are done: the clone at `c48f437`
 carries both fixes, the contract and tests state the new tree, phase 16's four boards are re-solved on
 it, and its objects live in `~/poker-bot-solve-objects/postflop-clone-b058335`, never the shared

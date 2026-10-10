@@ -1,9 +1,18 @@
 task_id: PHASE_21_FLOP_CAMPAIGN
 active_phase: '21'
 task_mode: implementation
-base_commit: 79651fc2170af8a8ce3a2ade87ef0195b4f23d18
+base_commit: 5e33c8a72eae274ae5955c694afb4be8e3cd9480
 approved_scope:
 - reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/**
+- src/poker_training_bot/solver_artifacts/**
+- src/poker_training_bot/strategy/postflop_betting.py
+- src/poker_training_bot/strategy/postflop_committed.py
+- scripts/generate_flop_campaign_report.py
+- scripts/solve_postflop_sample.py
+- scripts/harvest_postflop_closure.py
+- data/artifacts/postflop/manifests/**
+- data/artifacts/postflop/index.json
+- docs/GTOPEN_SOLVER_NOTES.md
 standing_scope:
 - CURRENT_TASK.yml
 - verification/loop_state.yml
@@ -4704,4 +4713,20 @@ scope_change_log:
       says, so the precondition the river contract review set is met. Backlog conflicts kept both
       sides' new entries and took main's phase 22 adoptions; generated docs rebuilt. `base_commit`
       moves to the merge.
-
+  - date: 2026-10-09
+    reason: >-
+      `main` (MAINT-45, MAINT-46) merged into the lane at 5e33c8a: phase 18 narrowed and put on
+      hold, and the fleet board and review queue show a held or not-yet-startable phase apart from
+      real asks. One conflict, the freeze lock, re-locked over the merged suite; its only change is
+      main's re-frozen `tests/test_loop_fleet.py` and the floor, 1,496 to 1,512. `base_commit` moves
+      to the merge.
+  - date: 2026-10-09
+    reason: >-
+      Widened for the stage 6 build, which the frozen tests now wait on. The seven modules they
+      import go under `solver_artifacts/**`, beside the part 1 modules; the postflop strategy and
+      its committed-cell reader take the folder fetched objects are read from; the new report
+      generator; `solve_postflop_sample.py` and a harvest script, which read the turn out of the
+      four boards' kept strategy exports and discard the river
+      (`THE-BULK-STRATEGY-EXPORT-KEEPS-THE-RIVER-THE-RULING-SAYS-NOTHING-KEEPS`); the per-line
+      manifests git holds and the index whose byte count moves with every file under the postflop
+      folder; and the solver notes, for the export's prose. Tests stay out: they are frozen.
