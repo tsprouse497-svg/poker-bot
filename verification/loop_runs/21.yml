@@ -1,5 +1,9 @@
 auto_advance: false
-loop: running
+halt_reason: 'Stage 6 build committed and reviewed; two frozen-test commands stay
+  red on two asks for Taylor: (1) allow the raise arithmetic patch at reports/phase_audits/reviews/PHASE_21_FLOP_CAMPAIGN/stage-06-raise-arithmetic.diff,
+  which the session permission check refused; (2) rule on THE-CLASS-AGREEMENT-RULE-REFUSES-TEN-OF-THE-FOUR-BOARDS-FIFTY-SIX-FLOP-DECISION-POINTS.
+  Then run the harvest, rebuild the index, re-gate, --resume.'
+loop: halted
 phase_id: '21'
 schema_version: 1
 stage: 6
