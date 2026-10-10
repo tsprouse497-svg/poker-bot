@@ -21,6 +21,31 @@ forbidden_scope:
 scope_change_log:
   - date: 2026-10-05
     reason: >-
+      MAINT-46 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. Taylor put phase 18 on hold on 2026-10-05
+      and asked for the repo to account for it. Main records the hold in the loop policy, the fleet
+      board and review queue show a held phase and a phase that cannot start yet apart from real asks,
+      and the docs that describe the board and the roadmap say so. The test files change and are
+      re-frozen, which the lock diff records.
+  - date: 2026-10-05
+    reason: >-
+      Widened mid-task to phase 19's contract. The independent review's one blocker: phase 19 gates a
+      substitution rule on "the phase 18 pool", which the narrowed phase 18 drops. One phrase changes
+      to "the phase 18 measurement"; phase 19's dependency on 18 is unchanged.
+  - date: 2026-10-05
+    reason: >-
+      Widened mid-task to phase 20's contract. Taylor asked in this session that phase 20 be shown as
+      intentionally left open, committing to nothing, after the review queue listed it as waiting on
+      him. The contract and the loop-policy reason now say so.
+  - date: 2026-10-05
+    reason: >-
+      MAINT-45 opens from idle, so every pattern in `approved_scope` reads as a widening against
+      `base_commit` and this entry puts them on the record. Taylor ruled on 2026-10-05 that phase 18
+      stays but narrower: the solve is taken as good play, and the phase measures only what the
+      bot's departures from it cost, in chips. This task records the ruling in phase 18's skeleton
+      contract, both roadmaps and the loop-policy reason, before any phase 18 lane starts.
+  - date: 2026-10-05
+    reason: >-
       MAINT-44 opens from idle, so every pattern in `approved_scope` reads as a widening against
       `base_commit` and this entry puts them on the record. Taylor re-ruled on 2026-10-04, after
       MAINT-42 and MAINT-43 merged: the turn is stored like the flop, and only the river is solved at
